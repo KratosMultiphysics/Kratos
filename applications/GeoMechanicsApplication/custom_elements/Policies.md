@@ -31,7 +31,7 @@ stress state policies:
 
 ![stress_state_policies.svg](stress_state_policies.svg)
 
-For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3d](../tests/cpp_tests/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/test_plane_strain_stress_state.cpp) and [axisymmetric](../tests/cpp_tests/test_axisymmetric_stress_state.cpp) stress states.
+For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3D](../tests/cpp_tests/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/test_plane_strain_stress_state.cpp) and [axisymmetric](../tests/cpp_tests/test_axisymmetric_stress_state.cpp) stress states.
 
 ### Strain vectors
 
@@ -113,7 +113,7 @@ B =
 \delta N_1/\delta x & 0 & \delta N_2/\delta x & 0 & \delta N_3/\delta x & 0 \\
 0 & \delta N_1/\delta y & 0 & \delta N_2/\delta y & 0 & \delta N_3/\delta y\\
 0 & 0 & 0 & 0 & 0 & 0\\
-\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_2/\delta y & \delta N_3/\delta x
+\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_3/\delta y & \delta N_3/\delta x
 \end{bmatrix}
 ```
 For the axisymmetric stress state, this would result in the following B-matrix
@@ -123,7 +123,7 @@ B =
 \delta N_1/\delta x & 0 & \delta N_2/\delta x & 0 & \delta N_3/\delta x & 0 \\
 0 & \delta N_1/\delta y & 0 & \delta N_2/\delta y & 0 & \delta N_3/\delta y\\
 N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
-\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_2/\delta y & \delta N_3/\delta x
+\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_3/\delta y & \delta N_3/\delta x
 \end{bmatrix}
 ```
 
