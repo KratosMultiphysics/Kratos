@@ -745,13 +745,81 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
     }
     else if(rVariable == PERMEABILITY_MATRIX)
     {
-        //TODO(U_Pl_pg)
-
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = mIntrinsicPermeability;
+        }
+    } else if(rVariable == LIQUID_PERMEABILITY_MATRIX)
+    {
+        //Previous definitions
+        const PropertiesType& Prop = this->GetProperties();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+        //Constitutive Law parameters
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+
+        //Saturation Law paremeters
+        SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            //Compute GradNpT (passed to the SaturationLaw)
+            this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+            //Compute Np
+            noalias(Variables.Np) = row(NContainer,GPoint);
+
+            //Compute Saturation Law variables: Sl, dSldPc, krl and krg
+            mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+            rOutput[GPoint].resize(TDim,TDim,false);
+            noalias(rOutput[GPoint]) = Variables.krl*mIntrinsicPermeability;
+        }
+    } else if(rVariable == GAS_PERMEABILITY_MATRIX)
+    {
+        //Previous definitions
+        const PropertiesType& Prop = this->GetProperties();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+        //Constitutive Law parameters
+        ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+
+        //Saturation Law paremeters
+        SaturationLaw::Parameters SaturationParameters(Geom,Prop,rCurrentProcessInfo);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,ConstitutiveParameters,SaturationParameters,Geom,Prop,rCurrentProcessInfo);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            //Compute GradNpT (passed to the SaturationLaw)
+            this->CalculateKinematics(Variables.GradNpT,Variables.B,Variables.StrainVector,DN_DXContainer,Variables.DisplacementVector,GPoint);
+
+            //Compute Np
+            noalias(Variables.Np) = row(NContainer,GPoint);
+
+            //Compute Saturation Law variables: Sl, dSldPc, krl and krg
+            mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
+
+            rOutput[GPoint].resize(TDim,TDim,false);
+            noalias(rOutput[GPoint]) = Variables.krg*mIntrinsicPermeability;
         }
     } else {
         UPlPgElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
