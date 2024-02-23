@@ -49,10 +49,9 @@ void VanGenuchtenLaw::CalculateLiquidRelativePermeability (SaturationLawVariable
 {
     double& rkrl = rValues.Getkrl();
 
-    //TODO(U_Pl_pg). Change expression
-    const double nw = 1.5;
+    const double nw = 1.0/rVariables.lambda;
 
-    rkrl = std::pow(rVariables.Se,nw);
+    rkrl = std::sqrt(rVariables.Se)*std::pow(1.0-std::pow(1.0-std::pow(rVariables.Se,nw),rVariables.lambda),2.0);
     rkrl = std::max(rkrl,rVariables.krmin);
 }
 
@@ -62,10 +61,9 @@ void VanGenuchtenLaw::CalculateGasRelativePermeability (SaturationLawVariables& 
 {
     double& rkrg = rValues.Getkrg();
 
-    //TODO(U_Pl_pg). Change expression
-    const double ng = 3.0;
+    const double ng = 1.0/rVariables.lambda;
     
-    rkrg = std::pow(1.0-rVariables.Se,ng);
+    rkrg = std::sqrt(1.0-rVariables.Se)*std::pow(1.0-std::pow(rVariables.Se,ng),2.0*rVariables.lambda);
     rkrg = std::max(rkrg,rVariables.krmin);
 }
 

@@ -28,7 +28,7 @@
 
 namespace Kratos {
 
-/// Van Genuchten Saturation Law. TODO(U_Pl_pg): change reference according to the new expression used for kr
+/// Van Genuchten Saturation Law.
 /// see https://www.sciencedirect.com/science/article/pii/S0266352X22004657
 
 class KRATOS_API(POROMECHANICS_APPLICATION) VanGenuchtenLaw : public SaturationLaw
