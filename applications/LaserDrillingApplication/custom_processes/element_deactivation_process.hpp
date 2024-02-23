@@ -47,7 +47,12 @@ public:
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "thermal_energy_per_volume_threshold": 1.0e20,
-                "thermal_counter_threshold": 0
+                "thermal_counter_threshold": 0,
+                "alpha_threshold": 0.8,
+                "decomposition_law" : "Prout-Tompkins",
+                "decomposition_law_reference_temperature": 400.0,
+                "decomposition_law_constant_1": 1e-7,
+                "decomposition_law_constant_2": 0.007
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -59,7 +64,11 @@ public:
 
         mthermal_energy_per_volume_threshold = rParameters["thermal_energy_per_volume_threshold"].GetDouble();
         mthermal_counter_threshold = rParameters["thermal_counter_threshold"].GetInt();
-
+        m_alpha_threshold = rParameters["alpha_threshold"].GetDouble();
+        m_decomposition_law = rParameters["decomposition_law"].GetString();
+        m_decomposition_law_reference_temperature = rParameters["decomposition_law_reference_temperature"].GetDouble();
+        m_decomposition_law_constant_1 = rParameters["decomposition_law_constant_1"].GetDouble();
+        m_decomposition_law_constant_2 = rParameters["decomposition_law_constant_2"].GetDouble();
         KRATOS_CATCH("");
     }
 
@@ -91,7 +100,7 @@ public:
         int NElems = static_cast<int>(mr_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
         #pragma omp parallel for
-        for(int i = 0; i < NElems; i++)
+        for (int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
             Element::GeometryType& rGeom = itElem->GetGeometry();
@@ -99,18 +108,14 @@ public:
             GeometryData::IntegrationMethod MyIntegrationMethod = itElem->GetIntegrationMethod();
             unsigned int NumGPoints = rGeom.IntegrationPoints(MyIntegrationMethod).size();
             std::vector<double> ThermalEnergyPerVolumeVector(NumGPoints); // All components in this vector contain the same elemental thermal energy
+            std::vector<double> Temperature(NumGPoints); // All components in this vector contain the same elemental thermal energy
+            std::vector<double> ThermalDecomposition(NumGPoints); // All components in this vector contain the same elemental thermal energy
 
-            itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY_PER_VOLUME,ThermalEnergyPerVolumeVector,CurrentProcessInfo);
-            
-            if(ThermalEnergyPerVolumeVector[0] > mthermal_energy_per_volume_threshold){
-                int& r_thermal_counter = itElem->GetValue(THERMAL_COUNTER);
-                r_thermal_counter += 1;
-                // TODO: replace by real criterion
-                if(r_thermal_counter > mthermal_counter_threshold){
-                    itElem->Set(ACTIVE, false);
-                }
-            }
+            itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY_PER_VOLUME, ThermalEnergyPerVolumeVector, CurrentProcessInfo);
+            itElem->CalculateOnIntegrationPoints(TEMPERATURE, Temperature, CurrentProcessInfo);
+            itElem->CalculateOnIntegrationPoints(THERMAL_DECOMPOSITION, ThermalDecomposition, CurrentProcessInfo);
         }
+
         KRATOS_CATCH("");
     }
 
@@ -140,6 +145,11 @@ protected:
     ModelPart& mr_model_part;
     double mthermal_energy_per_volume_threshold;
     int mthermal_counter_threshold;
+    double m_alpha_threshold;
+    std::string m_decomposition_law;
+    double m_decomposition_law_reference_temperature;
+    double m_decomposition_law_constant_1;
+    double m_decomposition_law_constant_2;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -169,11 +169,11 @@ public:
         rOStream << this->Info() << this->Id();
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
+    friend double ComputeAlpha(std::string law, double temperature, double old_alpha, const ProcessInfo& rCurrentProcessInfo); //double K1, double K2, double T0);
 
     ///@}
 protected:

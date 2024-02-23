@@ -31,6 +31,15 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def __init__(self, model, custom_settings):
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
+        self.jump_between_pulses_counter = 0
+
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.jump_between_pulses_counter += delta_time
+        if self.jump_between_pulses_counter >= self.time_jump_between_pulses:
+            self.ImposeTemperatureDistributionDueToLaser1D()
+            self.jump_between_pulses_counter = 0
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -51,50 +60,61 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Set element counter variable to zero
         for elem in self.main_model_part.Elements:
             elem.SetValue(LaserDrillingApplication.THERMAL_COUNTER, 0)
+            elem.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+            elem.SetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION, 0.01)
             
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
         with open(materials_filename, 'r') as parameter_file:
-                materials = KratosMultiphysics.Parameters(parameter_file.read())
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
 
         material_settings = materials["properties"][0]["Material"]
 
-        self.Q = 25E-06
-        residual_heat_fraction = 0.05
+        with open("ProjectParameters.json", 'r') as project_parameters_file:
+            project_parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
+
+        if not project_parameters["problem_data"].Has("energy"):
+            self.Q = 25e-6
+        else:
+            self.Q = project_parameters["problem_data"]["energy"].GetDouble()
+        if not project_parameters["problem_data"].Has("residual_heat_fraction"):
+            residual_heat_fraction = 0.05
+        else:
+            residual_heat_fraction = project_parameters["problem_data"]["residual_heat_fraction"].GetDouble()
+        if not project_parameters["problem_data"].Has("mask_aperture_diameter"):
+            mask_aperture_diameter = 0.025
+        else:
+            mask_aperture_diameter = project_parameters["problem_data"]["mask_aperture_diameter"].GetDouble()
+        if not project_parameters["problem_data"].Has("vaporisation_temperature"):
+            self.T_e = 693.0
+        else:
+            self.T_e = project_parameters["problem_data"]["vaporisation_temperature"].GetDouble()
+        if not project_parameters["problem_data"].Has("time_jump_between_pulses"):
+            self.time_jump_between_pulses = 1e6
+        else:
+            self.time_jump_between_pulses = project_parameters["problem_data"]["time_jump_between_pulses"].GetDouble()
+
         self.Q *= residual_heat_fraction
-        mask_aperture_diameter = 0.025
         self.R_far = mask_aperture_diameter * 0.5
-        self.T_e = 693.0
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
         self.conductivity = material_settings['Variables']['CONDUCTIVITY'].GetDouble()
         self.rho = material_settings['Variables']['DENSITY'].GetDouble()
         self.T0 = self.settings['ambient_temperature'].GetDouble()
         self.kappa = self.conductivity / (self.rho * self.cp)
-        print("cp:", self.cp)
-        print("conductivity (lambda):", self.conductivity)
-        print("rho:", self.rho)
-        print("T0:", self.T0)
 
         self.ImposeTemperatureDistributionDueToLaser1D()
-        print('Initial given energy: ', self.Q)
-
         computed_energy = self.MonitorEnergy()
-        print("Initial computed energy: ", computed_energy)
-
+        print(computed_energy)
         temperature_factor = self.Q / computed_energy
 
         self.AdjustTemperatureField(temperature_factor)
-
-        initial_energy_after_scaling = self.MonitorEnergy()
-        print("Initial computed energy after scaling: ", initial_energy_after_scaling)
-
+        computed_energy = self.MonitorEnergy()
+        print(computed_energy)
         radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
-
         self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
         self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
         self.results_filename = 'results.h5'
         self.CreateResultsFile(self.results_filename)
-
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
@@ -103,14 +123,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             radius = node.Y
             z = node.X
             if radius <= self.R_far:
-                temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
-            else:
-                temp = 0.0
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+                delta_temp = self.TemperatureVariationInZDueToLaser1D(radius, z)
+                old_temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                new_temp = old_temp + delta_temp
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
 
     def AdjustTemperatureField(self, temperature_factor):
-
         for node in self.main_model_part.Nodes:
             temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
             temp *= temperature_factor
@@ -122,7 +141,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         sigma = 0.5 * self.R_far
         C = self.Q / (2 * np.pi * sigma**2 * (1 - np.exp(-self.R_far**2 / (2 * sigma**2))))       
         q =  C * np.exp(-0.5 * (radius / self.R_far)**2)
-
         return q
 
     def TimeToAchieveEvaporationTemperature(self, radius):
@@ -137,14 +155,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         t_evap = self.TimeToAchieveEvaporationTemperature(radius)
         C = q / (self.rho * self.cp * 2.0 * np.sqrt(np.pi * self.kappa * t_evap))
         delta_temp = C * np.exp(- z**2 / (4.0 * self.kappa * t_evap))
-
         return delta_temp
 
     def SolveSolutionStep(self):
-
         super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
-
-        print("Current computed energy: ", self.MonitorEnergy())
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
@@ -161,18 +175,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
     def ImposeTemperatureDueToLaser(self):
 
         t_ini = 5e-3
-        print("kappa:", self.kappa)
-
         self.C_L = 2.0 * self.Q / (8.0 * self.cp * (np.pi * self.kappa)**1.5 * self.rho)
-
-        print("Q:", self.Q)
-        print("C_L:", self.C_L)
 
         def bell_curve(t, radius_squared):
             z = -radius_squared / (4.0 * self.kappa * t)
-
             bell_curve_value = self.C_L / t**1.5 * np.exp(z)
-
             return bell_curve_value
 
         for node in self.main_model_part.Nodes:
@@ -181,9 +188,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             temp = self.T0 + bell_curve(t_ini, r_2)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
-
-        T_max_ini = self.C_L / t_ini**1.5
-        print("T_max_ini:", T_max_ini)
 
     def CreateResultsFile(self, filename):
         if os.path.exists(self.results_filename):
