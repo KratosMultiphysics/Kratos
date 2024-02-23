@@ -62,10 +62,13 @@ namespace EmbeddedLaplacianBCSFInternals {
         ///@{
 
         static constexpr std::size_t NumNodes = TDim + 1;
+        static constexpr std::size_t NumEdges = (TDim-1)*2;
 
         typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
         typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
+        typedef array_1d<array_1d<double,3>,NumEdges> EdgePointsArrayType;
         typedef array_1d<double,NumNodes> NodalScalarData;
+        typedef array_1d<double,NumEdges> EdgeScalarData;
 
         ///@}
         ///@name Public Members
@@ -84,6 +87,9 @@ namespace EmbeddedLaplacianBCSFInternals {
         ShapeFunctionsGradientsType PositiveInterfaceDNDX;
         Vector PositiveInterfaceWeights;
         InterfaceNormalsType PositiveInterfaceUnitNormals;
+
+        EdgeScalarData EdgeRatios;
+        EdgePointsArrayType EdgeIntersectionPoints;
 
         size_t NumPositiveNodes;
         size_t NumNegativeNodes;
@@ -106,6 +112,16 @@ namespace EmbeddedLaplacianBCSFInternals {
          */
         bool IsSplit();
 
+        /**
+         * @brief Calculates edge ratios and intersection points of the element's edges
+         * Calculates edge ratios and intersection points of the element's edges using the local node numbers of the element
+         * which are connected by an edge from the division utility of the shape function calculator, node coordinates and nodal distances
+         */
+        void CalculateEdgeRatiosAndIntersectionPoints(
+            const Element& rElement,
+            const std::vector<int>& rEdgeNodeI,
+            const std::vector<int>& rEdgeNodeJ,
+            const std::vector<int>& rSplitEdges);
         ///@}
     };
 
@@ -126,6 +142,7 @@ public:
     typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     static constexpr std::size_t NumNodes = TDim + 1;
+    static constexpr std::size_t NumEdges = (TDim-1)*2;
 
     using NodalScalarData = array_1d<double,NumNodes>;
     using EmbeddedElementData = EmbeddedLaplacianBCSFInternals::EmbeddedElementData < TDim >;
@@ -256,17 +273,6 @@ protected:
      * by performing an interface integral.
      */
     void AddPositiveInterfaceTerms(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        const EmbeddedElementData& rData);
-
-    /**
-     * @brief Calculation of the Nitsche boundary terms for intersected elements
-     * This method calculates the Nitsche boundary terms on the positive side of an intersected element
-     * by performing interface integrals for the weak imposition of a Dirichlet boundary condition.
-     */
-    void AddNitscheBoundaryTerms(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
