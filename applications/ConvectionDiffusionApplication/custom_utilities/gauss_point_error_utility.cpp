@@ -208,7 +208,7 @@ double GaussPointErrorUtility::Execute()
         // Initialize values
         Matrix r_N_container;
         ModifiedShapeFunctions::ShapeFunctionsGradientsType r_DN_DX_container;
-        const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
         const auto& r_integrations_points = p_geom->IntegrationPoints(integration_method);
 
         double i_gauss_t_err;
@@ -268,7 +268,7 @@ double GaussPointErrorUtility::ExecuteGradient()
         // Initialize values
         Matrix r_N_container;
         ModifiedShapeFunctions::ShapeFunctionsGradientsType r_DN_DX_container;
-        const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
+        const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
         const auto& r_integrations_points = p_geom->IntegrationPoints(integration_method);
 
         // Check if element is ACTIVE (inactive elements are not assembled to the system)
@@ -391,7 +391,7 @@ int GaussPointErrorUtility::Check()
 /* Private functions ******************************************************/
 
 bool GaussPointErrorUtility::ElementIsPositive(
-    Geometry<Node<3>>::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -408,7 +408,7 @@ bool GaussPointErrorUtility::ElementIsPositive(
 }
 
 bool GaussPointErrorUtility::ElementIsSplit(
-    Geometry<Node<3>>::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -451,7 +451,7 @@ const Vector GaussPointErrorUtility::SetDistancesVector(ModelPart::ElementIterat
 }
 
 ModifiedShapeFunctions::Pointer GaussPointErrorUtility::SetModifiedShapeFunctionsUtility(
-    const Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node>::Pointer pGeometry,
     const Vector& rNodalDistances)
 {
     // Get the geometry type

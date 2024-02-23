@@ -277,7 +277,7 @@ private:
      */
     template<bool IsHistorical>
     double& AuxiliaryGetValue(
-        Node<3>& rNode,
+        Node& rNode,
         const Variable<double>& rVariable);
 
     /**
@@ -291,7 +291,7 @@ private:
      */
     template<bool IsHistorical>
     array_1d<double,3>& AuxiliaryGetValue(
-        Node<3>& rNode,
+        Node& rNode,
         const Variable<array_1d<double,3>>& rVariable);
 
     /**
@@ -301,7 +301,7 @@ private:
      * @return True if it is split and false if not
      */
     bool ElementIsSplit(
-        Geometry<Node<3>>::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -311,7 +311,7 @@ private:
      * @return True if it is split and false if not
      */
     bool ElementIsPositive(
-        Geometry<Node<3>>::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -330,7 +330,7 @@ private:
      * @return A pointer to the modified shape functions utility
      */
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     double CalculatePressureExactSolution(const array_1d<double,3>& rCoords);
