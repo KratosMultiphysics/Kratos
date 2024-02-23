@@ -1028,7 +1028,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixT
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMassMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rVariables.UMatrix) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.Nu)*rVariables.IntegrationCoefficient*rVariables.VelocityCoefficient;
+    noalias(rVariables.UMatrix) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.Nu)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
     PoroElementUtilities::AssembleUBlockTwoPhaseFlowMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
