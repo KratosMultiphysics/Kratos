@@ -239,13 +239,16 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
     {
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &this->GetRootModelPart();
-        std::vector<NodeType::Pointer>  aux;
+        // We need to put the found nodes into a pointer vector set so
+        // that the insertion ad the current_part->Nodes().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        NodesContainerType aux;
         aux.reserve(NodeIds.size());
         for(unsigned int i=0; i<NodeIds.size(); i++)
         {
             ModelPart::NodesContainerType::iterator it = root_model_part->Nodes().find(NodeIds[i]);
             if(it!=root_model_part->NodesEnd())
-                aux.push_back(*(it.base()));
+                aux.insert(aux.end(), *(it.base()));
             else
                 KRATOS_ERROR << "while adding nodes to submodelpart, the node with Id " << NodeIds[i] << " does not exist in the root model part";
         }
@@ -253,7 +256,7 @@ void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIn
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->Nodes().insert(aux.begin(), aux.end());
+            current_part->Nodes().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -941,13 +944,16 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
     {
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &this->GetRootModelPart();
-        std::vector<ElementType::Pointer>  aux;
+        // We need to put the found elements into a pointer vector set so
+        // that the insertion ad the current_part->Elements().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        ElementsContainerType  aux;
         aux.reserve(ElementIds.size());
         for(unsigned int i=0; i<ElementIds.size(); i++)
         {
             ModelPart::ElementsContainerType::iterator it = root_model_part->Elements().find(ElementIds[i]);
             if(it!=root_model_part->ElementsEnd())
-                aux.push_back(*(it.base()));
+                aux.insert(aux.end(), *(it.base()));
             else
                 KRATOS_ERROR << "the element with Id " << ElementIds[i] << " does not exist in the root model part";
         }
@@ -955,7 +961,7 @@ void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType 
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->Elements().insert(aux.begin(), aux.end());
+            current_part->Elements().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -1196,13 +1202,16 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
     {
         //obtain from the root model part the corresponding list of constraints
         ModelPart* root_model_part = &this->GetRootModelPart();
-        std::vector<MasterSlaveConstraintType::Pointer>  aux;
+        // We need to put the found master slave constraints into a pointer vector set so
+        // that the insertion ad the current_part->MasterSlaveConstraints().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        MasterSlaveConstraintContainerType  aux;
         aux.reserve(MasterSlaveConstraintIds.size());
         for(unsigned int i=0; i<MasterSlaveConstraintIds.size(); i++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = root_model_part->MasterSlaveConstraints().find(MasterSlaveConstraintIds[i]);
             if(it!=root_model_part->MasterSlaveConstraintsEnd())
-                aux.push_back(*(it.base()));
+                aux.insert(aux.end(), *(it.base()));
             else
                 KRATOS_ERROR << "the master-slave constraint with Id " << MasterSlaveConstraintIds[i] << " does not exist in the root model part";
         }
@@ -1210,7 +1219,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->MasterSlaveConstraints().insert(aux.begin(), aux.end());
+            current_part->MasterSlaveConstraints().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
     }
@@ -1452,13 +1461,16 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
     {
         //obtain from the root model part the corresponding list of nodes
         ModelPart* root_model_part = &this->GetRootModelPart();
-        std::vector<ConditionType::Pointer>  aux;
+        // We need to put the found conditions into a pointer vector set so
+        // that the insertion ad the current_part->Conditions().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        ConditionsContainerType  aux;
         aux.reserve(ConditionIds.size());
         for(unsigned int i=0; i<ConditionIds.size(); i++)
         {
             ModelPart::ConditionsContainerType::iterator it = root_model_part->Conditions().find(ConditionIds[i]);
             if(it!=root_model_part->ConditionsEnd())
-                aux.push_back(*(it.base()));
+                aux.insert(aux.end(), *(it.base()));
             else
                 KRATOS_ERROR << "the condition with Id " << ConditionIds[i] << " does not exist in the root model part";
         }
@@ -1466,7 +1478,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->Conditions().insert(aux.begin(), aux.end());
+            current_part->Conditions().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
     }

@@ -357,7 +357,10 @@ public:
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        std::vector<NodeType::Pointer>  aux;
+        // We need to put the found model part specific nodes into a pointer vector set so
+        // that the insertion ad the current_part->Nodes().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        NodesContainerType  aux;
         std::vector<NodeType::Pointer>  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
 
@@ -367,14 +370,14 @@ public:
             if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
             {
                 aux_root.push_back( *(it.base()) ); //node does not exist
-                aux.push_back( *(it.base()) );
+                aux.insert(aux.end(), *(it.base()) );
             }
             else //if it does exist verify it is the same node
             {
                 if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
-                    aux.push_back( *(it.base()) );
+                    aux.insert(aux.end(), *(it.base()) );
             }
         }
 
@@ -386,7 +389,7 @@ public:
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->Nodes().insert(aux.begin(), aux.end());
+            current_part->Nodes().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -689,7 +692,10 @@ public:
     void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        std::vector<MasterSlaveConstraintType::Pointer>  aux;
+        // We need to put the found model part specific master slave constraints into a pointer vector set so
+        // that the insertion ad the current_part->MasterSlaveConstraints().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        MasterSlaveConstraintContainerType  aux;
         std::vector<MasterSlaveConstraintType::Pointer>  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
@@ -699,14 +705,14 @@ public:
             if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
             {
                 aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
+                aux.insert(aux.end(), *(it.base()) );
             }
             else //if it does exist verify it is the same node
             {
                 if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
                 else
-                    aux.push_back( *(it.base()) );
+                    aux.insert(aux.end(), *(it.base()) );
             }
         }
 
@@ -717,7 +723,7 @@ public:
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->MasterSlaveConstraints().insert(aux.begin(), aux.end());
+            current_part->MasterSlaveConstraints().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -1031,7 +1037,10 @@ public:
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        std::vector<ElementType::Pointer>  aux;
+        // We need to put the found model part specific elements into a pointer vector set so
+        // that the insertion ad the current_part->Elements().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        ElementsContainerType  aux;
         std::vector<ElementType::Pointer>  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
@@ -1041,14 +1050,14 @@ public:
             if(it_found == root_model_part->ElementsEnd()) //node does not exist in the top model part
             {
                 aux_root.push_back( *(it.base()) );
-                aux.push_back( *(it.base()) );
+                aux.insert(aux.end(), *(it.base()) );
             }
             else //if it does exist verify it is the same node
             {
                 if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 else
-                    aux.push_back( *(it.base()) );
+                    aux.insert(aux.end(), *(it.base()) );
             }
         }
 
@@ -1059,7 +1068,7 @@ public:
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->Elements().insert(aux.begin(), aux.end());
+            current_part->Elements().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -1216,7 +1225,10 @@ public:
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
-        std::vector<ConditionType::Pointer>  aux;
+        // We need to put the found model part specific conditions into a pointer vector set so
+        // that the insertion ad the current_part->Conditions().insert(aux); doesn't have
+        // to sort it for each parent model part which is redundant.
+        ConditionsContainerType  aux;
         std::vector<ConditionType::Pointer>  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
@@ -1225,7 +1237,7 @@ public:
             auto it_found = root_model_part->Conditions().find((*(it.base()))->Id());
             if(it_found == root_model_part->ConditionsEnd()) //node does not exist in the top model part
             {
-                aux.push_back( *(it.base()) );
+                aux.insert(aux.end(), *(it.base()) );
                 aux_root.push_back( *(it.base()) );
             }
             else //if it does exist verify it is the same node
@@ -1233,7 +1245,7 @@ public:
                 if(&(*it_found) != &(*(*(it.base()))))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
                 else
-                    aux.push_back( *(it.base()) );
+                    aux.insert(aux.end(), *(it.base()) );
             }
         }
 
@@ -1245,7 +1257,7 @@ public:
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
-            current_part->Conditions().insert(aux.begin(), aux.end());
+            current_part->Conditions().insert(aux);
             current_part = &(current_part->GetParentModelPart());
         }
 
