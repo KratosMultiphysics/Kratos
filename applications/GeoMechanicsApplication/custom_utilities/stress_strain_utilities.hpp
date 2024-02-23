@@ -32,4 +32,4 @@ public:
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
 };
 
-}
+} // namespace Kratos
