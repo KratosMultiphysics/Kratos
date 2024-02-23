@@ -31,7 +31,7 @@ stress state policies:
 
 ![stress_state_policies.svg](stress_state_policies.svg)
 
-For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3d](../tests/cpp_tests/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/test_plane_strain_stress_state.cpp) and [axisymmetric](../tests/cpp_tests/test_axisymmetric_stress_state.cpp) stress states.
+For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3D](../tests/cpp_tests/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/test_plane_strain_stress_state.cpp) and [axisymmetric](../tests/cpp_tests/test_axisymmetric_stress_state.cpp) stress states.
 
 ### Strain vectors
 
@@ -113,7 +113,7 @@ B =
 \partial N_1/\partial x & 0 & \partial N_2/\partial x & 0 & \partial N_3/\partial x & 0 \\
 0 & \partial N_1/\partial y & 0 & \partial N_2/\partial y & 0 & \partial N_3/\partial y\\
 0 & 0 & 0 & 0 & 0 & 0\\
-\partial N_1/\partial y & \partial N_1/\partial x & \partial N_2/\partial y & \partial N_2/\partial x & \partial N_2/\partial y & \partial N_3/\partial x
+\partial N_1/\partial y & \partial N_1/\partial x & \partial N_2/\partial y & \partial N_2/\partial x & \partial N_3/\partial y & \partial N_3/\partial x
 \end{bmatrix}
 ```
 For the axisymmetric stress state, this would result in the following B-matrix:
@@ -123,7 +123,7 @@ B =
 \partial N_1/\partial x & 0 & \partial N_2/\partial x & 0 & \partial N_3/\partial x & 0 \\
 0 & \partial N_1/\partial y & 0 & \partial N_2/\partial y & 0 & \partial N_3/\partial y\\
 N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
-\partial N_1/\partial y & \partial N_1/\partial x & \partial N_2/\partial y & \partial N_2/\partial x & \partial N_2/\partial y & \partial N_3/\partial x
+\partial N_1/\partial y & \partial N_1/\partial x & \partial N_2/\partial y & \partial N_2/\partial x & \partial N_3/\partial y & \partial N_3/\partial x
 \end{bmatrix}
 ```
 Note that in our geomechanics code base, the radial coordinate $r$ is equal to $x$.
