@@ -98,7 +98,8 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& DeformationGra
     // right Cauchy Green deformation tensor C
     Matrix C = prod(trans(DeformationGradient), DeformationGradient);
     // Eigenvalues of C matrix, so principal right Cauchy Green deformation tensor C
-    Matrix EigenValuesMatrix, EigenVectorsMatrix;
+    Matrix EigenValuesMatrix;
+    Matrix EigenVectorsMatrix;
     MathUtils<double>::GaussSeidelEigenSystem(C, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
     // Compute natural strain == Logarithmic strain == Hencky strain from principal strains
     for (std::size_t i = 0; i < DeformationGradient.size1(); ++i) {
