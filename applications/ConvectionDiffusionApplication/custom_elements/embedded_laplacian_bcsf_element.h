@@ -84,7 +84,9 @@ namespace EmbeddedLaplacianBCSFInternals {
         Vector PositiveSideWeights;
 
         Matrix PositiveInterfaceN;
+        Matrix PositiveInterfaceN_unc;
         ShapeFunctionsGradientsType PositiveInterfaceDNDX;
+        ShapeFunctionsGradientsType PositiveInterfaceDNDX_unc;
         Vector PositiveInterfaceWeights;
         InterfaceNormalsType PositiveInterfaceUnitNormals;
 

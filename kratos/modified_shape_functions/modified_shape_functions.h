@@ -157,13 +157,6 @@ public:
         Vector &rPositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod);
 
-    /**
-    * Returns the shape function values in the positive split element side for a given quadrature.
-    * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
-    * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
-    * @return rPositiveSideWeightsValues: Vector containing the Gauss pts. positive side weights (already multiplied by the Jacobian).
-    * @param IntegrationMethod Desired integration quadrature.
-    */
     void ComputePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rPositiveSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
@@ -194,6 +187,14 @@ public:
     void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         Matrix &rInterfacePositiveSideShapeFunctionsValues,
         ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        Vector &rInterfacePositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod);
+
+    void ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+        Matrix &rInterfacePositiveSideShapeFunctionsValues,
+        Matrix &rInterfacePositiveSideShapeFunctionsValues_unc,
+        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues_unc,
         Vector &rInterfacePositiveSideWeightsValues,
         const IntegrationMethodType IntegrationMethod);
 
@@ -408,17 +409,6 @@ protected:
         const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod);
 
-    /**
-    * Returns the shape function values in either the positive or negative element subdivision for a given quadrature.
-    * @return rShapeFunctionValues: Matrix containing the computed shape function values.
-    * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
-    * @return rShapeFunctionsGradientsValues_unc: std::vector containing the shape functions gradients values uncollapsed.
-    * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
-    * @param rPmatrix Reference to the condensation matrix used for the SF values.
-    * @param rPmatrix2 Reference to the second condensation matrix used for the SF gradient values.
-    * @param rSubdivisionGeom std::vector of subdivisions point based geometries where the values are to be computed.
-    * @param IntegrationMethod Desired integration quadrature.
-    */
     void ComputeValuesOnOneSide(
         Matrix &rShapeFunctionsValues,
         ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues,
@@ -448,6 +438,19 @@ protected:
         const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
         const std::vector<unsigned int> &rInterfacesParentIdsVector,
         const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod);
+
+    void ComputeFaceValuesOnOneSide(
+        Matrix &rInterfaceShapeFunctionsValues,
+        Matrix &rInterfaceShapeFunctionsValues_unc,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues_unc,
+        Vector &rInterfaceWeightsValues,
+        const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
+        const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
+        const std::vector<unsigned int> &rInterfacesParentIdsVector,
+        const Matrix &rPmatrix,
+        const Matrix &rPmatrix2,
         const IntegrationMethodType IntegrationMethod);
 
     /**

@@ -166,7 +166,9 @@ void EmbeddedLaplacianBCSFElement<TTDim>::InitializeGeometryData(
     // Positive side interface
     p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
         rData.PositiveInterfaceN,
+        rData.PositiveInterfaceN_unc,
         rData.PositiveInterfaceDNDX,
+        rData.PositiveInterfaceDNDX_unc,
         rData.PositiveInterfaceWeights,
         this->GetIntegrationMethod());
 
@@ -218,15 +220,12 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveElementSide(
         nodal_conductivity[n] = r_geom[n].FastGetSolutionStepValue(r_diffusivity_var);
         temp[n] = r_geom[n].GetSolutionStepValue(r_unknown_var);
     }
-
-    //TODO Calculate BC at intersection points
+    // Calculate BC at intersection points
     //const double value_interface_bc = 2.0;
     for(std::size_t i_edge = 0; i_edge < NumEdges; ++i_edge) {
-        //TODO get edge ratio, node numbers of edge
         //array_1d<double,3> int_pt_coords = ZeroVector(3);
-        const array_1d<double,3> int_pt_coords = rData.EdgeIntersectionPoints[i_edge];
-        //const double aux_temp_int_pt = std::pow(int_pt_coords[0],2) + std::pow(int_pt_coords[1],2);
         //temp[i_edge] = value_interface_bc;
+        const array_1d<double,3> int_pt_coords = rData.EdgeIntersectionPoints[i_edge];
         temp[NumNodes+i_edge] = std::pow(int_pt_coords[0],2) + std::pow(int_pt_coords[1],2);
     }
 
@@ -279,18 +278,30 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveInterfaceTerms(
 
     // Get conductivity and temperature nodal vectors
     Vector nodal_conductivity(NumNodes);
-    Vector temp(NumNodes);
+    Vector temp(NumNodes+NumEdges);
     for(std::size_t n = 0; n < NumNodes; ++n) {
         nodal_conductivity[n] = r_geom[n].FastGetSolutionStepValue(r_diffusivity_var);
         temp[n] = r_geom[n].GetSolutionStepValue(r_unknown_var);
     }
+    // Calculate BC at intersection points
+    //const double value_interface_bc = 2.0;
+    for(std::size_t i_edge = 0; i_edge < NumEdges; ++i_edge) {
+        //array_1d<double,3> int_pt_coords = ZeroVector(3);
+        //temp[i_edge] = value_interface_bc;
+        const array_1d<double,3> int_pt_coords = rData.EdgeIntersectionPoints[i_edge];
+        temp[NumNodes+i_edge] = std::pow(int_pt_coords[0],2) + std::pow(int_pt_coords[1],2);
+    }
+
+    BoundedMatrix<double, NumNodes, NumNodes+NumEdges> LHS_upperPart = ZeroMatrix(NumNodes, NumNodes+NumEdges);
 
     // Iterate over the positive side interface integration points
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
         const auto& N = row(rData.PositiveInterfaceN, g);
+        const auto& N_unc = row(rData.PositiveInterfaceN_unc, g); //TODO
         const auto& DN_DX = rData.PositiveInterfaceDNDX[g];
+        const auto& DN_DX_unc = rData.PositiveInterfaceDNDX_unc[g]; //TODO
         const double weight_gauss = rData.PositiveInterfaceWeights[g];
         const auto& unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
@@ -302,14 +313,21 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveInterfaceTerms(
             for (std::size_t j = 0; j < NumNodes; ++j) {
                 for (std::size_t d = 0; d < TTDim; ++d) {
 
-                    const double aux_flux = weight_gauss * conductivity_gauss * N(i) * unit_normal(d) * DN_DX(j,d);
-
+                    const double aux_flux = weight_gauss * conductivity_gauss * N_unc(i) * unit_normal(d) * DN_DX_unc(j,d);
                     rLeftHandSideMatrix(i, j) -= aux_flux;
-                    rRightHandSideVector(i) += aux_flux * temp(j);
+                    LHS_upperPart(i,j) -= aux_flux;
+                }
+            }
+            for (std::size_t j_edge = NumNodes; j_edge < NumNodes+NumEdges; ++j_edge) {
+                for (std::size_t d = 0; d < TTDim; ++d) {
+
+                    const double aux_flux = weight_gauss * conductivity_gauss * N_unc(i) * unit_normal(d) * DN_DX_unc(j_edge,d);
+                    LHS_upperPart(i,j_edge) -= aux_flux;
                 }
             }
         }
     }
+    noalias(rRightHandSideVector) -= prod(LHS_upperPart,temp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
