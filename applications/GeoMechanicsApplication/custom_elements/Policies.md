@@ -33,6 +33,8 @@ stress state policies:
 
 ![stress_state_policies.svg](stress_state_policies.svg)
 
+For simple code examples of the functionalities described in the next sections, we refer to the unit tests for [3d](../tests/cpp_tests/test_three_dimensional_stress_state.cpp), [plane strain](../tests/cpp_tests/test_plane_strain_stress_state.cpp) and [axisymmetric](../tests/cpp_tests/test_axisymmetric_stress_state.cpp) stress states.
+
 ### Strain vectors
 
 For the different stress states, the strain vector is created by performing a conversion of the strain tensor, which is defined as:
