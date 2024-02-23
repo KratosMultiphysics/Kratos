@@ -17,7 +17,7 @@ conditions)
 - U_Pl Quasi-zero-thickness interface elements for defining cracks and
 joints
 
-- U_Pl_Pg small displacement element for two-phase flow in porous media
+- U_Pl_Pg small displacement element for two-phase flow in porous media (diffusion of gas into liquid not included yet)
 
 - Local and non-local isotropic damage constitutive laws for continuum
 

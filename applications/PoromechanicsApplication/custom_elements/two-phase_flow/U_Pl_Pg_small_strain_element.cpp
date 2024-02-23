@@ -1167,7 +1167,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLe
 {
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
 
-    this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix,rVariables);
+    this->CalculateAndAddHydromechanicalCouplingMatrix(rLeftHandSideMatrix,rVariables);
 
     this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
 
@@ -1189,15 +1189,15 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(Mat
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddHydromechanicalCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     // Compute intermediate auxiliary vector and matrix
     noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
     noalias(rVariables.UPMatrixAux) = -outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
 
-    // Get compressibility coefficients
+    // Get hydromechanical coupling coefficients
     double Clu, Cgu;
-    this->GetCouplingCompressibilityCoefficients(Clu, Cgu, rVariables);
+    this->GetHydromechanicalCouplingCoefficients(Clu, Cgu, rVariables);
 
     // Compute the liquid element coupling matrices
     noalias(rVariables.UPMatrix) = Clu*rVariables.UPMatrixAux;
@@ -1217,7 +1217,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(Matr
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    // Compute auxiliary matrix: Np * Np^T * w * detJ
+    // Compute auxiliary matrix: Np^T * Np * w * detJ
     noalias(rVariables.PMatrixAux) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     // Get compressibility coefficients
@@ -1227,9 +1227,9 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatr
     // Compute the element compressibility sub-matrices
     noalias(rVariables.PMatrix) = rVariables.DtLiquidPressureCoefficient * Cll * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePlPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
-    noalias(rVariables.PMatrix) = rVariables.DtLiquidPressureCoefficient * Clg * rVariables.PMatrixAux;
+    noalias(rVariables.PMatrix) = rVariables.DtGasPressureCoefficient * Clg * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePlPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
-    noalias(rVariables.PMatrix) = rVariables.DtGasPressureCoefficient * Cgl * rVariables.PMatrixAux;
+    noalias(rVariables.PMatrix) = rVariables.DtLiquidPressureCoefficient * Cgl * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePgPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
     noalias(rVariables.PMatrix) = rVariables.DtGasPressureCoefficient * Cgg * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
@@ -1248,17 +1248,15 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
     noalias(rVariables.PMatrixAux) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
     // Compute the fluid-flow sub-matrices
-    // Liquid
-    noalias(rVariables.PMatrix) = rVariables.krl * rVariables.PMatrixAux / rVariables.LiquidDynamicViscosity;
+    // Liquid (Hl)
+    noalias(rVariables.PMatrix) = rVariables.krl/rVariables.LiquidDynamicViscosity * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePlPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
-    // Gas
-    noalias(rVariables.PMatrix) = rVariables.krg * rVariables.PMatrixAux / rVariables.GasDynamicViscosity;
+    // Gas (Hg)
+    noalias(rVariables.PMatrix) = rVariables.krg/rVariables.GasDynamicViscosity * rVariables.PMatrixAux;
     PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 
-    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
     //TODO(U_Pl_pg)
-    // PoroElementUtilities::AssemblePlPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
-    // PoroElementUtilities::AssemblePgPlBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    // Add the permeability matrices associated with the diffusion of the gas into the liquid phase (Hgl and one term of Hg)
 }
 
 //----------------------------------------------------------------------------------------
@@ -1270,7 +1268,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRi
 
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
-    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
+    this->CalculateAndAddHydromechanicalCouplingTerms(rRightHandSideVector, rVariables);
 
     this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
@@ -1306,7 +1304,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(Vector
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddHydromechanicalCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
     // Compute intermediate auxiliary vector and matrix
@@ -1315,7 +1313,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(Vecto
 
     // Get compressibility coefficients
     double Clu, Cgu;
-    this->GetCouplingCompressibilityCoefficients(Clu, Cgu, rVariables);
+    this->GetHydromechanicalCouplingCoefficients(Clu, Cgu, rVariables);
 
     // Compute the element coupling liquid hydromechanical matrices
     noalias(rVariables.UPMatrix) = Clu*rVariables.UPMatrixAux;
@@ -1341,7 +1339,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(Vecto
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    // Compute auxiliary matrix: Np * Np^T * w * detJ
+    // Compute auxiliary matrix: Np^T * Np * w * detJ
     noalias(rVariables.PMatrixAux) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     // Get compressibility coefficients
@@ -1368,15 +1366,18 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(Ve
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
     noalias(rVariables.PMatrixAux) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PMatrix) = rVariables.krl * rVariables.PMatrixAux / rVariables.LiquidDynamicViscosity;
+    noalias(rVariables.PMatrix) = rVariables.krl/rVariables.LiquidDynamicViscosity * rVariables.PMatrixAux;
     //Add the contribution of the permeability term in the residual of the mass balance of liquid equation: -Hll * pl
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.LiquidPressureVector);
     PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 
-    noalias(rVariables.PMatrix) = rVariables.krg * rVariables.PMatrixAux / rVariables.GasDynamicViscosity;
+    noalias(rVariables.PMatrix) = rVariables.krg/rVariables.GasDynamicViscosity * rVariables.PMatrixAux;
     //Add the contribution of the permeability term in the residual of the mass balance of liquid equation: -Hgg * pg
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.GasPressureVector);
     PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //TODO(U_Pl_pg)
+    // Add the permeability flow associated with the diffusion of the gas into the liquid phase (Hgl*Pl and one term of Hg*Pg)
 }
 
 //----------------------------------------------------------------------------------------
@@ -1390,6 +1391,8 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(Vecto
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
     noalias(rVariables.PVectorAux) = prod(rVariables.PDimMatrix,rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
 
+    //NOTE. Maybe it would be cleaner if these two terms were calculated in different methods
+
     noalias(rVariables.PVector) = (rVariables.krl * rVariables.LiquidDensity / rVariables.LiquidDynamicViscosity) * rVariables.PVectorAux;
     //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of liquid
     PoroElementUtilities::AssemblePlBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
@@ -1397,6 +1400,10 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(Vecto
     noalias(rVariables.PVector) = (rVariables.krg * rVariables.GasDensity   / rVariables.GasDynamicViscosity  ) * rVariables.PVectorAux;
     //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of gas
     PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //TODO(U_Pl_pg)
+    // Add the term associated with the diffusion of the gas into the liquid phase
+    // We are also missing the conditions associated with the diffusion of gas into liquid
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1840,16 +1847,11 @@ void UPlPgSmallStrainElement<3,8>::CalculateBMatrix(Matrix& rB, const Matrix& Gr
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCouplingCompressibilityCoefficients(double& Clu, double& Cgu, ElementVariables& rVariables)
+void UPlPgSmallStrainElement<TDim,TNumNodes>::GetHydromechanicalCouplingCoefficients(double& Clu, double& Cgu, ElementVariables& rVariables)
 {
-
     Clu = rVariables.BiotCoefficient*rVariables.Sl;
-    Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sl);
-
-    //TODO(U_Pl_pg). Check
-    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
-    Cgu += rVariables.GasDiffusionCoefficient * rVariables.Sl * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
-
+    Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sl) + 
+            rVariables.GasDiffusionCoefficient * rVariables.Sl * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1871,14 +1873,12 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(dou
     // Compute the compressibility coefficients
     Cll = Ms * Sl * (Sl + pc * dSldPc) - dSldPc * Phi + Sl * Ml;
     Clg = Ms * Sl * (Sg - pc * dSldPc) + dSldPc * Phi;
-    Cgl = Ms * Sg * (Sl + pc * dSldPc) + dSldPc * Phi;
-    Cgg = Ms * Sg * (Sg - pc * dSldPc) - dSldPc * Phi + Sg * Mg;
-
-    //TODO(U_Pl_pg). Check
-    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
-    Cgl += -Variables.GasDiffusionCoefficient * (Ms * Sl * (Sl + pc * dSldPc) + dSldPc * Phi);
-    Cgg += -Variables.GasDiffusionCoefficient * (Ms * Sl * (Sg - pc * dSldPc) + dSldPc * Phi - Sl * Mg);
-
+    Cgl = Ms * (Sg-Variables.GasDiffusionCoefficient*Sl) * (Sl + pc * dSldPc) + (1.0-Variables.GasDiffusionCoefficient) * dSldPc * Phi;
+    Cgg = Ms * (Sg-Variables.GasDiffusionCoefficient*Sl) * (Sg - pc * dSldPc) + Mg * (Sg + Sl * Variables.GasDiffusionCoefficient)
+            - (1.0-Variables.GasDiffusionCoefficient) * dSldPc * Phi;
+    // TODO. Check whether Cgg should be like this
+    // Cgg = Ms * (Sg-Variables.GasDiffusionCoefficient*Sl) * (Sg - pc * dSldPc) + Mg * (Sg + Sl * Variables.GasDiffusionCoefficient)
+    //         - (1.0+Variables.GasDiffusionCoefficient) * dSldPc * Phi;
 }
 
 //----------------------------------------------------------------------------------------

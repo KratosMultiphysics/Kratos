@@ -180,7 +180,7 @@ protected:
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddHydromechanicalCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -192,7 +192,7 @@ protected:
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddHydromechanicalCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
@@ -218,7 +218,7 @@ protected:
 
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
 
-    void GetCouplingCompressibilityCoefficients(double& Clu, double& Cgu, ElementVariables& rVariables);
+    void GetHydromechanicalCouplingCoefficients(double& Clu, double& Cgu, ElementVariables& rVariables);
 
     void GetCompressibilityCoefficients(double& Cll, double& Clg, double& Cgl, double& Cgg, const ElementVariables& Variables);
 
