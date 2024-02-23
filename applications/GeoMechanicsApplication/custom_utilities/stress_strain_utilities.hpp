@@ -132,6 +132,7 @@ public:
         KRATOS_CATCH("")
     }
 
+    static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
 };
 
 }

@@ -27,7 +27,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "containers/set_address_identity_function.h"
+#include "containers/set_function.h"
 
 namespace Kratos
 {
@@ -63,7 +63,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template<class TDataType,
-         class TGetKeyType = SetAddressIdentityFunction<TDataType>,
+         class TGetKeyType = SetFunction<TDataType>,
          class TCompareType = std::less<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TEqualType = std::equal_to<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TPointerType = typename TDataType::Pointer,

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -408,6 +408,96 @@ void AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts()
             r_sub_model_part.RemoveNodes(TO_ERASE);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::unordered_map<IndexType, std::vector<IndexType>> AuxiliarModelPartUtilities::RetrieveElementsNeighbourElementsIds()
+{
+    // Initialize the container to store the IDs of neighboring elements for each element
+    std::unordered_map<IndexType, std::vector<IndexType>> elements_neighbours_elements_ids;
+
+    // Determine dimension
+    unsigned int dim = 0;
+    if (mrModelPart.NumberOfElements() > 0) {
+        dim = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+    }
+
+    // Loop over each element in the model part
+    for (auto& r_elem : mrModelPart.Elements()) {
+        // Retrieve the neighboring elements for the current element
+        auto& r_neighbours = r_elem.GetValue(NEIGHBOUR_ELEMENTS);
+
+        // Check if the number of neighboring elements matches the expected dimension
+        KRATOS_ERROR_IF_NOT(r_neighbours.size() == dim) << "Condition " << r_elem.Id() << " has not correct size solution for NEIGHBOUR_ELEMENTS " << r_neighbours.size() << " vs " << dim << std::endl;
+
+        // Create a vector to store the IDs of neighboring elements
+        std::vector<IndexType> solution;
+        solution.reserve(dim);
+
+        // Loop over each dimension and store the ID of the neighboring element
+        for (unsigned int i_dim = 0; i_dim < dim; ++i_dim) {
+            auto p_neighbour = r_neighbours(i_dim);
+            if (p_neighbour.get()) {
+                solution.push_back(p_neighbour->Id());
+            }
+        }
+
+        // Shrink to fit
+        solution.shrink_to_fit();
+
+        // Insert the IDs of neighboring elements into the map with the ID of the current element as the key
+        elements_neighbours_elements_ids.insert({r_elem.Id(), solution});
+    }
+
+    // Return the map containing the IDs of neighboring elements for each element
+    return elements_neighbours_elements_ids;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::unordered_map<IndexType, std::vector<IndexType>> AuxiliarModelPartUtilities::RetrieveConditionsNeighbourConditionsIds()
+{
+    // Initialize the container to store the IDs of neighboring conditions for each condition
+    std::unordered_map<IndexType, std::vector<IndexType>> conditions_neighbours_conditions_ids;
+
+    // Determine dimension
+    unsigned int dim = 0;
+    if (mrModelPart.NumberOfConditions() > 0) {
+        dim = mrModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
+    }
+
+    // Loop over each condition in the model part
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        // Retrieve the neighboring conditions for the current condition
+        auto& r_neighbours = r_cond.GetValue(NEIGHBOUR_CONDITIONS);
+
+        // Check if the number of neighboring conditions matches the expected dimension
+        KRATOS_ERROR_IF_NOT(r_neighbours.size() == dim) << "Condition " << r_cond.Id() << " has not correct size solution for NEIGHBOUR_CONDITIONS " << r_neighbours.size() << " vs " << dim << std::endl;
+
+        // Create a vector to store the IDs of neighboring conditions
+        std::vector<IndexType> solution;
+        solution.reserve(dim);
+
+        // Loop over each dimension and store the ID of the neighboring condition
+        for (unsigned int i_dim = 0; i_dim < dim; ++i_dim) {
+            auto p_neighbour = r_neighbours(i_dim);
+            if (p_neighbour.get()) {
+                solution.push_back(p_neighbour->Id());
+            }
+        }
+
+        // Shrink to fit
+        solution.shrink_to_fit();
+
+        // Insert the IDs of neighboring conditions into the map with the ID of the current condition as the key
+        conditions_neighbours_conditions_ids.insert({r_cond.Id(), solution});
+    }
+
+    // Return the map containing the IDs of neighboring conditions for each condition
+    return conditions_neighbours_conditions_ids;
 }
 
 /***********************************************************************************/

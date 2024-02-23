@@ -23,7 +23,6 @@
 #include "includes/geometrical_object.h"
 #include "includes/kratos_parameters.h"
 #include "containers/global_pointers_vector.h"
-#include "containers/set_identity_function.h"
 
 namespace Kratos
 {
@@ -100,7 +99,7 @@ public:
 
     typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<DofType, SetIdentityFunction<DofType>> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
