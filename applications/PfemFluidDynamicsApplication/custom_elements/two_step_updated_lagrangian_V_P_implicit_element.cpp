@@ -68,9 +68,12 @@ namespace Kratos
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = TDim * NumNodes;
 
+    bool wallElement = false;
+
     MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
     MatrixType StiffnessMatrix = ZeroMatrix(LocalSize, LocalSize);
 
+    
     // Check sizes and initialize
     if (rLeftHandSideMatrix.size1() != LocalSize)
       rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -89,6 +92,21 @@ namespace Kratos
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+    double rough = 1.0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+        {
+          if (rGeom[i].Is(RIGID))
+          {
+            wallElement = true;
+            rough    = rGeom[i].GetSolutionStepValue(ROUGHNESS); 
+            //printf("RIGID ELEMENT!\n\n\n");
+            break;
+          } else {
+            //printf("NON RIGID ELEMENT!\n\n\n");
+            break;
+          }
+        }
 
     const double theta = this->GetThetaMomentum();
 
@@ -101,6 +119,7 @@ namespace Kratos
     double DeviatoricCoeff = 0;
     double VolumetricCoeff = 0;
     bool computeElement = false;
+    
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; ++g)
     {
@@ -119,8 +138,12 @@ namespace Kratos
       rElementalVariables.MeanPressure = OldPressure * (1 - theta) + Pressure * theta;
 
       computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
-
+      //printf("Deviatoric Coefficient = %.3e\n", DeviatoricCoeff);
       this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
+      
+      DeviatoricCoeff *= rough;
+      
+      // printf("New Deviatoric Coefficient = %.3e\n\n", DeviatoricCoeff);
 
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
@@ -262,6 +285,8 @@ namespace Kratos
 
     SizeType FirstRow = 0;
     SizeType FirstCol = 0;
+
+    //printf("SecondLame = %.3e\n",secondLame);
 
     for (SizeType j = 0; j < NumNodes; ++j)
     {

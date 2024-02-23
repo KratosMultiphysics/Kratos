@@ -145,6 +145,7 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ROUGHNESS)
 
     def AddDofs(self):
 
