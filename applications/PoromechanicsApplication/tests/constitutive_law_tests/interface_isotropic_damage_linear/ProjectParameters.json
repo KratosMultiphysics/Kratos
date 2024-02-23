@@ -8,7 +8,7 @@
         "fracture_utility":     false
     },
     "solver_settings": {
-        "solver_type":    "poromechanics_U_Pw_solver",
+        "solver_type":    "poromechanics_U_Pl_solver",
         "model_part_name":    "PorousModelPart",
         "domain_size":    2,
         "start_time":    0.0,
@@ -35,7 +35,8 @@
         "scheme_type":    "Newmark",
         "newmark_beta":    0.25,
         "newmark_gamma":    0.5,
-        "newmark_theta":    0.5,
+        "newmark_theta_u":    0.5,
+        "newmark_theta_p":    0.5,
         "calculate_alpha_beta":    false,
         "omega_1":    1.0,
         "omega_n":    10.0,
@@ -66,7 +67,7 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Liquid_Pressure-auto-1"],
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
     "processes": {
@@ -96,8 +97,8 @@
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
-                "variable_name":        "WATER_PRESSURE",
+                "model_part_name":      "PorousModelPart.Liquid_Pressure-auto-1",
+                "variable_name":        "LIQUID_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
                 "table":                0,

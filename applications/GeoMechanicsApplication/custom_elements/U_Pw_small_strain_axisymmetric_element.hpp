@@ -39,14 +39,11 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    /// The definition of the sizetype
-    using SizeType = std::size_t;
+    using SizeType       = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Default Constructor
-    UPwSmallStrainAxisymmetricElement(IndexType NewId = 0)
+    explicit UPwSmallStrainAxisymmetricElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -111,6 +108,8 @@ protected:
                                            unsigned int PointNumber,
                                            double       detJ) override;
 
+    Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) override;
+
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -137,7 +136,6 @@ private:
     UPwSmallStrainAxisymmetricElement(UPwSmallStrainAxisymmetricElement const& rOther);
 
     // Private Operations
-
 }; // Class UPwSmallStrainAxisymmetricElement
 
 } // namespace Kratos

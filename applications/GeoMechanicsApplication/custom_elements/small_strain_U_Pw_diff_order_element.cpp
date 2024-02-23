@@ -20,7 +20,10 @@
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "plane_strain_stress_state.h"
+#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
@@ -330,36 +333,9 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::GetDofList(DofsVectorType&    rElementalDofList,
-                                                const ProcessInfo& rCurrentProcessInfo) const
+void SmallStrainUPwDiffOrderElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rElementalDofList.size() != ElementSize) rElementalDofList.resize(ElementSize);
-
-    SizeType Index = 0;
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rElementalDofList[Index] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-        ++Index;
-        rElementalDofList[Index] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-        ++Index;
-        if (Dim > 2) {
-            rElementalDofList[Index] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-            ++Index;
-        }
-    }
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rElementalDofList[Index] = GetGeometry()[i].pGetDof(WATER_PRESSURE);
-        ++Index;
-    }
-    KRATOS_CATCH("")
+    rElementalDofList = GetDofs();
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -569,96 +545,19 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult,
-                                                      const ProcessInfo& rCurrentProcessInfo) const
+void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rResult.size() != ElementSize) rResult.resize(ElementSize, false);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rResult[Index] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-        ++Index;
-        rResult[Index] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        ++Index;
-        if (Dim > 2) {
-            rResult[Index] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-            ++Index;
-        }
-    }
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rResult[Index] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-        ++Index;
-    }
-
-    KRATOS_CATCH("")
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom       = GetGeometry();
-    const SizeType      Dim         = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes   = rGeom.PointsNumber();
-    const SizeType      NumPNodes   = mpPressureGeometry->PointsNumber();
-    const SizeType      ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-        ++Index;
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-        ++Index;
-        if (Dim > 2) {
-            rValues[Index] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-            ++Index;
-        }
-    }
-    std::fill_n(rValues.begin() + Index, NumPNodes, 0.0);
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom       = GetGeometry();
-    const SizeType      Dim         = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes   = rGeom.PointsNumber();
-    const SizeType      NumPNodes   = mpPressureGeometry->PointsNumber();
-    const SizeType      ElementSize = NumUNodes * Dim + NumPNodes;
-
-    if (rValues.size() != ElementSize) rValues.resize(ElementSize, false);
-
-    SizeType Index = 0;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
-        ++Index;
-        rValues[Index] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
-        ++Index;
-        if (Dim > 2) {
-            rValues[Index] = rGeom[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
-            ++Index;
-        }
-    }
-    std::fill_n(rValues.begin() + Index, NumPNodes, 0.0);
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
 void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -1797,37 +1696,14 @@ void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-
-    unsigned int index;
-
-    if (Dim > 2) {
-        for (unsigned int i = 0; i < NumUNodes; ++i) {
-            index = Dim * i;
-
-            rB(INDEX_3D_XX, index + INDEX_X) = DNp_DX(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = DNp_DX(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = DNp_DX(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = DNp_DX(i, INDEX_X);
-        }
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
+    if (GetGeometry().WorkingSpaceDimension() == 2) {
+        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
     } else {
-        // 2D plane strain
-        for (unsigned int i = 0; i < NumUNodes; ++i) {
-            index = Dim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = DNp_DX(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = DNp_DX(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = DNp_DX(i, INDEX_X);
-        }
+        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
+
+    rB = p_stress_state_policy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
 
     KRATOS_CATCH("")
 }
@@ -1853,7 +1729,15 @@ void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables&
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int GPoint, double detJ)
 {
-    return IntegrationPoints[GPoint].Weight() * detJ;
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
+    if (GetGeometry().WorkingSpaceDimension() == 2) {
+        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
+    } else {
+        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
+    }
+
+    return p_stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJ,
+                                                                  GetGeometry());
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -2274,33 +2158,18 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVa
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType      Dim   = rGeom.WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix ETensor;
-    ETensor = prod(trans(F), F);
-
-    for (unsigned int i = 0; i < Dim; ++i)
-        ETensor(i, i) -= 1.0;
-    ETensor *= 0.5;
-
-    if (Dim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
+    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
+    if (GetGeometry().WorkingSpaceDimension() == 2) {
+        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
     } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
+        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
     }
+
+    return p_stress_state_policy->CalculateGreenLagrangeStrain(rDeformationGradient);
 
     KRATOS_CATCH("")
 }
@@ -2329,42 +2198,6 @@ void SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariabl
     // Deformation gradient
     noalias(rVariables.F) = prod(J, InvJ0);
     rVariables.detF       = MathUtils<double>::Det(rVariables.F);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType      Dim   = rGeom.WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix LeftCauchyGreen;
-    LeftCauchyGreen = prod(F, trans(F));
-
-    Matrix ETensor;
-    double det;
-    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det);
-
-    for (unsigned int i = 0; i < Dim; ++i)
-        ETensor(i, i) = 1.0 - ETensor(i, i);
-
-    ETensor *= 0.5;
-
-    if (Dim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
 
     KRATOS_CATCH("")
 }
@@ -2420,6 +2253,25 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
 
     KRATOS_CATCH("")
+}
+
+Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
+{
+    auto result = Element::DofsVectorType{};
+
+    for (const auto& r_node : GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if (GetGeometry().WorkingSpaceDimension() == 3) {
+            result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+        }
+    }
+
+    const auto water_pressure_dofs =
+        Geo::DofUtilities::ExtractDofsFromNodes(*mpPressureGeometry, WATER_PRESSURE);
+    result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
+
+    return result;
 }
 
 } // Namespace Kratos

@@ -59,7 +59,7 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -83,7 +83,7 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
@@ -285,10 +285,9 @@ protected:
 
     void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const Matrix& StiffnessMatrix) const;
 
-    virtual void CalculateCauchyAlmansiStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyGreenStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
+    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
+    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
 
     virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
 
@@ -308,6 +307,8 @@ protected:
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     // Serialization
 
     friend class Serializer;
