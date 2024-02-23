@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_constitutive/interface_element_laws/elastoplastic_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_3D_law.hpp"
 
 namespace Kratos
 {
@@ -130,6 +130,10 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::CalculateMaterialResponseCauchy (Par
     //Evaluate the trial elastic strain state
     ElasticStrainVector = rStrainVector - mOldPlasticStrainVector;
     noalias(TrialStressVector) = prod(ElasticConstitutiveMatrix, ElasticStrainVector);
+    
+    //Add initial stress state
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    InterfaceElementUtilities::AddInitialInterfaceStresses2D(TrialStressVector, rValues, geometry);
 
     //Evaluate the yield function at the trial elastic state
     this->ComputeYieldFunction(TrialStressVector,Variables,EPlasticVariables,rValues);
