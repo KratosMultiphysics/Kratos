@@ -17,8 +17,9 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/interface_element_laws/elastic_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastic_cohesive_3D_law.hpp"
 #include "poromechanics_application_variables.h"
+#include "custom_utilities/interface_element_utilities.hpp"
 
 namespace Kratos
 {
