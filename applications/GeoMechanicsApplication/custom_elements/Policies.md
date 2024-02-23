@@ -87,12 +87,12 @@ Resulting in the following B-matrix:
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta d_x & 0 & 0 & \delta N_2/\delta d_x & 0 & 0 & \delta N_3/\delta d_x & 0 & 0 \\
-0 & \delta N_1/\delta d_y & 0 & 0 & \delta N_2/\delta d_y & 0 & 0 & \delta N_3/\delta d_y & 0\\
-0 & 0 & \delta N_1/\delta d_z & 0 & 0 & \delta N_2/\delta d_z & 0 & 0 & \delta N_3/\delta d_z\\
-\delta N_1/\delta d_y & \delta N_1/\delta d_x & 0 & \delta N_2/\delta d_y & \delta N_2/\delta d_x & 0 & \delta N_3/\delta d_y & \delta N_3/\delta d_x & 0 \\
-0 & \delta N_1/\delta d_z & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_z & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_z & \delta N_3/\delta d_y \\
-\delta N_1/\delta d_z & 0 & \delta N_1/\delta d_x & \delta N_2/\delta d_z & 0 & \delta N_2/\delta d_x & \delta N_3/\delta d_z & 0 & \delta N_3/\delta d_x
+\delta N_1/\delta d_x & 0 & 0 & && & \delta N_4/\delta d_x & 0 & 0 \\
+0 & \delta N_1/\delta d_y & 0 & && & 0 & \delta N_4/\delta d_y & 0\\
+0 & 0 & \delta N_1/\delta d_z & &\dots& & 0 & 0 & \delta N_4/\delta d_z\\
+\delta N_1/\delta d_y & \delta N_1/\delta d_x & 0 & && & \delta N_4/\delta d_y & \delta N_4/\delta d_x & 0 \\
+0 & \delta N_1/\delta d_z & \delta N_1/\delta d_y & && & 0 & \delta N_4/\delta d_z & \delta N_4/\delta d_y \\
+\delta N_1/\delta d_z & 0 & \delta N_1/\delta d_x & && & \delta N_4/\delta d_z & 0 & \delta N_4/\delta d_x
 \end{bmatrix}
 ```
 Where the first three columns are for the first node, the next three columns for the second node and so on for the number of nodes in the element.
