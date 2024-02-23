@@ -87,12 +87,12 @@ Resulting in the following B-matrix:
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta d_x & 0 & 0 & && & \delta N_4/\delta d_x & 0 & 0 \\
-0 & \delta N_1/\delta d_y & 0 & && & 0 & \delta N_4/\delta d_y & 0\\
-0 & 0 & \delta N_1/\delta d_z & &\dots& & 0 & 0 & \delta N_4/\delta d_z\\
-\delta N_1/\delta d_y & \delta N_1/\delta d_x & 0 & && & \delta N_4/\delta d_y & \delta N_4/\delta d_x & 0 \\
-0 & \delta N_1/\delta d_z & \delta N_1/\delta d_y & && & 0 & \delta N_4/\delta d_z & \delta N_4/\delta d_y \\
-\delta N_1/\delta d_z & 0 & \delta N_1/\delta d_x & && & \delta N_4/\delta d_z & 0 & \delta N_4/\delta d_x
+\delta N_1/\delta x & 0 & 0 & && & \delta N_4/\delta x & 0 & 0 \\
+0 & \delta N_1/\delta y & 0 & && & 0 & \delta N_4/\delta y & 0\\
+0 & 0 & \delta N_1/\delta z & &\dots& & 0 & 0 & \delta N_4/\delta z\\
+\delta N_1/\delta y & \delta N_1/\delta x & 0 & && & \delta N_4/\delta y & \delta N_4/\delta x & 0 \\
+0 & \delta N_1/\delta z & \delta N_1/\delta y & && & 0 & \delta N_4/\delta z & \delta N_4/\delta y \\
+\delta N_1/\delta z & 0 & \delta N_1/\delta x & && & \delta N_4/\delta z & 0 & \delta N_4/\delta x
 \end{bmatrix}
 ```
 Where the first three columns are for the first node, the next three columns for the second node and so on for the number of nodes in the element.
@@ -101,29 +101,29 @@ For a 2D element consisting of three nodes, the gradient looks like:
 ```math
 \nabla{N} =
 \begin{bmatrix}
-\delta N_1/\delta d_x & \delta N_1/\delta d_y \\
-\delta N_2/\delta d_x & \delta N_2/\delta d_y \\
-\delta N_3/\delta d_x & \delta N_3/\delta d_y
+\delta N_1/\delta x & \delta N_1/\delta y \\
+\delta N_2/\delta x & \delta N_2/\delta y \\
+\delta N_3/\delta x & \delta N_3/\delta y
 \end{bmatrix}
 ```
 Where the rows depict the different nodes in the element (i.e. $N_i$ is the shape function for node $i$). For the plane strain case, this would result in the following B-matrix
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta d_x & 0 & \delta N_2/\delta d_x & 0 & \delta N_3/\delta d_x & 0 \\
-0 & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_y\\
+\delta N_1/\delta x & 0 & \delta N_2/\delta x & 0 & \delta N_3/\delta x & 0 \\
+0 & \delta N_1/\delta y & 0 & \delta N_2/\delta y & 0 & \delta N_3/\delta y\\
 0 & 0 & 0 & 0 & 0 & 0\\
-\delta N_1/\delta d_y & \delta N_1/\delta d_x & \delta N_2/\delta d_y & \delta N_2/\delta d_x & \delta N_2/\delta d_y & \delta N_3/\delta d_x
+\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_2/\delta y & \delta N_3/\delta x
 \end{bmatrix}
 ```
 For the axisymmetric stress state, this would result in the following B-matrix
 ```math
 B =
 \begin{bmatrix}
-\delta N_1/\delta d_x & 0 & \delta N_2/\delta d_x & 0 & \delta N_3/\delta d_x & 0 \\
-0 & \delta N_1/\delta d_y & 0 & \delta N_2/\delta d_y & 0 & \delta N_3/\delta d_y\\
+\delta N_1/\delta x & 0 & \delta N_2/\delta x & 0 & \delta N_3/\delta x & 0 \\
+0 & \delta N_1/\delta y & 0 & \delta N_2/\delta y & 0 & \delta N_3/\delta y\\
 N_1 / r & 0 & N_2 / r & 0 & N_3 / r & 0\\
-\delta N_1/\delta d_y & \delta N_1/\delta d_x & \delta N_2/\delta d_y & \delta N_2/\delta d_x & \delta N_2/\delta d_y & \delta N_3/\delta d_x
+\delta N_1/\delta y & \delta N_1/\delta x & \delta N_2/\delta y & \delta N_2/\delta x & \delta N_2/\delta y & \delta N_3/\delta x
 \end{bmatrix}
 ```
 
