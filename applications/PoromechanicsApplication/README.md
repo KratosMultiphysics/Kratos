@@ -1,34 +1,25 @@
 ## Poromechanics Application
 
-The Poromechanics Application contains developments in coupled solid-pore fluid interaction problems within Kratos Multiphysics.
+The Poromechanics Application contains developments in flow in porous media problems within Kratos Multiphysics.
 
 ### Features:
 
-<!-- TODO(U_Pl_pg) -->
-<!-- Add new two-phase flow features -->
-
-- UPl small displacement element for saturated porous media (with
+- U_Pl small displacement element for single-phase flow in porous media (with
 equal order interpolation, unstable under incompressible-undrained
 conditions)
 
-- Stable UPl small displacement element for saturated porous media
+- Stable U_Pl small displacement element for saturated porous media
 (with higher order interpolation for displacements)
 
-- FIC-Stabilized UPl small displacement element for saturated porous media
+- FIC-Stabilized U_Pl small displacement element for saturated porous media
 (with equal order interpolation for displacements)
 
-- UPl Quasi-zero-thickness interface elements for defining cracks and
+- U_Pl Quasi-zero-thickness interface elements for defining cracks and
 joints
 
-- Local linear elastic damage model (Simo-Ju and modified Von Mises)
+- U_Pl_Pg small displacement element for two-phase flow in porous media
 
-- Non-local linear elastic damage model (Simo-Ju and modified Von
-Mises)
+- Local and non-local isotropic damage constitutive laws for continuum
 
-- Bilinear cohesive fracture model (for quasi-zero-thickness interface elements)
-
-- Fracture propagation utility based on the combination of the
-damage model with the insertion of interface elements after remeshing
-with GiD
-
+- Isotropic damage and plasticity constitutive laws for interface elements
 
