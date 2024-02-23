@@ -19,8 +19,6 @@ namespace Kratos
 
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& StressVector)
 {
-    KRATOS_TRY
-
     Matrix LocalStressTensor =
         MathUtils<double>::StressVectorToTensor(StressVector); // reduced dimension stress tensor
 
@@ -40,14 +38,10 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& StressVector
                       StressTensor(2, 0) * StressTensor(0, 2)));
 
     return std::sqrt(std::max(SigmaEquivalent, 0.));
-
-    KRATOS_CATCH("")
 }
 
 double StressStrainUtilities::CalculateTrace(const Vector& StressVector)
 {
-    KRATOS_TRY
-
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); // reduced dimension stress tensor
 
     double trace = 0.0;
@@ -56,28 +50,20 @@ double StressStrainUtilities::CalculateTrace(const Vector& StressVector)
     }
 
     return trace;
-
-    KRATOS_CATCH("")
 }
 
 double StressStrainUtilities::CalculateMeanStress(const Vector& StressVector)
 {
-    KRATOS_TRY
     return CalculateTrace(StressVector) / (StressVector.size() == 3 ? 2.0 : 3.0);
-    KRATOS_CATCH("")
 }
 
 double StressStrainUtilities::CalculateVonMisesStrain(const Vector& StrainVector)
 {
-    KRATOS_TRY
     return (2.0 / 3.0) * CalculateVonMisesStress(StrainVector);
-    KRATOS_CATCH("")
 }
 
 Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize)
 {
-    KRATOS_TRY
-
     // right Cauchy Green deformation tensor C
     Matrix C = prod(trans(DeformationGradient), DeformationGradient);
     // Eigenvalues of C matrix, so principal right Cauchy Green deformation tensor C
@@ -107,8 +93,6 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& DeformationGra
     } else {
         return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
     }
-
-    KRATOS_CATCH("")
 }
 
 Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient)
