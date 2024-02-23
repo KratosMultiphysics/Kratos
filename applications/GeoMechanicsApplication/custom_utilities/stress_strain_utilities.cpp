@@ -17,23 +17,6 @@
 namespace Kratos
 {
 
-double StressStrainUtilities::CalculateStressNorm(const Vector& StressVector)
-{
-    KRATOS_TRY
-
-    Matrix LocalStressTensor = MathUtils<>::StressVectorToTensor(StressVector); // reduced dimension stress tensor
-
-    double StressNorm = 0.;
-    for (unsigned int i = 0; i < LocalStressTensor.size1(); ++i) {
-        for (unsigned int j = 0; j < LocalStressTensor.size2(); ++j) {
-            StressNorm += LocalStressTensor(i, j) * LocalStressTensor(i, j);
-        }
-    }
-    return std::sqrt(StressNorm);
-
-    KRATOS_CATCH("")
-}
-
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& StressVector)
 {
     KRATOS_TRY

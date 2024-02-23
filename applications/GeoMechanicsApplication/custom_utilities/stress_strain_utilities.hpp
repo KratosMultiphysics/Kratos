@@ -23,7 +23,6 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
 public:
-    static double CalculateStressNorm(const Vector& StressVector);
     static double CalculateVonMisesStress(const Vector& StressVector);
     static double CalculateTrace(const Vector& StressVector);
     static double CalculateMeanStress(const Vector& StressVector);
