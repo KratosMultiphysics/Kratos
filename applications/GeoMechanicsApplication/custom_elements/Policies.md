@@ -41,7 +41,7 @@ For the different stress states, the strain vector is created by performing a co
                         \epsilon_{yx} & \epsilon_{yy} & \epsilon_{yz} \\
                         \epsilon_{zx} & \epsilon_{zy} & \epsilon_{zz} \end{bmatrix}
 ```
-Note that the strain tensor is symmetric, meaning that $\epsilon_{ij} = \epsilon{ji}$. The strain tensor can be calculated using different methods, like Green Lagrange or Hencky Strain. This calculation is delegated to the `StressStrainUtilities`. However, the conversion to strain vectors depends on the type of stress state. Therefore, that conversion is defined in these policies and are described below. 
+Note that the strain tensor is symmetric, meaning that $\epsilon_{ij} = \epsilon_{ji}$. The strain tensor can be calculated using different methods, like Green Lagrange or Hencky Strain. This calculation is delegated to the `StressStrainUtilities`. However, the conversion to strain vectors depends on the type of stress state. Therefore, that conversion is defined in these policies and are described below. 
 
 For the 3D stress state, the strain vector is defined as:
 ```math
