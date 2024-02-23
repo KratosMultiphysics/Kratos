@@ -41,7 +41,7 @@ PYBIND11_MODULE(KratosPoromechanicsApplication, m)
     AddCustomConstitutiveLawsToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddCustomSaturationLawsToPython(m);
+    // AddCustomSaturationLawsToPython(m); // I am not exporting SaturationLaw because it is not really necessary
 
     //Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, VELOCITY_COEFFICIENT )
