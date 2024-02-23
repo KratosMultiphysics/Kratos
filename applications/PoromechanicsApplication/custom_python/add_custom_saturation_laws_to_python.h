@@ -27,7 +27,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomConstitutiveLawsToPython(pybind11::module& m);
+void  AddCustomSaturationLawsToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
