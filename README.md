@@ -31,7 +31,7 @@
 [twitter-image]: https://img.shields.io/twitter/follow/kratosmultiphys.svg?label=Follow&style=social
 [twitter]: https://twitter.com/kratosmultiphys
 
-_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://github.com/KratosMultiphysics/Kratos/wiki/Overview)
+_KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-disciplinary simulation software, aiming at modularity, extensibility, and high performance. Kratos is written in C++, and counts with an extensive Python interface. More in [Overview](https://kratosmultiphysics.github.io/Kratos/pages/Kratos/For_Users/General/Overview.html).
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
@@ -74,7 +74,7 @@ Here you can find the basic documentation of the project:
 * [Multiphysics](https://github.com/KratosMultiphysics/Kratos/wiki/Multiphysics-example)
 
 ## More documentation
-[Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
+[Website](https://kratosmultiphysics.github.io/Kratos/)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
