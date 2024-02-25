@@ -258,6 +258,8 @@ public:
         const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
 
         if (is_initial_loop && recompute_first_timestep){
+            BaseType::GetModelPart().GetProcessInfo()[INITIAL_LOOP_COMPLETE] = true;
+
             // Transfer STICK_FORCE into a 'previous' timestep
             // [since friction algorithm requires values of normal forces at the 'previous' timestep]
             for (Node &curr_node : BaseType::GetModelPart().Nodes()){

@@ -549,10 +549,8 @@ public:
                 const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
                 const double max_tangent_force_norm = normal_force_norm * mu;
 
-                const bool is_initial_loop = (rModelPart.GetProcessInfo()[STEP] ==  1);
-
                 // special treatment for initial loop
-                if (is_initial_loop) {
+                if (!rModelPart.GetProcessInfo()[INITIAL_LOOP_COMPLETE]) {
                     if (pNode->GetValue(HAS_INITIAL_MOMENTUM)) {
                         r_friction_state = SLIDING;
                     }
@@ -658,17 +656,16 @@ protected:
 private:
 	///@name Static Member Variables
 	///@{
-
-	const Variable<double>& mrFlagVariable;
-
-    const int SLIDING = 0;
-    const int STICK = 1;
+    constexpr static int SLIDING = 0;
+    constexpr static int STICK = 1;
 
 	///@}
 	///@name Member Variables
 	///@{
+    const Variable<double>& mrFlagVariable;
 
-	///@}
+
+    ///@}
 	///@name Private Operators
 	///@{
 
