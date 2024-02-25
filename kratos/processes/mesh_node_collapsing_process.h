@@ -37,7 +37,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Remove the selected node from the mesh and collapse the connectivity arround it.
+  /// Remove the selected node from the mesh and collapse the connectivity around it.
   /** Detail class definition.
   */
   class MeshNodeCollapsingProcess : public Process

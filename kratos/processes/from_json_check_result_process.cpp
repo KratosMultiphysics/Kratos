@@ -143,7 +143,7 @@ void FromJSONCheckResultProcess::ExecuteFinalize()
 {
     KRATOS_TRY;
 
-    // This clears the databse of the result information
+    // This clears the database of the result information
     mDatabaseNodes.Clear();
     mDatabaseGP.Clear();
 
@@ -175,7 +175,7 @@ void FromJSONCheckResultProcess::InitializeDatabases()
 {
     KRATOS_TRY;
 
-    // This clears the databse of the result information in first place
+    // This clears the database of the result information in first place
     mDatabaseNodes.Clear();
     mDatabaseGP.Clear();
 

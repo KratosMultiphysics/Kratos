@@ -91,7 +91,7 @@ public:
         Parameters ThisParameters
         )
     {
-        KRATOS_ERROR << "Calling base class create. Please override this method in the corresonding Process" << std::endl;
+        KRATOS_ERROR << "Calling base class create. Please override this method in the corresponding Process" << std::endl;
         return nullptr;
     }
 

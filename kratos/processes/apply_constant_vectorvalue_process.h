@@ -96,7 +96,7 @@ public:
             KRATOS_THROW_ERROR(std::runtime_error,"model_part_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
         }
 
-        //now validate agains defaults -- this also ensures no type mismatch
+        //now validate against defaults -- this also ensures no type mismatch
         parameters.ValidateAndAssignDefaults(default_parameters);
 
         // Read from the parameters and assign to the values
