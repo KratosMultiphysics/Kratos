@@ -32,7 +32,8 @@ namespace Kratos
       ~GraphUtilities();
 
       // Public methods
-      void ExecuteInitialize(bool ParticleTempMin,
+      void ExecuteInitialize(bool ParticleTempAll,
+                             bool ParticleTempMin,
                              bool ParticleTempMax,
                              bool ParticleTempAvg,
                              bool ParticleTempDev,
@@ -40,12 +41,13 @@ namespace Kratos
                              bool ParticleHeatFluxContributions,
                              bool ParticleHeatGenContributions,
                              bool ParticleEnergyContributions);
-      void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
+      void ExecuteFinalizeSolutionStep(ModelPart& rModelPart, const int write_all_temp_freq);
       void ExecuteFinalize(void);
 
     protected:
 
       // Protected attributes
+      bool mGraph_ParticleTempAll;
       bool mGraph_ParticleTempMin;
       bool mGraph_ParticleTempMax;
       bool mGraph_ParticleTempAvg;
@@ -55,6 +57,7 @@ namespace Kratos
       bool mGraph_ParticleHeatGenContributions;
       bool mGraph_ParticleEnergyContributions;
 
+      std::ofstream mFile_ParticleTempAll;
       std::ofstream mFile_ParticleTempMin;
       std::ofstream mFile_ParticleTempMax;
       std::ofstream mFile_ParticleTempAvg;

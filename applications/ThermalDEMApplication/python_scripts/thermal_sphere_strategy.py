@@ -109,7 +109,7 @@ class ExplicitStrategy(BaseStrategy):
         
         # Write output graphs
         if (self.write_graph):
-            self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
+            self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part, self.temperature_write_frequency)
 
         # Merge particle heat maps to global heat maps
         if (self.PostMapHeatGeneration):
@@ -149,6 +149,7 @@ class ExplicitStrategy(BaseStrategy):
         self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
         self.voronoi_tesselation_frequency = self.thermal_settings["voronoi_tesselation_frequency"].GetInt()
         self.porosity_update_frequency     = self.thermal_settings["porosity_update_frequency"].GetInt()
+        self.temperature_write_frequency   = self.thermal_settings["temperature_write_frequency"].GetInt()
 
         # Integration scheme and method
         self.thermal_integration_scheme   = self.thermal_settings["thermal_integration_scheme"].GetString()
@@ -200,6 +201,7 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Post options
+        self.PostGraphParticleTempAll     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAll")
         self.PostGraphParticleTempMin     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
         self.PostGraphParticleTempMax     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
         self.PostGraphParticleTempAvg     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
@@ -289,6 +291,8 @@ class ExplicitStrategy(BaseStrategy):
             self.voronoi_tesselation_frequency = 0
         if (self.porosity_update_frequency < 0):
             self.porosity_update_frequency = 0
+        if (self.temperature_write_frequency < 0):
+            self.temperature_write_frequency = 0
         if (self.min_conduction_distance <= 0):
             raise Exception('ThermalDEM', '"min_conduction_distance" must be positive.')
         if (self.max_conduction_distance < 0):
@@ -360,7 +364,8 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin     or
+        if (self.PostGraphParticleTempAll     or
+            self.PostGraphParticleTempMin     or
             self.PostGraphParticleTempMax     or
             self.PostGraphParticleTempAvg     or 
             self.PostGraphParticleTempDev     or
@@ -608,7 +613,8 @@ class ExplicitStrategy(BaseStrategy):
             self.tesselation_utils.ExecuteInitialize(self.spheres_model_part, self.compute_voronoi, self.compute_porosity)
 
         if (self.write_graph):
-            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempMin,
+            self.graph_utils.ExecuteInitialize(self.PostGraphParticleTempAll,
+                                               self.PostGraphParticleTempMin,
                                                self.PostGraphParticleTempMax,
                                                self.PostGraphParticleTempAvg,
                                                self.PostGraphParticleTempDev,

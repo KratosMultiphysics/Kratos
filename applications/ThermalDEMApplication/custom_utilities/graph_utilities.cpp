@@ -17,6 +17,7 @@ namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
   GraphUtilities::GraphUtilities()
   {
+    mGraph_ParticleTempAll               = false;
     mGraph_ParticleTempMin               = false;
     mGraph_ParticleTempMax               = false;
     mGraph_ParticleTempAvg               = false;
@@ -30,7 +31,8 @@ namespace Kratos {
   GraphUtilities::~GraphUtilities() {}
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteInitialize(bool ParticleTempMin,
+  void GraphUtilities::ExecuteInitialize(bool ParticleTempAll,
+                                         bool ParticleTempMin,
                                          bool ParticleTempMax,
                                          bool ParticleTempAvg,
                                          bool ParticleTempDev,
@@ -42,6 +44,7 @@ namespace Kratos {
     KRATOS_TRY
 
     // Set member flags
+    mGraph_ParticleTempAll               = ParticleTempAll;
     mGraph_ParticleTempMin               = ParticleTempMin;
     mGraph_ParticleTempMax               = ParticleTempMax;
     mGraph_ParticleTempAvg               = ParticleTempAvg;
@@ -52,6 +55,13 @@ namespace Kratos {
     mGraph_ParticleEnergyContributions   = ParticleEnergyContributions;
 
     // Open files
+    if (mGraph_ParticleTempAll) {
+      mFile_ParticleTempAll.open("graph_particle_temp_all.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mFile_ParticleTempAll) << "Could not open graph file graph_particle_temp_all!" << std::endl;
+      mFile_ParticleTempAll << "1 - TIME STEP / TIME | ";
+      mFile_ParticleTempAll << "2 - ID / RADIUS / COORDS XY / TEMPERATURE / NEIGHBORS";
+      mFile_ParticleTempAll << std::endl;
+    }
     if (mGraph_ParticleTempMin) {
       mFile_ParticleTempMin.open("graph_particle_temp_min.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempMin) << "Could not open graph file for minimum particle temperature!" << std::endl;
@@ -141,16 +151,41 @@ namespace Kratos {
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart)
+  void GraphUtilities::ExecuteFinalizeSolutionStep(ModelPart& rModelPart, const int write_all_temp_freq)
   {
     KRATOS_TRY
 
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    const int    time_step            = r_process_info[TIME_STEPS];
+    const double time                 = r_process_info[TIME];
+    const int    num_of_particles     = rModelPart.NumberOfElements();
+
+    // Print all temperatures
+    if (mFile_ParticleTempAll.is_open() && time_step % write_all_temp_freq == 0.0) {
+      mFile_ParticleTempAll << "#TIME/STEP: ";
+      mFile_ParticleTempAll << std::defaultfloat << time_step << " " << time << std::endl;
+
+      ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin();
+      for (int i = 0; i < num_of_particles; i++) {
+        ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*(it + i));
+        const int    id = i + 1;
+        const double r  = particle.GetRadius();
+        const double x  = particle.GetGeometry()[0][0];
+        const double y  = particle.GetGeometry()[0][1];
+        const double t  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+        const int    n  = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
+        mFile_ParticleTempAll << std::defaultfloat << id << " ";
+        mFile_ParticleTempAll << std::fixed << std::setprecision(15) << r << " " << x << " " << y << " " << t << " ";
+        mFile_ParticleTempAll << std::defaultfloat << n << std::endl;
+      }
+      mFile_ParticleTempAll << std::endl;
+    }
+
+    // Print other variables
     if (!r_process_info[IS_TIME_TO_PRINT])
       return;
 
     // Initialize results
-    const int num_of_particles                    =  rModelPart.NumberOfElements();
     int       num_ratio_particles_flux            =  0;
     int       num_ratio_particles_gen             =  0;
     double    total_vol                           =  0.0;
@@ -311,9 +346,6 @@ namespace Kratos {
     }
 
     // Write results to files
-    const int    time_step = r_process_info[TIME_STEPS];
-    const double time      = r_process_info[TIME];
-
     if (mFile_ParticleTempMin.is_open())
       mFile_ParticleTempMin << time_step << " "
                             << time      << " "
@@ -391,6 +423,7 @@ namespace Kratos {
     KRATOS_TRY
 
     // Close files
+    if (mFile_ParticleTempAll.is_open())               mFile_ParticleTempAll.close();
     if (mFile_ParticleTempMin.is_open())               mFile_ParticleTempMin.close();
     if (mFile_ParticleTempMax.is_open())               mFile_ParticleTempMax.close();
     if (mFile_ParticleTempAvg.is_open())               mFile_ParticleTempAvg.close();
