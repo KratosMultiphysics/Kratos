@@ -182,11 +182,11 @@ public:
 
                         // check if friction force has been computed for the current node
                         rGeometry[itNode].SetLock();
-                        bool friction_computed = rGeometry[itNode].Is(OUTLET);
-                        rGeometry[itNode].Set(OUTLET);
+                        bool friction_assigned = rGeometry[itNode].GetValue(FRICTION_ASSIGNED);
+                        rGeometry[itNode].SetValue(FRICTION_ASSIGNED, true);
                         rGeometry[itNode].UnSetLock();
 
-                        if (!friction_computed) {
+                        if (!friction_assigned) {
                             // obtain displacement in normal-tangential coordinates
                             // [ use a copy and not reference to avoid rotating the displacement in SolutionStepValue ]
                             array_1d<double,3> displacement_copy = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
@@ -549,11 +549,11 @@ public:
                 const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
                 const double max_tangent_force_norm = normal_force_norm * mu;
 
-                const bool isInitialLoop = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] > 0);
+                const bool is_initial_loop = (rModelPart.GetProcessInfo()[STEP] ==  1);
 
                 // special treatment for initial loop
-                if (isInitialLoop) {
-                    if (pNode->Is(INLET)) { // used to mark nodes with non-zero momentum in the initial timestep
+                if (is_initial_loop) {
+                    if (pNode->GetValue(HAS_INITIAL_MOMENTUM)) {
                         r_friction_state = SLIDING;
                     }
                     else {
@@ -581,7 +581,7 @@ public:
                 }
 
                 // reset friction-related flags/variables
-                pNode->Reset(OUTLET);
+                pNode->SetValue(FRICTION_ASSIGNED, false);
                 pNode->FastGetSolutionStepValue(STICK_FORCE).clear();
             }
         }

@@ -33,7 +33,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         if self.friction_coefficient > 0 and self.tangential_penalty_factor > 0:
             # friction active -- set flag on ProcessInfo
-            self.model_part.ProcessInfo[KratosMultiphysics.FLAG_VARIABLE] = 1.0
+            self.model_part.ProcessInfo[KratosParticle.FRICTION_ACTIVE] = True
 
 
         # Compute the normal on the nodes of interest -

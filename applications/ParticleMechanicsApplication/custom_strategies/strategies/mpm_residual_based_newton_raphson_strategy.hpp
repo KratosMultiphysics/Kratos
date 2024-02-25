@@ -253,18 +253,15 @@ public:
         }
 
 
-        // recompute in very first timestep if friction is set [FLAG_VARIABLE > 0]
-        if (BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] > 0){
+        // recompute first timestep if friction is active
+        const bool recompute_first_timestep = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
+        const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
 
-            // Indicates that friction is active + pre-computation in 1st timestep is complete [FLAG_VARIABLE < 0]
-            BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] = -2.0;
-
+        if (is_initial_loop && recompute_first_timestep){
             // Transfer STICK_FORCE into a 'previous' timestep
             // [since friction algorithm requires values of normal forces at the 'previous' timestep]
             for (Node &curr_node : BaseType::GetModelPart().Nodes()){
-                curr_node.SetLock();
                 curr_node.FastGetSolutionStepValue(STICK_FORCE, 1) = curr_node.FastGetSolutionStepValue(STICK_FORCE, 0);
-                curr_node.UnSetLock();
             }
 
             is_converged=false;

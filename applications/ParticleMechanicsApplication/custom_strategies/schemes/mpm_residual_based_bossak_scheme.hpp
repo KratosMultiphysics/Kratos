@@ -391,10 +391,10 @@ public:
 
                 r_nodal_pressure += delta_nodal_pressure;
 
-                // use INLET to mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
+                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
                 // an initial friction state of SLIDING instead of STICK
                 if(mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon()){
-                    (i)->Set(INLET);
+                    (i)->SetValue(HAS_INITIAL_MOMENTUM, true);
                 }
             }
         }
