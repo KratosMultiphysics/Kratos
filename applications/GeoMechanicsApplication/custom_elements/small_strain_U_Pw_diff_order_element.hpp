@@ -28,6 +28,7 @@
 // Application includes
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -42,10 +43,15 @@ public:
     SmallStrainUPwDiffOrderElement();
 
     // Constructor 1
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallStrainUPwDiffOrderElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
     // Constructor 2
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallStrainUPwDiffOrderElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   PropertiesType::Pointer            pProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
     // Destructor
     ~SmallStrainUPwDiffOrderElement() override;
@@ -304,6 +310,8 @@ protected:
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
+    const StressStatePolicy& GetStressStatePolicy() const;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -332,6 +340,8 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 
 }; // Class SmallStrainUPwDiffOrderElement
 

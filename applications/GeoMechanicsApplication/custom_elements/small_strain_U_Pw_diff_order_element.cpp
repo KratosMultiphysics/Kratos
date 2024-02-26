@@ -22,8 +22,6 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "plane_strain_stress_state.h"
-#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
@@ -32,16 +30,19 @@ namespace Kratos
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element() {}
 
 // Constructor 1
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
+                                                               GeometryType::Pointer pGeometry,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, pGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
 }
 
 // Constructor 2
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType               NewId,
                                                                GeometryType::Pointer   pGeometry,
-                                                               PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+                                                               PropertiesType::Pointer pProperties,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    : Element(NewId, pGeometry, pProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
 }
 
@@ -51,14 +52,16 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
+        NewId, GetGeometry().Create(ThisNodes), pProperties, mpStressStatePolicy->Clone()));
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties));
+    return Element::Pointer(
+        new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -1694,18 +1697,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
 
 void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX, const Vector& Np)
 {
-    KRATOS_TRY
-
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if (GetGeometry().WorkingSpaceDimension() == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    rB = p_stress_state_policy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
-
-    KRATOS_CATCH("")
+    rB = mpStressStatePolicy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
 }
 
 void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables& rVariables,
@@ -1729,15 +1721,7 @@ void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables&
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int GPoint, double detJ)
 {
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if (GetGeometry().WorkingSpaceDimension() == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    return p_stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJ,
-                                                                  GetGeometry());
+    return mpStressStatePolicy->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJ, GetGeometry());
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -2160,18 +2144,7 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVa
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
-    KRATOS_TRY
-
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if (GetGeometry().WorkingSpaceDimension() == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    return p_stress_state_policy->CalculateGreenLagrangeStrain(rDeformationGradient);
-
-    KRATOS_CATCH("")
+    return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint)
@@ -2272,6 +2245,11 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
     result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
 
     return result;
+}
+
+const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
+{
+    return *mpStressStatePolicy;
 }
 
 } // Namespace Kratos
