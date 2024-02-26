@@ -29,7 +29,8 @@ Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType              
                     "element ... illegal operation!!"
                  << this->Id() << std::endl;
 
-    return Element::Pointer(new UPwBaseElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwBaseElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                               pProperties, mpStressStatePolicy->Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType              
                     "element ... illegal operation!!"
                  << this->Id() << std::endl;
 
-    return Element::Pointer(new UPwBaseElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new UPwBaseElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -660,6 +661,12 @@ Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
         result.push_back(r_node.pGetDof(WATER_PRESSURE));
     }
     return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+StressStatePolicy& UPwBaseElement<TDim, TNumNodes>::GetStressStatePolicy() const
+{
+    return *mpStressStatePolicy;
 }
 
 //----------------------------------------------------------------------------------------

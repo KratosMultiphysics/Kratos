@@ -21,6 +21,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -50,19 +51,19 @@ public:
 
     /// Constructor using an array of nodes
     UPwSmallStrainAxisymmetricElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::make_unique<AxisymmetricStressState>())
     {
     }
 
     /// Constructor using Geometry
     UPwSmallStrainAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::make_unique<AxisymmetricStressState>())
     {
     }
 
     /// Constructor using Properties
     UPwSmallStrainAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::make_unique<AxisymmetricStressState>())
     {
     }
 

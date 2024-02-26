@@ -21,6 +21,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "axisymmetric_stress_state.h"
 
 namespace Kratos
 {
@@ -52,19 +53,19 @@ public:
 
     /// Constructor using an array of nodes
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, ThisNodes)
+        : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, ThisNodes, std::make_unique<AxisymmetricStressState>())
     {
     }
 
     /// Constructor using Geometry
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry)
+        : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry, std::make_unique<AxisymmetricStressState>())
     {
     }
 
     /// Constructor using Properties
     UPwUpdatedLagrangianAxisymmetricElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+        : UPwUpdatedLagrangianElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::make_unique<AxisymmetricStressState>())
     {
     }
 

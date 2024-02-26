@@ -22,7 +22,7 @@ Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexTyp
                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexTyp
                                                                         GeometryType::Pointer pGeom,
                                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwInterfaceElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SteadyStatePwInterfaceElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------

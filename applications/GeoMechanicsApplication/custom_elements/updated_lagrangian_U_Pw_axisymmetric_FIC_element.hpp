@@ -52,13 +52,15 @@ public:
 
     /// Constructor using an array of nodes
     UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(NewId, ThisNodes)
+        : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::make_unique<AxisymmetricStressState>())
     {
     }
 
     /// Constructor using Geometry
     UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(NewId, pGeometry)
+        : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::make_unique<AxisymmetricStressState>())
     {
     }
 
@@ -66,7 +68,8 @@ public:
     UPwUpdatedLagrangianAxisymmetricFICElement(IndexType               NewId,
                                                GeometryType::Pointer   pGeometry,
                                                PropertiesType::Pointer pProperties)
-        : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+        : UPwUpdatedLagrangianFICElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::make_unique<AxisymmetricStressState>())
     {
     }
 

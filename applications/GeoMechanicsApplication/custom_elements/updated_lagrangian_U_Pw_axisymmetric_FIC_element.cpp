@@ -31,7 +31,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianAxisymmetricFICElement<TDim, TNumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwUpdatedLagrangianAxisymmetricFICElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new UPwUpdatedLagrangianAxisymmetricFICElement(
+        NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
@@ -55,7 +56,8 @@ double UPwUpdatedLagrangianAxisymmetricFICElement<TDim, TNumNodes>::CalculateInt
 
 {
     AxisymmetricStressState stress_state;
-    return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ, this->GetGeometry());
+    return stress_state.CalculateIntegrationCoefficient(IntegrationPoints[PointNumber], detJ,
+                                                        this->GetGeometry());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
