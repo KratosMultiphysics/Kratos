@@ -97,7 +97,7 @@ void LocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
             Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
             Vector EffectiveStressVector(VoigtSize);
 
-            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
 
             this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
         }
@@ -107,7 +107,7 @@ void LocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
             Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
             Vector& rStressVector = rValues.GetStressVector();
             
-            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+            this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
             
             this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
         }
@@ -117,7 +117,7 @@ void LocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
         // COMPUTE_STRESS
         Vector& rStressVector = rValues.GetStressVector();
         
-        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+        this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
     }
 }
 
