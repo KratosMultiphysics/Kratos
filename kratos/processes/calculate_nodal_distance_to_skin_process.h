@@ -31,8 +31,8 @@ namespace Kratos
 /**
  * @class CalculateNodalDistanceToSkinProcess
  * @ingroup KratosCore
- * @brief This class computes the distance in the node using the GeometricalObjectBins class
- * @details Distance is only, and only calculated in the nodes.
+ * @brief This process computes the distance in the node using the GeometricalObjectBins class
+ * @details Distance is exclusively and solely calculated within the nodes.
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) CalculateNodalDistanceToSkinProcess
@@ -50,7 +50,7 @@ public:
     ///@{
 
     /**
-     * @brief Construct a new Calculate Only Nodal Distance To Skin object
+     * @brief Construct a new Calculate Nodal Distance To Skin Process object
      * @details This constructor considers the model parts of the volume and skin
      * @param rVolumeModelPart Model part containing the volume elements
      * @param rSkinModelPart Model part containing the skin to compute the distance to as conditions
@@ -65,7 +65,7 @@ public:
         );
 
     /**
-     * @brief  Construct a new Calculate Only Nodal Distance To Skin object
+     * @brief Construct a new Calculate Nodal Distance To Skin Process object
      * @details This constructor considers the model and retrieves the model parts
      * @param rModel The model containing the model parts of the volume and the skin
      * @param ThisParameters User-defined parameters to construct the
@@ -97,7 +97,13 @@ public:
     ///@{
 
     /**
-     * @brief Execute method is used to execute the Process algorithms.
+     * @brief Execute method is used to execute the Process algorithms for calculating nodal distances to the skin.
+     * @details This method computes the shortest distance from nodes in the volume model part to the skin model part. The skin can consist of either elements or conditions, but not both simultaneously. If both are present, the method defaults to considering elements only and emits a warning. The calculation can be performed storing the results either as historical or non-historical variables based on the Process configuration.
+     * Internally, it uses a lambda function to abstract the computation logic for both historical and non-historical variable types. The method determines the nearest skin entity (element or condition) to each node and assigns the computed distance to the node's variable. The skin model part's entities are organized into bins for efficient search operations, leveraging a spatial data structure.
+     * The choice between historical and non-historical variable storage is determined by the `mHistoricalVariable` flag.
+     * The appropriate lambda function is then selected and executed for each node in the volume model part.
+     * @note The method relies on the `GeometricalObjectsBins` class for efficient nearest neighbor search, which is crucial for performance in large-scale problems.
+     * @warning If the skin model part contains both elements and conditions, a warning is logged, and only elements are considered for distance calculations.
      */
     void Execute() override;
 
@@ -128,12 +134,16 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Reference to the volume model part.
     ModelPart& mrVolumeModelPart;
 
+    /// Reference to the skin model part.
     ModelPart& mrSkinModelPart;
 
+    /// Flag indicating whether historical variable is enabled.
     bool mHistoricalVariable;
 
+    /// Pointer to the distance variable.
     const Variable<double>* mpDistanceVariable = &DISTANCE;
 
     ///@}
