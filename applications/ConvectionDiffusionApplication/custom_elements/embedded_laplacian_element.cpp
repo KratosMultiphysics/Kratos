@@ -313,7 +313,7 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
     // Nitsche penalty constant
     const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET];
     // Dirichlet boundary value
-    const double temp_bc = GetValue(EMBEDDED_SCALAR);
+    //const double temp_bc = GetValue(EMBEDDED_SCALAR);
     // Measure of element size
     const double h = ElementSizeCalculator<TTDim,NumNodes>::AverageElementSize(r_geom);
 
@@ -329,6 +329,17 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
         //Calculate the local conductivity and temperature (at Gauss point)
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
         const double temp_gauss = inner_prod(N, temp);
+
+        // Gauss point coordinates
+        array_1d<double,3> xg_coords = ZeroVector(3);
+        for (std::size_t i = 0; i < NumNodes; ++i) {
+            noalias(xg_coords) += N(i) * r_geom[i].Coordinates();
+        }
+        // Dirichlet boundary condition // TODO: get user-defined boundary condition
+        // rectangle horizontal cut
+        const double aux_temp_bc = std::pow(xg_coords[0],2) + std::pow(xg_coords[1],2);
+        // // circle cut
+        // const double temp_bc = ( 1.0 - std::pow(xg_coords[0],2) - std::pow(xg_coords[1],2) ) / 4.0;
 
         // Add Nitsche contributions
         for (std::size_t i = 0; i < NumNodes; ++i) {
@@ -348,7 +359,7 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
             }
 
             // Add contribution of Nitsche boundary condition to RHS
-            rRightHandSideVector(i) -= (aux_bc_1 - aux_bc_2) * (temp_gauss - temp_bc);
+            rRightHandSideVector(i) -= (aux_bc_1 - aux_bc_2) * (temp_gauss - aux_temp_bc);
         }
     }
 }
