@@ -26,11 +26,12 @@ class PoromechanicsAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration.")
 
         # Initialize Fracture Propagation Utility if necessary
-        if parameters["problem_data"]["fracture_utility"].GetBool():
-            from KratosMultiphysics.PoromechanicsApplication.poromechanics_fracture_propagation_utility import FracturePropagationUtility
-            self.fracture_utility = FracturePropagationUtility(model,
-                                                                self._GetOrderOfProcessesInitialization())
-            parameters = self.fracture_utility.Initialize(parameters)
+        if parameters["problem_data"].Has("fracture_utility"):
+            if parameters["problem_data"]["fracture_utility"].GetBool():
+                from KratosMultiphysics.PoromechanicsApplication.poromechanics_fracture_propagation_utility import FracturePropagationUtility
+                self.fracture_utility = FracturePropagationUtility(model,
+                                                                    self._GetOrderOfProcessesInitialization())
+                parameters = self.fracture_utility.Initialize(parameters)
 
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
@@ -52,9 +53,10 @@ class PoromechanicsAnalysis(AnalysisStage):
         super(PoromechanicsAnalysis,self).OutputSolutionStep()
 
         # Check Fracture Propagation Utility
-        if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
-            if self.fracture_utility.IsPropagationStep():
-                self._solver,self._list_of_processes,self._list_of_output_processes = self.fracture_utility.CheckPropagation(self._solver,
+        if self.project_parameters["problem_data"].Has("fracture_utility"):
+            if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
+                if self.fracture_utility.IsPropagationStep():
+                    self._solver,self._list_of_processes,self._list_of_output_processes = self.fracture_utility.CheckPropagation(self._solver,
                                                                                                                             self._list_of_processes,
                                                                                                                             self._list_of_output_processes)
 
@@ -62,8 +64,9 @@ class PoromechanicsAnalysis(AnalysisStage):
         super(PoromechanicsAnalysis,self).Finalize()
 
         # Finalize Fracture Propagation Utility
-        if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
-            self.fracture_utility.Finalize()
+        if self.project_parameters["problem_data"].Has("fracture_utility"):
+            if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
+                self.fracture_utility.Finalize()
 
         if (self.initial_stress_mode == 'save'):
             self.initial_stress_utility.Save()
