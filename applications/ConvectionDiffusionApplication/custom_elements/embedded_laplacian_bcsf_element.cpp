@@ -106,7 +106,8 @@ void EmbeddedLaplacianBCSFElement<TTDim>::CalculateLocalSystem(
         AddPositiveElementSide(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
 
         // Calculate and add interface terms
-        AddPositiveInterfaceTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
+        //TODO Check for error!!! --> not needed when shape functions align with the interface?!
+        //AddPositiveInterfaceTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
 
     } else {
         // Add base Laplacian contribution (standard Galerkin)
@@ -229,18 +230,28 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveElementSide(
         temp[NumNodes+i_edge] = std::pow(int_pt_coords[0],2) + std::pow(int_pt_coords[1],2);
     }
 
-    BoundedMatrix<double, NumNodes, NumNodes+NumEdges> LHS_upperPart = ZeroMatrix(NumNodes, NumNodes+NumEdges);
+    // Create auxiliary LHS matrix which includes edge intersection points in 2nd direction
+    BoundedMatrix<double, NumNodes, NumNodes+NumEdges> aux_LHS_upperPart = ZeroMatrix(NumNodes, NumNodes+NumEdges);
+    // Copy rLeftHandSideMatrix into LHS_upperPart
+    for(std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+        for(std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+            aux_LHS_upperPart(i_node,j_node) = rLeftHandSideMatrix(i_node,j_node);
+        }
+    }
+
     // Iterate over the positive side volume integration points
     // = number of integration points * number of subdivisions on positive side of element
     const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
+        // DN_DX_unc is only local and discontinuous, it's the matrix of shape function derivatives of the Gauss point ina a sub-element
+        // without condensation onto the nodes of the element
         const auto& N = row(rData.PositiveSideN, g);
         //const auto& DN_DX = rData.PositiveSideDNDX[g];
         const auto& DN_DX_unc = rData.PositiveSideDNDX_unc[g];
         const double weight_gauss = rData.PositiveSideWeights[g];
 
-        //Calculate the local conductivity
+        // Calculate the local conductivity
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
 
         // TODO splice DN_DX_unc?
@@ -251,7 +262,7 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveElementSide(
             }
         }
         noalias(rLeftHandSideMatrix) += weight_gauss * conductivity_gauss * prod(DN_DX_unc_nodalPart, trans(DN_DX_unc_nodalPart));
-        LHS_upperPart += weight_gauss * conductivity_gauss * prod(DN_DX_unc_nodalPart, trans(DN_DX_unc));
+        aux_LHS_upperPart += weight_gauss * conductivity_gauss * prod(DN_DX_unc_nodalPart, trans(DN_DX_unc));
 
         // Calculate the local RHS (external source)
         const double q_gauss = inner_prod(N, heat_flux_local);
@@ -260,7 +271,7 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveElementSide(
     }
 
     //RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(LHS_upperPart,temp);
+    noalias(rRightHandSideVector) -= prod(aux_LHS_upperPart,temp);
 }
 
 template<std::size_t TTDim>
@@ -292,16 +303,25 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveInterfaceTerms(
         temp[NumNodes+i_edge] = std::pow(int_pt_coords[0],2) + std::pow(int_pt_coords[1],2);
     }
 
-    BoundedMatrix<double, NumNodes, NumNodes+NumEdges> LHS_upperPart = ZeroMatrix(NumNodes, NumNodes+NumEdges);
+    // Create auxiliary LHS matrix which includes edge intersection points in 2nd direction
+    BoundedMatrix<double, NumNodes, NumNodes+NumEdges> aux_LHS_upperPart = ZeroMatrix(NumNodes, NumNodes+NumEdges);
+    // Copy rLeftHandSideMatrix into LHS_upperPart
+    for(std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+        for(std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+            aux_LHS_upperPart(i_node,j_node) = rLeftHandSideMatrix(i_node,j_node);
+        }
+    }
 
     // Iterate over the positive side interface integration points
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
+        // N_unc and  DN_DX_unc are only local and discontinuous, they contain values for the Gauss point of a sub-element
+        // without condensation onto the nodes of the element
         const auto& N = row(rData.PositiveInterfaceN, g);
-        const auto& N_unc = row(rData.PositiveInterfaceN_unc, g); //TODO
-        const auto& DN_DX = rData.PositiveInterfaceDNDX[g];
-        const auto& DN_DX_unc = rData.PositiveInterfaceDNDX_unc[g]; //TODO
+        const auto& N_unc = row(rData.PositiveInterfaceN_unc, g);
+        //const auto& DN_DX = rData.PositiveInterfaceDNDX[g];
+        const auto& DN_DX_unc = rData.PositiveInterfaceDNDX_unc[g];
         const double weight_gauss = rData.PositiveInterfaceWeights[g];
         const auto& unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
@@ -315,19 +335,19 @@ void EmbeddedLaplacianBCSFElement<TTDim>::AddPositiveInterfaceTerms(
 
                     const double aux_flux = weight_gauss * conductivity_gauss * N_unc(i) * unit_normal(d) * DN_DX_unc(j,d);
                     rLeftHandSideMatrix(i, j) -= aux_flux;
-                    LHS_upperPart(i,j) -= aux_flux;
+                    aux_LHS_upperPart(i,j) -= aux_flux;
                 }
             }
             for (std::size_t j_edge = NumNodes; j_edge < NumNodes+NumEdges; ++j_edge) {
                 for (std::size_t d = 0; d < TTDim; ++d) {
 
                     const double aux_flux = weight_gauss * conductivity_gauss * N_unc(i) * unit_normal(d) * DN_DX_unc(j_edge,d);
-                    LHS_upperPart(i,j_edge) -= aux_flux;
+                    aux_LHS_upperPart(i,j_edge) -= aux_flux;
                 }
             }
         }
     }
-    noalias(rRightHandSideVector) -= prod(LHS_upperPart,temp);
+    noalias(rRightHandSideVector) -= prod(aux_LHS_upperPart,temp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
