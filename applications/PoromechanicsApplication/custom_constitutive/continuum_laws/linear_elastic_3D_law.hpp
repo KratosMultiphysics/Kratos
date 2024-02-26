@@ -163,7 +163,8 @@ protected:
      */
     virtual void CalculateStress( const Vector &rStrainVector,
                                   const Matrix &rConstitutiveMatrix,
-                                  Vector& rStressVector);
+                                  Vector& rStressVector,
+                                  Parameters& rValues);
 
 
     /**
