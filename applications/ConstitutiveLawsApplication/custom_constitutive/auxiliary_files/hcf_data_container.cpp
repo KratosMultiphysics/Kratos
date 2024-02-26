@@ -171,8 +171,13 @@ void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Prop
                 rFatigueVariables.fred_initiation = rFatigueVariables.FatigueReductionFactor;
                 rFatigueVariables.is_initiated = true;
             }
-            double etha = (rFatigueVariables.GlobalNumberOfCycles - rFatigueVariables.nc_initiation) / 10;
-            rFatigueVariables.FatigueReductionFactor = (-rFatigueVariables.fred_initiation) * etha + rFatigueVariables.fred_initiation;
+            // double etha = (rFatigueVariables.GlobalNumberOfCycles - rFatigueVariables.nc_initiation) / 10;
+            // rFatigueVariables.FatigueReductionFactor = (-rFatigueVariables.fred_initiation) * etha + rFatigueVariables.fred_initiation;
+
+            double alfa_fred = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][8];
+            double beta_fred = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][9];
+            
+            rFatigueVariables.FatigueReductionFactor = rFatigueVariables.fred_initiation - ((1/(alfa_fred*(1-beta_fred)))*(std::pow(rFatigueVariables.GlobalNumberOfCycles,(1-beta_fred))-std::pow(rFatigueVariables.nc_initiation,(1-beta_fred))));
         }
         rFatigueVariables.FatigueReductionFactor = (rFatigueVariables.FatigueReductionFactor < 0.01) ? 0.01 : rFatigueVariables.FatigueReductionFactor;
     }
