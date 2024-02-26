@@ -35,7 +35,8 @@ Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexTy
                                                                          GeometryType::Pointer pGeom,
                                                                          PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwUpdatedLagrangianFICElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwUpdatedLagrangianFICElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------

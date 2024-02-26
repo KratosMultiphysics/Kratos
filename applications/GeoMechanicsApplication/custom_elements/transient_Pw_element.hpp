@@ -70,7 +70,10 @@ public:
     }
 
     /// Constructor using Properties
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    TransientPwElement(IndexType                          NewId,
+                       GeometryType::Pointer              pGeometry,
+                       PropertiesType::Pointer            pProperties,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }

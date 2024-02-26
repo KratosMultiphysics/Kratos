@@ -31,7 +31,8 @@ Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexTyp
                                                                         GeometryType::Pointer pGeom,
                                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwInterfaceElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new SteadyStatePwInterfaceElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------

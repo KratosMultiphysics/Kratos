@@ -70,7 +70,10 @@ public:
     }
 
     /// Constructor using Properties
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+    SteadyStatePwElement(IndexType                          NewId,
+                         GeometryType::Pointer              pGeometry,
+                         PropertiesType::Pointer            pProperties,
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
         : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }

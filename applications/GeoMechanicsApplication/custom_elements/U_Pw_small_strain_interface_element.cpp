@@ -33,7 +33,8 @@ Element::Pointer UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Create(IndexTy
                                                                          GeometryType::Pointer pGeom,
                                                                          PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainInterfaceElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwSmallStrainInterfaceElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
