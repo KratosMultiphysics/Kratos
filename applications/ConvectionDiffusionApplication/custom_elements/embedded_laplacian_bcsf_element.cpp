@@ -106,7 +106,8 @@ void EmbeddedLaplacianBCSFElement<TTDim>::CalculateLocalSystem(
         AddPositiveElementSide(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
 
         // Calculate and add interface terms
-        //TODO Check for error!!! --> not needed when shape functions align with the interface?!
+        //TODO interface flux not needed when shape functions align with the interface?!
+        //TODO Only interface term for Neumann BC
         //AddPositiveInterfaceTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
 
     } else {
