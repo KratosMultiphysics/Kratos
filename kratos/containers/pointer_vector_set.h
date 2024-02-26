@@ -617,7 +617,7 @@ public:
             // trying to insert at the front.
             if (KeyOf(*value) < KeyOf(*position_hint)) {
                 // key at the position hint is greater than the value of key. Hence position hint
-                // is valid. So using the insert at the beginning of the vector.
+                // is valid. So using insertion at the beginning.
                 mSortedPartSize = mData.size() + 1;
                 return mData.insert(mData.begin(), value);
             } else {
