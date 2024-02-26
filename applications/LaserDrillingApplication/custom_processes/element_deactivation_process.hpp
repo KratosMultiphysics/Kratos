@@ -114,6 +114,7 @@ public:
             itElem->CalculateOnIntegrationPoints(THERMAL_ENERGY_PER_VOLUME, ThermalEnergyPerVolumeVector, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(TEMPERATURE, Temperature, CurrentProcessInfo);
             itElem->CalculateOnIntegrationPoints(THERMAL_DECOMPOSITION, ThermalDecomposition, CurrentProcessInfo);
+            itElem->CalculateOnIntegrationPoints(DECOMPOSED_ELEMENTAL_VOLUME, ThermalDecomposition, CurrentProcessInfo);
         }
 
         KRATOS_CATCH("");

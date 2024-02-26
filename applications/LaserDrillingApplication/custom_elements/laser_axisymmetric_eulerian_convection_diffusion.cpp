@@ -99,7 +99,7 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
         
         // Initialize thermal_energy per unit volume value
         double thermal_energy = 0.0;
-        double elemental_volume = 0.0;
+        double decomposed_elemental_volume = 0.0;
 
         // Initialize element data container
         typename BaseType::ElementVariables Variables;
@@ -134,13 +134,13 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
             const double w_g = 2.0 * Globals::Pi * Radius * integration_points[g].Weight() * det_J_vect[g];
 
             thermal_energy += T * Variables.specific_heat * Variables.density * w_g;
-            elemental_volume += w_g;
+            decomposed_elemental_volume += w_g;
         }
 
         // Set elemental thermal_energy 
         for (IndexType g = 0; g < n_gauss; ++g) {
 
-            rOutput[g] = thermal_energy/elemental_volume; // This is an elemental variable, and thus it is constant for all GPs
+            rOutput[g] = thermal_energy/decomposed_elemental_volume; // This is an elemental variable, and thus it is constant for all GPs
         }
     } else if (rVariable == TEMPERATURE) {
 
@@ -178,7 +178,7 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
             temperature = T;
         }
 
-        // Set elemental thermal_energy 
+        // Set elemental temperature 
         for (IndexType g = 0; g < n_gauss; ++g) {
 
             rOutput[g] = temperature; // This is an elemental variable, and thus it is constant for all GPs
@@ -187,7 +187,7 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
 
         double temperature = 0.0;
         double thermal_energy = 0.0;
-        double elemental_volume = 0.0;
+        double decomposed_elemental_volume = 0.0;
 
         // Initialize element data container
         typename BaseType::ElementVariables Variables;
@@ -218,7 +218,7 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
             const double w_g = 2.0 * Globals::Pi * Radius * integration_points[g].Weight() * det_J_vect[g];
 
             thermal_energy += T * Variables.specific_heat * Variables.density * w_g;
-            elemental_volume += w_g;
+            decomposed_elemental_volume += w_g;
         }
 
         double thermal_energy_per_volume_threshold = rCurrentProcessInfo[THERMAL_ENERGY_PER_VOLUME_THRESHOLD];
@@ -228,19 +228,56 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
         double old_alpha = this->GetValue(THERMAL_DECOMPOSITION);
         double alpha = ComputeAlpha(law, temperature, old_alpha, rCurrentProcessInfo);
 
-        // Set elemental thermal_energy 
+        // Set elemental alpha 
         for (IndexType g = 0; g < n_gauss; ++g) {
             rOutput[g] = alpha; // This is an elemental variable, and thus it is constant for all GPs
         }
 
         // Here we assume a single Gauss point
         this->SetValue(THERMAL_DECOMPOSITION, alpha);
-        double thermal_energy_per_volume = thermal_energy / elemental_volume;
+        double thermal_energy_per_volume = thermal_energy / decomposed_elemental_volume;
 
         if (thermal_energy_per_volume > thermal_energy_per_volume_threshold) {
             if (alpha > alpha_threshold) {
                 this->Set(ACTIVE, false);
             }
+        }
+        //KRATOS_WATCH(this->IsActive())
+    } else if (rVariable == DECOMPOSED_ELEMENTAL_VOLUME) {
+
+        if (this->IsActive()) return;
+
+        double decomposed_elemental_volume = 0.0;
+
+        // Initialize element data container
+        typename BaseType::ElementVariables Variables;
+        this->InitializeEulerianElement(Variables, rCurrentProcessInfo);
+
+        // Fill element data container with nodal data
+        this->GetNodalValues(Variables, rCurrentProcessInfo);
+
+        // Calculate kinematics
+        Vector det_J_vect;
+        ShapeFunctionsGradientsType DN_DX;
+        const auto N = r_geom.ShapeFunctionsValues(mMyIntegrationMethod);
+        r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, det_J_vect, mMyIntegrationMethod);
+
+        // Gauss points loop
+        array_1d<double,TNumNodes> N_g;
+        for (IndexType g = 0; g < n_gauss; ++g) {
+            // Get Gauss point data
+            noalias(N_g) = row(N, g);
+            double Radius = 0.0;
+            for (IndexType i = 0; i < TNumNodes; ++i) {
+                Radius += N_g[i] * r_geom[i].Y();
+            }
+            const double w_g = 2.0 * Globals::Pi * Radius * integration_points[g].Weight() * det_J_vect[g];
+            decomposed_elemental_volume += w_g;
+        }
+
+        // Set elemental volume 
+        for (IndexType g = 0; g < n_gauss; ++g) {
+            rOutput[g] = decomposed_elemental_volume; // This is an elemental variable, and thus it is constant for all GPs
         }
     }
 }

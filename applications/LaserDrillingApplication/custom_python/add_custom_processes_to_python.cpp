@@ -27,15 +27,15 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomProcessesToPython(pybind11::module& m)
+void AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
     py::class_<ElementDeactivationProcess, ElementDeactivationProcess::Pointer, Process>
     (m, "ElementDeactivationProcess", py::module_local())
-    .def( py::init< ModelPart&, Parameters>());
-
+    .def(py::init<ModelPart&, Parameters>());
 }
 
 }  // namespace Python.
+
 } // Namespace Kratos
