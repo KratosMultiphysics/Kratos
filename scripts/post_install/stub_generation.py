@@ -39,7 +39,8 @@ class KratosPythonCppLib:
     def __init__(self, cpp_lib_path: Path) -> None:
         self.base_path = cpp_lib_path.parent.parent
         self.cpp_lib_path = cpp_lib_path
-        self.python_module: 'typing.Optional[Path]' = None
+        self.python_module: typing.Optional[Path] = None
+
         self.dependent_modules: 'list[KratosPythonCppLib]' = []
 
     def AddDependentModule(self, kratos_python_cpp_lib) -> None:
