@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "stress_strain_utilities.hpp"
+#include "stress_strain_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
 

@@ -26,7 +26,7 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
