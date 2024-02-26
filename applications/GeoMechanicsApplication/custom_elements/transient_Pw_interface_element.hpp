@@ -89,9 +89,9 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -162,6 +162,8 @@ protected:
     unsigned int GetNumberOfDOF() const override;
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     /// Serialization
     friend class Serializer;
 
