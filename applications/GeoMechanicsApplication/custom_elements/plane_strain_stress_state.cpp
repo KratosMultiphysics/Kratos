@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 #include "plane_strain_stress_state.h"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {
