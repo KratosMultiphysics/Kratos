@@ -613,11 +613,11 @@ public:
                 // given position is invalid. Hence, discarding the hint.
                 return insert(value);
             }
-        } else if (EqualKeyTo(KeyOf(*position_hint))(*ptr_begin())) {
+        } else if (position_hint == cbegin()) {
             // trying to insert at the front.
             if (KeyOf(*value) < KeyOf(*position_hint)) {
                 // key at the position hint is greater than the value of key. Hence position hint
-                // is valid. So using the push back.
+                // is valid. So using insertion at the beginning.
                 mSortedPartSize = mData.size() + 1;
                 return mData.insert(mData.begin(), value);
             } else {
