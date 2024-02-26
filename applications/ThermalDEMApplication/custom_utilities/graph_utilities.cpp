@@ -59,7 +59,7 @@ namespace Kratos {
       mFile_ParticleTempAll.open("graph_particle_temp_all.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mFile_ParticleTempAll) << "Could not open graph file graph_particle_temp_all!" << std::endl;
       mFile_ParticleTempAll << "1 - TIME STEP / TIME | ";
-      mFile_ParticleTempAll << "2 - ID / RADIUS / COORDS XY / TEMPERATURE / NEIGHBORS";
+      mFile_ParticleTempAll << "2 - ID / RADIUS / COORDS XY / TEMPERATURE";
       mFile_ParticleTempAll << std::endl;
     }
     if (mGraph_ParticleTempMin) {
@@ -173,10 +173,8 @@ namespace Kratos {
         const double x  = particle.GetGeometry()[0][0];
         const double y  = particle.GetGeometry()[0][1];
         const double t  = particle.GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-        const int    n  = particle.mNeighbourElements.size() + particle.mNeighbourRigidFaces.size();
         mFile_ParticleTempAll << std::defaultfloat << id << " ";
-        mFile_ParticleTempAll << std::fixed << std::setprecision(15) << r << " " << x << " " << y << " " << t << " ";
-        mFile_ParticleTempAll << std::defaultfloat << n << std::endl;
+        mFile_ParticleTempAll << std::fixed << std::setprecision(15) << r << " " << x << " " << y << " " << t << std::endl;
       }
       mFile_ParticleTempAll << std::endl;
     }
