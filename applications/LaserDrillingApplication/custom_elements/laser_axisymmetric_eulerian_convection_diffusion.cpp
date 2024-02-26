@@ -254,7 +254,7 @@ double ComputeAlpha(std::string law, double temperature, double old_alpha, const
         double R = 8.3145;
         double m = 0.947;
         double n = 3.692;
-        double T_amb = 1.0; // TODO: We add this number to avoid division by zero. Solve the existing bug to initialize the whole piece to 293.15K to remove this.
+        double T_amb = 298.15; // TODO: We add this number to avoid division by zero. Solve the existing bug to initialize the whole piece to 298.15K to remove this.
         double new_alpha = old_alpha + A * std::exp(-Ea / (R * (temperature + T_amb))) * std::pow(1.0 - old_alpha, n) * std::pow(old_alpha, m) * delta_time;
         return new_alpha;
     } else if (law == "custom") {

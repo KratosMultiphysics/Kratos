@@ -106,10 +106,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         computed_energy = self.MonitorEnergy()
         print(computed_energy)
         temperature_factor = self.Q / computed_energy
+        print(temperature_factor)
 
-        self.AdjustTemperatureField(temperature_factor)
+        self.AdjustTemperatureField(temperature_factor) #TODO: only to zone near the laser application?
         computed_energy = self.MonitorEnergy()
         print(computed_energy)
+
         radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
         self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
         self.radii = np.sqrt(np.array([radius_2(node) for node in self.near_field_nodes]))
@@ -131,10 +133,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
     def AdjustTemperatureField(self, temperature_factor):
         for node in self.main_model_part.Nodes:
-            temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-            temp *= temperature_factor
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+            radius = node.Y
+            if radius <= self.R_far:
+                temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                temp *= temperature_factor
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
 
     def EnergyPerUnitArea1D(self, radius):
 
