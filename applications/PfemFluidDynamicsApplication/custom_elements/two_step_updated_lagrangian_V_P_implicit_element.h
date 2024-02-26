@@ -197,33 +197,10 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override{};
-
-    /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
-
-    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
-
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
                               const ProcessInfo &rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitElement::CalculateRightHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
 
     void CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
                                       std::vector<bool> &rOutput,

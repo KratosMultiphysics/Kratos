@@ -205,7 +205,7 @@ class ShellThicknessControl(Control):
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
 
-        if KratosOA.ExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
+        if Kratos.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
                 self.control_field = new_control_field

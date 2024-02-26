@@ -163,6 +163,48 @@ namespace{
     TestAllShapeFunctionsLocalGradients(*geom);
   }
 
+KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsSecondDerivatives, KratosCoreGeometriesFastSuite)
+{
+    // Set a second order isoparametric tetrahedron so we avoid the Jacobian transformation
+    auto p_node_0 = Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0);
+    auto p_node_1 = Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0);
+    auto p_node_2 = Kratos::make_intrusive<NodeType>(3, 0.0, 1.0, 0.0);
+    auto p_node_3 = Kratos::make_intrusive<NodeType>(4, 0.0, 0.0, 1.0);
+    auto p_node_4 = Kratos::make_intrusive<NodeType>(5, 0.5, 0.0, 0.0);
+    auto p_node_5 = Kratos::make_intrusive<NodeType>(6, 0.5, 0.5, 0.0);
+    auto p_node_6 = Kratos::make_intrusive<NodeType>(7, 0.0, 0.5, 0.0);
+    auto p_node_7 = Kratos::make_intrusive<NodeType>(8, 0.0, 0.0, 0.5);
+    auto p_node_8 = Kratos::make_intrusive<NodeType>(9, 0.5, 0.0, 0.5);
+    auto p_node_9 = Kratos::make_intrusive<NodeType>(10, 0.0, 0.5, 0.5);
+    auto p_geom = Kratos::make_unique<Tetrahedra3D10<NodeType>>(
+        p_node_0, p_node_1, p_node_2, p_node_3, p_node_4, p_node_5, p_node_6, p_node_7, p_node_8, p_node_9);
+
+    // Compute the shape functions second derivatives in the barycencer
+    GeometryType::ShapeFunctionsSecondDerivativesType DDN_DDX;
+    array_1d<double,3> barycenter_coords({1.0/3.0, 1.0/3.0, 1.0/3.0});
+    p_geom->ShapeFunctionsSecondDerivatives(DDN_DDX, barycenter_coords);
+
+    // Evaluate the second derivatives of the auxiliary field xi^2 + eta^2 + zeta^2 at the barycenter
+    BoundedMatrix<double, 3, 3> expected_result = ZeroMatrix(3,3);
+    expected_result(0,0) = 2.0;
+    expected_result(1,1) = 2.0;
+    expected_result(2,2) = 2.0;
+
+    const auto field_func = [](array_1d<double,3>& rCoords){return std::pow(rCoords[0],2) + std::pow(rCoords[1],2) + std::pow(rCoords[2],2);};
+    BoundedMatrix<double, 3, 3> result = ZeroMatrix(3,3);
+    for (IndexType i = 0; i < 10; ++i) {
+        const auto& r_DDN_DDX_i = DDN_DDX[i];
+        const double field_i = field_func((*p_geom)[i]);
+        for (IndexType d1 = 0; d1 < 3; ++d1) {
+            for (IndexType d2 = 0; d2 < 3; ++d2) {
+                result(d1,d2) += r_DDN_DDX_i(d1,d2) * field_i;
+            }
+        }
+    }
+
+    KRATOS_CHECK_MATRIX_NEAR(expected_result, result, 1.0e-12)
+}
+
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_EXPECT_NEAR(geom->AverageEdgeLength(), 1.20710678119, 1e-7);
@@ -171,7 +213,7 @@ namespace{
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10HasIntersection, KratosCoreGeometriesFastSuite) {
     const Point LowPoint(0.1,0.1,-0.1);
     const Point HighPoint(0.1,0.1,1.1);
-    
+
     const Point OutLowPoint(1.1,0.1,-0.1);
     const Point OutHighPoint(1.1,0.1,1.1);
 

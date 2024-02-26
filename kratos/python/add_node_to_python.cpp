@@ -112,7 +112,7 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
         binder.def("GetValue", [](TContainerType& node, const TVariableType& rV){return node.GetValue(rV);} );
 
         //solution steps data value container
-        binder.def("HasSolutionStepValue", [](const TContainerType& node, const TVariableType& rV){return node.Has(rV);} ); //WARNING Previously it was Has identical to the previous!!
+        binder.def("HasSolutionStepValue", [](const TContainerType& node, const TVariableType& rV){return node.SolutionStepsDataHas(rV);} );
         binder.def("SetSolutionStepValue",  [](TContainerType& node, const TVariableType& rV,const typename TVariableType::Type rValue){node.GetSolutionStepValue(rV) = rValue;} );
         binder.def("SetSolutionStepValue",  [](TContainerType& node,
                                                const TVariableType& rV,

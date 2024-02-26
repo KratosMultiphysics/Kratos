@@ -31,6 +31,7 @@
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/entity_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
@@ -42,6 +43,7 @@
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "processes/levelset_convection_process.h"
+#include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
 #include "processes/check_skin_process.h"
@@ -69,6 +71,7 @@
 #include "processes/parallel_distance_calculation_process.h"
 #include "processes/generic_find_elements_neighbours_process.h"
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
+#include "processes/calculate_nodal_distance_to_skin_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -153,11 +156,11 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Check",&Process::Check)
     .def("Clear",&Process::Clear)
     .def("GetDefaultParameters",&Process::GetDefaultParameters)
+    .def("Info",&Process::Info)
     .def("__str__", PrintObject<Process>)
     ;
 
-    py::class_<OutputProcess, OutputProcess::Pointer, Process>
-        (m,"OutputProcess")
+    py::class_<OutputProcess, OutputProcess::Pointer, Process>(m,"OutputProcess")
     .def(py::init<>())
     .def("IsOutputStep",&OutputProcess::IsOutputStep)
     .def("PrintOutput",&OutputProcess::PrintOutput)
@@ -236,8 +239,9 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
-            .def(py::init<ModelPart&, int, unsigned int>())
-    .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, const int, const unsigned int>())
+        .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
@@ -346,6 +350,14 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
         .def(py::init<ModelPart&, LinearSolverType::Pointer, Parameters>())
+    ;
+
+    py::class_<FluxCorrectedTransportConvectionProcess<2>, FluxCorrectedTransportConvectionProcess<2>::Pointer, Process>(m,"FluxCorrectedTransportConvectionProcess2D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<FluxCorrectedTransportConvectionProcess<3>, FluxCorrectedTransportConvectionProcess<3>::Pointer, Process>(m,"FluxCorrectedTransportConvectionProcess3D")
+        .def(py::init<Model&, Parameters>())
     ;
 
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
@@ -670,6 +682,10 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<GenericFindElementalNeighboursProcess, GenericFindElementalNeighboursProcess::Pointer, Process> (m, "GenericFindElementalNeighboursProcess")
     .def(py::init<ModelPart&>())
     .def("HasNeighboursInFaces", &GenericFindElementalNeighboursProcess::HasNeighboursInFaces)
+    ;
+
+    py::class_<CalculateNodalDistanceToSkinProcess, CalculateNodalDistanceToSkinProcess::Pointer, Process> (m, "CalculateNodalDistanceToSkinProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 }
 

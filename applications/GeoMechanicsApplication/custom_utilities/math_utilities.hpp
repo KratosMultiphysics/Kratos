@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES_H_INCLUDED)
-#define KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES_H_INCLUDED
+#pragma once
 
 
 #ifdef FIND_MAX
@@ -35,7 +34,7 @@
 namespace Kratos
 {
 template<class TDataType>
-class StructuralMechanicsMathUtilities
+class GeoMechanicsMathUtilities
 {
 public:
     /**
@@ -176,7 +175,7 @@ public:
                 HelpA(i,i) = HelpA(i,i)- shift;
             }
 
-            StructuralMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
+            GeoMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
             HelpA= ZeroMatrix(dim, dim);
 
@@ -1233,8 +1232,6 @@ public:
         else
             return true;
     }
+};// class GeoMechanicsMathUtilities
 
-private:
-};// class StructuralMechanicsMathUtilities
 }
-#endif /* KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIESS_H_INCLUDED defined */

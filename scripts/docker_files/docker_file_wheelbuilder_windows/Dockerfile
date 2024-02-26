@@ -40,7 +40,7 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
@@ -97,6 +97,11 @@ RUN powershell.exe -Command \
     cd 'c:/Program Files/CMake/bin/'; \
     ./cmake.exe -H"c:\hdf5\source\hdf5-1.12.2" -B"c:\hdf5\build" -DCMAKE_INSTALL_PREFIX="c:\hdf5\bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
     ./cmake.exe --build "c:\hdf5\build" --target install -- /property:configuration=Release
+
+RUN powershell.exe -Command \
+    cd 'c:/Program Files/CMake/bin/'; \
+    ./cmake.exe -H"c:\med\source\med-5.0.0" -B"c:\med\build" -DCMAKE_INSTALL_PREFIX="c:\med\bin" -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=ON -DHDF5_ROOT="c:\hdf5\bin"; \
+    ./cmake.exe --build "c:\med\build" --target install -- /property:configuration=Release
 
 # #Downloand blas/lapack
 # RUN powershell.exe -Command \

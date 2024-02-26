@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
     branches:
       - master
     paths-ignore:       # This must be the same as .github/workflows/ci_dummy.yml - "paths" !
@@ -28,8 +29,24 @@ permissions:
   contents: read
 
 jobs:
+  changed-files:
+    runs-on: ubuntu-latest
+    # see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-defining-outputs-for-a-job
+    outputs:
+      files: ${{ steps.get_files.outputs.changed_files }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: get_files
+        run: |
+          echo "changed_files=$(python3 .github/get_files_changed_in_pr.py)" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+
   ubuntu:
     runs-on: ubuntu-latest
+    needs: changed-files
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +54,8 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_linux.json"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
@@ -49,6 +68,10 @@ jobs:
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: CI configuration
+      shell: bash
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       shell: bash
@@ -69,6 +92,7 @@ jobs:
         fi
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh
+        python3 kratos/python_scripts/testing/ci_utilities.py
         bash configure.sh
 
     - name: Running python tests
@@ -140,18 +164,25 @@ jobs:
 
   windows:
     runs-on: windows-2022
+    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.8'
 
+    - name: CI configuration
+      shell: bash
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
+
     - name: Download boost
       run: |
-        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -169,6 +200,7 @@ jobs:
       shell: cmd
       run: |
         copy .\.github\workflows\configure.cmd
+        python kratos/python_scripts/testing/ci_utilities.py
         configure.cmd
 
     - name: Running python tests
@@ -180,8 +212,11 @@ jobs:
 
   centos:
     runs-on: ubuntu-latest
+    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_centos.json"
 
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7:latest
@@ -192,6 +227,10 @@ jobs:
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: CI configuration
+      shell: bash
+      run: python3.8 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       run: |
@@ -208,8 +247,11 @@ jobs:
 
   ubuntu-core-without-unity:
     runs-on: ubuntu-latest
+    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: "ONLY_CORE"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
 
     container:
@@ -225,9 +267,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: CI configuration
+      shell: bash
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
+
     - name: Cache Build
       id: cache-build
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-no-unity-ccache-${{ github.sha }}
@@ -261,8 +307,7 @@ jobs:
         -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
         -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
         -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
-        -DKRATOS_USE_PCH=ON \
-        -DINSTALL_RUNKRATOS=OFF
+        -DKRATOS_USE_PCH=ON
 
         # Build
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
@@ -331,18 +376,25 @@ jobs:
 
   windows-core-without-unity:
     runs-on: windows-2022
+    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: "ONLY_CORE"
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.8'
 
+    - name: CI configuration
+      shell: bash
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
+
     - name: Download boost
       run: |
-        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -377,7 +429,6 @@ jobs:
           -H"%KRATOS_SOURCE%"                                 ^
           -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"              ^
           -DBOOST_ROOT="%TEMP%\boost"                         ^
-          -DINSTALL_RUNKRATOS=OFF                             ^
           -DCMAKE_CXX_FLAGS="/Od /we4661 /we4804 /WX /wd4996" ^
           -DKRATOS_USE_PCH=ON                                 ^
           -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   || goto :error
@@ -405,16 +456,22 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+      OMPI_ALLOW_RUN_AS_ROOT: 1 # required since for now running as root
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1 # required since for now running as root
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
-      options: --user 1001
+      # options: --user 1001 # must run as root to install the intel compiler
 
     steps:
     - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: Install intel compiler
+      shell: bash
+      run: sudo apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
 
     - name: Build
       shell: bash
@@ -487,8 +544,11 @@ jobs:
 
   ubuntu-intel:
     runs-on: ubuntu-latest
+    needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_intel.json"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
@@ -501,6 +561,10 @@ jobs:
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: CI configuration
+      shell: bash
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       shell: bash
