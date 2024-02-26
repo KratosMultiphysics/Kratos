@@ -49,7 +49,9 @@ class AssignInitialConditionToParticleProcess(KratosMultiphysics.Process):
         model_part_name = settings["model_part_name"].GetString()
         if (model_part_name.startswith('Initial_MPM_Material.')):
             model_part_name = model_part_name.replace('Initial_MPM_Material.','')
-        self.mpm_material_model_part_name = "MPM_Material." + model_part_name
+            self.mpm_material_model_part_name = "MPM_Material." + model_part_name
+        else:
+            self.mpm_material_model_part_name = model_part_name  
         # The actual initial velocity application occurs after the submodelpart is
         # transferred from the initial MPM material to the MPM material in the particle
         # generator utility. Therefore we change the prefix from initial MPM material
