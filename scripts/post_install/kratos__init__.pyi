@@ -1,6 +1,7 @@
 import Kratos.python_registry as python_registry
 import Kratos.kratos_globals as kratos_globals
 
+@dataclass
 class KratosPaths:
     kratos_install_path: str
     kratos_libs: str
@@ -8,6 +9,7 @@ class KratosPaths:
     kratos_applications: str
     kratos_scripts: str
     kratos_tests: str
+
 
 KratosGlobals: kratos_globals.KratosGlobalsImpl
 Registry: python_registry.PythonRegistry
