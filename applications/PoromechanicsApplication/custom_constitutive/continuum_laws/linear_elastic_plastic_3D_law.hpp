@@ -199,7 +199,7 @@ protected:
      */
 
     virtual void UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rStressVector,
-                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector );
+                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector, Parameters& rValues );
 
     /**
      * Updates the stress vector (to finalize the step)

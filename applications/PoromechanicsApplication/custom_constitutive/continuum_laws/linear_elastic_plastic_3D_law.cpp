@@ -213,7 +213,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
     {
         Vector EffectiveStressVector(VoigtSize);
 
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
         if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
             Vector& rStressVector = rValues.GetStressVector();
@@ -335,7 +335,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     {
         Vector EffectiveStressVector(VoigtSize);
 
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
         if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
         {
             Vector& rStressVector = rValues.GetStressVector();
@@ -427,9 +427,15 @@ void LinearElasticPlastic3DLaw::CalculateConstitutiveTensor( Matrix& rConstituti
 //************************************************************************************
 
 void LinearElasticPlastic3DLaw::UpdateInternalStateVariables( FlowRule::RadialReturnVariables& rReturnMappingVariables,Vector& rStressVector,
-                                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector )
+                                                            const Matrix& LinearElasticMatrix, const Vector& StrainVector, Parameters& rValues )
 {
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
+    
+    if (rStressVector.size() == 3) {
+        const Element::GeometryType& geometry = rValues.GetElementGeometry();
+        PoroElementUtilities::AddInitialStresses2D(rStressVector, rValues, geometry);
+    }
+
     noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
 
     mpFlowRule->UpdateInternalVariables( rReturnMappingVariables );

@@ -205,13 +205,13 @@ void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,false); // Restore sate variable = false
         
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
     }
     else // No convergence is achieved. Restore state variable to equilibrium
     {
         ReturnMappingVariables.Options.Set(FlowRule::RETURN_MAPPING_COMPUTED,true); // Restore sate variable = true
         
-        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+        this->UpdateInternalStateVariables(ReturnMappingVariables,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
     }
 
     if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS))
