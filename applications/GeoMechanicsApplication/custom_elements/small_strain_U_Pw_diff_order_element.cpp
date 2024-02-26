@@ -1697,11 +1697,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
 
 void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX, const Vector& Np)
 {
-    KRATOS_TRY
-
     rB = mpStressStatePolicy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
-
-    KRATOS_CATCH("")
 }
 
 void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables& rVariables,
@@ -2148,11 +2144,7 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVa
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
-    KRATOS_TRY
-
     return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
-
-    KRATOS_CATCH("")
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint)
