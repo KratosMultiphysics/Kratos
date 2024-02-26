@@ -101,8 +101,8 @@ namespace Kratos
             oneminus2phi_gauss = 1.0 - 2*phi_gauss;
             //KRATOS_INFO("Gauss point 1-2phi:") << oneminus2phi_gauss << std::endl;
 
-            const double norm_vel = norm_2(vel_gauss);
-            array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
+            const double norm_vel = norm_2(oneminus2phi_gauss*vel_gauss);
+            array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, oneminus2phi_gauss*vel_gauss);
 
             const double tau = this->CalculateTau(Variables,norm_vel,h);
 
@@ -115,8 +115,8 @@ namespace Kratos
             noalias(aux3) +=  phi_gauss*oneminusphi_gauss*tau*outer_prod(a_dot_grad, N);
 
             //terms which multiply the gradient of phi
-            noalias(aux2) += oneminus2phi_gauss*(1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
-            noalias(aux2) += oneminus2phi_gauss*tau*outer_prod(a_dot_grad, a_dot_grad);
+            noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
+            noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
         }
 
         //adding the second and third term in the formulation

@@ -12,12 +12,15 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.DropletDynamicsApplication as KratosDroplet
+#import KratosMultiphysics.ConvectionDiffusionApplication as KratosConv
 
 # Import base class file
+#from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_solver import ConvectionDiffusionSolver
 #from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 #from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver import NavierStokesTwoFluidsSolver
 
 from pathlib import Path
+import json
 
 def CreateSolver(model, custom_settings):
     return DropletDynamicsSolver(model, custom_settings)
@@ -933,10 +936,173 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
     # Curvature correction
     def _Curvature_Correction(self):
-        
         for node in self.main_model_part.Nodes:
             distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            if (distance > 0.49999 or distance < -0.49999):
+            if (distance >= 0.4999 or distance <= -0.4999):
                 node.SetValue(KratosCFD.CURVATURE, 0.0)
+
+#####################################################################################################################
+
+    def _PerformConservativeLaw(self):
+
+        """pre-pending the absolut path of the files in the Project Parameters"""
+        with open('ProjectParametersHeat.json','r') as f:
+            updated_project_parameters = json.load(f)
+            
+            updated_project_parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"] = f'gid_output/Conv_{self.pseudo_time}'
+
+
+        with open('ProjectParametersHeat.json','w') as f:
+            json.dump(updated_project_parameters, f, indent = 4)
+            
+        with open("residual_norm_values.txt", "a") as file:
+             file.write(f"{self.pseudo_time }________________________________________________________________\n")
+
+        self.pseudo_time +=1
+
+        nodes1 = self.main_model_part.Nodes
+
+        def CreateAnalysisStageWithFlushInstance(cls, global_model, parameters):
+            class AnalysisStageWithFlush(cls):
+
+                def __init__(self, model,project_parameters, flush_frequency=10.0):
+                    super().__init__(model,project_parameters)
+                    self.flush_frequency = flush_frequency
+                    self.last_flush = time.time()
+                    sys.stdout.flush()
+
+                def Initialize(self):
+                    super().Initialize()
+
+                    nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+                    ndes2_num = len(nodes2) 
+                    
+                    for i in range(ndes2_num):
+                        nodes2[i+1].Free(KratosMultiphysics.TEMPERATURE)
+                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 1)
+                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 0)
+
+                    for i in range(ndes2_num):
+                        dist = nodes1[i+1].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+                        dist += 0.5
+                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
+                        
+                    local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+                    local_gradient_TEMPERATURE.Execute()
+                    
+                    for elem in self._GetSolver().GetComputingModelPart().Elements:
+                        flag = 1
+                        for node in elem.GetNodes():
+                            temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+                            if ( 0.001 <= temp <= 0.999 ):
+                                flag = 0
+                        if flag == 0:
+                            for node in elem.GetNodes():
+                                node.SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 0)
+
+                    for i in range(ndes2_num):
+                        dist = nodes1[i+1].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+                        dist += 0.5
+                        if dist < 0.0001:
+                            nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
+                            dist = 0.0
+                        if dist > 0.9999:
+                            nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
+                            dist = 1.0    
+                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
+
+                    for i in range(ndes2_num):
+                        flagvar = nodes2[i+1].GetSolutionStepValue(KratosMultiphysics.NODAL_H, 0)
+                        if flagvar > 0.5:
+                            nodes2[i+1].Fix(KratosMultiphysics.TEMPERATURE)
+
+        
+                    for node in nodes2:
+                        flagvar = node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 0)
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                        # gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 0)
+                        normalx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0)
+                        normaly = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0)
+                        # normalz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0)
+                        if ( flagvar < 0.5 ):
+                            grad_norm = math.sqrt(gradx**2 + grady**2)# = (math.sqrt(grady**2 + gradx**2 + gradz**2))
+                            normalx=gradx/(grad_norm)
+                            normaly=grady/(grad_norm)
+                            # normalz = gradz/(grad_norm)
+
+                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, normalx)
+                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, normaly)
+                        # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0, normalz)
+
+                    KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(),KratosMultiphysics.VELOCITY_X,KratosMultiphysics.ROTATION_X_GRADIENT).Execute()
+                    KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(),KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.ROTATION_Y_GRADIENT).Execute()
+                    # KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().GetComputingModelPart(),KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.ROTATION_Z_GRADIENT).Execute()
+                    
+                    sys.stdout.flush()
+
+
+                def InitializeSolutionStep(self): 
+                    super().InitializeSolutionStep()
+
+                    max_norm_of_temp_grad = 0
+
+                    nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+
+                        
+                    for node in nodes2:
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                        if ( math.sqrt(gradx**2 + grady**2) > max_norm_of_temp_grad ):
+                            max_norm_of_temp_grad = math.sqrt(gradx**2 + grady**2)
+                    print("max = ", max_norm_of_temp_grad)
+
+                    for node in nodes2:
+                        divergence = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X_GRADIENT)[0] + node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y_GRADIENT)[1] #+ node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z_GRADIENT)[2]
+                        # cond = node.GetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY, 0)
+
+                        heatflux=-divergence
+                
+                        node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, heatflux)
+
+                def FinalizeSolutionStep(self):
+                    super().FinalizeSolutionStep()
+                    
+                    nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+                    ndes2_num = len(nodes2) 
+                    for j in range(ndes2_num):
+                        temp = nodes2[j+1].GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+                        temp -= 0.5
+                        nodes1[j+1].SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, temp)
+                    
+                    pcifr = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.RESIDUAL_NORM]
+                    if pcifr is not None:
+                       with open("residual_norm_values.txt", "a") as file:
+                            file.write(f"{pcifr}\n")
+                    if self.parallel_type == "OpenMP":
+                        now = time.time()
+                        if now - self.last_flush > self.flush_frequency:
+                            sys.stdout.flush()
+                            self.last_flush = now
+                            
+                    local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+                    local_gradient_TEMPERATURE.Execute()
+
+            return AnalysisStageWithFlush(global_model, parameters)
+
+
+        with open("ProjectParametersHeat.json", 'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        analysis_stage_module_name = parameters["analysis_stage"].GetString()
+        analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
+        analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
+
+        analysis_stage_module = importlib.import_module(analysis_stage_module_name)
+        analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
+
+        global_model = KratosMultiphysics.Model()
+        simulation = CreateAnalysisStageWithFlushInstance(analysis_stage_class, global_model, parameters)
+        simulation.Run()
 
 

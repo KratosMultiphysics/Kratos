@@ -247,8 +247,12 @@ class ConvectionDiffusionSolver(PythonSolver):
         # Adding nodal area variable (some solvers use it. TODO: Ask)
         #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # If LaplacianElement is used
-        if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
+        if self.settings["element_replace_settings"]["element_name"].GetString() in ["LaplacianElement","ConservativeLevelsetElement"]:
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        if (self.settings["element_replace_settings"]["element_name"].GetString() == "ConservativeLevelsetElement"):
+            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT)
+            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y_GRADIENT)
+            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z_GRADIENT)
 
         # If MPI distributed, add the PARTITION_INDEX
         if _CheckIsDistributed():
@@ -368,7 +372,55 @@ class ConvectionDiffusionSolver(PythonSolver):
         convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.Solve()
 
+    def ComputeNormalsandCurvature(self):
+        computing_model_part = self.GetComputingModelPart()
+        domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if (domain_size == 2):
+            local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(computing_model_part, KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+        else :
+            local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+        local_gradient_TEMPERATURE.Execute()
+
+        for node in computing_model_part.Nodes:
+                gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                if (domain_size == 3):         
+                    gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 0)
+                    grad_norm = (gradx**2 + grady**2+ gradz**2)**(0.5)
+                else:
+                    grad_norm = (gradx**2 + grady**2)**(0.5)
+                if ( grad_norm > 0.0 ):
+                    normalx=gradx/(grad_norm)
+                    normaly=grady/(grad_norm)
+                    if (domain_size == 3):         
+                        normalz=gradz/(grad_norm)
+                else:
+                    normalx = normaly = normaly = 0.0
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, normalx)
+                node.SetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0, normalx)
+                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, normaly)
+                node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0, normaly)
+                if (domain_size == 3):
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0, normalz)
+                    node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Z, 0, normalz)
+                print(normalx, normaly)
+
+        KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT).Execute()
+        KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Y_GRADIENT).Execute()
+        if (domain_size == 3):    
+            KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.VELOCITY_Z_GRADIENT).Execute()
+
+        for node in computing_model_part.Nodes:
+                divergence_normal = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X_GRADIENT)[0] + node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y_GRADIENT)[1]
+                if (domain_size == 3):
+                    divergence_normal += node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z_GRADIENT)[2]
+                node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, -divergence_normal)
+
     def InitializeSolutionStep(self):
+        if self.settings["element_replace_settings"]["element_name"].GetString() in ["ConservativeLevelsetElement2D3N","ConservativeLevelsetElement2D4N","ConservativeLevelsetElement3D4N","ConservativeLevelsetElement3D8N"]:
+            step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if (step == 1):
+                self.ComputeNormalsandCurvature()
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
