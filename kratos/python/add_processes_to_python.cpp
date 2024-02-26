@@ -71,6 +71,7 @@
 #include "processes/parallel_distance_calculation_process.h"
 #include "processes/generic_find_elements_neighbours_process.h"
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
+#include "processes/calculate_nodal_distance_to_skin_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -681,6 +682,10 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<GenericFindElementalNeighboursProcess, GenericFindElementalNeighboursProcess::Pointer, Process> (m, "GenericFindElementalNeighboursProcess")
     .def(py::init<ModelPart&>())
     .def("HasNeighboursInFaces", &GenericFindElementalNeighboursProcess::HasNeighboursInFaces)
+    ;
+
+    py::class_<CalculateNodalDistanceToSkinProcess, CalculateNodalDistanceToSkinProcess::Pointer, Process> (m, "CalculateNodalDistanceToSkinProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 }
 
