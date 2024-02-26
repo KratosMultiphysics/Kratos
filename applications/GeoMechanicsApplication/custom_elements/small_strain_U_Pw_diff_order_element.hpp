@@ -34,6 +34,10 @@ namespace Kratos
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public Element
 {
+private:
+    bool mIsThermalCoupled       = false;
+    bool mUpdateDensityViscosity = true;
+
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
