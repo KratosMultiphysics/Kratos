@@ -108,7 +108,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
                 Vector EffectiveStressVector(VoigtSize);
 
-                this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector);
+                this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,EffectiveStressVector,LinearElasticMatrix,rStrainVector,rValues);
 
                 this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
             }
@@ -118,7 +118,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
                 Vector& rStressVector = rValues.GetStressVector();
                 
-                this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+                this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
                 
                 this->CalculateConstitutiveTensor(rConstitutiveMatrix, ReturnMappingVariables, LinearElasticMatrix);
             }
@@ -128,7 +128,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
             // COMPUTE_STRESS
             Vector& rStressVector = rValues.GetStressVector();
             
-            this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
+            this->CalculateLocalReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector,rValues);
         }
     }
     else // NONLOCAL QUANTITIES
@@ -258,9 +258,17 @@ void NonlocalDamage3DLaw::SetValue( const Variable<double>& rThisVariable, const
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void NonlocalDamage3DLaw::CalculateLocalReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, 
-                                                        Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector )
+                                                        Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector,
+                                                        Parameters& rValues )
 {    
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
+
+    //Check if the problem to solve is 2D and then, add initial stresses
+    if (rStressVector.size() == 3) {
+        const Element::GeometryType& geometry = rValues.GetElementGeometry();
+        PoroElementUtilities::AddInitialStresses2D(rStressVector, rValues, geometry);
+    }
+
     noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
     
     Matrix Aux1 = Matrix();
