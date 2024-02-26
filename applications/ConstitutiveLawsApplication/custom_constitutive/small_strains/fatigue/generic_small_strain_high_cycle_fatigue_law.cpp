@@ -570,7 +570,7 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
     if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
         rValue = mFatigueReductionFactor;
     } else if (rThisVariable == WOHLER_STRESS) {
-        rValue = mWohlerStress;
+        rValue = mMaxStress;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
         rValue = mCyclesToFailure;
     } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
