@@ -143,15 +143,6 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "ModifiedMisesNonlocalDamagePlaneStress2DLaw")
     .def( py::init<>() );
 
-    // py::class_< HistoryLinearElastic3DLaw, HistoryLinearElastic3DLaw::Pointer, ConstitutiveLaw >
-    // (m, "HistoryLinearElastic3DLaw")
-    // .def( py::init<>() );
-    // py::class_< HistoryLinearElasticPlaneStrain2DLaw, HistoryLinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-    // (m, "HistoryLinearElasticPlaneStrain2DLaw")
-    // .def( py::init<>() );
-    // py::class_< HistoryLinearElasticPlaneStress2DLaw, HistoryLinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
-    // (m, "HistoryLinearElasticPlaneStress2DLaw")
-    // .def( py::init<>() );
 }
 
 }  // namespace Python.

@@ -229,10 +229,6 @@ const ModifiedMisesNonlocalDamage3DLaw mModifiedMisesNonlocalDamage3DLaw;
 const ModifiedMisesNonlocalDamagePlaneStrain2DLaw mModifiedMisesNonlocalDamagePlaneStrain2DLaw;
 const ModifiedMisesNonlocalDamagePlaneStress2DLaw mModifiedMisesNonlocalDamagePlaneStress2DLaw;
 
-// const HistoryLinearElastic3DLaw mHistoryLinearElastic3DLaw;
-// const HistoryLinearElasticPlaneStrain2DLaw mHistoryLinearElasticPlaneStrain2DLaw;
-// const HistoryLinearElasticPlaneStress2DLaw mHistoryLinearElasticPlaneStress2DLaw;
-
 const HyperElastic3DLaw                       mHyperElastic3DLaw;
 const LinearElastic3DLaw                      mLinearElastic3DLaw;
 const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
