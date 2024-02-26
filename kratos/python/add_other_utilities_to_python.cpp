@@ -412,6 +412,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
         .def("RemoveOrphanNodesFromSubModelParts", &Kratos::AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts)
+        .def("RetrieveElementsNeighbourElementsIds", &Kratos::AuxiliarModelPartUtilities::RetrieveElementsNeighbourElementsIds)
+        .def("RetrieveConditionsNeighbourConditionsIds", &Kratos::AuxiliarModelPartUtilities::RetrieveConditionsNeighbourConditionsIds)
         ;
 
     // Sparse matrix multiplication utility
