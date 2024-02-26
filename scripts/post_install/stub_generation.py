@@ -31,7 +31,8 @@ def PostProcessGeneratedStubFiles():
         # stub files may not have it.
         data = "import KratosMultiphysics as Kratos\n" + data
 
-        with open(str(file.absolute()), "w") as file_output:
+        with open(file.absolute(), "w") as file_output:
+
             file_output.write(data)
 
 class KratosPythonCppLib:
