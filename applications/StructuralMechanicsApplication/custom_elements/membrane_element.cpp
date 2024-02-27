@@ -743,10 +743,11 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
         L[2] = 1.0 / (L[0] * L[1]);
         KRATOS_WATCH(L) */
 
-        thickness = thickness * L3;
-        SetValue(THICKNESS, thickness);
-        KRATOS_WATCH(thickness)
-        KRATOS_WATCH(GetProperties()[THICKNESS])
+        double thickness_update = thickness * L3;
+        SetValue(THICKNESS, thickness_update);
+        // KRATOS_WATCH(thickness)
+        KRATOS_WATCH(thickness_update)
+        // KRATOS_WATCH(GetProperties()[THICKNESS])
 
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
