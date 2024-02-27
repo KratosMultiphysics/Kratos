@@ -41,10 +41,10 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.step+=1
         
         #pointload=-1*min(self.force_slope*self.step,self.max_force) # for 4 nodes gradually increasing point load
-        pointload=-1*4*(1/9)*min(self.force_slope*self.step,self.max_force) # for 9 nodes gradually increasing point load
+        #pointload=-1*4*(1/9)*min(self.force_slope*self.step,self.max_force) # for 9 nodes gradually increasing point load
 
         #node_ids = [1,2,3,4]  # for assigning point loads to the top 4 nodes
-        node_ids =[145,146,147,148,149,150,151,152,153]  # for assigning point loads to the top 9 nodes
+        #node_ids =[145,146,147,148,149,150,151,152,153]  # for assigning point loads to the top 9 nodes
         #node_ids = [1,2,3,7,10,11,15,17,23,27,28,30,33,41,43,60]  # for assigning point loads to the top nodes
 
 
@@ -145,9 +145,8 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
             "boundary_tolerance"    : 1e-6,
             "y_fem_boundary"       : 0.04,
             "y_dem_boundary"       : 0.08,
-            "weight_fem_boundary" : 0.01,
-            "weight_dem_boundary" : 0.99
-                                                           
+            "weight_fem_boundary"  : 0.01,
+            "weight_dem_boundary"  : 0.99
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
