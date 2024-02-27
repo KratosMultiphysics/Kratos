@@ -4,6 +4,8 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
+import numpy as np
+
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
     Changes to this BaseClass have to be discussed first!
@@ -208,7 +210,20 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
-        pass
+        model_part = self._GetSolver().GetComputingModelPart().GetSubModelPart("ImposedTemperature2D_Imposed_temperature_Auto1")
+
+        number_nodes = len(model_part.Nodes)
+        norm_distr = np.random.normal(0.0, 1.0e-5, number_nodes)
+        counter = 0
+
+        for node in model_part.Nodes:
+            node.X0 += norm_distr[counter]
+            node.Y0 += norm_distr[counter]
+            node.X  += norm_distr[counter]
+            node.Y  += norm_distr[counter]
+            counter += 1
+            # print(node.Id)
+        # pass
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """
