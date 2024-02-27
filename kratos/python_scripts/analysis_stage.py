@@ -213,7 +213,7 @@ class AnalysisStage(object):
         model_part = self._GetSolver().GetComputingModelPart().GetSubModelPart("ImposedTemperature2D_Imposed_temperature_Auto1")
 
         number_nodes = len(model_part.Nodes)
-        norm_distr = np.random.normal(0.0, 1.0e-5, number_nodes)
+        norm_distr = np.random.normal(0.0, 0.5e-5, number_nodes)
         counter = 0
 
         for node in model_part.Nodes:
