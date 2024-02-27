@@ -24,8 +24,8 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.tolerance= self.settings["boundary_tolerance"].GetDouble() 
         self.y_fem_boundary= self.settings["y_fem_boundary"].GetDouble() 
         self.y_dem_boundary= self.settings["y_dem_boundary"].GetDouble() 
-        self.weight_fem_boundary = 0.1
-        self.weight_dem_boundary = 0.9
+        self.weight_fem_boundary = self.settings["weight_fem_boundary"].GetDouble() 
+        self.weight_dem_boundary = self.settings["weight_dem_boundary"].GetDouble() 
         self.step=0
         self.timesteps=self.force_end_time/self.dt
         #self.max_force=0.025
@@ -144,7 +144,10 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
             "force_end_time"        : 1e-1,
             "boundary_tolerance"    : 1e-6,
             "y_fem_boundary"       : 0.04,
-            "y_dem_boundary"       : 0.08
+            "y_dem_boundary"       : 0.08,
+            "weight_fem_boundary" : 0.01,
+            "weight_dem_boundary" : 0.99
+                                                           
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
