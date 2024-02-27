@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -278,9 +278,9 @@ protected:
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
-    virtual void CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
-    virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
+    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
+    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual void   CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);

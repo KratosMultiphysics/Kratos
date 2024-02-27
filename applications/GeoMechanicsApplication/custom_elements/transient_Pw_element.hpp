@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -99,9 +99,9 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -177,6 +177,7 @@ private:
     /// Member Variables
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     /// Serialization
 

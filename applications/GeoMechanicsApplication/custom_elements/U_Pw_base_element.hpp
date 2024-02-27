@@ -71,7 +71,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     void ResetConstitutiveLaw() override;
 
@@ -85,7 +85,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -199,6 +199,8 @@ protected:
     virtual unsigned int GetNumberOfDOF() const;
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

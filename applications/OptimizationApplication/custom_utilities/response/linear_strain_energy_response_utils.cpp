@@ -96,7 +96,7 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
             CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
         } else if (*pVariable == THICKNESS) {
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-            CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, THICKNESS, THICKNESS_SENSITIVITY);
+            CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, THICKNESS, THICKNESS_SENSITIVITY);
         } else if (*pVariable == POISSON_RATIO) {
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
             CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
