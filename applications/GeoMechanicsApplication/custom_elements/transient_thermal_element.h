@@ -368,7 +368,6 @@ private:
     Vector CalculateDischargeVector(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
                                                     unsigned int integration_point_index) const
     {
-        const auto& r_properties  = GetProperties();
         const GeometryType& rGeom = this->GetGeometry();
         array_1d<double, TNumNodes> pressure_vector;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
