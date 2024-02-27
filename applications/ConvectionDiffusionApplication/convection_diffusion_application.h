@@ -251,13 +251,15 @@ private:
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
-    const MixedLaplacianElement<2,3> mMixedLaplacianElement2D3N;
-    const MixedLaplacianElement<3,4> mMixedLaplacianElement3D4N;
-    const EmbeddedLaplacianElement<2> mEmbeddedLaplacian2D3N;
-    const EmbeddedLaplacianElement<3> mEmbeddedLaplacian3D4N;
 
     const LaplacianShiftedBoundaryElement<2> mLaplacianShiftedBoundary2D3N;
     const LaplacianShiftedBoundaryElement<3> mLaplacianShiftedBoundary3D4N;
+
+    const EmbeddedLaplacianElement<2> mEmbeddedLaplacian2D3N;
+    const EmbeddedLaplacianElement<3> mEmbeddedLaplacian3D4N;
+
+    const MixedLaplacianElement<2,3> mMixedLaplacianElement2D3N;
+    const MixedLaplacianElement<3,4> mMixedLaplacianElement3D4N;
     const MixedLaplacianShiftedBoundaryElement<2> mMixedLaplacianShiftedBoundary2D3N;
     const MixedLaplacianShiftedBoundaryElement<3> mMixedLaplacianShiftedBoundary3D4N;
 
