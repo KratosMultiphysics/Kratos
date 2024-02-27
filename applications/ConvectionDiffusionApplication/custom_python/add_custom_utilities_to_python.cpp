@@ -160,17 +160,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
     ;
 
-    py::class_<GaussPointErrorUtility, GaussPointErrorUtility::Pointer>(m,"GaussPointErrorUtility")
-        .def(py::init<Model&, Parameters>())
-        .def("Execute", &GaussPointErrorUtility::Execute)
-        .def("ExecuteGradient", &GaussPointErrorUtility::ExecuteGradient)
-        .def("ExecuteModelPart", &GaussPointErrorUtility::ExecuteModelPart)
-        .def("ExecuteModelPartGradient", &GaussPointErrorUtility::ExecuteModelPartGradient)
-        .def("ExecuteOnConditions", &GaussPointErrorUtility::ExecuteOnConditions)
-        .def("ExecuteOnConditionsGradient", &GaussPointErrorUtility::ExecuteOnConditionsGradient)
-        .def("ExecuteOnConditionsSolution", &GaussPointErrorUtility::ExecuteOnConditionsSolution)
-    ;
-
     py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
     .def(py::init<Model&, Parameters>())
     ;
