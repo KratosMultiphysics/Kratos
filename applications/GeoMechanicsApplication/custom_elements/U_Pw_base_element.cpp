@@ -18,32 +18,6 @@
 namespace Kratos
 {
 
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
-                                                         NodesArrayType const&   ThisNodes,
-                                                         PropertiesType::Pointer pProperties) const
-{
-    KRATOS_ERROR << "calling the default Create method for a particular "
-                    "element ... illegal operation!!"
-                 << this->Id() << std::endl;
-
-    return Element::Pointer(new UPwBaseElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                               pProperties, mpStressStatePolicy->Clone()));
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
-                                                         GeometryType::Pointer   pGeom,
-                                                         PropertiesType::Pointer pProperties) const
-{
-    KRATOS_ERROR << "calling the default Create method for a particular "
-                    "element ... illegal operation!!"
-                 << this->Id() << std::endl;
-
-    return Element::Pointer(new UPwBaseElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
-}
-
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
