@@ -30,13 +30,13 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetCBeginAndCEnd, KratosCoreFastSuite)
 {
-    PointerVectorSet<const Element> test_container;
+    PointerVectorSet<const Element, IndexedObject> test_container;
     auto p_element_1 = Kratos::make_intrusive<Element>(1);
     auto p_element_2 = Kratos::make_intrusive<Element>(2);
     auto p_element_3 = Kratos::make_intrusive<Element>(3);
-    test_container.push_back(p_element_1);
-    test_container.push_back(p_element_2);
-    test_container.push_back(p_element_3);
+    test_container.insert(p_element_1);
+    test_container.insert(p_element_2);
+    test_container.insert(p_element_3);
 
     KRATOS_EXPECT_EQ(test_container.cbegin()->Id(), 1);
     KRATOS_EXPECT_EQ((test_container.cend()-1)->Id(), 3);
@@ -311,6 +311,110 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert7, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(&*(itr++), &*p_element_6);
     KRATOS_EXPECT_EQ(&*(itr++), &*p_element_7);
     KRATOS_EXPECT_EQ(&*(itr++), &*p_element_8);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert8, KratosCoreFastSuite)
+{
+    PointerVectorSet<const Element, IndexedObject> test_container_1, test_container_2, test_container_3;
+    std::vector<Element::Pointer> elements;
+    for (IndexType i = 0; i < 50; ++i) {
+        elements.push_back(Kratos::make_intrusive<Element>(i + 1));
+    }
+    auto p_element_4_copy = Kratos::make_intrusive<Element>(4);
+    auto p_element_10_copy = Kratos::make_intrusive<Element>(10);
+
+    std::vector<Element::Pointer> tmp;
+    tmp.push_back(elements[2]);
+    tmp.push_back(elements[1]);
+    tmp.push_back(elements[25]);
+    tmp.push_back(elements[28]);
+
+    test_container_1.insert(tmp.begin(), tmp.end());
+    KRATOS_EXPECT_EQ(test_container_1.size(), 4);
+    auto itr = test_container_1.begin();
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[1]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[2]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[25]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[28]);
+
+    test_container_2.insert(test_container_1);
+    KRATOS_EXPECT_EQ(test_container_2.size(), 4);
+    itr = test_container_2.begin();
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[1]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[2]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[25]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[28]);
+
+    tmp.clear();
+    tmp.push_back(elements[3]);
+    tmp.push_back(elements[4]);
+    tmp.push_back(elements[5]);
+    tmp.push_back(elements[3]);
+    tmp.push_back(p_element_4_copy);
+    tmp.push_back(p_element_10_copy);
+    tmp.push_back(elements[7]);
+    tmp.push_back(elements[6]);
+    test_container_3.insert(tmp.begin(), tmp.end());
+
+    test_container_2.insert(test_container_3);
+    KRATOS_EXPECT_EQ(test_container_2.size(), 10);
+    itr = test_container_2.begin();
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[1]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[2]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[3]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[4]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[5]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[6]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[7]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*p_element_10_copy);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[25]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[28]);
+
+    tmp.clear();
+    tmp.push_back(elements[39]);
+    tmp.push_back(elements[29]);
+    tmp.push_back(elements[48]);
+    test_container_2.insert(tmp.begin(), tmp.end());
+
+    KRATOS_EXPECT_EQ(test_container_2.size(), 13);
+    itr = test_container_2.begin();
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[1]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[2]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[3]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[4]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[5]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[6]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[7]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*p_element_10_copy);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[25]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[28]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[29]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[39]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[48]);
+
+    tmp.clear();
+    tmp.push_back(elements[28]);
+    tmp.push_back(elements[31]);
+    tmp.push_back(elements[45]);
+    test_container_2.insert(tmp.begin(), tmp.end());
+
+    KRATOS_EXPECT_EQ(test_container_2.size(), 15);
+    itr = test_container_2.begin();
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[1]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[2]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[3]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[4]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[5]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[6]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[7]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*p_element_10_copy);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[25]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[28]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[29]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[31]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[39]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[45]);
+    KRATOS_EXPECT_EQ(&*(itr++), &*elements[48]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSet, KratosCoreFastSuite)

@@ -650,61 +650,26 @@ public:
         // first sorts the input iterators and make the input unique.
         std::sort(first, last, CompareKey());
         auto new_last = std::unique(first, last, EqualKeyTo());
-
-        if (empty()) {
-            mData.reserve(std::distance(first, new_last));
-            for (; first != new_last; ++first) {
-                mData.push_back(*first);
-            }
-        } else {
-            auto p_current_itr = mData.begin();
-            // now add the new elements
-            for (; first != new_last; ++first) {
-                // find the lower bound element.
-                p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(**first), CompareKey());
-                if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(**first))(*p_current_itr)) {
-                    p_current_itr = mData.insert(p_current_itr, *first);
-                }
-            }
-        }
-
-        // TODO: To be removed once push back is removed.
-        // insert assumes the PointerVectorSet is already sorted,
-        // hence mSortedPartSize should be mData.size()
-        mSortedPartSize = mData.size();
+        SortedInsert(first, new_last);
     }
 
     /**
-     * @brief Insert elements from another PointerVectorSet.
-     * @details This function inserts element pointers from another PointerVectorSet into the current set.
+     * @brief Insert elements from another PointerVectorSet range.
+     * @details This function inserts element pointers from another PointerVectorSet range specified by first and last into the current set.
      * Since, PointerVectorSet is assumed to be sorted and unique, the incoming PointerVectorSet is not
      * sorted and made unique again. This will not insert any elements in the incoming set, if there exists an element with a key
      * which is equal to an element's key in the input range.
-     * @param rOther Other PointerVectorSet to insert elements from.
+     * @param first Other PointerVectorSet starting iterator
+     * @param last Other PointerVectorSet ending iterator
      */
+    void insert(PointerVectorSet::const_iterator first, PointerVectorSet::const_iterator last)
+    {
+        SortedInsert(first, last);
+    }
+
     void insert(const PointerVectorSet& rOther)
     {
-        if (empty()) {
-            mData.reserve(rOther.mData.size());
-            for (auto& p_element : rOther.mData) {
-                mData.push_back(p_element);
-            }
-        } else {
-            auto p_current_itr = mData.begin();
-            // now add the new elements
-            for (auto& p_element : rOther.mData) {
-                // find the lower bound element.
-                p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(*p_element), CompareKey());
-                if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(*p_element))(*p_current_itr)) {
-                    p_current_itr = mData.insert(p_current_itr, p_element);
-                }
-            }
-        }
-
-        // TODO: To be removed once push back is removed.
-        // insert assumes the PointerVectorSet is already sorted,
-        // hence mSortedPartSize should be mData.size()
-        mSortedPartSize = mData.size();
+        insert(rOther.begin(), rOther.end());
     }
 
     /**
@@ -1093,6 +1058,61 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    template<class TIteratorType>
+    void SortedInsert(TIteratorType first, TIteratorType last)
+    {
+        if (std::distance(first, last) == 0) {
+            return;
+        }
+
+        if (empty()) {
+            mData.reserve(std::distance(first, last));
+            for (auto it = first; it != last; ++it) {
+                mData.push_back(TPointerType(*(it.base())));
+            }
+        } else {
+            // first find the largest range
+            const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(**(first.base())), CompareKey());
+            const auto upper_bound_last = std::upper_bound(lower_bound_first, mData.end(), KeyOf(**((last-1).base())), CompareKey());
+
+            // then find the compact sub range
+            const auto upper_bound_first = std::upper_bound(lower_bound_first, upper_bound_last, KeyOf(**(first.base())), CompareKey());
+            const auto lower_bound_last = std::lower_bound(lower_bound_first, upper_bound_last, KeyOf(**((last-1).base())), CompareKey());
+
+            if (lower_bound_first == lower_bound_last &&
+                lower_bound_first == upper_bound_first &&
+                lower_bound_first == upper_bound_last)
+            {
+                // all 4 bounds are equal, hence this can be inserted without checking further
+                if (lower_bound_first == mData.end()) {
+                    for (auto it = first; it != last; ++it) {
+                        mData.push_back(TPointerType(*(it.base())));
+                    }
+                } else {
+                    auto current_pos = lower_bound_first - 1;
+                    for (auto it = first; it != last; ++it) {
+                        current_pos = mData.insert(current_pos + 1, TPointerType(*(it.base())));
+                    }
+                }
+            } else {
+                auto p_current_itr = mData.begin();
+                // now add the new elements
+                for (auto it = first; it != last; ++it) {
+                    // find the lower bound element.
+                    p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(**(it.base())), CompareKey());
+                    if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(**(it.base())))(*p_current_itr)) {
+                        p_current_itr = mData.insert(p_current_itr, TPointerType(*(it.base())));
+                    }
+                }
+            }
+        }
+
+        // TODO: To be removed once push back is removed.
+        // insert assumes the PointerVectorSet is already sorted,
+        // hence mSortedPartSize should be mData.size()
+        mSortedPartSize = mData.size();
+    }
 
     /**
      * @brief Extract the key from an iterator and apply a key extraction function.
