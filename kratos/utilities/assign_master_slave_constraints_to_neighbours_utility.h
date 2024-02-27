@@ -57,7 +57,7 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
     public:
       ///@name Type Definitions
       ///@{
-      
+
       //Node Types
       using NodeType = ModelPart::NodeType;
 
@@ -167,6 +167,11 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
             std::vector<Node::Pointer> nodesVector,
             double initialRadius,
             std::size_t minNumOfNeighNodes
+        );
+
+        std::unordered_set<int> FindNearestNeighbor(
+            std::vector<Node::Pointer> nodesVector,
+            double initialRadius
         );
 
       ///@}

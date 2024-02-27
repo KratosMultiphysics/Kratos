@@ -247,6 +247,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         # Adding nodal area variable (some solvers use it. TODO: Ask)
         #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # If LaplacianElement is used
+        target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
@@ -321,7 +322,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False
-            flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+            flags = (tmoc.COMPUTE_NODAL_NORMALS) | (tmoc.COMPUTE_CONDITION_NORMALS)
             if assign_neighbour_elements:
                 flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
             else:

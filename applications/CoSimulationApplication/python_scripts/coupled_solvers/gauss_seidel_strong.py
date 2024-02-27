@@ -1,6 +1,9 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
+import numpy as np
+import KratosMultiphysics.RomApplication as RomApp
+import KratosMultiphysics.ConvectionDiffusionApplication as KCD
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
@@ -87,9 +90,89 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 conv_crit.InitializeNonLinearIteration()
 
             for solver_name, solver in self.solver_wrappers.items():
+                model_part = solver._analysis_stage._GetSolver().GetComputingModelPart()
+                if solver_name=="solid":
+                    interface_model_part = model_part.GetSubModelPart("GENERIC_Interface_solid")
+                elif solver_name=="fluid":
+                    interface_model_part = model_part.GetSubModelPart("GENERIC_Interface_fluid")
+                interface_nodes = set(
+                    node.Id for node in interface_model_part.Nodes
+                )
                 self._SynchronizeInputData(solver_name)
+                # print("########PRINT AFTER _SynchronizeOutputData##########")
+                # if solver_name=="solid":
+                #     model_part = self.solver_wrappers["solid"]._analysis_stage._GetSolver().GetComputingModelPart()
+                #     interface_model_part = model_part.GetSubModelPart("GENERIC_Interface_solid")
+                #     for node in interface_model_part.Nodes:
+                #         face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #         print(f"Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
+                #         temperature = node.GetSolutionStepValue(KM.TEMPERATURE)
+                #         print(f"Node ID: {node.Id}, Temperature: {np.round(temperature, 10)}")
+                # for elem in model_part.Elements:
+                #     if elem.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
+                #         for node in elem.GetNodes():
+                #             if node.Id in interface_nodes:
+                #                 if solver_name=="fluid":
+                #                     aux_flux = node.GetSolutionStepValue(KCD.AUX_FLUX)
+                #                     print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Aux flux: {np.round(aux_flux, 10)}")
+                #                 elif solver_name=="solid":
+                #                     face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #                     print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
+                # for cond in model_part.Conditions:
+                #     if cond.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
+                #         for node in cond.GetNodes():
+                #             if node.Id in interface_nodes:
+                #                 if solver_name=="fluid":
+                #                     aux_flux = node.GetSolutionStepValue(KCD.AUX_FLUX)
+                #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Aux flux: {np.round(aux_flux, 10)}")
+                #                 elif solver_name=="solid":
+                #                     face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver_name)
+                # for elem in model_part.Elements:
+                #     if elem.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
+                #         for node in elem.GetNodes():
+                #             if node.Id in interface_nodes:
+                #                 temperature = node.GetSolutionStepValue(KM.TEMPERATURE)
+                #                 print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Temperature: {np.round(temperature, 10)}")
+                #                 face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #                 print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
+                #                 reaction_flux = node.GetSolutionStepValue(KM.REACTION_FLUX)
+                #                 print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Reaction flux: {np.round(reaction_flux, 10)}")
+                # for cond in model_part.Conditions:
+                #     if cond.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
+                #         for node in cond.GetNodes():
+                #             if node.Id in interface_nodes:
+                #                 temperature = node.GetSolutionStepValue(KM.TEMPERATURE)
+                #                 print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Temperature: {np.round(temperature, 10)}")
+                #                 face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #                 print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
+                #                 reaction_flux = node.GetSolutionStepValue(KM.REACTION_FLUX)
+                #                 print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Reaction flux: {np.round(reaction_flux, 10)}")
+                # for elem in model_part.Elements:
+                #     if elem.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
+                #         for node in elem.GetNodes():
+                #             if node.Id in interface_nodes:
+                #                 if solver_name=="fluid":
+                #                     aux_flux = node.GetSolutionStepValue(KCD.AUX_FLUX)
+                #                     print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Aux flux: {np.round(aux_flux, 10)}")
+                #                 elif solver_name=="solid":
+                #                     face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #                     print(f"Element ID: {elem.Id}, Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
+                # for cond in model_part.Conditions:
+                #     if cond.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
+                #         for node in cond.GetNodes():
+                #             if node.Id in interface_nodes:
+                #                 if solver_name=="fluid":
+                #                     aux_flux = node.GetSolutionStepValue(KCD.AUX_FLUX)
+                #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Aux flux: {np.round(aux_flux, 10)}")
+                #                 elif solver_name=="solid":
+                #                     face_heat_flux = node.GetSolutionStepValue(KM.FACE_HEAT_FLUX)
+                #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Face heat flux: {np.round(face_heat_flux, 10)}")
+
+                print(f"################FINISHED iteration {k} ####################")
+
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.FinalizeCouplingIteration()
@@ -156,4 +239,5 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         for solver in self.solver_wrappers.values():
             solver.ExportData(export_config)
+
 

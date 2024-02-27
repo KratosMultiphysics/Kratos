@@ -440,6 +440,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("AssignMasterSlaveConstraintsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList, double const MinNumOfNeighNodes){
             return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMasterSlaveConstraintsToNodes(pNodes, Radius, rComputingModelPart, rVariableList, MinNumOfNeighNodes);})
         .def("FindNearestNeighbors", &AssignMasterSlaveConstraintsToNeighboursUtility::FindNearestNeighbors)
+        .def("FindNearestNeighbor", &AssignMasterSlaveConstraintsToNeighboursUtility::FindNearestNeighbor)
         ;
 }
 

@@ -44,35 +44,37 @@ class AitkenConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
+    # def UpdateSolution( self, r, x ):
+    #     self.R.appendleft( deepcopy(r) )
+
+    #     ## For the first iteration, do relaxation only
+    #     if self.initial_iteration:
+    #         self.initial_iteration = False
+    #         alpha = min( self.alpha_old, self.init_alpha_max )
+    #         if self.echo_level > 3:
+    #             cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with initial factor = {}".format(alpha))
+    #         return alpha * r
+
+    #     else:
+    #         r_diff = self.R[0] - self.R[1]
+    #         numerator = np.inner( self.R[1], r_diff )
+    #         denominator = np.inner( r_diff, r_diff )
+    #         alpha = -self.alpha_old * numerator/denominator
+    #         if self.echo_level > 3:
+    #             cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation with factor = {}".format(alpha))
+    #         if alpha > self.alpha_max:
+    #             alpha = self.alpha_max
+    #             if self.echo_level > 0:
+    #                 cs_tools.cs_print_warning(self._ClassName(), "dynamic relaxation factor reaches upper bound: {}".format(self.alpha_max))
+    #         elif alpha < self.alpha_min:
+    #             alpha = self.alpha_min
+    #             if self.echo_level > 0:
+    #                 cs_tools.cs_print_warning(self._ClassName(), "dynamic relaxation factor reaches lower bound: {}".format(self.alpha_min))
+    #         delta_x = alpha * self.R[0]
+    #         self.alpha_old = alpha
+    #         return delta_x
     def UpdateSolution( self, r, x ):
-        self.R.appendleft( deepcopy(r) )
-
-        ## For the first iteration, do relaxation only
-        if self.initial_iteration:
-            self.initial_iteration = False
-            alpha = min( self.alpha_old, self.init_alpha_max )
-            if self.echo_level > 3:
-                cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation in the first iteration with initial factor = {}".format(alpha))
-            return alpha * r
-
-        else:
-            r_diff = self.R[0] - self.R[1]
-            numerator = np.inner( self.R[1], r_diff )
-            denominator = np.inner( r_diff, r_diff )
-            alpha = -self.alpha_old * numerator/denominator
-            if self.echo_level > 3:
-                cs_tools.cs_print_info(self._ClassName(), ": Doing relaxation with factor = {}".format(alpha))
-            if alpha > self.alpha_max:
-                alpha = self.alpha_max
-                if self.echo_level > 0:
-                    cs_tools.cs_print_warning(self._ClassName(), "dynamic relaxation factor reaches upper bound: {}".format(self.alpha_max))
-            elif alpha < self.alpha_min:
-                alpha = self.alpha_min
-                if self.echo_level > 0:
-                    cs_tools.cs_print_warning(self._ClassName(), "dynamic relaxation factor reaches lower bound: {}".format(self.alpha_min))
-            delta_x = alpha * self.R[0]
-            self.alpha_old = alpha
-            return delta_x
+        return r
 
     @classmethod
     def _GetDefaultParameters(cls):

@@ -16,6 +16,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "variable_redistribution_utility.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -143,6 +144,34 @@ void VariableRedistributionUtility::DistributePointValues(
     unsigned int MaximumIterations)
 {
     CallSpecializedDistributePointValues<true>(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);
+}
+
+void VariableRedistributionUtility::DistributePointValuesFromNodalArea(
+    ModelPart& rModelPart,
+    const Variable<double>& rPointVariable,
+    const Variable<double>& rDistributedVariable)
+{
+    // Set the distributed variable to zero before distribution
+    VariableUtils().SetVariable(rDistributedVariable, 0.0, rModelPart.Nodes());
+
+    // Iterate over the nodes to distribute the values based on the norm of the normal
+    for (auto& node : rModelPart.Nodes()) {
+        const array_1d<double, 3>& normal = node.FastGetSolutionStepValue(NORMAL); // Assuming NODAL_NORMAL is available
+        const double norm_of_normal = std::sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]); // Manually calculate the norm of the normal vector
+        const double point_value = node.FastGetSolutionStepValue(rPointVariable);
+
+        // Use the norm of the normal as an equivalent "nodal area" for distribution
+        if (norm_of_normal > 0.0) {
+            const double distributed_value = point_value / norm_of_normal;
+            node.FastGetSolutionStepValue(rDistributedVariable) = distributed_value;
+        } else {
+            std::cout << "Warning: Norm of the normal is zero or undefined for node " << node.Id() << std::endl;
+            node.FastGetSolutionStepValue(rDistributedVariable) = 0.0; // Example default action
+        }
+    }
+
+    // Synchronize the distributed variable if needed
+    rModelPart.GetCommunicator().AssembleCurrentData(rDistributedVariable);
 }
 
 // Non-historical API
@@ -428,6 +457,11 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         const double nodal_maux = rNode.GetValue(NODAL_MAUX);
         const TValueType& r_point_value = AuxiliaryGet<TIsHistorical>(rPointVariable,rNode);
         AuxiliarySet<TIsHistorical>(rDistributedVariable,  TValueType(r_point_value / nodal_maux), rNode);
+        // if (rNode.Id()==22834 || rNode.Id()==22351 || rNode.Id()==21189){
+        //     std::cout << std::fixed << std::setprecision(16) << nodal_maux << std::endl;
+        //     std::cout << std::fixed << std::setprecision(16) << r_point_value << std::endl;
+        //     std::cout << std::fixed << std::setprecision(12) << r_point_value / nodal_maux << std::endl;
+        // }
     });
 
     // Make sure that the initial approximation is the same between processes
@@ -595,7 +629,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
     block_for_each(rModelPart.Nodes(), rhs_zero, [&](NodeType& rNode, const TValueType& rRHSZero){
         rNode.SetValue(rhs_variable, rRHSZero);
     });
-
+    // KRATOS_WATCH("NEW ITERATION")
     // Calculate updated RHS
     block_for_each(rEntitiesContainer, [&](typename TContainerType::data_type& rEntity){
         auto& r_geometry = rEntity.GetGeometry();
@@ -604,6 +638,10 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
             TValueType rhs_j = rhs_zero;
             for (unsigned int k = 0; k < TNumNodes; k++) {
                 rhs_j -= size * rMassMatrix(j,k) * AuxiliaryGet<TIsHistorical>(rDistributedVariable, r_geometry[k]);
+                // if (rEntity.Id()==45916){
+                //     std::cout << std::fixed << std::setprecision(12) << AuxiliaryGet<TIsHistorical>(rDistributedVariable, r_geometry[k]) << std::endl;
+                //     std::cout << std::fixed << std::setprecision(12) << rhs_j << std::endl;
+                // }
             }
             AtomicAdd(r_geometry[j].GetValue(rhs_variable), rhs_j);
         }
@@ -615,6 +653,10 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
     // Add the nodal part of the RHS (the point-wise values)
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         rNode.GetValue(rhs_variable) += AuxiliaryGet<TIsHistorical>(rPointVariable, rNode);
+        // if (rNode.Id()==22834 || rNode.Id()==22351 || rNode.Id()==21189){
+        //     std::cout << std::fixed << std::setprecision(12) << AuxiliaryGet<TIsHistorical>(rPointVariable, rNode) << std::endl;
+        //     std::cout << std::fixed << std::setprecision(12) << rNode.GetValue(rhs_variable) << std::endl;
+        // }
     });
 }
 
@@ -639,8 +681,13 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     auto [domain_size, error_l2_norm] = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
         // Add correction to the current distributed nodal values
         const double size = rNode.GetValue(NODAL_MAUX);
-        rDelta = rNode.GetValue(r_rhs_variable) / size;
-        AuxiliaryGet<TIsHistorical>(rDistributedVariable, rNode) += rDelta;
+        // KRATOS_WATCH(rNode.Id())
+        // KRATOS_WATCH(size)
+        if (size!=0){
+            rDelta = rNode.GetValue(r_rhs_variable) / size;
+            // KRATOS_WATCH(rDelta)
+            AuxiliaryGet<TIsHistorical>(rDistributedVariable, rNode) += rDelta;
+        }
         // Reduce error norm and
         return std::make_tuple(size, AddToNorm(rDelta, size));
     });

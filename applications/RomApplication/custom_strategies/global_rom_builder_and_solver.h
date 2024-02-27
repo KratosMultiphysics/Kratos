@@ -647,6 +647,38 @@ protected:
             BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
         }
 
+        ModelPart::ElementsContainerType elements;
+        ModelPart::ConditionsContainerType conditions;
+
+        // Check if we are in a HROM simulation and select elements and conditions accordingly
+        if (mHromSimulation) {
+            elements = mSelectedElements;
+            conditions = mSelectedConditions;
+        } else {
+            elements = rModelPart.Elements();
+            conditions = rModelPart.Conditions();
+        }
+
+        // Loop over elements to access their nodes
+        for (auto it_elem = elements.begin(); it_elem != elements.end(); ++it_elem) {
+            auto& elementNodes = it_elem->GetGeometry();
+            for (unsigned int i = 0; i < elementNodes.size(); ++i) {
+                auto& node = elementNodes[i];
+                // std::cout << "Element Node ID: " << node.Id() << ", Temperature: " << node.FastGetSolutionStepValue(TEMPERATURE) << std::endl;
+                // std::cout << "Element Node ID: " << node.Id() << ", Face heat flux: " << node.FastGetSolutionStepValue(FACE_HEAT_FLUX) << std::endl;
+            }
+        }
+
+        // Loop over conditions to access their nodes
+        for (auto it_cond = conditions.begin(); it_cond != conditions.end(); ++it_cond) {
+            auto& conditionNodes = it_cond->GetGeometry();
+            for (unsigned int i = 0; i < conditionNodes.size(); ++i) {
+                auto& node = conditionNodes[i];
+                // std::cout << "Condition Node ID: " << node.Id() << ", Temperature: " << node.FastGetSolutionStepValue(TEMPERATURE) << std::endl;
+                // std::cout << "Condition Node ID: " << node.Id() << ", Face heat flux: " << node.FastGetSolutionStepValue(FACE_HEAT_FLUX) << std::endl;
+            }
+        }
+
         Build(pScheme, rModelPart, rA, rb);
 
         if (mMonotonicityPreservingFlag) {
@@ -736,9 +768,6 @@ protected:
                     const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
                     // KRATOS_WATCH(it_cond->Id())
                     // KRATOS_WATCH(LHS_Contribution)
-                    // if (it_cond->Id()==3311){
-                    //     KRATOS_WATCH(*it_cond)
-                    // }
                     // KRATOS_WATCH(RHS_Contribution)
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;

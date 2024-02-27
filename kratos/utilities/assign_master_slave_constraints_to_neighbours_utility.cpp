@@ -268,6 +268,39 @@ std::unordered_set<int> AssignMasterSlaveConstraintsToNeighboursUtility::FindNea
     KRATOS_CATCH("");
 }
 
+std::unordered_set<int> AssignMasterSlaveConstraintsToNeighboursUtility::FindNearestNeighbor(
+    std::vector<Node::Pointer> nodesVector,
+    double initialRadius)
+{
+    KRATOS_TRY;
+
+    std::unordered_set<int> nearestNodeIds; // Using unordered_set for unique node IDs
+
+    for (auto& p_current_node : nodesVector) {
+        double searchRadius = initialRadius;
+        ResultNodesContainerType foundNodes;
+        ResultNodesContainerType r_local_results(mMaxNumberOfNodes); // Local results container
+
+        // Adjust the search condition to find at least one node
+        do {
+            foundNodes.clear();
+            SearchNodesInRadiusForNode(p_current_node, searchRadius, foundNodes, r_local_results);  // Search for nodes in the radius
+            searchRadius += initialRadius;
+        } while (foundNodes.empty()); // Continue until at least one node is found
+
+        // Only add the first found node ID to the nearestNodeIds set
+        if (!foundNodes.empty()) {
+            auto firstFoundNodeIt = foundNodes.begin();
+            nearestNodeIds.insert((*firstFoundNodeIt)->Id()); // Insert the first found node's ID
+            // No need for a break here since we're already only considering the first found node
+        }
+    }
+
+    return nearestNodeIds;
+
+    KRATOS_CATCH("");
+}
+
 
 }  // namespace Kratos.
 
