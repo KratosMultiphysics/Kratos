@@ -26,7 +26,6 @@
 #include "custom_utilities/move_particle_utility.h"
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
-#include "custom_utilities/gauss_point_error_utility.h"
 #include "custom_utilities/embedded_mls_constraint_process.h"
 
 #include "spaces/ublas_space.h"
