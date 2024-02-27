@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import Kratos.python_registry as python_registry
 import Kratos.kratos_globals as kratos_globals
 
