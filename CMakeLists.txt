@@ -1,5 +1,5 @@
-project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
+project (KratosMultiphysics)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
@@ -27,8 +27,8 @@ endif(POLICY CMP0057)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 3)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 4)
+set (KratosMultiphysics_PATCH_VERSION 3)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -40,11 +40,6 @@ if(NOT DEFINED KRATOS_BINARY_DIR)
   message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
   set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
 endif(NOT DEFINED KRATOS_BINARY_DIR)
-
-if(NOT DEFINED INSTALL_RUNKRATOS)
-  message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
-  set(INSTALL_RUNKRATOS ON)
-endif(NOT DEFINED INSTALL_RUNKRATOS)
 
 option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
 
@@ -430,16 +425,6 @@ if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
 
-# Follow the symbolic links for the python lib only if needed
-if(${INSTALL_RUNKRATOS} MATCHES ON )
-    foreach( library ${PYTHON_LIBRARIES})
-        get_filename_component(python_lib ${library} REALPATH)
-        set(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES_REALPATH} ${python_lib})
-    endforeach(library)
-
-    set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES_REALPATH} CACHE STRING "exact file of the PYTHON library" FORCE)
-endif(${INSTALL_RUNKRATOS} MATCHES ON )
-
 ##*****************************
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -620,7 +605,7 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
-message("\t Behavior change of Testing. Please esnure you sue KRATOS_EXPECT for testing instead of KRATOS_CHECK")
+message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
@@ -631,11 +616,6 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
-
-# runkratos - compiles "runkratos and packages the python lib needed"
-if(${INSTALL_RUNKRATOS} MATCHES ON )
-    add_subdirectory(kratos/run_kratos)
-endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 # Clean the Module and libs install directories
 if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )

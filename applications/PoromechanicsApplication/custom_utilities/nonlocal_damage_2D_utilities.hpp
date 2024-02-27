@@ -96,7 +96,7 @@ protected:
         // Locate GaussPoints inside CellMatrix
         unsigned int NGPoints = 0;
         GeometryData::IntegrationMethod MyIntegrationMethod;
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
         array_1d<double,3> AuxGlobalCoordinates;
         array_1d<double,3> AuxLocalCoordinates;
         
@@ -124,7 +124,7 @@ protected:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(NumGPoints);
-                itElem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,CurrentProcessInfo);
+                itElem->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,ConstitutiveLawVector,rCurrentProcessInfo);
                 int Row;
                 int Column;
 

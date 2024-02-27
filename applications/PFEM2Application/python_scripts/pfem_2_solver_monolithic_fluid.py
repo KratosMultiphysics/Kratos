@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
-from KratosMultiphysics.ExternalSolversApplication import *
 import KratosMultiphysics as kratoscore
 #from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
 from math import sqrt
@@ -56,33 +55,33 @@ class PFEM2Solver:
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver()
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
         #self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(
-        '''
-        settings = Parameters("""{
-            "solver_type" : "AMGCL_NS_Solver",
-            "velocity_block_preconditioner" : {
-                "tolerance" : 1e-3,
-                "preconditioner_type" : "ilu0"
-            },
-            "pressure_block_preconditioner" : {
-                "tolerance" : 1e-2,
-                "preconditioner_type" : "ilu0"
-            },
-            "tolerance" : 1e-5,
-            "krylov_type": "bicgstab",
-            "gmres_krylov_space_dimension": 50,
-            "coarsening_type": "aggregation",
-            "max_iteration": 50,
-            "verbosity" : 2,
-            "scaling": false,
-            "coarse_enough" : 5000
-        } """)
-        linear_solver = AMGCL_NS_Solver(settings)
-        '''
+        amgcl_solver_settings = Parameters(
+
+          '''{
+             "solver_type"                    : "amgcl",
+            "max_iteration"                  : 1000,
+            "tolerance"                      : 1e-7,
+            "provide_coordinates"            : false,
+            "smoother_type"                  : "ilu0",
+            "krylov_type"                    : "lgmres",
+            "coarsening_type"                : "aggregation",
+            "gmres_krylov_space_dimension"   : 100,
+            "scaling"                        : false,
+            "use_block_matrices_if_possible" : false
+          }''')
+
+        linear_solver_settings = Parameters(
+
+          '''{
+             "solver_type"                    : "LinearSolversApplication.sparse_lu"
+          }''') 
+
 
         #construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         #self.monolithic_linear_solver =  linear_solver
-        self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
+        # self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
+        self.monolithic_linear_solver = linear_solver_factory.ConstructSolver(linear_solver_settings)
         self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver
         self.conv_criteria.SetEchoLevel(0)
 
@@ -149,7 +148,7 @@ class PFEM2Solver:
              self.distance_utils = SignedDistanceCalculationUtils3D()
         self.redistance_step = 0
 
-        import strategy_python #implicit solver
+        import KratosMultiphysics.PFEM2Application.strategy_python as strategy_python #implicit solver
         self.monolithic_solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.monolithic_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
         self.monolithic_solver.SetMaximumIterations(self.maximum_nonlin_iterations)
 

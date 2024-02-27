@@ -276,7 +276,7 @@ void Communication::PostChecks(const Info& I_Info)
     CO_SIM_IO_ERROR_IF_NOT(I_Info.Has("memory_usage_ipc")) << "\"memory_usage_ipc\" must be specified!" << std::endl;
 }
 
-fs::path Communication::GetTempFileName(
+fs::path Communication::GetTmpFileName(
     const fs::path& rPath,
     const bool UseAuxFileForFileAvailability) const
 {
@@ -370,7 +370,7 @@ void Communication::MakeFileVisible(
     CO_SIM_IO_TRY
 
     if (!UseAuxFileForFileAvailability) {
-        const fs::path tmp_file_name = GetTempFileName(rPath, UseAuxFileForFileAvailability);
+        const fs::path tmp_file_name = GetTmpFileName(rPath, UseAuxFileForFileAvailability);
         AddFilePermissions(tmp_file_name);
         std::error_code ec;
         fs::rename(tmp_file_name, rPath, ec);
@@ -417,9 +417,9 @@ void Communication::SynchronizeAll(const std::string& rTag) const
 
         if (GetIsPrimaryConnection()) {
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_primary));
+            sync_file.open(GetTmpFileName(file_name_primary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTmpFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_primary);
 
             WaitForPath(file_name_secondary, true, 2);
@@ -431,9 +431,9 @@ void Communication::SynchronizeAll(const std::string& rTag) const
             RemovePath(file_name_primary);
 
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_secondary));
+            sync_file.open(GetTmpFileName(file_name_secondary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTmpFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_secondary);
 
             WaitUntilFileIsRemoved(file_name_secondary, 2);
@@ -485,7 +485,7 @@ void Communication::HandShake(const Info& I_Info)
             WaitUntilFileIsRemoved(rMyFileName,1); // in case of leftovers
 
             { // necessary as FileSerializer releases resources on destruction!
-                FileSerializer serializer_save(GetTempFileName(rMyFileName).string(), mSerializerTraceType);
+                FileSerializer serializer_save(GetTmpFileName(rMyFileName).string(), mSerializerTraceType);
                 serializer_save.save("info", GetMyInfo());
             }
 
@@ -524,7 +524,7 @@ void Communication::HandShake(const Info& I_Info)
 
         auto print_endianness = [](const bool IsBigEndian){return IsBigEndian ? "big endian" : "small endian";};
 
-        CO_SIM_IO_INFO_IF("CoSimIO", Utilities::IsBigEndian() != mPartnerInfo.Get<bool>("is_big_endian")) << "WARNING: Parnters have different endianness, check results carefully! It is recommended to use serialized ascii commuication.\n    My endianness:      " << print_endianness(Utilities::IsBigEndian()) << "\n    Partner endianness: " << print_endianness(mPartnerInfo.Get<bool>("is_big_endian")) << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", Utilities::IsBigEndian() != mPartnerInfo.Get<bool>("is_big_endian")) << "WARNING: Parnters have different endianness, check results carefully! It is recommended to use serialized ascii communication.\n    My endianness:      " << print_endianness(Utilities::IsBigEndian()) << "\n    Partner endianness: " << print_endianness(mPartnerInfo.Get<bool>("is_big_endian")) << std::endl;
 
         // more things can be done in derived class if necessary
         DerivedHandShake();
