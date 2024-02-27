@@ -13,8 +13,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "plane_strain_stress_state.h"
-#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
@@ -24,7 +22,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 NodesArrayType const& ThisNodes,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                                      pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -32,7 +31,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 GeometryType::Pointer pGeom,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainElement(NewId, pGeom, pProperties));
+    return Element::Pointer(
+        new UPwSmallStrainElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1209,18 +1209,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np)
 {
-    KRATOS_TRY
-
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if constexpr (TDim == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    rB = p_stress_state_policy->CalculateBMatrix(GradNpT, Np, this->GetGeometry());
-
-    KRATOS_CATCH("")
+    rB = this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1563,18 +1552,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(ElementVariab
 template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
-    KRATOS_TRY
-
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if constexpr (TDim == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    return p_stress_state_policy->CalculateGreenLagrangeStrain(rDeformationGradient);
-
-    KRATOS_CATCH("")
+    return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
