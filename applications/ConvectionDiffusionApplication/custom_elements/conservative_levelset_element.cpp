@@ -59,15 +59,23 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
+        array_1d<double,TNumNodes> div_v_vector;
+        array_1d< array_1d<double,3 >, TNumNodes> normal;
+
         //Computing the divergence
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+            div_v_vector[i] = 1.0;
+            normal[i] = this->GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
             for(unsigned int k=0; k<TDim; k++)
             {
+                Variables.v[i][k] = normal[i][k];
+                Variables.vold[i][k] = normal[i][k];
                 Variables.div_v += DN_DX(i,k)*(Variables.v[i][k]*Variables.theta + Variables.vold[i][k]*(1.0-Variables.theta));
             }
         }
-
+        div_v_vector *= Variables.div_v;
+        
         //Some auxilary definitions
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
@@ -89,9 +97,9 @@ namespace Kratos
 
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                 phi_gauss += N[i]*(Variables.phi[i]*Variables.theta + Variables.phi_old[i]*(1.0-Variables.theta));
+                phi_gauss += N[i]*(Variables.phi[i]*Variables.theta + Variables.phi_old[i]*(1.0-Variables.theta));
                  
-                 for(unsigned int k=0; k<TDim; k++)
+                for(unsigned int k=0; k<TDim; k++)
                     vel_gauss[k] += N[i]*(Variables.v[i][k]*Variables.theta + Variables.vold[i][k]*(1.0-Variables.theta));
             }
        
@@ -132,7 +140,8 @@ namespace Kratos
         noalias(rRightHandSideVector) -= Variables.density*Variables.specific_heat*(1.0-Variables.theta)*prod(aux2,Variables.phi_old);
 
         // volume source terms (affecting the RHS only)
-        noalias(rRightHandSideVector) += prod(aux3, Variables.volumetric_source);
+        noalias(rRightHandSideVector) += prod(aux1, Variables.volumetric_source);
+        noalias(rRightHandSideVector) -= prod(aux3, div_v_vector);
 
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, Variables.phi);

@@ -246,13 +246,9 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         # Adding nodal area variable (some solvers use it. TODO: Ask)
         #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        # If LaplacianElement is used
+        # If LaplacianElement or ConservativeLevelsetElement is used
         if self.settings["element_replace_settings"]["element_name"].GetString() in ["LaplacianElement","ConservativeLevelsetElement"]:
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        if (self.settings["element_replace_settings"]["element_name"].GetString() == "ConservativeLevelsetElement"):
-            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X_GRADIENT)
-            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y_GRADIENT)
-            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z_GRADIENT)
 
         # If MPI distributed, add the PARTITION_INDEX
         if _CheckIsDistributed():
@@ -395,26 +391,11 @@ class ConvectionDiffusionSolver(PythonSolver):
                     if (domain_size == 3):         
                         normalz=gradz/(grad_norm)
                 else:
-                    normalx = normaly = normaly = 0.0
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, normalx)
+                    normalx = normaly = normalz = 0.0
                 node.SetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0, normalx)
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, normaly)
                 node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0, normaly)
                 if (domain_size == 3):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0, normalz)
                     node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Z, 0, normalz)
-                print(normalx, normaly)
-
-        KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT).Execute()
-        KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Y_GRADIENT).Execute()
-        if (domain_size == 3):    
-            KratosMultiphysics.ComputeNodalGradientProcess(computing_model_part, KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.VELOCITY_Z_GRADIENT).Execute()
-
-        for node in computing_model_part.Nodes:
-                divergence_normal = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X_GRADIENT)[0] + node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y_GRADIENT)[1]
-                if (domain_size == 3):
-                    divergence_normal += node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z_GRADIENT)[2]
-                node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, -divergence_normal)
 
     def InitializeSolutionStep(self):
         if self.settings["element_replace_settings"]["element_name"].GetString() in ["ConservativeLevelsetElement2D3N","ConservativeLevelsetElement2D4N","ConservativeLevelsetElement3D4N","ConservativeLevelsetElement3D8N"]:
