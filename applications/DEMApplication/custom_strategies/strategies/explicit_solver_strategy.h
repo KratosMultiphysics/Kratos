@@ -335,6 +335,9 @@ namespace Kratos {
         double mRVE_StdDevRoseXYInn;    // Std dev of rose values in XY plane for inner particles (divided by number of particles)
         double mRVE_StdDevRoseAzInn;    // Std dev of rose values in Az plane for inner particles (divided by number of particles)
 
+        std::vector<double> mRVE_CornerCoordsX; // X coordinates of 4 RVE corners (low-left, low-right, up-right, up-left)
+        std::vector<double> mRVE_CornerCoordsY; // X coordinates of 4 RVE corners (low-left, low-right, up-right, up-left)
+
         std::vector<DEMWall*> mRVE_WallXMin; // Vector of RVE flat walls in negative X direction
         std::vector<DEMWall*> mRVE_WallXMax; // Vector of RVE flat walls in positive X direction
         std::vector<DEMWall*> mRVE_WallYMin; // Vector of RVE flat walls in negative Y direction

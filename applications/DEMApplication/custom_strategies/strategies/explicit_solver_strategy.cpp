@@ -2025,55 +2025,163 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Generalize to more generic configurations
     void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Flat(void) {
+      ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
       const double eps = std::numeric_limits<double>::epsilon();
 
-      std::vector<DEMWall*> wall_elems_x;
-      std::vector<DEMWall*> wall_elems_y;
-
-      double xmin =  DBL_MAX;
-      double xmax = -DBL_MAX;
-      double ymin =  DBL_MAX;
-      double ymax = -DBL_MAX;
-      
-      ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-      for (unsigned int i = 0; i < r_conditions.size(); i++) {
-        ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
-        DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
-
-        Condition::GeometryType& geom = p_wall->GetGeometry();
-        double coords1[2] = { geom[0][0], geom[0][1] };
-        double coords2[2] = { geom[1][0], geom[1][1] };
-
-        if (std::abs(coords1[0]-coords2[0]) < eps) {
-          wall_elems_x.push_back(p_wall);
-          if (coords1[0] < xmin) xmin = coords1[0];
-          if (coords1[0] > xmax) xmax = coords1[0];
-        }
-        else if (std::abs(coords1[1]-coords2[1]) < eps) {
-          wall_elems_y.push_back(p_wall);
-          if (coords1[1] < ymin) ymin = coords1[1];
-          if (coords1[1] > ymax) ymax = coords1[1];
-        }
-      }
-
-      for (unsigned int i = 0; i < wall_elems_x.size(); i++) {
-        const double x = wall_elems_x[i]->GetGeometry()[0][0];
-        if      (std::abs(x-xmin) < eps) mRVE_WallXMin.push_back(wall_elems_x[i]);
-        else if (std::abs(x-xmax) < eps) mRVE_WallXMax.push_back(wall_elems_x[i]);
-      }
-      for (unsigned int i = 0; i < wall_elems_y.size(); i++) {
-        const double y = wall_elems_y[i]->GetGeometry()[0][1];
-        if      (std::abs(y-ymin) < eps) mRVE_WallYMin.push_back(wall_elems_y[i]);
-        else if (std::abs(y-ymax) < eps) mRVE_WallYMax.push_back(wall_elems_y[i]);
-      }
-
+      // Set all particles as non-wall
       for (int i = 0; i < (int)mListOfSphericParticles.size(); i++) {
         mListOfSphericParticles[i]->mWall = 0;
       }
+
+      // Determine min/max wall slopes
+      double slope_min =  DBL_MAX;
+      double slope_max = -DBL_MAX;
+
+      for (unsigned int i = 0; i < r_conditions.size(); i++) {
+        ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+        DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+        Condition::GeometryType& geom = p_wall->GetGeometry();
+        const double x1 = geom[0][0];
+        const double y1 = geom[0][1];
+        const double x2 = geom[1][0];
+        const double y2 = geom[1][1];
+
+        double slope;
+        if (x1==x2) slope = DBL_MAX;
+        else        slope = (y2-y1)/(x2-x1);
+
+        if (std::abs(slope) < slope_min) slope_min = std::abs(slope);
+        if (std::abs(slope) > slope_max) slope_max = std::abs(slope);
+      }
+
+      // Determine X & Y walls based on slopes, and determine their min/max intersections with X & Y axes
+      std::vector<DEMWall*> wall_elems_x;
+      std::vector<DEMWall*> wall_elems_y;
+      double intersect_xmin =  DBL_MAX;
+      double intersect_xmax = -DBL_MAX;
+      double intersect_ymin =  DBL_MAX;
+      double intersect_ymax = -DBL_MAX;
+
+      for (unsigned int i = 0; i < r_conditions.size(); i++) {
+        ModelPart::ConditionsContainerType::iterator it = r_conditions.ptr_begin() + i;
+        DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
+        Condition::GeometryType& geom = p_wall->GetGeometry();
+        const double x1 = geom[0][0];
+        const double y1 = geom[0][1];
+        const double x2 = geom[1][0];
+        const double y2 = geom[1][1];
+        
+        double slope;
+        if (x1==x2) slope = DBL_MAX;
+        else        slope = (y2-y1)/(x2-x1);
+
+        if (std::abs(std::abs(slope)-slope_max) < eps) {
+          wall_elems_x.push_back(p_wall);
+          const double intersect_x = x1 - y1 / slope;
+          if (intersect_x < intersect_xmin) intersect_xmin = intersect_x;
+          if (intersect_x > intersect_xmax) intersect_xmax = intersect_x;
+        }
+        else {
+          wall_elems_y.push_back(p_wall);
+          const double intersect_y = y1 - slope * x1;
+          if (intersect_y < intersect_ymin) intersect_ymin = intersect_y;
+          if (intersect_y > intersect_ymax) intersect_ymax = intersect_y;
+        }
+      }
+
+      // Determine side (min or max) of X walls based on intersections with X axis
+      for (unsigned int i = 0; i < wall_elems_x.size(); i++) {
+        Condition::GeometryType& geom = wall_elems_x[i]->GetGeometry();
+        const double x1 = geom[0][0];
+        const double y1 = geom[0][1];
+        const double x2 = geom[1][0];
+        const double y2 = geom[1][1];
+
+        double slope;
+        if (x1==x2) slope = DBL_MAX;
+        else        slope = (y2-y1)/(x2-x1);
+        const double intersect_x = x1 - y1 / slope;
+
+        if (std::abs(intersect_x-intersect_xmin) < eps)
+          mRVE_WallXMin.push_back(wall_elems_x[i]);
+        else
+          mRVE_WallXMax.push_back(wall_elems_x[i]);
+      }
+
+      // Determine side (min or max) of Y walls based on intersections with Y axis
+      for (unsigned int i = 0; i < wall_elems_y.size(); i++) {
+        Condition::GeometryType& geom = wall_elems_y[i]->GetGeometry();
+        const double x1 = geom[0][0];
+        const double y1 = geom[0][1];
+        const double x2 = geom[1][0];
+        const double y2 = geom[1][1];
+
+        double slope;
+        if (x1==x2) slope = DBL_MAX;
+        else        slope = (y2-y1)/(x2-x1);
+        const double intersect_y = y1 - slope * x1;
+
+        if (std::abs(intersect_y-intersect_ymin) < eps)
+          mRVE_WallYMin.push_back(wall_elems_y[i]);
+        else
+          mRVE_WallYMax.push_back(wall_elems_y[i]);
+      }
+
+      // Determine RVE corners
+      double wallxmin_ymin =  DBL_MAX;
+      double wallxmin_ymax = -DBL_MAX;
+      double wallxmax_ymin =  DBL_MAX;
+      double wallxmax_ymax = -DBL_MAX;
+      double wallymin_xmin =  DBL_MAX;
+      double wallymin_xmax = -DBL_MAX;
+      double wallymax_xmin =  DBL_MAX;
+      double wallymax_xmax = -DBL_MAX;
+
+      for (unsigned int i = 0; i < mRVE_WallXMin.size(); i++) {
+        Condition::GeometryType& geom = mRVE_WallXMin[i]->GetGeometry();
+        const double y1 = geom[0][1];
+        const double y2 = geom[1][1];
+        if (y1 < wallxmin_ymin) wallxmin_ymin = y1;
+        if (y1 > wallxmin_ymax) wallxmin_ymax = y1;
+        if (y2 < wallxmin_ymin) wallxmin_ymin = y2;
+        if (y2 > wallxmin_ymax) wallxmin_ymax = y2;
+      }
+      for (unsigned int i = 0; i < mRVE_WallXMax.size(); i++) {
+        Condition::GeometryType& geom = mRVE_WallXMax[i]->GetGeometry();
+        const double y1 = geom[0][1];
+        const double y2 = geom[1][1];
+        if (y1 < wallxmax_ymin) wallxmax_ymin = y1;
+        if (y1 > wallxmax_ymax) wallxmax_ymax = y1;
+        if (y2 < wallxmax_ymin) wallxmax_ymin = y2;
+        if (y2 > wallxmax_ymax) wallxmax_ymax = y2;
+      }
+      for (unsigned int i = 0; i < mRVE_WallYMin.size(); i++) {
+        Condition::GeometryType& geom = mRVE_WallYMin[i]->GetGeometry();
+        const double x1 = geom[0][0];
+        const double x2 = geom[1][0];
+        if (x1 < wallymin_xmin) wallymin_xmin = x1;
+        if (x1 > wallymin_xmax) wallymin_xmax = x1;
+        if (x2 < wallymin_xmin) wallymin_xmin = x2;
+        if (x2 > wallymin_xmax) wallymin_xmax = x2;
+      }
+      for (unsigned int i = 0; i < mRVE_WallYMax.size(); i++) {
+        Condition::GeometryType& geom = mRVE_WallYMax[i]->GetGeometry();
+        const double x1 = geom[0][0];
+        const double x2 = geom[1][0];
+        if (x1 < wallymax_xmin) wallymax_xmin = x1;
+        if (x1 > wallymax_xmax) wallymax_xmax = x1;
+        if (x2 < wallymax_xmin) wallymax_xmin = x2;
+        if (x2 > wallymax_xmax) wallymax_xmax = x2;
+      }
+
+      mRVE_CornerCoordsX.insert(mRVE_CornerCoordsX.end(), { wallymin_xmin, wallymin_xmax, wallymax_xmax, wallymax_xmin});
+      mRVE_CornerCoordsY.insert(mRVE_CornerCoordsY.end(), { wallxmin_ymin, wallxmax_ymin, wallxmax_ymax, wallxmin_ymax});
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Adapt it to consider non square RVEs, e.g. RVEs with shear applied.
     void ExplicitSolverStrategy::RVEAssembleWallVectors3D_Flat(void) {
       const double eps = std::numeric_limits<double>::epsilon();
 
@@ -2137,6 +2245,7 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Adapt it to consider non square RVEs, e.g. RVEs with shear applied.
     void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Particles(void) {
       const double eps = std::numeric_limits<double>::epsilon();
       double xmin =  DBL_MAX;
@@ -2180,6 +2289,7 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Adapt it to consider non square RVEs, e.g. RVEs with shear applied.
     void ExplicitSolverStrategy::RVEAssembleWallVectors3D_Particles(void) {
       const double eps = std::numeric_limits<double>::epsilon();
       double xmin =  DBL_MAX;
@@ -2237,6 +2347,7 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Missing 3D
     double ExplicitSolverStrategy::RVEComputeTotalSurface(void) {
       double surface = 0.0;
 
@@ -2245,15 +2356,23 @@ namespace Kratos {
           mRVE_WallZMin.size() > 0 || mRVE_WallZMax.size() > 0)
       {
         if (mRVE_Dimension == 2) { // Perimeter
-          double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
-          double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
-          surface = 2.0 * (dX + dY);
+          const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+          const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+          const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+          const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
+          
+          const double line1 = sqrt(pow(x2-x1,2)+pow(y2-y1,2));
+          const double line2 = sqrt(pow(x3-x2,2)+pow(y3-y2,2));
+          const double line3 = sqrt(pow(x4-x3,2)+pow(y4-y3,2));
+          const double line4 = sqrt(pow(x1-x4,2)+pow(y1-y4,2));
+          
+          surface = line1 + line2 + line3 + line4;
         }
         else if (mRVE_Dimension == 3) {
-          double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
-          double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
-          double dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
-          surface = 2.0 * (dX * dY + dX * dZ + dY * dZ);
+          //double dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+          //double dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
+          //double dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+          //surface = 2.0 * (dX * dY + dX * dZ + dY * dZ);
         }
       }
 
@@ -2261,33 +2380,28 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Missing 3D
     double ExplicitSolverStrategy::RVEComputeTotalVolume(void) {
-      double dX = 1.0;
-      double dY = 1.0;
-      double dZ = 1.0;
+      double vol = 0.0;
 
       if (mRVE_FlatWalls) {
-        if (mRVE_WallXMin.size() > 0 && mRVE_WallXMax.size() > 0)
-          dX = std::abs(mRVE_WallXMin[0]->GetGeometry()[0][0] - mRVE_WallXMax[0]->GetGeometry()[0][0]);
+        const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+        const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+        const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+        const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
 
-        if (mRVE_WallYMin.size() > 0 && mRVE_WallYMax.size() > 0)
-          dY = std::abs(mRVE_WallYMin[0]->GetGeometry()[0][1] - mRVE_WallYMax[0]->GetGeometry()[0][1]);
-
-        if (mRVE_WallZMin.size() > 0 && mRVE_WallZMax.size() > 0)
-          dZ = std::abs(mRVE_WallZMin[0]->GetGeometry()[0][2] - mRVE_WallZMax[0]->GetGeometry()[0][2]);
+        vol = 0.5 * std::abs(x1*y2 + x2*y3 + x3*y4 + x4*y1 - x2*y1 - x3*y2 - x4*y3 - x1*y4); // shoelace formula
       }
       else {
-        if (mRVE_WallParticleXMin.size() > 0 && mRVE_WallParticleXMax.size() > 0)
-          dX = std::abs(mRVE_WallParticleXMin[0]->GetGeometry()[0][0] - mRVE_WallParticleXMax[0]->GetGeometry()[0][0]);
-
-        if (mRVE_WallParticleYMin.size() > 0 && mRVE_WallParticleYMax.size() > 0)
-          dY = std::abs(mRVE_WallParticleYMin[0]->GetGeometry()[0][1] - mRVE_WallParticleYMax[0]->GetGeometry()[0][1]);
-
-        if (mRVE_WallParticleZMin.size() > 0 && mRVE_WallParticleZMax.size() > 0)
-          dZ = std::abs(mRVE_WallParticleZMin[0]->GetGeometry()[0][2] - mRVE_WallParticleZMax[0]->GetGeometry()[0][2]);
+        //if (mRVE_WallParticleXMin.size() > 0 && mRVE_WallParticleXMax.size() > 0)
+        //  dX = std::abs(mRVE_WallParticleXMin[0]->GetGeometry()[0][0] - mRVE_WallParticleXMax[0]->GetGeometry()[0][0]);
+        //if (mRVE_WallParticleYMin.size() > 0 && mRVE_WallParticleYMax.size() > 0)
+        //  dY = std::abs(mRVE_WallParticleYMin[0]->GetGeometry()[0][1] - mRVE_WallParticleYMax[0]->GetGeometry()[0][1]);
+        //if (mRVE_WallParticleZMin.size() > 0 && mRVE_WallParticleZMax.size() > 0)
+        //  dZ = std::abs(mRVE_WallParticleZMin[0]->GetGeometry()[0][2] - mRVE_WallParticleZMax[0]->GetGeometry()[0][2]);
       }
 
-      return dX * dY * dZ;
+      return vol;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2377,7 +2491,8 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEComputeInnerPorosity(void) { // 2D only
+    // TODO: Missing 3D
+    void ExplicitSolverStrategy::RVEComputeInnerPorosity(void) {
       ModelPart& r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
 
@@ -2723,7 +2838,8 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEComputeRoseUniformity(void) { // 2D ONLY!
+    // TODO: Missing 3D
+    void ExplicitSolverStrategy::RVEComputeRoseUniformity(void) {
       int len_rose_all = mRVE_RoseDiagram.size2();
       int len_rose_inn = mRVE_RoseDiagramInner.size2();
 
