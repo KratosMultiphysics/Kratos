@@ -24,7 +24,7 @@ using namespace Kratos;
 
 namespace
 {
-ModelPart& PrepareTestModelPart(Model& rModel)
+ModelPart& PrepareCPhiTestModelPart(Model& rModel)
 {
     auto& result = rModel.CreateModelPart("dummy");
 
@@ -63,7 +63,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    auto& r_model_part = PrepareTestModelPart(model);
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
 
     ApplyCPhiReductionProcess process{r_model_part, {}};
     process.ExecuteInitializeSolutionStep();
@@ -75,10 +75,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
         auto phi_index              = element_properties.GetValue(INDEX_OF_UMAT_PHI_PARAMETER) - 1;
 
         KRATOS_EXPECT_DOUBLE_EQ(umat_properties_vector(c_index), 9.0);
-        double phi_rad         = MathUtils<>::DegreesToRadians(25.0);
-        double tan_phi         = std::tan(phi_rad);
 
-        KRATOS_EXPECT_DOUBLE_EQ(std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))), 0.9*tan_phi);
+        double phi_rad = MathUtils<>::DegreesToRadians(25.0);
+        double tan_phi = std::tan(phi_rad);
+        KRATOS_EXPECT_DOUBLE_EQ(
+            std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))), 0.9 * tan_phi);
     });
 }
 
