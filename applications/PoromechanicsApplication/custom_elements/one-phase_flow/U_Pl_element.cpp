@@ -561,10 +561,23 @@ void UPlElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<do
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number, false );
 
-    for ( unsigned int i = 0;  i < integration_points_number; i++ )
+    if(rVariable == YOUNG_MODULUS)
     {
-        rValues[i] = 0.0;
-        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+        const PropertiesType& Prop = this->GetProperties();
+        const double& YoungModulus = Prop[YOUNG_MODULUS];
+
+        //Loop over integration points
+        for ( unsigned int i = 0;  i < integration_points_number; i++ )
+        {
+            rValues[i] = YoungModulus;
+        }
+
+    } else {
+        for ( unsigned int i = 0;  i < integration_points_number; i++ )
+        {
+            rValues[i] = 0.0;
+            rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+        }
     }
 }
 
