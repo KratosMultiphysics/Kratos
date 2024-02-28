@@ -258,7 +258,6 @@ double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
     if (u_max > 2.0 * radius_sum) {
         u_max = 2.0 * radius_sum;
     } // avoid error in special cases with too high tensile
-    
 
     return u_max;
 
