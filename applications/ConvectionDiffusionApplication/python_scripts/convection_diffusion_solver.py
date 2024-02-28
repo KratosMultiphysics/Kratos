@@ -385,7 +385,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                     grad_norm = (gradx**2 + grady**2+ gradz**2)**(0.5)
                 else:
                     grad_norm = (gradx**2 + grady**2)**(0.5)
-                if ( grad_norm > 0.0 ):
+                if ( grad_norm > 0.0000001 ):
                     normalx=gradx/(grad_norm)
                     normaly=grady/(grad_norm)
                     if (domain_size == 3):         

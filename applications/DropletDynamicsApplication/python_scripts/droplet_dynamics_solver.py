@@ -351,7 +351,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self._GetDistanceCurvatureProcess().Execute()
 
         # Curvature correction (If needed)
-        # self._Curvature_Correction()
+        self._Curvature_Correction()
 
         # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
         self._GetConsistentNodalPressureGradientProcess().Execute()
@@ -389,7 +389,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         # Performing The Conservative Law
-        #self._PerformConservativeLaw()
+        self._PerformConservativeLaw()
         self._SetNodalProperties()
         self._GetDistanceGradientProcess().Execute()
 
@@ -987,8 +987,8 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                         dist += 0.5
                         nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
                         
-                    local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
-                    local_gradient_TEMPERATURE.Execute()
+                    # local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+                    # local_gradient_TEMPERATURE.Execute()
                     
                     for elem in self._GetSolver().GetComputingModelPart().Elements:
                         flag = 1
@@ -1004,17 +1004,17 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                         dist = nodes1[i+1].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
                         dist += 0.5
                         if dist < 0.0001:
-                            nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
+                            #nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
                             dist = 0.0
                         if dist > 0.9999:
-                            nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
+                            #nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
                             dist = 1.0    
-                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
+                        #nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
 
                     for i in range(ndes2_num):
                         flagvar = nodes2[i+1].GetSolutionStepValue(KratosMultiphysics.NODAL_H, 0)
-                        if flagvar > 0.5:
-                            nodes2[i+1].Fix(KratosMultiphysics.TEMPERATURE)
+                        #if flagvar > 0.5:
+                            #nodes2[i+1].Fix(KratosMultiphysics.TEMPERATURE)
 
         
                     for node in nodes2:
@@ -1027,17 +1027,13 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                         # normalz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0)
                         if ( flagvar < 0.5 ):
                             grad_norm = math.sqrt(gradx**2 + grady**2)# = (math.sqrt(grady**2 + gradx**2 + gradz**2))
-                            normalx=gradx/(grad_norm)
-                            normaly=grady/(grad_norm)
+                            #normalx=gradx/(grad_norm)
+                            #normaly=grady/(grad_norm)
                             # normalz = gradz/(grad_norm)
 
-                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, normalx)
-                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, normaly)
+                        #node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, normalx)
+                        #node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, normaly)
                         # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0, normalz)
-
-                    KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(),KratosMultiphysics.VELOCITY_X,KratosMultiphysics.ROTATION_X_GRADIENT).Execute()
-                    KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(),KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.ROTATION_Y_GRADIENT).Execute()
-                    # KratosMultiphysics.ComputeNodalGradientProcess(self._GetSolver().GetComputingModelPart(),KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.ROTATION_Z_GRADIENT).Execute()
                     
                     sys.stdout.flush()
 
@@ -1049,21 +1045,12 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
                     nodes2 = self._GetSolver().GetComputingModelPart().Nodes
 
-                        
                     for node in nodes2:
                         gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
                         grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
                         if ( math.sqrt(gradx**2 + grady**2) > max_norm_of_temp_grad ):
                             max_norm_of_temp_grad = math.sqrt(gradx**2 + grady**2)
                     print("max = ", max_norm_of_temp_grad)
-
-                    for node in nodes2:
-                        divergence = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X_GRADIENT)[0] + node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y_GRADIENT)[1] #+ node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z_GRADIENT)[2]
-                        # cond = node.GetSolutionStepValue(KratosMultiphysics.CONDUCTIVITY, 0)
-
-                        heatflux=-divergence
-                
-                        node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, heatflux)
 
                 def FinalizeSolutionStep(self):
                     super().FinalizeSolutionStep()
