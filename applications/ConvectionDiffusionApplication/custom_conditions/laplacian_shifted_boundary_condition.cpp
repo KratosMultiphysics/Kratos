@@ -173,7 +173,7 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
         // Get Dirichlet BC imposition data
         const double h = GetValue(ELEMENT_H);
         const double& r_bc_val = GetValue(r_unknown_var);
-        const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET];
+        const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
 
         // Calculate the Nitsche BC imposition contribution
         double aux_1;

@@ -26,7 +26,7 @@ class TestPatchTestSmallDisplacementShiftedBoundary(KratosUnittest.TestCase):
                 super().ApplyBoundaryConditions()
 
                 penalty_factor = 1.0e3
-                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.PENALTY_DIRICHLET] = penalty_factor
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.PENALTY_COEFFICIENT] = penalty_factor
                 for condition in self._GetSolver().GetComputingModelPart().GetSubModelPart("shifted_boundary").Conditions:
                     condition.SetValue(KratosMultiphysics.DISPLACEMENT, [0.0,0.0,0.0])
 

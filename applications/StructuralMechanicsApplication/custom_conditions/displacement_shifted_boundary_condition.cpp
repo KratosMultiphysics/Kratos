@@ -224,7 +224,7 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     // Get Dirichlet BC imposition data
     const double h = GetValue(ELEMENT_H);
     const auto& r_bc_val = GetValue(DISPLACEMENT);
-    const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET];
+    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
 
     // Calculate the Nitsche BC imposition contribution
     // 1. Add Nitsche penalty term
