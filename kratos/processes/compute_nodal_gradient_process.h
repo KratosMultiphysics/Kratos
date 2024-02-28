@@ -18,14 +18,13 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/model_part.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 #include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -46,7 +45,7 @@ namespace Kratos
 ///@{
 
 /**
- * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ * @brief This struct is used in order to identify when using the historical and non historical variables
  */
 struct ComputeNodalGradientProcessSettings
 {
@@ -63,9 +62,7 @@ struct ComputeNodalGradientProcessSettings
 struct AuxiliarVariableVectorRetriever
 {
     /// Destructor.
-    virtual ~AuxiliarVariableVectorRetriever()
-    {
-    }
+    virtual ~AuxiliarVariableVectorRetriever() = default;
 
     /**
      * @brief This method fills the vector of values
@@ -86,14 +83,12 @@ struct AuxiliarVariableVectorRetriever
 /**
  * @brief This struct is used in order to retrieve values without loosing performance
  */
-template<bool THistorical>
+template<bool TOutputHistorical>
 struct VariableVectorRetriever
     : public AuxiliarVariableVectorRetriever
 {
     /// Destructor.
-    ~VariableVectorRetriever() override
-    {
-    }
+    ~VariableVectorRetriever() override = default;
 
     /**
      * @brief This method fills the vector of values
@@ -115,18 +110,15 @@ struct VariableVectorRetriever
  * @details This process computes the gradient of a certain variable stored in the nodes
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
- * @tparam THistorical If the variable is historical or not
+ * @tparam TOutputHistorical If the output variable is historical or not
 */
-template<bool THistorical>
+template<bool TOutputHistorical>
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-
-    /// The definition of the node
-    typedef Node NodeType;
 
     /// Pointer definition of ComputeNodalGradientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalGradientProcess);
@@ -135,25 +127,49 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor. (Parameters)
+    /**
+     * @brief Construct a new Compute Nodal Gradient Process
+     * @details This constructor considers the model and retrieves the model parts
+     * @param rModel The model containing the model part
+     * @param ThisParameters User-defined parameters to construct the class
+     */
+    ComputeNodalGradientProcess(
+        Model& rModel,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /**
+     * @brief Construct a new Compute Nodal Gradient Process
+     * @details This constructor considers the model and retrieves the model parts
+     * @param rModelPart The model part containing the nodes and elements
+     * @param ThisParameters User-defined parameters to construct the class
+     */
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
-    /// Default constructor. (double)
+    /**
+     * @brief Computes the nodal gradient in a given ModelPart.
+     * @details This function computes the nodal gradient of a specified origin variable in the given ModelPart.
+     * The gradient is computed and stored in the specified gradient variable for each node.
+     * Optionally, the nodal area variable can be provided for weighted gradient computation.
+     * @param rModelPart The ModelPart in which the nodal gradient will be computed.
+     * @param rOriginVariable (optional) The variable for which the gradient will be computed.
+     * @param rGradientVariable (optional) The variable to store the computed gradient.
+     * @param rAreaVariable (optional) The variable representing nodal area for weighted gradient computation. Default is NODAL_AREA.
+     * @param NonHistoricalVariable (optional) Flag indicating if the origin variable is non-historical. Default is false.
+     */
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        const Variable<double>& rOriginVariable,
-        const Variable<array_1d<double,3> >& rGradientVariable,
+        const Variable<double>& rOriginVariable = DISTANCE,
+        const Variable<array_1d<double,3>>& rGradientVariable = DISTANCE_GRADIENT,
         const Variable<double>& rAreaVariable = NODAL_AREA,
         const bool NonHistoricalVariable = false
         );
 
     /// Destructor.
-    ~ComputeNodalGradientProcess() override
-    {
-    }
+    ~ComputeNodalGradientProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -251,11 +267,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                           /// The main model part
-    const Variable<double>* mpOriginVariable = nullptr;               /// The scalar variable list to compute
-    const Variable<array_1d<double,3>>* mpGradientVariable;           /// The resultant gradient variable
-    const Variable<double>* mpAreaVariable = nullptr;                 /// The auxiliar area variable
-    bool mNonHistoricalVariable = false;                              /// If the variable is non-historical
+    ModelPart& mrModelPart;                                                      /// The main model part
+    const Variable<double>* mpOriginVariable = &DISTANCE;                        /// The scalar variable list to compute
+    const Variable<array_1d<double,3>>* mpGradientVariable = &DISTANCE_GRADIENT; /// The resultant gradient variable
+    const Variable<double>* mpAreaVariable = &NODAL_AREA;                        /// The auxiliary area variable
+    bool mNonHistoricalVariable = false;                                         /// If the variable is non-historical
 
     ///@}
     ///@name Private Operators
@@ -265,26 +281,34 @@ private:
     ///@name Private Operations
     ///@{
 
-    // TODO: Try to use enable_if!!!
+    /**
+     * @brief Prepares member variables from the settings.
+     * @details This function prepares member variables necessary for computing nodal gradients from the provided settings.
+     * It retrieves origin, gradient, and area variables from the input parameters and sets them accordingly.
+     * Additionally, it sets the non-historical flag based on the input parameters.
+     * @tparam TOutputHistorical A boolean template parameter indicating whether the origin variable is historical.
+     * @param ThisParameters Parameters containing settings for preparing member variables.
+     */
+    void PrepareMemberVariablesFromSettings(Parameters ThisParameters);
 
     /**
-     * This checks the definition and correct initialization of the origin variable, for which the
+     * @brief This checks the definition and correct initialization of the origin variable, for which the
      * gradient will be computed, and the variable chosen to compute the area.
      */
     void CheckOriginAndAreaVariables();
 
     /**
-     * This clears the gradient
+     * @brief This clears the gradient
      */
     void ClearGradient();
 
     /**
-     * This gets the gradient value
+     * @brief This gets the gradient value
      * @param rThisGeometry The geometry of the element
      * @param i The node index
      */
     array_1d<double, 3>& GetGradient(
-        Element::GeometryType& rThisGeometry,
+        Geometry<Node>& rThisGeometry,
         unsigned int i
         );
 
@@ -337,21 +361,21 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeNodalGradientProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeNodalGradientProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+template<bool TOutputHistorical>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ComputeNodalGradientProcess<TOutputHistorical>& rThis);
+
+/// output stream function
+template<bool TOutputHistorical>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ComputeNodalGradientProcess<TOutputHistorical>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 ///@}
 
 }  // namespace Kratos.
-
-
