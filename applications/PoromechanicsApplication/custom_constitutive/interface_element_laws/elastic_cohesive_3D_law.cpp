@@ -143,7 +143,7 @@ void ElasticCohesive3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix
 
     double cp = 1.0;
     // Penalization coefficient, in case it is a compression
-    if(StrainVector[2] < 1.0e-20){
+    if(StrainVector[2] < 1.0e-6){
         cp = rVariables.PenaltyStiffness;
     }
 
@@ -165,7 +165,7 @@ void ElasticCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
 
     double cp = 1.0;
     // Penalization coefficient, in case it is a compression
-    if(StrainVector[2] < 1.0e-20){
+    if(StrainVector[2] < 1.0e-6){
         cp = rVariables.PenaltyStiffness;
     }
 
