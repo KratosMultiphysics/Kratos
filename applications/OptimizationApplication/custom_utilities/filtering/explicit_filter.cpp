@@ -159,44 +159,58 @@ struct TLS
 
 template<class TContainerType>
 ExplicitFilter<TContainerType>::ExplicitFilter(
-    ModelPart& rModelPart,
+    Model& rModel,
     Parameters Settings)
-    : mrModelPart(rModelPart)
+    : mrModel(rModel)
 {
     Parameters default_parameters = Parameters(R"(
     {
         "filter_type"               : "explicit_vertex_morphing",
+        "filtering_model_part_name" : "",
+        "damped_model_part_names"   : {},
         "filter_function_type"      : "linear",
-        "radius"                    : 0.000000000001,
-        "max_nodes_in_filter_radius": 1000,
         "damping_function_type"     : "sigmoidal",
-        "damped_sub_model_parts"    : {}
+        "radius"                    : 0.000000000001,
+        "max_nodes_in_filter_radius": 1000
     })" );
     Settings.ValidateAndAssignDefaults(default_parameters);
 
     mpKernelFunction = Kratos::make_unique<FilterFunction>(Settings["filter_function_type"].GetString());
+    mpDampingFunction = Kratos::make_unique<FilterFunction>(Settings["damping_function_type"].GetString());
+    mFilteringModelPartName = Settings["filtering_model_part_name"].GetString();
     mMaxNumberOfNeighbors = Settings["max_nodes_in_filter_radius"].GetInt();
 
-    mpFilterRadiusContainer = Kratos::make_shared<ContainerExpression<TContainerType>>(rModelPart);
-    auto p_expression = LiteralExpression<double>::Create(Settings["radius"].GetDouble(), mpFilterRadiusContainer->GetContainer().size());
-    mpFilterRadiusContainer->SetExpression(p_expression);
-
-    mpDampingFunction = Kratos::make_unique<FilterFunction>(Settings["damping_function_type"].GetString());
-    const auto damped_model_part_settings = Settings["damped_sub_model_parts"];
+    const auto damped_model_part_settings = Settings["damped_model_part_names"];
     for (auto it = damped_model_part_settings.begin(); it != damped_model_part_settings.end(); ++it) {
         std::vector<bool> damped_components;
         for (const auto& r_value : *it) {
             damped_components.push_back(r_value.GetBool());
         }
         mDampingComponentIndices.push_back(damped_components);
-        mDampingModelParts.push_back(rModelPart.pGetSubModelPart(it.name()));
+        mDampingModelPartNames.push_back(it.name());
     }
 
     mNumberOfComponents = (mDampingComponentIndices.size() > 0 ? mDampingComponentIndices.front().size() : 0);
     const bool all_damping_valid = std::all_of(mDampingComponentIndices.begin(), mDampingComponentIndices.end(), [&](const auto& rValue) { return rValue.size() == mNumberOfComponents; });
     KRATOS_ERROR_IF_NOT(all_damping_valid) << "Mismatching damping components found.";
 
+    mFilterRadius = Settings["radius"].GetDouble();
+}
+
+template<class TContainerType>
+void ExplicitFilter<TContainerType>::Initialize()
+{
+    KRATOS_TRY
+
+    auto& r_model_part = mrModel.GetModelPart(mFilteringModelPartName);
+
+    mpFilterRadiusContainer = Kratos::make_shared<ContainerExpression<TContainerType>>(r_model_part);
+    auto p_expression = LiteralExpression<double>::Create(mFilterRadius, mpFilterRadiusContainer->GetContainer().size());
+    mpFilterRadiusContainer->SetExpression(p_expression);
+
     Update();
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
@@ -206,7 +220,7 @@ void ExplicitFilter<TContainerType>::SetFilterRadius(const ContainerExpression<T
         << "Only scalar values are allowed for the filter radius container expression. "
         << "Provided contaienr expression = " << rContainerExpression << ".\n";
 
-    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+    KRATOS_ERROR_IF_NOT(rContainerExpression.GetModelPart().FullName() == mFilteringModelPartName)
         << "Filter radius container expression model part and filter model part mismatch."
         << "\n\tFilter = " << *this
         << "\n\tContainerExpression = " << rContainerExpression;
@@ -223,7 +237,9 @@ void ExplicitFilter<TContainerType>::ExplicitFilter::Update()
 
     KRATOS_INFO("ExplicitFilter") << "Creating search tree to perform mapping..." << std::endl;
 
-    const auto& r_container = ExplicitFilterHelperUtilities::GetContainer<TContainerType>(mrModelPart);
+    const auto& r_model_part = mrModel.GetModelPart(mFilteringModelPartName);
+
+    const auto& r_container = ExplicitFilterHelperUtilities::GetContainer<TContainerType>(r_model_part);
 
     // now fill the points vector
     if (mEntityPointVector.size() != r_container.size()) {
@@ -243,11 +259,11 @@ void ExplicitFilter<TContainerType>::ExplicitFilter::Update()
     mpSearchTree =  Kratos::make_shared<ExplicitFilter::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        const auto& r_nodes = mrModelPart.Nodes();
-        const auto& r_conditions = mrModelPart.Conditions();
+        const auto& r_nodes = r_model_part.Nodes();
+        const auto& r_conditions = r_model_part.Conditions();
         const IndexType number_of_conditions = r_conditions.size();
 
-        const auto& r_elements = mrModelPart.Elements();
+        const auto& r_elements = r_model_part.Elements();
         const IndexType number_of_elements = r_elements.size();
 
         if (number_of_elements > 0) {
@@ -256,18 +272,18 @@ void ExplicitFilter<TContainerType>::ExplicitFilter::Update()
             mpNodalDomainSizeExpression = ExplicitFilterHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
         } else {
             KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
-                         << mrModelPart.FullName() << ".\n";
+                         << r_model_part.FullName() << ".\n";
         }
     }
 
-    for (IndexType i = 0; i < mDampingModelParts.size(); ++i) {
-        for (const auto& r_entity : ExplicitFilterHelperUtilities::GetContainer<TContainerType>(*mDampingModelParts[i])) {
+    for (IndexType i = 0; i < mDampingModelPartNames.size(); ++i) {
+        for (const auto& r_entity : ExplicitFilterHelperUtilities::GetContainer<TContainerType>(mrModel.GetModelPart(mDampingModelPartNames[i]))) {
             auto p_itr = id_entity_map.find(r_entity.Id());
 
             KRATOS_ERROR_IF(p_itr == id_entity_map.end())
                 << "Entity with id " << r_entity.Id() << " belongs to "
-                << mDampingModelParts[i]->FullName()
-                << " is not found in main model part " << mrModelPart.FullName() << ".\n";
+                << mDampingModelPartNames[i]
+                << " is not found in main model part " << r_model_part.FullName() << ".\n";
 
             p_itr->second->SetDampedComponents(mDampingComponentIndices[i]);
         }
@@ -295,7 +311,7 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
         << "Uninitialized container expression given. "
         << rContainerExpression;
 
-    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+    KRATOS_ERROR_IF_NOT(rContainerExpression.GetModelPart().FullName() == mFilteringModelPartName)
         << "Filter radius container expression model part and filter model part mismatch."
         << "\n\tFilter = " << *this
         << "\n\tContainerExpression = " << rContainerExpression;
@@ -376,7 +392,7 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::FilterIntegr
 template<class TContainerType>
 void ExplicitFilter<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+    KRATOS_ERROR_IF_NOT(rContainerExpression.GetModelPart().FullName() == mFilteringModelPartName)
         << "The given container expression model part and filter model part mismatch.";
 
     const IndexType stride = rContainerExpression.GetItemComponentCount();
@@ -410,7 +426,7 @@ std::string ExplicitFilter<TContainerType>::Info() const
         msg << "Element";
     }
 
-    msg << "Container in " <<  mrModelPart.FullName();
+    msg << "Container in " <<  mFilteringModelPartName;
     return msg.str();
 }
 

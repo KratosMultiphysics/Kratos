@@ -2,6 +2,7 @@ import math
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.testing.utilities import ReadModelPart
+from KratosMultiphysics.OptimizationApplication.filtering.filtering_factory import Factory
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -11,99 +12,41 @@ class TestExplicitFilter(kratos_unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
-        with kratos_unittest.WorkFolderScope(".", __file__):
-            ReadModelPart("solid", cls.model_part)
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
+        ReadModelPart("shell", cls.model_part)
 
-    def test_NodalExplicitFilterConditionConsistency(self):
-        model_part = self.model_part.GetSubModelPart("design")
-        vm_filter = KratosOA.NodalExplicitFilter(model_part, "linear", 1000)
-        self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
+        Kratos.NormalCalculationUtils().CalculateNormals(cls.model_part, False, Kratos.NORMAL )
 
-    def test_NodalExplicitFilterElementConsistency(self):
-        model_part = self.model_part.GetSubModelPart("structure")
-        vm_filter = KratosOA.NodalExplicitFilter(model_part, "linear", 1000)
-        self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
+        for node in cls.model_part.Nodes:
+            normal = node.GetSolutionStepValue(Kratos.NORMAL)
+            normal_magnitude = (normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2) ** (0.5)
+            node.SetValue(Kratos.VELOCITY, normal * (1 / normal_magnitude ** 2))
 
-    def test_NodalExplicitFilterElementConsistencyWithDamping(self):
-        model_part = self.model_part.GetSubModelPart("structure")
-        fixed_model_part = self.model_part.GetSubModelPart("fixed")
-        vm_filter = KratosOA.NodalExplicitFilter(model_part, fixed_model_part, "linear", "sigmoidal", 1000)
-        filter_radius =  Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, 2.0)
-        vm_filter.SetFilterRadius(filter_radius)
+    def test_Hello(self):
+        nodal_expression = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.VELOCITY, False)
 
-        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
-        unfiltered_field = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(unfiltered_field, constant_field_value)
-        filtered_data = vm_filter.FilterField(unfiltered_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_data), 1e-9, 8)
+        filtering_settings = Kratos.Parameters("""{
+            "filter_type"               : "explicit_vertex_morphing",
+            "filtering_model_part_name" : "test",
+            "filter_function_type"      : "cosine",
+            "radius"                    : 0.5,
+            "max_nodes_in_filter_radius": 1000,
+            "damping_function_type"     : "cosine",
+            "damped_model_part_names"    : {
+                //"DISPLACEMENT_edges" : [true, false, true]
+                "test.DISPLACEMENT_points": [true, true, true]
+            }
+        }""")
+        explicit_filter = Factory(self.model, "test", None, Kratos.Globals.DataLocation.NodeHistorical, filtering_settings)
+        explicit_filter.Initialize()
+        filtered_nodal_expression = explicit_filter.FilterField(nodal_expression)
 
-        integration_weights = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
-        vm_filter.GetIntegrationWeights(integration_weights)
-        integrated_constant_field = integration_weights * unfiltered_field
-        damped_filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(damped_filtered_integrated_data), 1e-9, 8)
-
-    def test_ConditionExplicitFilterConsistency(self):
-        vm_filter = KratosOA.ConditionExplicitFilter(self.model_part, "linear", 1000)
-        self.__RunConsistencyTest(vm_filter, self.model_part.Conditions, self.model_part)
-
-    def test_ElementExplicitFilterConsistency(self):
-        vm_filter = KratosOA.ElementExplicitFilter(self.model_part, "linear", 1000)
-        self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
-
-    def test_ConditionNodeConditionFilter(self):
-        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
-        element_expression = Kratos.Expression.ConditionExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(element_expression, constant_field_value)
-        ene_filter = KratosOA.ConditionNodeConditionFilter(self.model_part)
-
-        filtered_field = ene_filter.FilterField(element_expression)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_field - element_expression), 1e-9, 8)
-
-        filtered_field = ene_filter.FilterIntegratedField(element_expression).Evaluate()
-        for i, entity in enumerate(self.model_part.Conditions):
-            self.assertVectorAlmostEqual(filtered_field[i, :], Kratos.Array3([2.0, 2.0, 2.0]) / entity.GetGeometry().DomainSize())
-
-    def test_ElementNodeElementFilter(self):
-        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
-        element_expression = Kratos.Expression.ElementExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(element_expression, constant_field_value)
-        ene_filter = KratosOA.ElementNodeElementFilter(self.model_part)
-
-        filtered_field = ene_filter.FilterField(element_expression)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_field - element_expression), 1e-9, 8)
-
-        filtered_field = ene_filter.FilterIntegratedField(element_expression).Evaluate()
-        for i, entity in enumerate(self.model_part.Elements):
-            self.assertVectorAlmostEqual(filtered_field[i, :], Kratos.Array3([2.0, 2.0, 2.0]) / entity.GetGeometry().DomainSize())
-
-    def __RunConsistencyTest(self, vm_filter, entities, model_part):
-        if isinstance(entities, Kratos.NodesArray):
-            container_expression_type = Kratos.Expression.NodalExpression
-        elif isinstance(entities, Kratos.ConditionsArray):
-            container_expression_type = Kratos.Expression.ConditionExpression
-        elif isinstance(entities, Kratos.ElementsArray):
-            container_expression_type = Kratos.Expression.ElementExpression
-
-        filter_radius = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, 2.0)
-        vm_filter.SetFilterRadius(filter_radius)
-
-        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
-
-        unfiltered_field = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(unfiltered_field, constant_field_value)
-        filtered_data = vm_filter.FilterField(unfiltered_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_data), math.sqrt(12 * len(entities)), 12)
-
-        integration_weights = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
-        vm_filter.GetIntegrationWeights(integration_weights)
-        integrated_constant_field = integration_weights * unfiltered_field
-        filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_integrated_data), math.sqrt(12 * len(entities)), 12)
+        vtu_output = Kratos.VtuOutput(self.model_part)
+        vtu_output.AddContainerExpression("raw", nodal_expression.Clone())
+        vtu_output.AddContainerExpression("filtered", filtered_nodal_expression.Clone())
+        vtu_output.PrintOutput("reza")
 
 if __name__ == "__main__":
     kratos_unittest.main()

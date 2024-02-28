@@ -16,9 +16,9 @@
 
 // System includes
 #include <string>
-#include <variant>
 
 // Project includes
+#include "containers/model.h"
 #include "containers/pointer_vector_set.h"
 #include "expression/container_expression.h"
 #include "includes/define.h"
@@ -60,7 +60,7 @@ public:
     ///@{
 
     ExplicitFilter(
-        ModelPart& rModelPart,
+        Model& rModel,
         Parameters Settings);
 
     ~ExplicitFilter() override = default;
@@ -68,9 +68,15 @@ public:
     ///@}
     ///@name Public operations
 
+    void Initialize() override;
+
+    void Check() override {};
+
     void SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
     void Update() override;
+
+    void Finalize() override {}
 
     ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const override;
 
@@ -85,7 +91,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    const ModelPart& mrModelPart;
+    Model& mrModel;
+
+    std::string mFilteringModelPartName;
 
     FilterFunction::UniquePointer mpKernelFunction;
 
@@ -103,7 +111,9 @@ private:
 
     IndexType mNumberOfComponents;
 
-    std::vector<const ModelPart*> mDampingModelParts;
+    double mFilterRadius;
+
+    std::vector<std::string> mDampingModelPartNames;
 
     std::vector<std::vector<bool>> mDampingComponentIndices;
 
