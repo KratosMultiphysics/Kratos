@@ -269,6 +269,10 @@ class UPlSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        if self.gp_to_nodal_variable:
+            self.integration_values_extrapolation_to_nodes_process.ExecuteBeforeSolutionLoop()
+            self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
+            
         self.solver.InitializeSolutionStep()
 
     def Predict(self):
