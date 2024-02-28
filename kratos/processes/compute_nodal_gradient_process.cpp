@@ -130,14 +130,22 @@ void ComputeNodalGradientProcess<TOutputHistorical>::ComputeElementalContributio
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
 
-    // Current domain size
-    KRATOS_ERROR_IF_NOT(mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "'DOMAIN_SIZE' is not found in '" << mrModelPart.FullName() << "' ProcessInfo container." << std::endl;
-    const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
-    // Initial resize
+    // Retrieve first element information
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t number_of_nodes_first_element = r_first_element_geometry.PointsNumber();
     const std::size_t local_space_dimension_first_element = r_first_element_geometry.LocalSpaceDimension();
+    const std::size_t working_space_dimension_first_element = r_first_element_geometry.WorkingSpaceDimension();
+
+    // Current domain size
+    std::size_t dimension = 0;
+    if (mrModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) {
+        dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    } else {
+        KRATOS_WARNING("ComputeNodalGradientProcess") << "'DOMAIN_SIZE' is not found in '" << mrModelPart.FullName() << "' ProcessInfo container. Retrieved from geometries. " << std::endl;
+        dimension = working_space_dimension_first_element;
+    }
+
+    // Initial resize
     if (tls.DN_DX.size1() != number_of_nodes_first_element || tls.DN_DX.size2() != dimension)
         tls.DN_DX.resize(number_of_nodes_first_element, dimension);
     if (tls.N.size() != number_of_nodes_first_element)
