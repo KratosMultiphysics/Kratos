@@ -405,21 +405,19 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // (unless they are constrained as slave dofs in multi-point constraints)
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
+                const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                 if (r_geometry[i_node].Is(SLAVE)) {
-                    const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
+                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < rCoarseMask.size());
 
                         // Flag the DoF as part of the coarse system
                         rCoarseMask[i_fine_dof] = DofCategory::Constrained;
                     }
-                }
-                if (!r_geometry[i_node].Is(SLAVE)) {
-                    const auto& r_node_dofs = r_geometry[i_node].GetDofs();
+                } /*if r_geometry[i_node].Is(SLAVE)*/ else {
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
+                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < rCoarseMask.size());
 
                         // Flag the DoF as part of the coarse system (unless it's constrained)
                         rCoarseMask[i_fine_dof] = rp_dof->IsFree() ? DofCategory::Coarse : DofCategory::Constrained;
@@ -796,7 +794,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                                     // the MPC's coefficient.
                                     rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), restriction_coefficient);
                                 } else {
-                                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), restriction_coefficient * slave_coefficient * master_coefficient);
+                                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), restriction_coefficient * slave_coefficient / master_coefficient);
                                 }
                             } // for i_master, master_coefficient in it_slave->second.first
                         } else /*is_slave*/ {
