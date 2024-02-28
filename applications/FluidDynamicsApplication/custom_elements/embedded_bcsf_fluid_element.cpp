@@ -118,30 +118,16 @@ void EmbeddedBCSFFluidElement<TBaseElement>::CalculateLocalSystem(
     data.Initialize(*this, rCurrentProcessInfo);
     this->InitializeGeometryData(data);
 
-    // Iterate of volume integration points of element or subelements.
-    // If there are subelements are, assemble them and apply Dirichlet-BC or convert values for intersection points to values referring to the nodes of the element.
+    //TODO: Iterate of volume integration points of element or subelements.
+    // If there are subelements, assemble them and apply Dirichlet-BC or convert values for intersection points to values referring to the nodes of the element.
     AddCondensedTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
 
     // If the element is cut or incised (using Ausas FE space), add the interface contributions
     if ( data.IsCut() || data.IsIncised() )
     {
-        const std::size_t volume_gauss_points = data.PositiveSideWeights.size() + data.NegativeSideWeights.size();
-
-        // Add the base element boundary contribution on the positive interface
-        const std::size_t number_of_positive_interface_gauss_points = data.PositiveInterfaceWeights.size();
-        for (std::size_t g = 0; g < number_of_positive_interface_gauss_points; ++g){
-            const std::size_t gauss_pt_index = g + volume_gauss_points;
-            this->UpdateIntegrationPointData(data, gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
-        }
-
-        // Add the base element boundary contribution on the negative interface
-        const std::size_t number_of_negative_interface_gauss_points = data.NegativeInterfaceWeights.size();
-        for (std::size_t g = 0; g < number_of_negative_interface_gauss_points; ++g){
-            const std::size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
-            this->UpdateIntegrationPointData(data, gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
-            this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
-        }
+        //TODO: Adapt to system condensation
+        //TODO: Only necessary for Neumann Boundary Condition???
+        AddCondensedBoundaryTraction(data, rLeftHandSideMatrix, rRightHandSideVector);
     }
 }
 
@@ -289,8 +275,19 @@ void EmbeddedBCSFFluidElement<TBaseElement>::AddCondensedTimeIntegratedSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector)
 {
-    //TODO: change N and DNDX used for integration
-    // --> convert values from intersection points to nodes and assemble subelements and apply Dirichlet boundary condition
+    // Iterate of volume integration points of element or subelements.
+    // This needs to work for standard as well as intersected/cut and incised elements.
+
+    //TODO: If there are subelements (intersected/ incised)
+
+    //      .. change N and DNDX used for integration (uncondensed N and DNDX) <-- modified shape functions
+    //      .. adapt to subelement:     rData.Velocity|Velocity_OldStep1|Velocity_OldStep2|Pressure|Pressure_OldStep1|Pressure_OldStep2
+
+    //      .. assemble subelements according to elemental connectivity matrix
+
+    //      .. consider Navier-slip BC (Ausas FE space for u_parallel)
+    //      .. test Ausas FE space for pressure
+    //      .. consider linear interpolation of the element's nodes for corner points of subelements (shape function condensation)
 
     // Iterate over the positive side volume integration points
     const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
@@ -306,6 +303,31 @@ void EmbeddedBCSFFluidElement<TBaseElement>::AddCondensedTimeIntegratedSystem(
         const std::size_t gauss_pt_index = g + number_of_positive_gauss_points;
         this->UpdateIntegrationPointData(rData, gauss_pt_index, rData.NegativeSideWeights[g], row(rData.NegativeSideN, g), rData.NegativeSideDNDX[g]);
         this->AddTimeIntegratedSystem(rData, rLeftHandSideMatrix, rRightHandSideVector);
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedBCSFFluidElement<TBaseElement>::AddCondensedBoundaryTraction(
+    EmbeddedDiscontinuousElementData& rData,
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector)
+{
+    const std::size_t volume_gauss_points = rData.PositiveSideWeights.size() + rData.NegativeSideWeights.size();
+
+    // Add the base element boundary contribution on the positive interface
+    const std::size_t number_of_positive_interface_gauss_points = rData.PositiveInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_positive_interface_gauss_points; ++g){
+        const std::size_t gauss_pt_index = g + volume_gauss_points;
+        this->UpdateIntegrationPointData(rData, gauss_pt_index, rData.PositiveInterfaceWeights[g], row(rData.PositiveInterfaceN, g), rData.PositiveInterfaceDNDX[g]);
+        this->AddBoundaryTraction(rData, rData.PositiveInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
+    }
+
+    // Add the base element boundary contribution on the negative interface
+    const std::size_t number_of_negative_interface_gauss_points = rData.NegativeInterfaceWeights.size();
+    for (std::size_t g = 0; g < number_of_negative_interface_gauss_points; ++g){
+        const std::size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
+        this->UpdateIntegrationPointData(rData, gauss_pt_index, rData.NegativeInterfaceWeights[g], row(rData.NegativeInterfaceN, g), rData.NegativeInterfaceDNDX[g]);
+        this->AddBoundaryTraction(rData, rData.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
     }
 }
 

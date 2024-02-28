@@ -297,6 +297,11 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector);
 
+    void AddCondensedBoundaryTraction(
+        EmbeddedDiscontinuousElementData& rData,
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector);
+
     /**
      * @brief Current element data structure initialization
      * This method checks if the element is intersected and calls the elemental data filling methods accordingly.
