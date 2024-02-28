@@ -45,30 +45,70 @@ namespace Kratos
 ///@{
 
 /**
- * @brief This struct is used in order to identify when using the historical and non historical variables
+ * @brief Settings for the computation of nodal gradients.
+ * @details This struct provides settings to control how nodal gradients are computed and identified,
+ * distinguishing between historical and non-historical variables.
  */
 struct ComputeNodalGradientProcessSettings
 {
-    // Defining clearer options
+    /**
+     * @brief Option to save computed gradients as historical variables.
+     * @details If set to true, computed gradients will be saved as historical variables.
+     * Historical variables typically represent past states or values over time.
+     */
     constexpr static bool SaveAsHistoricalVariable = true;
+
+    /**
+     * @brief Option to save computed gradients as non-historical variables.
+     * @details If set to true, computed gradients will be saved as non-historical variables.
+     * Non-historical variables typically represent instantaneous states or values.
+     */
     constexpr static bool SaveAsNonHistoricalVariable = false;
+
+    /**
+     * @brief Option to retrieve gradients as historical variables.
+     * @details If set to true, gradients will be retrieved as historical variables.
+     * Historical variables typically represent past states or values over time.
+     */
     constexpr static bool GetAsHistoricalVariable = true;
+
+    /**
+     * @brief Option to retrieve gradients as non-historical variables.
+     * @details If set to true, gradients will be retrieved as non-historical variables.
+     * Non-historical variables typically represent instantaneous states or values.
+     */
     constexpr static bool GetAsNonHistoricalVariable = false;
 };
 
 /**
- * @brief This struct is an auxiliar base class of the VariableVectorRetriever
+ * @brief Serves as a base class for retrieving vectors of variables associated with a given geometry.
+ * @details This class defines the interface for retrieving vectors of variables. It is intended to be inherited by
+ * classes that implement specific variable vector retrieval functionalities. The base class provides
+ * a default implementation for the GetVariableVector method, which should be overridden by derived classes
+ * to provide specific behaviors.
  */
 struct AuxiliarVariableVectorRetriever
 {
-    /// Destructor.
+    /**
+     * @brief Virtual destructor to ensure proper cleanup of derived classes.
+     */
     virtual ~AuxiliarVariableVectorRetriever() = default;
 
     /**
-     * @brief This method fills the vector of values
-     * @param rGeometry The geometry where values are stored
-     * @param rVariable The variable to retrieve
-     * @param rVector The vector to fill
+     * @brief Retrieves a vector of values for a specified variable from a given geometry.
+     * @details This method is designed to be overridden in derived classes to implement the specific logic for
+     * retrieving the vector of values associated with the specified variable and geometry. The base class
+     * implementation throws an error, indicating that the method should not be called directly on an instance
+     * of the base class.
+     *
+     * @param rGeometry Reference to the geometry from which values are to be retrieved. This parameter
+     *                  provides the context in which the variable's values are stored and accessed.
+     * @param rVariable The variable whose values are to be retrieved. This parameter specifies which
+     *                  variable's vector of values is to be filled.
+     * @param rVector Reference to the vector where the retrieved values will be stored. This parameter
+     *                is filled by the method with the values retrieved for the specified variable.
+     * @throw std::runtime_error Throws an error if called on the base class, indicating that the method
+     *        must be overridden in a derived class.
      */
     virtual void GetVariableVector(
         const Geometry<Node>& rGeometry,
@@ -76,31 +116,36 @@ struct AuxiliarVariableVectorRetriever
         Vector& rVector
         )
     {
-        KRATOS_ERROR << "Calling base class implementation" << std::endl;
+        KRATOS_ERROR << "Calling base class implementation of GetVariableVector is not allowed. "
+                     << "Please override this method in a derived class." << std::endl;
     }
 };
 
 /**
- * @brief This struct is used in order to retrieve values without loosing performance
+ * @brief A struct for efficiently retrieving values from a geometry without sacrificing performance.
+ * @details This struct is designed to efficiently retrieve values from a geometry without compromising performance. 
+ * It can handle both historical and non-historical output variables.
+ * @tparam TInputHistorical Indicates whether the output variable is historical or not.
  */
-template<bool TOutputHistorical>
+template<bool TInputHistorical>
 struct VariableVectorRetriever
     : public AuxiliarVariableVectorRetriever
 {
-    /// Destructor.
+    /// Default destructor.
     ~VariableVectorRetriever() override = default;
 
     /**
-     * @brief This method fills the vector of values
-     * @param rGeometry The geometry where values are stored
-     * @param rVariable The variable to retrieve
-     * @param rVector The vector to fill
+     * @brief Fills the given vector with values of the specified variable from the geometry.
+     * @details This method fills the provided vector with values of the specified variable retrieved from the given geometry.
+     * @param rGeometry The geometry from which values are to be retrieved.
+     * @param rVariable The variable whose values are to be retrieved.
+     * @param rVector The vector to be filled with values of the variable.
      */
     void GetVariableVector(
         const Geometry<Node>& rGeometry,
         const Variable<double>& rVariable,
         Vector& rVector
-        ) override;
+    ) override;
 };
 
 /**
@@ -140,7 +185,7 @@ public:
 
     /**
      * @brief Construct a new Compute Nodal Gradient Process
-     * @details This constructor considers the model and retrieves the model parts
+     * @details This constructor considers the model part as input
      * @param rModelPart The model part containing the nodes and elements
      * @param ThisParameters User-defined parameters to construct the class
      */

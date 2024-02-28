@@ -26,6 +26,74 @@
 namespace Kratos
 {
 template<bool TOutputHistorical>
+ComputeNodalGradientProcess<TOutputHistorical>::ComputeNodalGradientProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : mrModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
+{
+    KRATOS_TRY
+
+    PrepareMemberVariablesFromSettings(ThisParameters);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool TOutputHistorical>
+ComputeNodalGradientProcess<TOutputHistorical>::ComputeNodalGradientProcess(
+    ModelPart& rModelPart,
+    Parameters ThisParameters
+    ) : mrModelPart(rModelPart)
+{
+    KRATOS_TRY
+
+    PrepareMemberVariablesFromSettings(ThisParameters);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool TOutputHistorical>
+ComputeNodalGradientProcess<TOutputHistorical>::ComputeNodalGradientProcess(
+    ModelPart& rModelPart,
+    const Variable<double>& rOriginVariable,
+    const Variable<array_1d<double,3> >& rGradientVariable,
+    const Variable<double>& rAreaVariable,
+    const bool NonHistoricalVariable
+    ) : mrModelPart(rModelPart),
+        mpOriginVariable(&rOriginVariable),
+        mpGradientVariable(&rGradientVariable),
+        mpAreaVariable(&rAreaVariable),
+        mNonHistoricalVariable(NonHistoricalVariable)
+{
+    KRATOS_TRY
+
+    CheckOriginAndAreaVariables();
+
+    if constexpr (TOutputHistorical) {
+        // Checking historical gradient variable
+        VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
+    } else {
+        // In case the area or gradient variable is not initialized we initialize it
+        if (mrModelPart.NumberOfNodes() != 0) {
+            if (!mrModelPart.Nodes().begin()->Has( rGradientVariable )) {
+                const array_1d<double,3> zero_vector = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, mrModelPart.Nodes());
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool TOutputHistorical>
 void ComputeNodalGradientProcess<TOutputHistorical>::Execute()
 {
     KRATOS_TRY;
@@ -144,74 +212,6 @@ void ComputeNodalGradientProcess<TOutputHistorical>::ComputeElementalContributio
 /***********************************************************************************/
 
 template<bool TOutputHistorical>
-ComputeNodalGradientProcess<TOutputHistorical>::ComputeNodalGradientProcess(
-    ModelPart& rModelPart,
-    const Variable<double>& rOriginVariable,
-    const Variable<array_1d<double,3> >& rGradientVariable,
-    const Variable<double>& rAreaVariable,
-    const bool NonHistoricalVariable
-    ) : mrModelPart(rModelPart),
-        mpOriginVariable(&rOriginVariable),
-        mpGradientVariable(&rGradientVariable),
-        mpAreaVariable(&rAreaVariable),
-        mNonHistoricalVariable(NonHistoricalVariable)
-{
-    KRATOS_TRY
-
-    CheckOriginAndAreaVariables();
-
-    if constexpr (TOutputHistorical) {
-        // Checking historical gradient variable
-        VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    } else {
-        // In case the area or gradient variable is not initialized we initialize it
-        if (mrModelPart.NumberOfNodes() != 0) {
-            if (!mrModelPart.Nodes().begin()->Has( rGradientVariable )) {
-                const array_1d<double,3> zero_vector = ZeroVector(3);
-                VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, mrModelPart.Nodes());
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<bool TOutputHistorical>
-ComputeNodalGradientProcess<TOutputHistorical>::ComputeNodalGradientProcess(
-    Model& rModel,
-    Parameters ThisParameters
-    ) : mrModelPart(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()))
-{
-    KRATOS_TRY
-
-    PrepareMemberVariablesFromSettings(ThisParameters);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<bool TOutputHistorical>
-ComputeNodalGradientProcess<TOutputHistorical>::ComputeNodalGradientProcess(
-    ModelPart& rModelPart,
-    Parameters ThisParameters
-    ) : mrModelPart(rModelPart)
-{
-    KRATOS_TRY
-
-    PrepareMemberVariablesFromSettings(ThisParameters);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<bool TOutputHistorical>
 void ComputeNodalGradientProcess<TOutputHistorical>::PrepareMemberVariablesFromSettings(Parameters ThisParameters)
 {
     KRATOS_TRY
@@ -262,6 +262,7 @@ void ComputeNodalGradientProcess<TOutputHistorical>::CheckOriginAndAreaVariables
     KRATOS_TRY
 
     auto& r_nodes = mrModelPart.Nodes();
+
     // Doing several checks
     if (!mNonHistoricalVariable) {
         VariableUtils().CheckVariableExists(*mpOriginVariable, r_nodes);
@@ -358,27 +359,6 @@ void ComputeNodalGradientProcess<TOutputHistorical>::SynchronizeGradientAndVolum
 /***********************************************************************************/
 
 template<bool TOutputHistorical>
-void VariableVectorRetriever<TOutputHistorical>::GetVariableVector(
-    const Geometry<Node>& rGeometry,
-    const Variable<double>& rVariable,
-    Vector& rVector
-    )
-{
-    if constexpr (TOutputHistorical) {
-        for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node) {
-            rVector[i_node] = rGeometry[i_node].FastGetSolutionStepValue(rVariable);
-        }
-    } else {
-        for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node) {
-            rVector[i_node] = rGeometry[i_node].GetValue(rVariable);
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<bool TOutputHistorical>
 const Parameters ComputeNodalGradientProcess<TOutputHistorical>::GetDefaultParameters() const
 {
     Parameters default_parameters = Parameters(R"(
@@ -391,6 +371,27 @@ const Parameters ComputeNodalGradientProcess<TOutputHistorical>::GetDefaultParam
     })" );
 
     return default_parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<bool TInputHistorical>
+void VariableVectorRetriever<TInputHistorical>::GetVariableVector(
+    const Geometry<Node>& rGeometry,
+    const Variable<double>& rVariable,
+    Vector& rVector
+    )
+{
+    if constexpr (TInputHistorical) {
+        for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node) {
+            rVector[i_node] = rGeometry[i_node].FastGetSolutionStepValue(rVariable);
+        }
+    } else {
+        for(std::size_t i_node=0; i_node < rGeometry.size(); ++i_node) {
+            rVector[i_node] = rGeometry[i_node].GetValue(rVariable);
+        }
+    }
 }
 
 /***********************************************************************************/
