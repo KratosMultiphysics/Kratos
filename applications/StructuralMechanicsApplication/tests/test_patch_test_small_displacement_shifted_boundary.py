@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestSmallDisplacementShiftedBoundary(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.print_output = True
+        self.print_output = False
 
     def testPatchTestSmallDisplacementShiftedBoundary2D3N(self):
         self.work_folder = "patch_test/small_disp_shifted_boundary"
@@ -35,7 +35,6 @@ class TestPatchTestSmallDisplacementShiftedBoundary(KratosUnittest.TestCase):
             self.settings = KratosMultiphysics.Parameters(parameter_file.read())
             if self.print_output:
                 self.__AddOutput()
-            #TODO: Add check
 
             # Creating the test
             model = KratosMultiphysics.Model()
@@ -74,7 +73,7 @@ class TestPatchTestSmallDisplacementShiftedBoundary(KratosUnittest.TestCase):
                 }
             }
         }""")
-        gid_output_settings["Parameters"]["output_name"].SetString(self.file_name)
+        gid_output_settings["Parameters"]["output_name"].SetString(f"{self.work_folder}/{self.file_name}")
         self.settings["output_processes"]["gid_output"].Append(gid_output_settings)
 
 if __name__ == '__main__':
