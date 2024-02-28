@@ -368,7 +368,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         convection_diffusion_solution_strategy = self._GetSolutionStrategy()
         convection_diffusion_solution_strategy.Solve()
 
-    def ComputeNormalsandCurvature(self):
+    def ComputeNormals(self):
         computing_model_part = self.GetComputingModelPart()
         domain_size = computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if (domain_size == 2):
@@ -401,7 +401,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         if self.settings["element_replace_settings"]["element_name"].GetString() in ["ConservativeLevelsetElement2D3N","ConservativeLevelsetElement2D4N","ConservativeLevelsetElement3D4N","ConservativeLevelsetElement3D8N"]:
             step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             if (step == 1):
-                self.ComputeNormalsandCurvature()
+                self.ComputeNormals()
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
