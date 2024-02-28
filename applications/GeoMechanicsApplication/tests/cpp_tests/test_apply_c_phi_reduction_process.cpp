@@ -56,6 +56,23 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
 
     return result;
 }
+
+void CheckReducedCPhi(ModelPart& rModelPart, double COrig, double PhiOrig, double ReductionFactor){
+    block_for_each(rModelPart.Elements(), [COrig, PhiOrig, ReductionFactor](Element& rElement) {
+        auto element_properties     = rElement.GetProperties();
+        auto umat_properties_vector = element_properties.GetValue(UMAT_PARAMETERS);
+        auto c_index                = element_properties.GetValue(INDEX_OF_UMAT_C_PARAMETER) - 1;
+        auto phi_index              = element_properties.GetValue(INDEX_OF_UMAT_PHI_PARAMETER) - 1;
+
+        KRATOS_EXPECT_DOUBLE_EQ(umat_properties_vector(c_index), ReductionFactor * COrig);
+
+        double phi_rad = MathUtils<>::DegreesToRadians(PhiOrig);
+        double tan_phi = std::tan(phi_rad);
+        KRATOS_EXPECT_DOUBLE_EQ(
+            std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))), ReductionFactor * tan_phi);
+    });
+
+}
 } // namespace
 
 namespace Kratos::Testing
@@ -67,20 +84,19 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
 
     ApplyCPhiReductionProcess process{r_model_part, {}};
     process.ExecuteInitializeSolutionStep();
+    CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.9);
+}
 
-    block_for_each(r_model_part.Elements(), [](Element& rElement) {
-        auto element_properties     = rElement.GetProperties();
-        auto umat_properties_vector = element_properties.GetValue(UMAT_PARAMETERS);
-        auto c_index                = element_properties.GetValue(INDEX_OF_UMAT_C_PARAMETER) - 1;
-        auto phi_index              = element_properties.GetValue(INDEX_OF_UMAT_PHI_PARAMETER) - 1;
+KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-        KRATOS_EXPECT_DOUBLE_EQ(umat_properties_vector(c_index), 9.0);
+    ApplyCPhiReductionProcess process{r_model_part, {}};
+    process.ExecuteInitializeSolutionStep();
+    process.ExecuteInitializeSolutionStep();
 
-        double phi_rad = MathUtils<>::DegreesToRadians(25.0);
-        double tan_phi = std::tan(phi_rad);
-        KRATOS_EXPECT_DOUBLE_EQ(
-            std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))), 0.9 * tan_phi);
-    });
+    CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.8);
 }
 
 } // namespace Kratos::Testing
