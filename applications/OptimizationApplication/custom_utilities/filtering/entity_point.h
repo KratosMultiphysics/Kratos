@@ -51,6 +51,10 @@ public:
 
     const TEntityType& GetEntity() const;
 
+    void SetDampedComponents(const std::vector<bool>& rComponents);
+
+    const std::vector<bool>& GetDampedComponents() const;
+
     ///@}
 private:
     ///@name Private member variables
@@ -60,6 +64,8 @@ private:
 
     const TEntityType* mpEntity;
 
+    std::vector<bool> mDampedComponents;
+
     ///@}
     ///@name Private static methods
     ///@{
@@ -68,6 +74,18 @@ private:
 
     ///@}
 };
+
+template<class TEntityType>
+bool operator<(const EntityPoint<TEntityType>& rFirst, const EntityPoint<TEntityType>& rSecond)
+{
+    return rFirst.GetEntity().Id() < rSecond.GetEntity().Id();
+}
+
+template<class TEntityType>
+bool operator==(const EntityPoint<TEntityType>& rFirst, const EntityPoint<TEntityType>& rSecond)
+{
+    return rFirst.GetEntity().Id() == rSecond.GetEntity().Id();
+}
 
 ///@}
 } // namespace Kratos

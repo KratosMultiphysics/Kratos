@@ -19,16 +19,17 @@
 #include <variant>
 
 // Project includes
+#include "containers/pointer_vector_set.h"
+#include "expression/container_expression.h"
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "expression/container_expression.h"
 
 // Application includes
 #include "entity_point.h"
 #include "filter.h"
 #include "filter_function.h"
-#include "damping_function.h"
 
 namespace Kratos {
 
@@ -59,16 +60,8 @@ public:
     ///@{
 
     ExplicitFilter(
-        const ModelPart& rModelPart,
-        const std::string& rKernelFunctionType,
-        const IndexType MaxNumberOfNeighbours);
-
-    ExplicitFilter(
-        const ModelPart& rModelPart,
-        const ModelPart& rFixedModelPart,
-        const std::string& rKernelFunctionType,
-        const std::string& rDampingFunctionType,
-        const IndexType MaxNumberOfNeighbours);
+        ModelPart& rModelPart,
+        Parameters Settings);
 
     ~ExplicitFilter() override = default;
 
@@ -94,11 +87,9 @@ private:
 
     const ModelPart& mrModelPart;
 
-    const ModelPart* mpFixedModelPart = nullptr;
-
     FilterFunction::UniquePointer mpKernelFunction;
 
-    DampingFunction::UniquePointer mpDampingFunction;
+    FilterFunction::UniquePointer mpDampingFunction;
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
@@ -106,15 +97,17 @@ private:
 
     EntityPointVector mEntityPointVector;
 
-    EntityPointVector mFixedModelPartEntityPointVector;
-
     IndexType mBucketSize = 100;
 
     IndexType mMaxNumberOfNeighbors;
 
-    typename KDTree::Pointer mpSearchTree;
+    IndexType mNumberOfComponents;
 
-    typename KDTree::Pointer mpFixedModelPartSearchTree;
+    std::vector<const ModelPart*> mDampingModelParts;
+
+    std::vector<std::vector<bool>> mDampingComponentIndices;
+
+    typename KDTree::Pointer mpSearchTree;
 
     ///@}
     ///@name Private operations
