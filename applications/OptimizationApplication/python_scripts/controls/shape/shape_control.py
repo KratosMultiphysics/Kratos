@@ -56,11 +56,18 @@ class ShapeControl(Control):
             from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
             self.mesh_motion_solver = MeshMovingAnalysis(self.model, parameters["mesh_motion_settings"])
 
-    @time_decorator(methodName="Initialize")
+    @time_decorator(methodName="GetName")
     def Initialize(self) -> None:
+        self.model_part = self.model_part_operation.GetModelPart()
+
         self.filter.Initialize()
         if self.use_mesh_motion_solver:
             self.mesh_motion_solver.Initialize()
+
+        self.control_field = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(self.control_field, Kratos.Configuration.Initial)
+
+        self._UpdateAndOutputFields(self.GetEmptyField())
 
     def Check(self) -> None:
         self.filter.Check()
@@ -86,7 +93,7 @@ class ShapeControl(Control):
         Kratos.Expression.NodalPositionExpressionIO.Read(physical_shape_field, Kratos.Configuration.Initial)
         return physical_shape_field
 
-    @time_decorator(methodName="MapGradient")
+    @time_decorator(methodName="GetName")
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
         if len(keys) != 1:
@@ -103,7 +110,7 @@ class ShapeControl(Control):
 
         return filtered_gradient
 
-    @time_decorator(methodName="Update")
+    @time_decorator(methodName="GetName")
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.filter_model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
