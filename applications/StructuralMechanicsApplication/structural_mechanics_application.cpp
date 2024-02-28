@@ -714,6 +714,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // SBM displacement conditions
     KRATOS_REGISTER_CONDITION("DisplacementShiftedBoundaryCondition", mDisplacementShiftedBoundaryCondition)
+
     // Moving loads
     KRATOS_REGISTER_CONDITION("MovingLoadCondition2D2N", mMovingLoadCondition2D2N)
     KRATOS_REGISTER_CONDITION("MovingLoadCondition2D3N", mMovingLoadCondition2D3N)

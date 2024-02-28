@@ -1,10 +1,10 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -68,11 +68,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with geometry
     SmallDisplacementShiftedBoundaryElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
+    /// Constructor with geometry and properties
     SmallDisplacementShiftedBoundaryElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
@@ -81,10 +82,15 @@ public:
     /// Destructor.
     virtual ~SmallDisplacementShiftedBoundaryElement() = default;
 
+    /// Copy constructor.
+    SmallDisplacementShiftedBoundaryElement(const SmallDisplacementShiftedBoundaryElement& rOther) = delete;
+
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    SmallDisplacementShiftedBoundaryElement& operator=(const SmallDisplacementShiftedBoundaryElement& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -177,7 +183,6 @@ protected:
     }
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -275,14 +280,8 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    //SmallDisplacementShiftedBoundaryElement& operator=(const SmallDisplacementShiftedBoundaryElement& rOther);
-
-    /// Copy constructor.
-    //SmallDisplacementShiftedBoundaryElement(const SmallDisplacementShiftedBoundaryElement& rOther);
 
     ///@}
-
 }; // Class SmallDisplacementShiftedBoundaryElement
 
 ///@}

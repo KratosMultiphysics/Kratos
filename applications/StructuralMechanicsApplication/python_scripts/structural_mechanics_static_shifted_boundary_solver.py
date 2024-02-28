@@ -32,31 +32,13 @@ class StaticMechanicalShiftedBoundarySolver(structural_mechanics_static_solver.S
         return this_defaults
 
     def AddVariables(self):
-        # Add heat transfer required variables
+        # Add structural mechanics required variables
         super().AddVariables()
 
-        # Add distance variable to represent the skin
+        # Add DISTANCE variable to represent the skin
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
-    def AddDofs(self):
-        # Add heat transfer DOFs
-        super().AddDofs()
-
     def Initialize(self):
-        # # Correct the level set
-        # #TODO: Use the FluidDynamicsApplication process
-        # #FIXME: USE THIS FOR THE ZIG-ZAG PLATE TESTS
-        # tol = 1.0e-12
-        # for node in self.GetComputingModelPart().Nodes:
-        #     dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-        #     if abs(dist) < tol:
-        #         print("Node {} dist {}".format(node.Id, dist))
-        #         if dist < 0.0:
-        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol)
-        #         else:
-        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
-        # #FIXME: USE THIS FOR THE ZIG-ZAG PLATE TESTS
-
         # Avoid zeros with positive epsilon
         tol = 1.0e-12
         for node in self.GetComputingModelPart().Nodes:
@@ -82,4 +64,4 @@ class StaticMechanicalShiftedBoundarySolver(structural_mechanics_static_solver.S
         sbm_interface_utility.CalculateExtensionOperator()
 
         # Initialize base solver strategy
-        super().Initialize()    
+        super().Initialize()

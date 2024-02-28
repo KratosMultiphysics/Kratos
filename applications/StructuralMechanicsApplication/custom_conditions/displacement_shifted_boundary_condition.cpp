@@ -1,10 +1,10 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -29,9 +29,7 @@ namespace Kratos
 DisplacementShiftedBoundaryCondition::DisplacementShiftedBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry)
-    : Condition(
-        NewId,
-        pGeometry)
+    : Condition(NewId, pGeometry)
 {
 }
 
@@ -39,19 +37,14 @@ DisplacementShiftedBoundaryCondition::DisplacementShiftedBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry,
     Properties::Pointer pProperties)
-    : Condition(
-        NewId,
-        pGeometry,
-        pProperties)
+    : Condition(NewId, pGeometry, pProperties)
 {
 }
 
 DisplacementShiftedBoundaryCondition::DisplacementShiftedBoundaryCondition(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
-    :Condition(
-        NewId,
-        ThisNodes)
+    :Condition(NewId, ThisNodes)
 {
 }
 
@@ -270,15 +263,86 @@ void DisplacementShiftedBoundaryCondition::CalculateLeftHandSide(
 {
     KRATOS_TRY
 
+    // Get problem dimensions
+    const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+
     // Check (and resize) LHS matrix
-    auto &r_geometry = this->GetGeometry();
-    const unsigned int n_nodes = r_geometry.PointsNumber();
-    if (rLeftHandSideMatrix.size1() != n_nodes || rLeftHandSideMatrix.size2() != n_nodes) {
-        rLeftHandSideMatrix.resize(n_nodes, n_nodes, false);
+    const auto &r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    const std::size_t local_size = n_nodes * n_dim;
+    if (rLeftHandSideMatrix.size1() != local_size || rLeftHandSideMatrix.size2() != local_size) {
+        rLeftHandSideMatrix.resize(local_size, local_size, false);
     }
 
     // Set LHS to zero
     noalias(rLeftHandSideMatrix) = ZeroMatrix(n_nodes,n_nodes);
+
+    // Get meshless geometry data
+    const double w = GetValue(INTEGRATION_WEIGHT);
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
+    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
+    array_1d<double,3> normal = GetValue(NORMAL);
+    normal /= norm_2(normal);
+
+    // Get unknown values
+    Vector unknown_values(local_size);
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        for (std::size_t d = 0; d < n_dim; ++d) {
+            unknown_values(i_node*n_dim + d) = r_disp[d];
+        }
+    }
+
+    // Calculate the material response to get the constitutive matrix
+    const auto p_cons_law = this->GetValue(CONSTITUTIVE_LAW);
+    const SizeType strain_size = p_cons_law->GetStrainSize();
+
+    Vector stress_vect(strain_size);
+    Matrix B_mat(strain_size, local_size);
+    Matrix C_mat(strain_size, strain_size);
+    StructuralMechanicsElementUtilities::CalculateB(*this, r_DN_DX, B_mat);
+    Vector strain_vect = prod(B_mat, unknown_values);
+
+    ConstitutiveLaw::Parameters cons_law_values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    cons_law_values.SetShapeFunctionsValues(r_N);
+    cons_law_values.SetStressVector(stress_vect);
+    cons_law_values.SetStrainVector(strain_vect);
+    cons_law_values.SetConstitutiveMatrix(C_mat);
+
+    auto& r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+
+    p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+
+    // Get Dirichlet BC imposition data
+    const double h = GetValue(ELEMENT_H);
+    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+
+    // Calculate the Nitsche BC imposition contribution
+    // 1. Add Nitsche penalty term
+    double aux_1;
+    double aux_2;
+    const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
+    const double aux_weight = w * gamma * rho_C / h;
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        aux_1 = aux_weight * r_N[i_node];
+        for (std::size_t d = 0; d < n_dim; ++d) {
+            for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+                aux_2 = aux_1 * r_N[j_node];
+                rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
+            }
+        }
+    }
+
+    // 2. Add Nitsche stabilization term
+    Matrix aux_N(n_dim, local_size);
+    Matrix transB_C_proj(local_size, n_dim);
+    CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
+    CalculateBtransCProjectionLinearisation(C_mat, B_mat, normal, transB_C_proj);
+    const Matrix stab_lhs = prod(transB_C_proj, aux_N);
+    rLeftHandSideMatrix += w * stab_lhs;
 
     KRATOS_CATCH("")
 }
@@ -289,16 +353,96 @@ void DisplacementShiftedBoundaryCondition::CalculateRightHandSide(
 {
     KRATOS_TRY
 
-    // Check (and resize) RHS vector
-    auto &r_geometry = this->GetGeometry();
-    const unsigned int n_nodes = r_geometry.PointsNumber();
-    if (rRightHandSideVector.size() != n_nodes) {
-        rRightHandSideVector.resize(n_nodes,false);
+    // Get problem dimensions
+    const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+
+    // Check (and resize) LHS and RHS matrix
+    const auto &r_geometry = this->GetGeometry();
+    const std::size_t n_nodes = r_geometry.PointsNumber();
+    const std::size_t local_size = n_nodes * n_dim;
+    if (rRightHandSideVector.size() != local_size) {
+        rRightHandSideVector.resize(local_size, false);
     }
 
-    // Initialize RHS vector
-    noalias(rRightHandSideVector) = ZeroVector(n_nodes);
+    // Set LHS and RHS to zero
+    noalias(rRightHandSideVector) = ZeroVector(local_size);
 
+    // Get meshless geometry data
+    const double w = GetValue(INTEGRATION_WEIGHT);
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
+    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
+    array_1d<double,3> normal = GetValue(NORMAL);
+    normal /= norm_2(normal);
+
+    // Get unknown values
+    Vector unknown_values(local_size);
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        for (std::size_t d = 0; d < n_dim; ++d) {
+            unknown_values(i_node*n_dim + d) = r_disp[d];
+        }
+    }
+
+    // Calculate the material response to get the constitutive matrix
+    const auto p_cons_law = this->GetValue(CONSTITUTIVE_LAW);
+    const SizeType strain_size = p_cons_law->GetStrainSize();
+
+    Vector stress_vect(strain_size);
+    Matrix B_mat(strain_size, local_size);
+    Matrix C_mat(strain_size, strain_size);
+    StructuralMechanicsElementUtilities::CalculateB(*this, r_DN_DX, B_mat);
+    Vector strain_vect = prod(B_mat, unknown_values);
+
+    ConstitutiveLaw::Parameters cons_law_values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    cons_law_values.SetShapeFunctionsValues(r_N);
+    cons_law_values.SetStressVector(stress_vect);
+    cons_law_values.SetStrainVector(strain_vect);
+    cons_law_values.SetConstitutiveMatrix(C_mat);
+
+    auto& r_cons_law_options = cons_law_values.GetOptions();
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+
+    p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+
+    // Get Dirichlet BC imposition data
+    const double h = GetValue(ELEMENT_H);
+    const auto& r_bc_val = GetValue(DISPLACEMENT);
+    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+
+    // Calculate the Nitsche BC imposition contribution
+    // 1. Add Nitsche penalty term
+    double aux_1;
+    double aux_2;
+    const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
+    const double aux_weight = w * gamma * rho_C / h;
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        aux_1 = aux_weight * r_N[i_node];
+        for (std::size_t d = 0; d < n_dim; ++d) {
+            for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+                aux_2 = aux_1 * r_N[j_node];
+                rRightHandSideVector(i_node*n_dim + d) -= aux_2 * unknown_values(j_node*n_dim + d);
+            }
+            rRightHandSideVector(i_node*n_dim + d) += aux_1 * r_bc_val[d];
+        }
+    }
+
+    // 2. Add Nitsche stabilization term
+    Matrix aux_N(n_dim, local_size);
+    Matrix transB_C_proj(local_size, n_dim);
+    CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
+    CalculateBtransCProjectionLinearisation(C_mat, B_mat, normal, transB_C_proj);
+    const Matrix stab_lhs = prod(transB_C_proj, aux_N);
+    Vector stab_rhs_bc = ZeroVector(local_size);
+    for (IndexType i = 0; i < local_size; ++i) {
+        for (IndexType d = 0; d < n_dim; ++d) {
+            stab_rhs_bc[i] += transB_C_proj(i,d) * r_bc_val[d];
+        }
+    }
+    const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
+    rRightHandSideVector += w * stab_rhs_bc;
+    rRightHandSideVector -= w * stab_rhs_unk;
     KRATOS_CATCH("")
 }
 

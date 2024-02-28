@@ -1,10 +1,10 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
-//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) DisplacementShiftedBoundaryCondition: public Condition
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DisplacementShiftedBoundaryCondition: public Condition
 {
 public:
 
@@ -46,21 +46,34 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor with geometry
     DisplacementShiftedBoundaryCondition(
         IndexType NewId,
         Geometry<Node>::Pointer pGeometry);
 
+    /// Constructor with geometry and properties
     DisplacementShiftedBoundaryCondition(
         IndexType NewId,
         Geometry<Node>::Pointer pGeometry,
         Properties::Pointer pProperties);
 
+    /// Constructor with array of nodes and properties
     DisplacementShiftedBoundaryCondition(
         IndexType NewId,
         const NodesArrayType& ThisNodes);
 
-    /// Destructor.
+    /// Copy constructor
+    DisplacementShiftedBoundaryCondition(DisplacementShiftedBoundaryCondition const& rOther) = delete;
+
+    /// Destructor
     ~DisplacementShiftedBoundaryCondition() override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator
+    DisplacementShiftedBoundaryCondition& operator=(DisplacementShiftedBoundaryCondition const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -115,9 +128,7 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-
 protected:
-
     ///@name Protected Life Cycle
     ///@{
 
@@ -130,10 +141,8 @@ protected:
 
 
     ///@}
-
 private:
-
-    ///@name Serialization
+    ///@name Private Operations
     ///@{
 
     void CalculateBtransCProjectionLinearisation(
@@ -157,17 +166,6 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    DisplacementShiftedBoundaryCondition& operator=(DisplacementShiftedBoundaryCondition const& rOther);
-
-    /// Copy constructor.
-    DisplacementShiftedBoundaryCondition(DisplacementShiftedBoundaryCondition const& rOther);
-
-    ///@}
-
 }; // Class DisplacementShiftedBoundaryCondition
 
 ///@}
