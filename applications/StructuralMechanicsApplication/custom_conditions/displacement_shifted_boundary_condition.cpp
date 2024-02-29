@@ -486,8 +486,8 @@ void DisplacementShiftedBoundaryCondition::CalculateBtransCProjectionLinearisati
 }
 
 void DisplacementShiftedBoundaryCondition::CalculateAuxShapeFunctionsMatrix(
-    const Vector &rN,
-    Matrix &rAuxMat)
+    const Vector& rN,
+    Matrix& rAuxMat)
 {
     const SizeType n_nodes = rN.size();
     const SizeType n_dim = rAuxMat.size1();
