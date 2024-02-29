@@ -2491,12 +2491,20 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    // TODO: Missing 3D
+    // TODO: Missing 3D; DO NOT WORK FOR NON-SQUARE SHAPES;
     void ExplicitSolverStrategy::RVEComputeInnerPorosity(void) {
       ModelPart& r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const double eps = std::numeric_limits<double>::epsilon();
 
-      if (!r_process_info[INNER_CONSOLIDATION_POROSITY]) {
+      const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+      const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+      const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+      const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
+
+      bool is_square = (std::abs(y1-y2)<eps && std::abs(y3-y4)<eps && std::abs(x1-x4)<eps && std::abs(x2-x3)<eps);
+
+      if (!r_process_info[INNER_CONSOLIDATION_POROSITY] || !is_square) {
         mRVE_VolSolidInner  = 0.0;
         mRVE_PorosityInner  = 0.0;
         mRVE_VoidRatioInner = 0.0;
@@ -3000,19 +3008,13 @@ namespace Kratos {
 
       const int write_coords_freq = r_process_info[RVE_WRITE_COORDINATES_FREQ];
       if (mRVE_FileCoordinatesHistory.is_open() && time_step % write_coords_freq == 0.0) {
-        double xmin, ymin, xmax, ymax;
-
-        if (mRVE_WallXMin.size() > 0) xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
-        else                          xmin = 0.0;
-        if (mRVE_WallYMin.size() > 0) ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
-        else                          ymin = 0.0;
-        if (mRVE_WallXMax.size() > 0) xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
-        else                          xmax = 0.0;
-        if (mRVE_WallYMax.size() > 0) ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
-        else                          ymax = 0.0;
+        const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+        const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+        const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+        const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
 
         mRVE_FileCoordinatesHistory << std::defaultfloat << time_step << " " << time << " ";
-        mRVE_FileCoordinatesHistory << std::fixed << std::setprecision(12) << xmin << " " << ymin << " " << xmax << " " << ymax << " ";
+        mRVE_FileCoordinatesHistory << std::fixed << std::setprecision(12) << x1 << " " << y1 << " " << x2 << " " << y2 << " " << x3 << " " << y3 << " " << x4 << " " << y4 << " ";
 
         const int number_of_particles = (int)mListOfSphericParticles.size();
         for (int i = 0; i < number_of_particles; i++) {
@@ -3313,7 +3315,7 @@ namespace Kratos {
         KRATOS_ERROR_IF_NOT(mRVE_FileCoordinatesHistory) << "Could not open file rve_coordinates_history.txt!" << std::endl;
         mRVE_FileCoordinatesHistory << "1 - STEP | ";
         mRVE_FileCoordinatesHistory << "2 - TIME | ";
-        mRVE_FileCoordinatesHistory << "3 - WALL_MIN_X   WALL_MIN_Y   WALL_MAX_X   WALL_MAX_Y | ";
+        mRVE_FileCoordinatesHistory << "3 - WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
         mRVE_FileCoordinatesHistory << "4 - R X Y of all particles";
         mRVE_FileCoordinatesHistory << std::endl;
       }
