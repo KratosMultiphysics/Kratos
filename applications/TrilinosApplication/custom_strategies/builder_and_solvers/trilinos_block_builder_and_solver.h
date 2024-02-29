@@ -1002,7 +1002,7 @@ public:
 
             // Compute T' A T
             const TSystemMatrixType copy_A(rA);
-            TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, false, true);
+            TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
 
             // Compute T' b
             const TSystemVectorType copy_b(rb);

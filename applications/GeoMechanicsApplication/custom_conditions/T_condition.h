@@ -46,28 +46,13 @@ public:
 
     using Condition::Create;
 
-    void GetDofList(DofsVectorType& rConditionDofList,
-                    const ProcessInfo& ) const override
-    {
-        KRATOS_TRY
-
-        if (rConditionDofList.size() != TNumNodes) {
-            rConditionDofList.resize(TNumNodes);
-        }
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rConditionDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
-        }
-
-        KRATOS_CATCH("")
-    }
+    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
 protected:
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -78,6 +63,8 @@ protected:
                               const ProcessInfo& rCurrentProcessInfo);
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

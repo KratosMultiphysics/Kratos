@@ -63,20 +63,27 @@ public:
     }
 
     /// Constructor using an array of nodes
-    SteadyStatePwInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    SteadyStatePwInterfaceElement(IndexType                          NewId,
+                                  const NodesArrayType&              ThisNodes,
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    SteadyStatePwInterfaceElement(IndexType                          NewId,
+                                  GeometryType::Pointer              pGeometry,
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    SteadyStatePwInterfaceElement(IndexType                          NewId,
+                                  GeometryType::Pointer              pGeometry,
+                                  PropertiesType::Pointer            pProperties,
+                                  std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : TransientPwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 

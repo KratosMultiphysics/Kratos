@@ -109,12 +109,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, Krat
         indices.push_back(i);
     }
     ranks.reserve(world_size - 1);
+    std::string name_data_comm = "SubDataComm_";
     for(int i = 0; i < world_size - 1; ++i) {
         ranks.push_back(i);
+        name_data_comm += std::to_string(i) + "_";
     }
 
     if (current_rank < world_size - 1) {
-        auto& r_partial_data_comm = r_default_comm.GetSubDataCommunicator(ranks, "SubDataComm");
+        auto& r_partial_data_comm = r_default_comm.GetSubDataCommunicator(ranks, name_data_comm);
         auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(mp.Nodes(), indices, r_partial_data_comm );
 
         GlobalPointerCommunicator< Node> pointer_comm(r_partial_data_comm, gp_list.ptr_begin(), gp_list.ptr_end());
@@ -151,7 +153,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, Krat
     }
 
     // Extend checks
-    auto& r_partial_data_comm_again = r_default_comm.GetSubDataCommunicator(ranks, "SubDataComm");
+    auto& r_partial_data_comm_again = r_default_comm.GetSubDataCommunicator(ranks, name_data_comm);
     if (current_rank < world_size - 1) {
         KRATOS_EXPECT_TRUE(r_partial_data_comm_again.IsDefinedOnThisRank());
     } else {
@@ -161,9 +163,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, Krat
     std::vector<int> ranks_wrong(ranks);
     ranks_wrong.push_back(world_size -1);
     if (current_rank < world_size - 1) {
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, "SubDataComm"), "Inconsistency between the communicator world size: " + std::to_string(world_size - 1) + " and the number of ranks required: " + std::to_string(world_size));
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, name_data_comm), "Inconsistency between the communicator world size: " + std::to_string(world_size - 1) + " and the number of ranks required: " + std::to_string(world_size));
     } else {
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, "SubDataComm"), "The rank " + std::to_string(current_rank) + " does not participate in the existing data communicator SubDataComm despite being in the provided rank list");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, name_data_comm), "The rank " + std::to_string(current_rank) + " does not participate in the existing data communicator " + name_data_comm + " despite being in the provided rank list");
     }
 }
 

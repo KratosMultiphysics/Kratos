@@ -18,7 +18,6 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/model_part_io.h"
-#include "includes/kratos_filesystem.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/variables.h"
 #include "includes/dof.h"
@@ -78,7 +77,7 @@ namespace Kratos::Testing
         SetEmbeddedConstraintProcessTestModelPart(r_test_model_part);
 
         // Read mdpa and set domain size
-        ModelPartIO(filesystem::parent_path(__FILE__)+"/test_embedded_mls_constraint_process/embedded_mls_constraints_test", IO::READ).ReadModelPart(r_test_model_part);
+        ModelPartIO(std::filesystem::path(__FILE__).parent_path().string()+"/test_embedded_mls_constraint_process/embedded_mls_constraints_test", IO::READ).ReadModelPart(r_test_model_part);
         auto& r_process_info = r_test_model_part.GetProcessInfo();
         r_process_info[DOMAIN_SIZE] = 2;
 

@@ -8,7 +8,7 @@
         "fracture_utility":     false
     },
     "solver_settings": {
-        "solver_type":    "poromechanics_U_Pw_solver",
+        "solver_type":    "poromechanics_U_Pl_solver",
         "model_part_name":    "PorousModelPart",
         "domain_size":    2,
         "start_time":    0.0,
@@ -35,7 +35,8 @@
         "scheme_type":    "Newmark",
         "newmark_beta":    0.25,
         "newmark_gamma":    0.5,
-        "newmark_theta":    0.5,
+        "newmark_theta_u":    0.5,
+        "newmark_theta_p":    0.5,
         "calculate_alpha_beta":    false,
         "omega_1":    1.0,
         "omega_n":    10.0,
@@ -66,7 +67,7 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Material"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Fluid_Pressure-auto-1","Discharge-auto-1","Discharge-auto-2"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Liquid_Pressure-auto-1","Discharge-auto-1","Discharge-auto-2"],
         "body_domain_sub_model_part_list":    ["Material"]
     },
     "processes": {
@@ -85,8 +86,8 @@
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
-                "variable_name":        "WATER_PRESSURE",
+                "model_part_name":      "PorousModelPart.Liquid_Pressure-auto-1",
+                "variable_name":        "LIQUID_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
                 "table":                0,
@@ -101,7 +102,7 @@
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
                 "model_part_name": "PorousModelPart.Discharge-auto-1",
-                "variable_name":   "DISCHARGE",
+                "variable_name":   "LIQUID_DISCHARGE",
                 "value":           1,
                 "table":           0
             }
@@ -110,7 +111,7 @@
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
                 "model_part_name": "PorousModelPart.Discharge-auto-2",
-                "variable_name":   "DISCHARGE",
+                "variable_name":   "LIQUID_DISCHARGE",
                 "value":           2,
                 "table":           0
             }
@@ -119,8 +120,8 @@
             "python_module" : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "check_variables": ["WATER_PRESSURE"],
-                "input_file_name" : "element_tests/nodal_discharge/Test_WaterPressure_results.json",
+                "check_variables": ["LIQUID_PRESSURE"],
+                "input_file_name" : "element_tests/nodal_discharge/Test_LiquidPressure_results.json",
                 "model_part_name"  : "PorousModelPart.porous_computational_model_part",
                 "time_frequency"   : 0.249999
             }

@@ -62,9 +62,8 @@ public:
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties ) const override;
- 
-    void GetDofList(DofsVectorType& rConditionDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
     IntegrationMethod GetIntegrationMethod() const override
     {
@@ -88,8 +87,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,11 +99,13 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
     GeometryData::IntegrationMethod mThisIntegrationMethod{ Condition::GetIntegrationMethod() };
-    
+
     // Serialization
     
     friend class Serializer;

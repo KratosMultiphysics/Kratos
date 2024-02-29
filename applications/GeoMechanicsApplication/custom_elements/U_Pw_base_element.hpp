@@ -27,6 +27,7 @@
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -42,14 +43,23 @@ public:
     explicit UPwBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
+    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, ThisNodes), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    {
+    }
 
     /// Constructor using Geometry
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
+    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, pGeometry), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    {
+    }
 
     /// Constructor using Properties
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    UPwBaseElement(IndexType                          NewId,
+                   GeometryType::Pointer              pGeometry,
+                   PropertiesType::Pointer            pProperties,
+                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, pGeometry, pProperties), mpStressStatePolicy{std::move(pStressStatePolicy)}
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();
@@ -61,17 +71,11 @@ public:
     UPwBaseElement(UPwBaseElement&&) noexcept            = delete;
     UPwBaseElement& operator=(UPwBaseElement&&) noexcept = delete;
 
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
-
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     void ResetConstitutiveLaw() override;
 
@@ -85,7 +89,7 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -198,7 +202,11 @@ protected:
 
     virtual unsigned int GetNumberOfDOF() const;
 
+    StressStatePolicy& GetStressStatePolicy() const;
+
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -206,11 +214,11 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
-}; // Class UPwBaseElement
+    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
+};
+
+// Class UPwBaseElement
 
 } // namespace Kratos

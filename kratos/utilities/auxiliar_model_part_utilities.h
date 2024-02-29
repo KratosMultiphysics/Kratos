@@ -623,6 +623,24 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+    * @brief Retrieve the IDs of neighboring elements for each element.
+    * @details This function retrieves the IDs of neighboring elements for each element in the model part.
+    * The IDs are stored in an unordered map where the key is the ID of the element and the value
+    * is a vector containing the IDs of its neighboring elements.
+    * @return An unordered map containing the IDs of neighboring elements for each element.
+    */
+    std::unordered_map<IndexType, std::vector<IndexType>> RetrieveElementsNeighbourElementsIds();
+
+    /**
+    * @brief Retrieve the IDs of neighboring conditions for each condition.
+    * @details This function retrieves the IDs of neighboring conditions for each condition in the model part.
+    * The IDs are stored in an unordered map where the key is the ID of the condition and the value
+    * is a vector containing the IDs of its neighboring conditions.
+    * @return An unordered map containing the IDs of neighboring conditions for each condition.
+    */
+    std::unordered_map<IndexType, std::vector<IndexType>> RetrieveConditionsNeighbourConditionsIds();
+
     /// Turn back information as a string.
     virtual std::string Info() const
     {

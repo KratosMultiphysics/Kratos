@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_elements/geo_truss_element_base.hpp"
 #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
@@ -69,52 +70,16 @@ GeoTrussElementBase<TDim, TNumNodes>::~GeoTrussElementBase()
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                            const ProcessInfo& rCurrentProcessInfo) const
+void GeoTrussElementBase<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    if (rResult.size() != TDim * TNumNodes) {
-        rResult.resize(TDim * TNumNodes);
-    }
-
-    if constexpr (TDim > 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-        }
-    } else {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        }
-    }
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTrussElementBase<TDim, TNumNodes>::GetDofList(DofsVectorType&    rElementalDofList,
-                                                      const ProcessInfo& rCurrentProcessInfo) const
+void GeoTrussElementBase<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    if (rElementalDofList.size() != TDim * TNumNodes) {
-        rElementalDofList.resize(TDim * TNumNodes);
-    }
-
-    if constexpr (TDim > 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-        }
-    } else {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-        }
-    }
+    rElementalDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------
@@ -250,66 +215,21 @@ void GeoTrussElementBase<TDim, TNumNodes>::CalculateBodyForces(FullDofVectorType
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = disp[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSolutionStepValues(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = vel[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void GeoTrussElementBase<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    if (rValues.size() != TDim * TNumNodes) {
-        rValues.resize(TDim * TNumNodes, false);
-    }
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        const auto& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-
-        for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rValues[index++] = acc[idim];
-        }
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivatives(GetDofs(), Step);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1240,6 +1160,18 @@ double GeoTrussElementBase<TDim, TNumNodes>::ReturnTangentModulus1D(const Proces
     return tangent_modulus;
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType GeoTrussElementBase<TDim, TNumNodes>::GetDofs() const
+{
+    auto result = Element::DofsVectorType{};
+    for (const auto& r_node : GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+    }
+    return result;
 }
 
 //--------------------------------------------------------------------------------------------

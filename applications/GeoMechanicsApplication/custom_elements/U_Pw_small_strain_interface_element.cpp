@@ -14,7 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 
-#include <custom_utilities/stress_strain_utilities.hpp>
+#include <custom_utilities/stress_strain_utilities.h>
 
 namespace Kratos
 {
@@ -25,7 +25,7 @@ Element::Pointer UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -33,7 +33,8 @@ Element::Pointer UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Create(IndexTy
                                                                          GeometryType::Pointer pGeom,
                                                                          PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainInterfaceElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new UPwSmallStrainInterfaceElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

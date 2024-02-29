@@ -11,3 +11,4 @@ This folder contains the following test cases:
 -   Transient thermal fixed temperature
 -   Thermal heat flux
 -   Transient thermal heat flux
+-   Micro-climate condition

@@ -49,7 +49,7 @@ void InfiniteDomainCondition<TDim,TNumNodes>::CalculateLHS( MatrixType& rLeftHan
 		double IntegrationCoefficient;
 		
 		// Definition of the speed in the fluid
-        //~ const double BulkModulus = Prop[BULK_MODULUS_FLUID];
+        //~ const double BulkModulus = Prop[BULK_MODULUS_LIQUID];
         //~ const double Water_density = Prop[DENSITY_WATER];
         const double BulkModulus = 2.21e9;
         const double Water_density = 1000.0;
@@ -103,7 +103,7 @@ void InfiniteDomainCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
 		double IntegrationCoefficient;
 		
 		// Definition of the speed in the fluid
-        //~ const double BulkModulus = Prop[BULK_MODULUS_FLUID];
+        //~ const double BulkModulus = Prop[BULK_MODULUS_LIQUID];
         //~ const double Water_density = Prop[DENSITY_WATER];
         const double BulkModulus = 2.21e9;
         const double Water_density = 1000.0;

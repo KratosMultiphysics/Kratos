@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import assign_scalar_variable_to_entities_process
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 import math
 
@@ -33,7 +34,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the entities belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -43,6 +43,12 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
             "entities"             : []
         }
         """)
+
+        #TODO: Remove this after the deprecation period
+        # Check if the mesh_id is provided in the user defined settings and remove it
+        if settings.Has("mesh_id"):
+            settings.RemoveValue("mesh_id")
+            IssueDeprecationWarning("AssignVectorByDirectionProcess", "Found \'mesh_id\' in input settings. This is no longer required and can be removed.")
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
         if settings.Has("modulus"):
@@ -76,7 +82,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component X
         x_params.AddValue("model_part_name",settings["model_part_name"])
-        x_params.AddValue("mesh_id",settings["mesh_id"])
         x_params.AddValue("interval",settings["interval"])
         x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
         x_params.AddValue("local_axes",settings["local_axes"])
@@ -84,7 +89,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component Y
         y_params.AddValue("model_part_name",settings["model_part_name"])
-        y_params.AddValue("mesh_id",settings["mesh_id"])
         y_params.AddValue("interval",settings["interval"])
         y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
         y_params.AddValue("local_axes",settings["local_axes"])
@@ -92,7 +96,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
 
         # Component Z
         z_params.AddValue("model_part_name",settings["model_part_name"])
-        z_params.AddValue("mesh_id",settings["mesh_id"])
         z_params.AddValue("interval",settings["interval"])
         z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
         z_params.AddValue("local_axes",settings["local_axes"])
@@ -102,26 +105,33 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         all_numeric = True
         if settings["direction"].IsString() :
             if settings["direction"].GetString() == "automatic_inwards_normal" or settings["direction"].GetString() == "automatic_outwards_normal":
-                # Compute the condition normals
-                KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                # Compute the condition and nodes area normals and save the values in the NORMAL variable
+                # Also note that in the nodes case, the normal values are stored in the historical database
+                enforce_generic_algorithm = False
+                KratosMultiphysics.NormalCalculationUtils().CalculateNormals(
+                    self.model_part,
+                    enforce_generic_algorithm,
+                    KratosMultiphysics.NORMAL)
 
                 # Compute the average conditions normal in the submodelpart of interest
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
-                avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
+                avg_normal_norm = avg_normal.norm_2()
                 if avg_normal_norm < 1.0e-6:
-                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess.")
+                    err_msg = "Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess. This might be caused because:\n"
+                    err_msg += "\t- the provided model part has no conditions"
+                    err_msg += "\t- the presence of a condition with zero (or close to) area in the provided model part"
+                    raise Exception(err_msg)
+                unit_direction = avg_normal/avg_normal_norm
 
-                unit_direction = KratosMultiphysics.Vector(3)
-                unit_direction = (1.0/avg_normal_norm) * avg_normal
-
-                # Note that the NormalCalculationUtils().CalculateOnSimplex gives the outwards normal vector
+                # Note that it is assumed that the NormalCalculationUtils().CalculateNormals returns the outwards normal vector
                 if settings["direction"].GetString() == "automatic_inwards_normal":
-                    unit_direction = (-1)*unit_direction
+                    unit_direction = (-1.0)*unit_direction
+
         # Direction is given as a vector
         elif settings["direction"].IsArray():
             unit_direction = [0.0,0.0,0.0]
             direction_norm = 0.0
-            for i in range(0,3):
+            for i in range(3):
                 if settings["direction"][i].IsNumber():
                     unit_direction[i] = settings["direction"][i].GetDouble()
                     direction_norm += pow(unit_direction[i],2)
@@ -134,9 +144,10 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
             if all_numeric:
                 direction_norm = math.sqrt(direction_norm)
                 if direction_norm < 1.0e-6:
-                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess.")
+                    err_msg = "Provided \'direction\' is close to 0 in AssignVectorByDirectionProcess. Direction norm is: {direction_norm}."
+                    raise Exception(err_msg)
 
-                for i in range(0,3):
+                for i in range(3):
                     unit_direction[i] = unit_direction[i]/direction_norm
 
         # Set the remainding parameters

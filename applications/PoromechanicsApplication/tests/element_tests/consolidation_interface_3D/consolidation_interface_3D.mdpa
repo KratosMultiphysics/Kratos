@@ -6,17 +6,17 @@ Begin Properties 1
   YOUNG_MODULUS 1.0e6
   POISSON_RATIO 0.2
   DENSITY_SOLID 0.0
-  DENSITY_WATER 1.0e3
+  DENSITY_LIQUID 1.0e3
   POROSITY 0.3
   BULK_MODULUS_SOLID 1.0e12
-  BULK_MODULUS_FLUID 2.0e9
+  BULK_MODULUS_LIQUID 2.0e9
   PERMEABILITY_XX 4.5e-10
   PERMEABILITY_YY 4.5e-10
   PERMEABILITY_ZZ 4.5e-10
   PERMEABILITY_XY 0.0
   PERMEABILITY_YZ 0.0
   PERMEABILITY_ZX 0.0
-  DYNAMIC_VISCOSITY 1.0e-3
+  DYNAMIC_VISCOSITY_LIQUID 1.0e-3
   BIOT_COEFFICIENT 0.9999994444444444
 End Properties
 
@@ -25,12 +25,12 @@ Begin Properties 2
   YOUNG_MODULUS 1.0e6
   POISSON_RATIO 0.2
   DENSITY_SOLID 0.0
-  DENSITY_WATER 1.0e3
+  DENSITY_LIQUID 1.0e3
   POROSITY 0.3
   BULK_MODULUS_SOLID 1.0e12
-  BULK_MODULUS_FLUID 2.0e9
+  BULK_MODULUS_LIQUID 2.0e9
   TRANSVERSAL_PERMEABILITY_COEFFICIENT 1.0e-10
-  DYNAMIC_VISCOSITY 1.0e-3
+  DYNAMIC_VISCOSITY_LIQUID 1.0e-3
   DAMAGE_THRESHOLD 0.04
   INITIAL_JOINT_WIDTH 1.0e-3
   CRITICAL_DISPLACEMENT 0.05
@@ -9746,7 +9746,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UPwSmallStrainElement3D8N
+Begin Elements UPlSmallStrainElement3D8N
   401  0  9683 9693 9700 9694 9695 9701 9702 9699
   402  0  9668 9683 9694 9685 9689 9695 9699 9696
   403  0  9650 9668 9685 9674 9679 9689 9696 9690
@@ -17749,7 +17749,7 @@ Begin Elements UPwSmallStrainElement3D8N
   8400  0  6575 5983 5690 6280 6601 6026 5706 6306
 End Elements
 
-Begin Elements UPwSmallStrainInterfaceElement3D8N
+Begin Elements UPlSmallStrainInterfaceElement3D8N
   1  0  5983 6026 6601 6575 5985 6025 6602 6577
   2  0  5331 5391 6026 5983 5333 5361 6025 5985
   3  0  4724 4747 5391 5331 4726 4754 5361 5333
@@ -18153,7 +18153,7 @@ Begin Elements UPwSmallStrainInterfaceElement3D8N
 End Elements
 
 
-Begin Conditions UPwFaceLoadCondition3D4N
+Begin Conditions UPlFaceLoadCondition3D4N
   1  1  9700 9702 9699 9694
   2  1  9694 9699 9696 9685
   3  1  9685 9696 9690 9674
@@ -18556,7 +18556,7 @@ Begin Conditions UPwFaceLoadCondition3D4N
   400  1  6575 6280 6306 6601
 End Conditions
 
-Begin Conditions UPwNormalFluxCondition3D4N
+Begin Conditions UPlNormalLiquidFluxCondition3D4N
   401  1  9695 9699 9702 9701
   402  1  9693 9701 9702 9700
   403  1  9689 9696 9699 9695
@@ -49752,7 +49752,7 @@ Begin SubModelPart Solid_Displacement-auto-2
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-1
+Begin SubModelPart Liquid_Pressure-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -50225,7 +50225,7 @@ Begin SubModelPart Fluid_Pressure-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-2
+Begin SubModelPart Liquid_Pressure-auto-2
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -60811,7 +60811,7 @@ Begin SubModelPart Face_Load-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Normal_Fluid_Flux-auto-1
+Begin SubModelPart Normal_Liquid_Flux-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes

@@ -21,7 +21,7 @@ namespace Kratos
 {
 
 template <class TSparseSpace, class TDenseSpace>
-class NewmarkQuasistaticDampedUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>
+class NewmarkQuasistaticDampedUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticDampedUPwScheme);
@@ -31,7 +31,12 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
     NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>(beta, gamma, theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
+              beta,
+              gamma,
+              theta)
     {
         // Allocate auxiliary memory
         const auto num_threads = ParallelUtilities::GetNumThreads();
@@ -122,6 +127,23 @@ protected:
             rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
         }
+    }
+
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            // No accelerations of the displacement/rotation D.O.F. in this quasistatic damped scheme
+            this->UpdateVectorFirstTimeDerivative(rNode);
+
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
     }
 
 private:

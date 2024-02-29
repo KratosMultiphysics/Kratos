@@ -83,9 +83,9 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -214,6 +214,8 @@ private:
      * @param rMassVector The lumped mass vector
      */
     void CalculateLumpedMassVector(VectorType& rMassVector, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    [[nodiscard]] Element::DofsVectorType GetDofs() const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
