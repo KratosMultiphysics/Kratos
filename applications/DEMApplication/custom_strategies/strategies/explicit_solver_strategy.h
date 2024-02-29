@@ -404,6 +404,7 @@ namespace Kratos {
         void RVEAssembleWallVectors2D_Particles (void);
         void RVEAssembleWallVectors3D_Particles (void);
 
+        void   RVEComputeCorners        (void);
         double RVEComputeTotalSurface   (void);
         double RVEComputeTotalVolume    (void);
         double RVEComputeInnerVolume    (void);

@@ -1963,6 +1963,7 @@ namespace Kratos {
       mRVE_AvgCoordNumInner /= mRVE_NumParticlesInner;
 
       // Compute volume
+      RVEComputeCorners();
       mRVE_VolTotal = RVEComputeTotalVolume();
       mRVE_VolInner = RVEComputeInnerVolume();
 
@@ -2025,7 +2026,7 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    // TODO: Generalize to more generic configurations
+    // TODO: Generalize
     void ExplicitSolverStrategy::RVEAssembleWallVectors2D_Flat(void) {
       ModelPart::ConditionsContainerType& r_conditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
       const double eps = std::numeric_limits<double>::epsilon();
@@ -2128,56 +2129,6 @@ namespace Kratos {
         else
           mRVE_WallYMax.push_back(wall_elems_y[i]);
       }
-
-      // Determine RVE corners
-      double wallxmin_ymin =  DBL_MAX;
-      double wallxmin_ymax = -DBL_MAX;
-      double wallxmax_ymin =  DBL_MAX;
-      double wallxmax_ymax = -DBL_MAX;
-      double wallymin_xmin =  DBL_MAX;
-      double wallymin_xmax = -DBL_MAX;
-      double wallymax_xmin =  DBL_MAX;
-      double wallymax_xmax = -DBL_MAX;
-
-      for (unsigned int i = 0; i < mRVE_WallXMin.size(); i++) {
-        Condition::GeometryType& geom = mRVE_WallXMin[i]->GetGeometry();
-        const double y1 = geom[0][1];
-        const double y2 = geom[1][1];
-        if (y1 < wallxmin_ymin) wallxmin_ymin = y1;
-        if (y1 > wallxmin_ymax) wallxmin_ymax = y1;
-        if (y2 < wallxmin_ymin) wallxmin_ymin = y2;
-        if (y2 > wallxmin_ymax) wallxmin_ymax = y2;
-      }
-      for (unsigned int i = 0; i < mRVE_WallXMax.size(); i++) {
-        Condition::GeometryType& geom = mRVE_WallXMax[i]->GetGeometry();
-        const double y1 = geom[0][1];
-        const double y2 = geom[1][1];
-        if (y1 < wallxmax_ymin) wallxmax_ymin = y1;
-        if (y1 > wallxmax_ymax) wallxmax_ymax = y1;
-        if (y2 < wallxmax_ymin) wallxmax_ymin = y2;
-        if (y2 > wallxmax_ymax) wallxmax_ymax = y2;
-      }
-      for (unsigned int i = 0; i < mRVE_WallYMin.size(); i++) {
-        Condition::GeometryType& geom = mRVE_WallYMin[i]->GetGeometry();
-        const double x1 = geom[0][0];
-        const double x2 = geom[1][0];
-        if (x1 < wallymin_xmin) wallymin_xmin = x1;
-        if (x1 > wallymin_xmax) wallymin_xmax = x1;
-        if (x2 < wallymin_xmin) wallymin_xmin = x2;
-        if (x2 > wallymin_xmax) wallymin_xmax = x2;
-      }
-      for (unsigned int i = 0; i < mRVE_WallYMax.size(); i++) {
-        Condition::GeometryType& geom = mRVE_WallYMax[i]->GetGeometry();
-        const double x1 = geom[0][0];
-        const double x2 = geom[1][0];
-        if (x1 < wallymax_xmin) wallymax_xmin = x1;
-        if (x1 > wallymax_xmax) wallymax_xmax = x1;
-        if (x2 < wallymax_xmin) wallymax_xmin = x2;
-        if (x2 > wallymax_xmax) wallymax_xmax = x2;
-      }
-
-      mRVE_CornerCoordsX.insert(mRVE_CornerCoordsX.end(), { wallymin_xmin, wallymin_xmax, wallymax_xmax, wallymax_xmin});
-      mRVE_CornerCoordsY.insert(mRVE_CornerCoordsY.end(), { wallxmin_ymin, wallxmax_ymin, wallxmax_ymax, wallxmin_ymax});
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2343,6 +2294,45 @@ namespace Kratos {
         else {
           mListOfSphericParticles[i]->mWall = 0;
         }
+      }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    // TODO: Generalize - Specific for shear tests
+    void ExplicitSolverStrategy::RVEComputeCorners(void) {
+      const double eps = std::numeric_limits<double>::epsilon();
+      const double xmin_x1 = mRVE_WallXMin[0]->GetGeometry()[0][0]; const double xmin_x2 = mRVE_WallXMin[0]->GetGeometry()[1][0];
+      const double xmin_y1 = mRVE_WallXMin[0]->GetGeometry()[0][1]; const double xmin_y2 = mRVE_WallXMin[0]->GetGeometry()[1][1];
+      const double xmax_x1 = mRVE_WallXMax[0]->GetGeometry()[0][0]; const double xmax_x2 = mRVE_WallXMax[0]->GetGeometry()[1][0];
+      const double ymin_y1 = mRVE_WallYMin[0]->GetGeometry()[0][1]; const double ymin_y2 = mRVE_WallYMin[0]->GetGeometry()[1][1];
+      const double ymax_y1 = mRVE_WallYMax[0]->GetGeometry()[0][1]; const double ymax_y2 = mRVE_WallYMax[0]->GetGeometry()[1][1];
+
+      bool is_square = (std::abs(xmin_x1-xmin_x2)<eps && std::abs(xmax_x1-xmax_x2)<eps && std::abs(ymin_y1-ymin_y2)<eps && std::abs(ymax_y1-ymax_y2)<eps);
+
+      if (is_square) {
+        mRVE_CornerCoordsX.insert(mRVE_CornerCoordsX.end(), { xmin_x1, xmax_x1, xmax_x1, xmin_x1 });
+        mRVE_CornerCoordsY.insert(mRVE_CornerCoordsY.end(), { ymin_y1, ymin_y1, ymax_y1, ymax_y1 });
+      }
+      else {
+        double ymin_x_min =  DBL_MAX;
+        double ymin_x_max = -DBL_MAX;
+        for (unsigned int i = 0; i < mRVE_WallYMin.size(); i++) {
+          Condition::GeometryType& geom = mRVE_WallYMin[i]->GetGeometry();
+          const double ymin_x1 = geom[0][0];
+          const double ymin_x2 = geom[1][0];
+          if (ymin_x1 < ymin_x_min) ymin_x_min = ymin_x1;
+          if (ymin_x1 > ymin_x_max) ymin_x_max = ymin_x1;
+          if (ymin_x2 < ymin_x_min) ymin_x_min = ymin_x2;
+          if (ymin_x2 > ymin_x_max) ymin_x_max = ymin_x2;
+        }
+
+        const double slope = (xmin_x2-xmin_x1) / (xmin_y2-xmin_y1);
+        const double height = ymax_y1 - ymin_y1;
+        const double ymax_x_min = ymin_x_min + slope * height;
+        const double ymax_x_max = ymin_x_max + slope * height;
+
+        mRVE_CornerCoordsX.insert(mRVE_CornerCoordsX.end(), { ymin_x_min, ymin_x_max, ymax_x_min, ymax_x_max });
+        mRVE_CornerCoordsY.insert(mRVE_CornerCoordsY.end(), { ymin_y1,    ymin_y1,    ymax_y1,    ymax_y1    });
       }
     }
 
@@ -3028,15 +3018,15 @@ namespace Kratos {
 
       if (r_process_info[POST_WRITE_COORDINATES_LAST]) {
         mRVE_FileCoordinatesLast.open("rve_coordinates_last.txt", std::ios::out | std::ios::trunc);
-        mRVE_FileCoordinatesLast << "LINE 1: WALL_MIN_X   WALL_MIN_Y   WALL_MAX_X   WALL_MAX_Y | ";
+        mRVE_FileCoordinatesLast << "LINE 1: WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
         mRVE_FileCoordinatesLast << "NEXT LINES: R X Y";
         mRVE_FileCoordinatesLast << std::endl;
 
-        const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
-        const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
-        const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
-        const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
-        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(15) << xmin << " " << ymin << " " << xmax << " " << ymax << std::endl;
+        const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+        const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+        const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+        const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
+        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(15) << x1 << " " << y1 << " " << x2 << " " << y2 << " " << x3 << " " << y3 << " " << x4 << " " << y4 << std::endl;
 
         const int number_of_particles = (int)mListOfSphericParticles.size();
         for (int i = 0; i < number_of_particles; i++) {
