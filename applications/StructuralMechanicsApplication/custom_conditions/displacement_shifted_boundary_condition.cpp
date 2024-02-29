@@ -457,9 +457,9 @@ int DisplacementShiftedBoundaryCondition::Check(const ProcessInfo& rCurrentProce
 }
 
 void DisplacementShiftedBoundaryCondition::CalculateBtransCProjectionLinearisation(
-    const Matrix &rC,
-    const Matrix &rB,
-    const array_1d<double, 3> &rUnitNormal,
+    const Matrix& rC,
+    const Matrix& rB,
+    const array_1d<double, 3>& rUnitNormal,
     Matrix& rAuxMat)
 {
     const SizeType local_size = rB.size2();
