@@ -170,6 +170,8 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
 
         rEntity.GetValuesVector(rX);
 
+        rX /= 2.0;
+
         // calculate the reference value
         rEntity.CalculateRightHandSide(rRefRHS, r_process_info);
 
@@ -218,14 +220,14 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
             pThreadLocalEntity->CalculateRightHandSide(rPerturbedRHS, r_process_info);
             r_initial_coordintes[0] -= Delta;
             r_coordinates[0] -= Delta;
-            AtomicAdd<double>(r_orig_node_sensitivity[0], 0.5 * inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
+            AtomicAdd<double>(r_orig_node_sensitivity[0], inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
 
             r_initial_coordintes[1] += Delta;
             r_coordinates[1] += Delta;
             pThreadLocalEntity->CalculateRightHandSide(rPerturbedRHS, r_process_info);
             r_initial_coordintes[1] -= Delta;
             r_coordinates[1] -= Delta;
-            AtomicAdd<double>(r_orig_node_sensitivity[1], 0.5 * inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
+            AtomicAdd<double>(r_orig_node_sensitivity[1], inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
 
             if (domain_size == 3) {
                 r_initial_coordintes[2] += Delta;
@@ -233,7 +235,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
                 pThreadLocalEntity->CalculateRightHandSide(rPerturbedRHS, r_process_info);
                 r_initial_coordintes[2] -= Delta;
                 r_coordinates[2] -= Delta;
-                AtomicAdd<double>(r_orig_node_sensitivity[2], 0.5 * inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
+                AtomicAdd<double>(r_orig_node_sensitivity[2], inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
             }
         }
     }
