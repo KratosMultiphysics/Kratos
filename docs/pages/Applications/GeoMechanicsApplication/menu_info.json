@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "geomechanics_application",
+    "landing_page": "General/Test.md",
+    "additional_menu_options": {
+        "product": "Geomechanics Application",
+        "title": "sidebar"
+    }
+}
