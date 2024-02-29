@@ -13,8 +13,6 @@ if [ ! -d ../_site/Page_files ]; then
     rm ../_site/*
 fi
 
-find ../../applications/GeoMechanicsApplication -name '*.md' -exec cp --parents \{\} ../pages/Applications/GeoMechanicsApplication \;
-
 cp -r ../pages ../_site/Page_files
 
 cp ../_config.yml ../_site/Page_files
