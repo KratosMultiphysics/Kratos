@@ -16,8 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
 
 // Application includes
 #include "small_displacement.h"
@@ -194,52 +192,6 @@ private:
 
 
     ///@}
-    ///@name Private operations
-    ///@{
-
-    void CalculateCauchyTractionVector(
-        const Vector& rVoigtStress,
-        const array_1d<double,TDim>& rUnitNormal,
-        array_1d<double,TDim>& rCauchyTraction)
-    {
-        if constexpr (TDim == 2) {
-            rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
-            rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
-        } else {
-            rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[3]*rUnitNormal[1] + rVoigtStress[5]*rUnitNormal[2];
-            rCauchyTraction[1] = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1] + rVoigtStress[4]*rUnitNormal[2];
-            rCauchyTraction[2] = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1] + rVoigtStress[2]*rUnitNormal[2];
-        }
-    }
-
-    void CalculateCBProjectionLinearisation(
-        const Matrix& rC,
-        const BoundedMatrix<double,StrainSize,LocalSize>& rB,
-        const array_1d<double,TDim>& rUnitNormal,
-        BoundedMatrix<double,TDim,LocalSize>& rAuxMat)
-    {
-        BoundedMatrix<double,StrainSize,LocalSize> aux_CB = prod(rC, rB);
-        if constexpr (TDim == 2) {
-            for (std::size_t j = 0; j < LocalSize; ++j) {
-                rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
-            }
-            for (std::size_t j = 0; j < LocalSize; ++j) {
-                rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
-            }
-        } else {
-            for (std::size_t j = 0; j < LocalSize; ++j) {
-                rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(3,j) + rUnitNormal[2]*aux_CB(5,j);
-            }
-            for (std::size_t j = 0; j < LocalSize; ++j) {
-                rAuxMat(1,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(1,j) + rUnitNormal[2]*aux_CB(4,j);
-            }
-            for (std::size_t j = 0; j < LocalSize; ++j) {
-                rAuxMat(2,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j) + rUnitNormal[2]*aux_CB(2,j);
-            }
-        }
-    }
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -264,7 +216,41 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Returns the surrogate faces local ids
+     * This method returns a list with the local ids of the surrogate faces that
+     * are the element faces for which all their nodes lie in the surrogate boundary
+     * @return std::vector<std::size_t> List with the surrogate faces local ids
+     */
     std::vector<std::size_t> GetSurrogateFacesIds();
+
+    /**
+     * @brief Calculates the Cauchy traction vector
+     * This function computes the Cauchy traction vector from the provided stress
+     * vector (in Voigt notation) and the unit normal vector
+     * @param rVoigtStress Reference to the stress vector in Voigt notation
+     * @param rUnitNormal Reference to the unit normal vector
+     * @param rCauchyTraction Output Cauchy traction vector
+     */
+    void CalculateCauchyTractionVector(
+        const Vector& rVoigtStress,
+        const array_1d<double,TDim>& rUnitNormal,
+        array_1d<double,TDim>& rCauchyTraction);
+
+    /**
+     * @brief Computes the normal projection of the C times B product
+     * This function calculates the normal projection of the standard
+     * C (constitutive tensor) times B (strain matrix) product
+     * @param rC Reference to the constituive tensor
+     * @param rB Reference to the strain matrix
+     * @param rUnitNormal Reference to the unit normal vector
+     * @param rAuxMat Output result
+     */
+    void CalculateCBProjectionLinearisation(
+        const Matrix& rC,
+        const BoundedMatrix<double,StrainSize,LocalSize>& rB,
+        const array_1d<double,TDim>& rUnitNormal,
+        BoundedMatrix<double,TDim,LocalSize>& rAuxMat);
 
     ///@}
     ///@name Private  Access

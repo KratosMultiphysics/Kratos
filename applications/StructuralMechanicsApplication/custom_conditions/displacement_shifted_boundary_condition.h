@@ -145,12 +145,28 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Computes the normal projection of the B transpose times C product
+     * This function calculates the normal projection of the standard
+     * B transpose (strain matrix tranpose) times C (constitutive tensor) product
+     * @param rC Reference to the constituive tensor
+     * @param rB Reference to the strain matrix
+     * @param rUnitNormal Reference to the unit normal vector
+     * @param rAuxMat Output result
+     */
     void CalculateBtransCProjectionLinearisation(
         const Matrix& rC,
         const Matrix& rB,
         const array_1d<double, 3>& rUnitNormal,
         Matrix& rAuxMat);
 
+    /**
+     * @brief Auxiliary shape functions calculation
+     * This function expands the shape functions vector in a matrix
+     * according to the problem dimension
+     * @param rN Vector containing the shape function values
+     * @param rAuxMat Result shape functions matrix
+     */
     void CalculateAuxShapeFunctionsMatrix(
         const Vector& rN,
         Matrix& rAuxMat);

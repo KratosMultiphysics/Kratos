@@ -356,6 +356,50 @@ std::vector<std::size_t> SmallDisplacementShiftedBoundaryElement<TDim>::GetSurro
     return surrogate_faces_ids;
 }
 
+template<std::size_t TDim>
+void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateCauchyTractionVector(
+    const Vector& rVoigtStress,
+    const array_1d<double,TDim>& rUnitNormal,
+    array_1d<double,TDim>& rCauchyTraction)
+{
+    if constexpr (TDim == 2) {
+        rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[2]*rUnitNormal[1];
+        rCauchyTraction[1] = rVoigtStress[2]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1];
+    } else {
+        rCauchyTraction[0] = rVoigtStress[0]*rUnitNormal[0] + rVoigtStress[3]*rUnitNormal[1] + rVoigtStress[5]*rUnitNormal[2];
+        rCauchyTraction[1] = rVoigtStress[3]*rUnitNormal[0] + rVoigtStress[1]*rUnitNormal[1] + rVoigtStress[4]*rUnitNormal[2];
+        rCauchyTraction[2] = rVoigtStress[5]*rUnitNormal[0] + rVoigtStress[4]*rUnitNormal[1] + rVoigtStress[2]*rUnitNormal[2];
+    }
+}
+
+template<std::size_t TDim>
+void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateCBProjectionLinearisation(
+    const Matrix& rC,
+    const BoundedMatrix<double,StrainSize,LocalSize>& rB,
+    const array_1d<double,TDim>& rUnitNormal,
+    BoundedMatrix<double,TDim,LocalSize>& rAuxMat)
+{
+    BoundedMatrix<double,StrainSize,LocalSize> aux_CB = prod(rC, rB);
+    if constexpr (TDim == 2) {
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(2,j);
+        }
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            rAuxMat(1,j) = rUnitNormal[0]*aux_CB(2,j) + rUnitNormal[1]*aux_CB(1,j);
+        }
+    } else {
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            rAuxMat(0,j) = rUnitNormal[0]*aux_CB(0,j) + rUnitNormal[1]*aux_CB(3,j) + rUnitNormal[2]*aux_CB(5,j);
+        }
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            rAuxMat(1,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(1,j) + rUnitNormal[2]*aux_CB(4,j);
+        }
+        for (std::size_t j = 0; j < LocalSize; ++j) {
+            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j) + rUnitNormal[2]*aux_CB(2,j);
+        }
+    }
+}
+
 template class SmallDisplacementShiftedBoundaryElement<2>;
 template class SmallDisplacementShiftedBoundaryElement<3>;
 
