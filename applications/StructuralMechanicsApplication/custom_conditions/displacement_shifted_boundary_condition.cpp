@@ -110,7 +110,7 @@ void DisplacementShiftedBoundaryCondition::GetDofList(
     KRATOS_TRY
 
     // Resize the DOFs vector
-    const auto &r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
     const SizeType local_size = n_dim * n_nodes;
