@@ -167,10 +167,10 @@ ExplicitFilter<TContainerType>::ExplicitFilter(
     {
         "filter_type"               : "explicit_vertex_morphing",
         "filtering_model_part_name" : "",
+        "filter_radius"             : 0.000000000001,
         "damped_model_part_names"   : {},
         "filter_function_type"      : "linear",
         "damping_function_type"     : "sigmoidal",
-        "radius"                    : 0.000000000001,
         "max_nodes_in_filter_radius": 1000
     })" );
     Settings.ValidateAndAssignDefaults(default_parameters);
@@ -194,7 +194,7 @@ ExplicitFilter<TContainerType>::ExplicitFilter(
     const bool all_damping_valid = std::all_of(mDampingComponentIndices.begin(), mDampingComponentIndices.end(), [&](const auto& rValue) { return rValue.size() == mNumberOfComponents; });
     KRATOS_ERROR_IF_NOT(all_damping_valid) << "Mismatching damping components found.";
 
-    mFilterRadius = Settings["radius"].GetDouble();
+    mFilterRadius = Settings["filter_radius"].GetDouble();
 }
 
 template<class TContainerType>
