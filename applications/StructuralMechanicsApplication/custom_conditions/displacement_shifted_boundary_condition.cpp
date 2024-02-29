@@ -110,7 +110,7 @@ void DisplacementShiftedBoundaryCondition::GetDofList(
     KRATOS_TRY
 
     // Resize the DOFs vector
-    const auto &r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
     const SizeType local_size = n_dim * n_nodes;
@@ -161,7 +161,7 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
 
     // Check (and resize) LHS and RHS matrix
-    const auto &r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     const std::size_t local_size = n_nodes * n_dim;
     if (rRightHandSideVector.size() != local_size) {
@@ -357,7 +357,7 @@ void DisplacementShiftedBoundaryCondition::CalculateRightHandSide(
     const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
 
     // Check (and resize) LHS and RHS matrix
-    const auto &r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     const std::size_t local_size = n_nodes * n_dim;
     if (rRightHandSideVector.size() != local_size) {
@@ -457,9 +457,9 @@ int DisplacementShiftedBoundaryCondition::Check(const ProcessInfo& rCurrentProce
 }
 
 void DisplacementShiftedBoundaryCondition::CalculateBtransCProjectionLinearisation(
-    const Matrix &rC,
-    const Matrix &rB,
-    const array_1d<double, 3> &rUnitNormal,
+    const Matrix& rC,
+    const Matrix& rB,
+    const array_1d<double, 3>& rUnitNormal,
     Matrix& rAuxMat)
 {
     const SizeType local_size = rB.size2();
@@ -486,8 +486,8 @@ void DisplacementShiftedBoundaryCondition::CalculateBtransCProjectionLinearisati
 }
 
 void DisplacementShiftedBoundaryCondition::CalculateAuxShapeFunctionsMatrix(
-    const Vector &rN,
-    Matrix &rAuxMat)
+    const Vector& rN,
+    Matrix& rAuxMat)
 {
     const SizeType n_nodes = rN.size();
     const SizeType n_dim = rAuxMat.size1();
