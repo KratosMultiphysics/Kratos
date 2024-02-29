@@ -33,9 +33,7 @@ template<std::size_t TDim>
 MixedLaplacianShiftedBoundaryElement<TDim>::MixedLaplacianShiftedBoundaryElement(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry)
-    : MixedLaplacianElement<TDim, NumNodes>(
-        NewId,
-        pGeometry)
+    : MixedLaplacianElement<TDim, NumNodes>(NewId, pGeometry)
 {
 }
 
@@ -44,10 +42,7 @@ MixedLaplacianShiftedBoundaryElement<TDim>::MixedLaplacianShiftedBoundaryElement
     IndexType NewId,
     typename GeometryType::Pointer pGeometry,
     typename PropertiesType::Pointer pProperties)
-    : MixedLaplacianElement<TDim, NumNodes>(
-        NewId,
-        pGeometry,
-        pProperties)
+    : MixedLaplacianElement<TDim, NumNodes>(NewId, pGeometry, pProperties)
 {
 }
 
@@ -67,11 +62,6 @@ Element::Pointer MixedLaplacianShiftedBoundaryElement<TDim>::Create(
     typename PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<MixedLaplacianShiftedBoundaryElement>(NewId, pGeom, pProperties);
-}
-
-template<std::size_t TDim>
-MixedLaplacianShiftedBoundaryElement<TDim>::~MixedLaplacianShiftedBoundaryElement()
-{
 }
 
 template<std::size_t TDim>
@@ -336,8 +326,6 @@ void MixedLaplacianShiftedBoundaryElement<TDim>::CalculateRightHandSide(
 template<std::size_t TDim>
 int MixedLaplacianShiftedBoundaryElement<TDim>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    // Surrogate boundary checks
-
     // Base Laplacian element check
     return BaseType::Check(rCurrentProcessInfo);
 }

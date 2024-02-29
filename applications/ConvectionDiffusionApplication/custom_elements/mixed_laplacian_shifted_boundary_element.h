@@ -9,8 +9,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_MIXED_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED )
-#define  KRATOS_MIXED_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -75,23 +74,29 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with geometry
     MixedLaplacianShiftedBoundaryElement(
         IndexType NewId,
         typename GeometryType::Pointer pGeometry);
 
+    /// Constructor with geometry and properties
     MixedLaplacianShiftedBoundaryElement(
         IndexType NewId,
         typename GeometryType::Pointer pGeometry,
         typename PropertiesType::Pointer pProperties);
 
-    /// Destructor.
-    virtual ~MixedLaplacianShiftedBoundaryElement();
+    /// Destructor
+    virtual ~MixedLaplacianShiftedBoundaryElement() = default;
+
+    /// Copy constructor
+    MixedLaplacianShiftedBoundaryElement(const MixedLaplacianShiftedBoundaryElement& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    MixedLaplacianShiftedBoundaryElement& operator=(const MixedLaplacianShiftedBoundaryElement& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -143,7 +148,6 @@ public:
 
 
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -179,12 +183,9 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    MixedLaplacianShiftedBoundaryElement() : MixedLaplacianElement<TDim, NumNodes>()
-    {
-    }
+    MixedLaplacianShiftedBoundaryElement() : MixedLaplacianElement<TDim, NumNodes>() {}
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -236,14 +237,8 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    //MixedLaplacianShiftedBoundaryElement& operator=(const MixedLaplacianShiftedBoundaryElement& rOther);
-
-    /// Copy constructor.
-    //MixedLaplacianShiftedBoundaryElement(const MixedLaplacianShiftedBoundaryElement& rOther);
 
     ///@}
-
 }; // Class MixedLaplacianShiftedBoundaryElement
 
 ///@}
@@ -256,23 +251,27 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    MixedLaplacianShiftedBoundaryElement& rThis);
-*/
+template<std::size_t TDim>
+inline std::istream& operator >> (
+    std::istream& rIStream,
+    MixedLaplacianShiftedBoundaryElement<TDim>& rThis)
+{
+    return rIStream;
+}
+
 /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const MixedLaplacianShiftedBoundaryElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+template<std::size_t TDim>
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const MixedLaplacianShiftedBoundaryElement<TDim>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-      return rOStream;
-    }*/
+    return rOStream;
+}
+
 ///@}
-
 }  // namespace Kratos.
-
-#endif // KRATOS_MIXED_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED  defined
