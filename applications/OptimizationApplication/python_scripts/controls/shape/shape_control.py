@@ -64,8 +64,7 @@ class ShapeControl(Control):
         if self.use_mesh_motion_solver:
             self.mesh_motion_solver.Initialize()
 
-        self.control_field = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.NodalPositionExpressionIO.Read(self.control_field, Kratos.Configuration.Initial)
+        self.control_field = self.GetPhysicalField()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
