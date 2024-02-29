@@ -2310,8 +2310,8 @@ namespace Kratos {
       bool is_square = (std::abs(xmin_x1-xmin_x2)<eps && std::abs(xmax_x1-xmax_x2)<eps && std::abs(ymin_y1-ymin_y2)<eps && std::abs(ymax_y1-ymax_y2)<eps);
 
       if (is_square) {
-        mRVE_CornerCoordsX.insert(mRVE_CornerCoordsX.end(), { xmin_x1, xmax_x1, xmax_x1, xmin_x1 });
-        mRVE_CornerCoordsY.insert(mRVE_CornerCoordsY.end(), { ymin_y1, ymin_y1, ymax_y1, ymax_y1 });
+        mRVE_CornerCoordsX = {xmin_x1, xmax_x1, xmax_x1, xmin_x1};
+        mRVE_CornerCoordsY = {ymin_y1, ymin_y1, ymax_y1, ymax_y1};
       }
       else {
         double ymin_x_min =  DBL_MAX;
@@ -2331,8 +2331,8 @@ namespace Kratos {
         const double ymax_x_min = ymin_x_min + slope * height;
         const double ymax_x_max = ymin_x_max + slope * height;
 
-        mRVE_CornerCoordsX.insert(mRVE_CornerCoordsX.end(), { ymin_x_min, ymin_x_max, ymax_x_min, ymax_x_max });
-        mRVE_CornerCoordsY.insert(mRVE_CornerCoordsY.end(), { ymin_y1,    ymin_y1,    ymax_y1,    ymax_y1    });
+        mRVE_CornerCoordsX = {ymin_x_min, ymin_x_max, ymax_x_min, ymax_x_max};
+        mRVE_CornerCoordsY = {ymin_y1,    ymin_y1,    ymax_y1,    ymax_y1};
       }
     }
 
