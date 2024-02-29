@@ -210,20 +210,19 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
-        # model_part = self._GetSolver().GetComputingModelPart().GetSubModelPart("ImposedTemperature2D_Imposed_temperature_Auto1")
+        model_part = self._GetSolver().GetComputingModelPart().GetSubModelPart("ImposedTemperature2D_Imposed_temperature_Auto1")
 
-        # number_nodes = len(model_part.Nodes)
-        # norm_distr = np.random.normal(0.0, 0.5e-5, number_nodes)
-        # counter = 0
+        number_nodes = len(model_part.Nodes)
+        norm_distr = np.random.normal(0.0, 1.00e-5, number_nodes)
+        counter = 0
 
-        # for node in model_part.Nodes:
-        #     node.X0 += norm_distr[counter]
-        #     node.Y0 += norm_distr[counter]
-        #     node.X  += norm_distr[counter]
-        #     node.Y  += norm_distr[counter]
-        #     counter += 1
-            # print(node.Id)
-        pass
+        for node in model_part.Nodes:
+            node.X0 += norm_distr[counter]
+            node.Y0 += norm_distr[counter]
+            node.X  += norm_distr[counter]
+            node.Y  += norm_distr[counter]
+            counter += 1
+        # pass
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """

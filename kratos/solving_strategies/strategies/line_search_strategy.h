@@ -311,9 +311,9 @@ public:
             "max_line_search_iterations" : 30,
             "first_alpha_value"          : 0.5,
             "second_alpha_value"         : 0.8,
-            "min_alpha"                  : 0.01,
-            "max_alpha"                  : 10.0,
-            "line_search_tolerance"      : 0.001
+            "min_alpha"                  : 0.1,
+            "max_alpha"                  : 2.0,
+            "line_search_tolerance"      : 0.01
         })");
 
         // Getting base class default parameters
