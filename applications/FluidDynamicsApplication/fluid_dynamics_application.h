@@ -48,6 +48,7 @@
 #include "custom_elements/weakly_compressible_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/embedded_fluid_element_discontinuous.h"
+#include "custom_elements/shifted_boundary_fluid_element.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/two_fluid_vms_linearized_darcy.h"
@@ -65,6 +66,7 @@
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+#include "custom_conditions/shifted_boundary_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -446,6 +448,12 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+
+    /// Shifted Boundary element and condition
+    const ShiftedBoundaryFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > > mShiftedBoundaryWeaklyCompressibleNavierStokes2D3N;
+    const ShiftedBoundaryFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > > mShiftedBoundaryWeaklyCompressibleNavierStokes3D4N;
+    const ShiftedBoundaryWallCondition<2,2> mShiftedBoundaryWallCondition2D;
+    const ShiftedBoundaryWallCondition<3,3> mShiftedBoundaryWallCondition3D;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
