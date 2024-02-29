@@ -2347,7 +2347,7 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    // TODO: Missing 3D
+    // TODO: Missing 3D; 2D Do not work with extended walls
     double ExplicitSolverStrategy::RVEComputeTotalSurface(void) {
       double surface = 0.0;
 
@@ -2380,7 +2380,7 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    // TODO: Missing 3D
+    // TODO: Missing 3D; 2D Do not work with extended walls
     double ExplicitSolverStrategy::RVEComputeTotalVolume(void) {
       double vol = 0.0;
 
