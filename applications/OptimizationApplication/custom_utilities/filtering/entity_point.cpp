@@ -56,6 +56,18 @@ Point EntityPoint<TEntityType>::GetPoint(const TEntityType& rEntity)
     }
 }
 
+template<class TEntityType>
+void EntityPoint<TEntityType>::SetDampedComponents(const std::vector<bool>& rComponents)
+{
+    mDampedComponents = rComponents;
+}
+
+template<class TEntityType>
+const std::vector<bool>& EntityPoint<TEntityType>::GetDampedComponents() const
+{
+    return mDampedComponents;
+}
+
 //template instantiations
 template class EntityPoint<ModelPart::NodeType>;
 template class EntityPoint<ModelPart::ConditionType>;
