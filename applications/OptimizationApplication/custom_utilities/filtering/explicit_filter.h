@@ -16,18 +16,20 @@
 
 // System includes
 #include <string>
-#include <variant>
 
 // Project includes
+#include "containers/model.h"
+#include "containers/pointer_vector_set.h"
+#include "expression/container_expression.h"
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "expression/container_expression.h"
 
 // Application includes
 #include "entity_point.h"
+#include "filter.h"
 #include "filter_function.h"
-#include "damping_function.h"
 
 namespace Kratos {
 
@@ -35,7 +37,7 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitFilter
+class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitFilter: public Filter<TContainerType>
 {
 public:
     ///@name Type definitions
@@ -58,44 +60,44 @@ public:
     ///@{
 
     ExplicitFilter(
-        const ModelPart& rModelPart,
-        const std::string& rKernelFunctionType,
-        const IndexType MaxNumberOfNeighbours);
+        Model& rModel,
+        Parameters Settings);
 
-    ExplicitFilter(
-        const ModelPart& rModelPart,
-        const ModelPart& rFixedModelPart,
-        const std::string& rKernelFunctionType,
-        const std::string& rDampingFunctionType,
-        const IndexType MaxNumberOfNeighbours);
+    ~ExplicitFilter() override = default;
 
     ///@}
     ///@name Public operations
 
+    void Initialize() override;
+
+    void Check() override {};
+
     void SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
-    void Update();
+    void Update() override;
 
-    ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    void Finalize() override {}
 
-    ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const override;
+
+    ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const override;
 
     void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    std::string Info() const;
+    std::string Info() const override;
 
     ///@}
 private:
     ///@name Private member variables
     ///@{
 
-    const ModelPart& mrModelPart;
+    Model& mrModel;
 
-    const ModelPart* mpFixedModelPart = nullptr;
+    std::string mFilteringModelPartName;
 
     FilterFunction::UniquePointer mpKernelFunction;
 
-    DampingFunction::UniquePointer mpDampingFunction;
+    FilterFunction::UniquePointer mpDampingFunction;
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
@@ -103,15 +105,19 @@ private:
 
     EntityPointVector mEntityPointVector;
 
-    EntityPointVector mFixedModelPartEntityPointVector;
-
     IndexType mBucketSize = 100;
 
     IndexType mMaxNumberOfNeighbors;
 
-    typename KDTree::Pointer mpSearchTree;
+    IndexType mNumberOfComponents;
 
-    typename KDTree::Pointer mpFixedModelPartSearchTree;
+    double mFilterRadius;
+
+    std::vector<std::string> mDampingModelPartNames;
+
+    std::vector<std::vector<bool>> mDampingComponentIndices;
+
+    typename KDTree::Pointer mpSearchTree;
 
     ///@}
     ///@name Private operations
@@ -122,20 +128,6 @@ private:
 
     ///@}
 };
-
-///@name Input and output
-///@{
-
-/// output stream function
-template<class TContainerType>
-inline std::ostream& operator<<(
-    std::ostream& rOStream,
-    const ExplicitFilter<TContainerType>& rThis)
-{
-    return rOStream << rThis.Info();
-}
-
-///@}
 
 ///@}
 } // namespace Kratos
