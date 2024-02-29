@@ -39,6 +39,7 @@ CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
 CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
+CALL :add_app %KRATOS_APP_DIR%\MedApplication;
 CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
@@ -62,8 +63,8 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
 -DKRATOS_BUILD_TESTING=ON                                                                   ^
--DINSTALL_RUNKRATOS=OFF                                                                     ^
 -DHDF5_ROOT="c:\hdf5\bin"                                                                   ^
+-DMED_ROOT="c:\med\bin"                                                                     ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 :add_app

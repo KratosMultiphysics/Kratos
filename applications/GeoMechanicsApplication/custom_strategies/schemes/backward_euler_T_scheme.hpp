@@ -14,35 +14,26 @@
 
 #pragma once
 
-#include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+// Project includes
+#include "includes/define.h"
 
-namespace Kratos {
+// Application includes
+#include "backward_euler_scheme.hpp"
+#include "geo_mechanics_application_variables.h"
+
+namespace Kratos
+{
 
 template <class TSparseSpace, class TDenseSpace>
-class BackwardEulerTScheme
-    : public GeneralizedNewmarkTScheme<TSparseSpace, TDenseSpace> {
+class BackwardEulerTScheme : public BackwardEulerScheme<TSparseSpace, TDenseSpace>
+{
 public:
     KRATOS_CLASS_POINTER_DEFINITION(BackwardEulerTScheme);
 
     BackwardEulerTScheme()
-        : GeneralizedNewmarkTScheme<TSparseSpace, TDenseSpace>(1.0)
+        : BackwardEulerScheme<TSparseSpace, TDenseSpace>(
+              {FirstOrderScalarVariable(TEMPERATURE, DT_TEMPERATURE, DT_TEMPERATURE_COEFFICIENT)}, {})
     {
     }
-
-protected:
-    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            const double DeltaTemperature =
-                rNode.FastGetSolutionStepValue(TEMPERATURE) -
-                rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
-            rNode.FastGetSolutionStepValue(DT_TEMPERATURE) = DeltaTemperature / this->GetDeltaTime();
-        });
-
-        KRATOS_CATCH("")
-    }
-
 }; // Class BackwardEulerTScheme
 } // namespace Kratos

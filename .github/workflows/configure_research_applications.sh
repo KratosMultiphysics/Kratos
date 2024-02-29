@@ -20,6 +20,14 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.8"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
+add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
+add_app ${KRATOS_APP_DIR}/FluidDynamicsHydraulicsApplication;
+add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
+add_app ${KRATOS_APP_DIR}/DEMApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;

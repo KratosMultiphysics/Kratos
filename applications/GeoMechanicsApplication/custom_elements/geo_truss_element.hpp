@@ -11,7 +11,7 @@
 //
 
 #if !defined(KRATOS_GEO_TRUSS_ELEMENT_H_INCLUDED)
-#define  KRATOS_GEO_TRUSS_ELEMENT_H_INCLUDED
+#define KRATOS_GEO_TRUSS_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -30,41 +30,35 @@ namespace Kratos
  * @author Vahid Galavi
  */
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElement
-    : public GeoTrussElementBase<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElement : public GeoTrussElementBase<TDim, TNumNodes>
 {
-
 protected:
-    //const values
-    static constexpr int mStressVectorSize = 1;
-    Vector mInternalStresses = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalized = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
+    // const values
+    static constexpr int mStressVectorSize                  = 1;
+    Vector               mInternalStresses                  = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
 public:
-    typedef GeoTrussElementBase<TDim,TNumNodes> BaseType;
-    typedef Element::GeometryType GeometryType;
-    typedef Element::NodesArrayType NodesArrayType;
-    typedef Element::PropertiesType PropertiesType;
-    typedef Element::IndexType IndexType;
-    typedef Element::SizeType SizeType;
-    typedef Element::MatrixType MatrixType;
-    typedef Element::VectorType VectorType;
-    typedef typename GeoTrussElementBase<TDim,TNumNodes>::FullDofMatrixType FullDofMatrixType;
-    typedef typename GeoTrussElementBase<TDim,TNumNodes>::FullDofVectorType FullDofVectorType;
+    typedef GeoTrussElementBase<TDim, TNumNodes>                             BaseType;
+    typedef Element::GeometryType                                            GeometryType;
+    typedef Element::NodesArrayType                                          NodesArrayType;
+    typedef Element::PropertiesType                                          PropertiesType;
+    typedef Element::IndexType                                               IndexType;
+    typedef Element::SizeType                                                SizeType;
+    typedef Element::MatrixType                                              MatrixType;
+    typedef Element::VectorType                                              VectorType;
+    typedef typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType FullDofMatrixType;
+    typedef typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType FullDofVectorType;
 
-    using GeoTrussElementBase<TDim,TNumNodes>::mpConstitutiveLaw;
+    using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElement);
 
-    GeoTrussElement() {};
-    GeoTrussElement(IndexType NewId,
-                    GeometryType::Pointer pGeometry);
-    GeoTrussElement(IndexType NewId,
-                    GeometryType::Pointer pGeometry,
-                    PropertiesType::Pointer pProperties);
-
+    GeoTrussElement(){};
+    GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoTrussElement() override;
 
@@ -75,9 +69,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create( IndexType NewId,
-                             GeometryType::Pointer pGeom,
-                             PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -86,9 +78,9 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create( IndexType NewId,
-                             NodesArrayType const& ThisNodes,
-                             PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -96,15 +88,15 @@ public:
      * @brief This function updates the internal normal force w.r.t. the current deformations
      * @param rinternalForces The current updated internal forces
      */
-    void UpdateInternalForces(BoundedVector<double,TDim*TNumNodes>& rInternalForces,
+    void UpdateInternalForces(BoundedVector<double, TDim * TNumNodes>& rInternalForces,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                      std::vector< array_1d<double, 3 > >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -112,8 +104,8 @@ public:
     void ResetConstitutiveLaw() override;
 
 private:
-
     friend class Serializer;
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
@@ -131,7 +123,6 @@ private:
     }
 };
 
-}
-
+} // namespace Kratos
 
 #endif

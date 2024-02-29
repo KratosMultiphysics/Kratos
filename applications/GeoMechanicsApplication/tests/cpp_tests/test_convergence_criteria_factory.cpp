@@ -24,7 +24,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuite)
 {
-    const std::string validParameters = R"(
+    const std::string valid_parameters = R"(
     {
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
@@ -32,9 +32,24 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplaceme
     }
     )";
 
-    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{validParameters});
-    const auto displacementCriterion = dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
-    KRATOS_EXPECT_NE(displacementCriterion, nullptr);
+    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
+    const auto displacement_criterion = dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
+    KRATOS_EXPECT_NE(displacement_criterion, nullptr);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, KratosGeoMechanicsFastSuite)
+{
+    const std::string valid_parameters = R"(
+    {
+        "convergence_criterion":          "residual_criterion",
+        "residual_relative_tolerance":    1.0E-4,
+        "residual_absolute_tolerance":    1.0E-9
+    }
+    )";
+
+    const auto convergence_criteria = ConvergenceCriteriaFactoryType::Create(Parameters{valid_parameters});
+    const auto residual_criterion = dynamic_cast<const ResidualCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
+    KRATOS_EXPECT_NE(residual_criterion, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist, KratosGeoMechanicsFastSuite)

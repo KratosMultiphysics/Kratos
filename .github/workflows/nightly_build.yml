@@ -110,13 +110,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.8'
 
     - name: Download boost
       run: |
-        $url = "https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
