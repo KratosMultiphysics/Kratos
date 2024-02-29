@@ -161,7 +161,7 @@ void DisplacementShiftedBoundaryCondition::CalculateLocalSystem(
     const SizeType n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
 
     // Check (and resize) LHS and RHS matrix
-    const auto &r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     const std::size_t local_size = n_nodes * n_dim;
     if (rRightHandSideVector.size() != local_size) {
