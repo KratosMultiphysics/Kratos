@@ -9,8 +9,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_MIXED_LAPLACIAN_SHIFTED_BOUNDARY_CONDITION_H_INCLUDED)
-#define  KRATOS_MIXED_LAPLACIAN_SHIFTED_BOUNDARY_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -30,6 +29,9 @@
 namespace Kratos
 {
 
+///@addtogroup ConvectionDiffusionApplication
+///@{
+
 ///@name Kratos Classes
 ///@{
 
@@ -47,21 +49,34 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Constructor with geometry
     MixedLaplacianShiftedBoundaryCondition(
         IndexType NewId,
         Geometry<Node>::Pointer pGeometry);
 
+    /// Constructor with geometry and properties
     MixedLaplacianShiftedBoundaryCondition(
         IndexType NewId,
         Geometry<Node>::Pointer pGeometry,
         Properties::Pointer pProperties);
 
+    /// Constructor with array of nodes
     MixedLaplacianShiftedBoundaryCondition(
         IndexType NewId,
         const NodesArrayType& ThisNodes);
 
-    /// Destructor.
-    ~MixedLaplacianShiftedBoundaryCondition() override;
+    /// Destructor
+    ~MixedLaplacianShiftedBoundaryCondition() override = default;
+
+    /// Copy constructor
+    MixedLaplacianShiftedBoundaryCondition(MixedLaplacianShiftedBoundaryCondition const& rOther) = delete;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator
+    MixedLaplacianShiftedBoundaryCondition& operator=(MixedLaplacianShiftedBoundaryCondition const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -114,14 +129,12 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-
 protected:
-
     ///@name Protected Life Cycle
     ///@{
 
     // Internal default constructor for serialization
-    MixedLaplacianShiftedBoundaryCondition();
+    MixedLaplacianShiftedBoundaryCondition() = default;
 
     ///@}
     ///@name Protected Operations
@@ -129,9 +142,7 @@ protected:
 
 
     ///@}
-
 private:
-
     ///@name Serialization
     ///@{
 
@@ -145,14 +156,8 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    MixedLaplacianShiftedBoundaryCondition& operator=(MixedLaplacianShiftedBoundaryCondition const& rOther);
-
-    /// Copy constructor.
-    MixedLaplacianShiftedBoundaryCondition(MixedLaplacianShiftedBoundaryCondition const& rOther);
 
     ///@}
-
 }; // Class MixedLaplacianShiftedBoundaryCondition
 
 ///@}
@@ -161,4 +166,3 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MIXED_LAPLACIAN_SHIFTED_BOUNDARY_CONDITION_H_INCLUDED  defined

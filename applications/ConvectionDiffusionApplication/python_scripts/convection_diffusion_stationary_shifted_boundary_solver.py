@@ -33,8 +33,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         this_defaults = KratosMultiphysics.Parameters(r"""{
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
-            "mls_extension_operator_order" : 1,
-            "lagrange_multipliers_imposition" : false
+            "mls_extension_operator_order" : 1
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -46,33 +45,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Add distance variable to represent the skin
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
-        # Add Lagrange multipliers required variables
-        if self.settings["lagrange_multipliers_imposition"].GetBool():
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
-
-    def AddDofs(self):
-        # Add heat transfer DOFs
-        super().AddDofs()
-
-        # Add Lagrange multipliers DOFs
-        if self.settings["lagrange_multipliers_imposition"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, self.main_model_part)
-
     def Initialize(self):
-        # # Correct the level set
-        # #TODO: Use the FluidDynamicsApplication process
-        # #FIXME: USE THIS FOR THE ZIG-ZAG PLATE TESTS
-        # tol = 1.0e-12
-        # for node in self.GetComputingModelPart().Nodes:
-        #     dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-        #     if abs(dist) < tol:
-        #         print("Node {} dist {}".format(node.Id, dist))
-        #         if dist < 0.0:
-        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol)
-        #         else:
-        #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
-        # #FIXME: USE THIS FOR THE ZIG-ZAG PLATE TESTS
-
         # Avoid zeros with positive epsilon
         tol = 1.0e-12
         for node in self.GetComputingModelPart().Nodes:
@@ -93,16 +66,13 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         settings.AddEmptyValue("conforming_basis").SetBool(self.settings["conforming_basis"].GetBool())
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
-        if self.settings["lagrange_multipliers_imposition"].GetBool():
-            sbm_interface_condition_name = "LaplacianShiftedBoundaryLagrangeMultipliersCondition"
+        element_type = self.settings["element_replace_settings"]["element_name"].GetString()[:-4]
+        if element_type == "LaplacianShiftedBoundaryElement":
+            sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
+        elif element_type == "MixedLaplacianShiftedBoundaryElement":
+            sbm_interface_condition_name = "MixedLaplacianShiftedBoundaryCondition"
         else:
-            element_type = self.settings["element_replace_settings"]["element_name"].GetString()[:-4]
-            if element_type == "LaplacianShiftedBoundaryElement":
-                sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
-            elif element_type == "MixedLaplacianShiftedBoundaryElement":
-                sbm_interface_condition_name = "MixedLaplacianShiftedBoundaryCondition"
-            else:
-                raise Exception("Unsupported \'element_type\': {}".format(element_type))
+            raise Exception(f"Unsupported \'element_type\': {element_type}")
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(sbm_interface_condition_name)
         sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
         sbm_interface_utility.CalculateExtensionOperator()

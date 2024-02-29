@@ -23,9 +23,7 @@ namespace Kratos
 LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry)
-    : Condition(
-        NewId,
-        pGeometry)
+    : Condition(NewId, pGeometry)
 {
 }
 
@@ -33,23 +31,14 @@ LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry,
     Properties::Pointer pProperties)
-    : Condition(
-        NewId,
-        pGeometry,
-        pProperties)
+    : Condition(NewId, pGeometry, pProperties)
 {
 }
 
 LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
-    :Condition(
-        NewId,
-        ThisNodes)
-{
-}
-
-LaplacianShiftedBoundaryCondition::~LaplacianShiftedBoundaryCondition()
+    :Condition(NewId, ThisNodes)
 {
 }
 
@@ -293,11 +282,6 @@ void LaplacianShiftedBoundaryCondition::PrintData(std::ostream& rOStream) const
 }
 
 // Serialization //////////////////////////////////////////////////////////////
-
-LaplacianShiftedBoundaryCondition::LaplacianShiftedBoundaryCondition():
-    Condition()
-{
-}
 
 void LaplacianShiftedBoundaryCondition::save(Serializer& rSerializer) const
 {

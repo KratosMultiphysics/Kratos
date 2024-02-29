@@ -23,9 +23,7 @@ namespace Kratos
 MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry)
-    : Condition(
-        NewId,
-        pGeometry)
+    : Condition(NewId, pGeometry)
 {
 }
 
@@ -33,23 +31,14 @@ MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry,
     Properties::Pointer pProperties)
-    : Condition(
-        NewId,
-        pGeometry,
-        pProperties)
+    : Condition(NewId, pGeometry, pProperties)
 {
 }
 
 MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
-    :Condition(
-        NewId,
-        ThisNodes)
-{
-}
-
-MixedLaplacianShiftedBoundaryCondition::~MixedLaplacianShiftedBoundaryCondition()
+    :Condition(NewId, ThisNodes)
 {
 }
 
@@ -330,11 +319,6 @@ void MixedLaplacianShiftedBoundaryCondition::PrintData(std::ostream& rOStream) c
 }
 
 // Serialization //////////////////////////////////////////////////////////////
-
-MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition():
-    Condition()
-{
-}
 
 void MixedLaplacianShiftedBoundaryCondition::save(Serializer& rSerializer) const
 {

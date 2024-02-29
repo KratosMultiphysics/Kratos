@@ -9,8 +9,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_CONDITION_H_INCLUDED)
-#define  KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -29,6 +28,9 @@
 
 namespace Kratos
 {
+
+///@addtogroup ConvectionDiffusionApplication
+///@{
 
 ///@name Kratos Classes
 ///@{
@@ -61,7 +63,17 @@ public:
         const NodesArrayType& ThisNodes);
 
     /// Destructor.
-    ~LaplacianShiftedBoundaryCondition() override;
+    ~LaplacianShiftedBoundaryCondition() override = default;
+
+    /// Copy constructor.
+    LaplacianShiftedBoundaryCondition(LaplacianShiftedBoundaryCondition const& rOther) = delete;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    LaplacianShiftedBoundaryCondition& operator=(LaplacianShiftedBoundaryCondition const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -114,14 +126,12 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-
 protected:
-
     ///@name Protected Life Cycle
     ///@{
 
     // Internal default constructor for serialization
-    LaplacianShiftedBoundaryCondition();
+    LaplacianShiftedBoundaryCondition() = default;
 
     ///@}
     ///@name Protected Operations
@@ -129,9 +139,7 @@ protected:
 
 
     ///@}
-
 private:
-
     ///@name Serialization
     ///@{
 
@@ -142,17 +150,6 @@ private:
     void load(Serializer& rSerializer) override;
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    LaplacianShiftedBoundaryCondition& operator=(LaplacianShiftedBoundaryCondition const& rOther);
-
-    /// Copy constructor.
-    LaplacianShiftedBoundaryCondition(LaplacianShiftedBoundaryCondition const& rOther);
-
-    ///@}
-
 }; // Class LaplacianShiftedBoundaryCondition
 
 ///@}
@@ -160,5 +157,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_CONDITION_H_INCLUDED  defined
