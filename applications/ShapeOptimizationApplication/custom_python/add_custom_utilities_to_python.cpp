@@ -26,6 +26,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/optimization_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "custom_utilities/heat_method_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
@@ -37,11 +38,17 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 // ==============================================================================
 
 namespace Kratos {
 namespace Python {
+
+typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
 
 // Overloaded functions
 template<typename TMapper>
@@ -258,6 +265,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeVolume", &GeometryUtilities::ComputeVolume)
         .def("ComputeVolumeShapeDerivatives", &GeometryUtilities::ComputeVolumeShapeDerivatives)
         ;
+
+    // ========================================================================
+    // For heat method
+    // ========================================================================
+    py::class_<HeatMethodUtilities >(m, "HeatMethodUtilities")
+        .def(py::init<ModelPart&, LinearSolver<SparseSpaceType, LocalSpaceType>&>())
+        // TODO: add methods which shall be available in python
+        .def("ComputeGeodesicDistance", &HeatMethodUtilities::ComputeGeodesicDistance)
+        ;
+
 
     // ========================================================================
     // For mesh handling

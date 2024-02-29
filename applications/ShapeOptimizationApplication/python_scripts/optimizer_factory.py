@@ -102,6 +102,12 @@ class Optimizer:
             model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
             model_part.AddNodalSolutionStepVariable(KSO.MAX_NEIGHBOUR_DISTANCE)
 
+        if self.optimization_settings["design_variables"]["filter"].Has("distance_type") and \
+            self.optimization_settings["design_variables"]["filter"]["distance_type"].GetString() == "geodesic":
+            model_part = self.model_part_controller.GetOptimizationModelPart()
+            model_part.AddNodalSolutionStepVariable(KSO.GEODESIC_DISTANCE)
+            model_part.AddNodalSolutionStepVariable(KSO.HEAT_DIFFUSION)
+
     def __AddVariablesToBeUsedBySensitivityHeatmap(self):
         model_part = self.model_part_controller.GetOptimizationModelPart()
 

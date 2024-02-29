@@ -106,6 +106,10 @@ namespace Kratos
         // For face angle response
     KRATOS_CREATE_VARIABLE(bool, CONSIDER_FACE_ANGLE);
 
+    // For geodesic filtering
+    KRATOS_CREATE_VARIABLE(double, GEODESIC_DISTANCE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(HEAT_DIFFUSION);
+
 	// For sensitivity heatmap
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(HEATMAP_DF1DX);
     KRATOS_CREATE_VARIABLE(double, HEATMAP_DF1DALPHA);
@@ -240,6 +244,10 @@ namespace Kratos
 
         // For face angle response
         KRATOS_REGISTER_VARIABLE(CONSIDER_FACE_ANGLE);
+
+        // For geodesic filtering
+        KRATOS_REGISTER_VARIABLE(GEODESIC_DISTANCE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(HEAT_DIFFUSION);
 
 	    // For sensitivity heatmap
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(HEATMAP_DF1DX);

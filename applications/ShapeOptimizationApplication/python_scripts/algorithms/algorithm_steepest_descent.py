@@ -13,6 +13,7 @@
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+from KratosMultiphysics import python_linear_solver_factory
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
@@ -96,6 +97,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.optimization_utilities = KSO.OptimizationUtilities
 
+        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.sparse_lu" }')
+        heat_solver = python_linear_solver_factory.ConstructSolver(settings)
+        print(f"heat_solver: {heat_solver}")
+
+        self.heat_method = KSO.HeatMethodUtilities(self.design_surface, heat_solver)
+        print(f"self.heat_method: {self.heat_method}")
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
@@ -110,6 +118,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             timer.StartNewLap()
 
             self.__initializeNewShape()
+
+            self.__RunHeatMethod()
 
             self.__analyzeShape()
 
@@ -139,6 +149,10 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
         self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
         self.model_part_controller.SetReferenceMeshToMesh()
+
+    def __RunHeatMethod(self):
+
+        self.heat_method.ComputeGeodesicDistance()
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):

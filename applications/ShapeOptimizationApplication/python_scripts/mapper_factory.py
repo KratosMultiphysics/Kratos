@@ -40,6 +40,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
             "point" : [0.0, 0.0, 0.0],
             "normal": [0.0, 0.0, 0.0]
         },
+        "distance_type": "euclidean",
         "adaptive_filter_settings"   : {
             "adaptive_filter_method": "curvature_based",
             "radius_function": "analytic",
