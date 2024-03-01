@@ -169,6 +169,22 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
     KRATOS_EXPECT_EQ(dofs[2]->GetId(), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder2DElement, KratosGeoMechanicsFastSuite)
+{
+    auto       model         = Model{};
+    const auto all_variables = ConstVariableRefs{
+        std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
+    auto& r_model_part = CreateTestModelPart(model, all_variables);
+    AddThreeNodesWithDofs(r_model_part, all_variables);
+
+    const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
+    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
+                                                         r_model_part.CreateNewProperties(0));
+
+    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(p_element->GetGeometry());
+    KRATOS_EXPECT_EQ(dofs.size(), node_ids.size() * all_variables.size());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
 {
     auto        model        = Model{};
