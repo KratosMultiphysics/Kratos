@@ -333,13 +333,6 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
-    //for debug
-    //if (r_process_info[TIME] > 0.009394579999960167 && this->Id() == 12) {
-    //    KRATOS_WATCH(total_forces[0])
-    //    KRATOS_WATCH(total_forces[1])
-    //    KRATOS_WATCH(total_forces[2])
-    //}
-
     ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
 
     #ifdef KRATOS_DEBUG
@@ -557,6 +550,7 @@ void SphericParticle::EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer
     RelDeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
     RelDeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
     RelDeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
+
 }
 
 void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
@@ -610,6 +604,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     RelDeltDisp[0] += my_delta_disp_at_contact_point_due_to_rotation[0] - other_delta_disp_at_contact_point_due_to_rotation[0];
     RelDeltDisp[1] += my_delta_disp_at_contact_point_due_to_rotation[1] - other_delta_disp_at_contact_point_due_to_rotation[1];
     RelDeltDisp[2] += my_delta_disp_at_contact_point_due_to_rotation[2] - other_delta_disp_at_contact_point_due_to_rotation[2];
+
 }
 
 
@@ -761,6 +756,7 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     RelDeltDisp[0] += (my_new_arm_vector[0] - other_new_arm_vector[0]) + (other_arm_vector[0] - my_arm_vector[0]);
     RelDeltDisp[1] += (my_new_arm_vector[1] - other_new_arm_vector[1]) + (other_arm_vector[1] - my_arm_vector[1]);
     RelDeltDisp[2] += (my_new_arm_vector[2] - other_new_arm_vector[2]) + (other_arm_vector[2] - my_arm_vector[2]);
+
 }
 
 void SphericParticle::ComputeMoments(double NormalLocalContactForce,
@@ -781,6 +777,7 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
     array_1d<double, 3> moment_of_this_neighbour;
     GeometryFunctions::CrossProduct(arm_vector, Force, moment_of_this_neighbour);
     noalias(mContactMoment) += moment_of_this_neighbour;
+
 }
 
 void SphericParticle::ComputeMomentsWithWalls(double NormalLocalContactForce,
@@ -946,7 +943,7 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     data_buffer.mLocalRelVel[1] = 0.0;
     data_buffer.mLocalRelVel[2] = 0.0;
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel);
-
+    
     mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(p_neighbour_element);
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
             LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
@@ -1868,8 +1865,9 @@ void SphericParticle::AddUpMomentsAndProject(double LocalCoordSystem[3][3],
     }
 
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactRotationalMoment, GlobalContactRotationalMoment);
-
+    
     DEM_ADD_SECOND_TO_FIRST(mContactMoment, GlobalContactRotationalMoment)
+
 }
 
 void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],

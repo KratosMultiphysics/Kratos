@@ -90,6 +90,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
                             double equiv_young,
                             double equiv_shear,
                             double indentation,
+                            double indentation_particle,
                             double calculation_area,
                             double& acumulated_damage,
                             SphericContinuumParticle* element1,

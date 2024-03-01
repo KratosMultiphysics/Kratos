@@ -150,7 +150,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             LocalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+                long double temp_1 = LocalCoordSystem[i][j];
+                long double temp_2 = GlobalVector[j];
+                LocalVector[i] += temp_1 * temp_2;
             }
         }
     }
@@ -160,7 +162,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             LocalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+                long double temp_1 = LocalCoordSystem[i][j];
+                long double temp_2 = GlobalVector[j];
+                LocalVector[i] += temp_1 * temp_2;
             }
         }
     }
@@ -170,7 +174,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             LocalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+                long double temp_1 = LocalCoordSystem[i][j];
+                long double temp_2 = GlobalVector[j];
+                LocalVector[i] += temp_1 * temp_2;
             }
         }
     }
@@ -180,7 +186,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+                long double temp_1 = LocalCoordSystem[j][i];
+                long double temp_2 = LocalVector[j];
+                GlobalVector[i] += temp_1 * temp_2;
             }
         }
     }
@@ -190,7 +198,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+                long double temp_1 = LocalCoordSystem[j][i];
+                long double temp_2 = LocalVector[j];
+                GlobalVector[i] += temp_1 * temp_2;
             }
         }
     }
@@ -200,7 +210,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+                long double temp_1 = LocalCoordSystem[j][i];
+                long double temp_2 = LocalVector[j];
+                GlobalVector[i] += temp_1 * temp_2;
             }
         }
     }
@@ -210,7 +222,9 @@ namespace Kratos {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
             for (int j=0; j<3; j++) {
-                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+                long double temp_1 = LocalCoordSystem[j][i];
+                long double temp_2 = LocalVector[j];
+                GlobalVector[i] += temp_1 * temp_2;
             }
         }
     }

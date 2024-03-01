@@ -241,6 +241,22 @@ namespace Kratos {
 
             double initial_dist = radius_sum - initial_delta;
             double indentation = initial_dist - data_buffer.mDistance;
+            double indentation_particle = radius_sum - data_buffer.mDistance;
+            
+            if (this->mIndentationInitialOption) {
+
+                if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
+                    if (indentation_particle > 0.0) {
+                        this->mIndentationInitial[data_buffer.mpOtherParticle->Id()] = indentation_particle;
+                    } 
+                }
+
+                if (this->mIndentationInitial.find(data_buffer.mpOtherParticle->Id()) != this->mIndentationInitial.end()){
+                    indentation_particle -= this->mIndentationInitial[data_buffer.mpOtherParticle->Id()];
+                } 
+
+            }
+
             double myYoung = GetYoung();
             double myPoisson = GetPoisson();
 
@@ -315,7 +331,7 @@ namespace Kratos {
             double GlobalContactForce[3] = {0.0};
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
-
+            
             //*******************Forces calculation****************
             if (i < (int)mContinuumInitialNeighborsSize) {
 
@@ -333,6 +349,7 @@ namespace Kratos {
                                                                 equiv_young,
                                                                 equiv_shear,
                                                                 indentation,
+                                                                indentation_particle,
                                                                 calculation_area,
                                                                 acumulated_damage,
                                                                 this,
@@ -345,11 +362,11 @@ namespace Kratos {
                                                                 LocalRelVel,
                                                                 ViscoDampingLocalContactForce);
 
-            } else if (indentation > 0.0) {
-                const double previous_indentation = indentation + LocalDeltDisp[2];
+            } else if (indentation_particle > 0.0) {
+                const double previous_indentation = indentation_particle + LocalDeltDisp[2];
                 mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce,
-                                                                LocalDeltDisp, LocalRelVel, indentation, previous_indentation,
+                                                                LocalDeltDisp, LocalRelVel, indentation_particle, previous_indentation,
                                                                 ViscoDampingLocalContactForce, cohesive_force, this, data_buffer.mpOtherParticle, sliding, data_buffer.mLocalCoordSystem);
             } else { //Not bonded and no idata_buffer.mpOtherParticlendentation
                 LocalElasticContactForce[0] = 0.0;      LocalElasticContactForce[1] = 0.0;      LocalElasticContactForce[2] = 0.0;
@@ -376,6 +393,11 @@ namespace Kratos {
                 GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
             }
 
+            //*******************Add up forces and moments**************
+            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
+                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
+
+
             //******************Moments calculation start****************
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 if (i < (int)mContinuumInitialNeighborsSize) {
@@ -389,16 +411,17 @@ namespace Kratos {
                                                                         ViscoLocalRotationalMoment,
                                                                         equiv_poisson,
                                                                         indentation,
+                                                                        indentation_particle,
                                                                         LocalElasticContactForce,
                                                                         LocalContactForce[2],
-                                                                        GlobalElasticContactForce,
+                                                                        GlobalContactForce,
                                                                         data_buffer.mLocalCoordSystem[2],
                                                                         i);
 
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation, mContactMoment);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation_particle, mContactMoment);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
@@ -409,15 +432,12 @@ namespace Kratos {
 
                 } else { //for unbonded particles
 
-                    double GlobalElasticContactForce[3] = {0.0};
-                    GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-                    ComputeMoments(LocalContactForce[2], GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation, i);
-
+                    ComputeMoments(LocalContactForce[2], GlobalContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, indentation_particle, i);
 
                     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !data_buffer.mMultiStageRHS) {
                         if (mRollingFrictionModel->CheckIfThisModelRequiresRecloningForEachNeighbour()){
                             mRollingFrictionModel = pCloneRollingFrictionModelWithNeighbour(data_buffer.mpOtherParticle);
-                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation, mContactMoment);
+                            mRollingFrictionModel->ComputeRollingFriction(this, data_buffer.mpOtherParticle, r_process_info, LocalContactForce, indentation_particle, mContactMoment);
                         }
                         else {
                             if ((i >= (int)mContinuumInitialNeighborsSize) || mIniNeighbourFailureId[i]) {
@@ -440,14 +460,11 @@ namespace Kratos {
                                                                     ViscoDampingLocalContactForce, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
-            //*******************Add up forces and moments**************
-            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i, r_process_info); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
-
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 AddUpMomentsAndProject(data_buffer.mLocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }
 
+            
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < (int)mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 double total_local_elastic_contact_force[3] = {0.0};
                 total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];

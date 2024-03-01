@@ -63,6 +63,7 @@ namespace Kratos {
             const double kn_el,
             double equiv_young,
             double indentation,
+            double indentation_particle,
             double calculation_area,
             double& acumulated_damage,
             SphericContinuumParticle* element1,
