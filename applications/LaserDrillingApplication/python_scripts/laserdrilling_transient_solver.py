@@ -38,8 +38,30 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         self.jump_between_pulses_counter += delta_time
         if self.jump_between_pulses_counter >= self.time_jump_between_pulses:
-            self.ImposeTemperatureDistributionDueToLaser1D()
             self.jump_between_pulses_counter = 0
+            initial_computed_energy = self.MonitorEnergy()
+            print()
+            print("initial computed energy:", initial_computed_energy)
+            self.ImposeTemperatureDistributionDueToLaser1D()
+            computed_energy_after_laser = self.MonitorEnergy()
+            print()
+            print("computed energy after laser:", computed_energy_after_laser)
+            print()
+            print("laser energy:", self.Q)
+            diff_of_energies = computed_energy_after_laser - initial_computed_energy
+            print()
+            print("diff between final and initial energies:", diff_of_energies)
+            print()
+            computed_energy_after_adjusting = self.MonitorEnergy()
+            target_total_energy = initial_computed_energy + self.Q
+            print()
+            print("target total energy:", target_total_energy)
+            print()
+            print("computed energy after adjusting:", computed_energy_after_adjusting)
+            relative_error = 100 * (computed_energy_after_adjusting - target_total_energy) / target_total_energy
+            print()
+            print("relative error:", relative_error, "%")
+            print()
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -102,36 +124,54 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.rho = material_settings['Variables']['DENSITY'].GetDouble()
         self.T0 = self.settings['ambient_temperature'].GetDouble()
         self.kappa = self.conductivity / (self.rho * self.cp)
+        self.plot_decomposed_volume_graph = False
+
+        self.element_id_to_study = 1804
+
+        '''print(project_parameters["problem_data"]["end_time"].GetDouble())
+        project_parameters["problem_data"]["end_time"].SetDouble(2e-5)
+        print(project_parameters["problem_data"]["end_time"].GetDouble()
+        stop'''
 
         # TODO: Initial condition, ambient temperature. Do this using GUI!
         for node in self.main_model_part.Nodes:
-            initial_temp = 298.15 # Assuming 25 Celsius of ambient temperature
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, initial_temp)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, initial_temp)
-        #
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
+            #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
 
         initial_computed_energy = self.MonitorEnergy()
+        print()
         print("initial computed energy:", initial_computed_energy)
 
         self.ImposeTemperatureDistributionDueToLaser1D()
 
         computed_energy_after_laser = self.MonitorEnergy()
+        print()
         print("computed energy after laser:", computed_energy_after_laser)
 
+        print()
         print("laser energy:", self.Q)
         diff_of_energies = computed_energy_after_laser - initial_computed_energy
+        print()
         print("diff between final and initial energies:", diff_of_energies)
 
-        temperature_factor = self.Q / diff_of_energies
+        '''temperature_factor = self.Q / diff_of_energies
+        print()
         print("temperature_factor:", temperature_factor)
+        self.AdjustTemperatureField(temperature_factor)'''
 
-        self.AdjustTemperatureField(temperature_factor)
         computed_energy_after_adjusting = self.MonitorEnergy()
         target_total_energy = initial_computed_energy + self.Q
+        print()
         print("target total energy:", target_total_energy)
+        print()
         print("computed energy after adjusting:", computed_energy_after_adjusting)
+        print()
+        print("actual laser energy added:", computed_energy_after_adjusting - initial_computed_energy)
+        print()
         relative_error = 100 * (computed_energy_after_adjusting - target_total_energy) / target_total_energy
+        print()
         print("relative error:", relative_error, "%")
+        print()
 
         radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
         self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
@@ -142,9 +182,15 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
         import os
-        if os.path.exists("decomposed_volume_evolution.dat"):
-            os.remove("decomposed_volume_evolution.dat")
-        self.decomposed_volume_file = open("decomposed_volume_evolution.dat", "a")
+        if os.path.exists("decomposed_volume_evolution.txt"):
+            os.remove("decomposed_volume_evolution.txt")
+        self.decomposed_volume_file = open("decomposed_volume_evolution.txt", "a")
+        if os.path.exists("temperature_alpha.txt"):
+            os.remove("temperature_alpha.txt")
+        self.temperature_alpha_file = open("temperature_alpha.txt", "a")
+        if os.path.exists("time_alpha.txt"):
+            os.remove("time_alpha.txt")
+        self.time_alpha_file = open("time_alpha.txt", "a")
 
     def ImposeTemperatureDistributionDueToLaser1D(self):
         for node in self.main_model_part.Nodes:
@@ -175,7 +221,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
     def TimeToAchieveEvaporationTemperature(self, radius):
 
-        C = 1.0 / (4.0 * np.pi * self.rho**2 * self.kappa * self.cp**2 * self.T_e**2)
+        C = 1.0 / (4.0 * np.pi * self.rho**2 * self.kappa * self.cp**2 * (self.T_e - self.T0)**2)
         t = C * self.EnergyPerUnitArea1D(radius)**2
         return t
 
@@ -194,24 +240,37 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        print("decomposed_volume:", self.MonitorDecomposedVolume())
+
         decomp_vol = self.MonitorDecomposedVolume()
+        decomp_vol *= 1e9 # To convert mm3 into um3
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.decomposed_volume_file.write(str(current_time) + " " + str(decomp_vol) + "\n")
+        for elem in self.main_model_part.Elements:
+            if elem.Id == self.element_id_to_study:
+                temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+                thermal_decomposition = elem.GetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION)
+                self.temperature_alpha_file.write(str(temperature) + " " + str(thermal_decomposition) + "\n")
+                self.time_alpha_file.write(str(current_time) + " " + str(thermal_decomposition) + "\n")
+                break
 
     def Finalize(self):
         super().Finalize()
-
         self.decomposed_volume_file.close()
+        self.temperature_alpha_file.close()
+        self.time_alpha_file.close()
 
+        if self.plot_decomposed_volume_graph:
+            self.PrintDecomposedVolumeEvolution()
+
+    def PrintDecomposedVolumeEvolution(self):
         import matplotlib.pyplot as plt
-        f = open(os.path.expanduser("decomposed_volume_evolution.dat"))
-        lines = f.readlines()
+        file = open(os.path.expanduser("decomposed_volume_evolution.txt"))
+        lines = file.readlines()
         x, y = [], []
         for line in lines:
             x.append(line.split()[0])
             y.append(line.split()[1])
-        f.close()
+        file.close()
         plt.plot(x,y)
         plt.show()
 
