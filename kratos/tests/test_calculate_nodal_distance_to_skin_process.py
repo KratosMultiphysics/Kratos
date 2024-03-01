@@ -156,7 +156,7 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
 
     @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_ComputeDistanceToSkinWithSavedDistanceInSkin(self):
-        """Test the computation of nodal distances to the skin in the model part."""
+        """Test the computation of nodal distances to the skin in the model part. Case saving distances in the skin."""
         # Define the settings for the distance calculation process
         settings = KratosMultiphysics.Parameters("""
         {
