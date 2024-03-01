@@ -765,21 +765,6 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                 LocalElasticContactForce);
     }                         
 
-    
-    /*double LocalUnbondContactForce[3] = {0.0};
-    double GlobalUnbondContactForce[3] = {0.0};
-    LocalUnbondContactForce[0] = (1 - mBondedScalingFactor[0]) * LocalContactForce[0];
-    LocalUnbondContactForce[1] = (1 - mBondedScalingFactor[1]) * LocalContactForce[1];
-    LocalUnbondContactForce[2] = (1 - mBondedScalingFactor[2]) * LocalContactForce[2];
-    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalUnbondContactForce, GlobalUnbondContactForce);*/
-
-    /*double LocalUnbondElasticContactForce[3] = {0.0};
-    double GlobalUnbondElasticContactForce[3] = {0.0};
-    LocalUnbondElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * LocalElasticContactForce[0];
-    LocalUnbondElasticContactForce[1] = (1 - mBondedScalingFactor[1]) * LocalElasticContactForce[1];
-    LocalUnbondElasticContactForce[2] = (1 - mBondedScalingFactor[2]) * LocalElasticContactForce[2];
-    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalUnbondElasticContactForce, GlobalUnbondElasticContactForce);*/
-
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
                                              GlobalContactForce,
                                              LocalCoordSystem_2,
@@ -860,10 +845,6 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     ElasticLocalRotationalMoment[0] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[0];
     ElasticLocalRotationalMoment[1] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[1];
     ElasticLocalRotationalMoment[2] = -kt_el / calculation_area * Inertia_J * LocalEffDeltaRotatedAngle[2];
-
-    //ElasticLocalRotationalMoment[0] = 0.0;
-    //ElasticLocalRotationalMoment[1] = 0.0;
-    //ElasticLocalRotationalMoment[2] = 0.0;
 
     ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
     ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
