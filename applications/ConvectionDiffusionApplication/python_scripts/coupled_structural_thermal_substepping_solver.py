@@ -1,15 +1,8 @@
-import sys
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
-
 # Importing the base class
 import KratosMultiphysics.ConvectionDiffusionApplication.coupled_structural_thermal_solver as BaseThermoMech
-
 
 def CreateSolver(main_model_part, custom_settings):
     return CoupledThermoMechanicalSubsteppingSolver(main_model_part, custom_settings)
