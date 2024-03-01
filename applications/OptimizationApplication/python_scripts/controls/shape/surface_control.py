@@ -9,7 +9,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.filtering.filtering_factory import Factory as FilterFactory
+from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
