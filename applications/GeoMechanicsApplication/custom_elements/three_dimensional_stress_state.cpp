@@ -11,7 +11,7 @@
 //                   Richard Faasse
 //
 #include "three_dimensional_stress_state.h"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {
