@@ -42,6 +42,10 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( HISTORICAL_VALUE );               /// This flag is used in order to check if the values are historical
+    KRATOS_DEFINE_LOCAL_FLAG( SAVE_DISTANCE_IN_SKIN );          /// This flag is used in order to save the highest distance in the found geometries of the skin
+
     /// Pointer definition of CalculateNodalDistanceToSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalDistanceToSkinProcess);
 
@@ -56,12 +60,14 @@ public:
      * @param rSkinModelPart Model part containing the skin to compute the distance to as conditions
      * @param HistoricalVariable If the variable is part of the historical database of from the non-historical database
      * @param rDistanceVariableName The distance variable considered
+     * @param SaveDistanceInSkin If distances are saved into the skin
      */
     CalculateNodalDistanceToSkinProcess(
         ModelPart& rVolumeModelPart,
         ModelPart& rSkinModelPart,
         const bool HistoricalVariable = true,
-        const std::string& rDistanceVariableName = ""
+        const std::string& rDistanceVariableName = "",
+        const bool SaveDistanceInSkin = false
         );
 
     /**
@@ -139,9 +145,6 @@ private:
 
     /// Reference to the skin model part.
     ModelPart& mrSkinModelPart;
-
-    /// Flag indicating whether historical variable is enabled.
-    bool mHistoricalVariable;
 
     /// Pointer to the distance variable.
     const Variable<double>* mpDistanceVariable = &DISTANCE;
