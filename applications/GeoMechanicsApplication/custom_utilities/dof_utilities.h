@@ -18,6 +18,7 @@
 #include "geometries/geometry.h"
 #include "includes/dof.h"
 #include "includes/node.h"
+#include "includes/variables.h"
 
 namespace Kratos::Geo::DofUtilities
 {
@@ -44,7 +45,8 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(const NodePtrRange& rNodePtrs, co
 template <typename NodeRange>
 std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes)
 {
-    return std::vector<Dof<double>*>(std::distance(std::begin(rNodes), std::end(rNodes)) * 3, nullptr);
+    auto p_first_dof = rNodes[0].pGetDof(DISPLACEMENT_X);
+    return std::vector<Dof<double>*>(std::distance(std::begin(rNodes), std::end(rNodes)) * 3, p_first_dof);
 }
 
 Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);

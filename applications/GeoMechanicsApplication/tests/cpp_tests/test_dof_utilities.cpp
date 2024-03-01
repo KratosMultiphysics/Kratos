@@ -183,6 +183,8 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
 
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(p_element->GetGeometry());
     KRATOS_EXPECT_EQ(dofs.size(), node_ids.size() * all_variables.size());
+    KRATOS_EXPECT_TRUE(
+        std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
