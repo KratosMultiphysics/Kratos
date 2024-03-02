@@ -412,7 +412,7 @@ namespace Kratos {
                                                                         equiv_poisson,
                                                                         indentation,
                                                                         indentation_particle,
-                                                                        LocalElasticContactForce,
+                                                                        LocalContactForce,
                                                                         LocalContactForce[2],
                                                                         GlobalContactForce,
                                                                         data_buffer.mLocalCoordSystem[2],

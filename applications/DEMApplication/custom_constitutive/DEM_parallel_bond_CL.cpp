@@ -741,7 +741,7 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                     double equiv_poisson, 
                     double indentation,
                     double indentation_particle,
-                    double LocalElasticContactForce[3],
+                    double LocalContactForce[3],
                     double normalLocalContactForce,
                     double GlobalContactForce[3],
                     double LocalCoordSystem_2[3],
@@ -762,7 +762,7 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                 ViscoLocalRotationalMoment, 
                                 equiv_poisson, 
                                 indentation, 
-                                LocalElasticContactForce);
+                                LocalContactForce);
     }                         
 
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
@@ -791,7 +791,7 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
                                                 double indentation,
-                                                double LocalElasticContactForce[3]) {
+                                                double LocalContactForce[3]) {
 
     KRATOS_TRY
     //const double& bond_rotational_moment_coefficient_normal =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL];
@@ -825,10 +825,10 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
     //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'
-    array_1d<double, 3> visc_param;
+    /*array_1d<double, 3> visc_param;
     visc_param[0] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
     visc_param[1] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_I / distance); // OLMEDO
-    visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_J / distance); // OLMEDO
+    visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * bond_equiv_young * Inertia_J / distance); // OLMEDO*/
 
     double aux = (element->GetRadius() + neighbor->GetRadius()) / distance; // This is necessary because if spheres are not tangent the DeltaAngularVelocity has to be interpolated
  
@@ -846,12 +846,13 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     ElasticLocalRotationalMoment[1] = -kn_el / calculation_area * Inertia_I * LocalEffDeltaRotatedAngle[1];
     ElasticLocalRotationalMoment[2] = -kt_el / calculation_area * Inertia_J * LocalEffDeltaRotatedAngle[2];
 
-    ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
+    /*ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
     ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
-    ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
+    ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];*/
 
     //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
     //DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
+    
     /*
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
@@ -893,6 +894,10 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
     } */
+
+    ViscoLocalRotationalMoment[0] = 0.0;
+    ViscoLocalRotationalMoment[1] = 0.0;
+    ViscoLocalRotationalMoment[2] = 0.0;
      
     KRATOS_CATCH("")
 }//ComputeParticleRotationalMoments
