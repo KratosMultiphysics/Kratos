@@ -8,7 +8,7 @@ set KRATOS_BUILD=%cd%\build
 set KRATOS_APP_DIR=applications
 
 REM Set applications to compile .. see "ci_apps_windows.json"
-set KRATOS_APPLICATIONS_FILE="%KRATOS_SOURCE%\ci_compiled_apps.txt"
+set KRATOS_APPLICATIONS_FILE=%KRATOS_SOURCE%\ci_compiled_apps.txt
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
