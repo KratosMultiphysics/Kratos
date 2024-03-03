@@ -3,7 +3,7 @@ from functools import lru_cache
 from os import getenv
 from pathlib import Path
 from pprint import pprint
-from typing import List, Set, Optional, cast
+from typing import List, Set, Optional
 
 # Note: this file cannot contain any Kratos imports, since it is used before Kratos is compiled!
 
@@ -27,10 +27,6 @@ def check_valid_environment_configuration_exists() -> None:
 @lru_cache
 def changed_files() -> List[Path]:
     check_valid_environment_configuration_exists()
-    changed_files: str = cast(str, getenv("KRATOS_CI_CHANGED_FILES"))
-    if changed_files == "ALL":
-        return []
-
     return [Path(f) for f in json.loads(getenv(changed_files))]
 
 
@@ -68,8 +64,13 @@ def are_only_python_files_changed() -> bool:
 
 def print_ci_information() -> None:
     """This function prints an overview of the CI related information"""
-    pprint(sorted(map(lambda p: p.as_posix(), changed_files())))
     pprint(sorted(ci_applications()))
+
+    if getenv("KRATOS_CI_CHANGED_FILES") == "ALL":
+        print("All applications will be compiled")
+        return
+
+    pprint(sorted(map(lambda p: p.as_posix(), changed_files())))
     print(f"{sorted(get_changed_files_extensions())=}")
     print(f"{are_only_python_files_changed()=}")
     print(f"{sorted(get_changed_applications())=}")
