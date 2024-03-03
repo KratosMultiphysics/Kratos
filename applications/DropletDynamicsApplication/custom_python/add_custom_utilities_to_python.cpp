@@ -24,6 +24,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/find_nodal_h_process_max.h"
+#include "custom_utilities/find_conservative_elements.h"
 
 
 namespace Kratos {
@@ -45,6 +46,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<FindNodalHProcessMax<false>, FindNodalHProcessMax<false>::Pointer, Process>(m, "FindNonHistoricalNodalHProcessMax")
         .def(py::init<ModelPart&>())
         .def("Execute", &FindNodalHProcessMax<false>::Execute);
+
+    // Add FindConservativeElementsProcess to Python
+    py::class_<FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsHistoricalVariable>, FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalNighbersProcess")
+    .def(py::init<ModelPart&>())
+    ;
+
+    py::class_<FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsNonHistoricalVariable>, FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalNighbersNonHistoricalProcess")
+    .def(py::init<ModelPart&>())
+    ;
 
 }
 
