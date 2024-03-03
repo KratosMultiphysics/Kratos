@@ -3,7 +3,7 @@ from functools import lru_cache
 from os import getenv
 from pathlib import Path
 from pprint import pprint
-from typing import List, Set, Optional
+from typing import List, Set, Optional, cast
 
 # Note: this file cannot contain any Kratos imports, since it is used before Kratos is compiled!
 
@@ -27,7 +27,11 @@ def check_valid_environment_configuration_exists() -> None:
 @lru_cache
 def changed_files() -> List[Path]:
     check_valid_environment_configuration_exists()
-    return [Path(f) for f in json.loads(getenv("KRATOS_CI_CHANGED_FILES"))]
+    changed_files: str = cast(str, getenv("KRATOS_CI_CHANGED_FILES"))
+    if changed_files == "ALL":
+        return []
+
+    return [Path(f) for f in json.loads(getenv(changed_files))]
 
 
 def ci_applications() -> List[str]:
