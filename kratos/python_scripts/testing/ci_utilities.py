@@ -84,8 +84,6 @@ def write_compiled_apps_to_file() -> None:
     """
     # TODO add path only if app is not an absolute path
     kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
-
-    print(f"{kratos_path}")
     with open(kratos_path / "ci_compiled_apps.txt", "w") as ci_apps_file:
         for app in ci_applications():
             ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
