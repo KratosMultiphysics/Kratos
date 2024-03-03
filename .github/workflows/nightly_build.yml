@@ -42,6 +42,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
+
     - name: CI configuration
       shell: bash
       run: python3 kratos/python_scripts/testing/ci_utilities.py
@@ -159,7 +162,10 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
 
     - name: CI configuration
       shell: bash
