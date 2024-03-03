@@ -27,7 +27,7 @@ def check_valid_environment_configuration_exists() -> None:
 @lru_cache
 def changed_files() -> List[Path]:
     check_valid_environment_configuration_exists()
-    return [Path(f) for f in json.loads(getenv(changed_files))]
+    return [Path(f) for f in json.loads(getenv("KRATOS_CI_CHANGED_FILES"))]
 
 
 def ci_applications() -> List[str]:
