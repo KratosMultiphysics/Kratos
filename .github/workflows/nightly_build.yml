@@ -32,6 +32,7 @@ jobs:
     env:
       KRATOS_BUILD_TYPE: Release
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_linux.json"
+      KRATOS_CI_CHANGED_FILES: "ALL"
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
@@ -110,6 +111,7 @@ jobs:
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
+      KRATOS_CI_CHANGED_FILES: "ALL"
 
     steps:
     - uses: actions/checkout@v4
@@ -156,6 +158,7 @@ jobs:
     env:
       KRATOS_BUILD_TYPE: Custom
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_centos.json"
+      KRATOS_CI_CHANGED_FILES: "ALL"
 
     container:
       image: kratosmultiphysics/kratos-image-ci-centos7:latest
