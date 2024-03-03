@@ -390,7 +390,7 @@ endif(DEFINED ENV{BOOST_ROOT})
 find_package(Boost)
 
 if(NOT Boost_FOUND)
-  # Trying to find in in external libraries
+  # Trying to find in external libraries
   set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
   find_package(Boost)
   if(NOT Boost_FOUND)
@@ -500,7 +500,6 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
-  find_package(TRILINOS QUIET)
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -578,6 +577,11 @@ if(DEFINED ENV{KRATOS_APPLICATIONS_FILE})
   set(ENV{KRATOS_APPLICATIONS} ${KRATOS_APPLICATIONS_FILE_CONTENT})
 
 endif(DEFINED ENV{KRATOS_APPLICATIONS_FILE})
+
+# find trilinos. Requires apps-file to be read
+if(${USE_MPI} MATCHES ON )
+  find_package(TRILINOS QUIET)
+endif(${USE_MPI} MATCHES ON )
 
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
