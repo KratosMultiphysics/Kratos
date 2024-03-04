@@ -3,42 +3,42 @@
     1.0
   ],
   "NODE_1": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_2": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_3": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_4": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19622.042125422962
     ]
   },
   "NODE_5": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_6": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19913.29312704039
     ]
   },
   "NODE_7": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19913.293127040382
     ]
   },
   "NODE_8": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19622.042125422962
     ]
   }
