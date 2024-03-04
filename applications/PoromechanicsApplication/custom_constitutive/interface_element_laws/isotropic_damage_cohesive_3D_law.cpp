@@ -127,9 +127,11 @@ void IsotropicDamageCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& 
     //Compute the effective stress vector
     noalias(EffectiveStressVector) = prod(ElasticConstitutiveMatrix, rStrainVector);
 
-    // Add initial stresses contribution
-    const Element::GeometryType& geometry = rValues.GetElementGeometry();
-    InterfaceElementUtilities::AddInitialInterfaceStresses2D(EffectiveStressVector, rValues, geometry);    
+    //Check for 2D and add initial stress state
+    if (EffectiveStressVector.size() == 2){ 
+        const Element::GeometryType& geometry = rValues.GetElementGeometry();
+        InterfaceElementUtilities::AddInitialInterfaceStresses2D(EffectiveStressVector, rValues, geometry); 
+    }    
 
     //Compute the traction stress vector (IF REQUIRED)
     if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS)){

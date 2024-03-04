@@ -131,10 +131,12 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::CalculateMaterialResponseCauchy (Par
     ElasticStrainVector = rStrainVector - mOldPlasticStrainVector;
     noalias(TrialStressVector) = prod(ElasticConstitutiveMatrix, ElasticStrainVector);
     
-    //Add initial stress state
-    const Element::GeometryType& geometry = rValues.GetElementGeometry();
-    InterfaceElementUtilities::AddInitialInterfaceStresses2D(TrialStressVector, rValues, geometry);
-
+    //Check for 2D and add initial stress state
+    if (TrialStressVector.size() == 2){ 
+        const Element::GeometryType& geometry = rValues.GetElementGeometry();
+        InterfaceElementUtilities::AddInitialInterfaceStresses2D(TrialStressVector, rValues, geometry); 
+    }
+    
     //Evaluate the yield function at the trial elastic state
     this->ComputeYieldFunction(TrialStressVector,Variables,EPlasticVariables,rValues);
 
