@@ -157,7 +157,7 @@ protected:
     std::string mVariableName;
 
     /// The modulus of the vector
-    double mModulus;
+    double mModulus = 1.0;
 
     /// The direction of the vector
     Vector mDirection;

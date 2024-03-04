@@ -183,13 +183,13 @@ const Parameters ApplyConstantVectorValueProcess::GetDefaultParameters() const
 {
     Parameters default_settings(R"({
         "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-        "MeshId": 0,
-        "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-        "is_fixed_x": false,
-        "is_fixed_y": false,
-        "is_fixed_z": false,
-        "modulus" : 1.0,
-        "direction": [1.0, 0.0, 0.0]
+        "mesh_id"        : 0,
+        "variable_name"  : "PLEASE_PRESCRIBE_VARIABLE_NAME",
+        "is_fixed_x"     : false,
+        "is_fixed_y"     : false,
+        "is_fixed_z"     : false,
+        "modulus"        : 1.0,
+        "direction"      : [1.0, 0.0, 0.0]
     })");
     return default_settings;
 }
