@@ -355,7 +355,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        ControlSliverElements3D(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
+                        ControlSliverElements(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
                     }
 
                     if (accepted)
@@ -719,11 +719,11 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        void ControlSliverElements3D(bool &accepted,
-                                     int &number_of_slivers,
-                                     Geometry<Node> vertices,
-                                     std::vector<array_1d<double, 3>> nodesCoordinates,
-                                     double CriticalVolume)
+        void ControlSliverElements(bool &accepted,
+                                   int &number_of_slivers,
+                                   Geometry<Node> vertices,
+                                   std::vector<array_1d<double, 3>> nodesCoordinates,
+                                   double CriticalVolume)
         {
             KRATOS_TRY
             Geometry<Node> *tetrahedron = new Tetrahedra3D4<Node>(vertices);

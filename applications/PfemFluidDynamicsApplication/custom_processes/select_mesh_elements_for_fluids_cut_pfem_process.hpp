@@ -73,6 +73,7 @@ namespace Kratos
                                                   int EchoLevel)
             : BaseType(rModelPart, rRemeshingParameters, EchoLevel)
         {
+            KRATOS_INFO("SelectMeshElementsForFluidsCutPfemProcess") << " activated " << std::endl;
         }
 
         /// Destructor.
@@ -343,7 +344,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        this->ControlSliverElements3D(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
+                        this->ControlSliverElements(accepted, number_of_slivers, vertices, nodesCoordinates, CriticalVolume);
                     }
 
                     if (accepted)
