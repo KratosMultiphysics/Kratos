@@ -25,14 +25,24 @@ namespace Kratos::Geo::DofUtilities
 
 std::vector<std::size_t> ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
 
+template <typename InputIt, typename OutputIt>
+OutputIt ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
+                              InputIt                 NodeRangeEnd,
+                              OutputIt                DofPtrRangeBegin,
+                              const Variable<double>& rDofVariable)
+{
+    return std::transform(NodeRangeBegin, NodeRangeEnd, DofPtrRangeBegin, [&rDofVariable](const auto& r_node) {
+        return r_node.pGetDof(rDofVariable);
+    });
+}
+
 template <typename InputIt>
 std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodePtrRangeBegin,
                                                InputIt                 NodePtrRangeEnd,
                                                const Variable<double>& rDofVariable)
 {
     auto result = std::vector<Dof<double>*>{};
-    std::transform(NodePtrRangeBegin, NodePtrRangeEnd, std::back_inserter(result),
-                   [&rDofVariable](const auto& r_node) { return r_node.pGetDof(rDofVariable); });
+    ExtractDofsFromNodes(NodePtrRangeBegin, NodePtrRangeEnd, std::back_inserter(result), rDofVariable);
     return result;
 }
 
@@ -51,9 +61,7 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes)
         result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
     }
 
-    for (auto& r_node : rNodes) {
-        result.push_back(r_node.pGetDof(WATER_PRESSURE));
-    }
+    ExtractDofsFromNodes(std::begin(rNodes), std::end(rNodes), std::back_inserter(result), WATER_PRESSURE);
 
     return result;
 }
