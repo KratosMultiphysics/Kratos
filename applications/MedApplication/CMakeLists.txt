@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosMedApplication ****")
 
 ################### PYBIND11
-include(pybind11Tools)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}) # for FindMED
 find_package(MED REQUIRED)

@@ -288,7 +288,8 @@ if(DEFINED ENV{PYTHON_EXECUTABLE})
   set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
 
-include(pybind11Tools)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/pybind11")
+include(FindPythonLibsNew)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
 if(NOT DEFINED KRATOS_ENABLE_LTO)

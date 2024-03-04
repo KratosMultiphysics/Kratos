@@ -6,7 +6,6 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 
 ## Dependecies on other applications
-include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/ThermalDEMApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )

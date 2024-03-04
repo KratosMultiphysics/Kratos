@@ -5,8 +5,6 @@ message("**** configuring KratosSwimmingDEMApplication ****")
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 
-include(pybind11Tools)
-
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Dependecies on other applications
