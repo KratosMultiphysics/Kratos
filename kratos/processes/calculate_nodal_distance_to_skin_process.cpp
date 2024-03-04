@@ -24,13 +24,6 @@
 
 namespace Kratos
 {
-/// Local Flags
-KRATOS_CREATE_LOCAL_FLAG( CalculateNodalDistanceToSkinProcess, HISTORICAL_VALUE,      0 );
-KRATOS_CREATE_LOCAL_FLAG( CalculateNodalDistanceToSkinProcess, SAVE_DISTANCE_IN_SKIN, 1 );
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     ModelPart& rVolumeModelPart,
     ModelPart& rSkinModelPart,
@@ -38,7 +31,9 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     const std::string& rDistanceVariableName,
     const bool SaveDistanceInSkin
     ) : mrVolumeModelPart(rVolumeModelPart),
-        mrSkinModelPart(rSkinModelPart)
+        mrSkinModelPart(rSkinModelPart),
+        mHistoricalValue(HistoricalVariable),
+        mSaveDistanceInSkin(SaveDistanceInSkin)
 {
     // Assign distance variable
     if (rDistanceVariableName != "") {
@@ -46,10 +41,8 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     }
 
     // Setting flags
-    this->Set(HISTORICAL_VALUE, HistoricalVariable);
     // If SaveDistanceInSkin is true we can not use parallel algorithms and therefore a warning will be raised
-    KRATOS_WARNING_IF("CalculateNodalDistanceToSkinProcess", SaveDistanceInSkin) << "SaveDistanceInSkin is true, therefore the parallel algorithms will not be used." << std::endl;
-    this->Set(SAVE_DISTANCE_IN_SKIN, SaveDistanceInSkin);
+    KRATOS_WARNING_IF("CalculateNodalDistanceToSkinProcess", mSaveDistanceInSkin) << "SaveDistanceInSkin is true, therefore the parallel algorithms will not be used." << std::endl;
 
     // Check it is serial
     KRATOS_ERROR_IF(mrVolumeModelPart.IsDistributed()) << "Distributed computation still not supported. Please update implementation as soon as MPI search is merged. See https://github.com/KratosMultiphysics/Kratos/pull/11719" << std::endl;
@@ -70,15 +63,15 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     // If historical or non-historical variables
     const std::string database = ThisParameters["distance_database"].GetString();
     if (database == "nodal_historical") {
-        this->Set(HISTORICAL_VALUE, true);
+        mHistoricalValue = true;
     } else if (database == "nodal_non_historical") {
-        this->Set(HISTORICAL_VALUE, false);
+        mHistoricalValue = false;
     } else {
         KRATOS_ERROR << "Only options are nodal_historical and nodal_non_historical, provided is: " << database << std::endl;
     }
 
     // Save distance in skin flag
-    this->Set(SAVE_DISTANCE_IN_SKIN, ThisParameters["save_distance_in_skin"].GetBool());
+    mSaveDistanceInSkin = ThisParameters["save_distance_in_skin"].GetBool();
 
     // Assign distance variable
     mpDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["distance_variable"].GetString());
@@ -136,7 +129,7 @@ void CalculateNodalDistanceToSkinProcess::Execute()
     };
 
     // Call lambda depending on the flags
-    const auto* p_distance_lambda = this->Is(HISTORICAL_VALUE) ? (this->Is(SAVE_DISTANCE_IN_SKIN) ? &distance_lambda_historical_save_skin : &distance_lambda_historical) : (this->Is(SAVE_DISTANCE_IN_SKIN) ? &distance_lambda_non_historica_save_skin : &distance_lambda_non_historical);
+    const auto* p_distance_lambda = mHistoricalValue ? (mSaveDistanceInSkin ? &distance_lambda_historical_save_skin : &distance_lambda_historical) : (mSaveDistanceInSkin ? &distance_lambda_non_historica_save_skin : &distance_lambda_non_historical);
 
     // First try to detect if elements or conditions
     const std::size_t number_of_elements_skin = mrSkinModelPart.NumberOfElements();
@@ -146,7 +139,7 @@ void CalculateNodalDistanceToSkinProcess::Execute()
         GeometricalObjectsBins bins(mrSkinModelPart.ElementsBegin(), mrSkinModelPart.ElementsEnd());
 
         // Set to zero in skin if required
-        if (this->Is(SAVE_DISTANCE_IN_SKIN)) {
+        if (mSaveDistanceInSkin) {
             VariableUtils().SetNonHistoricalVariableToZero(*mpDistanceVariable, mrSkinModelPart.Elements());
         }
 
@@ -156,7 +149,7 @@ void CalculateNodalDistanceToSkinProcess::Execute()
         GeometricalObjectsBins bins(mrSkinModelPart.ConditionsBegin(), mrSkinModelPart.ConditionsEnd());
 
         // Set to zero in skin if required
-        if (this->Is(SAVE_DISTANCE_IN_SKIN)) {
+        if (mSaveDistanceInSkin) {
             VariableUtils().SetNonHistoricalVariableToZero(*mpDistanceVariable, mrSkinModelPart.Conditions());
         }
 
@@ -203,7 +196,7 @@ void CalculateNodalDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) cons
 
 void CalculateNodalDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
 {
-    rOStream << "Volume model part:\n" << mrVolumeModelPart << "\nSkin model part:\n" << mrSkinModelPart << "\nHistorical variable: " << std::boolalpha << this->Is(HISTORICAL_VALUE) << "\nSave distance in skin: " << std::boolalpha << this->Is(SAVE_DISTANCE_IN_SKIN) << "\nDistance variable: " << mpDistanceVariable->Name() << std::endl;
+    rOStream << "Volume model part:\n" << mrVolumeModelPart << "\nSkin model part:\n" << mrSkinModelPart << "\nHistorical variable: " << std::boolalpha << mHistoricalValue << "\nSave distance in skin: " << std::boolalpha << mSaveDistanceInSkin << "\nDistance variable: " << mpDistanceVariable->Name() << std::endl;
 }
 
 } // namespace Kratos.

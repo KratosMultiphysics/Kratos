@@ -44,9 +44,9 @@ This algorithm defines 4 lambda functions for calculating the distance of nodes 
 
 - **`distance_lambda_non_historica_save_skin`**: Performs the same operations as `distance_lambda_historical_save_skin` but for non-historical variables.
 
-These lambdas functions will be chosen depending on the flags `HISTORICAL_VALUE` and `SAVE_DISTANCE_IN_SKIN`, one of the four lambda functions is selected for execution. This decision dictates whether historical or non-historical variables are used and whether distances are saved in the skin model part.
+These lambdas functions will be chosen depending on the flags `mHistoricalValue` and `mSaveDistanceInSkin`, one of the four lambda functions is selected for execution. This decision dictates whether historical or non-historical variables are used and whether distances are saved in the skin model part.
 
-If the `SAVE_DISTANCE_IN_SKIN` flag is set, initializes the distance variable to zero for all elements or conditions in the skin model part.
+If the `mSaveDistanceInSkin` flag is set, initializes the distance variable to zero for all elements or conditions in the skin model part.
 
 Both lambda functions take the following parameters:
 - `Nodes`: A reference to the container holding the nodes for which distances will be calculated.
@@ -61,8 +61,8 @@ The selected lambda function is then applied to calculate the distances for all 
 > A warning is issued if both elements and conditions are found in the skin model part, indicating that elements will be considered for the distance calculation.
 
 #### Flags
-- `HISTORICAL_VALUE`: Determines whether historical or non-historical variables are used for distance calculations.
-- `SAVE_DISTANCE_IN_SKIN`: Indicates whether the calculated distances should be saved back to the skin model part, updating the values if the new distance is greater than the existing one.
+- `mHistoricalValue`: Determines whether historical or non-historical variables are used for distance calculations.
+- `mSaveDistanceInSkin`: Indicates whether the calculated distances should be saved back to the skin model part, updating the values if the new distance is greater than the existing one.
 
 ## Parameters & Defaults
 

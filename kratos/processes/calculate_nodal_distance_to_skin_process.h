@@ -42,10 +42,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Local Flags
-    KRATOS_DEFINE_LOCAL_FLAG( HISTORICAL_VALUE );               /// This flag is used in order to check if the values are historical
-    KRATOS_DEFINE_LOCAL_FLAG( SAVE_DISTANCE_IN_SKIN );          /// This flag is used in order to save the highest distance in the found geometries of the skin
-
     /// Pointer definition of CalculateNodalDistanceToSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalDistanceToSkinProcess);
 
@@ -148,6 +144,12 @@ private:
 
     /// Pointer to the distance variable.
     const Variable<double>* mpDistanceVariable = &DISTANCE;
+
+    /// This flag is used in order to check if the values are historical
+    bool mHistoricalValue = true;
+
+    /// This flag is used in order to save the highest distance in the found geometries of the skin
+    bool mSaveDistanceInSkin = false;
 
     ///@}
     ///@name Private Operators
