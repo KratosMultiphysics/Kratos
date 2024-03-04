@@ -50,7 +50,7 @@ ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(ModelPart& rMod
     parameters.ValidateAndAssignDefaults(default_parameters);
 
     // Read from the parameters and assign to the values
-    mMeshId = parameters["MeshId"].GetInt();
+    mMeshId = parameters["mesh_id"].GetInt();
 
     this->Set(X_COMPONENT_FIXED, parameters["is_fixed_x"].GetBool());
     this->Set(Y_COMPONENT_FIXED, parameters["is_fixed_y"].GetBool());
