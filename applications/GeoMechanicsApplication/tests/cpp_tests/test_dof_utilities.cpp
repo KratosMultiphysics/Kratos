@@ -176,18 +176,22 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
         std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
     AddThreeNodesWithDofs(r_model_part, all_variables);
-
     const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
     const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
                                                          r_model_part.CreateNewProperties(0));
 
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(p_element->GetGeometry());
+
     KRATOS_EXPECT_EQ(dofs.size(), node_ids.size() * all_variables.size());
     KRATOS_EXPECT_TRUE(
         std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
-    auto expected_dofs = std::vector<Dof<double>*>{dofs[0], dofs[2], dofs[4]};
-    KRATOS_EXPECT_TRUE(std::all_of(expected_dofs.begin(), expected_dofs.end(), [](const auto p_dof) {
+    auto dofs_to_test = std::vector<Dof<double>*>{dofs[0], dofs[2], dofs[4]};
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
         return p_dof->GetVariable() == DISPLACEMENT_X;
+    }))
+    dofs_to_test = std::vector<Dof<double>*>{dofs[1], dofs[3], dofs[5]};
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
+        return p_dof->GetVariable() == DISPLACEMENT_Y;
     }))
 }
 

@@ -45,8 +45,18 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(const NodePtrRange& rNodePtrs, co
 template <typename NodeRange>
 std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes)
 {
-    auto p_first_dof = rNodes[0].pGetDof(DISPLACEMENT_X);
-    return std::vector<Dof<double>*>(std::distance(std::begin(rNodes), std::end(rNodes)) * 3, p_first_dof);
+    auto result = std::vector<Dof<double>*>{};
+    for (auto& r_node : rNodes) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+    }
+
+    // Make sure that the result has the correct length and that it doesn't contain any `nullptr`s
+    while (result.size() != std::distance(std::begin(rNodes), std::end(rNodes)) * 3) {
+        result.push_back(result.front());
+    }
+
+    return result;
 }
 
 Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
