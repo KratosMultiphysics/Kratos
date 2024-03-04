@@ -25,6 +25,7 @@ namespace Kratos::Testing::ModelSetupUtilities
 
 ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel,
                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
-ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel);
+ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel,
+                                                 const Geo::ConstVariableRefs& rNodalVariables = {});
 
 } // namespace Kratos::Testing::ModelSetupUtilities
