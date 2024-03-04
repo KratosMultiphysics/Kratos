@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -31,7 +31,7 @@ KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,Z_COMPONENT_FIXED, 2);
 
 ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(ModelPart& rModelPart,
                                 Parameters parameters
-                                ) : Process(Flags()), 
+                                ) : Process(Flags()),
                                     mrModelPart(rModelPart)
 {
     KRATOS_TRY
