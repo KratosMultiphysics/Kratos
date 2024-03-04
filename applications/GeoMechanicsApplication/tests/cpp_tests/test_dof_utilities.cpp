@@ -198,17 +198,14 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
         return p_dof->GetVariable() == WATER_PRESSURE;
     }))
     dofs_to_test = std::vector<Dof<double>*>{dofs[0], dofs[1], dofs[6]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetId() == 1;
-    }))
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(),
+                                   [](const auto p_dof) { return p_dof->GetId() == 1; }))
     dofs_to_test = std::vector<Dof<double>*>{dofs[2], dofs[3], dofs[7]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetId() == 2;
-    }))
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(),
+                                   [](const auto p_dof) { return p_dof->GetId() == 2; }))
     dofs_to_test = std::vector<Dof<double>*>{dofs[4], dofs[5], dofs[8]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetId() == 3;
-    }))
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(),
+                                   [](const auto p_dof) { return p_dof->GetId() == 3; }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
