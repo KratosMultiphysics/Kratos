@@ -30,7 +30,7 @@ namespace Kratos
  * @details In the case such condition is violated an error is thrown
  * @author Riccardo Rossi
  */
-class CheckSkinProcess
+class KRATOS_API(KRATOS_CORE) CheckSkinProcess
     : public Process
 {
 public:
