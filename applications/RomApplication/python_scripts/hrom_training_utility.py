@@ -94,7 +94,7 @@ class HRomTrainingUtility(object):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
             this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
             if len(this_modelpart_condition_ids)>0:
-                this_modelpart_condition_ids = self.map_condition_ids_to_numpy_indexes(this_modelpart_condition_ids, number_of_elements)
+                this_modelpart_condition_ids = self.map_condition_ids_to_numpy_indexes(this_modelpart_condition_ids)
                 candidate_ids = np.r_[candidate_ids, this_modelpart_condition_ids]
         if np.size(candidate_ids)>0:
             self.candidate_ids = np.unique(candidate_ids).astype(int)
@@ -109,27 +109,27 @@ class HRomTrainingUtility(object):
         self.element_id_to_numpy_index_mapping = {}
         self.numpy_index_to_element_id_mapping = {}
         for index, element in enumerate(root_model_part.Elements):
-            self.numpy_index_to_element_id_mapping[index] = element.Id
-            self.element_id_to_numpy_index_mapping[element.Id] = index
+            self.numpy_index_to_element_id_mapping[index] = element.Id-1 #FIXME -1
+            self.element_id_to_numpy_index_mapping[element.Id-1] = index #FIXME -1
 
         self.condition_id_to_numpy_index_mapping = {}
         self.numpy_index_to_condition_id_mapping = {}
         for index, condition in enumerate(root_model_part.Conditions):
-            self.numpy_index_to_condition_id_mapping[index+number_of_elements] = condition.Id
-            self.condition_id_to_numpy_index_mapping[condition.Id] = index+number_of_elements
+            self.numpy_index_to_condition_id_mapping[index+number_of_elements] = condition.Id -1 +number_of_elements  #FIXME -1 #FIXME +number_of_elements We should remove redundant fixes
+            self.condition_id_to_numpy_index_mapping[condition.Id-1] = index+number_of_elements #FIXME -1
 
 
-    def map_condition_ids_to_numpy_indexes(self, this_modelpart_condition_ids,number_of_elements):
+    def map_condition_ids_to_numpy_indexes(self, this_modelpart_condition_ids):
         this_modelpart_indexes_numpy = []
         for cond_id in this_modelpart_condition_ids:
-            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[cond_id+1+number_of_elements])
+            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[cond_id])
         return np.array(this_modelpart_indexes_numpy)
 
 
     def map_element_ids_to_numpy_indexes(self, this_modelpart_element_ids):
         this_modelpart_indexes_numpy = []
         for elem_id in this_modelpart_element_ids:
-            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[elem_id+1])
+            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[elem_id])
         return np.array(this_modelpart_indexes_numpy)
 
 
@@ -137,12 +137,12 @@ class HRomTrainingUtility(object):
 
         kratos_indexes = []
         for i in range(np.size(indexes)):
-            if indexes[i]>=number_of_elements:
+            if indexes[i]<=number_of_elements-1:
                 kratos_indexes.append(self.numpy_index_to_element_id_mapping[indexes[i]])
             else:
                 kratos_indexes.append(self.numpy_index_to_condition_id_mapping[indexes[i]])
 
-        return np.array(kratos_indexes) #this considers the -1
+        return np.array(kratos_indexes) #FIXME -1
 
 
 
@@ -315,6 +315,7 @@ class HRomTrainingUtility(object):
         number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
+        indexes = self.map_numpy_indexes_to_element_and_conditions_ids(indexes,number_of_elements)
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
         hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
