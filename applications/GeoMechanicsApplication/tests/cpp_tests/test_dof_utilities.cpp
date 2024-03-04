@@ -16,6 +16,7 @@
 
 #include "containers/model.h"
 #include "custom_utilities/dof_utilities.h"
+#include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "testing/testing.h"
@@ -25,9 +26,7 @@ namespace
 
 using namespace Kratos;
 
-using ConstVariableRefs = std::vector<std::reference_wrapper<const Variable<double>>>;
-
-ModelPart& CreateTestModelPart(Model& rModel, const ConstVariableRefs& rVariables)
+ModelPart& CreateTestModelPart(Model& rModel, const Geo::ConstVariableRefs& rVariables)
 {
     const auto buffer_size = std::size_t{2};
     auto&      r_result    = rModel.CreateModelPart("Dummy", buffer_size);
@@ -39,7 +38,7 @@ ModelPart& CreateTestModelPart(Model& rModel, const ConstVariableRefs& rVariable
 
 ModelPart& CreateTestModelPart(Model& rModel, const Variable<double>& rVariable)
 {
-    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    const auto variables = Geo::ConstVariableRefs{std::cref(rVariable)};
     return CreateTestModelPart(rModel, variables);
 }
 
@@ -50,8 +49,12 @@ Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
     return result;
 }
 
-[[maybe_unused]] intrusive_ptr<Node> AddNodeWithDofs(
-    ModelPart& rModelPart, ModelPart::IndexType NodeId, double x, double y, double z, const ConstVariableRefs& rVariables)
+[[maybe_unused]] intrusive_ptr<Node> AddNodeWithDofs(ModelPart&                    rModelPart,
+                                                     ModelPart::IndexType          NodeId,
+                                                     double                        x,
+                                                     double                        y,
+                                                     double                        z,
+                                                     const Geo::ConstVariableRefs& rVariables)
 {
     auto p_result = rModelPart.CreateNewNode(NodeId, x, y, z);
     for (const auto& r_variable : rVariables) {
@@ -63,11 +66,11 @@ Dof<double> MakeDofWithEquationId(Dof<double>::EquationIdType EquationId)
 [[maybe_unused]] intrusive_ptr<Node> AddNodeWithDof(
     ModelPart& rModelPart, ModelPart::IndexType NodeId, double x, double y, double z, const Variable<double>& rVariable)
 {
-    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    const auto variables = Geo::ConstVariableRefs{std::cref(rVariable)};
     return AddNodeWithDofs(rModelPart, NodeId, x, y, z, variables);
 }
 
-void AddThreeNodesWithDofs(ModelPart& rModelPart, const ConstVariableRefs& rVariables)
+void AddThreeNodesWithDofs(ModelPart& rModelPart, const Geo::ConstVariableRefs& rVariables)
 {
     AddNodeWithDofs(rModelPart, 1, 0.0, 0.0, 0.0, rVariables);
     AddNodeWithDofs(rModelPart, 2, 1.0, 0.0, 0.0, rVariables);
@@ -76,7 +79,7 @@ void AddThreeNodesWithDofs(ModelPart& rModelPart, const ConstVariableRefs& rVari
 
 void AddThreeNodesWithDofs(ModelPart& rModelPart, const Variable<double>& rVariable)
 {
-    const auto variables = ConstVariableRefs{std::cref(rVariable)};
+    const auto variables = Geo::ConstVariableRefs{std::cref(rVariable)};
     AddThreeNodesWithDofs(rModelPart, variables);
 }
 
@@ -172,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
 KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder2DElement, KratosGeoMechanicsFastSuite)
 {
     auto       model         = Model{};
-    const auto all_variables = ConstVariableRefs{
+    const auto all_variables = Geo::ConstVariableRefs{
         std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
     AddThreeNodesWithDofs(r_model_part, all_variables);
@@ -242,7 +245,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativeValuesFromDofsYieldsNodalFirs
 {
     const auto& r_variable              = DISPLACEMENT_X;
     const auto& r_first_time_derivative = VELOCITY_X;
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto  all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
@@ -277,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativeValuesFromDofsYieldsNodalSec
     const auto& r_variable               = DISPLACEMENT_X;
     const auto& r_first_time_derivative  = VELOCITY_X;
     const auto& r_second_time_derivative = ACCELERATION_X;
-    const auto  all_variables            = ConstVariableRefs{
+    const auto  all_variables            = Geo::ConstVariableRefs{
         std::cref(r_variable), std::cref(r_first_time_derivative), std::cref(r_second_time_derivative)};
 
     auto  model        = Model{};
@@ -371,7 +375,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingFirstDerivativesFromUPwDofsNotBeingPwYieldsN
 {
     const auto& r_variable              = DISPLACEMENT_X;
     const auto& r_first_time_derivative = VELOCITY_X;
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto  all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
@@ -404,7 +409,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingDPwDtValuesFromUPwDofsAlwaysYieldsZeroes, Kr
 {
     const auto& r_variable              = WATER_PRESSURE;
     const auto& r_first_time_derivative = DT_WATER_PRESSURE;
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto  all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
@@ -438,7 +444,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingSecondDerivativesFromUPwDofsNotBeingPwYields
     const auto& r_variable               = DISPLACEMENT_X;
     const auto& r_first_time_derivative  = VELOCITY_X;
     const auto& r_second_time_derivative = ACCELERATION_X;
-    const auto  all_variables            = ConstVariableRefs{
+    const auto  all_variables            = Geo::ConstVariableRefs{
         std::cref(r_variable), std::cref(r_first_time_derivative), std::cref(r_second_time_derivative)};
 
     auto  model        = Model{};
@@ -473,7 +479,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingD2PwDt2ValuesFromUPwDofsAlwaysYieldsZeroes, 
     const auto& r_variable              = WATER_PRESSURE;
     const auto& r_first_time_derivative = DT_WATER_PRESSURE;
     // There is no variable defined for the second time derivative of the water pressure
-    const auto all_variables = ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
+    const auto all_variables =
+        Geo::ConstVariableRefs{std::cref(r_variable), std::cref(r_first_time_derivative)};
 
     auto  model        = Model{};
     auto& r_model_part = CreateTestModelPart(model, all_variables);
