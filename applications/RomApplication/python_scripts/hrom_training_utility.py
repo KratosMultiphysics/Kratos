@@ -3,6 +3,8 @@ import json
 import numpy as np
 from pathlib import Path
 import random
+import glob
+import os
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -95,11 +97,11 @@ class HRomTrainingUtility(object):
             # Selects a random 10% sample from 'this_modelpart_condition_ids'
             # for varied condition testing in the ECM interface.
 
-            # Calculate 10% of the length of the list
-            sample_size = int(len(this_modelpart_condition_ids) * 0.10)
+            # # Calculate 10% of the length of the list
+            # sample_size = int(len(this_modelpart_condition_ids) * 0.10)
 
-            # Get a well-distributed sample
-            this_modelpart_condition_ids = random.sample(this_modelpart_condition_ids, sample_size)
+            # # Get a well-distributed sample
+            # this_modelpart_condition_ids = random.sample(this_modelpart_condition_ids, sample_size)
 
             # ---------------------------------------------------------
 
@@ -114,6 +116,42 @@ class HRomTrainingUtility(object):
         # Rom settings files
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
+
+    # Example function to load, concatenate and delete files
+    def load_concatenate_and_erase_files(self):
+        # Initialize an empty list to hold numpy arrays
+        numpy_res_mat = []
+
+        # Choose the pattern based on rom_basis_output_name
+        if self.rom_basis_output_folder.name == "solid":
+            files_pattern = 'projected_residuals_matrix_solid_*.npy'
+        elif self.rom_basis_output_folder.name == "fluid":
+            files_pattern = 'projected_residuals_matrix_fluid_*.npy'
+        else:
+            raise ValueError(f"Invalid rom_basis_output_name. Must be 'solid' or 'fluid'.")
+
+        # Use glob to find files matching the pattern
+        files = glob.glob(files_pattern)
+
+        # Load each file and append its contents to numpy_res_mat
+        for file_name in files:
+            numpy_res_mat.append(np.load(file_name))
+
+        # Assuming res_mat is an object that has a method to concatenate arrays
+        # Concatenate numpy_res_mat to res_mat
+        # This step assumes that `res_mat` and the items in `numpy_res_mat` are compatible for concatenation
+        # You might need to adjust this depending on how res_mat.concatenate() works
+        res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        for array in numpy_res_mat:
+            # Assuming concatenate method exists and works as intended
+            res_mat = np.concatenate((res_mat, array), axis=1)  # Adjust axis if needed
+
+        # Erase the files
+        for file_name in files:
+            os.remove(file_name)
+            print(f"Deleted {file_name}")
+
+        return res_mat
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -133,7 +171,8 @@ class HRomTrainingUtility(object):
         # Generate the matrix of projected residuals
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
         if (self.projection_strategy=="galerkin"):
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+            res_mat = self.load_concatenate_and_erase_files()
+
         elif (self.projection_strategy=="lspg"):
                 jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)

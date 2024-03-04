@@ -35,7 +35,7 @@ class ConstantRelaxationConvergenceAccelerator(CoSimulationConvergenceAccelerato
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "alpha" : 0.125
+            "alpha" : 1.0
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
