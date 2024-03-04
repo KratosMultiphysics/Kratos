@@ -35,7 +35,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @author Riccardo Rossi
  */
-class ApplyConstantVectorValueProcess 
+class KRATOS_API(KRATOS_CORE) ApplyConstantVectorValueProcess
     : public Process
 {
 public:
