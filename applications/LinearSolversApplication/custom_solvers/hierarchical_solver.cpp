@@ -405,19 +405,21 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
             // Mark each DoF of all nodes on the equivalent lower order element
             // (unless they are constrained as slave dofs in multi-point constraints)
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
-                const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                 if (r_geometry[i_node].Is(SLAVE)) {
+                    const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < rCoarseMask.size());
+                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
 
                         // Flag the DoF as part of the coarse system
                         rCoarseMask[i_fine_dof] = DofCategory::Constrained;
                     }
-                } /*if r_geometry[i_node].Is(SLAVE)*/ else {
+                }
+                if (!r_geometry[i_node].Is(SLAVE)) {
+                    const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                     for (const auto& rp_dof : r_node_dofs) {
                         const std::size_t i_fine_dof = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < rCoarseMask.size());
+                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
 
                         // Flag the DoF as part of the coarse system (unless it's constrained)
                         rCoarseMask[i_fine_dof] = rp_dof->IsFree() ? DofCategory::Coarse : DofCategory::Constrained;
