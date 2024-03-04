@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "geo_aliases.h"
+
 namespace Kratos
 {
 class Model;
@@ -21,7 +23,8 @@ class ModelPart;
 namespace Kratos::Testing::ModelSetupUtilities
 {
 
-ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel);
+ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel,
+                                                 const Geo::ConstVariableRefs& rNodalVariables = {});
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel);
 
-} // namespace Kratos::ModelSetupUtilities
+} // namespace Kratos::Testing::ModelSetupUtilities

@@ -19,6 +19,7 @@
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
+#include "test_utilities/model_setup_utilities.h"
 #include "testing/testing.h"
 
 namespace
@@ -174,18 +175,15 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
 
 KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrder2DElement, KratosGeoMechanicsFastSuite)
 {
-    auto       model         = Model{};
-    const auto all_variables = Geo::ConstVariableRefs{
+    auto       model           = Model{};
+    const auto nodal_variables = Geo::ConstVariableRefs{
         std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
-    auto& r_model_part = CreateTestModelPart(model, all_variables);
-    AddThreeNodesWithDofs(r_model_part, all_variables);
-    const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
-    const auto p_element = r_model_part.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids,
-                                                         r_model_part.CreateNewProperties(0));
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
 
-    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(p_element->GetGeometry());
+    const auto dofs =
+        Geo::DofUtilities::ExtractUPwDofsFromNodes(r_model_part.Elements().front().GetGeometry());
 
-    KRATOS_EXPECT_EQ(dofs.size(), node_ids.size() * all_variables.size());
+    KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
     KRATOS_EXPECT_TRUE(
         std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
     auto dofs_to_test = std::vector<Dof<double>*>{dofs[0], dofs[2], dofs[4]};

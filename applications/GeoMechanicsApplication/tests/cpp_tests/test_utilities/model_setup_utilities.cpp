@@ -10,19 +10,28 @@
 //  Main authors:    Richard Faasse
 //
 #include "model_setup_utilities.h"
-#include "includes/model_part.h"
 #include "containers/model.h"
+#include "includes/model_part.h"
 
 namespace Kratos::Testing::ModelSetupUtilities
 {
 
-ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel)
+ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
     ModelPart& result = rModel.CreateModelPart("Main");
+    for (const auto& r_variable : rNodalVariables) {
+        result.AddNodalSolutionStepVariable(r_variable);
+    }
 
     result.CreateNewNode(1, 0.0, 0.0, 0.0);
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
     result.CreateNewNode(3, 1.0, 1.0, 0.0);
+
+    for (const auto& r_variable : rNodalVariables) {
+        for (auto& r_node : result.Nodes()) {
+            r_node.AddDof(r_variable.get());
+        }
+    }
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
     result.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, result.CreateNewProperties(0));
@@ -45,4 +54,4 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel)
     return result;
 }
 
-}
+} // namespace Kratos::Testing::ModelSetupUtilities
