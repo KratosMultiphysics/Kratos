@@ -62,7 +62,7 @@ void FindConservativeElementsProcess<THistorical>::FINDCUTELEMENTNODES()
         
         for (const auto& r_node : r_geom) {
             dist = r_node.FastGetSolutionStepValue(DISTANCE);
-            if (dist > -0.4999 && dist < 0.4999){++num;}
+            if (dist >= -0.4999999 && dist <= 0.4999999){++num;}
         }
 
         if(num > 0){ //element is inside the conservative bound

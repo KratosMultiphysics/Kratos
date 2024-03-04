@@ -951,17 +951,23 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             
             updated_project_parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"] = f'gid_output/Conv_{self.pseudo_time}'
 
-
         with open('ProjectParametersHeat.json','w') as f:
             json.dump(updated_project_parameters, f, indent = 4)
-            
-        with open("residual_norm_values.txt", "a") as file:
-             file.write(f"{self.pseudo_time }________________________________________________________________\n")
 
         self.pseudo_time +=1
 
         nodes1 = self.main_model_part.Nodes
+        ndes1_num = len(nodes1)
 
+        KratosDroplet.FindNodalNighbersProcess(self.main_model_part).Execute()
+        for node in nodes1:
+            dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+            if (dist > 0.4999995):
+                dist = 0.5
+            elif (dist < -0.4999995):
+                dist = -0.5
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, dist)
+        
         def CreateAnalysisStageWithFlushInstance(cls, global_model, parameters):
             class AnalysisStageWithFlush(cls):
 
@@ -975,76 +981,53 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                     super().Initialize()
 
                     nodes2 = self._GetSolver().GetComputingModelPart().Nodes
-                    ndes2_num = len(nodes2) 
+                    ndes2_num = len(nodes2)
+                    print(ndes1_num, ndes2_num) 
                     
-                    for i in range(ndes2_num):
-                        nodes2[i+1].Free(KratosMultiphysics.TEMPERATURE)
-                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 1)
-                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 0)
+                    for node in nodes2:
+                        node.SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 1)
 
-                    for i in range(ndes2_num):
-                        dist = nodes1[i+1].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
+                    # Synchronize nodes based on ID
+                    nodes_mapping = {}
+                    for node in nodes2:
+                        node_id = node.Id
+                        corresponding_node1 = nodes1[node_id]
+                        nodes_mapping[node] = corresponding_node1 
+
+                    for node in nodes2:
+                        dist = nodes_mapping[node].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
                         dist += 0.5
-                        nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
-                        
-                    # local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
-                    # local_gradient_TEMPERATURE.Execute()
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
                     
                     for elem in self._GetSolver().GetComputingModelPart().Elements:
                         flag = 1
                         for node in elem.GetNodes():
                             temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
-                            if ( 0.001 <= temp <= 0.999 ):
+                            if ( 0.000001 <= temp <= 0.999999 ):
                                 flag = 0
                         if flag == 0:
                             for node in elem.GetNodes():
                                 node.SetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 0)
-
-                    for i in range(ndes2_num):
-                        dist = nodes1[i+1].GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
-                        dist += 0.5
-                        if dist < 0.0001:
-                            #nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
-                            dist = 0.0
-                        if dist > 0.9999:
-                            #nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.NODAL_H, 1)
-                            dist = 1.0    
-                        #nodes2[i+1].SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, dist)
-
-                    for i in range(ndes2_num):
-                        flagvar = nodes2[i+1].GetSolutionStepValue(KratosMultiphysics.NODAL_H, 0)
-                        #if flagvar > 0.5:
-                            #nodes2[i+1].Fix(KratosMultiphysics.TEMPERATURE)
-
-        
-                    for node in nodes2:
-                        flagvar = node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE, 0)
-                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
-                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
-                        # gradz = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Z, 0)
-                        normalx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0)
-                        normaly = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0)
-                        # normalz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0)
-                        if ( flagvar < 0.5 ):
-                            grad_norm = math.sqrt(gradx**2 + grady**2)# = (math.sqrt(grady**2 + gradx**2 + gradz**2))
-                            #normalx=gradx/(grad_norm)
-                            #normaly=grady/(grad_norm)
-                            # normalz = gradz/(grad_norm)
-
-                        #node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0, normalx)
-                        #node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, normaly)
-                        # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0, normalz)
                     
                     sys.stdout.flush()
 
 
                 def InitializeSolutionStep(self): 
                     super().InitializeSolutionStep()
-
-                    max_norm_of_temp_grad = 0
-
                     nodes2 = self._GetSolver().GetComputingModelPart().Nodes
 
+                    step = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
+                    if (step == 1):
+                        for node in nodes2:
+                            normalx = node.GetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0)
+                            normaly = node.GetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0)
+                            flag = node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)
+                            if (flag > 0.5):
+                                normalx = normaly = 0.0
+                            node.SetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0, normalx)
+                            node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0, normaly)
+
+                    max_norm_of_temp_grad = 0
                     for node in nodes2:
                         gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
                         grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
@@ -1054,18 +1037,20 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
 
                 def FinalizeSolutionStep(self):
                     super().FinalizeSolutionStep()
-                    
+
                     nodes2 = self._GetSolver().GetComputingModelPart().Nodes
-                    ndes2_num = len(nodes2) 
-                    for j in range(ndes2_num):
-                        temp = nodes2[j+1].GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
-                        temp -= 0.5
-                        nodes1[j+1].SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, temp)
+                    # Synchronize nodes based on ID
+                    nodes_mapping = {}
+                    for node in nodes2:
+                        node_id = node.Id
+                        corresponding_node1 = nodes1[node_id]
+                        nodes_mapping[node] = corresponding_node1
                     
-                    pcifr = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.RESIDUAL_NORM]
-                    if pcifr is not None:
-                       with open("residual_norm_values.txt", "a") as file:
-                            file.write(f"{pcifr}\n")
+                    for node in nodes2:
+                        temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+                        temp -= 0.5
+                        nodes_mapping[node].SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, temp)
+                    
                     if self.parallel_type == "OpenMP":
                         now = time.time()
                         if now - self.last_flush > self.flush_frequency:
