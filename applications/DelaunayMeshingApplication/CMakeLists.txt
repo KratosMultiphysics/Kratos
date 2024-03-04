@@ -5,7 +5,6 @@ message("**** configuring KratosDelaunayMeshingApplication ****")
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ################### PYBIND11
-include(pybind11Tools)
 
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib

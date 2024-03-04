@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosCableNetApplication ****")
 
 ################### PYBIND11
-include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 

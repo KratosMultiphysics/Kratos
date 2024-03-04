@@ -2,7 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMetisApplication ****")
 
-include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 

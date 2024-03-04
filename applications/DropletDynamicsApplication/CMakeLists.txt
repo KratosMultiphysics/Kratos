@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosDropletDynamicsApplication ****")
 
 ################### PYBIND11
-include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../FluidDynamicsApplication )

@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosGeoMechanicsApplication ****")
 
 # PYBIND11
-include(pybind11Tools)
 
 add_compile_definitions(_USE_MATH_DEFINES)
 
