@@ -6,8 +6,6 @@
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file.
 */
-#include <pybind11/gil_safe_call_once.h>
-
 #include "test_exceptions.h"
 
 #include "local_bindings.h"
@@ -25,10 +23,6 @@ public:
 
 private:
     std::string message = "";
-};
-
-class MyExceptionUseDeprecatedOperatorCall : public MyException {
-    using MyException::MyException;
 };
 
 // A type that should be translated to a standard Python exception
@@ -115,10 +109,8 @@ TEST_SUBMODULE(exceptions, m) {
     m.def("throw_std_exception",
           []() { throw std::runtime_error("This exception was intentionally thrown."); });
 
-    // PLEASE KEEP IN SYNC with docs/advanced/exceptions.rst
-    PYBIND11_CONSTINIT static py::gil_safe_call_once_and_store<py::object> ex_storage;
-    ex_storage.call_once_and_store_result(
-        [&]() { return py::exception<MyException>(m, "MyException"); });
+    // make a new custom exception and use it as a translation target
+    static py::exception<MyException> ex(m, "MyException");
     py::register_exception_translator([](std::exception_ptr p) {
         try {
             if (p) {
@@ -126,32 +118,7 @@ TEST_SUBMODULE(exceptions, m) {
             }
         } catch (const MyException &e) {
             // Set MyException as the active python error
-            py::set_error(ex_storage.get_stored(), e.what());
-        }
-    });
-
-    // Same as above, but using the deprecated `py::exception<>::operator()`
-    // We want to be sure it still works, until it's removed.
-    static const auto *const exd = new py::exception<MyExceptionUseDeprecatedOperatorCall>(
-        m, "MyExceptionUseDeprecatedOperatorCall");
-    py::register_exception_translator([](std::exception_ptr p) {
-        try {
-            if (p) {
-                std::rethrow_exception(p);
-            }
-        } catch (const MyExceptionUseDeprecatedOperatorCall &e) {
-#if defined(__INTEL_COMPILER) || defined(__NVCOMPILER)
-            // It is not worth the trouble dealing with warning suppressions for these compilers.
-            // Falling back to the recommended approach to keep the test code simple.
-            py::set_error(*exd, e.what());
-#else
-            PYBIND11_WARNING_PUSH
-            PYBIND11_WARNING_DISABLE_CLANG("-Wdeprecated-declarations")
-            PYBIND11_WARNING_DISABLE_GCC("-Wdeprecated-declarations")
-            PYBIND11_WARNING_DISABLE_MSVC(4996)
-            (*exd)(e.what());
-            PYBIND11_WARNING_POP
-#endif
+            ex(e.what());
         }
     });
 
@@ -165,7 +132,7 @@ TEST_SUBMODULE(exceptions, m) {
             }
         } catch (const MyException2 &e) {
             // Translate this exception to a standard RuntimeError
-            py::set_error(PyExc_RuntimeError, e.what());
+            PyErr_SetString(PyExc_RuntimeError, e.what());
         }
     });
 
@@ -195,16 +162,11 @@ TEST_SUBMODULE(exceptions, m) {
                 std::rethrow_exception(p);
             }
         } catch (const MyException6 &e) {
-            py::set_error(PyExc_RuntimeError, e.what());
+            PyErr_SetString(PyExc_RuntimeError, e.what());
         }
     });
 
-    m.def("throws1",
-          []() { throw MyException("this error should go to py::exception<MyException>"); });
-    m.def("throws1d", []() {
-        throw MyExceptionUseDeprecatedOperatorCall(
-            "this error should go to py::exception<MyExceptionUseDeprecatedOperatorCall>");
-    });
+    m.def("throws1", []() { throw MyException("this error should go to a custom type"); });
     m.def("throws2",
           []() { throw MyException2("this error should go to a standard Python exception"); });
     m.def("throws3", []() { throw MyException3("this error cannot be translated"); });
@@ -260,7 +222,7 @@ TEST_SUBMODULE(exceptions, m) {
 
     m.def("throw_already_set", [](bool err) {
         if (err) {
-            py::set_error(PyExc_ValueError, "foo");
+            PyErr_SetString(PyExc_ValueError, "foo");
         }
         try {
             throw py::error_already_set();
@@ -276,7 +238,7 @@ TEST_SUBMODULE(exceptions, m) {
         }
         PyErr_Clear();
         if (err) {
-            py::set_error(PyExc_ValueError, "foo");
+            PyErr_SetString(PyExc_ValueError, "foo");
         }
         throw py::error_already_set();
     });
@@ -285,7 +247,7 @@ TEST_SUBMODULE(exceptions, m) {
         bool retval = false;
         try {
             PythonCallInDestructor set_dict_in_destructor(d);
-            py::set_error(PyExc_ValueError, "foo");
+            PyErr_SetString(PyExc_ValueError, "foo");
             throw py::error_already_set();
         } catch (const py::error_already_set &) {
             retval = true;
@@ -320,14 +282,14 @@ TEST_SUBMODULE(exceptions, m) {
     m.def("throw_should_be_translated_to_key_error", []() { throw shared_exception(); });
 
     m.def("raise_from", []() {
-        py::set_error(PyExc_ValueError, "inner");
+        PyErr_SetString(PyExc_ValueError, "inner");
         py::raise_from(PyExc_ValueError, "outer");
         throw py::error_already_set();
     });
 
     m.def("raise_from_already_set", []() {
         try {
-            py::set_error(PyExc_ValueError, "inner");
+            PyErr_SetString(PyExc_ValueError, "inner");
             throw py::error_already_set();
         } catch (py::error_already_set &e) {
             py::raise_from(e, PyExc_ValueError, "outer");
@@ -344,7 +306,7 @@ TEST_SUBMODULE(exceptions, m) {
     });
 
     m.def("error_already_set_what", [](const py::object &exc_type, const py::object &exc_value) {
-        py::set_error(exc_type, exc_value);
+        PyErr_SetObject(exc_type.ptr(), exc_value.ptr());
         std::string what = py::error_already_set().what();
         bool py_err_set_after_what = (PyErr_Occurred() != nullptr);
         PyErr_Clear();
@@ -359,7 +321,7 @@ TEST_SUBMODULE(exceptions, m) {
     });
 
     m.def("test_error_already_set_double_restore", [](bool dry_run) {
-        py::set_error(PyExc_ValueError, "Random error.");
+        PyErr_SetString(PyExc_ValueError, "Random error.");
         py::error_already_set e;
         e.restore();
         PyErr_Clear();

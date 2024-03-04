@@ -127,7 +127,8 @@ before a global translator is tried.
 Inside the translator, ``std::rethrow_exception`` should be used within
 a try block to re-throw the exception.  One or more catch clauses to catch
 the appropriate exceptions should then be used with each clause using
-``py::set_error()`` (see below).
+``PyErr_SetString`` to set a Python exception or ``ex(string)`` to set
+the python exception to a custom exception type (see below).
 
 To declare a custom Python exception type, declare a ``py::exception`` variable
 and use this in the associated exception translator (note: it is often useful
@@ -141,16 +142,14 @@ standard python RuntimeError:
 
 .. code-block:: cpp
 
-    PYBIND11_CONSTINIT static py::gil_safe_call_once_and_store<py::object> exc_storage;
-    exc_storage.call_once_and_store_result(
-        [&]() { return py::exception<MyCustomException>(m, "MyCustomError"); });
+    static py::exception<MyCustomException> exc(m, "MyCustomError");
     py::register_exception_translator([](std::exception_ptr p) {
         try {
             if (p) std::rethrow_exception(p);
         } catch (const MyCustomException &e) {
-            py::set_error(exc_storage.get_stored(), e.what());
+            exc(e.what());
         } catch (const OtherException &e) {
-            py::set_error(PyExc_RuntimeError, e.what());
+            PyErr_SetString(PyExc_RuntimeError, e.what());
         }
     });
 
@@ -169,7 +168,8 @@ section.
 
 .. note::
 
-    Call ``py::set_error()`` for every exception caught in a custom exception
+    Call either ``PyErr_SetString`` or a custom exception's call
+    operator (``exc(string)``) for every exception caught in a custom exception
     translator.  Failure to do so will cause Python to crash with ``SystemError:
     error return without exception set``.
 
@@ -200,7 +200,7 @@ If module1 has the following translator:
         try {
             if (p) std::rethrow_exception(p);
         } catch (const std::invalid_argument &e) {
-            py::set_error(PyExc_ArgumentError, "module1 handled this");
+            PyErr_SetString("module1 handled this")
         }
       }
 
@@ -212,7 +212,7 @@ and module2 has the following similar translator:
         try {
             if (p) std::rethrow_exception(p);
         } catch (const std::invalid_argument &e) {
-            py::set_error(PyExc_ArgumentError, "module2 handled this");
+            PyErr_SetString("module2 handled this")
         }
       }
 
@@ -312,11 +312,11 @@ error protocol, which is outlined here.
 After calling the Python C API, if Python returns an error,
 ``throw py::error_already_set();``, which allows pybind11 to deal with the
 exception and pass it back to the Python interpreter. This includes calls to
-the error setting functions such as ``py::set_error()``.
+the error setting functions such as ``PyErr_SetString``.
 
 .. code-block:: cpp
 
-    py::set_error(PyExc_TypeError, "C API type error demo");
+    PyErr_SetString(PyExc_TypeError, "C API type error demo");
     throw py::error_already_set();
 
     // But it would be easier to simply...
