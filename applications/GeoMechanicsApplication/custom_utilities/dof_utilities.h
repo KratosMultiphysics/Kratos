@@ -51,9 +51,8 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes)
         result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
     }
 
-    // Make sure that the result has the correct length and that it doesn't contain any `nullptr`s
-    while (result.size() != std::distance(std::begin(rNodes), std::end(rNodes)) * 3) {
-        result.push_back(result.front());
+    for (auto& r_node : rNodes) {
+        result.push_back(r_node.pGetDof(WATER_PRESSURE));
     }
 
     return result;

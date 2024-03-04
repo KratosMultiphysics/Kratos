@@ -193,6 +193,10 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
     KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
         return p_dof->GetVariable() == DISPLACEMENT_Y;
     }))
+    dofs_to_test = std::vector<Dof<double>*>{dofs.begin() + 6, dofs.end()};
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
+        return p_dof->GetVariable() == WATER_PRESSURE;
+    }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
