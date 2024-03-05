@@ -16,11 +16,12 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+export PYTHON_EXECUTABLE="/usr/bin/python3.10"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
 add_app ${KRATOS_APP_DIR}/HDF5Application;
+add_app ${KRATOS_APP_DIR}/MedApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
@@ -40,13 +41,12 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DUSE_MPI=ON                                                        \
--DPYTHON_EXECUTABLE="/usr/bin/python3.10"                           \
+-DEXCLUDE_KRATOS_CORE=ON                                            \
+-DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
+-DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
--DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
--DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
--DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
 -DCMAKE_UNITY_BUILD=ON                                              \
 -DINCLUDE_MMG=ON                                                    \
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j16

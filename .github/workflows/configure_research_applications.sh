@@ -16,18 +16,10 @@ add_app () {
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export PYTHON_EXECUTABLE="/usr/bin/python3.8"
+export PYTHON_EXECUTABLE="/usr/bin/python3.10"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsHydraulicsApplication;
-add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-add_app ${KRATOS_APP_DIR}/DEMApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
@@ -35,11 +27,12 @@ add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
+add_app ${KRATOS_APP_DIR}/DEMApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
+add_app ${KRATOS_APP_DIR}/FluidDynamicsHydraulicsApplication;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
-add_app ${KRATOS_APP_DIR}/MedApplication;
 add_app ${KRATOS_APP_DIR}/OptimizationApplication;
 add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
@@ -63,13 +56,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DEXCLUDE_KRATOS_CORE=ON                                            \
 -DEXCLUDE_AUTOMATIC_DEPENDENCIES=ON                                 \
 -DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
--DPYTHON_EXECUTABLE="/usr/bin/python3.10"                           \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
--DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
--DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
--DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
--DCMAKE_UNITY_BUILD=ON                                              \
--DINCLUDE_MMG=ON                                                    \
+-DCMAKE_UNITY_BUILD=ON
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j16
