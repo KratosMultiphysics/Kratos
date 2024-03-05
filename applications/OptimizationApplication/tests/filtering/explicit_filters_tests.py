@@ -24,27 +24,6 @@ class TestExplicitFilter(kratos_unittest.TestCase):
         vm_filter = KratosOA.NodalExplicitFilter(model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
-    def test_NodalExplicitFilterElementConsistencyWithDamping(self):
-        model_part = self.model_part.GetSubModelPart("structure")
-        fixed_model_part = self.model_part.GetSubModelPart("fixed")
-        vm_filter = KratosOA.NodalExplicitFilter(model_part, fixed_model_part, "linear", "sigmoidal", 1000)
-        filter_radius =  Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, 2.0)
-        vm_filter.SetFilterRadius(filter_radius)
-
-        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
-        unfiltered_field = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(unfiltered_field, constant_field_value)
-        filtered_data = vm_filter.FilterField(unfiltered_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_data), 1e-9, 8)
-
-        integration_weights = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
-        vm_filter.GetIntegrationWeights(integration_weights)
-        integrated_constant_field = integration_weights * unfiltered_field
-        damped_filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(damped_filtered_integrated_data), 1e-9, 8)
-
     def test_ConditionExplicitFilterConsistency(self):
         vm_filter = KratosOA.ConditionExplicitFilter(self.model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, self.model_part.Conditions, self.model_part)
@@ -61,9 +40,12 @@ class TestExplicitFilter(kratos_unittest.TestCase):
         elif isinstance(entities, Kratos.ElementsArray):
             container_expression_type = Kratos.Expression.ElementExpression
 
-        filter_radius = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, 2.0)
-        vm_filter.SetFilterRadius(filter_radius)
+        tmp = container_expression_type(model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(tmp, 2.0)
+        vm_filter.SetFilterRadius(tmp.Clone())
+        Kratos.Expression.LiteralExpressionIO.SetData(tmp, 1.0)
+        vm_filter.SetDampingCoefficients(tmp.Clone())
+        vm_filter.Update()
 
         constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
 
