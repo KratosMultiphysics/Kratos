@@ -244,6 +244,9 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
     dofs_to_test = std::vector<Dof<double>*>{dofs[0], dofs[1], dofs[2], dofs[12]};
     KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(),
                                    [](const auto p_dof) { return p_dof->GetId() == 1; }))
+    dofs_to_test = std::vector<Dof<double>*>{dofs[3], dofs[4], dofs[5], dofs[13]};
+    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(),
+                                   [](const auto p_dof) { return p_dof->GetId() == 2; }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
