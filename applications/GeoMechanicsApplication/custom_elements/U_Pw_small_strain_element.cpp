@@ -22,7 +22,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 NodesArrayType const& ThisNodes,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                                      pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -30,7 +31,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 GeometryType::Pointer pGeom,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainElement(NewId, pGeom, pProperties));
+    return Element::Pointer(
+        new UPwSmallStrainElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1207,36 +1209,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np)
 {
-    KRATOS_TRY
-
-    unsigned int index;
-    if constexpr (TDim > 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_3D_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_ZZ, index + INDEX_Z) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-            rB(INDEX_3D_YZ, index + INDEX_Y) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_YZ, index + INDEX_Z) = GradNpT(i, INDEX_Y);
-            rB(INDEX_3D_XZ, index + INDEX_X) = GradNpT(i, INDEX_Z);
-            rB(INDEX_3D_XZ, index + INDEX_Z) = GradNpT(i, INDEX_X);
-        }
-    } else {
-        // 2D plane strain
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            index = TDim * i;
-
-            rB(INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X) = GradNpT(i, INDEX_X);
-            rB(INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X) = GradNpT(i, INDEX_Y);
-            rB(INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y) = GradNpT(i, INDEX_X);
-        }
-    }
-
-    KRATOS_CATCH("")
+    rB = this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1577,62 +1550,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(ElementVariab
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyGreenStrain(ElementVariables& rVariables)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
 {
-    KRATOS_TRY
-
-    // Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix ETensor;
-    ETensor = prod(trans(F), F);
-
-    for (unsigned int i = 0; i < TDim; ++i)
-        ETensor(i, i) -= 1.0;
-    ETensor *= 0.5;
-
-    if constexpr (TDim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyAlmansiStrain(ElementVariables& rVariables)
-{
-    // Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix LeftCauchyGreen;
-    LeftCauchyGreen = prod(F, trans(F));
-
-    Matrix ETensor;
-    double det;
-    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det);
-
-    for (unsigned int i = 0; i < TDim; ++i)
-        ETensor(i, i) = 1.0 - ETensor(i, i);
-
-    ETensor *= 0.5;
-
-    if constexpr (TDim == 2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
+    return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

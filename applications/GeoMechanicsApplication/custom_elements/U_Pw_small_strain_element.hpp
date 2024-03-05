@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -51,20 +51,23 @@ public:
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainElement(IndexType                          NewId,
+                          GeometryType::Pointer              pGeometry,
+                          PropertiesType::Pointer            pProperties,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -277,11 +280,10 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
-    virtual void CalculateCauchyAlmansiStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyGreenStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
-    virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
+    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
+    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual void   CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
