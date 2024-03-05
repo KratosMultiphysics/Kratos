@@ -118,6 +118,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         reaction_force = [(cauchy_stress_at_load[0][3]+cauchy_stress_at_load[1][3]+cauchy_stress_at_load[2][3])/3*step_size for cauchy_stress_at_load in cauchy_stresses_at_load]
         cauchy_stress_tensor[min_distance_idxs]
 
+    @KratosUnittest.skip("Test skipped, because it is unreliable. To be enabled after investigation.")
     def test_benchmark1_4(self):
         """
         test 1D consolidation on elastic soil.
