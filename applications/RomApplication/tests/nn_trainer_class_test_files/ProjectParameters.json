@@ -1,0 +1,67 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "SmallTestCantilever",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 20.0
+    },
+    "solver_settings"  : {
+        "time_stepping"                        : {
+            "time_step" : 1.0
+        },
+        "solver_type"                          : "Static",
+        "model_part_name"                      : "Structure",
+        "domain_size"                          : 2,
+        "echo_level"                           : 0,
+        "analysis_type"                        : "non_linear",
+        "model_import_settings"                : {
+            "input_type"     : "mdpa",
+            "input_filename" : "SmallTestCantilever"
+        },
+        "material_import_settings"             : {
+            "materials_filename" : "StructuralMaterials.json"
+        },
+        "line_search"                          : false,
+        "convergence_criterion"                : "residual_criterion",
+        "displacement_relative_tolerance"      : 0.0001,
+        "displacement_absolute_tolerance"      : 1e-9,
+        "residual_relative_tolerance"          : 0.0001,
+        "residual_absolute_tolerance"          : 1e-9,
+        "max_iteration"                        : 10,
+        "use_old_stiffness_in_first_iteration" : false,
+        "rotation_dofs"                        : false,
+        "volumetric_strain_dofs"               : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.LineLoad2D_Force",
+                "variable_name"   : "LINE_LOAD",
+                "interval"        : [0.0,"End"],
+                "modulus"         : "400+t*30",
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "list_other_processes"     : []
+    },
+    "output_processes" : {
+    },
+    "analysis_stage"   : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
+}
