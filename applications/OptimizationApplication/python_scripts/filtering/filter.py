@@ -4,7 +4,6 @@ from importlib import import_module
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 
 class Filter(ABC):
     """Base filter class
@@ -40,7 +39,7 @@ class Filter(ABC):
         pass
 
     @abstractmethod
-    def Filter(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def FilterField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         """Filter the input unfiltered_field.
 
         This method filters the passed input field. Unfiltered field is assumed to be a
