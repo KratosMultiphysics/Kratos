@@ -26,8 +26,9 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -42,10 +43,15 @@ public:
     SmallStrainUPwDiffOrderElement();
 
     // Constructor 1
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallStrainUPwDiffOrderElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
     // Constructor 2
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallStrainUPwDiffOrderElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   PropertiesType::Pointer            pProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
     // Destructor
     ~SmallStrainUPwDiffOrderElement() override;
@@ -59,7 +65,7 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -83,7 +89,7 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
@@ -304,9 +310,13 @@ protected:
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
+    const StressStatePolicy& GetStressStatePolicy() const;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     // Serialization
 
     friend class Serializer;
@@ -330,6 +340,8 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 
 }; // Class SmallStrainUPwDiffOrderElement
 
