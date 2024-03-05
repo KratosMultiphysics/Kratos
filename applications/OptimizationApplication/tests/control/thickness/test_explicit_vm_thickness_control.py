@@ -6,7 +6,7 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 
 
 class TestExplicitVertexMorphingShellThicknessControl(kratos_unittest.TestCase):
-    def test_ShapeControl(self):
+    def test_ThicknessControl(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
             with open("optimization_parameters.json",'r') as parameter_file:
                 parameters = KM.Parameters(parameter_file.read())

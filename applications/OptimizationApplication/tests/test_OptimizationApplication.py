@@ -33,6 +33,8 @@ import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
 import control.thickness.test_shell_thickness_control
+import control.shape.test_explicit_vm_shape_control
+import control.thickness.test_explicit_vm_thickness_control
 import control.shape.test_vm_shape_control
 import filtering.implicit_filters_tests
 import filtering.explicit_filters_tests
@@ -103,6 +105,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_explicit_vm_shape_control.TestExplicitVertexMorphingShapeControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_explicit_vm_thickness_control.TestExplicitVertexMorphingShellThicknessControl]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.implicit_filters_tests.HelmholtzAnalysisTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilter]))
