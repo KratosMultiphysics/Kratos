@@ -24,6 +24,37 @@
 
 namespace Kratos
 {
+
+template<>
+double& NodalValueRetriever<true>::GetValue(
+    Node& rNode,
+    const Variable<double>& rVariable
+    )
+{
+    return rNode.FastGetSolutionStepValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double& NodalValueRetriever<false>::GetValue(
+    Node& rNode,
+    const Variable<double>& rVariable
+    )
+{
+    return rNode.GetValue(rVariable);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class NodalValueRetriever<true>;
+template class NodalValueRetriever<false>;
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     ModelPart& rVolumeModelPart,
     ModelPart& rSkinModelPart,
@@ -85,23 +116,24 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
 
 void CalculateNodalDistanceToSkinProcess::Execute()
 {
+    // The variable retriever
+    Kratos::unique_ptr<NodalValueRetrieverBaseClass> p_variable_retriever;
+    if (mHistoricalValue) {
+        p_variable_retriever = Kratos::make_unique<NodalValueRetriever<true>>();
+    } else {
+        p_variable_retriever = Kratos::make_unique<NodalValueRetriever<false>>();
+    }
+
     // Define distance lambda
-    const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_historical = [this](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
+    const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_historical = [this, &p_variable_retriever](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
         const auto& r_variable = *mpDistanceVariable;
-        block_for_each(rNodes, [&rBins, &r_variable](Node& rNode) {
+        block_for_each(rNodes, [&rBins, &r_variable, &p_variable_retriever](Node& rNode) {
             auto result = rBins.SearchNearest(rNode);
-            rNode.FastGetSolutionStepValue(r_variable) = result.GetDistance();
-        });
-    };
-    const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_non_historical = [this](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
-        const auto& r_variable = *mpDistanceVariable;
-        block_for_each(rNodes, [&rBins, &r_variable](Node& rNode) {
-            auto result = rBins.SearchNearest(rNode);
-            rNode.SetValue(r_variable, result.GetDistance());
+            p_variable_retriever->GetValue(rNode, r_variable) = result.GetDistance();
         });
     };
 
-    const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_historical_save_skin = [this](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
+    const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_historical_save_skin = [this, &p_variable_retriever](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
         const auto& r_variable = *mpDistanceVariable;
         for (Node& rNode: rNodes) {
             auto result = rBins.SearchNearest(rNode);
@@ -111,25 +143,12 @@ void CalculateNodalDistanceToSkinProcess::Execute()
                 p_result->SetValue(r_variable, value);
                 p_result->Set(VISITED);
             }
-            rNode.FastGetSolutionStepValue(r_variable) = value;
-        }
-    };
-    const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_non_historica_save_skin = [this](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
-        const auto& r_variable = *mpDistanceVariable;
-        for (Node& rNode: rNodes) {
-            auto result = rBins.SearchNearest(rNode);
-            const double value = result.GetDistance();
-            auto p_result = result.Get().get();
-            if (p_result->GetValue(r_variable) < value) {
-                p_result->SetValue(r_variable, value);
-                p_result->Set(VISITED);
-            }
-            rNode.SetValue(r_variable, value);
+            p_variable_retriever->GetValue(rNode, r_variable) = value;
         }
     };
 
     // Call lambda depending on the flags
-    const auto* p_distance_lambda = mHistoricalValue ? (mSaveDistanceInSkin ? &distance_lambda_historical_save_skin : &distance_lambda_historical) : (mSaveDistanceInSkin ? &distance_lambda_non_historica_save_skin : &distance_lambda_non_historical);
+    const auto* p_distance_lambda = mSaveDistanceInSkin ? &distance_lambda_historical_save_skin : &distance_lambda_historical;
 
     // First try to detect if elements or conditions
     const std::size_t number_of_elements_skin = mrSkinModelPart.NumberOfElements();

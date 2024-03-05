@@ -25,8 +25,55 @@ namespace Kratos
 ///@addtogroup Kratos Core
 ///@{
 
+///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @class NodalValueRetrieverBaseClass
+ * @ingroup KratosCore
+ * @brief A class for retrieving nodal values (base dummy class).
+ * @details This class provides methods to retrieve nodal values. This is a dummy class to be specialized
+ */
+struct NodalValueRetrieverBaseClass
+{
+    /**
+     * @brief This method gets the current value of the rVariable
+     * @param rNode The node iterator to be get
+     * @param rVariable The variable to be get
+     * @return The value of the variable
+     */
+    virtual double& GetValue(
+        Node& rNode,
+        const Variable<double>& rVariable
+        )
+    {
+        KRATOS_ERROR << "This method is not implemented" << std::endl;
+    }
+};
+
+/**
+ * @class NodalValueRetriever
+ * @ingroup KratosCore
+ * @brief A class for retrieving nodal values.
+ * @details This class provides methods to retrieve nodal values.
+ * @tparam THistorical If the variable is part of the historical database of from the non-historical database
+ */
+template<bool THistorical = true>
+struct KRATOS_API(KRATOS_CORE) NodalValueRetriever
+    : public NodalValueRetrieverBaseClass
+{
+    /**
+     * @brief This method gets the current value of the rVariable
+     * @param rNode The node iterator to be get
+     * @param rVariable The variable to be get
+     * @return The value of the variable
+     */
+    double& GetValue(
+        Node& rNode,
+        const Variable<double>& rVariable
+        ) override;
+};
 
 /**
  * @class CalculateNodalDistanceToSkinProcess
