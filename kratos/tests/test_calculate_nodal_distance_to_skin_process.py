@@ -160,11 +160,11 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
         # Define the settings for the distance calculation process
         settings = KratosMultiphysics.Parameters("""
         {
-            "distance_database"      : "nodal_non_historical",
-            "save_distance_in_skin"  : true,
-            "distance_variable"      : "DISTANCE",
-            "volume_model_part"      : "main_model_part",
-            "skin_model_part"        : "skin_model_part"
+            "distance_database"         : "nodal_non_historical",
+            "save_max_distance_in_skin" : true,
+            "distance_variable"         : "DISTANCE",
+            "volume_model_part"         : "main_model_part",
+            "skin_model_part"           : "skin_model_part"
         }""")
         # Execute the distance calculation process
         KratosMultiphysics.CalculateNodalDistanceToSkinProcess(self.current_model, settings).Execute()

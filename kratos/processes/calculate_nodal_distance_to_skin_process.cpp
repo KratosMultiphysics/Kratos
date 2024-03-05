@@ -71,7 +71,7 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     }
 
     // Save distance in skin flag
-    mSaveDistanceInSkin = ThisParameters["save_distance_in_skin"].GetBool();
+    mSaveDistanceInSkin = ThisParameters["save_max_distance_in_skin"].GetBool();
 
     // Assign distance variable
     mpDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["distance_variable"].GetString());
@@ -164,11 +164,11 @@ void CalculateNodalDistanceToSkinProcess::Execute()
 const Parameters CalculateNodalDistanceToSkinProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
-        "volume_model_part"     : "",
-        "skin_model_part"       : "",
-        "distance_database"     : "nodal_historical",
-        "save_distance_in_skin" : false,
-        "distance_variable"     : "DISTANCE"
+        "volume_model_part"         : "",
+        "skin_model_part"           : "",
+        "distance_database"         : "nodal_historical",
+        "save_max_distance_in_skin" : false,
+        "distance_variable"         : "DISTANCE"
     })");
     return default_parameters;
 }

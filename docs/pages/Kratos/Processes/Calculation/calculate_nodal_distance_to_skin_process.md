@@ -68,11 +68,11 @@ The selected lambda function is then applied to calculate the distances for all 
 
 ```json
 {
-    "volume_model_part"     : "",
-    "skin_model_part"       : "",
-    "distance_database"     : "nodal_historical",
-    "save_distance_in_skin" : false,
-    "distance_variable"     : "DISTANCE"
+    "volume_model_part"         : "",
+    "skin_model_part"           : "",
+    "distance_database"         : "nodal_historical",
+    "save_max_distance_in_skin" : false,
+    "distance_variable"         : "DISTANCE"
 }
 ```
 
@@ -85,7 +85,7 @@ Defines the skin model part for distance computations. Like the volume model par
 ##### `distance_database`
 This flag indicating whether historical variable is enabled or otherwise non-historical is considered. It is set by string, options are `nodal_historical` or `nodal_non_historical`. Default value is `nodal_historical`.
 
-#### `save_distance_in_skin`
+#### `save_max_distance_in_skin`
 This flag indicates if the distance is going to be saved in the skin. By default is false, if activated will save the maximum distance in the found skin geometry and set the flag `VISITED`. This also deactivate shared memory parallelization.
 
 ##### `distance_variable`
