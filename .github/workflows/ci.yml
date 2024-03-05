@@ -38,8 +38,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [FullDebug]
-        compiler: [clang]
+        build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
@@ -286,7 +286,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3.8 kratos/python_scripts/testing/ci_utilities.py
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       run: |
@@ -298,7 +298,7 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
+        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
 
 
   ubuntu-core-without-unity:
@@ -344,7 +344,7 @@ jobs:
         export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
         export KRATOS_BUILD="${KRATOS_SOURCE}/build"
         export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-        export PYTHON_EXECUTABLE="/usr/bin/python3.10"
+        export PYTHON_EXECUTABLE="/usr/bin/python3.8"
         export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
         add_app () {
@@ -366,7 +366,7 @@ jobs:
         -DKRATOS_USE_PCH=ON
 
         # Build
-        cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
+        cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j${KRATOS_CI_CORES}
 
         ccache -s
 
