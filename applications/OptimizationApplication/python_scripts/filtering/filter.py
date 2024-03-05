@@ -1,3 +1,4 @@
+import typing
 from abc import ABC, abstractmethod
 from importlib import import_module
 
@@ -11,6 +12,16 @@ class Filter(ABC):
 
     This class unifies the filters used in the optimization application.
     """
+    def __init__(self) -> None:
+        self.__component_data_view: 'typing.Optional[ComponentDataView]' = None
+
+    def SetComponentDataView(self, component_data_view: ComponentDataView) -> None:
+        self.__component_data_view = component_data_view
+
+    def GetComponentDataView(self) -> ComponentDataView:
+        if self.__component_data_view is None:
+            raise RuntimeError("Please use SetComponentDataView first.")
+        return self.__component_data_view
 
     @abstractmethod
     def Initialize(self) -> None:
@@ -79,7 +90,7 @@ class Filter(ABC):
         """
         pass
 
-def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, settings: Kratos.Parameters, filter_data: ComponentDataView) -> Filter:
+def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, settings: Kratos.Parameters) -> Filter:
     if not settings.Has("filter_type"):
         raise RuntimeError(f"\"filter_type\" not provided in the following filter settings:\n{settings}")
 
@@ -89,4 +100,4 @@ def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: Suppo
     module = import_module(filter_module_name)
     if not hasattr(module, "Factory"):
         raise RuntimeError(f"Python module {filter_module_name} does not have a Factory method.")
-    return getattr(module, "Factory")(model, filtering_model_part_name, variable, data_location, settings, filter_data)
+    return getattr(module, "Factory")(model, filtering_model_part_name, variable, data_location, settings)
