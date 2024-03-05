@@ -20,7 +20,7 @@ class ExplicitVertexMorphingFilter(Filter):
             "max_nodes_in_filter_radius": 100000,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
-                "filter_radius"     : 0.2,
+                "filter_radius"     : 0.2
             },
             "filtering_boundary_conditions": {
                 "damping_type"              : "nearest_entity",
@@ -77,7 +77,8 @@ class ExplicitVertexMorphingFilter(Filter):
         self.filter.SetFilterRadius(filter_radius)
 
         # now set the damping
-        self.filter.SetDampingCoefficients(self._GetDampingCoefficients(filter_radius, self.parameters["filtering_boundary_conditions"]))
+        damping_coefficients = self._GetDampingCoefficients(filter_radius, self.parameters["filtering_boundary_conditions"])
+        self.filter.SetDampingCoefficients(damping_coefficients)
 
         # initialize the filter
         self.filter.Update()
@@ -88,6 +89,12 @@ class ExplicitVertexMorphingFilter(Filter):
     def Finalize(self) -> None:
         pass
 
+    def FilterField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        return self.filter.FilterField(unfiltered_field)
+
+    def FilterIntegratedField(self, unfiltered_integrated_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        return self.filter.FilterIntegratedField(unfiltered_integrated_field)
+
     def _GetFilterRadiusExpression(self, filter_radius_settings: Kratos.Parameters) -> ContainerExpressionTypes:
         if not filter_radius_settings.Has("filter_radius_type"):
             raise RuntimeError(f"\"filter_radius_type\" not specified in the following settings:\n{filter_radius_settings}")
@@ -96,12 +103,12 @@ class ExplicitVertexMorphingFilter(Filter):
         if filter_radius_type == "constant":
             defaults = Kratos.Parameters("""{
                 "filter_radius_type": "constant",
-                "filter_radius"     : 0.2,
+                "filter_radius"     : 0.2
             }""")
             filter_radius_settings.ValidateAndAssignDefaults(defaults)
-            filter_radius = self._GetContainerExpressionType(self.model_part)
+            filter_radius = self._GetContainerExpressionType()(self.model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, filter_radius_settings["filter_radius"].GetDouble())
-            self.filter.SetFilterRadius(filter_radius)
+            return filter_radius
         else:
             raise RuntimeError(f"Unsupported filter_radius_type = \"{filter_radius_type}\".")
 
@@ -119,7 +126,7 @@ class ExplicitVertexMorphingFilter(Filter):
             }""")
             filter_boundary_condition_settings.ValidateAndAssignDefaults(defaults)
 
-            number_of_components = accumulate(self.filter_variable_shape, operator.mul, 1)
+            number_of_components = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
             damped_model_parts = KratosOA.FilterUtils.GetComponentWiseDampedModelParts(self.model, filter_boundary_condition_settings["damped_model_part_settings"], number_of_components)
             return KratosOA.FilterUtils.ComputeDampingCoefficientsBasedOnNearestEntity(damping_radius, damped_model_parts, self.filter_variable_shape, filter_boundary_condition_settings["damping_function_type"].GetString(), filter_boundary_condition_settings["bucket_size"].GetInt())
         else:
