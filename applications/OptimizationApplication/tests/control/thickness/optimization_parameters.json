@@ -1,0 +1,132 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [],
+    "analyses": [
+        {
+            "name": "Structure_static",
+            "type": "kratos_analysis_execution_policy",
+            "settings": {
+                "model_part_names": [
+                    "shell"
+                ],
+                "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+                "analysis_type": "StructuralMechanicsAnalysis",
+                "analysis_settings": {
+                    "@include_json": "project_parameters.json"
+                },
+                "analysis_output_settings": {
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT"
+                    ],
+                    "nodal_data_value_variables": [],
+                    "element_data_value_variables": [],
+                    "condition_data_value_variables": []
+                }
+            }
+        }
+    ],
+    "responses": [
+        {
+            "name": "strain_energy",
+            "type": "linear_strain_energy_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "shell"
+                ],
+                "primal_analysis_name": "Structure_static",
+                "perturbation_size": 1e-8
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "thickness_control",
+            "type": "thickness.explicit_vertex_morphing_shell_thickness_control",
+            "settings": {
+                "controlled_model_part_names": [
+                    "shell"
+                ],
+                "filter_settings": {
+                    "filter_type": "explicit_vertex_morphing",
+                    "filter_function_type": "linear",
+                    "max_nodes_in_filter_radius": 100000,
+                    "filter_radius_settings": {
+                        "filter_radius_type": "constant",
+                        "filter_radius": 0.5
+                    },
+                    "filtering_boundary_conditions": {
+                        "damping_type": "nearest_entity",
+                        "damping_function_type": "cosine",
+                        "damped_model_part_settings": {}
+                    }
+                },
+                "output_all_fields": true,
+                "beta_settings": {
+                    "initial_value": 5,
+                    "max_value": 30,
+                    "adaptive": true,
+                    "increase_fac": 1.05,
+                    "update_period": 20
+                },
+                "physical_thicknesses": [
+                    0.0005,
+                    0.002
+                ]
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_steepest_descent",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 0.1,
+                "gradient_scaling": "inf_norm"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 3
+            }
+        },
+        "controls": [
+            "thickness_control"
+        ],
+        "objective": {
+            "response_name": "strain_energy",
+            "type": "minimization",
+            "scaling": 1.0
+        }
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "optimization_problem_ascii_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "output_file_name": "summary.csv",
+                        "write_kratos_version": false,
+                        "write_time_stamp": false,
+                        "list_of_output_components": [
+                            "all"
+                        ],
+                        "format_info": {
+                            "int_length": 7,
+                            "float_precision": 6,
+                            "bool_values": [
+                                "no",
+                                "yes"
+                            ],
+                            "string_length": 10
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

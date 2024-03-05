@@ -14,13 +14,13 @@ from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
-        raise RuntimeError(f"ExplicitShellThicknessControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"ExplicitShellVertexMorphingThicknessControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"ExplicitShellThicknessControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"ExplicitShellVertexMorphingThicknessControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return ExplicitShellThicknessControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+    return ExplicitShellVertexMorphingThicknessControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-class ExplicitShellThicknessControl(Control):
+class ExplicitShellVertexMorphingThicknessControl(Control):
     """Shell thickness control
 
     This is filtering-based discrete thickness control which parametrizes and controls
@@ -53,7 +53,7 @@ class ExplicitShellThicknessControl(Control):
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
-            raise RuntimeError(f"No model parts were provided for ExplicitShellThicknessControl. [ control name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts were provided for ExplicitShellVertexMorphingThicknessControl. [ control name = \"{self.GetName()}\"]")
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", self.parameters["controlled_model_part_names"].GetStringArray(), False)
         self.model_part: 'Optional[Kratos.ModelPart]' = None
@@ -87,6 +87,7 @@ class ExplicitShellThicknessControl(Control):
             KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         # initialize the filter
+        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
 
         # project backward the uniform physical control field and assign it to the control field
@@ -122,7 +123,7 @@ class ExplicitShellThicknessControl(Control):
         return physical_thickness_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        with TimeLogger("ExplicitShellThicknessControl::MapGradient", None, "Finished",False):
+        with TimeLogger("ExplicitShellVertexMorphingThicknessControl::MapGradient", None, "Finished",False):
             keys = physical_gradient_variable_container_expression_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
