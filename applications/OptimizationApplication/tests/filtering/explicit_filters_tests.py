@@ -73,7 +73,7 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         with kratos_unittest.WorkFolderScope(".", __file__):
-            ReadModelPart("shell", cls.model_part)
+            ReadModelPart("../mdpas/shell", cls.model_part)
 
         cls.optimization_problem = OptimizationProblem(0)
 
