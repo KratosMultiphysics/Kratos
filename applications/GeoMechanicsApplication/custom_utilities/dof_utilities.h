@@ -67,6 +67,17 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes, std::
     return result;
 }
 
+template <typename NodeRange1, typename NodeRange2>
+std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrderNodes, const NodeRange1& rFirstOrderNodes)
+{
+    const auto second_order_node_size =
+        std::distance(std::begin(rSecondOrderNodes), std::end(rSecondOrderNodes));
+    const auto first_order_node_size =
+        std::distance(std::begin(rFirstOrderNodes), std::end(rFirstOrderNodes));
+    auto result = std::vector<Dof<double>*>(second_order_node_size * 2 + first_order_node_size, nullptr);
+    return result;
+}
+
 Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
 Vector ExtractFirstTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
 Vector ExtractSecondTimeDerivatives(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
