@@ -100,7 +100,7 @@ public:
     /// Metafunction that returns value type of a matrix or a vector type.
     template <class T, class Enable = void>
     struct value_type {
-        typedef typename T::value_type type;
+        using type = typename T::value_type;
     };
 
     /**
@@ -165,6 +165,7 @@ public:
 
         c_ptr[0] = 0;
 
+        // TODO: Replace with block_for_each
         #pragma omp parallel
         {
             SignedIndexVectorType marker(ncols);
@@ -201,6 +202,7 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
+        // TODO: Replace with block_for_each
         #pragma omp parallel
         {
             SignedIndexVectorType marker(ncols);
@@ -266,7 +268,7 @@ public:
         CMatrix &C
         )
     {
-        typedef typename value_type<CMatrix>::type ValueType;
+        using ValueType = typename value_type<CMatrix>::type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -286,6 +288,7 @@ public:
 
         IndexType max_row_width = 0;
 
+        // TODO: Replace with block_for_each. Difficult due to critical section
         #pragma omp parallel
         {
             IndexType my_max = 0;
@@ -325,6 +328,7 @@ public:
         IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
+        // TODO: Replace with block_for_each
         #pragma omp parallel
         {
         #ifdef _OPENMP
@@ -350,6 +354,7 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
+        // TODO: Replace with block_for_each
         #pragma omp parallel
         {
         #ifdef _OPENMP
@@ -521,7 +526,7 @@ public:
         const double Factor = 1.0
         )
     {
-        typedef typename value_type<AMatrix>::type ValueType;
+        using ValueType = typename value_type<AMatrix>::type;
 
         // Get access to B data
         const IndexType* index1 = rB.index1_data().begin();
