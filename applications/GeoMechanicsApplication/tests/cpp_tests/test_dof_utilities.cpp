@@ -97,6 +97,12 @@ void SetNodalValues(ModelPart&                            rModelPart,
     }
 }
 
+void ExpectDofsDontContainAnyNullptrs(const std::vector<Dof<double>*>& rDofs)
+{
+    KRATOS_EXPECT_TRUE(
+        std::all_of(rDofs.begin(), rDofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
+}
+
 void ExpectDofsHaveThisVariable(const std::vector<Dof<double>*>& rDofs, const Variable<double>& rExpectedVariable)
 {
     KRATOS_EXPECT_TRUE(std::all_of(rDofs.begin(), rDofs.end(), [&rExpectedVariable](const auto p_dof) {
@@ -199,8 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
         r_model_part.Elements().front().GetGeometry().WorkingSpaceDimension());
 
     KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
-    KRATOS_EXPECT_TRUE(
-        std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
+    ExpectDofsDontContainAnyNullptrs(dofs);
     ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4]}, DISPLACEMENT_X);
     ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5]}, DISPLACEMENT_Y);
     ExpectDofsHaveThisVariable({dofs.begin() + 6, dofs.end()}, WATER_PRESSURE);
@@ -222,8 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
         r_model_part.Elements().front().GetGeometry().WorkingSpaceDimension());
 
     KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
-    KRATOS_EXPECT_TRUE(
-        std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
+    ExpectDofsDontContainAnyNullptrs(dofs);
     ExpectDofsHaveThisVariable({dofs[0], dofs[3], dofs[6], dofs[9]}, DISPLACEMENT_X);
     ExpectDofsHaveThisVariable({dofs[1], dofs[4], dofs[7], dofs[10]}, DISPLACEMENT_Y);
     ExpectDofsHaveThisVariable({dofs[2], dofs[5], dofs[8], dofs[11]}, DISPLACEMENT_Z);
