@@ -73,7 +73,14 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
         with kratos_unittest.WorkFolderScope(".", __file__):
             ReadModelPart("shell", cls.model_part)
 
-    def test_Reference1(self):
+        cls.initial_nodal_pos = Kratos.Expression.NodalExpression(cls.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(cls.initial_nodal_pos, Kratos.Configuration.Initial)
+
+    def setUp(self) -> None:
+        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Initial)
+        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Current)
+
+    def __RunTestCase(self, filter_function_type: str, damping_function_type: str, ref_file: str) -> None:
         settings = Kratos.Parameters("""{
             "filter_type"               : "explicit_vertex_morphing",
             "filter_function_type"      : "linear",
@@ -93,6 +100,8 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
                 }
             }
         }""")
+        settings["filter_function_type"].SetString(filter_function_type)
+        settings["filtering_boundary_conditions"]["damping_function_type"].SetString(damping_function_type)
         vm_filter = Factory(self.model, "test", KratosOA.SHAPE, Kratos.Globals.DataLocation.NodeHistorical, settings)
         vm_filter.Initialize()
 
@@ -112,14 +121,28 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Initial)
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Current)
 
-        vtu_output.PrintOutput(f"explicit_filter_reference_1")
+        vtu_output.PrintOutput(f"output_{ref_file}")
         params = Kratos.Parameters("""{
             "reference_file_name"   : "explicit_filter_reference_1.vtu.orig",
-            "output_file_name"      : "explicit_filter_reference_1.vtu",
+            "output_file_name"      : "explicit_filter_reference.vtu",
             "remove_output_file"    : true,
             "comparison_type"       : "deterministic"
         }""")
+        params["reference_file_name"].SetString(ref_file)
+        params["output_file_name"].SetString(f"output_{ref_file}.vtu")
         CompareTwoFilesCheckProcess(params).Execute()
+
+    def test_FilterCosine(self):
+        self.__RunTestCase("cosine", "cosine", "explicit_filter_reference_cosine.vtu.orig")
+
+    def test_FilterLinear(self):
+        self.__RunTestCase("linear", "cosine", "explicit_filter_reference_linear.vtu.orig")
+
+    def test_FilterGaussian(self):
+        self.__RunTestCase("gaussian", "cosine", "explicit_filter_reference_gaussian.vtu.orig")
+
+    def test_FilterQuartic(self):
+        self.__RunTestCase("quartic", "cosine", "explicit_filter_reference_quartic.vtu.orig")
 
 if __name__ == "__main__":
     kratos_unittest.main()
