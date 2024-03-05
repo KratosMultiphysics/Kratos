@@ -46,8 +46,8 @@ Only common `Process` methods are available thought python, like `Execute` and `
 ```json
 {
     "model_part_name"                : "PLEASE_DEFINE_A_MODEL_PART_NAME",
-    "origin_variable"                : "DISTANCE",
-    "gradient_variable"              : "DISTANCE_GRADIENT",
+    "origin_variable"                : "PLEASE_DEFINE_A_VARIABLE",
+    "gradient_variable"              : "PLEASE_DEFINE_A_VARIABLE",
     "area_variable"                  : "NODAL_AREA",
     "non_historical_origin_variable" :  false
 }
@@ -57,10 +57,10 @@ Only common `Process` methods are available thought python, like `Execute` and `
 Specifies the model part for the process. Absence of a value results in failure due to the default empty string.
 
 ##### `origin_variable`
-Denotes the variable for applying the process, with `DISTANCE` set as the default value. Variable must be a `double` one.
+Denotes the variable for applying the process. Variable must be a `double` one.
 
 ##### `gradient_variable`
-Denotes the variable destination of the process, with `DISTANCE_GRADIENT` set as the default value. Variable must be a a 3 components (`array_1d<double, 3>`) one.
+Denotes the variable destination of the process. Variable must be a a 3 components (`array_1d<double, 3>`) one.
 
 ##### `area_variable`
 Denotes the averaging variable for applying the process, with `NODAL_AREA` set as the default value. Variable must be a `double` one.

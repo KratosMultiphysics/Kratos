@@ -372,8 +372,8 @@ const Parameters ComputeNodalGradientProcess<TOutputHistorical>::GetDefaultParam
     return Parameters(R"(
     {
         "model_part_name"                : "PLEASE_DEFINE_A_MODEL_PART_NAME",
-        "origin_variable"                : "DISTANCE",
-        "gradient_variable"              : "DISTANCE_GRADIENT",
+        "origin_variable"                : "PLEASE_DEFINE_A_VARIABLE",
+        "gradient_variable"              : "PLEASE_DEFINE_A_VARIABLE",
         "area_variable"                  : "NODAL_AREA",
         "non_historical_origin_variable" :  false
     })" );

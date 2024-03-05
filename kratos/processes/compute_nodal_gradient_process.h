@@ -207,8 +207,8 @@ public:
      */
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        const Variable<double>& rOriginVariable = DISTANCE,
-        const Variable<array_1d<double,3>>& rGradientVariable = DISTANCE_GRADIENT,
+        const Variable<double>& rOriginVariable,
+        const Variable<array_1d<double,3>>& rGradientVariable,
         const Variable<double>& rAreaVariable = NODAL_AREA,
         const bool NonHistoricalVariable = false
         );
@@ -312,11 +312,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                                      /// The main model part
-    const Variable<double>* mpOriginVariable = &DISTANCE;                        /// The scalar variable list to compute
-    const Variable<array_1d<double,3>>* mpGradientVariable = &DISTANCE_GRADIENT; /// The resultant gradient variable
-    const Variable<double>* mpAreaVariable = &NODAL_AREA;                        /// The auxiliary area variable
-    bool mNonHistoricalVariable = false;                                         /// If the variable is non-historical
+    ModelPart& mrModelPart;                                 /// The main model part
+    const Variable<double>* mpOriginVariable;               /// The scalar variable list to compute
+    const Variable<array_1d<double,3>>* mpGradientVariable; /// The resultant gradient variable
+    const Variable<double>* mpAreaVariable = &NODAL_AREA;   /// The auxiliary area variable
+    bool mNonHistoricalVariable = false;                    /// If the variable is non-historical
 
     ///@}
     ///@name Private Operators
