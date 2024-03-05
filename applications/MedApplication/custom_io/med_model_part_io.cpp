@@ -500,13 +500,26 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     const int dimension = mpFileHandler->GetDimension();
 
     // read family info => Map from family number to group names aka SubModelPart names
-    const auto groups_by_fam = GetGroupsByFamily(
+    auto groups_by_fam = GetGroupsByFamily(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName());
 
     // create SubModelPart hierarchy
-    for (const auto& r_map : groups_by_fam) {
-        for (const auto& r_smp_name : r_map.second) {
+    for (auto& r_map : groups_by_fam) {
+        for (auto& r_smp_name : r_map.second) {
+            // Trim whitespace from group names
+            // Trime left
+            r_smp_name.erase(r_smp_name.begin(),
+                             std::find_if(r_smp_name.begin(),
+                                          r_smp_name.end(),
+                                          [](std::string::value_type c) {return !std::isspace(c);}));
+
+            // Trim right
+            r_smp_name.erase(std::find_if(r_smp_name.rbegin(),
+                                          r_smp_name.rend(),
+                                          [](std::string::value_type c) {return !std::isspace(c);}).base(),
+                             r_smp_name.end());
+
             if (!rThisModelPart.HasSubModelPart(r_smp_name)) {
                 rThisModelPart.CreateSubModelPart(r_smp_name);
             }
