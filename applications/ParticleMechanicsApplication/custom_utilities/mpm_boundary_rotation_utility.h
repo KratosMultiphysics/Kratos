@@ -316,25 +316,31 @@ public:
         this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
+
+    bool IsPenalty(NodeType& rNode) const
+    {
+
+        if(this->IsSlip(rNode) )
+        {
+            const double identifier = rNode.FastGetSolutionStepValue(mrFlagVariable);
+            const double tolerance  = 1.e-6;
+            if (identifier > 1.00 + tolerance)
+                return true;
+        }
+
+        return false;
+    }
+
 	// Checking whether it is normal element or penalty element
 	bool IsPenalty(GeometryType& rGeometry) const
 	{
-		bool is_penalty = false;
 		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 		{
-			if(this->IsSlip(rGeometry[itNode]) )
-			{
-				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
-				const double tolerance  = 1.e-6;
-				if (identifier > 1.00 + tolerance)
-				{
-					is_penalty = true;
-					break;
-				}
-			}
+            if(IsPenalty(rGeometry[itNode]))
+                return true;
 		}
 
-		return is_penalty;
+		return false;
 	}
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
@@ -439,7 +445,7 @@ public:
 			ModelPart::NodeIterator itNode = it_begin+iii;
 			const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
 
-			if( this->IsSlip(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
+			if( this->IsPenalty(*itNode) && nodal_mass > std::numeric_limits<double>::epsilon())
 			{
 				if(this->GetDomainSize() == 3)
 				{
