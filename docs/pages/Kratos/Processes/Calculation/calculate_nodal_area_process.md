@@ -22,7 +22,7 @@ It is important to ensure that the `DOMAIN_SIZE` is correctly defined in the `Pr
 
 ## Execution
 
-#### `Execute`
+### `Execute`
 
 When executed proceeds to calculate the nodal areas by integrating over the elements' geometries using their shape functions and Jacobian determinants. The calculated nodal areas are stored as nodal variables, either as historical or non-historical data depending on the template parameter `THistorical`.
 
