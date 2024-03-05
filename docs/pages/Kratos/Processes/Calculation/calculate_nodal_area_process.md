@@ -45,7 +45,7 @@ The process is initialized with a set of parameters specified in JSON format. Th
 ```
 
 ##### `model_part_name`
-A string specifying the name of the model part for which nodal areas will be calculated. Default is `"PLEASE_DEFINE_A_MODEL_PART_NAME"`, which is a placeholder indicating that the user must specify the model part name.
+A string specifying the name of the model part for which nodal areas will be calculated. Default is `PLEASE_DEFINE_A_MODEL_PART_NAME`, which is a placeholder indicating that the user must specify the model part name.
 
 ##### `domain_size`
 An integer defining the spatial dimension of the domain (2 for two-dimensional domains, 3 for three-dimensional domains). Default is `0`, which indicates that the domain size should be inferred from the model part's properties.
