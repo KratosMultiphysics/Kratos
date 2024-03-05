@@ -59,7 +59,7 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes, std::
     for (auto& r_node : rNodes) {
         result.push_back(r_node.pGetDof(DISPLACEMENT_X));
         result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if (ModelDimension == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        if (ModelDimension == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
     }
 
     ExtractDofsFromNodes(std::begin(rNodes), std::end(rNodes), std::back_inserter(result), WATER_PRESSURE);
