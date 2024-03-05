@@ -4,29 +4,26 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPARSE_MATRIX_MULTIPLICATION_UTILITY_H_INCLUDED )
-#define  KRATOS_SPARSE_MATRIX_MULTIPLICATION_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 #include <vector>
 #include <cmath>
 #include <algorithm>
 #include <numeric>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 // External includes
 #include "amgcl/value_type/interface.hpp"
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -68,26 +65,26 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( SparseMatrixMultiplicationUtility );
 
     /// The size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The signed index type
-    typedef std::ptrdiff_t  SignedIndexType;
+    using SignedIndexType = std::ptrdiff_t;
 
     /// A vector of indexes
-    typedef DenseVector<IndexType> IndexVectorType;
+    using IndexVectorType = DenseVector<IndexType>;
 
     /// A vector of indexes (signed)
-    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
+    using SignedIndexVectorType = DenseVector<SignedIndexType>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    SparseMatrixMultiplicationUtility(){};
+    SparseMatrixMultiplicationUtility() = default;
 
     /// Desctructor
     virtual ~SparseMatrixMultiplicationUtility()= default;
@@ -147,9 +144,9 @@ public:
         CMatrix& C
         )
     {
-        typedef typename value_type<CMatrix>::type ValueType;
+        using ValueType = typename value_type<CMatrix>::type;
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType nrows = A.size1();
         const SizeType ncols = B.size2();
 
@@ -171,8 +168,9 @@ public:
         #pragma omp parallel
         {
             SignedIndexVectorType marker(ncols);
-            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill)
+            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill) {
                 marker[i_fill] = -1;
+            }
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
@@ -206,8 +204,9 @@ public:
         #pragma omp parallel
         {
             SignedIndexVectorType marker(ncols);
-            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill)
+            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill) {
                 marker[i_fill] = -1;
+            }
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
@@ -269,7 +268,7 @@ public:
     {
         typedef typename value_type<CMatrix>::type ValueType;
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType nrows = A.size1();
         const SizeType ncols = B.size2();
 
@@ -393,9 +392,9 @@ public:
         const double Factor = 1.0
         )
     {
-        typedef typename value_type<AMatrix>::type ValueType;
+        using ValueType = typename value_type<AMatrix>::type;
 
-        // Auxiliar sizes
+        // Auxiliary sizes
         const SizeType nrows = A.size1();
         const SizeType ncols = A.size2();
 
@@ -418,39 +417,36 @@ public:
         IndexType* new_a_ptr = new IndexType[nrows + 1];
         new_a_ptr[0] = 0;
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+        #pragma omp parallel for
+        for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
-                SignedIndexVectorType marker(ncols);
-                for (int i = 0; i < static_cast<int>(ncols); ++i)
-                    marker[i] = -1;
+            SignedIndexVectorType marker(ncols);
+            for (int i = 0; i < static_cast<int>(ncols); ++i)
+                marker[i] = -1;
 
-                // Initialize
-                IndexType new_A_cols = 0;
+            // Initialize
+            IndexType new_A_cols = 0;
 
-                // Iterate over A
-                const IndexType row_begin_a = index1_a[ia];
-                const IndexType row_end_a   = index1_a[ia+1];
-                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const IndexType ca = index2_a[ja];
-                    marker[ca] = 1;
+            // Iterate over A
+            const IndexType row_begin_a = index1_a[ia];
+            const IndexType row_end_a   = index1_a[ia+1];
+            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                const IndexType ca = index2_a[ja];
+                marker[ca] = 1;
+                ++new_A_cols;
+            }
+
+            // Iterate over B
+            const IndexType row_begin_b = index1_b[ia];
+            const IndexType row_end_b   = index1_b[ia+1];
+            for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                const IndexType cb = index2_b[jb];
+                if (marker[cb] < 0) {
+                    marker[cb] = 1;
                     ++new_A_cols;
                 }
-
-                // Iterate over B
-                const IndexType row_begin_b = index1_b[ia];
-                const IndexType row_end_b   = index1_b[ia+1];
-                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                    const IndexType cb = index2_b[jb];
-                    if (marker[cb] < 0) {
-                        marker[cb] = 1;
-                        ++new_A_cols;
-                    }
-                }
-                new_a_ptr[ia + 1] = new_A_cols;
             }
+            new_a_ptr[ia + 1] = new_A_cols;
         }
 
         // We initialize the sparse matrix
@@ -459,47 +455,44 @@ public:
         IndexType* aux_index2_new_a = new IndexType[nonzero_values];
         ValueType* aux_val_new_a = new ValueType[nonzero_values];
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+        #pragma omp parallel for
+        for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
-                SignedIndexVectorType marker(ncols);
-                for (int i = 0; i < static_cast<int>(ncols); ++i)
-                    marker[i] = -1;
+            SignedIndexVectorType marker(ncols);
+            for (int i = 0; i < static_cast<int>(ncols); ++i)
+                marker[i] = -1;
 
-                // Initialize
-                const IndexType row_beg = new_a_ptr[ia];
-                IndexType row_end = row_beg;
+            // Initialize
+            const IndexType row_beg = new_a_ptr[ia];
+            IndexType row_end = row_beg;
 
-                // Iterate over A
-                const IndexType row_begin_a = index1_a[ia];
-                const IndexType row_end_a   = index1_a[ia+1];
-                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const IndexType ca = index2_a[ja];
-                    const ValueType va = values_a[ja];
+            // Iterate over A
+            const IndexType row_begin_a = index1_a[ia];
+            const IndexType row_end_a   = index1_a[ia+1];
+            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                const IndexType ca = index2_a[ja];
+                const ValueType va = values_a[ja];
 
-                    marker[ca] = row_end;
-                    aux_index2_new_a[row_end] = ca;
-                    aux_val_new_a[row_end] = va;
+                marker[ca] = row_end;
+                aux_index2_new_a[row_end] = ca;
+                aux_val_new_a[row_end] = va;
+                ++row_end;
+            }
+
+            // Iterate over B
+            const IndexType row_begin_b = index1_b[ia];
+            const IndexType row_end_b   = index1_b[ia+1];
+            for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                const IndexType cb = index2_b[jb];
+                const ValueType vb = values_b[jb];
+
+                if (marker[cb] < 0) {
+                    marker[cb] = row_end;
+                    aux_index2_new_a[row_end] = cb;
+                    aux_val_new_a[row_end] = Factor * vb;
                     ++row_end;
-                }
-
-                // Iterate over B
-                const IndexType row_begin_b = index1_b[ia];
-                const IndexType row_end_b   = index1_b[ia+1];
-                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                    const IndexType cb = index2_b[jb];
-                    const ValueType vb = values_b[jb];
-
-                    if (marker[cb] < 0) {
-                        marker[cb] = row_end;
-                        aux_index2_new_a[row_end] = cb;
-                        aux_val_new_a[row_end] = Factor * vb;
-                        ++row_end;
-                    } else {
-                        aux_val_new_a[marker[cb]] += Factor * vb;
-                    }
+                } else {
+                    aux_val_new_a[marker[cb]] += Factor * vb;
                 }
             }
         }
@@ -545,12 +538,13 @@ public:
 
         IndexVectorType new_a_ptr(size_system_2 + 1);
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i)
+        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i) {
             new_a_ptr[i] = 0;
+        }
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
 
-        // Auxiliar index 1
+        // Auxiliary index 1
         const IndexType aux_1_index = 1;
 
         #pragma omp parallel for
@@ -568,8 +562,9 @@ public:
 
         IndexVectorType aux_indexes(size_system_2);
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2); ++i)
+        for (int i = 0; i < static_cast<int>(size_system_2); ++i) {
             aux_indexes[i] = 0;
+        }
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
@@ -620,7 +615,7 @@ public:
         if ((NRows == 0) || (NCols == 0))
             return void();
 
-        // Auxiliar values
+        // Auxiliary values
         const TSize nonzero_values = CPtr[NRows];
 
         C = CMatrix(NRows, NCols, nonzero_values);
@@ -646,7 +641,7 @@ public:
      * @brief This method is designed to reorder the rows by columns
      * @param NRows The number of rows of the matrix
      * @param NCols The number of columns of the matrix
-     * @param CPtr The indexes taht indicate the number of nonzero values in each column
+     * @param CPtr The indexes that indicate the number of nonzero values in each column
      * @param Columns The columns of the problem
      * @param Values The values (to be ordered with the rows)
      */
@@ -659,29 +654,27 @@ public:
         ValueType* Values
         )
     {
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i_row=0; i_row<static_cast<int>(NRows); i_row++) {
-                const TIndexType row_beg = CPtr[i_row];
-                const TIndexType row_end = CPtr[i_row + 1];
+        #pragma omp parallel for
+        for (TSize i_row = 0; i_row < NRows; i_row++) {
+            const TIndexType row_begin = CPtr[i_row];
+            const TIndexType row_end = CPtr[i_row + 1];
+            TSize length = row_end - row_begin;
 
-                for(IndexType j = 1; j < row_end - row_beg; ++j) {
-                    const IndexType c = Columns[j + row_beg];
-                    const double v = Values[j + row_beg];
+            // Use vectors to facilitate sorting
+            std::vector<std::pair<Col, ValueType>> row_data(length);
+            for (TSize j = 0; j < length; ++j) {
+                row_data[j] = {Columns[j + row_begin], Values[j + row_begin]};
+            }
 
-                    SignedIndexType i = j - 1;
+            // Sort using a more efficient parallel algorithm
+            std::sort(row_data.begin(), row_data.end(), [](const auto& a, const auto& b) {
+                return a.first < b.first;
+            });
 
-                    while(i >= 0 && Columns[i + row_beg] > c) {
-                        KRATOS_DEBUG_ERROR_IF(Columns[i + row_beg] > static_cast<Col>(NCols)) << " Index for column: " << i + row_beg << ". Index " << Columns[i + row_beg] <<" is greater than the number of columns " << NCols << std::endl;
-                        Columns[i + 1 + row_beg] = Columns[i + row_beg];
-                        Values[i + 1 + row_beg] = Values[i + row_beg];
-                        i--;
-                    }
-
-                    Columns[i + 1 + row_beg] = c;
-                    Values[i + 1 + row_beg] = v;
-                }
+            // Write back sorted data
+            for (TSize j = 0; j < length; ++j) {
+                Columns[j + row_begin] = row_data[j].first;
+                Values[j + row_begin] = row_data[j].second;
             }
         }
     }
@@ -762,8 +755,9 @@ public:
         // We will compute nonzero terms
         IndexType* matrix_ptr = new IndexType[nrows + 1];
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nrows + 1); ++i)
+        for (int i = 0; i < static_cast<int>(nrows + 1); ++i) {
             matrix_ptr[i] = 0;
+        }
 
     #ifdef KRATOS_DEBUG
         IndexType check_non_zero = 0;
@@ -775,51 +769,48 @@ public:
         }
     #endif
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
-                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
-                    IndexType matrix_cols_aux = 0;
-                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-                    #ifdef KRATOS_DEBUG
-                        IndexType partial_matrix_cols_aux = 0;
-                    #endif
-                        // Skip if empty matrix
-                        CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
-                        if (r_matrix.nnz() > 0) {
-                            if (TransposeBlocks(i, j)) {
-                                // We compute the transposed matrix
-                                const SizeType size_system_1 = r_matrix.size1();
-                                const SizeType size_system_2 = r_matrix.size2();
-                                CompressedMatrix transpose(size_system_2, size_system_1);
-                                TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
-                                ComputeNonZeroBlocks(transpose, k, matrix_cols_aux);
-                            #ifdef KRATOS_DEBUG
-                                ComputeNonZeroBlocks(transpose, k, partial_matrix_cols_aux);
-                            #endif
-                            } else {
-                                ComputeNonZeroBlocks(r_matrix, k, matrix_cols_aux);
-                            #ifdef KRATOS_DEBUG
-                                ComputeNonZeroBlocks(r_matrix, k, partial_matrix_cols_aux);
-                            #endif
-                            }
-                        }
-                    #ifdef KRATOS_DEBUG
-                        check_non_zero_blocks(i, j) += partial_matrix_cols_aux;
-                    #endif
-                    }
-                    IndexType& r_matrix_ptr_value = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1];
-                    AtomicAdd(r_matrix_ptr_value, matrix_cols_aux);
-
+        #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                IndexType matrix_cols_aux = 0;
+                for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
                 #ifdef KRATOS_DEBUG
-                    AtomicAdd(check_non_zero, matrix_cols_aux);
+                    IndexType partial_matrix_cols_aux = 0;
+                #endif
+                    // Skip if empty matrix
+                    CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
+                    if (r_matrix.nnz() > 0) {
+                        if (TransposeBlocks(i, j)) {
+                            // We compute the transposed matrix
+                            const SizeType size_system_1 = r_matrix.size1();
+                            const SizeType size_system_2 = r_matrix.size2();
+                            CompressedMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                            ComputeNonZeroBlocks(transpose, k, matrix_cols_aux);
+                        #ifdef KRATOS_DEBUG
+                            ComputeNonZeroBlocks(transpose, k, partial_matrix_cols_aux);
+                        #endif
+                        } else {
+                            ComputeNonZeroBlocks(r_matrix, k, matrix_cols_aux);
+                        #ifdef KRATOS_DEBUG
+                            ComputeNonZeroBlocks(r_matrix, k, partial_matrix_cols_aux);
+                        #endif
+                        }
+                    }
+                #ifdef KRATOS_DEBUG
+                    check_non_zero_blocks(i, j) += partial_matrix_cols_aux;
                 #endif
                 }
+                IndexType& r_matrix_ptr_value = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k + 1];
+                AtomicAdd(r_matrix_ptr_value, matrix_cols_aux);
+
+            #ifdef KRATOS_DEBUG
+                AtomicAdd(check_non_zero, matrix_cols_aux);
+            #endif
             }
         }
 
-        // Auxiliar values
+        // Auxiliary values
         std::partial_sum(matrix_ptr, matrix_ptr + nrows + 1, matrix_ptr);
         const SizeType nonzero_values = matrix_ptr[nrows];
 
@@ -845,32 +836,30 @@ public:
         IndexType* Matrix_index2 = rMatrix.index2_data().begin();
 
         Matrix_index1[0] = 0;
-        for (IndexType i = 0; i < nrows; ++i)
+        for (IndexType i = 0; i < nrows; ++i) {
             Matrix_index1[i+1] = Matrix_index1[i] + (matrix_ptr[i + 1] - matrix_ptr[i]);
+        }
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
-                for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
-                    const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
-                    IndexType row_end = row_beg;
-                    for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
-                        const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
+        #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+            for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
+                const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
+                IndexType row_end = row_beg;
+                for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
+                    const SizeType initial_index_column = std::accumulate(column_sizes.begin(), column_sizes.begin() + j, 0);
 
-                        // Skip if empty matrix
-                        CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
-                        if (r_matrix.nnz() > 0) {
-                            if (TransposeBlocks(i, j)) {
-                                // We compute the transposed matrix
-                                const SizeType size_system_1 = r_matrix.size1();
-                                const SizeType size_system_2 = r_matrix.size2();
-                                CompressedMatrix transpose(size_system_2, size_system_1);
-                                TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
-                                ComputeAuxiliarValuesBlocks(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
-                            } else {
-                                ComputeAuxiliarValuesBlocks(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
-                            }
+                    // Skip if empty matrix
+                    CompressedMatrix& r_matrix = *rMatricespBlocks(i, j);
+                    if (r_matrix.nnz() > 0) {
+                        if (TransposeBlocks(i, j)) {
+                            // We compute the transposed matrix
+                            const SizeType size_system_1 = r_matrix.size1();
+                            const SizeType size_system_2 = r_matrix.size2();
+                            CompressedMatrix transpose(size_system_2, size_system_1);
+                            TransposeMatrix<CompressedMatrix, CompressedMatrix>(transpose, r_matrix);
+                            ComputeAuxiliarValuesBlocks(transpose, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
+                        } else {
+                            ComputeAuxiliarValuesBlocks(r_matrix, Matrix_index2, Matrix_values, k, row_end, initial_index_column, ContributionCoefficients(i, j));
                         }
                     }
                 }
@@ -943,14 +932,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -970,39 +951,6 @@ public:
     void PrintData (std::ostream& rOStream) const
     {
     }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
     ///@}
 private:
@@ -1329,26 +1277,11 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class SparseMatrixMultiplicationUtility
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -1374,5 +1307,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED  defined
