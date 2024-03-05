@@ -269,7 +269,6 @@ namespace Kratos
 
 			double safetyCoefficient2D = 0.5;
 			double elementVolume = eElement.Area();
-			SizeType numNodes = eElement.size();
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			const SizeType principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];

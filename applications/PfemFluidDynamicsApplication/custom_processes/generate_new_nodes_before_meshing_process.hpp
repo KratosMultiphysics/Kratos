@@ -301,7 +301,7 @@ namespace Kratos
 
 		///@}
 
-	private:
+	protected:
 		///@name Static Member Variables
 		///@{
 
