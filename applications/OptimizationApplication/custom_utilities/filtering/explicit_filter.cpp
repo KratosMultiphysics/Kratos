@@ -148,6 +148,12 @@ void ExplicitFilter<TContainerType>::SetFilterRadius(const ContainerExpression<T
 }
 
 template<class TContainerType>
+ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GetFilterRadius() const
+{
+    return *mpFilterRadiusContainer;
+}
+
+template<class TContainerType>
 void ExplicitFilter<TContainerType>::SetDampingCoefficients(const ContainerExpression<TContainerType>& rContainerExpression)
 {
     KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
@@ -156,6 +162,12 @@ void ExplicitFilter<TContainerType>::SetDampingCoefficients(const ContainerExpre
         << "\n\tContainerExpression = " << rContainerExpression;
 
     mpDampingCoefficientContainer = rContainerExpression.Clone();
+}
+
+template<class TContainerType>
+ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GetDampingCoefficients() const
+{
+    return *mpDampingCoefficientContainer;
 }
 
 template<class TContainerType>

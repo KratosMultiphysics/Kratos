@@ -42,6 +42,8 @@ void AddExplicitFilter(
         .def("SetDampingCoefficients", &ExplicitFilter<TContainerType>::SetDampingCoefficients, py::arg("damping_coefficients"))
         .def("FilterField", &ExplicitFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
         .def("FilterIntegratedField", &ExplicitFilter<TContainerType>::FilterIntegratedField, py::arg("filtered_field"))
+        .def("GetFilterRadius", &ExplicitFilter<TContainerType>::GetFilterRadius)
+        .def("GetDampingCoefficients", &ExplicitFilter<TContainerType>::GetDampingCoefficients)
         .def("GetIntegrationWeights", &ExplicitFilter<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
         .def("Update", &ExplicitFilter<TContainerType>::Update)
         .def("__str__", &ExplicitFilter<TContainerType>::Info)
@@ -58,7 +60,8 @@ void AddCustomFiltersToPython(pybind11::module& m)
     filter_utils.def("GetComponentWiseDampedModelParts", &FilterUtils::GetComponentWiseDampedModelParts,
         py::arg("model"),
         py::arg("parameters"),
-        py::arg("number_of_components"));
+        py::arg("number_of_components"),
+        py::return_value_policy::reference);
     filter_utils.def("ComputeDampingCoefficientsBasedOnNearestEntity", &FilterUtils::ComputeDampingCoefficientsBasedOnNearestEntity<ModelPart::NodesContainerType>,
         py::arg("damping_radius_nodal_expression"),
         py::arg("lists_of_model_parts_for_components"),

@@ -66,7 +66,11 @@ public:
 
     void SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
+    ContainerExpression<TContainerType> GetFilterRadius() const;
+
     void SetDampingCoefficients(const ContainerExpression<TContainerType>& rContainerExpression);
+
+    ContainerExpression<TContainerType> GetDampingCoefficients() const;
 
     void Update();
 
