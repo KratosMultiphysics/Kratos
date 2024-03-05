@@ -43,15 +43,14 @@ NurbsVolumeGeometryPointerType GenerateVolume(IndexType Direction) {
         z_direction = {0, 0.333, 0.444, 0.555, 0.666, 1.0};
     }
 
-    std::size_t id = 1;
     for( auto i : z_direction){
         for( auto j : y_direction) {
             for( auto k : x_direction) {
                 points.push_back(Kratos::make_intrusive<NodeType>(0, k, j, i));
-                id++;
             }
         }
     }
+
     // Polynomial orders
     SizeType polynomial_degree_1 = 3;
     SizeType polynomial_degree_2 = 1;

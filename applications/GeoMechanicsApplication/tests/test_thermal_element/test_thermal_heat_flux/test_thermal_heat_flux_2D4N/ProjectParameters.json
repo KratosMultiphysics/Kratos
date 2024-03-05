@@ -1,0 +1,142 @@
+{
+    "problem_data": {
+        "problem_name":         "test_thermal_heat_flux_2D4N",
+        "start_time":           0.0,
+        "end_time":             21600000,
+        "echo_level":           1,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    1
+    },
+    "solver_settings": {
+        "solver_type":                        "T",
+        "model_part_name":                    "PorousDomain",
+        "domain_size":                        2,
+        "model_import_settings":              {
+            "input_type":       "mdpa",
+            "input_filename":   "test_thermal_heat_flux_2D4N"
+        },
+        "material_import_settings":              {
+            "materials_filename":       "MaterialParameters.json"
+        },
+        "time_stepping":              {
+            "time_step":                 600,
+            "max_delta_time_factor":    1000
+        },
+        "buffer_size":                        2,
+        "echo_level":                         1,
+        "clear_storage":                      false,
+        "compute_reactions":                  false,
+        "move_mesh_flag":                     false,
+        "reform_dofs_at_each_step":           false,
+        "nodal_smoothing":                    false,
+        "block_builder":                      true,
+        "solution_type":                      "Transient_Heat_Transfer",
+        "scheme_type":                        "Backward_Euler",
+        "reset_displacements":                true,
+        "newmark_beta":                       0.25,
+        "newmark_gamma":                      0.5,
+        "newmark_theta":                      0.5,
+        "rayleigh_m":                         0.0,
+        "rayleigh_k":                         0.0,
+        "strategy_type":                      "newton_raphson",
+        "convergence_criterion":              "temperature_criterion",
+        "temperature_relative_tolerance":     1.0E-4,
+        "temperature_absolute_tolerance":     1.0E-9,
+        "residual_relative_tolerance":        1.0E-4,
+        "residual_absolute_tolerance":        1.0E-9,
+        "min_iterations":                     6,
+        "max_iterations":                     15,
+        "number_cycles":                      100,
+        "reduction_factor":                   0.5,
+        "increase_factor":                    2.0,
+        "desired_iterations":                 4,
+        "max_radius_factor":                  10.0,
+        "min_radius_factor":                  0.1,
+        "calculate_reactions":                true,
+        "max_line_search_iterations":         5,
+        "first_alpha_value":                  0.5,
+        "second_alpha_value":                 1.0,
+        "min_alpha":                          0.1,
+        "max_alpha":                          2.0,
+        "line_search_tolerance":              0.5,
+        "rotation_dofs":                      true,
+        "linear_solver_settings":             {
+            "solver_type":         "bicgstab",
+            "tolerance":           1.0e-6,
+            "max_iteration":       1000,
+            "scaling":             true,
+            "preconditioner_type": "ilu0"
+        },
+        "problem_domain_sub_model_part_list": ["Soil"],
+        "processes_sub_model_part_list":      ["top","initial","bottom"],
+        "body_domain_sub_model_part_list":    ["Soil"]
+    },
+    "output_processes": {
+        "gid_output": [{
+            "python_module": "gid_output_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "GiDOutputProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.porous_computational_model_part",
+                "output_name": "test_thermal_heat_flux_2D4N",
+                "postprocess_parameters": {
+                    "result_file_configuration": {
+                        "gidpost_flags":       {
+                            "WriteDeformedMeshFlag": "WriteUndeformed",
+                            "WriteConditionsFlag":   "WriteElementsOnly",
+                            "GiDPostMode":           "GiD_PostAscii",
+                            "MultiFileFlag":         "SingleFile"
+                        },
+                        "file_label":          "step",
+                        "output_control_type": "step",
+                        "output_interval":     1,
+                        "body_output":         true,
+                        "node_output":         false,
+                        "skin_output":         false,
+                        "plane_output":        [],
+                        "nodal_results":       ["TEMPERATURE"],
+                        "gauss_point_results": []
+                    },
+                    "point_data_configuration":  []
+                }
+            }
+        }]
+    },
+    "processes": {
+        "constraints_process_list": [{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.initial",
+            "variable_name":        "TEMPERATURE",
+            "is_fixed":             false,
+            "value":                0.0,
+            "table":                0
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.top",
+            "variable_name":        "TEMPERATURE",
+            "is_fixed":             true,
+            "value":                0.0,
+            "table":                0
+        }
+    }],
+    "loads_process_list": [{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.bottom",
+            "variable_name":   "NORMAL_HEAT_FLUX",
+            "value":           100.0,
+            "table":           0
+        }
+    }],
+        "auxiliar_process_list": []
+    }
+}
