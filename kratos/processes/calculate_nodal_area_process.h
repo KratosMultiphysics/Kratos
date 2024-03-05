@@ -19,6 +19,7 @@
 
 // Project includes
 #include "processes/process.h"
+#include "includes/node.h"
 #include "includes/kratos_parameters.h"
 
 namespace Kratos
