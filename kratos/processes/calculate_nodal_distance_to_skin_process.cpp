@@ -56,33 +56,6 @@ template class NodalValueRetriever<false>;
 /***********************************************************************************/
 
 CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
-    ModelPart& rVolumeModelPart,
-    ModelPart& rSkinModelPart,
-    const bool HistoricalVariable,
-    const std::string& rDistanceVariableName,
-    const bool SaveDistanceInSkin
-    ) : mrVolumeModelPart(rVolumeModelPart),
-        mrSkinModelPart(rSkinModelPart),
-        mHistoricalValue(HistoricalVariable),
-        mSaveDistanceInSkin(SaveDistanceInSkin)
-{
-    // Assign distance variable
-    if (rDistanceVariableName != "") {
-        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(rDistanceVariableName);
-    }
-
-    // Setting flags
-    // If SaveDistanceInSkin is true we can not use parallel algorithms and therefore a warning will be raised
-    KRATOS_WARNING_IF("CalculateNodalDistanceToSkinProcess", mSaveDistanceInSkin) << "SaveDistanceInSkin is true, therefore the parallel algorithms will not be used." << std::endl;
-
-    // Check it is serial
-    KRATOS_ERROR_IF(mrVolumeModelPart.IsDistributed()) << "Distributed computation still not supported. Please update implementation as soon as MPI search is merged. See https://github.com/KratosMultiphysics/Kratos/pull/11719" << std::endl;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : mrVolumeModelPart(rModel.GetModelPart(ThisParameters["volume_model_part"].GetString())),

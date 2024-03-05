@@ -98,23 +98,6 @@ public:
 
     /**
      * @brief Construct a new Calculate Nodal Distance To Skin Process object
-     * @details This constructor considers the model parts of the volume and skin
-     * @param rVolumeModelPart Model part containing the volume elements
-     * @param rSkinModelPart Model part containing the skin to compute the distance to as conditions
-     * @param HistoricalVariable If the variable is part of the historical database of from the non-historical database
-     * @param rDistanceVariableName The distance variable considered
-     * @param SaveDistanceInSkin If distances are saved into the skin
-     */
-    CalculateNodalDistanceToSkinProcess(
-        ModelPart& rVolumeModelPart,
-        ModelPart& rSkinModelPart,
-        const bool HistoricalVariable = true,
-        const std::string& rDistanceVariableName = "",
-        const bool SaveDistanceInSkin = false
-        );
-
-    /**
-     * @brief Construct a new Calculate Nodal Distance To Skin Process object
      * @details This constructor considers the model and retrieves the model parts
      * @param rModel The model containing the model parts of the volume and the skin
      * @param ThisParameters User-defined parameters to construct the
