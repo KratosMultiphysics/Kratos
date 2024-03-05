@@ -369,7 +369,7 @@ void ComputeNodalGradientProcess<TOutputHistorical>::SynchronizeGradientAndVolum
 template<bool TOutputHistorical>
 const Parameters ComputeNodalGradientProcess<TOutputHistorical>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    return Parameters(R"(
     {
         "model_part_name"                : "PLEASE_DEFINE_A_MODEL_PART_NAME",
         "origin_variable"                : "DISTANCE",
@@ -377,8 +377,6 @@ const Parameters ComputeNodalGradientProcess<TOutputHistorical>::GetDefaultParam
         "area_variable"                  : "NODAL_AREA",
         "non_historical_origin_variable" :  false
     })" );
-
-    return default_parameters;
 }
 
 /***********************************************************************************/
