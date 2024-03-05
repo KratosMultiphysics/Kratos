@@ -125,6 +125,7 @@ class SimpControl(Control):
         self.un_buffered_data.SetValue("phi", self.phi, overwrite=True)
         self.__ApplyDensityAndYoungsModulus()
 
+        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
 
     def Check(self) -> None:
