@@ -97,6 +97,13 @@ void SetNodalValues(ModelPart&                            rModelPart,
     }
 }
 
+void ExpectDofsHaveThisVariable(const std::vector<Dof<double>*>& rDofs, const Variable<double>& rExpectedVariable)
+{
+    KRATOS_EXPECT_TRUE(std::all_of(rDofs.begin(), rDofs.end(), [&rExpectedVariable](const auto p_dof) {
+        return p_dof->GetVariable() == rExpectedVariable;
+    }))
+}
+
 void ExpectDofsHaveThisNodeId(const std::vector<Dof<double>*>& rDofs, std::size_t ExpectedNodeId)
 {
     KRATOS_EXPECT_TRUE(std::all_of(rDofs.begin(), rDofs.end(), [ExpectedNodeId](const auto p_dof) {
@@ -194,18 +201,9 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
     KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
     KRATOS_EXPECT_TRUE(
         std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
-    auto dofs_to_test = std::vector<Dof<double>*>{dofs[0], dofs[2], dofs[4]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == DISPLACEMENT_X;
-    }))
-    dofs_to_test = std::vector<Dof<double>*>{dofs[1], dofs[3], dofs[5]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == DISPLACEMENT_Y;
-    }))
-    dofs_to_test = std::vector<Dof<double>*>{dofs.begin() + 6, dofs.end()};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == WATER_PRESSURE;
-    }))
+    ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4]}, DISPLACEMENT_X);
+    ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5]}, DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable({dofs.begin() + 6, dofs.end()}, WATER_PRESSURE);
     ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[6]}, 1);
     ExpectDofsHaveThisNodeId({dofs[2], dofs[3], dofs[7]}, 2);
     ExpectDofsHaveThisNodeId({dofs[4], dofs[5], dofs[8]}, 3);
@@ -226,22 +224,10 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
     KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
     KRATOS_EXPECT_TRUE(
         std::all_of(dofs.begin(), dofs.end(), [](const auto p_dof) { return p_dof != nullptr; }))
-    auto dofs_to_test = std::vector<Dof<double>*>{dofs[0], dofs[3], dofs[6], dofs[9]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == DISPLACEMENT_X;
-    }))
-    dofs_to_test = std::vector<Dof<double>*>{dofs[1], dofs[4], dofs[7], dofs[10]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == DISPLACEMENT_Y;
-    }))
-    dofs_to_test = std::vector<Dof<double>*>{dofs[2], dofs[5], dofs[8], dofs[11]};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == DISPLACEMENT_Z;
-    }))
-    dofs_to_test = std::vector<Dof<double>*>{dofs.begin() + 12, dofs.end()};
-    KRATOS_EXPECT_TRUE(std::all_of(dofs_to_test.begin(), dofs_to_test.end(), [](const auto p_dof) {
-        return p_dof->GetVariable() == WATER_PRESSURE;
-    }))
+    ExpectDofsHaveThisVariable({dofs[0], dofs[3], dofs[6], dofs[9]}, DISPLACEMENT_X);
+    ExpectDofsHaveThisVariable({dofs[1], dofs[4], dofs[7], dofs[10]}, DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable({dofs[2], dofs[5], dofs[8], dofs[11]}, DISPLACEMENT_Z);
+    ExpectDofsHaveThisVariable({dofs.begin() + 12, dofs.end()}, WATER_PRESSURE);
     ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[2], dofs[12]}, 1);
     ExpectDofsHaveThisNodeId({dofs[3], dofs[4], dofs[5], dofs[13]}, 2);
     ExpectDofsHaveThisNodeId({dofs[6], dofs[7], dofs[8], dofs[14]}, 3);
