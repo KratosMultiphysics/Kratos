@@ -1808,11 +1808,6 @@ public:
         return mMeshes;
     }
 
-    std::string& Name()
-    {
-        return mName;
-    }
-
     std::string const& Name() const
     {
         return mName;
