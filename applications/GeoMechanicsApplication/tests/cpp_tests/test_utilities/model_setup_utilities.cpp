@@ -13,15 +13,28 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 
+namespace
+{
+
+using namespace Kratos;
+
+ModelPart& CreateEmptyModelPart(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    auto& r_result = rModel.CreateModelPart("Main");
+    for (const auto& r_variable : rNodalVariables) {
+        r_result.AddNodalSolutionStepVariable(r_variable);
+    }
+    return r_result;
+}
+
+} // namespace
+
 namespace Kratos::Testing::ModelSetupUtilities
 {
 
 ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = rModel.CreateModelPart("Main");
-    for (const auto& r_variable : rNodalVariables) {
-        result.AddNodalSolutionStepVariable(r_variable);
-    }
+    ModelPart& result = CreateEmptyModelPart(rModel, rNodalVariables);
 
     result.CreateNewNode(1, 0.0, 0.0, 0.0);
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -41,10 +54,7 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::Const
 
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = rModel.CreateModelPart("Main");
-    for (const auto& r_variable : rNodalVariables) {
-        result.AddNodalSolutionStepVariable(r_variable);
-    }
+    ModelPart& result = CreateEmptyModelPart(rModel, rNodalVariables);
 
     result.CreateNewNode(1, 0.0, 0.0, 0.0);
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
