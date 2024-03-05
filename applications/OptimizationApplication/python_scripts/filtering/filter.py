@@ -4,6 +4,7 @@ from importlib import import_module
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 class Filter(ABC):
     """Base filter class
@@ -78,7 +79,7 @@ class Filter(ABC):
         """
         pass
 
-def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, settings: Kratos.Parameters) -> Filter:
+def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, settings: Kratos.Parameters, filter_data: ComponentDataView) -> Filter:
     if not settings.Has("filter_type"):
         raise RuntimeError(f"\"filter_type\" not provided in the following filter settings:\n{settings}")
 
@@ -88,4 +89,4 @@ def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: Suppo
     module = import_module(filter_module_name)
     if not hasattr(module, "Factory"):
         raise RuntimeError(f"Python module {filter_module_name} does not have a Factory method.")
-    return getattr(module, "Factory")(model, filtering_model_part_name, variable, data_location, settings)
+    return getattr(module, "Factory")(model, filtering_model_part_name, variable, data_location, settings, filter_data)
