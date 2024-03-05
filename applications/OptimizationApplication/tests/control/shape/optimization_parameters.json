@@ -120,23 +120,6 @@
                             "string_length": 10
                         }
                     }
-                },
-                {
-                    "type": "optimization_problem_vtu_output_process",
-                    "module": "KratosMultiphysics.OptimizationApplication.processes",
-                    "settings": {
-                        "file_name": "<model_part_full_name>_<step>",
-                        "file_format": "binary",
-                        "output_path": "Optimization_Results",
-                        "save_output_files_in_folder": true,
-                        "write_deformed_configuration": false,
-                        "list_of_output_components": [
-                            "all"
-                        ],
-                        "output_precision": 7,
-                        "output_interval": 1,
-                        "echo_level": 0
-                    }
                 }
             ]
         }
