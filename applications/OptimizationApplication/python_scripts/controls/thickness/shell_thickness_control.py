@@ -152,15 +152,18 @@ class ShellThicknessControl(Control):
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
-                if self.beta_adaptive:
-                    step = self.optimization_problem.GetStep()
-                    if step % self.beta_update_period == 0 and self.beta_computed_step != step:
-                        self.beta_computed_step = step
-                        self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
-                        Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
+                self.__UpdateBeta()
 
                 return True
         return False
+
+    def __UpdateBeta(self) -> None:
+        if self.beta_adaptive:
+            step = self.optimization_problem.GetStep()
+            if step % self.beta_update_period == 0 and self.beta_computed_step != step:
+                self.beta_computed_step = step
+                self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
+                Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
