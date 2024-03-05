@@ -51,7 +51,7 @@
                 "output_data_list" : []
             },
             {
-                "name": "mpm",
+                "name": "particle",
                 "input_data_list": [
                     {
                         "data"           : "disp",
@@ -81,9 +81,9 @@
         ],
         "solvers" :
         {
-            "mpm":
+            "particle":
             {
-                "type" : "solver_wrappers.kratos.mpm_dirichlet_wrapper",
+                "type" : "solver_wrappers.kratos.particle_mechanics_dirichlet_wrapper",
                 "solver_wrapper_settings" : {
                     "input_file"  : "mpm_fem_beam/ProjectParametersMPM",
                     "interface_model_part_name": "MPM_Material.INTERFACE_coupling_to_fem"
