@@ -121,16 +121,17 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Initial)
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Current)
 
-        vtu_output.PrintOutput(f"output_{ref_file}")
-        params = Kratos.Parameters("""{
-            "reference_file_name"   : "explicit_filter_reference_1.vtu.orig",
-            "output_file_name"      : "explicit_filter_reference.vtu",
-            "remove_output_file"    : true,
-            "comparison_type"       : "deterministic"
-        }""")
-        params["reference_file_name"].SetString(ref_file)
-        params["output_file_name"].SetString(f"output_{ref_file}.vtu")
-        CompareTwoFilesCheckProcess(params).Execute()
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            vtu_output.PrintOutput(f"output_{ref_file}")
+            params = Kratos.Parameters("""{
+                "reference_file_name"   : "explicit_filter_reference_1.vtu.orig",
+                "output_file_name"      : "explicit_filter_reference.vtu",
+                "remove_output_file"    : true,
+                "comparison_type"       : "deterministic"
+            }""")
+            params["reference_file_name"].SetString(ref_file)
+            params["output_file_name"].SetString(f"output_{ref_file}.vtu")
+            CompareTwoFilesCheckProcess(params).Execute()
 
     def test_FilterCosine(self):
         self.__RunTestCase("cosine", "cosine", "explicit_filter_reference_cosine.vtu.orig")

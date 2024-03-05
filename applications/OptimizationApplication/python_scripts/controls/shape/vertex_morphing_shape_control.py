@@ -14,13 +14,13 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
-        raise RuntimeError(f"ShapeControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"VertexMorphingShapeControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"ShapeControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"VertexMorphingShapeControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return ShapeControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+    return VertexMorphingShapeControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-class ShapeControl(Control):
+class VertexMorphingShapeControl(Control):
     """Node-based shape control using implicit and explicit Vertex Morphing techniques
 
     This is filtering-based discrete shape control which parametrizes and controls
