@@ -4,7 +4,6 @@ keywords: process core
 tags: [calculate nodal area process]
 sidebar: kratos_core_processes
 summary: The Calculate Nodal Area process in Kratos calculates the area associated with each node in a mesh, supporting both historical and non-historical data. This documentation outlines its usage, including descriptions of its functionality, parameters, and defaults.
-
 ---
 
 # Calculate Nodal Area
