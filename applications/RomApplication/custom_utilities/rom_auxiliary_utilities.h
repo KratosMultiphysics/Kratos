@@ -83,6 +83,25 @@ public:
         ModelPart& rHRomComputingModelPart);
 
     /**
+     * @brief Sets the HROM model part using lists of element and condition IDs and weights
+     * This function constructs the HROM model part by directly using lists of element and
+     * condition IDs along with their corresponding weights. It processes the given IDs to
+     * retrieve the respective elements and conditions from the origin model part and then
+     * adds them to the destination model part. Unique node IDs are also extracted and managed
+     * efficiently to avoid duplication. This approach is more direct and efficient, especially
+     * when dealing with large datasets.
+     * @param elementIds Vector of integers representing the IDs of elements to be included in the HROM model part
+     * @param conditionIds Vector of integers representing the IDs of conditions to be included in the HROM model part
+     * @param rOriginModelPart Reference to the origin model part (usually the computing model part)
+     * @param rHRomComputingModelPart Reference to the destination model part where the HROM mesh will be stored
+     */
+    static void SetHRomComputingModelPartWithLists(
+        const std::vector<int>& elementIds,
+        const std::vector<int>& conditionIds,
+        ModelPart& rOriginModelPart,
+        ModelPart& rHRomComputingModelPart);
+
+    /**
      * @brief Sets the HROM model part including neighboring entities based on the nodal weights
      *
      * Provided an origin model part and a parameters object containing the HROM weights,
@@ -161,6 +180,54 @@ public:
     static std::vector<IndexType> GetNodalNeighbouringElementIds(
         ModelPart& rModelPart,
         ModelPart& rGivenModelPart);
+
+    /**
+     * @brief Retrieve the IDs of elements and conditions neighboring specified nodes in a given model part.
+     *
+     * This function iterates over a list of node IDs and collects the IDs of elements and conditions that
+     * neighbor these nodes. The neighboring elements and conditions are determined using the 'NEIGHBOUR_ELEMENTS'
+     * and 'NEIGHBOUR_CONDITIONS' values attached to each node. The function ensures that each entity ID
+     * (elements and conditions) is unique, thus avoiding duplicates in the returned vector. It's important to note
+     * that this function assumes that the 'NEIGHBOUR_ELEMENTS' and 'NEIGHBOUR_CONDITIONS' values are already
+     * computed for the nodes in the model part.
+     *
+     * The function is particularly useful in scenarios where it's necessary to find all elements and conditions
+     * that are directly connected to a certain subset of nodes within a model part. This can be essential in
+     * ROM (Reduced Order Modelling) applications or any other application requiring localized information around
+     * a set of nodes.
+     *
+     * @param rModelPart The model part which contains all the elements and conditions.
+     * @param rNodeIds A vector of node IDs for which neighboring elements and conditions should be fetched.
+     * @return std::vector<IndexType> A list of unique IDs of neighboring elements and conditions.
+     */
+    static std::vector<IndexType> GetNeighbouringElementIds(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rNodeIds);
+
+    static std::vector<IndexType> GetNeighbouringConditionIds(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rNodeIds);
+
+    static std::vector<IndexType> GetHRomConditionParentsIdsForList(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rConditionIds);
+
+    /**
+     * @brief Filters conditions based on their parent elements being in a given list.
+     *
+     * This function iterates over all conditions in the provided ModelPart. For each condition,
+     * it checks if any of its parent elements (neighbour elements) are present in the specified list of
+     * new solid element IDs. Only the IDs of conditions whose parent elements are found in the list
+     * are returned. This is useful for filtering conditions based on a subset of the model's
+     * solid elements, often used in scenarios involving interface conditions in ROM simulations.
+     *
+     * @param rModelPart Reference to the ModelPart containing the conditions to be filtered.
+     * @param new_solid_element_ids Vector of IDs representing the new solid elements to check against.
+     * @return std::vector<IndexType> Vector containing the IDs of conditions that meet the criteria.
+     */
+    static std::vector<IndexType> FilterConditionsByParentElements(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& new_solid_element_ids);
 
     /**
      * @brief Identifies condition decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
@@ -266,20 +333,20 @@ public:
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
     /**
-     * @brief Obtain the JPhi elemental matrix for a particular element. 
+     * @brief Obtain the JPhi elemental matrix for a particular element.
      * JPhi represents the projection of the Jacobian onto the ROM_BASIS.
      * @param rJPhiElemental The matrix to store the result in. Must have the appropriate size already.
      * @param rDofs The set of degrees of freedom (DoFs) of the element.
      * @param rJPhi The JPhi matrix, from which rows are extracted according to the equation ID of each DoF.
-     * 
-     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a 
+     *
+     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a
      * corresponding row from the rJPhi matrix, which is then stored in the corresponding row of rJPhiElemental.
      */
     static void GetJPhiElemental(
         Matrix &rJPhiElemental,
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
-        
+
     ///@}
 
     private:
@@ -291,6 +358,13 @@ public:
         const NodesPointerSetType& rNodesSet,
         const std::vector<Element::Pointer>& rElementsVector,
         const std::vector<Condition::Pointer>& rConditionsVector,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
+    static void RecursiveHRomModelPartCreationVector(
+        const std::vector<IndexType>& rNodeIds,
+        const std::vector<IndexType>& rElementIds,
+        const std::vector<IndexType>& rConditionIds,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart);
 

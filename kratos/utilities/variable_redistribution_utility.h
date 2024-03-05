@@ -299,6 +299,28 @@ namespace Kratos
         unsigned int MaximumIterations);
 
     /**
+     * @brief Distributes point values across nodes based on their nodal area.
+     *
+     * This function distributes scalar point values (e.g., reactions or any other scalar quantity)
+     * to nodes within the entire model part by considering the NODAL_AREA of each node. The distributed
+     * values are calculated by dividing the nodal point value by the nodal area, ensuring that the
+     * distribution is proportional to the geometric contribution of each node. This method is particularly
+     * useful for cases like converting concentrated nodal values into equivalent values distributed
+     * according to the nodal area, simplifying the process without requiring iterative adjustments.
+     *
+     * @param rModelPart The model part containing the nodes. The NODAL_AREA should be pre-calculated
+     * for each node within this model part.
+     * @param rPointVariable The variable representing the concentrated point values at nodes. This could
+     * be a reaction, flux, or any other scalar quantity that needs to be distributed.
+     * @param rDistributedVariable The variable where the resulting distributed values will be stored for
+     * each node. This will overwrite any existing value in the variable.
+     */
+    static void DistributePointValuesFromNodalArea(
+        ModelPart& rModelPart,
+        const Variable<double>& rPointVariable,
+        const Variable<double>& rDistributedVariable);
+
+    /**
      * @brief Tranform a variable distributed over the conditions of rModelPart to a set of concentrated nodal values.
      * The origin and destination values have the same L2 norm over the set of conditions.
      * A typical use case is to transform a distributed load into an equivalent set of point loads.

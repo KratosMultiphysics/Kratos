@@ -32,17 +32,19 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
 
     def Execute(self):
         # TODO refactor the utility to allow mixed locations!
-        fct_ptr = KM.VariableRedistributionUtility.DistributePointValues
+        # fct_ptr = KM.VariableRedistributionUtility.DistributePointValues
+        fct_ptr = KM.VariableRedistributionUtility.DistributePointValuesFromNodalArea
         if self.data_point.location == "node_non_historical":
             fct_ptr = KM.VariableRedistributionUtility.DistributePointValuesNonHistorical
 
-        fct_ptr(
-            self.data_point.GetModelPart(),
-            self.entities,
-            self.data_point.variable,
-            self.data_dist.variable,
-            self.redistribution_tolerance,
-            self.redistribution_iterations)
+        # fct_ptr(
+        #     self.data_point.GetModelPart(),
+        #     self.entities,
+        #     self.data_point.variable,
+        #     self.data_dist.variable,
+        #     self.redistribution_tolerance,
+        #     self.redistribution_iterations)
+        fct_ptr(self.data_point.GetModelPart(),self.data_point.variable,self.data_dist.variable)
 
     def Check(self):
         if self.data_point.model_part_name != self.data_dist.model_part_name:

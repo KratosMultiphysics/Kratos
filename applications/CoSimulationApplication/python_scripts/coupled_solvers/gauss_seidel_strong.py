@@ -1,6 +1,10 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KratosCoSim
+import numpy as np
+import KratosMultiphysics.RomApplication as RomApp
+import KratosMultiphysics.ConvectionDiffusionApplication as KCD
+from pathlib import Path
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupled_solver import CoSimulationCoupledSolver
@@ -39,6 +43,38 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         for conv_crit in self.convergence_criteria_list:
             conv_crit.Initialize()
+
+        for solver_name, solver in self.solver_wrappers.items():
+            model_part = solver._analysis_stage._GetSolver().GetComputingModelPart()
+
+            if solver_name=="solid":
+                self.rom_basis_output_name = Path("RomParameters")
+                self.rom_basis_output_folder = Path("solid")
+
+                # Get the ROM settings from the RomParameters.json input file
+                with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix('.json')) as rom_parameters:
+                    self.rom_parameters = KM.Parameters(rom_parameters.read())
+
+                self.rom_settings = self.rom_parameters["rom_settings"].Clone()
+                self.rom_settings.RemoveValue("rom_bns_settings")
+                self.__rom_residuals_utility_solid = RomApp.RomResidualsUtility(
+                    model_part,
+                    self.rom_settings,
+                    solver._analysis_stage._GetSolver()._GetScheme())
+            elif solver_name=="fluid":
+                self.rom_basis_output_name = Path("RomParameters")
+                self.rom_basis_output_folder = Path("fluid")
+
+                # Get the ROM settings from the RomParameters.json input file
+                with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix('.json')) as rom_parameters:
+                    self.rom_parameters = KM.Parameters(rom_parameters.read())
+
+                self.rom_settings = self.rom_parameters["rom_settings"].Clone()
+                self.rom_settings.RemoveValue("rom_bns_settings")
+                self.__rom_residuals_utility_fluid = RomApp.RomResidualsUtility(
+                    model_part,
+                    self.rom_settings,
+                    solver._analysis_stage._GetSolver()._GetScheme())
 
     def Finalize(self):
         super().Finalize()
@@ -87,9 +123,19 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 conv_crit.InitializeNonLinearIteration()
 
             for solver_name, solver in self.solver_wrappers.items():
+
                 self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
+                # if solver_name=="solid":
+                #     projected_residuals_matrix_solid = np.array(self.__rom_residuals_utility_solid.GetProjectedResidualsOntoPhi())
+                #     np.save(f"projected_residuals_matrix_solid_{k}.npy", projected_residuals_matrix_solid)
+                # elif solver_name=="fluid":
+                #     projected_residuals_matrix_fluid = np.array(self.__rom_residuals_utility_fluid.GetProjectedResidualsOntoPhi())
+                #     np.save(f"projected_residuals_matrix_fluid_{k}.npy", projected_residuals_matrix_fluid)
                 self._SynchronizeOutputData(solver_name)
+
+
+
 
             for coupling_op in self.coupling_operations_dict.values():
                 coupling_op.FinalizeCouplingIteration()
@@ -156,4 +202,5 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         for solver in self.solver_wrappers.values():
             solver.ExportData(export_config)
+
 

@@ -503,7 +503,9 @@ protected:
             [&](Element::Pointer p_element)
         {
             if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
+                if (p_element->GetValue(HROM_WEIGHT) != 0.0) { // TODO: Remove this line in the future if elements with 0.0 weight should not be initialized
+                    element_queue.enqueue(std::move(p_element));
+                }
             } else {
                 p_element->SetValue(HROM_WEIGHT, 1.0);
             }
@@ -515,7 +517,9 @@ protected:
             [&](Condition::Pointer p_condition)
         {
             if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
+                if (p_condition->GetValue(HROM_WEIGHT) != 0.0) { // TODO: Remove this line in the future if elements with 0.0 weight should not be initialized
+                    condition_queue.enqueue(std::move(p_condition));
+                }
             } else {
                 p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
@@ -643,6 +647,38 @@ protected:
             BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
         }
 
+        ModelPart::ElementsContainerType elements;
+        ModelPart::ConditionsContainerType conditions;
+
+        // Check if we are in a HROM simulation and select elements and conditions accordingly
+        if (mHromSimulation) {
+            elements = mSelectedElements;
+            conditions = mSelectedConditions;
+        } else {
+            elements = rModelPart.Elements();
+            conditions = rModelPart.Conditions();
+        }
+
+        // Loop over elements to access their nodes
+        for (auto it_elem = elements.begin(); it_elem != elements.end(); ++it_elem) {
+            auto& elementNodes = it_elem->GetGeometry();
+            for (unsigned int i = 0; i < elementNodes.size(); ++i) {
+                auto& node = elementNodes[i];
+                // std::cout << "Element Node ID: " << node.Id() << ", Temperature: " << node.FastGetSolutionStepValue(TEMPERATURE) << std::endl;
+                // std::cout << "Element Node ID: " << node.Id() << ", Face heat flux: " << node.FastGetSolutionStepValue(FACE_HEAT_FLUX) << std::endl;
+            }
+        }
+
+        // Loop over conditions to access their nodes
+        for (auto it_cond = conditions.begin(); it_cond != conditions.end(); ++it_cond) {
+            auto& conditionNodes = it_cond->GetGeometry();
+            for (unsigned int i = 0; i < conditionNodes.size(); ++i) {
+                auto& node = conditionNodes[i];
+                // std::cout << "Condition Node ID: " << node.Id() << ", Temperature: " << node.FastGetSolutionStepValue(TEMPERATURE) << std::endl;
+                // std::cout << "Condition Node ID: " << node.Id() << ", Face heat flux: " << node.FastGetSolutionStepValue(FACE_HEAT_FLUX) << std::endl;
+            }
+        }
+
         Build(pScheme, rModelPart, rA, rb);
 
         if (mMonotonicityPreservingFlag) {
@@ -708,6 +744,9 @@ protected:
 
                     //Get HROM weight and multiply it by its contribution
                     const double h_rom_weight = mHromSimulation ? it_elem->GetValue(HROM_WEIGHT) : 1.0;
+                    // KRATOS_WATCH(it_elem->Id())
+                    // KRATOS_WATCH(LHS_Contribution)
+                    // KRATOS_WATCH(RHS_Contribution)
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -727,6 +766,9 @@ protected:
 
                     //Get HROM weight and multiply it by its contribution
                     const double h_rom_weight = mHromSimulation ? it_cond->GetValue(HROM_WEIGHT) : 1.0;
+                    // KRATOS_WATCH(it_cond->Id())
+                    // KRATOS_WATCH(LHS_Contribution)
+                    // KRATOS_WATCH(RHS_Contribution)
                     LHS_Contribution *= h_rom_weight;
                     RHS_Contribution *= h_rom_weight;
 
@@ -792,6 +834,7 @@ protected:
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
+        // KRATOS_WATCH(rEigenRomB)
 
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;

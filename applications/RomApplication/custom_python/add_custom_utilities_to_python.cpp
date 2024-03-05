@@ -48,6 +48,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
         .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
+        .def_static("SetHRomComputingModelPartWithLists", &RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists)
         .def_static("SetHRomComputingModelPartWithNeighbours", &RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours)
         .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
         .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
@@ -59,6 +60,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         .def_static("GetElementIdsInModelPart", &RomAuxiliaryUtilities::GetElementIdsInModelPart)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
+        .def_static("GetNeighbouringElementIds", &RomAuxiliaryUtilities::GetNeighbouringElementIds)
+        .def_static("GetNeighbouringConditionIds", &RomAuxiliaryUtilities::GetNeighbouringConditionIds)
+        .def_static("GetHRomConditionParentsIdsForList", &RomAuxiliaryUtilities::GetHRomConditionParentsIdsForList)
+        .def_static("FilterConditionsByParentElements", &RomAuxiliaryUtilities::FilterConditionsByParentElements)
         ;
 }
 
