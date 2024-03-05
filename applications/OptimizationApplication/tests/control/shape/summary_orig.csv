@@ -1,0 +1,18 @@
+# Optimization problem ascii output
+# Kratos version: not_given
+# Timestamp     : not_specified
+# -----------------------------------------------
+# --------------- Initial values ----------------
+# 	algorithm:
+# 	strain_energy:
+# 		initial_value: 6.290474e-02
+# ------------ End of initial values ------------
+# -----------------------------------------------
+# ------------ Start of step values -------------
+# Headers:
+#  STEP, algorithm:std_obj_value, algorithm:rel_obj[%], algorithm:abs_obj[%], strain_energy:value
+      0,            6.290474e-02,         0.000000e+00,         0.000000e+00,        6.290474e-02
+      1,            4.942421e-03,        -9.214301e+01,        -9.214301e+01,        4.942421e-03
+      2,            7.922534e-05,        -9.839703e+01,        -9.987406e+01,        7.922534e-05
+      3,            2.342769e-05,        -7.042904e+01,        -9.996276e+01,        2.342769e-05
+# End of file
