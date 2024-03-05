@@ -7,6 +7,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def Factory(model: Kratos.Model, filtering_model_part_name: str, filtering_variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, parameters: Kratos.Parameters) -> Filter:
     return ExplicitVertexMorphingFilter(model, filtering_model_part_name, filtering_variable, data_location, parameters)
@@ -30,6 +31,8 @@ class ExplicitVertexMorphingFilter(Filter):
         }""")
 
     def __init__(self, model: Kratos.Model, filtering_model_part_name: str, filtering_variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, parameters: Kratos.Parameters) -> None:
+        super().__init__()
+
         self.model = model
         self.filtering_model_part_name = filtering_model_part_name
         self.filtering_variable = filtering_variable
@@ -75,10 +78,12 @@ class ExplicitVertexMorphingFilter(Filter):
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
         filter_radius = self._GetFilterRadiusExpression(self.parameters["filter_radius_settings"])
         self.filter.SetFilterRadius(filter_radius)
+        self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
 
         # now set the damping
         damping_coefficients = self._GetDampingCoefficients(filter_radius, self.parameters["filtering_boundary_conditions"])
         self.filter.SetDampingCoefficients(damping_coefficients)
+        self.GetComponentDataView().GetUnBufferedData().SetValue("damping_coefficients", damping_coefficients.Clone(), overwrite=True)
 
         # initialize the filter
         self.filter.Update()

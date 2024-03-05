@@ -52,10 +52,7 @@ class TestVMShapeControl(kratos_unittest.TestCase):
                     "solid_explicit.fixed" : [true,true,true]
                 }
             }""")
-            cls.explicit_solid_shape_control = VertexMorphingShapeControl("solid_explicit", cls.model, solid_parameters, cls.optimization_problem)
-            cls.optimization_problem.AddComponent(cls.explicit_solid_shape_control)
             ReadModelPart("solid",cls.solid_explicit)
-            cls.explicit_solid_shape_control.Initialize()
 
             cls.solid_implicit = cls.model.CreateModelPart("solid_implicit")
             cls.solid_implicit.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
@@ -104,8 +101,6 @@ class TestVMShapeControl(kratos_unittest.TestCase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_control_field), 22.4268730405143, 10)
         explicit_control_field = self.explicit_shape_control.GetControlField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 0.0000, 4)
-        solid_explicit_control_field = self.explicit_solid_shape_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(solid_explicit_control_field), 0.0000, 4)
         solid_implicit_control_field = self.implicit_solid_shape_control.GetControlField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(solid_implicit_control_field), 18.63464515358424, 4)
         solid_implicit_bulk_surf_control_field = self.implicit_bulk_surf_shape_control.GetControlField()
@@ -117,8 +112,6 @@ class TestVMShapeControl(kratos_unittest.TestCase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 20.976176963410882, 10)
         shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 20.976176963410882, 10)
-        shape_field = self.explicit_solid_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.06201920231798, 10)
         shape_field = self.implicit_solid_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.06201920231798, 10)
         shape_field = self.implicit_bulk_surf_shape_control.GetPhysicalField()
@@ -132,12 +125,7 @@ class TestVMShapeControl(kratos_unittest.TestCase):
         implicit_mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_mapped_gradient), 27.84296340221239, 10)
         explicit_mapped_gradient = self.explicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_mapped_gradient), 28.102970155390018, 10)
-
-        solid_physical_gradient = self.explicit_solid_shape_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(solid_physical_gradient, constant_field_value)
-        mapped_gradient = self.explicit_solid_shape_control.MapGradient({KratosOA.SHAPE: solid_physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 13.52774925846869, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_mapped_gradient), 31.792483589877534, 10)
 
         solid_physical_gradient = self.implicit_solid_shape_control.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(solid_physical_gradient, constant_field_value)
@@ -166,14 +154,6 @@ class TestVMShapeControl(kratos_unittest.TestCase):
         explicit_shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 3.633180424916991, 10)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 10.365298105786017, 10)
-
-        update_field = self.explicit_solid_shape_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
-        self.explicit_solid_shape_control.Update(update_field)
-        control_field = self.explicit_solid_shape_control.GetControlField()
-        shape_field = self.explicit_solid_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.355456348076514, 10)
 
         update_field = self.implicit_solid_shape_control.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)

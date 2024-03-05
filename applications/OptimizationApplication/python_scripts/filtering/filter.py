@@ -1,15 +1,27 @@
+import typing
 from abc import ABC, abstractmethod
 from importlib import import_module
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 class Filter(ABC):
     """Base filter class
 
     This class unifies the filters used in the optimization application.
     """
+    def __init__(self) -> None:
+        self.__component_data_view: 'typing.Optional[ComponentDataView]' = None
+
+    def SetComponentDataView(self, component_data_view: ComponentDataView) -> None:
+        self.__component_data_view = component_data_view
+
+    def GetComponentDataView(self) -> ComponentDataView:
+        if self.__component_data_view is None:
+            raise RuntimeError("Please use SetComponentDataView first.")
+        return self.__component_data_view
 
     @abstractmethod
     def Initialize(self) -> None:

@@ -4,6 +4,8 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -71,10 +73,14 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         with kratos_unittest.WorkFolderScope(".", __file__):
-            ReadModelPart("shell", cls.model_part)
+            ReadModelPart("../mdpas/shell", cls.model_part)
+
+        cls.optimization_problem = OptimizationProblem(0)
 
         cls.initial_nodal_pos = Kratos.Expression.NodalExpression(cls.model_part)
         Kratos.Expression.NodalPositionExpressionIO.Read(cls.initial_nodal_pos, Kratos.Configuration.Initial)
+        cls.filter_data = ComponentDataView("test", cls.optimization_problem)
+        cls.filter_data.SetDataBuffer(1)
 
     def setUp(self) -> None:
         Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Initial)
@@ -103,6 +109,7 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
         settings["filter_function_type"].SetString(filter_function_type)
         settings["filtering_boundary_conditions"]["damping_function_type"].SetString(damping_function_type)
         vm_filter = Factory(self.model, "test", KratosOA.SHAPE, Kratos.Globals.DataLocation.NodeHistorical, settings)
+        vm_filter.SetComponentDataView(ComponentDataView("test", self.optimization_problem))
         vm_filter.Initialize()
 
         vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=3)
@@ -121,6 +128,7 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Initial)
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Current)
 
+        vtu_output.PrintOutput(f"output_{ref_file}")
         with kratos_unittest.WorkFolderScope(".", __file__):
             vtu_output.PrintOutput(f"output_{ref_file}")
             params = Kratos.Parameters("""{

@@ -1,0 +1,152 @@
+{
+    "problem_data": {
+        "problem_name": "shell",
+        "end_time": 1.0,
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0
+    },
+    "solver_settings": {
+        "solver_type": "static",
+        "model_part_name": "shell",
+        "domain_size": 3,
+        "linear_solver_settings": {
+            "scaling": false,
+            "solver_type": "LinearSolversApplication.sparse_lu",
+            "verbosity": 0
+        },
+        "material_import_settings": {
+            "materials_filename": "materials.json"
+        },
+        "model_import_settings": {
+            "input_filename": "../../mdpas/shell_elements",
+            "input_type": "mdpa"
+        },
+        "echo_level": 0,
+        "problem_domain_sub_model_part_list": [
+            "Parts_Shell_shell"
+        ],
+        "processes_sub_model_part_list": [
+            "load",
+            "DISPLACEMENT_left_edge",
+            "DISPLACEMENT_top_edge",
+            "DISPLACEMENT_right_edge",
+            "DISPLACEMENT_bottom_edge"
+        ],
+        "rotation_dofs": true,
+        "analysis_type": "linear",
+        "time_stepping": {
+            "time_step": 1.1
+        },
+        "move_mesh_flag": false
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.DISPLACEMENT_left_edge",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.DISPLACEMENT_top_edge",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.DISPLACEMENT_right_edge",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.DISPLACEMENT_bottom_edge",
+                    "variable_name": "DISPLACEMENT",
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "mesh_id": 0,
+                    "model_part_name": "shell.load",
+                    "variable_name": "POINT_LOAD",
+                    "modulus": 1.0,
+                    "constrained": false,
+                    "direction": [
+                        0.0,
+                        0.0,
+                        -1.0
+                    ]
+                }
+            }
+        ]
+    },
+    "restart_options": {},
+    "output_processes": {}
+}
