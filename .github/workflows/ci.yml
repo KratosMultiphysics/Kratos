@@ -2,20 +2,8 @@ name: CI
 
 on:
   pull_request:
-  merge_group:
     branches:
       - master
-    paths-ignore:       # This must be the same as .github/workflows/ci_dummy.yml - "paths" !
-      - '**.md'
-      - 'documents/**'
-      - 'scripts/**'   # Docker builds will be triggered by `build_docker_image_****.yml` workflows.
-      - '.github/workflows/ci-dummy.yml'
-      - '.github/workflows/build_docker_image*.yml'
-      - '.github/workflows/nightly_build.yml'
-      - 'kratos/templates/**'
-      - 'kratos/python_scripts/application_generator/**'
-      - 'docs/**'
-      - '.github/workflows/jekyll-gh-pages.yml'
 
   workflow_dispatch:
 
