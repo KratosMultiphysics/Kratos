@@ -60,6 +60,7 @@ class ExplicitVertexMorphingShapeControl(Control):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
+        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
         if self.use_mesh_motion_solver:
             self.mesh_motion_solver.Initialize()
