@@ -207,20 +207,22 @@ class VertexMorphingShapeControl(Control):
             if len(self.filter_model_part.Elements) > 0:
                 raise RuntimeError("VertexMorphingShapeControl with explicit filtering only allows model parts with conditions")
             # now damping and creating the filter
-            fixed_model_parts_names = list(self.parameters["fixed_model_parts"].keys())
-            if len(fixed_model_parts_names)>0:
-                self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
-                self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
-                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
-                                                           self.parameters["filter_settings"]["damping_function_type"].GetString(),
-                                                           self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
-            else:
-                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
-                                                           self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
-
+            self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                        self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
             filter_radius_field = Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
             self.filter.SetFilterRadius(filter_radius_field)
+
+            fixed_model_parts_names = list(self.parameters["fixed_model_parts"].keys())
+            if len(fixed_model_parts_names)>0:
+                damping_settings = KratosOA.FilterUtils.GetComponentWiseDampedModelParts(self.model, self.parameters["fixed_model_parts"], 3)
+                damping_coeffs = KratosOA.FilterUtils.ComputeDampingCoefficientsBasedOnNearestEntity(filter_radius_field.Clone(), damping_settings, [3], "cosine", 100)
+            else:
+                damping_coeffs = Kratos.Expression.NodalExpression(self.filter_model_part)
+                Kratos.Expression.LiteralExpressionIO.SetData(damping_coeffs, Kratos.Array3([1.0, 1.0, 1.0]))
+            self.filter.SetDampingCoefficients(damping_coeffs)
+            self.filter.Update()
+
             self.control_field = Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(self.control_field,[0,0,0])
         else:
