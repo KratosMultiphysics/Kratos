@@ -422,12 +422,11 @@ public:
         IndexType* new_a_ptr = new IndexType[nrows + 1];
         new_a_ptr[0] = 0;
 
-        #pragma omp parallel for
-        for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
-
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType ia) {
             SignedIndexVectorType marker(ncols);
-            for (int i = 0; i < static_cast<int>(ncols); ++i)
+            for (int i = 0; i < static_cast<int>(ncols); ++i) {
                 marker[i] = -1;
+            }
 
             // Initialize
             IndexType new_A_cols = 0;
@@ -452,7 +451,7 @@ public:
                 }
             }
             new_a_ptr[ia + 1] = new_A_cols;
-        }
+        });
 
         // We initialize the sparse matrix
         std::partial_sum(new_a_ptr, new_a_ptr + nrows + 1, new_a_ptr);
@@ -460,12 +459,11 @@ public:
         IndexType* aux_index2_new_a = new IndexType[nonzero_values];
         ValueType* aux_val_new_a = new ValueType[nonzero_values];
 
-        #pragma omp parallel for
-        for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
-
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType ia) {
             SignedIndexVectorType marker(ncols);
-            for (int i = 0; i < static_cast<int>(ncols); ++i)
+            for (int i = 0; i < static_cast<int>(ncols); ++i) {
                 marker[i] = -1;
+            }
 
             // Initialize
             const IndexType row_beg = new_a_ptr[ia];
@@ -500,7 +498,7 @@ public:
                     aux_val_new_a[marker[cb]] += Factor * vb;
                 }
             }
-        }
+        });
 
         // We reorder the rows
         SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
@@ -542,34 +540,31 @@ public:
         }
 
         IndexVectorType new_a_ptr(size_system_2 + 1);
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2 + 1); ++i) {
+        IndexPartition<IndexType>(size_system_2 + 1).for_each([&](IndexType i) {
             new_a_ptr[i] = 0;
-        }
+        });
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
 
         // Auxiliary index 1
         const IndexType aux_1_index = 1;
 
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(size_system_1); ++i) {
+        IndexPartition<IndexType>(size_system_1).for_each([&](IndexType i) {
             IndexType row_begin = index1[i];
             IndexType row_end   = index1[i+1];
 
             for (IndexType j=row_begin; j<row_end; j++) {
                 AtomicAdd(new_a_ptr[index2[j] + 1], aux_1_index);
             }
-        }
+        });
 
         // We initialize the blocks sparse matrix
         std::partial_sum(new_a_ptr.begin(), new_a_ptr.end(), &new_a_ptr[0]);
 
         IndexVectorType aux_indexes(size_system_2);
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_system_2); ++i) {
+        IndexPartition<IndexType>(size_system_2).for_each([&](IndexType i) {
             aux_indexes[i] = 0;
-        }
+        });
 
 //         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
@@ -629,15 +624,15 @@ public:
         double* values_c = C.value_data().begin();
 
         index1_c[0] = 0;
-        for (TSize i = 0; i < NRows; i++)
+        for (TSize i = 0; i < NRows; i++) {
             index1_c[i+1] = index1_c[i] + (CPtr[i+1] - CPtr[i]);
+        }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nonzero_values); i++) {
+        IndexPartition<IndexType>(nonzero_values).for_each([&](IndexType i) {
             KRATOS_DEBUG_ERROR_IF(AuxIndex2C[i] > static_cast<IndexType>(NCols)) << "Index " << AuxIndex2C[i] <<" is greater than the number of columns " << NCols << std::endl;
             index2_c[i] = AuxIndex2C[i];
             values_c[i] = AuxValC[i];
-        }
+        });
 
         C.set_filled(NRows+1, nonzero_values);
     }
@@ -659,8 +654,7 @@ public:
         ValueType* Values
         )
     {
-        #pragma omp parallel for
-        for (TSize i_row = 0; i_row < NRows; i_row++) {
+        IndexPartition<TSize>(NRows).for_each([&](TSize i_row) {
             const TIndexType row_begin = CPtr[i_row];
             const TIndexType row_end = CPtr[i_row + 1];
             TSize length = row_end - row_begin;
@@ -681,7 +675,7 @@ public:
                 Columns[j + row_begin] = row_data[j].first;
                 Values[j + row_begin] = row_data[j].second;
             }
-        }
+        });
     }
 
     /**
@@ -759,10 +753,9 @@ public:
 
         // We will compute nonzero terms
         IndexType* matrix_ptr = new IndexType[nrows + 1];
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nrows + 1); ++i) {
+        IndexPartition<IndexType>(nrows + 1).for_each([&](IndexType i) {
             matrix_ptr[i] = 0;
-        }
+        });
 
     #ifdef KRATOS_DEBUG
         IndexType check_non_zero = 0;
@@ -774,8 +767,7 @@ public:
         }
     #endif
 
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+        IndexPartition<IndexType>(number_of_rows_blocks).for_each([&](IndexType i) {
             for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
                 IndexType matrix_cols_aux = 0;
                 for (int j=0; j<static_cast<int>(number_of_columns_blocks); ++j) {
@@ -813,7 +805,7 @@ public:
                 AtomicAdd(check_non_zero, matrix_cols_aux);
             #endif
             }
-        }
+        });
 
         // Auxiliary values
         std::partial_sum(matrix_ptr, matrix_ptr + nrows + 1, matrix_ptr);
@@ -845,8 +837,7 @@ public:
             Matrix_index1[i+1] = Matrix_index1[i] + (matrix_ptr[i + 1] - matrix_ptr[i]);
         }
 
-        #pragma omp parallel for
-        for (int i=0; i<static_cast<int>(number_of_rows_blocks); ++i) {
+        IndexPartition<IndexType>(number_of_rows_blocks).for_each([&](IndexType i) {
             for (int k=0; k<static_cast<int>(row_sizes[i]); ++k) {
                 const IndexType row_beg = matrix_ptr[std::accumulate(row_sizes.begin(), row_sizes.begin() + i, 0) + k];
                 IndexType row_end = row_beg;
@@ -869,7 +860,7 @@ public:
                     }
                 }
             }
-        }
+        });
 
         // Close the matrix
         rMatrix.set_filled(nrows+1, nonzero_values);
