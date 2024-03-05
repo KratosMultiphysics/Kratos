@@ -200,9 +200,9 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
         std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
 
-    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
-        r_model_part.Elements().front().GetGeometry(),
-        r_model_part.Elements().front().GetGeometry().WorkingSpaceDimension());
+    const auto& r_geometry = r_model_part.Elements().front().GetGeometry();
+    const auto  dofs =
+        Geo::DofUtilities::ExtractUPwDofsFromNodes(r_geometry, r_geometry.WorkingSpaceDimension());
 
     KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
     ExpectDofsDontContainAnyNullptrs(dofs);
@@ -222,9 +222,9 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
                                std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model, nodal_variables);
 
-    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
-        r_model_part.Elements().front().GetGeometry(),
-        r_model_part.Elements().front().GetGeometry().WorkingSpaceDimension());
+    const auto& r_geometry = r_model_part.Elements().front().GetGeometry();
+    const auto  dofs =
+        Geo::DofUtilities::ExtractUPwDofsFromNodes(r_geometry, r_geometry.WorkingSpaceDimension());
 
     KRATOS_EXPECT_EQ(dofs.size(), r_model_part.NumberOfNodes() * nodal_variables.size());
     ExpectDofsDontContainAnyNullptrs(dofs);
