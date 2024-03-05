@@ -1,12 +1,7 @@
-import sys
-import os
-
-sys.path.append(os.path.join('..', '..', '..'))
-
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.GeoMechanicsApplication import *
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
-
+import os
 
 def run_stages(project_path,n_stages):
     """
@@ -27,13 +22,13 @@ def run_stages(project_path,n_stages):
             parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
-    stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-
-    [stage.Run() for stage in stages]
-
+    for stage_parameters in parameters_stages:
+        stage = analysis.GeoMechanicsAnalysis(model, stage_parameters)
+        stage.Run()
 
 if __name__ == "__main__":
 
+    import sys
     n_stages = int(sys.argv[2])
     project_path = sys.argv[1]
 
