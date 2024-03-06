@@ -58,20 +58,27 @@ public:
     }
 
     /// Constructor using an array of nodes
-    TransientPwInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                const NodesArrayType&              ThisNodes,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                PropertiesType::Pointer            pProperties,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 

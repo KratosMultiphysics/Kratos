@@ -58,20 +58,23 @@ public:
     SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    SteadyStatePwElement(IndexType                          NewId,
+                         GeometryType::Pointer              pGeometry,
+                         PropertiesType::Pointer            pProperties,
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 

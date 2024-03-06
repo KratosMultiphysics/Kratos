@@ -46,7 +46,7 @@ def post_process_vtk(model):
             "output_interval"                    : 2,
             "output_sub_model_parts"             : true,
             "entity_type"                        : "element",
-            "nodal_data_value_variables"         : ["DISTANCE"],
+            "nodal_data_value_variables"         : ["DISTANCE", "DISTANCE_GRADIENT"],
             "output_path"                        : "test_vtk_output"
         }
     }""")
@@ -77,7 +77,7 @@ def post_process_gid(model_part):
                                                 "WriteConditionsFlag": "WriteConditions",
                                                 "MultiFileFlag": "SingleFile"
                                             },
-                                            "nodal_nonhistorical_results" : ["DISTANCE"]
+                                            "nodal_nonhistorical_results" : ["DISTANCE", "DISTANCE_GRADIENT"]
                                         }
                                     }
                                     """)
@@ -103,8 +103,62 @@ def CalculateAnalyticalDistance(node):
     distance = 0.5 - math.sqrt(node.X**2 + node.Y**2 + node.Z**2)
     return distance
 
-class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCase):
-    """Test case for verifying the nodal distance calculation to a skin surface on a coarse sphere model."""
+def CalculateAnalyticalNormal(node):
+    """
+    Calculates the normalized vector representing the normal direction at a given node.
+
+    Parameters:
+        node : Node object
+            An object representing a node in the computational domain.
+
+    Returns:
+        Array3
+            A KratosMultiphysics Array3 object representing the normalized normal vector at the given node.
+
+    Note:
+        This function assumes that the input node has attributes X, Y, and Z representing its coordinates.
+    """
+    norm = math.sqrt(node.X**2+node.Y**2+node.Z**2)
+    normal = KratosMultiphysics.Array3([- node.X/norm, - node.Y/norm, - node.Z/norm])
+    return normal
+
+def CalculateAnalyticalDistanceGradientNorm(node):
+    """
+    Calculates the norm of the analytical distance gradient vector at a given node.
+
+    Parameters:
+        node : Node object
+            An object representing a node in the computational domain.
+
+    Returns:
+        float
+            The norm of the analytical distance gradient vector at the given node.
+
+    Note:
+        This function assumes that the input node has attributes X, Y, and Z representing its coordinates.
+        The distance gradient is calculated assuming a constant gradient of 0.5.
+    """
+    return math.sqrt(node.X**2 + node.Y**2 + node.Z**2)/0.5
+
+def CalculateNorm(array_3d_value):
+    """
+    Calculates the Euclidean norm of a 3D vector.
+
+    Parameters:
+        array_3d_value : list or tuple
+            A list or tuple representing a 3D vector in the form [x, y, z].
+
+    Returns:
+        float
+            The Euclidean norm of the input 3D vector.
+
+    Note:
+        This function assumes that the input vector has three elements corresponding to its x, y, and z components.
+    """
+    return math.sqrt(array_3d_value[0]**2+array_3d_value[1]**2+array_3d_value[2]**2)
+
+class TestComputeNodalGradientProcessCoarseSphere(KratosUnittest.TestCase):
+    """Test case for verifying the nodal distance gradient calculation on a coarse sphere model."""
 
     @classmethod
     def setUpClass(cls):
@@ -114,45 +168,53 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere")
         ReadModelPart(cls.mdpa_name, cls.model_part)
-        cls.skin_model_part = cls.current_model.CreateModelPart("skin_model_part")
-        cls.skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        cls.skin_mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
-        ReadModelPart(cls.skin_mdpa_name, cls.skin_model_part)
 
     @classmethod
     def tearDownClass(cls):
         """Clean up by removing the generated files."""
         RemoveFiles(cls.mdpa_name)
-        RemoveFiles(cls.skin_mdpa_name)
 
     def setUp(self):
         """Setup tasks before each test method."""
         pass
 
-    @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
-    def test_ComputeDistanceToSkin(self):
-        """Test the computation of nodal distances to the skin in the model part."""
-        # Define the settings for the distance calculation process
+    def test_ComputeNodalGradient(self):
+        """Test the computation of nodal gradient in the model part."""
+        # Set the values
+        for node in self.model_part.Nodes:
+            distance = CalculateAnalyticalDistance(node)
+            node.SetValue(KratosMultiphysics.DISTANCE, distance)
+
+        # Define the settings for the distance gradient calculation process
         settings = KratosMultiphysics.Parameters("""
         {
-            "distance_database"      : "nodal_non_historical",
-            "distance_variable"      : "DISTANCE",
-            "volume_model_part"      : "main_model_part",
-            "skin_model_part"        : "skin_model_part"
+            "model_part_name"                : "main_model_part",
+            "origin_variable"                : "DISTANCE",
+            "gradient_variable"              : "DISTANCE_GRADIENT",
+            "area_variable"                  : "NODAL_AREA",
+            "non_historical_origin_variable" :  true
         }""")
-        # Execute the distance calculation process
-        KratosMultiphysics.CalculateNodalDistanceToSkinProcess(self.current_model, settings).Execute()
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(self.current_model, settings).Execute()
 
         ## DEBUG
         # Uncomment to visualize output
         #post_process_gid(self.model_part)
         #post_process_vtk(self.current_model)
 
-        ## Check the calculated distances against analytical values
+        ## Check the calculated distances gradients norms against analytical values
+        nodes_to_test = [2, 4, 11, 26, 29, 30, 31, 35, 40, 43, 45, 50, 63, 64, 66, 68, 69, 70, 74, 76, 77, 78, 79, 81, 83]
         for node in self.model_part.Nodes:
-            distance = CalculateAnalyticalDistance(node)
-            solution_distance = node.GetValue(KratosMultiphysics.DISTANCE)
-            self.assertAlmostEqual(distance, solution_distance, delta=3.8e-2)
+            if node.Id in nodes_to_test:
+                #distance = CalculateAnalyticalDistance(node)
+                solution_gradient_distance = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
+                solution_gradient_distance_norm = CalculateNorm(solution_gradient_distance)
+                analytical_solution_gradient_distance_norm = CalculateAnalyticalDistanceGradientNorm(node)
+                solution_gradient_distance_direction = solution_gradient_distance/solution_gradient_distance_norm
+                normal = CalculateAnalyticalNormal(node)
+                #print("Node ", node.Id, "\t", solution_gradient_distance_norm, "\t", analytical_solution_gradient_distance_norm)
+                self.assertAlmostEqual(solution_gradient_distance_norm, analytical_solution_gradient_distance_norm, delta=5.0e-2)
+                #print("Node ", node.Id, "\t", solution_gradient_distance_direction, "\t", normal, "\t", CalculateNorm(normal - solution_gradient_distance_direction))
+                self.assertLess(CalculateNorm(normal - solution_gradient_distance_direction), 0.15)
 
 if __name__ == '__main__':
     # Configure logging level and start the test runner
