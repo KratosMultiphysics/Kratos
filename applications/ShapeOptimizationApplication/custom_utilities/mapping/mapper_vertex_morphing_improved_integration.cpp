@@ -75,7 +75,7 @@ void MapperVertexMorphingImprovedIntegration::SetIntegrationMethod()
 void MapperVertexMorphingImprovedIntegration::FindNeighbourConditions()
 {
     KRATOS_INFO("ShapeOpt") << "Computing neighbour conditions ..." << std::endl;
-    FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart, mrOriginModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+    FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart);
     find_conditions_neighbours_process.Execute();
 }
 

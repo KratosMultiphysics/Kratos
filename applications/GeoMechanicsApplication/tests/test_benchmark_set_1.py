@@ -118,9 +118,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         reaction_force = [(cauchy_stress_at_load[0][3]+cauchy_stress_at_load[1][3]+cauchy_stress_at_load[2][3])/3*step_size for cauchy_stress_at_load in cauchy_stresses_at_load]
         cauchy_stress_tensor[min_distance_idxs]
 
-
-    # todo
-    @KratosUnittest.skip("test should be checked")
+    @KratosUnittest.skip("Test skipped, because it is unreliable. To be enabled after investigation of the root cause.")
     def test_benchmark1_4(self):
         """
         test 1D consolidation on elastic soil.
@@ -173,7 +171,6 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         for rmse_stage in rmse_stages:
             self.assertLess(rmse_stage, accuracy)
 
-
     def test_benchmark1_5(self):
         """
         test point load on circular tunnel with beam elements
@@ -224,7 +221,6 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
 
         self.assertLess(error_max_x_disp, abs(max_x_disp * precision))
         self.assertLess(error_max_y_disp, abs(max_y_disp * precision))
-
 
 if __name__ == '__main__':
     KratosUnittest.main()
