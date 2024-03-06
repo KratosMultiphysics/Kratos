@@ -73,10 +73,12 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     return result;
 }
 
-ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel,
-                                                          const Geo::ConstVariableRefs& rSecondOrderVariables,
-                                                          const Geo::ConstVariableRefs& rFirstOrderVariables)
+ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
 {
+    const auto rSecondOrderVariables =
+        Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
+    const auto rFirstOrderVariables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
+
     auto& r_result = CreateEmptyModelPart(rModel, rSecondOrderVariables);
     for (const auto& r_variable : rFirstOrderVariables) {
         r_result.AddNodalSolutionStepVariable(r_variable.get());
@@ -104,7 +106,8 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel,
     }
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
-    r_result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids, r_result.CreateNewProperties(0));
+    r_result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids,
+                              r_result.CreateNewProperties(0));
 
     return r_result;
 }

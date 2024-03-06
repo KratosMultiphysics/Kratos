@@ -28,8 +28,6 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel,
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel,
                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
 
-ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel,
-                                                          const Geo::ConstVariableRefs& rSecondOrderVariables = {},
-                                                          const Geo::ConstVariableRefs& rFirstOrderVariables = {});
+ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel);
 
 } // namespace Kratos::Testing::ModelSetupUtilities

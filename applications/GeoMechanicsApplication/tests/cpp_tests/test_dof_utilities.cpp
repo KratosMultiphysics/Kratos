@@ -240,20 +240,15 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromNondiffOrde
 
 KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2DElement, KratosGeoMechanicsFastSuite)
 {
-    auto       model = Model{};
-    const auto second_order_variables =
-        Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
-    const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
-    auto&      r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(
-        model, second_order_variables, first_order_variables);
+    auto model = Model{};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NUPwDiffOrderElement(model);
 
     const auto second_order_nodes = r_model_part.Elements().front().GetGeometry();
     const auto first_order_nodes =
         Triangle2D3<Node>{second_order_nodes(0), second_order_nodes(1), second_order_nodes(2)};
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(second_order_nodes, first_order_nodes);
 
-    KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * second_order_variables.size() +
-                                      first_order_nodes.size() * first_order_variables.size());
+    KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * 2 + first_order_nodes.size());
     ExpectDofsDontContainAnyNullptrs(dofs);
     ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4], dofs[6], dofs[8], dofs[10]}, DISPLACEMENT_X);
     ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5], dofs[7], dofs[9], dofs[11]}, DISPLACEMENT_Y);
