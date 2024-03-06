@@ -15,7 +15,7 @@
                 "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
-                    "@include_json": "project_parameters.json"
+                    "@include_json": "shell_elements_project_parameters.json"
                 },
                 "analysis_output_settings": {
                     "nodal_solution_step_data_variables": [
