@@ -55,16 +55,7 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(const NodePtrRange& rNodePtrs, co
 template <typename NodeRange>
 std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes, std::size_t ModelDimension)
 {
-    auto result = std::vector<Dof<double>*>{};
-    for (auto& r_node : rNodes) {
-        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
-        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if (ModelDimension == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
-    }
-
-    ExtractDofsFromNodes(std::begin(rNodes), std::end(rNodes), std::back_inserter(result), WATER_PRESSURE);
-
-    return result;
+    return ExtractUPwDofsFromNodes(rNodes, rNodes, ModelDimension);
 }
 
 template <typename NodeRange1, typename NodeRange2>
