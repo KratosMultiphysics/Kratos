@@ -50,56 +50,48 @@ GatherModelPartUtility::GatherModelPartUtility(
     // be careful to push back the pointer and not copy
     // construct the object
     auto& r_mesh = rOriginModelPart.GetMesh(MeshId);
-    for (auto it = r_mesh.NodesBegin(); it != r_mesh.NodesEnd(); ++it) {
-        rDestinationModelPart.Nodes().push_back(*it.base());
-    }
-
-    for (auto it = r_mesh.ElementsBegin();  it != r_mesh.ElementsEnd(); ++it) {
-        rDestinationModelPart.Elements().push_back(*it.base());
-    }
-
-    for (auto it = r_mesh.ConditionsBegin(); it != r_mesh.ConditionsEnd(); ++it) {
-        rDestinationModelPart.Conditions().push_back(*it.base());
-    }
+    rDestinationModelPart.Nodes().insert(r_mesh.Nodes());
+    rDestinationModelPart.Elements().insert(r_mesh.Elements());
+    rDestinationModelPart.Conditions().insert(r_mesh.Conditions());
 
     // send everything to node with id "GatherRank"
     // transfer nodes
     std::vector<NodesContainerType> SendNodes(mpi_size);
     std::vector<NodesContainerType> RecvNodes(mpi_size);
-    SendNodes[GatherRank].reserve(rDestinationModelPart.Nodes().size());
+    std::vector<ModelPart::NodeType::Pointer> temp_nodes;
+    temp_nodes.reserve(rDestinationModelPart.Nodes().size());
     if (r_comm.IsDistributed()) {
       for (auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); ++it) {
           // only send the nodes owned by this partition
           if (it->FastGetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-              SendNodes[GatherRank].push_back(*it.base());
+              temp_nodes.push_back(*it.base());
       }
     } else {
       for (auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); ++it) {
-          SendNodes[GatherRank].push_back(*it.base());
+          temp_nodes.push_back(*it.base());
       }
     }
+    SendNodes[GatherRank].insert(temp_nodes.begin(), temp_nodes.end());
 
     rDestinationModelPart.GetCommunicator().TransferObjects(SendNodes, RecvNodes);
-    for (unsigned int i = 0; i < RecvNodes.size(); i++) {
-        for (auto it = RecvNodes[i].begin(); it != RecvNodes[i].end(); ++it) {
-            if (rDestinationModelPart.Nodes().find(it->Id()) == rDestinationModelPart.Nodes().end())
-                rDestinationModelPart.Nodes().push_back(*it.base());
-        }
+    for (const auto& r_recv_nodes : RecvNodes) {
+        rDestinationModelPart.Nodes().insert(r_recv_nodes);
     }
-    int temp = rDestinationModelPart.Nodes().size();
-    rDestinationModelPart.Nodes().Unique();
-    KRATOS_ERROR_IF(temp != int(rDestinationModelPart.Nodes().size())) << "The rDestinationModelPart has repeated nodes" << std::endl;
     SendNodes.clear();
     RecvNodes.clear();
 
     // Transfer elements
     std::vector<ElementsContainerType> SendElements(mpi_size);
     std::vector<ElementsContainerType> RecvElements(mpi_size);
-    SendElements[GatherRank].reserve(rDestinationModelPart.Elements().size());
+    std::vector<ModelPart::ElementType::Pointer> temp_elements;
+    temp_elements.reserve(rDestinationModelPart.Elements().size());
     for (auto it = rDestinationModelPart.ElementsBegin(); it != rDestinationModelPart.ElementsEnd(); ++it) {
-        SendElements[GatherRank].push_back(*it.base());
+        temp_elements.push_back(*it.base());
     }
+    SendElements[GatherRank].insert(temp_elements.begin(), temp_elements.end());
+
     rDestinationModelPart.GetCommunicator().TransferObjects(SendElements, RecvElements);
+    std::vector<ModelPart::ElementType::Pointer> temp_recv_elements;
     for (unsigned int i = 0; i < RecvElements.size(); i++) {
         for (auto it = RecvElements[i].begin(); it != RecvElements[i].end(); ++it) {
             // Replace the nodes copied with the element by nodes in the model part
@@ -110,20 +102,24 @@ GatherModelPartUtility::GatherModelPartUtility(
                 if (itNode != rDestinationModelPart.Nodes().end())
                     rGeom(iNode) = *itNode.base();
             }
-            rDestinationModelPart.Elements().push_back(*it.base());
+            temp_recv_elements.push_back(*it.base());
         }
     }
+    rDestinationModelPart.Elements().insert(temp_recv_elements.begin(), temp_recv_elements.end());
     SendElements.clear();
     RecvElements.clear();
 
     // Transfer conditions
     std::vector<ConditionsContainerType> SendConditions(mpi_size);
     std::vector<ConditionsContainerType> RecvConditions(mpi_size);
-    SendConditions[GatherRank].reserve(rDestinationModelPart.Conditions().size());
+    std::vector<ModelPart::ConditionType::Pointer> temp_conditions;
+    temp_conditions.reserve(rDestinationModelPart.Conditions().size());
     for (auto it = rDestinationModelPart.ConditionsBegin(); it != rDestinationModelPart.ConditionsEnd(); ++it) {
-        SendConditions[GatherRank].push_back(*it.base());
+        temp_conditions.push_back(*it.base());
     }
+    SendConditions[GatherRank].insert(temp_conditions.begin(), temp_conditions.end());
     rDestinationModelPart.GetCommunicator().TransferObjects(SendConditions, RecvConditions);
+    std::vector<ModelPart::ConditionType::Pointer> temp_recv_conditions;
     for (unsigned int i = 0; i < RecvConditions.size(); i++) {
         for (auto it = RecvConditions[i].begin(); it != RecvConditions[i].end(); ++it) {
             // Replace the nodes copied with the condition by nodes in the model part
@@ -134,9 +130,10 @@ GatherModelPartUtility::GatherModelPartUtility(
                 if (itNode != rDestinationModelPart.Nodes().end())
                     rGeom(iNode) = *itNode.base();
             }
-            rDestinationModelPart.Conditions().push_back(*it.base());
+            temp_recv_conditions.push_back(*it.base());
         }
     }
+    rDestinationModelPart.Conditions().insert(temp_recv_conditions.begin(), temp_recv_conditions.end());
     SendConditions.clear();
     RecvConditions.clear();
 
@@ -319,14 +316,8 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
     }
 
     /// Type alias for the container of entities.
-    using ContainerType = PointerVectorSet<TObjectType,
-        IndexedObject,
-        std::less<typename IndexedObject::result_type>,
-        std::equal_to<typename IndexedObject::result_type>,
-        typename TObjectType::Pointer,
-        std::vector<typename TObjectType::Pointer>
-    >;
-    
+    using ContainerType = std::vector<typename TObjectType::Pointer>;
+
     // Allocating the temporary entities to bring container
     ContainerType entities_to_bring;
     std::size_t counter = 0;

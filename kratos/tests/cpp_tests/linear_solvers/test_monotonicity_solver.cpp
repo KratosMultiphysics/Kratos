@@ -96,7 +96,7 @@ namespace Kratos
                 auto it_node = model_part.NodesBegin() + i;
                 auto p_dof = it_node->pGetDof(TEMPERATURE);
                 p_dof->SetEquationId(i);
-                dof_set.push_back(p_dof);
+                dof_set.insert(dof_set.end(), p_dof);
             }
             rA(0,0) = 1.0;
             rA(1,1) = 1.0;

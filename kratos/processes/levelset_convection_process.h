@@ -552,7 +552,7 @@ protected:
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
 
-            mpDistanceModelPart->Elements().push_back(p_element);
+            mpDistanceModelPart->Elements().insert(mpDistanceModelPart->Elements().end(), p_element);
         }
 
         // Initialize the nodal and elemental databases

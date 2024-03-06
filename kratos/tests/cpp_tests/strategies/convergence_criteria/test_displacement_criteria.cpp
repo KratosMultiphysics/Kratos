@@ -71,12 +71,12 @@ KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteria, KratosCoreFastSuite)
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.pGetDof(PRESSURE)->SetEquationId(r_node.Id() - 1);
     }
-    DofsArrayType aux_dof_set;
-    aux_dof_set.reserve(10);
+    std::vector<ModelPart::DofType::Pointer> aux_dofs;
+    aux_dofs.reserve(10);
     for (auto& r_node : r_model_part.Nodes()) {
-        aux_dof_set.push_back(r_node.pGetDof(PRESSURE));
+        aux_dofs.push_back(r_node.pGetDof(PRESSURE));
     }
-    aux_dof_set.Sort();
+    DofsArrayType aux_dof_set(aux_dofs.begin(), aux_dofs.end());
     typename DisplacementCriteriaType::TSystemMatrixType A; // Only required to match the API
     typename DisplacementCriteriaType::TSystemVectorType b; // Only required to match the API
     typename DisplacementCriteriaType::TSystemVectorType Dx(10);

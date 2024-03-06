@@ -832,15 +832,14 @@ FromJSONCheckResultProcess::NodesArrayType& FromJSONCheckResultProcess::GetNodes
             # pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_nodes; ++i) {
                 auto it_node = it_node_begin + i;
-                if (CheckFlag(*it_node, pFlag)) nodes_buffer.push_back(*(it_node.base()));
+                if (CheckFlag(*it_node, pFlag)) nodes_buffer.insert(nodes_buffer.end(), *(it_node.base()));
 
             }
 
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                for (auto it_node = nodes_buffer.begin(); it_node < nodes_buffer.end(); ++it_node)
-                    mNodesArray.push_back(*(it_node.base()));
+                mNodesArray.insert(nodes_buffer);
             }
         }
         // Set flag
@@ -871,15 +870,14 @@ FromJSONCheckResultProcess::ElementsArrayType& FromJSONCheckResultProcess::GetEl
             # pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                if (CheckFlag(*it_elem, pFlag)) elements_buffer.push_back(*(it_elem.base()));
+                if (CheckFlag(*it_elem, pFlag)) elements_buffer.insert(elements_buffer.end(), *(it_elem.base()));
 
             }
 
             // We merge all the sets in one thread
             #pragma omp critical
             {
-                for (auto it_elem = elements_buffer.begin(); it_elem < elements_buffer.end(); ++it_elem)
-                    mElementsArray.push_back(*(it_elem.base()));
+                mElementsArray.insert(elements_buffer);
             }
         }
         // Set flag

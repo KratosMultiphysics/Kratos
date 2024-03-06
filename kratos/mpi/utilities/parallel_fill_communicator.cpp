@@ -12,6 +12,8 @@
 //
 
 // System includes
+#include <algorithm>
+#include <iterator>
 
 // External includes
 
@@ -358,32 +360,27 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
         << "Local size can't be zero." << std::endl;
 
     // Fill nodes for LocalMesh and GhostMesh.
+    std::vector<ModelPart::NodeType::Pointer> temp_local_nodes, temp_ghost_nodes;
     for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); ++it_node)
     {
         const int index = it_node->FastGetSolutionStepValue(PARTITION_INDEX);
         if (index == MyRank)
         {
-            r_local_nodes.push_back(*(it_node.base()));
+            temp_local_nodes.push_back(*(it_node.base()));
         }
         else
         {
-            r_ghost_nodes.push_back(*(it_node.base()));
+            temp_ghost_nodes.push_back(*(it_node.base()));
         }
     }
+    r_local_nodes.insert(temp_local_nodes.begin(), temp_local_nodes.end());
+    r_ghost_nodes.insert(temp_ghost_nodes.begin(), temp_ghost_nodes.end());
 
     // Fill nodes for the InterfaceMesh.
     for (ModelPart::MeshType& r_color_interface_mesh : rModelPart.GetCommunicator().InterfaceMeshes())
     {
-        ModelPart::NodesContainerType& r_color_interface_nodes =
-            r_color_interface_mesh.Nodes();
-        for (auto it = r_color_interface_nodes.ptr_begin(); it != r_color_interface_nodes.ptr_end(); ++it)
-        {
-            r_interface_nodes.push_back(*it);
-        }
+        r_interface_nodes.insert(r_color_interface_mesh.Nodes());
     }
-    r_interface_nodes.Unique();
-    r_local_nodes.Unique();
-    r_ghost_nodes.Unique();
 
     // Assign elements and conditions for LocalMesh.
     rModelPart.GetCommunicator().LocalMesh().Elements().clear();
@@ -403,9 +400,9 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
 }
 
 void ParallelFillCommunicator::GenerateMeshes(
-    const int NeighbourPID, 
-    const int MyPID, 
-    const unsigned int Color, 
+    const int NeighbourPID,
+    const int MyPID,
+    const unsigned int Color,
     ModelPart& rModelPart
     )
 {
@@ -430,13 +427,9 @@ void ParallelFillCommunicator::GenerateMeshes(
         const int index = it->FastGetSolutionStepValue(PARTITION_INDEX);
         if (index == NeighbourPID)
         {
-            r_ghost_nodes.push_back(*(it.base()));
+            r_ghost_nodes.insert(r_ghost_nodes.end(), *(it.base()));
         }
     }
-    unsigned num_ghost_nodes = r_ghost_nodes.size();
-    r_ghost_nodes.Unique();
-    KRATOS_ERROR_IF(num_ghost_nodes != r_ghost_nodes.size())
-        << "The list of nodes to receive has repeated nodes." << std::endl;
 
     std::vector<int> ids_to_receive(r_ghost_nodes.size());
 
@@ -464,42 +457,25 @@ void ParallelFillCommunicator::GenerateMeshes(
         rModelPart.GetCommunicator().LocalMesh(Color).Nodes();
     r_local_nodes.clear();
 
-
+    std::vector<ModelPart::NodeType::Pointer> temp_local_nodes;
     for (int id : ids_to_send)
     {
         KRATOS_DEBUG_ERROR_IF(rModelPart.Nodes().find(id) == rModelPart.Nodes().end()) << "Trying to add Node with Id #" << id << " to the local mesh, but the node does not exist in the ModelPart!" << std::endl;
-        r_local_nodes.push_back(rModelPart.Nodes()(id));
+        temp_local_nodes.push_back(rModelPart.Nodes()(id));
     }
-
+    r_local_nodes.insert(temp_local_nodes.begin(), temp_local_nodes.end());
     for (const ModelPart::NodeType& r_node : r_local_nodes)
     {
         KRATOS_ERROR_IF(r_node.FastGetSolutionStepValue(PARTITION_INDEX) != MyPID) << "A node in the local mesh is trying to communicate to the wrong partition."
                                                                                     << std::endl;
     }
 
-    r_local_nodes.Unique();
-    KRATOS_ERROR_IF(r_local_nodes.size() != ids_to_send.size())
-        << "Impossible situation. Something went wrong." << std::endl;
-
     // Fill InterfaceMesh(Color) with local and ghost nodes.
     ModelPart::NodesContainerType& r_interface_nodes =
         rModelPart.GetCommunicator().InterfaceMesh(Color).Nodes();
     r_interface_nodes.clear();
-
-    for (auto it = r_ghost_nodes.begin(); it != r_ghost_nodes.end(); ++it)
-    {
-        r_interface_nodes.push_back(*(it.base()));
-    }
-
-    for (auto it = r_local_nodes.begin(); it != r_local_nodes.end(); it++)
-    {
-        r_interface_nodes.push_back(*(it.base()));
-    }
-
-    unsigned num_interface_nodes = r_interface_nodes.size();
-    r_interface_nodes.Unique();
-    KRATOS_ERROR_IF(num_interface_nodes != r_interface_nodes.size())
-        << "Something went wrong in the interface nodes." << std::endl;
+    r_interface_nodes.insert(r_ghost_nodes);
+    r_interface_nodes.insert(r_local_nodes);
 
     KRATOS_CATCH("");
 }

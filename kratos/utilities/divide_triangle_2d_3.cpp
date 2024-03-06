@@ -89,10 +89,6 @@ namespace Kratos
             const unsigned int n_nodes = 3;
             const unsigned int n_edges = 3;
 
-            // Clear the auxiliar vector points set
-            this->mAuxPointsContainer.clear();
-            this->mAuxPointsContainer.reserve(6);
-
             // Clear the subdivision vectors
             this->mPositiveSubdivisions.clear();
             this->mNegativeSubdivisions.clear();
@@ -101,16 +97,21 @@ namespace Kratos
 
             // Add the original geometry points
             std::vector<int> gl_ids_split_edges(this->mSplitEdges);
+            std::vector<IndexedPointPointerType> aux_points(n_nodes);
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 gl_ids_split_edges[i] = geometry[i].Id();
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
-                IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
-                this->mAuxPointsContainer.push_back(paux_point);
+                aux_points[i] = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
             }
+
+            // Clear the auxiliar vector points set
+            this->mAuxPointsContainer.clear();
+            this->mAuxPointsContainer.insert(aux_points.begin(), aux_points.end());
 
             // Decide the splitting pattern
             unsigned int aux_node_id = n_nodes;
 
+            aux_points.clear();
             for(unsigned int idedge = 0; idedge < n_edges; ++idedge) {
                 const unsigned int edge_node_i = this->mEdgeNodeI[idedge];
                 const unsigned int edge_node_j = this->mEdgeNodeJ[idedge];
@@ -133,12 +134,12 @@ namespace Kratos
                     }
 
                     // Add the intersection point to the auxiliar points array
-                    IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
-                    this->mAuxPointsContainer.push_back(paux_point);
+                    aux_points.push_back(Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id));
                 }
 
                 aux_node_id++;
             }
+            this->mAuxPointsContainer.insert(aux_points.begin(), aux_points.end());
 
             // Call the splitting mode computation function
             std::vector<int> edge_ids(3);
