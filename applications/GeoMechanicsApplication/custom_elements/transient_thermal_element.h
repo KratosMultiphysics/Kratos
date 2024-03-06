@@ -410,7 +410,7 @@ private:
 
     // ============================================================================================
     // ============================================================================================
-    void Initialize(const ProcessInfo& rCurrentProcessInfo)
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
