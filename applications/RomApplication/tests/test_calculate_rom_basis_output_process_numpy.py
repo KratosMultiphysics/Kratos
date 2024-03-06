@@ -1,10 +1,8 @@
 import os
-import json
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 import numpy as np
 
