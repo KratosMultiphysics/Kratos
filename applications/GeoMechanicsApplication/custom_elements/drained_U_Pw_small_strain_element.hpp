@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -57,20 +57,27 @@ public:
     }
 
     /// Constructor using an array of nodes
-    DrainedUPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    DrainedUPwSmallStrainElement(IndexType                          NewId,
+                                 const NodesArrayType&              ThisNodes,
+                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    DrainedUPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    DrainedUPwSmallStrainElement(IndexType                          NewId,
+                                 GeometryType::Pointer              pGeometry,
+                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    DrainedUPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    DrainedUPwSmallStrainElement(IndexType                          NewId,
+                                 GeometryType::Pointer              pGeometry,
+                                 PropertiesType::Pointer            pProperties,
+                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -78,8 +85,8 @@ public:
     ~DrainedUPwSmallStrainElement() override {}
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
