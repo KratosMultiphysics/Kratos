@@ -189,6 +189,8 @@ namespace Kratos{
         double mUnbondedTangentialElasticConstant = 0.0;
         double mUnbondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedViscoDampingLocalContactForce[3] = {0.0};
+        double mBondedLocalContactForce[3] = {0.0};
+        double mBondedLocalElasticContactForce2 = 0.0;
         double mBondedScalingFactor[3] = {0.0};
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
