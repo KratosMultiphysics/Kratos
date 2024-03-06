@@ -16,10 +16,10 @@
             "verbosity": 0
         },
         "material_import_settings": {
-            "materials_filename": "materials.json"
+            "materials_filename": "shell_elements_materials.json"
         },
         "model_import_settings": {
-            "input_filename": "../../mdpas/shell_elements",
+            "input_filename": "shell_elements",
             "input_type": "mdpa"
         },
         "echo_level": 0,
