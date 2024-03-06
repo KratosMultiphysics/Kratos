@@ -629,89 +629,6 @@ public:
         C.set_filled(NRows+1, nonzero_values);
     }
 
-    /// @brief Value type of sparse row iterator @ref IndexValuePairIterator.
-    /// @details This class is only meant to support sorting the rows of sparse matrices
-    ///          in-place. It stores a pointer to a component in the matrix and its column
-    ///          index, and provides operators used in sorting algorithms.
-    template <class TColumn, class TValue>
-    class IndexValuePair
-    {
-    public:
-        IndexValuePair(TColumn* pColumn, TValue* pValue) noexcept
-            : mpIndex(pColumn),
-              mpValue(pValue)
-        {}
-
-        friend void swap(IndexValuePair Left, IndexValuePair Right) noexcept
-        {
-            std::swap(*Left.mpIndex, *Right.mpIndex);
-            std::swap(*Left.mpValue, *Right.mpValue);
-        }
-
-        friend bool operator==(IndexValuePair Left, IndexValuePair Right) noexcept {return *Left.mpIndex == *Right.mpIndex;}
-
-        friend bool operator!=(IndexValuePair Left, IndexValuePair Right) noexcept {return *Left.mpIndex != *Right.mpIndex;}
-
-        friend bool operator<(IndexValuePair Left, IndexValuePair Right) noexcept {return *Left.mpIndex < *Right.mpIndex;}
-
-    private:
-        TColumn* mpIndex;
-
-        TValue* mpValue;
-    }; // class IndexValuePair
-
-    /// @brief Iterator to support sorting rows in a sparse matrix.
-    template <class TColumn, class TValue>
-    class IndexValuePairIterator
-    {
-    public:
-        using value_type = IndexValuePair<TColumn,TValue>;
-
-        using reference = value_type&;
-
-        using pointer = value_type*;
-
-        using difference_type = std::ptrdiff_t;
-
-        using iterator_category = std::random_access_iterator_tag;
-
-        IndexValuePairIterator(TColumn* pColumn, TValue* pValue) noexcept
-            : mpIndex(pColumn),
-              mpValue(pValue)
-        {}
-
-        value_type operator*() const noexcept {return value_type(mpIndex, mpValue);}
-
-        friend bool operator<(IndexValuePairIterator Left, IndexValuePairIterator Right) noexcept {return Left.mpIndex < Right.mpIndex;}
-
-        friend bool operator==(IndexValuePairIterator Left, IndexValuePairIterator Right) noexcept {return Left.mpIndex == Right.mpIndex;}
-
-        friend bool operator!=(IndexValuePairIterator Left, IndexValuePairIterator Right) noexcept {return Left.mpIndex != Right.mpIndex;}
-
-        IndexValuePairIterator& operator++() noexcept {++mpIndex; ++mpValue; return *this;}
-
-        IndexValuePairIterator operator++(int) noexcept {IndexValuePairIterator copy=*this; ++(*this); return copy;}
-
-        IndexValuePairIterator& operator--() noexcept {--mpIndex; --mpValue; return *this;}
-
-        IndexValuePairIterator operator--(int) noexcept {IndexValuePairIterator copy=*this; --(*this); return copy;}
-
-        IndexValuePairIterator& operator+=(difference_type Offset) noexcept {mpIndex+=Offset; mpValue+=Offset; return *this;}
-
-        IndexValuePairIterator& operator-=(difference_type Offset) noexcept {mpIndex-=Offset; mpValue-=Offset; return *this;}
-
-        friend IndexValuePairIterator operator+(IndexValuePairIterator Left, difference_type Right) noexcept {return Left+=Right;}
-
-        friend IndexValuePairIterator operator-(IndexValuePairIterator Left, difference_type Right) noexcept {return Left-=Right;}
-
-        friend difference_type operator-(IndexValuePairIterator Left, IndexValuePairIterator Right) noexcept {return Left.mpIndex - Right.mpIndex;}
-
-    private:
-        TColumn* mpIndex;
-
-        TValue* mpValue;
-    }; // class IndexValuePairIterator
-
     /**
      * @brief This method is designed to reorder the rows by columns
      * @param NRows The number of rows of the matrix
@@ -724,7 +641,7 @@ public:
     static inline void SortRows(
         const TIndexType* CPtr,
         const TSize NRows,
-        [[maybe_unused]] const TSize NCols,
+        const TSize NCols,
         Col* Columns,
         ValueType* Values
         )
@@ -732,8 +649,24 @@ public:
         IndexPartition<TSize>(NRows).for_each([&](TSize i_row) {
             const TIndexType row_begin = CPtr[i_row];
             const TIndexType row_end = CPtr[i_row + 1];
-            std::sort(IndexValuePairIterator<Col,ValueType>(Columns + row_begin, Values + row_begin),
-                      IndexValuePairIterator<Col,ValueType>(Columns + row_end, Values + row_end));
+            TSize length = row_end - row_begin;
+
+            // Use vectors to facilitate sorting
+            std::vector<std::pair<Col, ValueType>> row_data(length);
+            for (TSize j = 0; j < length; ++j) {
+                row_data[j] = {Columns[j + row_begin], Values[j + row_begin]};
+            }
+
+            // Sort using a more efficient parallel algorithm
+            std::sort(row_data.begin(), row_data.end(), [](const auto& a, const auto& b) {
+                return a.first < b.first;
+            });
+
+            // Write back sorted data
+            for (TSize j = 0; j < length; ++j) {
+                Columns[j + row_begin] = row_data[j].first;
+                Values[j + row_begin] = row_data[j].second;
+            }
         });
     }
 
