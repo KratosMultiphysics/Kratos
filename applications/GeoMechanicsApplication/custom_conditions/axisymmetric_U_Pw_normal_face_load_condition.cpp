@@ -52,5 +52,8 @@ GeometryData::IntegrationMethod
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2,2>;
+template class AxisymmetricUPwNormalFaceLoadCondition<2,3>;
+template class AxisymmetricUPwNormalFaceLoadCondition<2,4>;
+template class AxisymmetricUPwNormalFaceLoadCondition<2,5>;
 
 } // Namespace Kratos.

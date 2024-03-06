@@ -277,8 +277,17 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("SurfaceNormalFluidFluxDiffOrderCondition3D9N", mSurfaceNormalFluidFluxDiffOrderCondition3D9N)
 
     KRATOS_REGISTER_CONDITION("AxisymmetricUPwNormalFaceLoadCondition2D2N",            mAxisymmetricUPwNormalFaceLoadCondition2D2N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricUPwNormalFaceLoadCondition2D3N",            mAxisymmetricUPwNormalFaceLoadCondition2D3N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricUPwNormalFaceLoadCondition2D4N",            mAxisymmetricUPwNormalFaceLoadCondition2D4N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricUPwNormalFaceLoadCondition2D5N",            mAxisymmetricUPwNormalFaceLoadCondition2D5N)
+
     KRATOS_REGISTER_CONDITION("AxisymmetricLineNormalLoadDiffOrderCondition2D3N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D3N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricLineNormalLoadDiffOrderCondition2D4N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D4N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricLineNormalLoadDiffOrderCondition2D5N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D5N)
+
     KRATOS_REGISTER_CONDITION("AxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricLineNormalFluidFluxDiffOrderCondition2D4N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D4N)
+    KRATOS_REGISTER_CONDITION("AxisymmetricLineNormalFluidFluxDiffOrderCondition2D5N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D5N)
 
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D2N", mUPwLysmerAbsorbingCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwLysmerAbsorbingCondition2D3N", mUPwLysmerAbsorbingCondition2D3N)

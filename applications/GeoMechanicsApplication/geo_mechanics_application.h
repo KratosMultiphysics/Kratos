@@ -527,10 +527,17 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
     const AxisymmetricUPwNormalFaceLoadCondition<2,2> mAxisymmetricUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,3> mAxisymmetricUPwNormalFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,4> mAxisymmetricUPwNormalFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,5> mAxisymmetricUPwNormalFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3<NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D4N{ 0, Kratos::make_shared< Line2D4<NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5<NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3<NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D4N{ 0, Kratos::make_shared< Line2D4<NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5<NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const UPwLysmerAbsorbingCondition<2,2> mUPwLysmerAbsorbingCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwLysmerAbsorbingCondition<2,3> mUPwLysmerAbsorbingCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
