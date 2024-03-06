@@ -15,15 +15,6 @@
 // System includes
 
 // Project includes
-#include "containers/variables_list_data_value_container.h"
-#include "spatial_containers/spatial_containers.h"
-
-#include "includes/model_part.h"
-#include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/mesher_utilities.hpp"
-
-#include "pfem_fluid_dynamics_application_variables.h"
-#include "custom_processes/mesher_process.hpp"
 #include "custom_processes/remove_mesh_nodes_for_fluids_process.hpp"
 
 /// VARIABLES used:

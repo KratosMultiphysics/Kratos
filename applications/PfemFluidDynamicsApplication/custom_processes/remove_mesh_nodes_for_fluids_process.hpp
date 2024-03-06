@@ -903,11 +903,11 @@ namespace Kratos
 								 bool inletElement,
 								 SizeType notRigidNodeId,
 								 const SizeType principalModelPartId,
-								 double wallNodeDistance,
-								 array_1d<double, 3> WallBaricenter,
-								 std::vector<array_1d<double, 3>> rigidNode,
-								 std::vector<array_1d<double, 3>> rigidNodesNormals,
-								 array_1d<double, 3> notRigidNode)
+								 double &wallNodeDistance,
+								 array_1d<double, 3> &WallBaricenter,
+								 std::vector<array_1d<double, 3>> &rigidNode,
+								 std::vector<array_1d<double, 3>> &rigidNodesNormals,
+								 array_1d<double, 3> &notRigidNode)
 		{
 			KRATOS_TRY
 

@@ -786,6 +786,7 @@ namespace Kratos
 										  nodes_id_to_interpolate,
 										  CountNodes,
 										  ElementsToRefine,
+										  meanMeshSize,
 										  addedNodesAtEulerianInlet,
 										  eulerianInletNodes,
 										  rigidNodes,
@@ -972,6 +973,7 @@ namespace Kratos
 									   std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 									   int &CountNodes,
 									   int &ElementsToRefine,
+									   double &meanMeshSize,
 									   SizeType &addedNodesAtEulerianInlet,
 									   SizeType eulerianInletNodes,
 									   SizeType rigidNodes,
@@ -985,7 +987,6 @@ namespace Kratos
 
 			SizeType maxCount = 3;
 			double LargestEdge = 0;
-			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const double limitEdgeLength = 1.4 * meanMeshSize;
 			double ElementalVolume = Element.Area();
 			bool suitableElementForSecondAdd = true;
@@ -1196,6 +1197,7 @@ namespace Kratos
 										  nodes_id_to_interpolate,
 										  CountNodes,
 										  ElementsToRefine,
+										  meanMeshSize,
 										  addedNodesAtEulerianInlet,
 										  eulerianInletNodes,
 										  rigidNodes,
@@ -1438,6 +1440,7 @@ namespace Kratos
 									   std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
 									   int &CountNodes,
 									   int &ElementsToRefine,
+									   double &meanMeshSize,
 									   SizeType &addedNodesAtEulerianInlet,
 									   SizeType eulerianInletNodes,
 									   SizeType rigidNodes,
@@ -1451,7 +1454,6 @@ namespace Kratos
 
 			SizeType maxCount = 6;
 			double LargestEdge = 0;
-			double meanMeshSize = mrRemesh.Refine->CriticalRadius;
 			const double limitEdgeLength = 1.25 * meanMeshSize;
 			double ElementalVolume = Element.Volume();
 			bool suitableElementForSecondAdd = true;

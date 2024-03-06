@@ -15,16 +15,6 @@
 // System includes
 
 // Project includes
-#include "containers/variables_list_data_value_container.h"
-#include "spatial_containers/spatial_containers.h"
-
-#include "includes/model_part.h"
-#include "custom_utilities/mesher_utilities.hpp"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-#include "custom_processes/mesher_process.hpp"
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 
 /// VARIABLES used:
@@ -121,8 +111,6 @@ namespace Kratos
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
             double deltaTime = rCurrentProcessInfo[DELTA_TIME];
-            bool box_side_element = false;
-            bool wrong_added_node = false;
             int number_of_slivers = 0;
 
             bool refiningBox = false;
@@ -171,7 +159,6 @@ namespace Kratos
                     std::vector<double> normVelocityP;
                     normVelocityP.resize(nds, false);
                     SizeType checkedNodes = 0;
-                    box_side_element = false;
                     bool increaseAlfa = false;
                     SizeType previouslyFreeSurfaceNodes = 0;
                     SizeType previouslyIsolatedNodes = 0;
@@ -192,7 +179,6 @@ namespace Kratos
 
                         if ((SizeType)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
                         {
-                            wrong_added_node = true;
                             std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
                             break;
                         }
@@ -273,12 +259,6 @@ namespace Kratos
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
                         }
-                    }
-
-                    if (box_side_element || wrong_added_node)
-                    {
-                        std::cout << " ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, Box_Side_Element " << std::endl;
-                        continue;
                     }
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;

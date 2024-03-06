@@ -119,8 +119,6 @@ namespace Kratos
             const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
             double currentTime = rCurrentProcessInfo[TIME];
             double deltaTime = rCurrentProcessInfo[DELTA_TIME];
-            bool box_side_element = false;
-            bool wrong_added_node = false;
             int number_of_slivers = 0;
 
             bool refiningBox = false;
@@ -168,7 +166,6 @@ namespace Kratos
                     std::vector<double> normVelocityP;
                     normVelocityP.resize(nds, false);
                     SizeType checkedNodes = 0;
-                    box_side_element = false;
                     SizeType countIsolatedWallNodes = 0;
                     bool increaseAlfa = false;
                     SizeType previouslyFreeSurfaceNodes = 0;
@@ -190,7 +187,6 @@ namespace Kratos
 
                         if ((SizeType)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
                         {
-                            wrong_added_node = true;
                             std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
                             break;
                         }
@@ -284,12 +280,6 @@ namespace Kratos
                         {
                             nodesCoordinates[pn] = vertices.back().Coordinates();
                         }
-                    }
-
-                    if (box_side_element || wrong_added_node)
-                    {
-                        std::cout << " ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, Box_Side_Element " << std::endl;
-                        continue;
                     }
 
                     double Alpha = mrRemesh.AlphaParameter; //*nds;
@@ -640,8 +630,8 @@ namespace Kratos
         }
 
         void ControlSkewedElements2D(bool &accepted,
-                                     std::vector<double> normVelocityP,
-                                     std::vector<array_1d<double, 3>> nodesVelocities)
+                                     std::vector<double> &normVelocityP,
+                                     std::vector<array_1d<double, 3>> &nodesVelocities)
         {
             KRATOS_TRY
 
@@ -674,8 +664,8 @@ namespace Kratos
         }
 
         void ControlSkewedElements3D(bool &accepted,
-                                     std::vector<double> normVelocityP,
-                                     std::vector<array_1d<double, 3>> nodesVelocities)
+                                     std::vector<double> &normVelocityP,
+                                     std::vector<array_1d<double, 3>> &nodesVelocities)
         {
             KRATOS_TRY
             const double maxValue = 2.5;

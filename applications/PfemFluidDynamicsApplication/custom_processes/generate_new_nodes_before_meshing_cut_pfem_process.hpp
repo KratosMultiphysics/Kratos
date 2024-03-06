@@ -14,13 +14,6 @@
 // System includes
 
 // Project includes
-#include "containers/variables_list_data_value_container.h"
-#include "spatial_containers/spatial_containers.h"
-
-#include "includes/model_part.h"
-#include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/mesher_utilities.hpp"
-#include "custom_processes/mesher_process.hpp"
 #include "custom_processes/generate_new_nodes_before_meshing_process.hpp"
 
 /// VARIABLES used:
@@ -388,6 +381,7 @@ namespace Kratos
 												nodes_id_to_interpolate,
 												CountNodes,
 												ElementsToRefine,
+												meanMeshSize,
 												addedNodesAtEulerianInlet,
 												eulerianInletNodes,
 												rigidNodes,
@@ -506,6 +500,7 @@ namespace Kratos
 												nodes_id_to_interpolate,
 												CountNodes,
 												ElementsToRefine,
+												meanMeshSize,
 												addedNodesAtEulerianInlet,
 												eulerianInletNodes,
 												rigidNodes,
