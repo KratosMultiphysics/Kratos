@@ -1069,16 +1069,16 @@ private:
         if (empty()) {
             mData.reserve(std::distance(first, last));
             for (auto it = first; it != last; ++it) {
-                mData.push_back(TPointerType(*(it.base())));
+                mData.push_back(TPointerType(&GetReference(it)));
             }
         } else {
             // first find the largest range
-            const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(**(first.base())), CompareKey());
-            const auto upper_bound_last = std::upper_bound(lower_bound_first, mData.end(), KeyOf(**((last-1).base())), CompareKey());
+            const auto lower_bound_first = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
+            const auto upper_bound_last = std::upper_bound(lower_bound_first, mData.end(), KeyOf(GetReference(last-1)), CompareKey());
 
             // then find the compact sub range
-            const auto upper_bound_first = std::upper_bound(lower_bound_first, upper_bound_last, KeyOf(**(first.base())), CompareKey());
-            const auto lower_bound_last = std::lower_bound(lower_bound_first, upper_bound_last, KeyOf(**((last-1).base())), CompareKey());
+            const auto upper_bound_first = std::upper_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(first)), CompareKey());
+            const auto lower_bound_last = std::lower_bound(lower_bound_first, upper_bound_last, KeyOf(GetReference(last-1)), CompareKey());
 
             if (lower_bound_first == lower_bound_last &&
                 lower_bound_first == upper_bound_first &&
@@ -1087,12 +1087,12 @@ private:
                 // all 4 bounds are equal, hence this can be inserted without checking further
                 if (lower_bound_first == mData.end()) {
                     for (auto it = first; it != last; ++it) {
-                        mData.push_back(TPointerType(*(it.base())));
+                        mData.push_back(TPointerType(&GetReference(it)));
                     }
                 } else {
                     auto current_pos = lower_bound_first - 1;
                     for (auto it = first; it != last; ++it) {
-                        current_pos = mData.insert(current_pos + 1, TPointerType(*(it.base())));
+                        current_pos = mData.insert(current_pos + 1, TPointerType(&GetReference(it)));
                     }
                 }
             } else {
@@ -1100,9 +1100,9 @@ private:
                 // now add the new elements
                 for (auto it = first; it != last; ++it) {
                     // find the lower bound element.
-                    p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(**(it.base())), CompareKey());
-                    if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(**(it.base())))(*p_current_itr)) {
-                        p_current_itr = mData.insert(p_current_itr, TPointerType(*(it.base())));
+                    p_current_itr = std::lower_bound(p_current_itr, mData.end(), KeyOf(GetReference(it)), CompareKey());
+                    if (p_current_itr == mData.end() || !EqualKeyTo(KeyOf(GetReference(it)))(*p_current_itr)) {
+                        p_current_itr = mData.insert(p_current_itr, TPointerType(&GetReference(it)));
                     }
                 }
             }
@@ -1145,6 +1145,37 @@ private:
     key_type KeyOf(const TDataType &i)
     {
         return TGetKeyType()(i);
+    }
+
+    /**
+     * @brief Get the reference from an iterator.
+     *
+     * This method is used to get reference from an iterator. This is required to support
+     * both PointerVectorSet::iterator and std::vector<pointer>::iterators because, their
+     * "*" operators returns different types of objects.
+     *
+     */
+    template<class TIteratorType>
+    inline auto& GetReference(TIteratorType Iterator) const
+    {
+        // It is difficult to use std::iterator_traits to get the value
+        // type of the iterator because, boost::indirect has a value type
+        // which is harder to guess, and cryptic. Hence, using the decltype.
+        using iterator_value_type = std::decay_t<decltype(*Iterator)>;
+
+        if constexpr(std::is_same_v<iterator_value_type, std::remove_cv_t<value_type>>) {
+            // in here, std::remove_cv is only used for the value_type because,
+            // the PointerVectorSet can be with TDataType which is const, but the passed pointers
+            // must be always TDataType::Pointer which is defined for non cost TDataType. This is
+            // a valid use case. Other way is not possible, hence std::remove_cv is not used on
+            // iterator_value_type.
+            return *Iterator;
+        } else if constexpr(std::is_same_v<iterator_value_type, pointer>) {
+            return **Iterator;
+        } else {
+            static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
+            return 0;
+        }
     }
 
     ///@}
