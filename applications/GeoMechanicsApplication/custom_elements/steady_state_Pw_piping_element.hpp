@@ -63,20 +63,27 @@ public:
     }
 
     /// Constructor using an array of nodes
-    SteadyStatePwPipingElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    SteadyStatePwPipingElement(IndexType                          NewId,
+                               const NodesArrayType&              ThisNodes,
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    SteadyStatePwPipingElement(IndexType                          NewId,
+                               GeometryType::Pointer              pGeometry,
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    SteadyStatePwPipingElement(IndexType                          NewId,
+                               GeometryType::Pointer              pGeometry,
+                               PropertiesType::Pointer            pProperties,
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
