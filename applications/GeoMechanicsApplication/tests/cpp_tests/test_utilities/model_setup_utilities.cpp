@@ -75,12 +75,11 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
 
 ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
 {
+    auto&      r_result = rModel.CreateModelPart("Main");
     const auto second_order_variables =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
-    const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
-
-    auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, second_order_variables);
+    const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
     AddNodalVariablesToModelPart(r_result, first_order_variables);
 
     auto p_node1 = r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
