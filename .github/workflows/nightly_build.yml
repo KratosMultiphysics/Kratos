@@ -90,7 +90,7 @@ jobs:
         bash configure.sh
         rm -r ${GITHUB_WORKSPACE}/build
 
-     - name: Build Core Apps
+    - name: Build Core Apps
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
