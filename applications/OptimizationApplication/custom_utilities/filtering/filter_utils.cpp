@@ -24,24 +24,6 @@
 
 namespace Kratos {
 
-template<>
-const ModelPart::NodesContainerType& FilterUtils::GetContainer(const ModelPart& rModelPart)
-{
-    return rModelPart.Nodes();
-}
-
-template<>
-const ModelPart::ConditionsContainerType& FilterUtils::GetContainer(const ModelPart& rModelPart)
-{
-    return rModelPart.Conditions();
-}
-
-template<>
-const ModelPart::ElementsContainerType& FilterUtils::GetContainer(const ModelPart& rModelPart)
-{
-    return rModelPart.Elements();
-}
-
 std::vector<std::vector<const ModelPart*>> FilterUtils::GetComponentWiseDampedModelParts(
     Model& rModel,
     Parameters Settings,

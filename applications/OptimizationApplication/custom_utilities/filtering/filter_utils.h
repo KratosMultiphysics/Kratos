@@ -15,6 +15,7 @@
 // System includes
 #include <vector>
 #include <unordered_map>
+#include <type_traits>
 
 // Project includes
 #include "containers/model.h"
@@ -67,7 +68,19 @@ public:
         const IndexType NumberOfComponents);
 
     template<class TContainerType>
-    static const TContainerType& GetContainer(const ModelPart& rModelPart);
+    static const TContainerType& GetContainer(const ModelPart& rModelPart)
+    {
+        if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+            return rModelPart.Nodes();
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+            return rModelPart.Conditions();
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+            return rModelPart.Elements();
+        } else {
+            static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
+            return TContainerType{};
+        }
+    }
 
     template<class TContainerType>
     static ContainerExpression<TContainerType> ComputeDampingCoefficientsBasedOnNearestEntity(
