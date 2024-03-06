@@ -25,6 +25,22 @@ void AddNodalVariablesToModelPart(ModelPart& rModelPart, const Geo::ConstVariabl
     }
 }
 
+template <typename InputIt>
+void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    for (const auto& r_variable : rNodalVariables) {
+        for (auto it = NodeRangeBegin; it != NodeRangeEnd; ++it) {
+            it->AddDof(r_variable.get());
+        }
+    }
+}
+
+template <typename NodeRange>
+void AddDofsToNodes(const NodeRange& rNodeRange, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    AddDofsToNodes(std::begin(rNodeRange), std::end(rNodeRange), rNodalVariables);
+}
+
 } // namespace
 
 namespace Kratos::Testing::ModelSetupUtilities
@@ -39,11 +55,7 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::Const
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
     result.CreateNewNode(3, 1.0, 1.0, 0.0);
 
-    for (const auto& r_variable : rNodalVariables) {
-        for (auto& r_node : result.Nodes()) {
-            r_node.AddDof(r_variable.get());
-        }
-    }
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
     result.CreateNewElement("UPwSmallStrainElement2D3N", 1, node_ids, result.CreateNewProperties(0));
@@ -61,11 +73,7 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     result.CreateNewNode(3, 0.0, 1.0, 0.0);
     result.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-    for (const auto& r_variable : rNodalVariables) {
-        for (auto& r_node : result.Nodes()) {
-            r_node.AddDof(r_variable.get());
-        }
-    }
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
     result.CreateNewElement("UPwSmallStrainElement3D4N", 1, node_ids, result.CreateNewProperties(0));
@@ -82,26 +90,16 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
     AddNodalVariablesToModelPart(r_result, first_order_variables);
 
-    auto p_node1 = r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto p_node2 = r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto p_node3 = r_result.CreateNewNode(3, 0.0, 1.0, 0.0);
-    auto p_node4 = r_result.CreateNewNode(4, 0.5, 0.0, 0.0);
-    auto p_node5 = r_result.CreateNewNode(5, 0.5, 0.5, 0.0);
-    auto p_node6 = r_result.CreateNewNode(6, 0.0, 0.5, 0.0);
-    auto nodes   = std::vector<Node*>{p_node1.get(), p_node2.get(), p_node3.get(),
-                                      p_node4.get(), p_node5.get(), p_node6.get()};
+    r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_result.CreateNewNode(3, 0.0, 1.0, 0.0);
+    r_result.CreateNewNode(4, 0.5, 0.0, 0.0);
+    r_result.CreateNewNode(5, 0.5, 0.5, 0.0);
+    r_result.CreateNewNode(6, 0.0, 0.5, 0.0);
 
-    for (const auto& r_variable : second_order_variables) {
-        for (auto p_node : nodes) {
-            p_node->AddDof(r_variable.get());
-        }
-    }
-
-    for (const auto& r_variable : first_order_variables) {
-        for (auto it = nodes.begin(); it != nodes.begin() + 3; ++it) {
-            (*it)->AddDof(r_variable.get());
-        }
-    }
+    const auto nodes = r_result.Nodes();
+    AddDofsToNodes(nodes, second_order_variables);
+    AddDofsToNodes(nodes.begin(), nodes.begin() + 3, first_order_variables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
     r_result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids,
