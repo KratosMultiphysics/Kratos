@@ -18,13 +18,11 @@ namespace
 
 using namespace Kratos;
 
-ModelPart& CreateEmptyModelPart(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+void AddNodalVariablesToModelPart(ModelPart& rModelPart, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    auto& r_result = rModel.CreateModelPart("Main");
     for (const auto& r_variable : rNodalVariables) {
-        r_result.AddNodalSolutionStepVariable(r_variable);
+        rModelPart.AddNodalSolutionStepVariable(r_variable.get());
     }
-    return r_result;
 }
 
 } // namespace
@@ -34,7 +32,8 @@ namespace Kratos::Testing::ModelSetupUtilities
 
 ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = CreateEmptyModelPart(rModel, rNodalVariables);
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
 
     result.CreateNewNode(1, 0.0, 0.0, 0.0);
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -54,7 +53,8 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::Const
 
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = CreateEmptyModelPart(rModel, rNodalVariables);
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
 
     result.CreateNewNode(1, 0.0, 0.0, 0.0);
     result.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -79,10 +79,9 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
     const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
 
-    auto& r_result = CreateEmptyModelPart(rModel, second_order_variables);
-    for (const auto& r_variable : first_order_variables) {
-        r_result.AddNodalSolutionStepVariable(r_variable.get());
-    }
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, second_order_variables);
+    AddNodalVariablesToModelPart(r_result, first_order_variables);
 
     auto p_node1 = r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto p_node2 = r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
