@@ -34,7 +34,7 @@ FilterFunction::FilterFunction(const std::string& rKernelFunctionType)
         mFilterFunctional =  [](double radius, double distance) { return std::max(0.0, (radius - distance) / radius); };
     } else if (rKernelFunctionType == "constant") {
         // Type 3: Constant function
-        mFilterFunctional = [](double radius, double distance) { return (distance < radius) ? 1.0: 0.0 };
+        mFilterFunctional = [](double radius, double distance) { return (distance < radius) ? 1.0: 0.0; };
     } else if (rKernelFunctionType == "cosine") {
         // Type 4: Cosine function
         mFilterFunctional = [](double radius, double distance) { return std::max(0.0, 1 - 0.5 * (1 - std::cos(Globals::Pi / radius * std::min(distance, radius))));};
