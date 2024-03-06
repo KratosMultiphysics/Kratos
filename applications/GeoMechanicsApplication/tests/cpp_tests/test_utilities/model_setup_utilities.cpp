@@ -25,6 +25,15 @@ void AddNodalVariablesToModelPart(ModelPart& rModelPart, const Geo::ConstVariabl
     }
 }
 
+void CreateNewNodes(ModelPart& rModelPart, const std::vector<Point>& rPoints)
+{
+    auto NodeIndex = rModelPart.NumberOfNodes();
+    for (const auto& r_point : rPoints) {
+        ++NodeIndex;
+        rModelPart.CreateNewNode(NodeIndex, r_point.X(), r_point.Y(), r_point.Z());
+    }
+}
+
 template <typename InputIt>
 void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
 {
@@ -51,10 +60,7 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::Const
     ModelPart& result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(result, rNodalVariables);
 
-    result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    result.CreateNewNode(3, 1.0, 1.0, 0.0);
-
+    CreateNewNodes(result, {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}});
     AddDofsToNodes(result.Nodes(), rNodalVariables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3};
@@ -68,11 +74,7 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     ModelPart& result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(result, rNodalVariables);
 
-    result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    result.CreateNewNode(3, 0.0, 1.0, 0.0);
-    result.CreateNewNode(4, 0.0, 0.0, 1.0);
-
+    CreateNewNodes(result, {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
     AddDofsToNodes(result.Nodes(), rNodalVariables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
@@ -90,12 +92,9 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
     AddNodalVariablesToModelPart(r_result, first_order_variables);
 
-    r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    r_result.CreateNewNode(3, 0.0, 1.0, 0.0);
-    r_result.CreateNewNode(4, 0.5, 0.0, 0.0);
-    r_result.CreateNewNode(5, 0.5, 0.5, 0.0);
-    r_result.CreateNewNode(6, 0.0, 0.5, 0.0);
+    CreateNewNodes(
+        r_result,
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}});
 
     const auto nodes = r_result.Nodes();
     AddDofsToNodes(nodes, second_order_variables);
