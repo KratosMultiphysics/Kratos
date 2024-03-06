@@ -39,7 +39,7 @@ class Materials:
         # now check whether the young modulus is also arranged in the ascending order
         for i, (_, young_modulus) in enumerate(data[:-1]):
             if young_modulus > data[i+1][1]:
-                raise RuntimeError(f"Young modulus and densities are not in the ascending order.")
+                raise RuntimeError("Young modulus and densities are not in the ascending order.")
 
         for i, (density, young_modulus) in enumerate(data):
             self.__phi.append(i+1)
