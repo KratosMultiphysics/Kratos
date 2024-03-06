@@ -165,36 +165,38 @@ public:
 
         c_ptr[0] = 0;
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
-            SignedIndexVectorType marker(ncols);
-            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill) {
-                marker[i_fill] = -1;
+        // Definition of marker TLS
+        struct TLS {
+            TLS(const SizeType NumberOfColumns)
+                : marker(NumberOfColumns)
+            {
+                for (IndexType i_fill = 0; i_fill < NumberOfColumns; ++i_fill) {
+                    marker[i_fill] = -1;
+                }
             }
+            SignedIndexVectorType marker;
+        };
 
-            #pragma omp for
-            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
-                const IndexType row_begin_a = index1_a[ia];
-                const IndexType row_end_a   = index1_a[ia+1];
+        IndexPartition<SignedIndexType>(static_cast<SignedIndexType>(nrows)).for_each(TLS(ncols), [&](SignedIndexType ia, TLS& rTLS) {
+            const IndexType row_begin_a = index1_a[ia];
+            const IndexType row_end_a   = index1_a[ia+1];
 
-                IndexType C_cols = 0;
-                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const IndexType ca = index2_a[ja];
-                    const IndexType row_begin_b = index1_b[ca];
-                    const IndexType row_end_b   = index1_b[ca+1];
+            IndexType C_cols = 0;
+            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                const IndexType ca = index2_a[ja];
+                const IndexType row_begin_b = index1_b[ca];
+                const IndexType row_end_b   = index1_b[ca+1];
 
-                    for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                        const IndexType cb = index2_b[jb];
-                        if (marker[cb] != ia) {
-                            marker[cb]  = ia;
-                            ++C_cols;
-                        }
+                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const IndexType cb = index2_b[jb];
+                    if (rTLS.marker[cb] != ia) {
+                        rTLS.marker[cb]  = ia;
+                        ++C_cols;
                     }
                 }
-                c_ptr[ia + 1] = C_cols;
             }
-        }
+            c_ptr[ia + 1] = C_cols;
+        });
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
@@ -202,45 +204,35 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
-            SignedIndexVectorType marker(ncols);
-            for (int i_fill = 0; i_fill < static_cast<int>(ncols); ++i_fill) {
-                marker[i_fill] = -1;
-            }
+        IndexPartition<IndexType>(nrows).for_each(TLS(ncols), [&](IndexType ia, TLS& rTLS) {
+            const IndexType row_begin_a = index1_a[ia];
+            const IndexType row_end_a   = index1_a[ia+1];
 
-            #pragma omp for
-            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
-                const IndexType row_begin_a = index1_a[ia];
-                const IndexType row_end_a   = index1_a[ia+1];
+            const IndexType row_beg = c_ptr[ia];
+            IndexType row_end = row_beg;
 
-                const IndexType row_beg = c_ptr[ia];
-                IndexType row_end = row_beg;
+            for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                const IndexType ca = index2_a[ja];
+                const ValueType va = values_a[ja];
 
-                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const IndexType ca = index2_a[ja];
-                    const ValueType va = values_a[ja];
+                const IndexType row_begin_b = index1_b[ca];
+                const IndexType row_end_b   = index1_b[ca+1];
 
-                    const IndexType row_begin_b = index1_b[ca];
-                    const IndexType row_end_b   = index1_b[ca+1];
+                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const IndexType cb = index2_b[jb];
+                    const ValueType vb = values_b[jb];
 
-                    for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
-                        const IndexType cb = index2_b[jb];
-                        const ValueType vb = values_b[jb];
-
-                        if (marker[cb] < static_cast<SignedIndexType>(row_beg)) {
-                            marker[cb] = row_end;
-                            aux_index2_c[row_end] = cb;
-                            aux_val_c[row_end] = va * vb;
-                            ++row_end;
-                        } else {
-                            aux_val_c[marker[cb]] += va * vb;
-                        }
+                    if (rTLS.marker[cb] < static_cast<SignedIndexType>(row_beg)) {
+                        rTLS.marker[cb] = row_end;
+                        aux_index2_c[row_end] = cb;
+                        aux_val_c[row_end] = va * vb;
+                        ++row_end;
+                    } else {
+                        aux_val_c[rTLS.marker[cb]] += va * vb;
                     }
                 }
             }
-        }
+        });
 
         // We reorder the rows
         SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
