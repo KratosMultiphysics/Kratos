@@ -640,6 +640,123 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
             KratosOA.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
 
+    def test_CollectiveNegation(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        c = Kratos.Expression.ConditionExpression(self.model_part)
+        d = Kratos.Expression.ElementExpression(self.model_part)
+
+        number_of_nodes = self.model_part.NumberOfNodes()
+        number_of_conditions = self.model_part.NumberOfConditions()
+        number_of_elements = self.model_part.NumberOfElements()
+        d_a = numpy.arange(1, number_of_nodes * 3 + 1, dtype=numpy.float64).reshape((number_of_nodes, 3))
+        d_b = numpy.arange(1, number_of_nodes * 4 + 1, dtype=numpy.float64).reshape((number_of_nodes, 2, 2))
+        d_c = numpy.arange(1, number_of_conditions * 6 + 1, dtype=numpy.float64).reshape((number_of_conditions, 2, 3))
+        d_d = numpy.arange(1, number_of_elements * 9 + 1, dtype=numpy.float64).reshape((number_of_elements, 3, 3))
+
+        Kratos.Expression.CArrayExpressionIO.Read(a, d_a)
+        Kratos.Expression.CArrayExpressionIO.Read(b, d_b)
+        Kratos.Expression.CArrayExpressionIO.Read(c, d_c)
+        Kratos.Expression.CArrayExpressionIO.Read(d, d_d)
+
+        c_a = KratosOA.CollectiveExpression([a, b, c, d])
+        c_b = KratosOA.CollectiveExpression([-a, b * 2, c + 3, d / 2])
+
+        d = -c_a
+        self.assertVectorAlmostEqual(c_a.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten())
+        self.assertVectorAlmostEqual(c_b.Evaluate(), numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+        self.assertVectorAlmostEqual(d.Evaluate(), -numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten())
+
+        d -= c_b
+        self.assertVectorAlmostEqual(d.Evaluate(), -numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten() - numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+        self.assertVectorAlmostEqual(c_a.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten())
+        self.assertVectorAlmostEqual(c_b.Evaluate(), numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+
+    def test_CollectiveAddition(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        c = Kratos.Expression.ConditionExpression(self.model_part)
+        d = Kratos.Expression.ElementExpression(self.model_part)
+
+        number_of_nodes = self.model_part.NumberOfNodes()
+        number_of_conditions = self.model_part.NumberOfConditions()
+        number_of_elements = self.model_part.NumberOfElements()
+        d_a = numpy.arange(1, number_of_nodes * 3 + 1, dtype=numpy.float64).reshape((number_of_nodes, 3))
+        d_b = numpy.arange(1, number_of_nodes * 4 + 1, dtype=numpy.float64).reshape((number_of_nodes, 2, 2))
+        d_c = numpy.arange(1, number_of_conditions * 6 + 1, dtype=numpy.float64).reshape((number_of_conditions, 2, 3))
+        d_d = numpy.arange(1, number_of_elements * 9 + 1, dtype=numpy.float64).reshape((number_of_elements, 3, 3))
+
+        Kratos.Expression.CArrayExpressionIO.Read(a, d_a)
+        Kratos.Expression.CArrayExpressionIO.Read(b, d_b)
+        Kratos.Expression.CArrayExpressionIO.Read(c, d_c)
+        Kratos.Expression.CArrayExpressionIO.Read(d, d_d)
+
+        c_a = KratosOA.CollectiveExpression([a, b, c, d])
+        c_b = KratosOA.CollectiveExpression([-a, b * 2, c + 3, d / 2])
+
+        d = c_a.Clone()
+        d += c_b * 3
+        self.assertVectorAlmostEqual(d.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten() + numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten() * 3)
+        self.assertVectorAlmostEqual(c_a.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten())
+        self.assertVectorAlmostEqual(c_b.Evaluate(), numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+
+    def test_CollectiveMultiplication(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        c = Kratos.Expression.ConditionExpression(self.model_part)
+        d = Kratos.Expression.ElementExpression(self.model_part)
+
+        number_of_nodes = self.model_part.NumberOfNodes()
+        number_of_conditions = self.model_part.NumberOfConditions()
+        number_of_elements = self.model_part.NumberOfElements()
+        d_a = numpy.arange(1, number_of_nodes * 3 + 1, dtype=numpy.float64).reshape((number_of_nodes, 3))
+        d_b = numpy.arange(1, number_of_nodes * 4 + 1, dtype=numpy.float64).reshape((number_of_nodes, 2, 2))
+        d_c = numpy.arange(1, number_of_conditions * 6 + 1, dtype=numpy.float64).reshape((number_of_conditions, 2, 3))
+        d_d = numpy.arange(1, number_of_elements * 9 + 1, dtype=numpy.float64).reshape((number_of_elements, 3, 3))
+
+        Kratos.Expression.CArrayExpressionIO.Read(a, d_a)
+        Kratos.Expression.CArrayExpressionIO.Read(b, d_b)
+        Kratos.Expression.CArrayExpressionIO.Read(c, d_c)
+        Kratos.Expression.CArrayExpressionIO.Read(d, d_d)
+
+        c_a = KratosOA.CollectiveExpression([a, b, c, d])
+        c_b = KratosOA.CollectiveExpression([-a, b * 2, c + 3, d / 2])
+
+        d = c_a.Clone()
+        d *= c_b
+        self.assertVectorAlmostEqual(d.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten() * numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+        self.assertVectorAlmostEqual(c_a.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten())
+        self.assertVectorAlmostEqual(c_b.Evaluate(), numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+
+    def test_CollectiveDivision(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        c = Kratos.Expression.ConditionExpression(self.model_part)
+        d = Kratos.Expression.ElementExpression(self.model_part)
+
+        number_of_nodes = self.model_part.NumberOfNodes()
+        number_of_conditions = self.model_part.NumberOfConditions()
+        number_of_elements = self.model_part.NumberOfElements()
+        d_a = numpy.arange(1, number_of_nodes * 3 + 1, dtype=numpy.float64).reshape((number_of_nodes, 3))
+        d_b = numpy.arange(1, number_of_nodes * 4 + 1, dtype=numpy.float64).reshape((number_of_nodes, 2, 2))
+        d_c = numpy.arange(1, number_of_conditions * 6 + 1, dtype=numpy.float64).reshape((number_of_conditions, 2, 3))
+        d_d = numpy.arange(1, number_of_elements * 9 + 1, dtype=numpy.float64).reshape((number_of_elements, 3, 3))
+
+        Kratos.Expression.CArrayExpressionIO.Read(a, d_a)
+        Kratos.Expression.CArrayExpressionIO.Read(b, d_b)
+        Kratos.Expression.CArrayExpressionIO.Read(c, d_c)
+        Kratos.Expression.CArrayExpressionIO.Read(d, d_d)
+
+        c_a = KratosOA.CollectiveExpression([a, b, c, d])
+        c_b = KratosOA.CollectiveExpression([-a, b * 2, c + 3, d / 2])
+
+        d = c_a.Clone()
+        d /= c_b
+        self.assertVectorAlmostEqual(d.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten() / numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+        self.assertVectorAlmostEqual(c_a.Evaluate(), numpy.concatenate([d_a.flatten(), d_b.flatten(), d_c.flatten(), d_d.flatten()]).flatten())
+        self.assertVectorAlmostEqual(c_b.Evaluate(), numpy.concatenate([-d_a.flatten(), d_b.flatten() * 2, d_c.flatten() + 3, d_d.flatten() / 2]).flatten())
+
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
