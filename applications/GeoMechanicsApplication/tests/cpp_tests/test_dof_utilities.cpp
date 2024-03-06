@@ -258,6 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2D
     ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4], dofs[6], dofs[8], dofs[10]}, DISPLACEMENT_X);
     ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5], dofs[7], dofs[9], dofs[11]}, DISPLACEMENT_Y);
     ExpectDofsHaveThisVariable({dofs.begin() + 12, dofs.end()}, WATER_PRESSURE);
+    ExpectDofsHaveThisNodeId({dofs[0], dofs[1], dofs[12]}, 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
