@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "geo_aliases.h"
 #include "geometries/geometry.h"
 #include "includes/dof.h"
 #include "includes/node.h"
@@ -64,11 +65,14 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrder
                                                   std::size_t       ModelDimension)
 {
     auto result = std::vector<Dof<double>*>{};
+    auto displacement_variables =
+        Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
+    if (ModelDimension == 3) displacement_variables.push_back(std::cref(DISPLACEMENT_Z));
 
     for (const auto& r_node : rSecondOrderNodes) {
-        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
-        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if (ModelDimension == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+        for (const auto& r_variable : displacement_variables) {
+            result.push_back(r_node.pGetDof(r_variable.get()));
+        }
     }
 
     ExtractDofsFromNodes(std::begin(rFirstOrderNodes), std::end(rFirstOrderNodes),
