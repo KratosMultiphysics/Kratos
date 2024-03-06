@@ -21,7 +21,6 @@ class TestExplicitVertexMorphingShapeControl(kratos_unittest.TestCase):
                 "comparison_type"       : "deterministic"
             }""")).Execute()
 
-
 if __name__ == "__main__":
     KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
