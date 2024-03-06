@@ -168,22 +168,10 @@ namespace Kratos
 						biggest_volumes[nn] = -1.0;
 					}
 
-					// std::vector<array_1d<double, 3>> CornerWallNewPositions;
-					// std::vector<array_1d<SizeType, 4>> CornerWallNodesIDToInterpolate;
-					// std::vector<Node::DofsContainerType> CornerWallNewDofs;
-					// int cornerWallNewNodes = 0;
-					// int maxOfNewWallNodes = toleredExtraNodes;
-					// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
-					// {
-					// 	CornerWallNewPositions.resize(maxOfNewWallNodes, false);
-					// 	CornerWallNodesIDToInterpolate.resize(maxOfNewWallNodes, false);
-					// 	CornerWallNewDofs.resize(maxOfNewWallNodes, false);
-					// }
 					SizeType addedNodesAtEulerianInlet = 0;
 					ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 					for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
 					{
-
 						//////// choose the right (big and safe) elements to refine and compute the new node position and variables ////////
 						if (dimension == 2)
 						{
@@ -322,7 +310,6 @@ namespace Kratos
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
-			bool suitableElementForSecondAdd = true;
 
 			for (SizeType pn = 0; pn < nds; ++pn)
 			{
@@ -366,8 +353,6 @@ namespace Kratos
 				}
 			}
 
-			const double limitEdgeLength = 1.4 * meanMeshSize;
-			const double safetyCoefficient2D = 1.5;
 			double penalization = 1.0; // to penalize adding node, penalization here should be smaller than 1
 			if (rigidNodes > 1)
 			{
@@ -385,188 +370,32 @@ namespace Kratos
 			{
 				penalization = 0.9;
 			}
-			// else if (freesurfaceNodes > 0)
-			// {
-			// 	penalization = 0.875;
-			// }
-
-			double ElementalVolume = Element.Area();
 
 			array_1d<double, 3> Edges(3, 0.0);
 			array_1d<SizeType, 3> FirstEdgeNode(3, 0);
 			array_1d<SizeType, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-			Edges[0] = std::sqrt(SquaredLength);
-			FirstEdgeNode[0] = 0;
-			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
-			{
-				WallCharacteristicDistance = Edges[0];
-			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
-			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (((Element[i].Is(RIGID) && Element[j].Is(RIGID)) || (Element[i].Is(INLET) && Element[j].Is(INLET))) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
-			}
+			this->ComputeWallCharacteristicDistance2D(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode);
 
 			bool dangerousElement = false;
-
-			for (SizeType i = 0; i < 3; i++)
-			{
-				if (rigidNodes > 1)
-				{
-					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
-						((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)) || (Element[FirstEdgeNode[i]].Is(INLET) && Element[SecondEdgeNode[i]].Is(INLET))))
-					{
-						Edges[i] = 0;
-					}
-					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
-						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)) &&
-						(Element[FirstEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET) && Element[SecondEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET)))
-					{
-						Edges[i] = 0;
-					}
-				}
-				else if (rigidNodes == 0)
-				{
-					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					if (propertyIdFirstNode != propertyIdSecondNode)
-					{
-						penalization = 0.9; // 10% less than normal nodes
-					}
-				}
-			}
-			if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0) || rigidNodes == 3)
-			{
-				dangerousElement = true;
-			}
+			this->DetectDangerousElements2D(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode, rigidNodes, penalization, dangerousElement);
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-				SizeType maxCount = 3;
-				double LargestEdge = 0;
-
-				for (SizeType i = 0; i < 3; i++)
-				{
-					if (Edges[i] > LargestEdge)
-					{
-						maxCount = i;
-						LargestEdge = Edges[i];
-					}
-				}
-
-				if (CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes == 0)
-				{
-
-					array_1d<double, 3> new_position = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-
-					bool suitableElement = true;
-					for (int j = 0; j < CountNodes; j++)
-					{
-						const double diffX = std::abs(new_positions[j][0] - new_position[0]) - meanMeshSize * 0.5;
-						const double diffY = std::abs(new_positions[j][1] - new_position[1]) - meanMeshSize * 0.5;
-						if (diffX < 0 && diffY < 0) //  the node is in the same zone of a previously inserted node
-						{
-							suitableElement = false;
-						}
-					}
-
-					if (suitableElement)
-					{
-						nodes_id_to_interpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
-						nodes_id_to_interpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						biggest_volumes[CountNodes] = ElementalVolume;
-						new_positions[CountNodes] = new_position;
-						CountNodes++;
-					}
-				}
-				else if (freesurfaceNodes < 3 && rigidNodes < 3 && eulerianInletNodes == 0)
-				{
-					ElementalVolume *= penalization;
-					for (int nn = 0; nn < ElementsToRefine; nn++)
-					{
-						if (ElementalVolume > biggest_volumes[nn])
-						{
-
-							if (maxCount < 3 && LargestEdge > limitEdgeLength)
-							{
-								array_1d<double, 3> new_position = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-								if (ElementsToRefine > 1 && CountNodes > 0)
-								{
-									for (int j = 0; j < ElementsToRefine; j++)
-									{
-										const double diffX = std::abs(new_positions[j][0] - new_position[0]) - meanMeshSize * 0.5;
-										const double diffY = std::abs(new_positions[j][1] - new_position[1]) - meanMeshSize * 0.5;
-										if (diffX < 0 && diffY < 0) // the node is in the same zone of a previously inserted node
-										{
-											suitableElementForSecondAdd = false;
-										}
-									}
-								}
-
-								if (suitableElementForSecondAdd)
-								{
-									nodes_id_to_interpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
-									nodes_id_to_interpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
-									biggest_volumes[nn] = ElementalVolume;
-									new_positions[nn] = new_position;
-								}
-							}
-
-							break;
-						}
-					}
-				}
-
-				if (eulerianInletNodes > 0 && LargestEdge > (2.0 * meanMeshSize))
-				{
-
-					array_1d<double, 3> new_position = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-
-					bool suitableElement = true;
-					for (int j = 0; j < CountNodes; j++)
-					{
-						const double diffX = std::abs(new_positions[j][0] - new_position[0]) - meanMeshSize * 0.5;
-						const double diffY = std::abs(new_positions[j][1] - new_position[1]) - meanMeshSize * 0.5;
-						// if (diffX < 0 && diffY < 0)																															//  the node is in the same zone of a previously inserted node
-						if ((diffX < 0 && diffY < 0) || (Element[FirstEdgeNode[maxCount]].IsNot(INLET) && Element[SecondEdgeNode[maxCount]].IsNot(INLET))) //  the node is in the same zone of a previously inserted node
-
-						{
-							suitableElement = false;
-						}
-					}
-
-					if (suitableElement)
-					{
-						if (CountNodes >= ElementsToRefine)
-						{
-							new_positions.resize(CountNodes + 1);
-							biggest_volumes.resize(CountNodes + 1, false);
-							nodes_id_to_interpolate.resize(CountNodes + 1);
-							addedNodesAtEulerianInlet++;
-						}
-						nodes_id_to_interpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
-						nodes_id_to_interpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						biggest_volumes[CountNodes] = ElementalVolume;
-						new_positions[CountNodes] = new_position;
-						CountNodes++;
-					}
-				}
+				this->ManageDangerousElements2D(Element,
+												new_positions,
+												biggest_volumes,
+												nodes_id_to_interpolate,
+												CountNodes,
+												ElementsToRefine,
+												addedNodesAtEulerianInlet,
+												eulerianInletNodes,
+												rigidNodes,
+												freesurfaceNodes,
+												Edges,
+												FirstEdgeNode,
+												SecondEdgeNode,
+												penalization);
 			}
 
 			KRATOS_CATCH("")
@@ -593,7 +422,6 @@ namespace Kratos
 			bool toEraseNodeFound = false;
 			double rigidNodeLocalMeshSize = 0;
 			double rigidNodeMeshCounter = 0;
-			bool suitableElementForSecondAdd = true;
 
 			for (SizeType pn = 0; pn < nds; ++pn)
 			{
@@ -637,8 +465,6 @@ namespace Kratos
 				}
 			}
 
-			const double limitEdgeLength = 1.25 * meanMeshSize;
-			const double safetyCoefficient3D = 1.6;
 			double penalization = 1.0; // penalization here should be smaller than 1
 			if (rigidNodes > 2)
 			{
@@ -661,213 +487,33 @@ namespace Kratos
 				penalization = 0.9;
 			}
 
-			double ElementalVolume = Element.Volume();
-
 			array_1d<double, 6> Edges(6, 0.0);
 			array_1d<SizeType, 6> FirstEdgeNode(6, 0);
 			array_1d<SizeType, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-			Edges[0] = std::sqrt(SquaredLength);
-			FirstEdgeNode[0] = 0;
-			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
-			{
-				WallCharacteristicDistance = Edges[0];
-			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
-			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (((Element[i].Is(RIGID) && Element[j].Is(RIGID)) || (Element[i].Is(INLET) && Element[j].Is(INLET))) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
-			}
+			this->ComputeWallCharacteristicDistance3D(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode);
+
 			// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 			bool dangerousElement = false;
-
-			for (SizeType i = 0; i < 6; i++)
-			{
-				if (rigidNodes > 1)
-				{
-					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
-						((Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)) || (Element[FirstEdgeNode[i]].Is(INLET) && Element[SecondEdgeNode[i]].Is(INLET))))
-					{
-						Edges[i] = 0;
-					}
-					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
-						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)) &&
-						(Element[FirstEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET) && Element[SecondEdgeNode[i]].IsNot(PFEMFlags::EULERIAN_INLET)))
-					{
-						Edges[i] = 0;
-					}
-				}
-				else if (rigidNodes == 0)
-				{
-					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					if (propertyIdFirstNode != propertyIdSecondNode)
-					{
-						penalization = 0.8; // 20% less than normal nodes
-					}
-				}
-			}
-			if (rigidNodes == 1)
-			{
-				if (Element[0].Is(RIGID))
-				{
-					Edges[0] = 0;
-					Edges[1] = 0;
-					Edges[3] = 0;
-				}
-				if (Element[1].Is(RIGID))
-				{
-					Edges[0] = 0;
-					Edges[2] = 0;
-					Edges[4] = 0;
-				}
-				if (Element[2].Is(RIGID))
-				{
-					Edges[1] = 0;
-					Edges[2] = 0;
-					Edges[5] = 0;
-				}
-				if (Element[3].Is(RIGID))
-				{
-					Edges[3] = 0;
-					Edges[4] = 0;
-					Edges[5] = 0;
-				}
-			}
-
-			if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0 && Edges[3] == 0 && Edges[4] == 0 && Edges[5] == 0) || rigidNodes > 2)
-			{
-				dangerousElement = true;
-			}
+			this->DetectDangerousElements3D(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode, rigidNodes, penalization, dangerousElement);
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
-				SizeType maxCount = 6;
-				double LargestEdge = 0;
-
-				for (SizeType i = 0; i < 6; i++)
-				{
-					if (Edges[i] > LargestEdge)
-					{
-						maxCount = i;
-						LargestEdge = Edges[i];
-					}
-				}
-				if ((CountNodes < ElementsToRefine && LargestEdge > limitEdgeLength && eulerianInletNodes == 0))
-				{
-
-					array_1d<double, 3> new_position = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-
-					bool suitableElement = true;
-					for (int j = 0; j < CountNodes; j++)
-					{
-						const double diffX = std::abs(new_positions[j][0] - new_position[0]) - meanMeshSize * 0.5;
-						const double diffY = std::abs(new_positions[j][1] - new_position[1]) - meanMeshSize * 0.5;
-						const double diffZ = std::abs(new_positions[j][2] - new_position[2]) - meanMeshSize * 0.5;
-						if (diffX < 0 && diffY < 0 && diffZ < 0) //  the node is in the same zone of a previously inserted node
-						{
-							suitableElement = false;
-						}
-					}
-
-					if (suitableElement)
-					{
-						nodes_id_to_interpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
-						nodes_id_to_interpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						biggest_volumes[CountNodes] = ElementalVolume;
-						new_positions[CountNodes] = new_position;
-						CountNodes++;
-					}
-				}
-				else if (freesurfaceNodes < 4 && rigidNodes < 4 && eulerianInletNodes == 0)
-				{
-
-					ElementalVolume *= penalization;
-					for (int nn = 0; nn < ElementsToRefine; nn++)
-					{
-						if (ElementalVolume > biggest_volumes[nn])
-						{
-							if (maxCount < 6 && LargestEdge > limitEdgeLength)
-							{
-								array_1d<double, 3> new_position = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-
-								if (ElementsToRefine > 1 && CountNodes > 0)
-								{
-									for (int j = 0; j < ElementsToRefine; j++)
-									{
-										const double diffX = std::abs(new_positions[j][0] - new_position[0]) - meanMeshSize * 0.5;
-										const double diffY = std::abs(new_positions[j][1] - new_position[1]) - meanMeshSize * 0.5;
-										const double diffZ = std::abs(new_positions[j][2] - new_position[2]) - meanMeshSize * 0.5;
-										if (diffX < 0 && diffY < 0 && diffZ < 0) // the node is in the same zone of a previously inserted node
-										{
-											suitableElementForSecondAdd = false;
-										}
-									}
-								}
-
-								if (suitableElementForSecondAdd)
-								{
-									nodes_id_to_interpolate[nn][0] = Element[FirstEdgeNode[maxCount]].GetId();
-									nodes_id_to_interpolate[nn][1] = Element[SecondEdgeNode[maxCount]].GetId();
-									biggest_volumes[nn] = ElementalVolume;
-									new_positions[nn] = new_position;
-								}
-							}
-
-							break;
-						}
-					}
-				}
-
-				if (eulerianInletNodes > 0 && LargestEdge > (1.7 * meanMeshSize))
-				{
-
-					array_1d<double, 3> new_position = (Element[FirstEdgeNode[maxCount]].Coordinates() + Element[SecondEdgeNode[maxCount]].Coordinates()) * 0.5;
-
-					bool suitableElement = true;
-					for (int j = 0; j < CountNodes; j++)
-					{
-						const double diffX = std::abs(new_positions[j][0] - new_position[0]) - meanMeshSize * 0.5;
-						const double diffY = std::abs(new_positions[j][1] - new_position[1]) - meanMeshSize * 0.5;
-						const double diffZ = std::abs(new_positions[j][2] - new_position[2]) - meanMeshSize * 0.5;
-						if ((diffX < 0 && diffY < 0 && diffZ < 0) || (Element[FirstEdgeNode[maxCount]].IsNot(INLET) && Element[SecondEdgeNode[maxCount]].IsNot(INLET))) //  the node is in the same zone of a previously inserted node
-						{
-							suitableElement = false;
-						}
-					}
-
-					if (suitableElement)
-					{
-						if (CountNodes >= ElementsToRefine)
-						{
-							new_positions.resize(CountNodes + 1);
-							biggest_volumes.resize(CountNodes + 1, false);
-							nodes_id_to_interpolate.resize(CountNodes + 1);
-							addedNodesAtEulerianInlet++;
-						}
-						nodes_id_to_interpolate[CountNodes][0] = Element[FirstEdgeNode[maxCount]].GetId();
-						nodes_id_to_interpolate[CountNodes][1] = Element[SecondEdgeNode[maxCount]].GetId();
-						biggest_volumes[CountNodes] = ElementalVolume;
-						new_positions[CountNodes] = new_position;
-						CountNodes++;
-					}
-				}
+				this->ManageDangerousElements3D(Element,
+												new_positions,
+												biggest_volumes,
+												nodes_id_to_interpolate,
+												CountNodes,
+												ElementsToRefine,
+												addedNodesAtEulerianInlet,
+												eulerianInletNodes,
+												rigidNodes,
+												freesurfaceNodes,
+												Edges,
+												FirstEdgeNode,
+												SecondEdgeNode,
+												penalization);
 			}
 
 			KRATOS_CATCH("")
@@ -942,69 +588,15 @@ namespace Kratos
 			{
 				penalization = 0.9;
 			}
-			const double safetyCoefficient2D = 1.5;
 			array_1d<double, 3> Edges(3, 0.0);
 			array_1d<SizeType, 3> FirstEdgeNode(3, 0);
 			array_1d<SizeType, 3> SecondEdgeNode(3, 0);
 			double WallCharacteristicDistance = 0;
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-			Edges[0] = std::sqrt(SquaredLength);
-			FirstEdgeNode[0] = 0;
-			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
-			{
-				WallCharacteristicDistance = Edges[0];
-			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
-			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
-			}
+			this->ComputeWallCharacteristicDistance2DWithRefinement(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode);
 
 			bool dangerousElement = false;
+			this->DetectDangerousElements2DWithRefinement(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode, rigidNodes, penalization, dangerousElement);
 
-			for (SizeType i = 0; i < 3; i++)
-			{
-				if (rigidNodes > 1)
-				{
-					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
-						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
-					{
-						Edges[i] = 0;
-					}
-					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
-						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
-					{
-						Edges[i] = 0;
-					}
-				}
-				else if (rigidNodes == 0)
-				{
-					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					if (propertyIdFirstNode != propertyIdSecondNode)
-					{
-						penalization = 1.1; // 10% more than normal nodes
-					}
-				}
-			}
-			if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0) || rigidNodes == 3)
-			{
-				dangerousElement = true;
-			}
 			const double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
@@ -1125,96 +717,17 @@ namespace Kratos
 				penalization = 0.9;
 			}
 
-			const double safetyCoefficient3D = 1.6;
 			array_1d<double, 6> Edges(6, 0.0);
 			array_1d<SizeType, 6> FirstEdgeNode(6, 0);
 			array_1d<SizeType, 6> SecondEdgeNode(6, 0);
 			double WallCharacteristicDistance = 0;
-			array_1d<double, 3> CoorDifference = Element[1].Coordinates() - Element[0].Coordinates();
-			double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-			Edges[0] = std::sqrt(SquaredLength);
-			FirstEdgeNode[0] = 0;
-			SecondEdgeNode[0] = 1;
-			if ((Element[0].Is(RIGID) && Element[1].Is(RIGID)) || (Element[0].Is(INLET) && Element[1].Is(INLET)))
-			{
-				WallCharacteristicDistance = Edges[0];
-			}
-			SizeType Counter = 0;
-			for (SizeType i = 2; i < nds; i++)
-			{
-				for (SizeType j = 0; j < i; j++)
-				{
-					noalias(CoorDifference) = Element[i].Coordinates() - Element[j].Coordinates();
-					SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-					Counter += 1;
-					Edges[Counter] = std::sqrt(SquaredLength);
-					FirstEdgeNode[Counter] = j;
-					SecondEdgeNode[Counter] = i;
-					if (Element[i].Is(RIGID) && Element[j].Is(RIGID) && Edges[Counter] > WallCharacteristicDistance)
-					{
-						WallCharacteristicDistance = Edges[Counter];
-					}
-				}
-			}
+
+			this->ComputeWallCharacteristicDistance3DWithRefinement(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode);
+
 			// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 			bool dangerousElement = false;
-			for (SizeType i = 0; i < 6; i++)
-			{
-				if (rigidNodes > 1)
-				{
-					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
-						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
-					{
-						Edges[i] = 0;
-					}
-					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
-						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
-					{
-						Edges[i] = 0;
-					}
-				}
-				else if (rigidNodes == 0)
-				{
-					SizeType propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					SizeType propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-					if (propertyIdFirstNode != propertyIdSecondNode)
-					{
-						penalization = 1.2; // 20% less than normal nodes
-					}
-				}
-			}
-			if (rigidNodes == 1)
-			{
-				if (Element[0].Is(RIGID))
-				{
-					Edges[0] = 0;
-					Edges[1] = 0;
-					Edges[3] = 0;
-				}
-				if (Element[1].Is(RIGID))
-				{
-					Edges[0] = 0;
-					Edges[2] = 0;
-					Edges[4] = 0;
-				}
-				if (Element[2].Is(RIGID))
-				{
-					Edges[1] = 0;
-					Edges[2] = 0;
-					Edges[5] = 0;
-				}
-				if (Element[3].Is(RIGID))
-				{
-					Edges[3] = 0;
-					Edges[4] = 0;
-					Edges[5] = 0;
-				}
-			}
+			this->DetectDangerousElements3DWithRefinement(Element, WallCharacteristicDistance, Edges, FirstEdgeNode, SecondEdgeNode, rigidNodes, penalization, dangerousElement);
 
-			if ((Edges[0] == 0 && Edges[1] == 0 && Edges[2] == 0 && Edges[3] == 0 && Edges[4] == 0 && Edges[5] == 0) || rigidNodes > 2)
-			{
-				dangerousElement = true;
-			}
 			const double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 			const double extraLimitEdgeLength = 2.5 * meanMeshSize * penalization;
 
