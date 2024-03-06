@@ -77,7 +77,7 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrder
     for (const auto& r_node : rSecondOrderNodes) {
         result.push_back(r_node.pGetDof(DISPLACEMENT_X));
         result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if (ModelDimension == 3) result.push_back(nullptr);
+        if (ModelDimension == 3) result.push_back(result.front());
     }
 
     ExtractDofsFromNodes(std::begin(rFirstOrderNodes), std::end(rFirstOrderNodes),

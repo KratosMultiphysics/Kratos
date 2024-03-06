@@ -274,6 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder3D
         second_order_nodes, first_order_nodes, second_order_nodes.WorkingSpaceDimension());
 
     KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * 3 + first_order_nodes.size());
+    ExpectDofsDontContainAnyNullptrs(dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
