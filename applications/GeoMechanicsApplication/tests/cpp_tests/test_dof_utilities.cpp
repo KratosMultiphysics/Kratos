@@ -281,6 +281,9 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder3D
     ExpectDofsHaveThisVariable(
         {dofs[1], dofs[4], dofs[7], dofs[10], dofs[13], dofs[16], dofs[19], dofs[22], dofs[25], dofs[28]},
         DISPLACEMENT_Y);
+    ExpectDofsHaveThisVariable(
+        {dofs[2], dofs[5], dofs[8], dofs[11], dofs[14], dofs[17], dofs[20], dofs[23], dofs[26], dofs[29]},
+        DISPLACEMENT_Z);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
