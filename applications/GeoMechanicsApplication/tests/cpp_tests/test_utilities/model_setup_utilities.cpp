@@ -75,12 +75,12 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
 
 ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
 {
-    const auto rSecondOrderVariables =
+    const auto second_order_variables =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
-    const auto rFirstOrderVariables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
+    const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
 
-    auto& r_result = CreateEmptyModelPart(rModel, rSecondOrderVariables);
-    for (const auto& r_variable : rFirstOrderVariables) {
+    auto& r_result = CreateEmptyModelPart(rModel, second_order_variables);
+    for (const auto& r_variable : first_order_variables) {
         r_result.AddNodalSolutionStepVariable(r_variable.get());
     }
 
@@ -93,13 +93,13 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     auto nodes   = std::vector<Node*>{p_node1.get(), p_node2.get(), p_node3.get(),
                                       p_node4.get(), p_node5.get(), p_node6.get()};
 
-    for (const auto& r_variable : rSecondOrderVariables) {
+    for (const auto& r_variable : second_order_variables) {
         for (auto p_node : nodes) {
             p_node->AddDof(r_variable.get());
         }
     }
 
-    for (const auto& r_variable : rFirstOrderVariables) {
+    for (const auto& r_variable : first_order_variables) {
         for (auto it = nodes.begin(); it != nodes.begin() + 3; ++it) {
             (*it)->AddDof(r_variable.get());
         }
