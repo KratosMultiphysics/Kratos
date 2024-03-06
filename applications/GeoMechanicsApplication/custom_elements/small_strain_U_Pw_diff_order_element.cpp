@@ -2230,21 +2230,8 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
 
 Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 {
-    auto result = Element::DofsVectorType{};
-
-    for (const auto& r_node : GetGeometry()) {
-        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
-        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if (GetGeometry().WorkingSpaceDimension() == 3) {
-            result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
-        }
-    }
-
-    const auto water_pressure_dofs =
-        Geo::DofUtilities::ExtractDofsFromNodes(*mpPressureGeometry, WATER_PRESSURE);
-    result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
-
-    return result;
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), *mpPressureGeometry,
+                                                      GetGeometry().WorkingSpaceDimension());
 }
 
 const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
