@@ -1,6 +1,5 @@
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.EigenSolversApplication as KratosEigen
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -69,7 +68,7 @@ class DamEigenSolver():
 
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 2
 
 
     def AddDofs(self):
