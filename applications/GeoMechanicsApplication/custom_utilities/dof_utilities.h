@@ -74,7 +74,8 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrder
         std::distance(std::begin(rSecondOrderNodes), std::end(rSecondOrderNodes));
     const auto first_order_node_size =
         std::distance(std::begin(rFirstOrderNodes), std::end(rFirstOrderNodes));
-    auto result = std::vector<Dof<double>*>(second_order_node_size * 2 + first_order_node_size, nullptr);
+    auto result = std::vector<Dof<double>*>(second_order_node_size * 2 + first_order_node_size,
+                                            rSecondOrderNodes[0].pGetDof(DISPLACEMENT_X));
     return result;
 }
 
