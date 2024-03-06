@@ -128,7 +128,6 @@ class TestExplicitFilterFactory(kratos_unittest.TestCase):
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Initial)
             Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + filtered_update, Kratos.Configuration.Current)
 
-        vtu_output.PrintOutput(f"output_{ref_file}")
         with kratos_unittest.WorkFolderScope(".", __file__):
             vtu_output.PrintOutput(f"output_{ref_file}")
             params = Kratos.Parameters("""{
