@@ -94,6 +94,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
         if self.parallel_type == "OpenMP":
             if parameter_name == "grid_output":
                 from KratosMultiphysics.vtk_output_process import VtkOutputProcess as OutputProcess
+                # from KratosMultiphysics.ParticleMechanicsApplication.grid_vtk_output_process import ParticleVTKOutputProcess as OutputProcess
                 grid_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Grid"
                 vtk_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
                                     self.project_parameters["grid_output_configuration"])
