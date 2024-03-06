@@ -107,4 +107,35 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     return r_result;
 }
 
+ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
+{
+    auto&      r_result               = rModel.CreateModelPart("Main");
+    const auto second_order_variables = Geo::ConstVariableRefs{
+        std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
+    AddNodalVariablesToModelPart(r_result, second_order_variables);
+    const auto first_order_variables = Geo::ConstVariableRefs{std::cref(WATER_PRESSURE)};
+    AddNodalVariablesToModelPart(r_result, first_order_variables);
+
+    CreateNewNodes(r_result, {{0.0, 0.0, 0.0},
+                              {1.0, 0.0, 0.0},
+                              {0.0, 1.0, 0.0},
+                              {0.0, 0.0, 1.0},
+                              {0.5, 0.0, 0.0},
+                              {0.5, 0.5, 0.0},
+                              {0.0, 0.5, 0.0},
+                              {0.0, 0.0, 0.5},
+                              {0.5, 0.0, 0.5},
+                              {0.0, 0.5, 0.5}});
+
+    const auto nodes = r_result.Nodes();
+    AddDofsToNodes(nodes, second_order_variables);
+    AddDofsToNodes(nodes.begin(), nodes.begin() + 4, first_order_variables);
+
+    const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    r_result.CreateNewElement("SmallStrainUPwDiffOrderElement3D10N", 1, node_ids,
+                              r_result.CreateNewProperties(0));
+
+    return r_result;
+}
+
 } // namespace Kratos::Testing::ModelSetupUtilities

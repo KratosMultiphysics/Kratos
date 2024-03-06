@@ -246,7 +246,8 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2D
     const auto second_order_nodes = r_model_part.Elements().front().GetGeometry();
     const auto first_order_nodes =
         Triangle2D3<Node>{second_order_nodes(0), second_order_nodes(1), second_order_nodes(2)};
-    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(second_order_nodes, first_order_nodes);
+    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+        second_order_nodes, first_order_nodes, second_order_nodes.WorkingSpaceDimension());
 
     KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * 2 + first_order_nodes.size());
     ExpectDofsDontContainAnyNullptrs(dofs);
@@ -259,6 +260,20 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2D
     ExpectDofsHaveThisNodeId({dofs[6], dofs[7]}, 4);
     ExpectDofsHaveThisNodeId({dofs[8], dofs[9]}, 5);
     ExpectDofsHaveThisNodeId({dofs[10], dofs[11]}, 6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder3DElement, KratosGeoMechanicsFastSuite)
+{
+    auto model = Model{};
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
+
+    const auto second_order_nodes = r_model_part.Elements().front().GetGeometry();
+    const auto first_order_nodes  = Tetrahedra3D4<Node>{
+        second_order_nodes(0), second_order_nodes(1), second_order_nodes(2), second_order_nodes(3)};
+    const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+        second_order_nodes, first_order_nodes, second_order_nodes.WorkingSpaceDimension());
+
+    KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * 3 + first_order_nodes.size());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtractingValuesFromDofsYieldsNodalValues, KratosGeoMechanicsFastSuite)
