@@ -32,6 +32,7 @@ import test_sigmoidal_projection
 import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
+import control.material.test_explicit_vm_simp_control
 import control.thickness.test_shell_thickness_control
 import control.shape.test_explicit_vm_shape_control
 import control.thickness.test_explicit_vm_thickness_control
@@ -103,6 +104,7 @@ def AssembleTestSuites():
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_explicit_vm_simp_control.TestExplicitVertexMorphingSimpControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_explicit_vm_shape_control.TestExplicitVertexMorphingShapeControl]))
