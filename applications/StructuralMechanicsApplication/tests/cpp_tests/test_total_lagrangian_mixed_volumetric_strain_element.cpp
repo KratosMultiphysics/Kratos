@@ -145,7 +145,8 @@ namespace Kratos::Testing
     KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElementBonetPatch, KratosStructuralMechanicsFastSuite)
     {
         // Skip the test if the constitutive law is not available (i.e. the ConstitutiveLawsApplication is not compiled)
-        if (!KratosComponents<ConstitutiveLaw>::Has("HyperElasticPlaneStrain2DLaw")) {
+        const std::string claw_name = "HyperElasticPlaneStrain2DLaw";
+        if (!KratosComponents<ConstitutiveLaw>::Has(claw_name)) {
             return;
         }
 
@@ -180,7 +181,7 @@ namespace Kratos::Testing
         auto p_elem_prop = r_model_part.CreateNewProperties(1);
         p_elem_prop->SetValue(YOUNG_MODULUS, 250.0);
         p_elem_prop->SetValue(POISSON_RATIO, 0.25);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("HyperElasticPlaneStrain2DLaw");
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get(claw_name);
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
         for (auto& r_elem: r_model_part.Elements()) {
             r_elem.SetProperties(p_elem_prop);
