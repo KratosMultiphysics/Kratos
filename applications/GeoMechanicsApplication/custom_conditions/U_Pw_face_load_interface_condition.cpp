@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -119,7 +120,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * integration_coefficient;
-        ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,UVector);
+        GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,UVector);
     }
 }
 

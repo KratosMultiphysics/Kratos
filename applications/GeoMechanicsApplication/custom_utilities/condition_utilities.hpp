@@ -125,22 +125,6 @@ public:
     }
 
     //----------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double, TDim*TNumNodes>& UBlockVector)
-    {
-        unsigned int Global_i, Local_i;
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
-            for (unsigned int idim = 0; idim < TDim; ++idim) {
-              rRightHandSideVector[Global_i + idim] += UBlockVector[Local_i + idim];
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
     template< class TVectorType >
     static inline void AssemblePBlockVector(Vector& rRightHandSideVector,
                                             const TVectorType& PBlockVector,
