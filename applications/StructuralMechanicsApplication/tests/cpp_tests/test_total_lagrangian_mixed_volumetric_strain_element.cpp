@@ -144,6 +144,11 @@ namespace Kratos::Testing
      */
     KRATOS_TEST_CASE_IN_SUITE(TotalLagrangianMixedVolumetricStrainElementBonetPatch, KratosStructuralMechanicsFastSuite)
     {
+        // Skip the test if the constitutive law is not available (i.e. the ConstitutiveLawsApplication is not compiled)
+        if (!KratosComponents<ConstitutiveLaw>::Has("HyperElasticPlaneStrain2DLaw")) {
+            return;
+        }
+
         // Set the test model part
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
