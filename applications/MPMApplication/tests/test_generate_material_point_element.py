@@ -1,12 +1,12 @@
 import KratosMultiphysics
 
-import KratosMultiphysics.MPMApplication as KratosMPM
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
+class TestGenerateMPMParticle(KratosUnittest.TestCase):
 
-    def _generate_material_point_element_and_check(self, current_model, dimension, geometry_element, num_material_points, expected_num_material_points):
+    def _generate_particle_element_and_check(self, current_model, dimension, geometry_element, num_particle, expected_num_particle):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
         # Initialize model part
@@ -29,18 +29,18 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
 
         # Create element and nodes for initial meshes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, num_material_points)
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, num_particle)
         self._create_nodes(sub_mp, dimension, geometry_element)
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Generate MP Elements
-        KratosMPM.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
         # Check total number of element
-        material_point_counter = material_point_model_part.NumberOfElements()
-        self.assertEqual(expected_num_material_points,material_point_counter)
+        particle_counter = material_point_model_part.NumberOfElements()
+        self.assertEqual(expected_num_particle,particle_counter)
 
-    def _generate_material_point_element_and_check_mp_volume(self, current_model, dimension, geometry_element, num_material_points, expected_mp_volume):
+    def _generate_particle_element_and_check_mp_volume(self, current_model, dimension, geometry_element, num_particle, expected_mp_volume):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
         # Initialize model part
@@ -63,16 +63,16 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
 
         # Create element and nodes for initial meshes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, num_material_points)
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, num_particle)
         self._create_nodes(sub_mp, dimension, geometry_element)
         self._create_elements(sub_mp,dimension, geometry_element)
 
         # Generate MP Elements
-        KratosMPM.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
         # Check volume of first material point
         for mp in material_point_model_part.Elements:
-            mp_volume = mp.CalculateOnIntegrationPoints(KratosMPM.MP_VOLUME, grid_model_part.ProcessInfo)[0]
+            mp_volume = mp.CalculateOnIntegrationPoints(KratosParticle.MP_VOLUME, grid_model_part.ProcessInfo)[0]
             self.assertAlmostEqual(expected_mp_volume,mp_volume)
             break
 
@@ -124,126 +124,126 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
-    def test_GenerateMaterialPointElementTriangle2D1P(self):
+    def test_GenerateMPMParticleTriangle2D1P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=1, expected_num_material_points=1)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=1, expected_num_particle=1)
 
-    def test_GenerateMaterialPointElementTriangle2D3P(self):
+    def test_GenerateMPMParticleTriangle2D3P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=3, expected_num_material_points=3)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=3, expected_num_particle=3)
 
-    def test_GenerateMaterialPointElementTriangle2D6P(self):
+    def test_GenerateMPMParticleTriangle2D6P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=6, expected_num_material_points=6)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=6, expected_num_particle=6)
 
-    def test_GenerateMaterialPointElementTriangle2D12P(self):
+    def test_GenerateMPMParticleTriangle2D12P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=12, expected_num_material_points=12)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=12, expected_num_particle=12)
 
-    def test_GenerateMaterialPointElementTriangle2D16P(self):
+    def test_GenerateMPMParticleTriangle2D16P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=16, expected_num_material_points=16)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=16, expected_num_particle=16)
 
-    def test_GenerateMaterialPointElementTriangle2D33P(self):
+    def test_GenerateMPMParticleTriangle2D33P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=33, expected_num_material_points=33)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=33, expected_num_particle=33)
 
-    def test_GenerateMaterialPointElementTriangle2DDefault(self):
+    def test_GenerateMPMParticleTriangle2DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=50, expected_num_material_points=3)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=50, expected_num_particle=3)
 
-    def test_GenerateMaterialPointElementTriangle3D1P(self):
+    def test_GenerateMPMParticleTriangle3D1P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=1, expected_num_material_points=1)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=1, expected_num_particle=1)
 
-    def test_GenerateMaterialPointElementTriangle3D4P(self):
+    def test_GenerateMPMParticleTriangle3D4P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=3, expected_num_material_points=4)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=3, expected_num_particle=4)
 
-    def test_GenerateMaterialPointElementTriangle3D14P(self):
+    def test_GenerateMPMParticleTriangle3D14P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=6, expected_num_material_points=14)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=6, expected_num_particle=14)
 
-    def test_GenerateMaterialPointElementTriangle3D24P(self):
+    def test_GenerateMPMParticleTriangle3D24P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=12, expected_num_material_points=24)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=12, expected_num_particle=24)
 
-    def test_GenerateMaterialPointElementTriangle3DDefault(self):
+    def test_GenerateMPMParticleTriangle3DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=50, expected_num_material_points=4)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=50, expected_num_particle=4)
 
-    def test_GenerateMaterialPointElementQuadrilateral2D1P(self):
+    def test_GenerateMPMParticleQuadrilateral2D1P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=1, expected_num_material_points=1)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=1, expected_num_particle=1)
 
-    def test_GenerateMaterialPointElementQuadrilateral2D4P(self):
+    def test_GenerateMPMParticleQuadrilateral2D4P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=4, expected_num_material_points=4)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=4)
 
-    def test_GenerateMaterialPointElementQuadrilateral2D9P(self):
+    def test_GenerateMPMParticleQuadrilateral2D9P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=9, expected_num_material_points=9)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=9)
 
-    def test_GenerateMaterialPointElementQuadrilateral2D16P(self):
+    def test_GenerateMPMParticleQuadrilateral2D16P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=16, expected_num_material_points=16)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=16)
 
-    def test_GenerateMaterialPointElementQuadrilateral2DDefault(self):
+    def test_GenerateMPMParticleQuadrilateral2DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=50, expected_num_material_points=4)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=4)
 
-    def test_GenerateMaterialPointElementQuadrilateral3D1P(self):
+    def test_GenerateMPMParticleQuadrilateral3D1P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=1, expected_num_material_points=1)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=1, expected_num_particle=1)
 
-    def test_GenerateMaterialPointElementQuadrilateral3D8P(self):
+    def test_GenerateMPMParticleQuadrilateral3D8P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=4, expected_num_material_points=8)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=8)
 
-    def test_GenerateMaterialPointElementQuadrilateral3D27P(self):
+    def test_GenerateMPMParticleQuadrilateral3D27P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=9, expected_num_material_points=27)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=27)
 
-    def test_GenerateMaterialPointElementQuadrilateral3D64P(self):
+    def test_GenerateMPMParticleQuadrilateral3D64P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=16, expected_num_material_points=64)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=64)
 
-    def test_GenerateMaterialPointElementQuadrilateral3DDefault(self):
+    def test_GenerateMPMParticleQuadrilateral3DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=50, expected_num_material_points=8)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=8)
 
     # Tests for the correct computation of material point volume in the material point generator
-    def test_GenerateMaterialPointElementQuadrilateral2DSkew(self):
+    def test_GenerateMPMParticleQuadrilateral2DSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=2, geometry_element="QuadrilateralSkew", num_material_points=4, expected_mp_volume=0.44716878364870316)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=2, geometry_element="QuadrilateralSkew", num_particle=4, expected_mp_volume=0.44716878364870316)
 
-    def test_GenerateMaterialPointElementQuadrilateral3DSkew(self):
+    def test_GenerateMPMParticleQuadrilateral3DSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=3, geometry_element="QuadrilateralSkew", num_material_points=4, expected_mp_volume=0.20275105849101815)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="QuadrilateralSkew", num_particle=4, expected_mp_volume=0.20275105849101815)
 
-    def test_GenerateMaterialPointElementTriangle2DSkew(self):
+    def test_GenerateMPMParticleTriangle2DSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=2, geometry_element="TriangleSkew", num_material_points=3, expected_mp_volume=0.3333333333333333)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=2, geometry_element="TriangleSkew", num_particle=3, expected_mp_volume=0.3333333333333333)
 
-    def test_GenerateMaterialPointElementTriangle3DSkew(self):
+    def test_GenerateMPMParticleTriangle3DSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=3, geometry_element="TriangleSkew", num_material_points=3, expected_mp_volume=0.08333333333333333)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="TriangleSkew", num_particle=3, expected_mp_volume=0.08333333333333333)
 
-    def test_GenerateMaterialPointElementQuadrilateral2DNotSkew(self):
+    def test_GenerateMPMParticleQuadrilateral2DNotSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=4, expected_mp_volume=0.25)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=4, expected_mp_volume=0.25)
 
-    def test_GenerateMaterialPointElementQuadrilateral3DNotSkew(self):
+    def test_GenerateMPMParticleQuadrilateral3DNotSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=4, expected_mp_volume=0.12499999999999993)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=4, expected_mp_volume=0.12499999999999993)
 
-    def test_GenerateMaterialPointElementTriangle2DNotSkew(self):
+    def test_GenerateMPMParticleTriangle2DNotSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=2, geometry_element="Triangle", num_material_points=3, expected_mp_volume=0.16666666666666666)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=2, geometry_element="Triangle", num_particle=3, expected_mp_volume=0.16666666666666666)
 
-    def test_GenerateMaterialPointElementTriangle3DNotSkew(self):
+    def test_GenerateMPMParticleTriangle3DNotSkew(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element_and_check_mp_volume(current_model, dimension=3, geometry_element="Triangle", num_material_points=3, expected_mp_volume=0.041666666666666664)
+        self._generate_particle_element_and_check_mp_volume(current_model, dimension=3, geometry_element="Triangle", num_particle=3, expected_mp_volume=0.041666666666666664)
 
 if __name__ == '__main__':
     KratosUnittest.main()

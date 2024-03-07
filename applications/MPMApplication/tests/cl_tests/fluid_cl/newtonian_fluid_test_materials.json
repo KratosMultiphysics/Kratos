@@ -8,7 +8,7 @@
             },
             "Variables"        : {
                 "THICKNESS"             : 1.0,
-                "MATERIAL_POINTS_PER_ELEMENT" : 3,
+                "PARTICLES_PER_ELEMENT" : 3,
                 "DENSITY"               : 1000.0,
                 "BULK_MODULUS"          : 2e6,
                 "DYNAMIC_VISCOSITY"     : 0.0015

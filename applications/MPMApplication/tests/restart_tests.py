@@ -6,7 +6,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.MPMApplication import mpm_analysis
+from KratosMultiphysics.ParticleMechanicsApplication import particle_mechanics_analysis
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -26,7 +26,7 @@ class controlledExecutionScope:
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
-class MPMRestartTestFactory(KratosUnittest.TestCase):
+class ParticleMechanicsRestartTestFactory(KratosUnittest.TestCase):
     """
     This class first runs a simulation and saves a restart file
     In the second step the created restart file is read and the simulation
@@ -95,14 +95,14 @@ class MPMRestartTestFactory(KratosUnittest.TestCase):
 
             model_save = KratosMultiphysics.Model()
             model_load = KratosMultiphysics.Model()
-            mpm_analysis.MPMAnalysis(model_save, self.project_parameters_save).Run()
-            mpm_analysis.MPMAnalysis(model_load, self.project_parameters_load).Run()
+            particle_mechanics_analysis.ParticleMechanicsAnalysis(model_save, self.project_parameters_save).Run()
+            particle_mechanics_analysis.ParticleMechanicsAnalysis(model_load, self.project_parameters_load).Run()
 
 
-class MPMRestartTestDynamicCantilever2D(MPMRestartTestFactory):
+class MPMRestartTestDynamicCantilever2D(ParticleMechanicsRestartTestFactory):
     file_name = "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test"
 
-class MPMRestartTestBeamStaticLineLoad2D(MPMRestartTestFactory):
+class MPMRestartTestBeamStaticLineLoad2D(ParticleMechanicsRestartTestFactory):
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
 
 

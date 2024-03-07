@@ -1,12 +1,12 @@
 import KratosMultiphysics
 
-import KratosMultiphysics.MPMApplication as KratosMPM
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestSearchMaterialPointElement(KratosUnittest.TestCase):
+class TestSearchMPMParticle(KratosUnittest.TestCase):
 
-    def _generate_material_point_element(self, current_model, dimension, geometry_element, is_structured, is_fine=False):
+    def _generate_particle_element(self, current_model, dimension, geometry_element, is_structured, is_fine=False):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
         # Initialize model part
@@ -34,7 +34,7 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
 
         # Create element and nodes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, 1)
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, 1)
         if is_structured:
             self._create_nodes_structured(sub_mp, dimension, geometry_element)
         else:
@@ -46,7 +46,7 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
 
         # Generate MP Elements
-        KratosMPM.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
+        KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, material_point_model_part, False)
 
 
     def _create_nodes_structured(self, model_part, dimension, geometry_element):
@@ -166,10 +166,10 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
 
         # Apply before search
         for mpm in material_point_model_part.Elements:
-            mpm.SetValuesOnIntegrationPoints(KratosMPM.MP_COORD, [new_coordinate], self.process_info)
+            mpm.SetValuesOnIntegrationPoints(KratosParticle.MP_COORD, [new_coordinate], self.process_info)
 
         # Search element
-        KratosMPM.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
+        KratosParticle.SearchElement(grid_model_part, material_point_model_part, max_num_results, specific_tolerance)
 
     def _check_connectivity(self, current_model, expected_connectivity_node=[]):
         # Get model part
@@ -188,9 +188,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
                     self.assertEqual(mpm.GetNode(i).Y, grid_model_part.GetNode(expected_connectivity_node[i]).Y)
                     self.assertEqual(mpm.GetNode(i).Z, grid_model_part.GetNode(expected_connectivity_node[i]).Z)
 
-    def test_SearchMaterialPointElementTriangle2DStructured(self):
+    def test_SearchMPMParticleTriangle2DStructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=2, geometry_element="Triangle", is_structured=True)
+        self._generate_particle_element(current_model, dimension=2, geometry_element="Triangle", is_structured=True)
 
         new_coordinate = [0.5, 0.5, 0.0]
         self._move_and_search_element(current_model, new_coordinate)
@@ -204,9 +204,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementTriangle3DStructured(self):
+    def test_SearchMPMParticleTriangle3DStructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=3, geometry_element="Triangle", is_structured=True)
+        self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=True)
 
         new_coordinate = [0.5, 0.25, 0.20]
         self._move_and_search_element(current_model, new_coordinate)
@@ -232,9 +232,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementQuadrilateral2DStructured(self):
+    def test_SearchMPMParticleQuadrilateral2DStructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=True)
+        self._generate_particle_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=True)
 
         new_coordinate = [-0.11111, 0.12345, 1.0]
         self._move_and_search_element(current_model, new_coordinate)
@@ -248,9 +248,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementQuadrilateral3DStructured(self):
+    def test_SearchMPMParticleQuadrilateral3DStructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=True)
+        self._generate_particle_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=True)
 
         new_coordinate = [0.5, 0.25, 0.20]
         self._move_and_search_element(current_model, new_coordinate)
@@ -264,9 +264,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementTriangle2DUnstructured(self):
+    def test_SearchMPMParticleTriangle2DUnstructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=2, geometry_element="Triangle", is_structured=False)
+        self._generate_particle_element(current_model, dimension=2, geometry_element="Triangle", is_structured=False)
 
         new_coordinate = [1.31967, 1.85246, 0.0]
         self._move_and_search_element(current_model, new_coordinate)
@@ -281,9 +281,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._check_connectivity(current_model)
 
 
-    def test_SearchMaterialPointElementTriangle3DUnstructured(self):
+    def test_SearchMPMParticleTriangle3DUnstructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False)
+        self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False)
 
         new_coordinate = [1.31967, 1.85246, 0.1]
         self._move_and_search_element(current_model, new_coordinate)
@@ -297,9 +297,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementQuadrilateral2DUnstructured(self):
+    def test_SearchMPMParticleQuadrilateral2DUnstructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=False)
+        self._generate_particle_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=False)
 
         new_coordinate = [-0.11111, 0.12345, 1.0]
         self._move_and_search_element(current_model, new_coordinate)
@@ -313,9 +313,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementQuadrilateral3DUnstructured(self):
+    def test_SearchMPMParticleQuadrilateral3DUnstructured(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=False)
+        self._generate_particle_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=False)
 
         new_coordinate = [0.5, 0.25, 0.20]
         self._move_and_search_element(current_model, new_coordinate)
@@ -329,9 +329,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementTriangle2DUnstructuredFine(self):
+    def test_SearchMPMParticleTriangle2DUnstructuredFine(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=2, geometry_element="Triangle", is_structured=False, is_fine=True)
+        self._generate_particle_element(current_model, dimension=2, geometry_element="Triangle", is_structured=False, is_fine=True)
 
         new_coordinate = [1.31967e-7, 1.85246e-7, 0.0]
         self._move_and_search_element(current_model, new_coordinate)
@@ -345,9 +345,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementTriangle3DUnstructuredFine(self):
+    def test_SearchMPMParticleTriangle3DUnstructuredFine(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False, is_fine=True)
+        self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False, is_fine=True)
 
         new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-8]
         self._move_and_search_element(current_model, new_coordinate)
@@ -361,9 +361,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementQuadrilateral2DUnstructuredFine(self):
+    def test_SearchMPMParticleQuadrilateral2DUnstructuredFine(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=False, is_fine=True)
+        self._generate_particle_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=False, is_fine=True)
 
         new_coordinate = [-0.11111e-7, 0.12345e-7, 1.0e-7]
         self._move_and_search_element(current_model, new_coordinate)
@@ -377,9 +377,9 @@ class TestSearchMaterialPointElement(KratosUnittest.TestCase):
         self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
-    def test_SearchMaterialPointElementQuadrilateral3DUnstructuredFine(self):
+    def test_SearchMPMParticleQuadrilateral3DUnstructuredFine(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_material_point_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=False, is_fine=True)
+        self._generate_particle_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=False, is_fine=True)
 
         new_coordinate = [0.5e-7, 0.25e-7, 0.20e-7]
         self._move_and_search_element(current_model, new_coordinate)

@@ -3,7 +3,7 @@ import KratosMultiphysics
 if not KratosMultiphysics.IsDistributedRun():
     raise Exception("These tests can only be executed in MPI / distributed!")
 
-import KratosMultiphysics.MPMApplication
+import KratosMultiphysics.ParticleMechanicsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest

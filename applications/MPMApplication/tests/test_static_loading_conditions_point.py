@@ -1,6 +1,6 @@
 import KratosMultiphysics
 
-import KratosMultiphysics.MPMApplication as KratosMPM
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -12,7 +12,7 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
 
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        mp.AddNodalSolutionStepVariable(KratosMPM.POINT_LOAD)
+        mp.AddNodalSolutionStepVariable(KratosParticle.POINT_LOAD)
 
         # Create node
         node = mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -40,7 +40,7 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         load_on_cond[1] = 2.6
         load_on_cond[2] = -11.47
 
-        cond.SetValue(KratosMPM.POINT_LOAD, load_on_cond)
+        cond.SetValue(KratosParticle.POINT_LOAD, load_on_cond)
 
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
 
@@ -55,7 +55,7 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         nodal_load[1] = 1.2
         nodal_load[2] = 9.3
 
-        node.SetSolutionStepValue(KratosMPM.POINT_LOAD, nodal_load)
+        node.SetSolutionStepValue(KratosParticle.POINT_LOAD, nodal_load)
 
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
 

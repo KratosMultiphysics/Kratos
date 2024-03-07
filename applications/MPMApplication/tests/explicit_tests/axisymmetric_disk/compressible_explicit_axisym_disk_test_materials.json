@@ -8,7 +8,7 @@
             },
             "Variables"        : {
                 "THICKNESS"             : 1.0,
-                "MATERIAL_POINTS_PER_ELEMENT" : 1,
+                "PARTICLES_PER_ELEMENT" : 1,
                 "DENSITY"               : 10.0,
                 "YOUNG_MODULUS"         : 4000.0,
                 "POISSON_RATIO"         : 0.29
