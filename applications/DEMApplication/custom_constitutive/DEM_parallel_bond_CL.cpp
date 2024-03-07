@@ -220,7 +220,7 @@ void DEM_parallel_bond::GetContactArea(const double radius, const double other_r
 }
 
 // Here we calculate the mKn and mKt
-void DEM_parallel_bond::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+void DEM_parallel_bond::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation_particle) {
     KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl;
 }
 
@@ -230,7 +230,7 @@ double DEM_parallel_bond::GetTangentialStiffness() {
 
 // TODO: In this function, it is better to replace 'kn_el' with 'kn_bond' and 'kt_el' with 'kt_bond'.
 void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
+                                double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation_particle) {
 
     KRATOS_TRY
 
@@ -239,7 +239,7 @@ void DEM_parallel_bond::CalculateElasticConstants(double& kn_el, double& kt_el, 
     kn_el = bond_equiv_young * calculation_area / initial_dist;
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
-    InitializeContact(element1, element2, indentation);
+    InitializeContact(element1, element2, indentation_particle);
 
     mKt = GetTangentialStiffness();
 
