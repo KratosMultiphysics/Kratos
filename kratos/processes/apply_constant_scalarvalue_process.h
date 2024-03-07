@@ -151,6 +151,16 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief GetModelPart returns the reference to the ModelPart.
+     * @details This function provides access to the ModelPart associated with the current object.
+     * @return Reference to the ModelPart.
+     */
+    ModelPart& GetModelPart() 
+    { 
+        return mrModelPart; 
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
