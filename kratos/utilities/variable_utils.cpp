@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-ModelPart::NodesContainerType VariableUtils::SelectNodeList(
+VariableUtils::NodesContainerType::Pointer VariableUtils::SelectNodeList(
     const DoubleVarType& Variable,
     const double Value,
     const NodesContainerType& rOriginNodes
@@ -34,15 +34,15 @@ ModelPart::NodesContainerType VariableUtils::SelectNodeList(
 {
     KRATOS_TRY
 
-    NodesContainerType selected_nodes;
+    auto p_selected_nodes = NodesContainerType::Pointer(new NodesContainerType);
     for (auto it_node = rOriginNodes.begin(); it_node != rOriginNodes.end(); ++it_node) {
         if (std::abs(it_node->FastGetSolutionStepValue(Variable) - Value) <
             std::numeric_limits<double>::epsilon()) {
-            selected_nodes.push_back(*(it_node.base()));
+            p_selected_nodes->push_back(*(it_node.base()));
         }
     }
 
-    return selected_nodes;
+    return p_selected_nodes;
 
     KRATOS_CATCH("")
 }
