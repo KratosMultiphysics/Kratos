@@ -106,41 +106,53 @@
     },
     "processes": {
         "constraints_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Solid_Displacement-auto-1",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Structural_Rotation-auto-1",
-            "variable_name":   "ROTATION",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    }],
-    "loads_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Point_Load-auto-1",
-            "variable_name":   "POINT_LOAD",
-            "active":          [true,false,false],
-            "value":           [-1e10,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    }]
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.Solid_Displacement-auto-1",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,true],
+                "is_fixed":        [true,true,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.Structural_Rotation-auto-1",
+                "variable_name":   "ROTATION",
+                "active":          [true,true,true],
+                "is_fixed":        [true,true,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module" : "set_initial_state_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "set_initial_state_process",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "PorousDomain.Truss-auto-1",
+                "dimension"       : 1,
+                "imposed_strain"  : [-0.0483325],
+                "imposed_stress"  : [-1e10],
+                "imposed_deformation_gradient"  : [[0]],
+                "interval"        : [0.0, 1e30]
+            }}],
+        "loads_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.Point_Load-auto-1",
+                "variable_name":   "POINT_LOAD",
+                "active":          [true,false,false],
+                "value":           [-1e10,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        }]
     }
 }

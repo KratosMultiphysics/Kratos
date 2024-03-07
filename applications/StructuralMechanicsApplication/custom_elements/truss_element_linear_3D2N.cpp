@@ -272,5 +272,21 @@ void TrussElementLinear3D2N::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement3D2N);
     rSerializer.load("mConstitutiveLaw", mpConstitutiveLaw);
 }
+void Kratos::TrussElementLinear3D2N::CalculateOnIntegrationPoints(
+    const Kratos::Variable<Kratos::ConstitutiveLaw::Pointer> &rVariable,
+    std::vector<ConstitutiveLaw::Pointer> &rOutput,
+    const Kratos::ProcessInfo &rCurrentProcessInfo) {
+
+  if(rVariable == CONSTITUTIVE_LAW)
+  {
+    if ( rOutput.size() !=1 )
+    {
+      rOutput.resize(1);
+    }
+
+    rOutput[0] = mpConstitutiveLaw;
+  }
+
+}
 
 } // namespace Kratos.
