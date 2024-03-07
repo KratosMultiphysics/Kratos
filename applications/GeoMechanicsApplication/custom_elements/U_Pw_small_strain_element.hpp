@@ -20,6 +20,8 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "drainage_policy.h"
+#include "element_variables.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -37,7 +39,6 @@ public:
     using GeometryType   = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
-    using MatrixType     = Matrix;
     /// The definition of the sizetype
     using SizeType = std::size_t;
     using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
@@ -47,27 +48,38 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mIsInitialised;
     using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using ElementVariables = UPwSmallStrain::ElementVariables<TDim, TNumNodes>;
 
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                                        NewId,
+                          const NodesArrayType&                            ThisNodes,
+                          std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                          std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy)),
+          mpDrainagePolicy{std::move(pDrainagePolicy)}
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                                        NewId,
+                          GeometryType::Pointer                            pGeometry,
+                          std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                          std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy)),
+          mpDrainagePolicy{std::move(pDrainagePolicy)}
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainElement(IndexType                          NewId,
-                          GeometryType::Pointer              pGeometry,
-                          PropertiesType::Pointer            pProperties,
-                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                                        NewId,
+                          GeometryType::Pointer                            pGeometry,
+                          PropertiesType::Pointer                          pProperties,
+                          std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                          std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy)),
+          mpDrainagePolicy{std::move(pDrainagePolicy)}
     {
     }
 
@@ -77,13 +89,15 @@ public:
     UPwSmallStrainElement(UPwSmallStrainElement&&)                 = delete;
     UPwSmallStrainElement& operator=(UPwSmallStrainElement&&)      = delete;
 
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+    [[nodiscard]] Element::Pointer Create(IndexType               NewId,
+                                          NodesArrayType const&   ThisNodes,
+                                          PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    [[nodiscard]] Element::Pointer Create(IndexType               NewId,
+                                          GeometryType::Pointer   pGeom,
+                                          PropertiesType::Pointer pProperties) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    [[nodiscard]] int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -115,7 +129,7 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
-    std::string Info() const override
+    [[nodiscard]] std::string Info() const override
     {
         return "U-Pw small strain Element #" + std::to_string(this->Id()) +
                "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
@@ -128,95 +142,30 @@ protected:
     static constexpr SizeType StressTensorSize =
         (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
-    struct ElementVariables {
-        /// Properties variables
-        bool   IgnoreUndrained;
-        bool   UseHenckyStrain;
-        bool   ConsiderGeometricStiffness;
-        double DynamicViscosityInverse;
-        double FluidDensity;
-        double SolidDensity;
-        double Density;
-        double Porosity;
-        double PermeabilityUpdateFactor;
-
-        double                            BiotCoefficient;
-        double                            BiotModulusInverse;
-        BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
-
-        /// ProcessInfo variables
-        double VelocityCoefficient;
-        double DtPressureCoefficient;
-
-        /// Nodal variables
-        array_1d<double, TNumNodes>        PressureVector;
-        array_1d<double, TNumNodes>        DtPressureVector;
-        array_1d<double, TNumNodes * TDim> DisplacementVector;
-        array_1d<double, TNumNodes * TDim> VelocityVector;
-        array_1d<double, TNumNodes * TDim> VolumeAcceleration;
-
-        /// General elemental variables
-        Vector VoigtVector;
-
-        /// Variables computed at each GP
-        Matrix                                        B;
-        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu;
-        array_1d<double, TDim>                        BodyAcceleration;
-        array_1d<double, TDim>                        SoilGamma;
-
-        /// Constitutive Law parameters
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix ConstitutiveMatrix;
-        Vector Np;
-        Matrix GradNpT;
-        Matrix GradNpTInitialConfiguration;
-
-        Matrix                                    F;
-        double                                    detF;
-        Vector                                    detJContainer;
-        Matrix                                    NContainer;
-        GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-
-        /// Retention Law parameters
-        double FluidPressure;
-        double DegreeOfSaturation;
-        double DerivativeOfSaturation;
-        double RelativePermeability;
-        double BishopCoefficient;
-        double EffectiveSaturation;
-
-        // needed for updated Lagrangian:
-        double detJ;
-        double detJInitialConfiguration;
-        double IntegrationCoefficient;
-        double IntegrationCoefficientInitialConfiguration;
-
-        // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
-        Matrix                                                    UVoigtMatrix;
-        BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
-        array_1d<double, TNumNodes * TDim>                        UVector;
-        array_1d<double, TNumNodes>                               PVector;
-    };
-
     void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
 
     void ExtrapolateGPValues(const Matrix& rStressContainer);
 
-    void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
-                                          const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateMaterialStiffnessMatrix(Matrix& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(Matrix& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+    void CalculateAll(Matrix&            rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
+
+    /* void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
+
+     void CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
+                             ElementVariables& rVariables,
+                             void (*CalculateAndAddStiffnessMatrix)(MatrixType&, ElementVariables&),
+                             void (*CalculateAndAddCompressibilityMatrix)(MatrixType&, ElementVariables&),
+                             void (*CalculateAndAddCouplingMatrix)(MatrixType&, ElementVariables&),
+                             void (*CalculateAndAddPermeabilityMatrix)(MatrixType&, ElementVariables&)) const;*/
+
+    void CalculateAndAddRHS(Vector& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
@@ -232,24 +181,20 @@ protected:
 
     virtual void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np);
 
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(Matrix& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(Matrix& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
-    virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(Matrix& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     virtual void CalculateCompressibilityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                                 const ElementVariables& rVariables) const;
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(Matrix& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     virtual void CalculatePermeabilityMatrix(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
                                              BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                              const ElementVariables& rVariables) const;
-
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
                                        ElementVariables& rVariables,
@@ -277,7 +222,7 @@ protected:
                                         array_1d<double, TNumNodes>&            rPVector,
                                         const ElementVariables&                 rVariables) const;
 
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
+    [[nodiscard]] double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
@@ -303,11 +248,14 @@ protected:
     void         CalculateSoilGamma(ElementVariables& rVariables);
     virtual void CalculateSoilDensity(ElementVariables& rVariables);
 
-    virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
+    virtual void CalculateAndAddGeometricStiffnessMatrix(Matrix&           rLeftHandSideMatrix,
                                                          ElementVariables& rVariables,
                                                          unsigned int      GPoint);
+    DrainagePolicy<TDim, TNumNodes>& GetDrainagePolicy() const;
 
 private:
+    std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> mpDrainagePolicy;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

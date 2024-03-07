@@ -24,7 +24,8 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new TransientPwElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                   pProperties, this->GetStressStatePolicy().Clone()));
+                                                   pProperties, this->GetStressStatePolicy().Clone(),
+                                                   this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -33,8 +34,8 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new TransientPwElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -467,11 +468,15 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
             this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
         // Contributions to the left hand side
-        if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        if (CalculateStiffnessMatrixFlag) // this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            /*this->GetDrainagePolicy().CalculateAndAddLHS(
+                rLeftHandSideMatrix, Variables, &(this->CalculateAndAddStiffnessMatrix),
+                &(this->CalculateAndAddCompressibilityMatrix),
+                &(this->CalculateAndAddCouplingMatrix), &(this->CalculateAndAddPermeabilityMatrix));*/
 
-        // Contributions to the right hand side
-        if (CalculateResidualVectorFlag)
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+            // Contributions to the right hand side
+            if (CalculateResidualVectorFlag)
+                this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
     KRATOS_CATCH("")
@@ -525,19 +530,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
-                                                             ElementVariables& rVariables)
-{
-    KRATOS_TRY;
-
-    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
-    this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
                                                                                ElementVariables& rVariables)
 {
@@ -562,21 +554,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(Matr
 
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
-                                                             ElementVariables& rVariables,
-                                                             unsigned int      GPoint)
-{
-    KRATOS_TRY;
-
-    this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
-    this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-    this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("");
 }

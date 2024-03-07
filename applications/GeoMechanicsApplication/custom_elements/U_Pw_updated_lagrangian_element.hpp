@@ -22,6 +22,7 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "drainage_policy.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -77,7 +78,7 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using ElementVariables = UPwSmallStrain::ElementVariables<TDim, TNumNodes>;
     using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
@@ -91,27 +92,33 @@ public:
     }
 
     /// Constructor using an array of nodes
-    UPwUpdatedLagrangianElement(IndexType                          NewId,
-                                const NodesArrayType&              ThisNodes,
-                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+    UPwUpdatedLagrangianElement(IndexType                                        NewId,
+                                const NodesArrayType&                            ThisNodes,
+                                std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                                std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwUpdatedLagrangianElement(IndexType                          NewId,
-                                GeometryType::Pointer              pGeometry,
-                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+    UPwUpdatedLagrangianElement(IndexType                                        NewId,
+                                GeometryType::Pointer                            pGeometry,
+                                std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                                std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianElement(IndexType                          NewId,
-                                GeometryType::Pointer              pGeometry,
-                                PropertiesType::Pointer            pProperties,
-                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+    UPwUpdatedLagrangianElement(IndexType                                        NewId,
+                                GeometryType::Pointer                            pGeometry,
+                                PropertiesType::Pointer                          pProperties,
+                                std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                                std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 

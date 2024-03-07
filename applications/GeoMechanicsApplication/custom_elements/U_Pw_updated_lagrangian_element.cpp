@@ -26,7 +26,8 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                                       PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -35,8 +36,8 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                                       GeometryType::Pointer pGeom,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwUpdatedLagrangianElement(NewId, pGeom, pProperties,
-                                                            this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwUpdatedLagrangianElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -120,7 +121,11 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            // this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            /*this->GetDrainagePolicy().CalculateAndAddLHS(
+                rLeftHandSideMatrix, Variables, &(this->CalculateAndAddStiffnessMatrix),
+                &(this->CalculateAndAddCompressibilityMatrix),
+                &(this->CalculateAndAddCouplingMatrix), &(this->CalculateAndAddPermeabilityMatrix));*/
 
             /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)

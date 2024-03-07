@@ -50,7 +50,7 @@ public:
     using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
     using UPwSmallStrainElement<TDim, TNumNodes>::VoigtSize;
 
-    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using ElementVariables = UPwSmallStrain::ElementVariables<TDim, TNumNodes>;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -58,23 +58,33 @@ public:
     UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+    UPwSmallStrainFICElement(IndexType                                        NewId,
+                             const NodesArrayType&                            ThisNodes,
+                             std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                             std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+    UPwSmallStrainFICElement(IndexType                                        NewId,
+                             GeometryType::Pointer                            pGeometry,
+                             std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                             std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainFICElement(IndexType                          NewId,
-                             GeometryType::Pointer              pGeometry,
-                             PropertiesType::Pointer            pProperties,
-                             std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+    UPwSmallStrainFICElement(IndexType                                        NewId,
+                             GeometryType::Pointer                            pGeometry,
+                             PropertiesType::Pointer                          pProperties,
+                             std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                             std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 

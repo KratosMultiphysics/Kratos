@@ -60,16 +60,20 @@ public:
     /// Constructor using an array of nodes
     UndrainedUPwSmallStrainElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Geometry
     UndrainedUPwSmallStrainElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
@@ -77,8 +81,10 @@ public:
     UndrainedUPwSmallStrainElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
@@ -109,14 +115,6 @@ public:
         rOStream << "undrained small strain Element #" << this->Id()
                  << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-    /// Member Variables
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
-
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

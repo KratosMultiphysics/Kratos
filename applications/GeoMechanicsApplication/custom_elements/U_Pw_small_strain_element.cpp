@@ -23,7 +23,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                      pProperties, this->GetStressStatePolicy().Clone()));
+                                                      pProperties, this->GetStressStatePolicy().Clone(),
+                                                      this->GetDrainagePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -31,8 +32,8 @@ Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType       
                                                                 GeometryType::Pointer pGeom,
                                                                 PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new UPwSmallStrainElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwSmallStrainElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1055,13 +1056,96 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
             IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
 
         // Contributions to the left hand side
-        if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        // if (CalculateStiffnessMatrixFlag)  this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        /*this->GetDrainagePolicy().CalculateAndAddLHS(
+            rLeftHandSideMatrix, Variables, &(this->CalculateAndAddStiffnessMatrix),
+            &(this->CalculateAndAddCompressibilityMatrix), &(this->CalculateAndAddCouplingMatrix),
+            &(this->CalculateAndAddPermeabilityMatrix));2*/
+        /*mpDrainagePolicy->CalculateAndAddLHS(
+            rLeftHandSideMatrix, Variables,
+            std::function<void(Matrix&, ElementVariables&)>(
+                &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix),
+            std::function<void(Matrix&, ElementVariables&)>(
+                &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix),
+            std::function<void(Matrix&, ElementVariables&)>(&UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix),
+            std::function<void(Matrix&, ElementVariables&)>(
+                &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix));*/
+
+        /*mpDrainagePolicy->CalculateAndAddLHS(
+            rLeftHandSideMatrix, Variables,
+            &std::bind(UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix, this),
+            &std::bind(UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix, this),
+            &std::bind(UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix, this),
+            &std::bind(UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix, this));*/
+
+        mpDrainagePolicy->CalculateAndAddLHS(
+            rLeftHandSideMatrix, Variables, &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix,
+            &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix,
+            &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix,
+            &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix);
+
+        // typedef std::static_cast<std::function<void(Matrix&, ElementVariables<TDim, TNumNodes>)&>> conversion;
+        /*mpDrainagePolicy->CalculateAndAddLHS(
+            rLeftHandSideMatrix, Variables,
+            std::function<void(Matrix&, ElementVariables&)>(
+                &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix),
+            std::function<void(Matrix&, ElementVariables&)>(
+                &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix),
+            std::function<void(Matrix&, ElementVariables&)>(&UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix),
+            std::function<void(Matrix&, ElementVariables&)>(
+                &UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix));*/
+
+        /*mpDrainagePolicy->CalculateAndAddLHS(
+            rLeftHandSideMatrix, Variables, &CalculateAndAddStiffnessMatrix, &CalculateAndAddCompressibilityMatrix,
+            &CalculateAndAddCouplingMatrix, &CalculateAndAddPermeabilityMatrix);*/
 
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag)
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+            CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
+    KRATOS_CATCH("")
+}
+
+/*template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+                                                                ElementVariables& rVariables) const
+{
+    KRATOS_TRY
+
+    this->CalculateAndAddLHS(rLeftHandSideMatrix, rVariables, &CalculateAndAddStiffnessMatrix,
+                             &CalculateAndAddCompressibilityMatrix, &CalculateAndAddCouplingMatrix,
+                             &CalculateAndAddPermeabilityMatrix);
+    KRATOS_CATCH("")
+}*/
+
+/*template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(
+    MatrixType&       rLeftHandSideMatrix,
+    ElementVariables& rVariables,
+    void              (*rCalculateAndAddStiffnessMatrix)(MatrixType&, ElementVariables&),
+    void              (*rCalculateAndAddCompressibilityMatrix)(MatrixType&, ElementVariables&),
+    void              (*rCalculateAndAddCouplingMatrix)(MatrixType&, ElementVariables&),
+    void              (*rCalculateAndAddPermeabilityMatrix)(MatrixType&, ElementVariables&)) const
+{
+    KRATOS_TRY
+
+    mpDrainagePolicy->CalculateAndAddLHS(rLeftHandSideMatrix, rVariables,
+&rCalculateAndAddStiffnessMatrix, &rCalculateAndAddCompressibilityMatrix,
+&rCalculateAndAddCouplingMatrix, &rCalculateAndAddPermeabilityMatrix); KRATOS_CATCH("")
+}*/
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                                                ElementVariables& rVariables,
+                                                                unsigned int      GPoint)
+{
+    KRATOS_TRY
+
+    /*mpDrainagePolicy->CalculateAndAddRHS(
+        rRightHandSideVector, rVariables, GPoint, &CalculateAndAddStiffnessForce,
+        &CalculateAndAddMixBodyForce, &CalculateAndAddCouplingTerms, &CalculateAndAddCompressibilityFlow,
+        &CalculateAndAddPermeabilityFlow, &CalculateAndAddFluidBodyFlow);*/
     KRATOS_CATCH("")
 }
 
@@ -1213,23 +1297,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                                                                ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
-    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
-
-    if (!rVariables.IgnoreUndrained) {
-        this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
-        this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
                                                                             ElementVariables& rVariables)
 {
@@ -1325,30 +1392,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(M
 
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                ElementVariables& rVariables,
-                                                                unsigned int      GPoint)
-{
-    KRATOS_TRY
-
-    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
-
-    this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
-
-    this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
-
-    if (!rVariables.IgnoreUndrained) {
-        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
-
-        this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-
-        this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
-    }
 
     KRATOS_CATCH("")
 }
@@ -1742,6 +1785,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(Bounde
                  << TNumNodes << " element: " << this->Id() << std::endl;
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+DrainagePolicy<TDim, TNumNodes>& UPwSmallStrainElement<TDim, TNumNodes>::GetDrainagePolicy() const
+{
+    return *mpDrainagePolicy;
 }
 
 template <>

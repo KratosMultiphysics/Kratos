@@ -23,7 +23,8 @@ Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType    
                                                                    PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainFICElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -33,8 +34,8 @@ Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType    
                                                                    GeometryType::Pointer pGeom,
                                                                    PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainFICElement(NewId, pGeom, pProperties,
-                                                         this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwSmallStrainFICElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -477,13 +478,18 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to the left hand side
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            // CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            /*this->GetDrainagePolicy().CalculateAndAddLHS(
+                rLeftHandSideMatrix, Variables, &(this->CalculateAndAddStiffnessMatrix),
+                &(this->CalculateAndAddCompressibilityMatrix),
+                &(this->CalculateAndAddCouplingMatrix), &(this->CalculateAndAddPermeabilityMatrix));*/
+
             this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
         }
 
         if (CalculateResidualVectorFlag) {
             // Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+            CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
             this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
         }
     }

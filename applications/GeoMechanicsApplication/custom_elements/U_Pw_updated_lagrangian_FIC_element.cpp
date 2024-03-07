@@ -26,7 +26,8 @@ Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -36,7 +37,7 @@ Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -115,7 +116,12 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            // this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            /*this->GetDrainagePolicy().CalculateAndAddLHS(
+                rLeftHandSideMatrix, Variables, &(CalculateAndAddStiffnessMatrix),
+                &(CalculateAndAddCompressibilityMatrix), &(CalculateAndAddCouplingMatrix),
+                &(CalculateAndAddPermeabilityMatrix));*/
+
             this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
 
             /* Geometric stiffness matrix */

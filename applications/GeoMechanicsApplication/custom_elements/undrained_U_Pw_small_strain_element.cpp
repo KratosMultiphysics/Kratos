@@ -22,7 +22,8 @@ Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UndrainedUPwSmallStrainElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -33,7 +34,7 @@ Element::Pointer UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UndrainedUPwSmallStrainElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(), this->GetDrainagePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -86,42 +87,6 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     }
 
     return ierr;
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-                                                                         ElementVariables& rVariables)
-{
-    KRATOS_TRY;
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
-                                                                         ElementVariables& rVariables,
-                                                                         unsigned int GPoint)
-{
-    KRATOS_TRY;
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector,
-                                                                          rVariables, GPoint);
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
-
-    UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("");
 }

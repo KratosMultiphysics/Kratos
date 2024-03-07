@@ -58,23 +58,30 @@ public:
     TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                                        NewId,
+                       const NodesArrayType&                            ThisNodes,
+                       std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                       std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                                        NewId,
+                       GeometryType::Pointer                            pGeometry,
+                       std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                       std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
     /// Constructor using Properties
-    TransientPwElement(IndexType                          NewId,
-                       GeometryType::Pointer              pGeometry,
-                       PropertiesType::Pointer            pProperties,
-                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+    TransientPwElement(IndexType                                        NewId,
+                       GeometryType::Pointer                            pGeometry,
+                       PropertiesType::Pointer                          pProperties,
+                       std::unique_ptr<StressStatePolicy>               pStressStatePolicy,
+                       std::unique_ptr<DrainagePolicy<TDim, TNumNodes>> pDrainagePolicy)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pDrainagePolicy))
     {
     }
 
@@ -160,10 +167,6 @@ protected:
                       const bool         CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo) override;
-
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
-
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
 
