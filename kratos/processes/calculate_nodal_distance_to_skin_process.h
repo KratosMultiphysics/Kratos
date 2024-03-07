@@ -38,6 +38,12 @@ namespace Kratos
 class NodalValueRetrieverBaseClass
 {
 public:
+    // Default Constructor
+    NodalValueRetrieverBaseClass() = default;
+
+    // Default Destructor
+    virtual ~NodalValueRetrieverBaseClass() = default;
+
     /**
      * @brief This method gets the current value of the rVariable
      * @param rNode The node iterator to be get
@@ -65,6 +71,12 @@ class KRATOS_API(KRATOS_CORE) NodalValueRetriever
     : public NodalValueRetrieverBaseClass
 {
 public:
+    // Default Constructor
+    NodalValueRetriever() = default;
+
+    // Default Destructor
+    ~NodalValueRetriever() override = default;
+
     /**
      * @brief This method gets the current value of the rVariable
      * @param rNode The node iterator to be get
