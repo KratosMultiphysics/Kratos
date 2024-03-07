@@ -137,7 +137,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "PorousDomain.Truss-auto-1",
                 "dimension"       : 1,
-                "imposed_strain"  : [-0.0483325],
+                "imposed_strain"  : [0.0],
                 "imposed_stress"  : [-1e10],
                 "imposed_deformation_gradient"  : [[0]],
                 "interval"        : [0.0, 1e30]
