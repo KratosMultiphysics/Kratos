@@ -103,6 +103,17 @@ class Filter(abc.ABC):
         """
         pass
 
+    def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        """Get the unfiltered field from a filtered field
+
+        Args:
+            filtered_field (ContainerExpressionTypes): Filtered field
+
+        Returns:
+            ContainerExpressionTypes: Unfiltered field.
+        """
+        pass
+
     @abc.abstractmethod
     def Update(self) -> None:
         """Updates the filter.
