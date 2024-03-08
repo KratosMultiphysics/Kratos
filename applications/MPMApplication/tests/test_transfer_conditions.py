@@ -1,7 +1,7 @@
 import KratosMultiphysics
 from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
 
 class TestTransferConditions(KratosUnittest.TestCase):
@@ -34,26 +34,26 @@ class TestTransferConditions(KratosUnittest.TestCase):
     def _assign_pseudo_variables(self, cond, condition_type):
         process_info = KratosMultiphysics.ProcessInfo()
         normal_vector = [KratosMultiphysics.Vector([1.0,0.0,0.0])]
-        cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_NORMAL,normal_vector,process_info)
+        cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_NORMAL,normal_vector,process_info)
         xg = [KratosMultiphysics.Vector([1.5,-1.0,2.1])]
-        cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_COORD,xg,process_info)
+        cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_COORD,xg,process_info)
         velocity = [KratosMultiphysics.Vector([1.5,-1.0,2.45])]
-        cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_VELOCITY,velocity,process_info)
+        cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_VELOCITY,velocity,process_info)
         acceleration = [KratosMultiphysics.Vector([1.5,-1.12,2.45])]
-        cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_ACCELERATION,acceleration,process_info)
+        cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_ACCELERATION,acceleration,process_info)
         if condition_type == "dirichlet" or condition_type == "coupling":
-            cond.SetValuesOnIntegrationPoints(KratosParticle.PENALTY_FACTOR,[100.0],process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMPM.PENALTY_FACTOR,[100.0],process_info)
             displacement = [KratosMultiphysics.Vector([1.22,-1.11,0.0])]
-            cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT,displacement,process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_DISPLACEMENT,displacement,process_info)
             imposed_displacement = [KratosMultiphysics.Vector([1.0,-1.0,0.0])]
-            cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,imposed_displacement,process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_IMPOSED_DISPLACEMENT,imposed_displacement,process_info)
             imposed_velocity = [KratosMultiphysics.Vector([1.0,-1.0,1.1])]
-            cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_VELOCITY,imposed_velocity,process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_IMPOSED_VELOCITY,imposed_velocity,process_info)
             imposed_acceleration = [KratosMultiphysics.Vector([1.0,-1.0,2.1])]
-            cond.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_ACCELERATION,imposed_acceleration,process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_IMPOSED_ACCELERATION,imposed_acceleration,process_info)
         else:
             point_load = [KratosMultiphysics.Vector([3.3,4.4,5.5])]
-            cond.SetValuesOnIntegrationPoints(KratosParticle.POINT_LOAD,point_load ,process_info)
+            cond.SetValuesOnIntegrationPoints(KratosMPM.POINT_LOAD,point_load ,process_info)
 
     def _check_conditions(self, mp, dimension):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -96,31 +96,31 @@ class TestTransferConditions(KratosUnittest.TestCase):
             self.assertMatrixAlmostEqual(shape_functions_derivatives, shape_functions_derivatives_ref, 7)
             self.assertVectorAlmostEqual(center, center_ref)
             ##Check condition properties
-            unit_normal = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_NORMAL, process_info)
+            unit_normal = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_NORMAL, process_info)
             self.assertVectorAlmostEqual(unit_normal[0],[1.0,0.0,0.0],7)
             if(cond.Info() == "Condition #3"):
                 #point_load_condition members
-                point_load = cond.CalculateOnIntegrationPoints(KratosParticle.POINT_LOAD, process_info)
+                point_load = cond.CalculateOnIntegrationPoints(KratosMPM.POINT_LOAD, process_info)
                 self.assertVectorAlmostEqual(point_load[0],[3.3,4.4,5.5])
             else:
                 #penalty_dirichlet_condition members
-                penalty_factor = cond.CalculateOnIntegrationPoints(KratosParticle.PENALTY_FACTOR, process_info)
+                penalty_factor = cond.CalculateOnIntegrationPoints(KratosMPM.PENALTY_FACTOR, process_info)
                 self.assertAlmostEqual(penalty_factor[0], 100.0, 7)
                 #base_dirichlet_condition members
-                displacement = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, process_info)
+                displacement = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_DISPLACEMENT, process_info)
                 self.assertVectorAlmostEqual(displacement[0],[1.22,-1.11,0.0],7)
-                imposed_displacement = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT, process_info)
+                imposed_displacement = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_IMPOSED_DISPLACEMENT, process_info)
                 self.assertVectorAlmostEqual(imposed_displacement[0],[1.0,-1.0,0.0],7)
-                imposed_veclocity = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_VELOCITY, process_info)
+                imposed_veclocity = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_IMPOSED_VELOCITY, process_info)
                 self.assertVectorAlmostEqual(imposed_veclocity[0],[1.0,-1.0,1.1],7)
-                imposed_acceleration = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_IMPOSED_ACCELERATION, process_info)
+                imposed_acceleration = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_IMPOSED_ACCELERATION, process_info)
                 self.assertVectorAlmostEqual(imposed_acceleration[0],[1.0,-1.0,2.1],7)
             #base_condition members
-            xg = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, process_info)
+            xg = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD, process_info)
             self.assertVectorAlmostEqual(xg[0],[1.5,-1.0,2.1])
-            velocity = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_VELOCITY, process_info)
+            velocity = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_VELOCITY, process_info)
             self.assertVectorAlmostEqual(velocity[0],[1.5,-1.0,2.45])
-            acceleration = cond.CalculateOnIntegrationPoints(KratosParticle.MPC_ACCELERATION, process_info)
+            acceleration = cond.CalculateOnIntegrationPoints(KratosMPM.MPC_ACCELERATION, process_info)
             self.assertVectorAlmostEqual(acceleration[0],[1.5,-1.12,2.45])
 
     def _transfer_conditions(self, dimension, condition_type_2 ):
@@ -161,7 +161,7 @@ class TestTransferConditions(KratosUnittest.TestCase):
 
         KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(mp)
         # Exchange elements
-        KratosParticle.MPM_MPI_Utilities.TransferConditions(mp, send_conditions)
+        KratosMPM.MPM_MPI_Utilities.TransferConditions(mp, send_conditions)
 
         # Check
         if rank == 0:

@@ -2,7 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
 
 class TestTransferElements(KratosUnittest.TestCase):
@@ -25,7 +25,7 @@ class TestTransferElements(KratosUnittest.TestCase):
         self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
         if is_pqmpm:
-            self.grid_model_part.ProcessInfo[KratosParticle.IS_PQMPM] = True
+            self.grid_model_part.ProcessInfo[KratosMPM.IS_PQMPM] = True
 
     def _generate_particle_elements(self, current_model, dimension, geometry_element, num_particle, is_mixed_formulation):
         # Create element and nodes for background grids
@@ -42,14 +42,14 @@ class TestTransferElements(KratosUnittest.TestCase):
             sub_initial = self.initial_mesh_model_part.GetSubModelPart("Elements")
         else:
             sub_initial = self.initial_mesh_model_part.CreateSubModelPart("Elements")
-            sub_initial.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, num_particle)
+            sub_initial.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, num_particle)
             sub_initial.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, 1000.0)
 
         self._create_nodes(sub_initial, dimension, geometry_element)
         self._create_elements(sub_initial,dimension, geometry_element)
 
         # Generate MP Elements
-        KratosParticle.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, is_mixed_formulation)
+        KratosMPM.GenerateMaterialPointElement(self.grid_model_part, self.initial_mesh_model_part, self.material_point_model_part, is_mixed_formulation)
 
     def _create_nodes(self, mp, dimension, geometry_element):
         if geometry_element == "Triangle":
@@ -87,7 +87,7 @@ class TestTransferElements(KratosUnittest.TestCase):
         process_info = KratosMultiphysics.ProcessInfo()
         for el in mp.Elements:
             # Check material Id
-            material_id = el.CalculateOnIntegrationPoints(KratosParticle.MP_MATERIAL_ID, process_info)
+            material_id = el.CalculateOnIntegrationPoints(KratosMPM.MP_MATERIAL_ID, process_info)
             self.assertEqual(material_id[0], 1)
             # Check geometry
             self.assertEqual( el.GetGeometry().WorkingSpaceDimension(), dimension)
@@ -153,9 +153,9 @@ class TestTransferElements(KratosUnittest.TestCase):
             self.assertMatrixAlmostEqual( shape_functions_derivatives, shape_functions_derivatives_ref, 7)
             self.assertVectorAlmostEqual( center, center_ref)
             # Material Point variables
-            xg = el.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, process_info)
-            mass = el.CalculateOnIntegrationPoints(KratosParticle.MP_MASS, process_info)
-            volume = el.CalculateOnIntegrationPoints(KratosParticle.MP_VOLUME, process_info)
+            xg = el.CalculateOnIntegrationPoints(KratosMPM.MPC_COORD, process_info)
+            mass = el.CalculateOnIntegrationPoints(KratosMPM.MP_MASS, process_info)
+            volume = el.CalculateOnIntegrationPoints(KratosMPM.MP_VOLUME, process_info)
             if dimension == 2:
                 if element_type == "Triangle":
                     self.assertVectorAlmostEqual( xg[0], [1.0/3.0, 1.0/3.0, 0.0], 7)
@@ -175,23 +175,23 @@ class TestTransferElements(KratosUnittest.TestCase):
                     self.assertAlmostEqual( mass[0], 1000.0, 7)
                     self.assertAlmostEqual( volume[0], 1.0, 7)
 
-            density = el.CalculateOnIntegrationPoints(KratosParticle.MP_DENSITY, process_info)
+            density = el.CalculateOnIntegrationPoints(KratosMPM.MP_DENSITY, process_info)
             self.assertAlmostEqual( density[0], 1000.0, 7)
-            displacement = el.CalculateOnIntegrationPoints(KratosParticle.MP_DISPLACEMENT, process_info)
+            displacement = el.CalculateOnIntegrationPoints(KratosMPM.MP_DISPLACEMENT, process_info)
             self.assertVectorAlmostEqual( displacement[0], [0.1, 2.21, 3.0], 7)
-            velocity = el.CalculateOnIntegrationPoints(KratosParticle.MP_VELOCITY, process_info)
+            velocity = el.CalculateOnIntegrationPoints(KratosMPM.MP_VELOCITY, process_info)
             self.assertVectorAlmostEqual( velocity[0], [0.5, 2.25, 3.5], 7)
-            acceleration = el.CalculateOnIntegrationPoints(KratosParticle.MP_ACCELERATION, process_info)
+            acceleration = el.CalculateOnIntegrationPoints(KratosMPM.MP_ACCELERATION, process_info)
             self.assertVectorAlmostEqual( acceleration[0], [0.2, 2.22, 3.2], 7)
-            volume_acceleration = el.CalculateOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION, process_info)
+            volume_acceleration = el.CalculateOnIntegrationPoints(KratosMPM.MP_VOLUME_ACCELERATION, process_info)
             self.assertVectorAlmostEqual( volume_acceleration[0], [0.3, 2.32, 1.2], 7)
-            chauchy_stress_vector = el.CalculateOnIntegrationPoints(KratosParticle.MP_CAUCHY_STRESS_VECTOR, process_info)
+            chauchy_stress_vector = el.CalculateOnIntegrationPoints(KratosMPM.MP_CAUCHY_STRESS_VECTOR, process_info)
             self.assertVectorAlmostEqual( chauchy_stress_vector[0], [1.2,2.0,3.45], 7)
-            almansi_strain_vector = el.CalculateOnIntegrationPoints(KratosParticle.MP_ALMANSI_STRAIN_VECTOR, process_info)
+            almansi_strain_vector = el.CalculateOnIntegrationPoints(KratosMPM.MP_ALMANSI_STRAIN_VECTOR, process_info)
             self.assertVectorAlmostEqual( almansi_strain_vector[0], [1.6,2.0,1.45], 7)
             if is_mixed_formulation:
                 # updated_langrangian_up members
-                pressure = el.CalculateOnIntegrationPoints(KratosParticle.MP_PRESSURE, process_info)
+                pressure = el.CalculateOnIntegrationPoints(KratosMPM.MP_PRESSURE, process_info)
                 self.assertAlmostEqual(pressure[0], 3.3)
 
     def _transfer_elements(self, dimension, geometry_element, is_mixed_formulation, is_pqmpm):
@@ -219,16 +219,16 @@ class TestTransferElements(KratosUnittest.TestCase):
                         send_elements[i].append(element)
                         for el in send_elements[i]:
                             #Give elements some pseudo variables
-                            el.SetValuesOnIntegrationPoints(KratosParticle.MP_DISPLACEMENT, [[0.1, 2.21, 3.0]], process_info)
-                            el.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY, [[0.5, 2.25, 3.5]], process_info)
-                            el.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION, [[0.2, 2.22, 3.2]], process_info)
-                            el.SetValuesOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION, [[0.3, 2.32, 1.2]], process_info)
+                            el.SetValuesOnIntegrationPoints(KratosMPM.MP_DISPLACEMENT, [[0.1, 2.21, 3.0]], process_info)
+                            el.SetValuesOnIntegrationPoints(KratosMPM.MP_VELOCITY, [[0.5, 2.25, 3.5]], process_info)
+                            el.SetValuesOnIntegrationPoints(KratosMPM.MP_ACCELERATION, [[0.2, 2.22, 3.2]], process_info)
+                            el.SetValuesOnIntegrationPoints(KratosMPM.MP_VOLUME_ACCELERATION, [[0.3, 2.32, 1.2]], process_info)
                             cauchy_stress_vector = [KratosMultiphysics.Vector([1.2,2.0,3.45])]
-                            el.SetValuesOnIntegrationPoints(KratosParticle.MP_CAUCHY_STRESS_VECTOR, cauchy_stress_vector, 0, process_info)
+                            el.SetValuesOnIntegrationPoints(KratosMPM.MP_CAUCHY_STRESS_VECTOR, cauchy_stress_vector, 0, process_info)
                             almansi_strain_vector = [KratosMultiphysics.Vector([1.6,2.0,1.45])]
-                            el.SetValuesOnIntegrationPoints(KratosParticle.MP_ALMANSI_STRAIN_VECTOR, almansi_strain_vector, 0, process_info)
+                            el.SetValuesOnIntegrationPoints(KratosMPM.MP_ALMANSI_STRAIN_VECTOR, almansi_strain_vector, 0, process_info)
                             if is_mixed_formulation:
-                                el.SetValuesOnIntegrationPoints(KratosParticle.MP_PRESSURE, [3.3], process_info)
+                                el.SetValuesOnIntegrationPoints(KratosMPM.MP_PRESSURE, [3.3], process_info)
         else: # Recievers
             #Make sure all ModelParts have same SubmodelParts
             mp = current_model.GetModelPart("MPMModelPart")
@@ -237,7 +237,7 @@ class TestTransferElements(KratosUnittest.TestCase):
         sub_mp = mp.GetSubModelPart("Elements")
         KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(sub_mp)
         #Send elements from rank=0 to all other
-        KratosParticle.MPM_MPI_Utilities.TransferElements(sub_mp, send_elements)
+        KratosMPM.MPM_MPI_Utilities.TransferElements(sub_mp, send_elements)
         #Check if model_parts hold the correct elements
         if rank == 0:
             self.assertEqual(mp.NumberOfElements(), 0) #Check if element was removed after sent

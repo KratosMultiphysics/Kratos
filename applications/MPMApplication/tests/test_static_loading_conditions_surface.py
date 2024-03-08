@@ -1,6 +1,6 @@
 import KratosMultiphysics
 
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from math import sqrt
 
@@ -41,7 +41,7 @@ class TestStaticLoadingConditionsSurface(KratosUnittest.TestCase):
         load_on_cond[0] = 1.0
         load_on_cond[1] = 2.0
         load_on_cond[2] = 0.0 # Note that this is a 2D condition
-        cond.SetValue(KratosParticle.SURFACE_LOAD,load_on_cond)
+        cond.SetValue(KratosMPM.SURFACE_LOAD,load_on_cond)
         cond.CalculateLocalSystem(lhs,rhs,mp.ProcessInfo)
         self.assertAlmostEqual(rhs[0],0.25*length); self.assertAlmostEqual(rhs[1],0.5*1.0*length); self.assertAlmostEqual(rhs[2],0.0)
         self.assertAlmostEqual(rhs[3],0.25*length); self.assertAlmostEqual(rhs[4],0.5*1.0*length); self.assertAlmostEqual(rhs[5],0.0)
