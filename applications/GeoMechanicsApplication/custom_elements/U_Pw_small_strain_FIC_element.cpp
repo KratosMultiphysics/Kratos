@@ -1277,7 +1277,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientM
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
     // Distribute pressure gradient block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
 
     KRATOS_CATCH("")
 }

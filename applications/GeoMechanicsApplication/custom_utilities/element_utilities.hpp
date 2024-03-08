@@ -242,7 +242,7 @@ public:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AssembleUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUBlockMatrix)
+    static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUBlockMatrix)
     {
         constexpr auto row_offset    = std::size_t{0};
         constexpr auto column_offset = row_offset;
@@ -268,8 +268,8 @@ public:
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPBlockMatrix)
+    static inline void AssemblePPBlockMatrix(Matrix& rLeftHandSideMatrix,
+                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rPBlockMatrix)
     {
         constexpr auto row_offset    = TNumNodes * TDim;
         constexpr auto column_offset = row_offset;

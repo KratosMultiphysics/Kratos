@@ -151,7 +151,7 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     const auto flux_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
         outer_prod(rN, element_prod(rN, rLeftHandSideFluxes)) * IntegrationCoefficient};
 
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, flux_matrix);
+    GeoElementUtilities::AssemblePPBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, flux_matrix);
 
     KRATOS_CATCH("")
 }

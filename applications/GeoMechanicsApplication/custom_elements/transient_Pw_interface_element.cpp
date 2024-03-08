@@ -585,7 +585,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
         outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
 
     KRATOS_CATCH("")
 }
@@ -604,7 +604,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute permeability block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
 
     KRATOS_CATCH("")
 }

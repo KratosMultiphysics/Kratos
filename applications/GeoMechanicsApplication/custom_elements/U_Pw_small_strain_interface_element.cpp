@@ -1868,7 +1868,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, rVariables.UMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, rVariables.UMatrix);
 
     KRATOS_CATCH("")
 }
@@ -1913,7 +1913,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
         outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
 
     KRATOS_CATCH("")
 }
@@ -1932,7 +1932,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute permeability block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
 
     KRATOS_CATCH("")
 }

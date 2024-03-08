@@ -203,7 +203,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatri
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute boundary mass matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rFICVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rFICVariables.PMatrix);
 }
 
 //----------------------------------------------------------------------------------------
