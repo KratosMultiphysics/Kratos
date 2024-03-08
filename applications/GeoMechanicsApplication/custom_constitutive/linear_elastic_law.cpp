@@ -83,8 +83,8 @@ void GeoLinearElasticLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Param
 }
 
 double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                            const Variable<double>& rThisVariable,
-                                            double& rValue)
+                                            const Variable<double>&      rThisVariable,
+                                            double&                      rValue)
 {
     if (rThisVariable == STRAIN_ENERGY) {
         Vector& r_strain_vector = rParameterValues.GetStrainVector();
@@ -99,8 +99,8 @@ double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
 }
 
 Vector& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                            const Variable<Vector>& rThisVariable,
-                                            Vector& rValue)
+                                            const Variable<Vector>&      rThisVariable,
+                                            Vector&                      rValue)
 {
     if (rThisVariable == STRAIN || rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
@@ -133,8 +133,8 @@ Vector& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
 }
 
 Matrix& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                            const Variable<Matrix>& rThisVariable,
-                                            Matrix& rValue)
+                                            const Variable<Matrix>&      rThisVariable,
+                                            Matrix&                      rValue)
 {
     if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
         rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
@@ -156,9 +156,9 @@ void GeoLinearElasticLaw::SetValue(const Variable<Vector>&, const Vector&, const
     // is required when that is undesired behavior
 }
 
-int GeoLinearElasticLaw::Check(const Properties& rMaterialProperties,
+int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
-                               const ProcessInfo& rCurrentProcessInfo) const
+                               const ProcessInfo&  rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
         << "YOUNG_MODULUS is not available in material parameters" << std::endl;

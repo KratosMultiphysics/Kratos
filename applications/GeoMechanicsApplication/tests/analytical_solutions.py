@@ -30,29 +30,6 @@ def calculate_1D_consolidation(y_coord, H, T_v):
     rel_p = 4.0 / pi * rel_p
     return rel_p
 
-
-def rigid_footing(x, B, delta, G, nu, settlement):
-    """
-    Calculates analytical solution for reaction pressure of settlement controlled rigid footing on linear elastic soil
-    [@@ref@@]
-
-    :param x: x-coordinate
-    :param B: width footing
-    :param delta: geometry dependent factor
-    :param G:  shear modulus
-    :param nu: poison ratio
-    :param settlement:  settlement
-
-    :return: vertical reaction pressure
-    """
-    from math import pi, sqrt
-
-    reaction_force = settlement * 2.0 * (1.0 + nu) * G / delta
-    sigma_v = -2.0 / pi * reaction_force / 2.0 / (B * sqrt(1.0 - (x / B) ** 2.0))
-
-    return sigma_v
-
-
 def calculate_max_deflections_ring(force, r, young, m_inertia):
     """
     todo Extend description

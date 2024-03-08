@@ -14,36 +14,9 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
-#include "plane_strain_stress_state.h"
-#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
-                                                         NodesArrayType const&   ThisNodes,
-                                                         PropertiesType::Pointer pProperties) const
-{
-    KRATOS_ERROR << "calling the default Create method for a particular "
-                    "element ... illegal operation!!"
-                 << this->Id() << std::endl;
-
-    return Element::Pointer(new UPwBaseElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
-                                                         GeometryType::Pointer   pGeom,
-                                                         PropertiesType::Pointer pProperties) const
-{
-    KRATOS_ERROR << "calling the default Create method for a particular "
-                    "element ... illegal operation!!"
-                 << this->Id() << std::endl;
-
-    return Element::Pointer(new UPwBaseElement(NewId, pGeom, pProperties));
-}
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -561,15 +534,8 @@ double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if constexpr (TDim == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    return p_stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
-                                                                  detJ, GetGeometry());
+    return mpStressStatePolicy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
+                                                                detJ, GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------
@@ -660,6 +626,12 @@ Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
         result.push_back(r_node.pGetDof(WATER_PRESSURE));
     }
     return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+StressStatePolicy& UPwBaseElement<TDim, TNumNodes>::GetStressStatePolicy() const
+{
+    return *mpStressStatePolicy;
 }
 
 //----------------------------------------------------------------------------------------

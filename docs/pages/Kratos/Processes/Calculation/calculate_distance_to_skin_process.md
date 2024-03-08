@@ -13,7 +13,7 @@ summary:
 **Warning**: This process does not follow the standard Process interface.
 
 This process takes a volume model part (with tetrahedra mesh) and a skin model part (with triangle mesh) and
-and calcualtes the distance to the skin for all the elements and nodes of the volume model part using elemental discontinuous distances..
+and calculates the distance to the skin for all the elements and nodes of the volume model part using elemental discontinuous distances..
 
 ## Parameters & Defaults
 
