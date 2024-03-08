@@ -45,8 +45,7 @@ FilterFunction::FilterFunction(const std::string& rKernelFunctionType)
         // Type 6: Sigmoidal function
         mFilterFunctional = [](double radius, double distance) {
                 const double limit = std::log1p(std::numeric_limits<double>::max());
-                double pow_val = -2.0 * std::numeric_limits<double>::max() * (distance - radius);
-                pow_val = std::clamp(pow_val, -limit, limit);
+                const double pow_val = std::clamp(-2.0 * std::numeric_limits<double>::max() * (distance - radius), -limit, limit);
                 const auto exp_val = std::exp(pow_val);
                 return exp_val / (1.0 + exp_val);
             };
