@@ -14,9 +14,6 @@
 #if !defined(KRATOS_GEO_ELEMENT_UTILITIES )
 #define  KRATOS_GEO_ELEMENT_UTILITIES
 
-// System includes
-//#include <cmath>
-
 // Project includes
 #include "utilities/math_utils.h"
 #include "includes/element.h"
@@ -29,15 +26,10 @@ namespace Kratos
 
 class GeoElementUtilities
 {
-
-typedef std::size_t IndexType;
-
 public:
+    using IndexType    = std::size_t;
+    using GeometryType = Geometry<Node>;
 
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
                                          const Matrix& NContainer,
