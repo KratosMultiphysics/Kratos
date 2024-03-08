@@ -299,17 +299,16 @@ public:
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double, TDim * TNumNodes>& rUBlockVector)
     {
-        std::transform(rUBlockVector.begin(), rUBlockVector.end(), rRightHandSideVector.begin(),
-                       rRightHandSideVector.begin(), std::plus<double>{});
+        constexpr auto offset = std::size_t{0};
+        AddVectorAtPosition(rUBlockVector, rRightHandSideVector, offset);
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void AssemblePBlockVector(Vector&                            rRightHandSideVector,
                                             const array_1d<double, TNumNodes>& rPBlockVector)
     {
-        auto destination_begin = rRightHandSideVector.begin() + (TNumNodes * TDim);
-        std::transform(rPBlockVector.begin(), rPBlockVector.end(), destination_begin,
-                       destination_begin, std::plus<double>{});
+        constexpr auto offset = TNumNodes * TDim;
+        AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -630,6 +629,14 @@ public:
             }
         }
         return nodal_hydraulic_heads;
+    }
+
+private:
+    template <typename VectorType1, typename VectorType2>
+    static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
+    {
+        auto pos = rDestinationVector.begin() + Offset;
+        std::transform(rSourceVector.begin(), rSourceVector.end(), pos, pos, std::plus<double>{});
     }
 
 }; /* Class GeoElementUtilities*/
