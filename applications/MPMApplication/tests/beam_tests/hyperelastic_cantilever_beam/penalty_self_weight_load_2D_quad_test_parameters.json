@@ -41,7 +41,7 @@
         "constraints_process_list" : [],
         "gravity"                  : [{
             "python_module" : "assign_gravity_to_particle_process",
-            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
             "process_name"  : "AssignGravityToParticleProcess",
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
@@ -52,7 +52,7 @@
         }],
         "list_other_processes": [{
             "python_module" : "apply_mpm_particle_dirichlet_condition_process",
-            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.PENALTY_Condition_Auto1",
                 "material_points_per_condition" : 5,
