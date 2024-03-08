@@ -24,7 +24,7 @@ ConstitutiveLaw::Pointer SmallStrainUMAT2DInterfaceLaw::Clone() const
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT2DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUMAT2DInterfaceLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues)
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
 
@@ -52,49 +52,51 @@ void SmallStrainUMAT2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrai
     mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector(INDEX_2D_INTERFACE_XZ);
 }
 
-void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues,
-                                                           Matrix& rConstitutiveMatrix)
+void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
 {
     if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM]) {
         // transfer fortran style matrix to C++ style
         for (unsigned int i = 0; i < VoigtSize; i++) {
             for (unsigned int j = 0; j < VoigtSize; j++) {
-                rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(j))][getIndex3D(static_cast<indexStress2DInterface>(i))];
+                rConstitutiveMatrix(i, j) =
+                    mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(j))]
+                            [getIndex3D(static_cast<indexStress2DInterface>(i))];
             }
         }
     } else {
         for (unsigned int i = 0; i < VoigtSize; i++) {
             for (unsigned int j = 0; j < VoigtSize; j++) {
-                rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(i))][getIndex3D(static_cast<indexStress2DInterface>(j))];
+                rConstitutiveMatrix(i, j) =
+                    mMatrixD[getIndex3D(static_cast<indexStress2DInterface>(i))]
+                            [getIndex3D(static_cast<indexStress2DInterface>(j))];
             }
         }
-   }
+    }
 }
 
 indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface index2D) const
 {
-   switch (index2D)
-   {
-      case INDEX_2D_INTERFACE_ZZ:
+    switch (index2D) {
+    case INDEX_2D_INTERFACE_ZZ:
         return INDEX_3D_ZZ;
-      case INDEX_2D_INTERFACE_XZ:
+    case INDEX_2D_INTERFACE_XZ:
         return INDEX_3D_XZ;
-      default:
+    default:
         KRATOS_ERROR << "invalid index: " << index2D << std::endl;
-   }
+    }
 }
 
 void SmallStrainUMAT2DInterfaceLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
                                                                Vector& rStrainVector)
 {
-    KRATOS_ERROR << "CalculateCauchyGreenStrain is not implemented in SmallStrainUMAT2DInterfaceLaw" << std::endl;
+    KRATOS_ERROR << "CalculateCauchyGreenStrain is not implemented in SmallStrainUMAT2DInterfaceLaw"
+                 << std::endl;
 }
 
-Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector> &rThisVariable,
-                                                Vector &rValue)
+Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-       SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue );
+        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
@@ -105,15 +107,14 @@ Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector> &rThisVar
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetValue(const Variable<Vector>& rThisVariable,
-                                             const Vector& rValue,
-                                             const ProcessInfo& rCurrentProcessInfo)
+                                             const Vector&           rValue,
+                                             const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo );
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) &&
-               (rValue.size() == VoigtSize)) {
+        SmallStrainUMAT3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }
 
-}
+} // namespace Kratos
