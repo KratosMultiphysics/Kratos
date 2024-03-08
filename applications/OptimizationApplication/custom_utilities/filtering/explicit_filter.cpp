@@ -119,6 +119,19 @@ void ComputeWeightForAllNeighbors(
     }
 }
 
+template<class TContainerType>
+struct TLS
+{
+    explicit TLS(const IndexType MaxNumberOfNeighbors)
+    {
+        mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
+        mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
+    }
+
+    typename ExplicitFilter<TContainerType>::EntityPointVector mNeighbourEntityPoints;
+    std::vector<double> mResultingSquaredDistances;
+};
+
 }; // namespace ExplicitFilterHelperUtilities
 
 template<class TContainerType>
@@ -216,14 +229,16 @@ void ExplicitFilter<TContainerType>::ExplicitFilter::Update()
 }
 
 template<class TContainerType>
-template<class TWeightIntegrationType>
-ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+void ExplicitFilter<TContainerType>::CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    KRATOS_TRY
-
     KRATOS_ERROR_IF(mpFilterRadiusContainer.get() == nullptr)
         << "The filter radius container expression not set. "
         << "Please set it using SetFilterRadius method.\n\t Filter = "
+        << *this;
+
+    KRATOS_ERROR_IF(mpDampingCoefficientContainer.get() == nullptr)
+        << "The damping coefficient container expression not set. "
+        << "Please set it using SetDampingCoefficients method.\n\t Filter = "
         << *this;
 
     KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
@@ -234,6 +249,17 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
         << "Filter radius container expression model part and filter model part mismatch."
         << "\n\tFilter = " << *this
         << "\n\tContainerExpression = " << rContainerExpression;
+}
+
+template<class TContainerType>
+template<class TWeightIntegrationType>
+ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    KRATOS_TRY
+
+    using tls = ExplicitFilterHelperUtilities::TLS<TContainerType>;
+
+    CheckField(rContainerExpression);
 
     const IndexType stride = rContainerExpression.GetItemComponentCount();
     const auto& r_origin_expression = rContainerExpression.GetExpression();
@@ -246,19 +272,7 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
 
     const auto& r_damping_coeff_expression = mpDampingCoefficientContainer->GetExpression();
 
-    struct TLS
-    {
-        explicit TLS(const IndexType MaxNumberOfNeighbors)
-        {
-            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
-            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
-        }
-
-        EntityPointVector mNeighbourEntityPoints;
-        std::vector<double> mResultingSquaredDistances;
-    };
-
-    IndexPartition<IndexType>(r_container.size()).for_each(TLS(mMaxNumberOfNeighbors), [&](const IndexType Index, TLS& rTLS){
+    IndexPartition<IndexType>(r_container.size()).for_each(tls(mMaxNumberOfNeighbors), [&](const IndexType Index, tls& rTLS){
         const double radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
 
         EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
@@ -286,13 +300,16 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
             double& current_index_value = *(p_expression->begin() + current_data_begin + j);
             current_index_value = 0.0;
             for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
-                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
                 const double weight = list_of_weights[neighbour_index] / sum_of_weights;
-                const double origin_value = r_origin_expression.Evaluate(neighbour_id, neighbour_id * stride, j);
-                current_index_value +=  weight * origin_value;
-            }
 
-            current_index_value *= r_damping_coeff_expression.Evaluate(Index, current_data_begin,  j);
+                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
+                const IndexType neighbour_data_begin_index = neighbour_id * stride;
+
+                const double origin_value = r_origin_expression.Evaluate(neighbour_id, neighbour_data_begin_index, j);
+                const double damping_coeff = r_damping_coeff_expression.Evaluate(neighbour_id, neighbour_data_begin_index, j);
+
+                current_index_value +=  weight * damping_coeff * origin_value;
+            }
         }
     });
 
@@ -311,6 +328,75 @@ template<class TContainerType>
 ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
     return GenericFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(rContainerExpression);
+}
+
+template<class TContainerType>
+ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::UnfilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    KRATOS_TRY
+
+    using tls = ExplicitFilterHelperUtilities::TLS<TContainerType>;
+
+    CheckField(rContainerExpression);
+
+    const IndexType stride = rContainerExpression.GetItemComponentCount();
+    const auto& r_origin_expression = rContainerExpression.GetExpression();
+    const auto& r_container = rContainerExpression.GetContainer();
+    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
+
+    ContainerExpression<TContainerType> result(*rContainerExpression.pGetModelPart());
+    auto p_expression = LiteralFlatExpression<double>::Create(result.GetContainer().size(), rContainerExpression.GetItemShape());
+    result.SetExpression(p_expression);
+
+    const auto& r_damping_coeff_expression = mpDampingCoefficientContainer->GetExpression();
+
+    IndexPartition<IndexType>(result.GetContainer().size() * stride).for_each([&p_expression](const IndexType Index) {
+        *(p_expression->begin() + Index) = 0.0;
+    });
+
+    IndexPartition<IndexType>(r_container.size()).for_each(tls(mMaxNumberOfNeighbors), [&](const IndexType Index, tls& rTLS){
+        const double radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
+
+        EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
+        const auto number_of_neighbors = mpSearchTree->SearchInRadius(
+                                            entity_point,
+                                            radius,
+                                            rTLS.mNeighbourEntityPoints.begin(),
+                                            rTLS.mResultingSquaredDistances.begin(),
+                                            mMaxNumberOfNeighbors);
+
+        KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
+            << "Maximum number of allowed neighbours reached when searching for neighbours in "
+            << mrModelPart.FullName() << " with radii = " << radius << " [ max number of allowed neighbours = "
+            << mMaxNumberOfNeighbors << " ].\n";
+
+        std::vector<double> list_of_weights(number_of_neighbors, 0.0);
+        double sum_of_weights = 0.0;
+        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, ExplicitFilterHelperUtilities::IntegratedWeight>(
+            sum_of_weights, list_of_weights, *mpKernelFunction, radius,
+            entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+
+        const IndexType current_data_begin = Index * stride;
+
+        for (IndexType j = 0; j < stride; ++j) {
+            const double origin_value = r_origin_expression.Evaluate(Index, current_data_begin, j);
+
+            for(IndexType neighbour_index = 0; neighbour_index < number_of_neighbors; ++neighbour_index) {
+                const double weight = list_of_weights[neighbour_index] / sum_of_weights;
+
+                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
+                const IndexType neighbour_data_begin_index = neighbour_id * stride;
+
+                const double damping_coeff = r_damping_coeff_expression.Evaluate(neighbour_id, neighbour_data_begin_index, j);
+
+                AtomicAdd<double>(*(p_expression->begin() + neighbour_data_begin_index + j), origin_value * weight * damping_coeff);
+            }
+        }
+    });
+
+    return result;
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>

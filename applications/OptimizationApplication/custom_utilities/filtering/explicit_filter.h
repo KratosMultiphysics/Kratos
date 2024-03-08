@@ -78,6 +78,8 @@ public:
 
     ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
+    ContainerExpression<TContainerType> UnfilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+
     void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
 
     std::string Info() const;
@@ -108,6 +110,8 @@ private:
     ///@}
     ///@name Private operations
     ///@{
+
+    void CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     template<class TWeightIntegrationType>
     ContainerExpression<TContainerType> GenericFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
