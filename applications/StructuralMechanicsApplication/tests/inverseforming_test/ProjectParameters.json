@@ -66,7 +66,7 @@
                 "variable_name"   : "DISPLACEMENT",
                 "interval"        : [0.0,"End"],
                 "constrained"     : [false,false,true],
-                "value"           : [null,null,"z"]
+                "value"           : [null,null,"z-Z"]
             }
         }],
         "list_other_processes"     : []

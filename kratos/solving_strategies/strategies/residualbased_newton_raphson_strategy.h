@@ -637,6 +637,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
+        KRATOS_INFO("") << "NewtonRaphsonStrategy Predict()" << std::endl;
         GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         // Applying constraints if needed
@@ -923,6 +924,7 @@ class ResidualBasedNewtonRaphsonStrategy
         EchoInfo(iteration_number);
 
         // Updating the results stored in the database
+        KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "calling UpdateDatabase in SolveSolutionStep" << std::endl;
         UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
@@ -990,6 +992,7 @@ class ResidualBasedNewtonRaphsonStrategy
             EchoInfo(iteration_number);
 
             // Updating the results stored in the database
+            KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy") << "UpdateDatabase in iteration cycle" << std::endl;
             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
@@ -1283,6 +1286,7 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        KRATOS_INFO("NewtonRaphsonStrategy") << "UpdateDatabase of NewtonRaphsonStrategy" << std::endl;
 
         p_scheme->Update(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 

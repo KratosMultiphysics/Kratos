@@ -88,9 +88,12 @@ private:
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
+            KRATOS_WATCH(r_node.FastGetSolutionStepValue(DISPLACEMENT))
+            KRATOS_WATCH(r_node.GetValue(DISPLACEMENT))
 
             disp_non_historical = disp_non_historical + disp;
-            KRATOS_INFO("UpdateDatabase") << "Hello, inside function" << std::endl;
+            KRATOS_WATCH(r_node.GetValue(DISPLACEMENT))
+            KRATOS_INFO("InverseFormingStrategy") << "Hello, inside UpdateDatabase function" << std::endl;
             std::cout << "disp: " << disp << std::endl;
 
             array_1d<double, 3> CurrentCoords;
