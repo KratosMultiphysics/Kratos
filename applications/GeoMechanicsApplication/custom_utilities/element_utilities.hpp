@@ -252,47 +252,36 @@ public:
     template <typename MatrixType1, typename MatrixType2>
     static inline void AssembleUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUBlockMatrix)
     {
-        for (auto i = std::size_t{0}; i < rUBlockMatrix.size1(); ++i) {
-            for (auto j = std::size_t{0}; j < rUBlockMatrix.size2(); ++j) {
-                rLeftHandSideMatrix(i, j) += rUBlockMatrix(i, j);
-            }
-        }
+        constexpr auto row_offset    = std::size_t{0};
+        constexpr auto column_offset = row_offset;
+        AddMatrixAtPosition(rUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double, TDim * TNumNodes, TNumNodes>& rUPBlockMatrix)
     {
-        const auto offset = TNumNodes * TDim;
-        for (auto i = std::size_t{0}; i < rUPBlockMatrix.size1(); ++i) {
-            for (auto j = std::size_t{0}; j < rUPBlockMatrix.size2(); ++j) {
-                rLeftHandSideMatrix(i, j + offset) += rUPBlockMatrix(i, j);
-            }
-        }
+        constexpr auto row_offset    = std::size_t{0};
+        constexpr auto column_offset = TNumNodes * TDim;
+        AddMatrixAtPosition(rUPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double, TNumNodes, TNumNodes * TDim>& rPUBlockMatrix)
     {
-        const auto offset = TNumNodes * TDim;
-        for (auto i = std::size_t{0}; i < rPUBlockMatrix.size1(); ++i) {
-            for (auto j = std::size_t{0}; j < rPUBlockMatrix.size2(); ++j) {
-                rLeftHandSideMatrix(i + offset, j) += rPUBlockMatrix(i, j);
-            }
-        }
+        constexpr auto row_offset    = TNumNodes * TDim;
+        constexpr auto column_offset = std::size_t{0};
+        AddMatrixAtPosition(rPUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rPBlockMatrix)
     {
-        const auto offset = TNumNodes * TDim;
-        for (auto i = std::size_t{0}; i < rPBlockMatrix.size1(); ++i) {
-            for (auto j = std::size_t{0}; j < rPBlockMatrix.size2(); ++j) {
-                rLeftHandSideMatrix(i + offset, j + offset) += rPBlockMatrix(i, j);
-            }
-        }
+        constexpr auto row_offset    = TNumNodes * TDim;
+        constexpr auto column_offset = row_offset;
+        AddMatrixAtPosition(rPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
@@ -637,6 +626,19 @@ private:
     {
         auto pos = rDestinationVector.begin() + Offset;
         std::transform(rSourceVector.begin(), rSourceVector.end(), pos, pos, std::plus<double>{});
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
+                                    MatrixType2&       rDestinationMatrix,
+                                    std::size_t        RowOffset,
+                                    std::size_t        ColumnOffset)
+    {
+        for (auto i = std::size_t{0}; i < rSourceMatrix.size1(); ++i) {
+            for (auto j = std::size_t{0}; j < rSourceMatrix.size2(); ++j) {
+                rDestinationMatrix(i + RowOffset, j + ColumnOffset) += rSourceMatrix(i, j);
+            }
+        }
     }
 
 }; /* Class GeoElementUtilities*/
