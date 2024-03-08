@@ -44,10 +44,12 @@ FilterFunction::FilterFunction(const std::string& rKernelFunctionType)
     } else if (rKernelFunctionType == "sigmoidal") {
         // Type 6: Sigmoidal function
         mFilterFunctional = [](double radius, double distance) {
-                const double limit = std::log1p(std::numeric_limits<double>::max());
-                const double pow_val = std::clamp(-2.0 * std::numeric_limits<double>::max() * (distance - radius), -limit, limit);
-                const auto exp_val = std::exp(pow_val);
-                return exp_val / (1.0 + exp_val);
+                // in the following line, order of multiplication matters. If the max is used in between (not at the
+                // last position of multiplication, then pow_val will be "nan", which is not recognised by the
+                // following clamp method.)
+                const double pow_val = 2.0 * (distance - radius) * std::numeric_limits<double>::max();
+                const double exp_val = std::clamp(std::exp(pow_val), 0.0, std::numeric_limits<double>::max());
+                return 1.0 / (1.0 + exp_val);
             };
     } else {
         // Throw error message in case of wrong specification
