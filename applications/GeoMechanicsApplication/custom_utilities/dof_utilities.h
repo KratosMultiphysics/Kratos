@@ -53,12 +53,6 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(const NodePtrRange& rNodePtrs, co
     return ExtractDofsFromNodes(std::begin(rNodePtrs), std::end(rNodePtrs), rDofVariable);
 }
 
-template <typename NodeRange>
-std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes, std::size_t ModelDimension)
-{
-    return ExtractUPwDofsFromNodes(rNodes, rNodes, ModelDimension);
-}
-
 template <typename NodeRange1, typename NodeRange2>
 std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrderNodes,
                                                   const NodeRange1& rFirstOrderNodes,
@@ -79,6 +73,12 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrder
                          std::back_inserter(result), WATER_PRESSURE);
 
     return result;
+}
+
+template <typename NodeRange>
+std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange& rNodes, std::size_t ModelDimension)
+{
+    return ExtractUPwDofsFromNodes(rNodes, rNodes, ModelDimension);
 }
 
 Vector ExtractSolutionStepValues(const std::vector<Dof<double>*>& rDofs, int BufferIndex);
