@@ -7,7 +7,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 
-class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
+class TestCalculateRomBasisOutputProcessJSON(KratosUnittest.TestCase):
 
     def setUp(self):
         # Test data
@@ -21,9 +21,10 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
         self.model = KratosMultiphysics.Model()
         model_part = self.model.CreateModelPart("MainModelPart")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        n_nodes = 5
+        node_ids_non_ordered = [2,5,12,69,102]
+        n_nodes = len(node_ids_non_ordered)
         for i in range(n_nodes):
-            model_part.CreateNewNode(i+1,float(i),0.0,0.0)
+            model_part.CreateNewNode(node_ids_non_ordered[i],float(i),0.0,0.0)
 
     def testCalculateRomBasisOutputProcess(self):
         # Create a CalculateROMBasisOutputProcess instance
