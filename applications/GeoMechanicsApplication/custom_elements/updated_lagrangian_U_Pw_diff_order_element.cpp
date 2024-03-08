@@ -139,7 +139,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
     MathUtils<double>::ExpandAndAddReducedMatrix(UMatrix, ReducedKgMatrix, Dim);
 
     // Distribute stiffness block matrix into the elemental matrix
-    this->AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix);
+    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix);
 
     KRATOS_CATCH("")
 }

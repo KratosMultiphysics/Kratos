@@ -1749,34 +1749,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
         rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
-    this->AssembleUBlockMatrix(rLeftHandSideMatrix, StiffnessMatrix);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const Matrix& StiffnessMatrix) const
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    SizeType            Index_i, Index_j;
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        Index_i = i * Dim;
-
-        for (SizeType j = 0; j < NumUNodes; ++j) {
-            Index_j = j * Dim;
-
-            for (unsigned int idim = 0; idim < Dim; ++idim) {
-                for (unsigned int jdim = 0; jdim < Dim; ++jdim) {
-                    rLeftHandSideMatrix(Index_i + idim, Index_j + jdim) +=
-                        StiffnessMatrix(Index_i + idim, Index_j + jdim);
-                }
-            }
-        }
-    }
+    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, StiffnessMatrix);
 
     KRATOS_CATCH("")
 }
