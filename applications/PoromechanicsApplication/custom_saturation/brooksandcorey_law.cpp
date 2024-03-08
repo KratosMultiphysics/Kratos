@@ -23,7 +23,7 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     double& rdSldPc = rValues.GetdSldPc();
 
     // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-    rSl = 1.0;
+    rSl = 1.0 - rVariables.Sgr;
     rdSldPc = 0.0;
 
     if(rVariables.pc > rVariables.pb)
@@ -33,9 +33,8 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
                 + rVariables.Slr;
 
         // Derivative of the liquid saturation degree with respect to the capillary pressure
-        rdSldPc = (1.0 - rVariables.Sgr - rVariables.Slr) * 
-                    rVariables.lambda * rVariables.pb * std::pow(rVariables.pb/rVariables.pc,rVariables.lambda-1.0) /
-                    (rVariables.pc * rVariables.pc);
+        rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
+                    std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
     }
 }
 
@@ -45,10 +44,17 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
 {
     double& rkrl = rValues.Getkrl();
 
-    const double nw = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
-
-    rkrl = std::pow(rVariables.Se,nw);
-    rkrl = std::max(rkrl,rVariables.krmin);
+    if (rVariables.Se >= 1.0) {
+        // Fully saturated medium
+        rkrl = 1.0;
+    } else if (rVariables.Se <= 0.0) {
+        // Dry medium
+        rkrl = rVariables.krmin;
+    } else {
+        const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
+        rkrl = std::pow(rVariables.Se,nl);
+        rkrl = std::max(rkrl,rVariables.krmin);
+    }
 }
 
 //------------------------------------------------------------------------------------------------
@@ -56,11 +62,18 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
 void BrooksAndCoreyLaw::CalculateGasRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rkrg = rValues.Getkrg();
-    
-    const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
 
-    rkrg = std::pow(1.0-rVariables.Se,2.0)*(1.0 - std::pow(rVariables.Se,ng));
-    rkrg = std::max(rkrg,rVariables.krmin);
+    if (rVariables.Se >= 1.0) {
+        // Fully saturated medium
+        rkrg = rVariables.krmin;
+    } else if (rVariables.Se <= 0.0) {
+        // Dry medium
+        rkrg = 1.0;
+    } else {
+        const double ng = (2.0 + rVariables.lambda)/rVariables.lambda;
+        rkrg = (1.0-rVariables.Se)*(1.0-rVariables.Se)*(1.0 - std::pow(rVariables.Se,ng));
+        rkrg = std::max(rkrg,rVariables.krmin);
+    }
 }
 
 }

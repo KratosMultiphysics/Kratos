@@ -22,24 +22,26 @@ void VanGenuchtenLaw::CalculateLiquidSaturationDegree (SaturationLawVariables& r
     double& rSl = rValues.GetSl();
     double& rdSldPc = rValues.GetdSldPc();
 
-    // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
-    rSl = 1.0;
+    // If the capillar pressure is lower than 0.0, the porous media is fully saturated with the wetting phase.
+    rSl = 1.0 - rVariables.Sgr;
     rdSldPc = 0.0;
 
-    if(rVariables.pc > rVariables.pb)
+    if(rVariables.pc > 0.0)
     {
         // Liquid saturation degree
         rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(1.0 + std::pow(rVariables.pc/rVariables.pb,1.0/(1.0-rVariables.lambda)),-rVariables.lambda) 
                 + rVariables.Slr;
 
-        // Derivative of the liquid saturation degree with respect to the capillary pressure
-        rdSldPc = (1.0 - rVariables.Sgr - rVariables.Slr)*
-                    rVariables.lambda /
-                    (rVariables.pb *
-                    std::pow(rVariables.pc/rVariables.pb,1.0+1.0/(rVariables.lambda-1.0)) *
-                    (rVariables.lambda - 1.0) *
-                    std::pow(1.0+1.0/(std::pow(rVariables.pc/rVariables.pb,1.0/(rVariables.lambda-1.0))),rVariables.lambda+1.0));
-                
+        if (rSl <= rVariables.Slr) {
+            rSl = rVariables.Slr;
+        } else if (rSl >= 1.0 - rVariables.Sgr) {
+            rSl = 1.0 - rVariables.Sgr;
+        } else {
+            // Derivative of the liquid saturation degree with respect to the capillary pressure
+            rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) *
+                        std::pow(1.0 + std::pow(rVariables.pc/rVariables.pb,1.0/(1.0-rVariables.lambda)),-(rVariables.lambda+1.0)) *
+                        std::pow(std::pow(rVariables.pc,rVariables.lambda)/rVariables.pb,1.0/(1.0-rVariables.lambda))/(1.0-rVariables.lambda);
+        }
     }
 }
 
@@ -49,9 +51,9 @@ void VanGenuchtenLaw::CalculateLiquidRelativePermeability (SaturationLawVariable
 {
     double& rkrl = rValues.Getkrl();
 
-    const double nw = 1.0/rVariables.lambda;
+    const double nl = 1.0/rVariables.lambda;
 
-    rkrl = std::sqrt(rVariables.Se)*std::pow(1.0-std::pow(1.0-std::pow(rVariables.Se,nw),rVariables.lambda),2.0);
+    rkrl = std::sqrt(rVariables.Se)*std::pow(1.0-std::pow(1.0-std::pow(rVariables.Se,nl),rVariables.lambda),2.0);
     rkrl = std::max(rkrl,rVariables.krmin);
 }
 
