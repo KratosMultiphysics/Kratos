@@ -930,7 +930,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
     MathUtils<double>::ExpandAndAddReducedMatrix(UMatrix, ReducedKgMatrix, TDim);
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix, TNumNodes, TDim);
+    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix);
 
     KRATOS_CATCH("")
 }
@@ -1239,7 +1239,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
     noalias(rVariables.UMatrix) = prod(rVariables.UVoigtMatrix, rVariables.B) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.UMatrix);
+    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, rVariables.UMatrix);
 
     KRATOS_CATCH("")
 }

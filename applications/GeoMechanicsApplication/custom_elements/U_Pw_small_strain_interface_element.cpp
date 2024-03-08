@@ -1868,7 +1868,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUBlockMatrix<TDim, TNumNodes>(rLeftHandSideMatrix, rVariables.UMatrix);
+    GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, rVariables.UMatrix);
 
     KRATOS_CATCH("")
 }
