@@ -1,6 +1,6 @@
 {
     "side_bar_name": "kratos_for_developers",
-    "landing_page": "General/Application-Cases.md",
+    "landing_page": "Kratos_Structure/General_Structure.md",
     "additional_menu_options": {
         "product": "For Developers",
         "title": "sidebar"

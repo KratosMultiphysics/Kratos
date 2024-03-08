@@ -18,20 +18,22 @@ namespace Kratos
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                NodesArrayType const& ThisNodes,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                                     pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                GeometryType::Pointer pGeom,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(NewId, pGeom, pProperties));
+    return Element::Pointer(
+        new SteadyStatePwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -41,7 +43,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     KRATOS_TRY
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const GeometryType&   Geom = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
@@ -132,8 +134,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                         VectorType& rRightHandSideVector,
+void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                         VectorType&        rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo,
                                                          const bool CalculateStiffnessMatrixFlag,
                                                          const bool CalculateResidualVectorFlag)
@@ -141,7 +143,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSi
     KRATOS_TRY
 
     // Previous definitions
-    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
@@ -196,7 +198,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeft
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                ElementVariables& rVariables,
-                                                               unsigned int GPoint)
+                                                               unsigned int      GPoint)
 {
     KRATOS_TRY;
 

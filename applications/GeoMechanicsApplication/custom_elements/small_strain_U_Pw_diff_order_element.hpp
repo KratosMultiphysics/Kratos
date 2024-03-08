@@ -26,8 +26,9 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -42,24 +43,29 @@ public:
     SmallStrainUPwDiffOrderElement();
 
     // Constructor 1
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallStrainUPwDiffOrderElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
     // Constructor 2
-    SmallStrainUPwDiffOrderElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallStrainUPwDiffOrderElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   PropertiesType::Pointer            pProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
     // Destructor
     ~SmallStrainUPwDiffOrderElement() override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -73,8 +79,8 @@ public:
     void ResetConstitutiveLaw() override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -83,7 +89,7 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
@@ -92,41 +98,41 @@ public:
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVariable,
                                       const std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-                                      std::vector<int>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<int>&    rValues,
+                                      const ProcessInfo&   rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      std::vector<ConstitutiveLaw::Pointer>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     // Turn back information as a string.
@@ -150,11 +156,11 @@ public:
 protected:
     struct ElementVariables {
         // Variables at all integration points
-        Matrix NuContainer;
-        Matrix NpContainer;
+        Matrix                                    NuContainer;
+        Matrix                                    NpContainer;
         GeometryType::ShapeFunctionsGradientsType DNu_DXContainer;
         GeometryType::ShapeFunctionsGradientsType DNp_DXContainer;
-        Vector detJuContainer;
+        Vector                                    detJuContainer;
 
         // Variables at each integration point
         Vector Nu;     // Contains the displacement shape functions at every node
@@ -212,21 +218,21 @@ protected:
     // Member Variables
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
     GeometryType::Pointer mpPressureGeometry;
-    std::vector<Vector> mStressVector;
-    std::vector<Vector> mStateVariablesFinalized;
-    bool mIsInitialised = false;
+    std::vector<Vector>   mStressVector;
+    std::vector<Vector>   mStateVariablesFinalized;
+    bool                  mIsInitialised = false;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo,
-                              bool CalculateStiffnessMatrixFlag,
-                              bool CalculateResidualVectorFlag);
+                              bool               CalculateStiffnessMatrixFlag,
+                              bool               CalculateResidualVectorFlag);
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
@@ -243,12 +249,12 @@ protected:
     void CalculateDerivativesOnInitialConfiguration(
         double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
-    void SetConstitutiveParameters(ElementVariables& rVariables,
+    void SetConstitutiveParameters(ElementVariables&            rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
 
     virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                                                    unsigned int PointNumber,
-                                                   double detJ);
+                                                   double       detJ);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -262,9 +268,9 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
+    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
                                        ElementVariables& rVariables,
-                                       unsigned int GPoint);
+                                       unsigned int      GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
@@ -285,29 +291,32 @@ protected:
 
     void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const Matrix& StiffnessMatrix) const;
 
-    virtual void CalculateCauchyAlmansiStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyGreenStrain(ElementVariables& rVariables);
-    virtual void CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
+    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
+    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
 
     virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 
-    void SetRetentionParameters(const ElementVariables& rVariables,
+    void SetRetentionParameters(const ElementVariables&   rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters) const;
 
-    void CalculateRetentionResponse(ElementVariables& rVariables,
+    void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int GPoint);
+                                    unsigned int              GPoint);
 
     void CalculateSoilDensity(ElementVariables& rVariables);
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
+    const StressStatePolicy& GetStressStatePolicy() const;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     // Serialization
 
     friend class Serializer;
@@ -331,6 +340,8 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 
 }; // Class SmallStrainUPwDiffOrderElement
 
