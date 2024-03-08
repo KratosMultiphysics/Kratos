@@ -67,10 +67,26 @@ void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
     KRATOS_ERROR_IF(ierr < 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
 }
 
+bool IsNotPaddingCharacter(std::string::value_type character) noexcept
+{
+    return !(std::isspace(character) || character == '\0');
+}
+
 // The names in the MED-file often have trailing null-chars, which need to be removed
 // this can otherwise make debugging very tricky
-void RemoveTrailingNullChars(std::string& rInput)
+void RemovePadding(std::string& rInput)
 {
+    // Trime left
+    rInput.erase(rInput.begin(),
+                 std::find_if(rInput.begin(),
+                              rInput.end(),
+                              IsNotPaddingCharacter));
+
+    // Trim right
+    rInput.erase(std::find_if(rInput.rbegin(),
+                              rInput.rend(),
+                              IsNotPaddingCharacter).base(),
+                 rInput.end());
     rInput.erase(std::find(rInput.begin(), rInput.end(), '\0'), rInput.end());
 }
 
@@ -330,7 +346,7 @@ auto GetGroupsByFamily(
         // split the goup names
         for (int i = 0; i < num_groups; i++) {
             group_names[i] = c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE);
-            RemoveTrailingNullChars(group_names[i]);
+            RemovePadding(group_names[i]);
         }
 
         groups_by_family[family_number] = std::move(group_names);
@@ -424,7 +440,7 @@ public:
                 axis_unit.data());
             CheckMEDErrorCode(err, "MEDmeshInfo");
 
-            RemoveTrailingNullChars(mMeshName);
+            RemovePadding(mMeshName);
             mDimension = space_dim;
         }
 
@@ -505,19 +521,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     // create SubModelPart hierarchy
     for (auto& r_map : groups_by_fam) {
         for (auto& r_smp_name : r_map.second) {
-            // Trim whitespace from group names
-            // Trime left
-            r_smp_name.erase(r_smp_name.begin(),
-                             std::find_if(r_smp_name.begin(),
-                                          r_smp_name.end(),
-                                          [](std::string::value_type c) {return !std::isspace(c);}));
-
-            // Trim right
-            r_smp_name.erase(std::find_if(r_smp_name.rbegin(),
-                                          r_smp_name.rend(),
-                                          [](std::string::value_type c) {return !std::isspace(c);}).base(),
-                             r_smp_name.end());
-
+            RemovePadding(r_smp_name);
             if (!rThisModelPart.HasSubModelPart(r_smp_name)) {
                 rThisModelPart.CreateSubModelPart(r_smp_name);
             }
