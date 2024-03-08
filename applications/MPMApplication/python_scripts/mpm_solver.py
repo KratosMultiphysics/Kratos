@@ -10,6 +10,7 @@ from KratosMultiphysics.python_solver import PythonSolver
 # Other imports
 from KratosMultiphysics import auxiliary_solver_utilities
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+from KratosMultiphysics.deprecation_management import DeprecationManager
 
 def CreateSolver(model, custom_settings):
     return MPMSolver(model, custom_settings)
@@ -488,6 +489,20 @@ class MPMSolver(PythonSolver):
     def __ImportConstitutiveLaws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
+            # Change deprecated parameter
+            with open(materials_filename, 'r') as parameter_file:
+                materials_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            has_deprecated_param = False
+            for param in materials_parameters["properties"].values():
+                settings = param["Material"]["Variables"]
+                old_name = "PARTICLES_PER_ELEMENT"
+                new_name = "MATERIAL_POINTS_PER_ELEMENT"
+                if DeprecationManager.HasDeprecatedVariable("", settings, old_name, new_name):
+                    DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
+                    has_deprecated_param = True
+            if has_deprecated_param:
+                with open(materials_filename,'w') as parameter_file:
+                    parameter_file.write(materials_parameters.WriteJsonString())
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
