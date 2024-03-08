@@ -38,19 +38,19 @@ OutputIt ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
 }
 
 template <typename InputIt>
-std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodePtrRangeBegin,
-                                               InputIt                 NodePtrRangeEnd,
+std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
+                                               InputIt                 NodeRangeEnd,
                                                const Variable<double>& rDofVariable)
 {
     auto result = std::vector<Dof<double>*>{};
-    ExtractDofsFromNodes(NodePtrRangeBegin, NodePtrRangeEnd, std::back_inserter(result), rDofVariable);
+    ExtractDofsFromNodes(NodeRangeBegin, NodeRangeEnd, std::back_inserter(result), rDofVariable);
     return result;
 }
 
-template <typename NodePtrRange>
-std::vector<Dof<double>*> ExtractDofsFromNodes(const NodePtrRange& rNodePtrs, const Variable<double>& rDofVariable)
+template <typename NodeRange>
+std::vector<Dof<double>*> ExtractDofsFromNodes(const NodeRange& rNodes, const Variable<double>& rDofVariable)
 {
-    return ExtractDofsFromNodes(std::begin(rNodePtrs), std::end(rNodePtrs), rDofVariable);
+    return ExtractDofsFromNodes(std::begin(rNodes), std::end(rNodes), rDofVariable);
 }
 
 template <typename NodeRange1, typename NodeRange2>
