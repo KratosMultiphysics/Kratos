@@ -637,7 +637,7 @@ public:
         C.set_filled(NRows+1, nonzero_values);
     }
 
-    /// @brief Value type of sparse row iterator @ref IndexValuePairIterator.
+        /// @brief Value type of sparse row iterator @ref IndexValuePairIterator.
     /// @details This class is only meant to support sorting the rows of sparse matrices
     ///          in-place. It stores a pointer to a component in the matrix and its column
     ///          index, and provides operators used in sorting algorithms.
@@ -645,27 +645,56 @@ public:
     class IndexValuePair
     {
     public:
-        IndexValuePair(TColumn* pColumn, TValue* pValue) noexcept
-            : mpIndex(pColumn),
-              mpValue(pValue)
+        IndexValuePair(TColumn* pIndex, TValue* pValue) noexcept
+            : mpIndex(pIndex),
+              mpValue(pValue),
+              mIndex(*pIndex),
+              mValue(*pValue)
         {}
+
+        IndexValuePair(IndexValuePair&& rOther) noexcept
+            : mpIndex(nullptr),
+              mpValue(nullptr),
+              mIndex(rOther.mIndex),
+              mValue(rOther.mValue)
+        {}
+
+        IndexValuePair(const IndexValuePair&) = delete;
+
+        IndexValuePair& operator=(IndexValuePair&& rOther) noexcept
+        {
+
+            mIndex = rOther.mIndex;
+            mValue = rOther.mValue;
+            if (mpIndex != nullptr) {
+                *mpIndex = mIndex;
+                *mpValue = mValue;
+            }
+            return *this;
+        }
+
+        IndexValuePair& operator=(const IndexValuePair&) = delete;
 
         friend void swap(IndexValuePair Left, IndexValuePair Right) noexcept
         {
-            std::swap(*Left.mpIndex, *Right.mpIndex);
-            std::swap(*Left.mpValue, *Right.mpValue);
+            if (Left.mpIndex != nullptr && Right.mpIndex != nullptr) {
+                    std::swap(*Left.mpIndex, *Right.mpIndex);
+                    std::swap(*Left.mpValue, *Right.mpValue);
+            }
+            std::swap(Left.mIndex, Right.mIndex);
+            std::swap(Left.mValue, Right.mValue);
         }
 
-        friend bool operator==(IndexValuePair Left, IndexValuePair Right) noexcept {return *Left.mpIndex == *Right.mpIndex;}
-
-        friend bool operator!=(IndexValuePair Left, IndexValuePair Right) noexcept {return *Left.mpIndex != *Right.mpIndex;}
-
-        friend bool operator<(IndexValuePair Left, IndexValuePair Right) noexcept {return *Left.mpIndex < *Right.mpIndex;}
+        friend bool operator<(const IndexValuePair& rLeft, const IndexValuePair& rRight) noexcept {return rLeft.mIndex < rRight.mIndex;}
 
     private:
         TColumn* mpIndex;
 
         TValue* mpValue;
+
+        TColumn mIndex;
+
+        TValue mValue;
     }; // class IndexValuePair
 
     /// @brief Iterator to support sorting rows in a sparse matrix.
@@ -675,16 +704,16 @@ public:
     public:
         using value_type = IndexValuePair<TColumn,TValue>;
 
-        using reference = value_type&;
+        using reference = value_type;
 
-        using pointer = value_type*;
+        using pointer = value_type;
 
         using difference_type = std::ptrdiff_t;
 
         using iterator_category = std::random_access_iterator_tag;
 
-        IndexValuePairIterator(TColumn* pColumn, TValue* pValue) noexcept
-            : mpIndex(pColumn),
+        IndexValuePairIterator(TColumn* pIndex, TValue* pValue) noexcept
+            : mpIndex(pIndex),
               mpValue(pValue)
         {}
 
@@ -698,19 +727,19 @@ public:
 
         IndexValuePairIterator& operator++() noexcept {++mpIndex; ++mpValue; return *this;}
 
-        IndexValuePairIterator operator++(int) noexcept {IndexValuePairIterator copy=*this; ++(*this); return copy;}
+        IndexValuePairIterator operator++(int) noexcept {IndexValuePairIterator copy(mpIndex, mpValue); ++(*this); return copy;}
 
         IndexValuePairIterator& operator--() noexcept {--mpIndex; --mpValue; return *this;}
 
-        IndexValuePairIterator operator--(int) noexcept {IndexValuePairIterator copy=*this; --(*this); return copy;}
+        IndexValuePairIterator operator--(int) noexcept {IndexValuePairIterator copy(mpIndex, mpValue); --(*this); return copy;}
 
         IndexValuePairIterator& operator+=(difference_type Offset) noexcept {mpIndex+=Offset; mpValue+=Offset; return *this;}
 
         IndexValuePairIterator& operator-=(difference_type Offset) noexcept {mpIndex-=Offset; mpValue-=Offset; return *this;}
 
-        friend IndexValuePairIterator operator+(IndexValuePairIterator Left, difference_type Right) noexcept {return Left+=Right;}
+        friend IndexValuePairIterator operator+(IndexValuePairIterator Left, difference_type Right) noexcept {IndexValuePairIterator copy=Left; copy+=Right; return copy;}
 
-        friend IndexValuePairIterator operator-(IndexValuePairIterator Left, difference_type Right) noexcept {return Left-=Right;}
+        friend IndexValuePairIterator operator-(IndexValuePairIterator Left, difference_type Right) noexcept {IndexValuePairIterator copy=Left; copy-=Right; return copy;}
 
         friend difference_type operator-(IndexValuePairIterator Left, IndexValuePairIterator Right) noexcept {return Left.mpIndex - Right.mpIndex;}
 
