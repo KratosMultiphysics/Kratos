@@ -203,7 +203,7 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
 
         filtered_field = self.solid_scalar_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 3.741657, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 3.741657, 4)
 
         for node in self.solid_scalar_model_part.Nodes:
             node.SetValue(KM.NODAL_VOLUME, 0)
@@ -216,9 +216,9 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.VariableExpressionIO.Read(nodal_volume, KM.NODAL_VOLUME, False)
 
         filtered_field = self.solid_scalar_filter.FilterIntegratedField(nodal_volume)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 3.741657, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 3.741657, 4)
         filtered_field = self.solid_scalar_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 3.741657, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 3.741657, 4)
 
         self.solid_scalar_filter.Finalize()
 
@@ -233,7 +233,7 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
 
         filtered_field = self.solid_vector_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.48074, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.48074, 4)
 
         for node in self.solid_vector_model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -248,9 +248,9 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.VariableExpressionIO.Read(nodal_volume, KM.VELOCITY, False)
 
         filtered_field = self.solid_vector_filter.FilterIntegratedField(nodal_volume)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.48074, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.48074, 4)
         filtered_field = self.solid_vector_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.48074, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.48074, 4)
 
     def test_scalar_closed_shell_filter(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -263,7 +263,7 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
 
         filtered_field = self.closed_shell_scalar_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 2.8284271247, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 2.8284271247, 4)
 
         for node in self.closed_shell_model_part.Nodes:
             node.SetValue(KM.NODAL_AREA, 0)
@@ -276,9 +276,9 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.VariableExpressionIO.Read(nodal_area, KM.NODAL_AREA, False)
 
         filtered_field = self.closed_shell_scalar_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 2.8284271247, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 2.8284271247, 4)
         filtered_field = self.closed_shell_scalar_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 2.8284271247, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 2.8284271247, 4)
 
     def test_vector_shell_filter(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -292,10 +292,10 @@ class HelmholtzAnalysisTest(TestCase):
 
         filtered_field = self.shell_vector_filter.UnFilterField(unfiltered_uniform_field_nodal)
         filtered_field = self.shell_vector_filter.FilterField(filtered_field)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.196153341144455, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.196153341144455, 4)
 
         filtered_field = self.shell_vector_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.1961524, 4)
 
         for node in self.shell_model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -310,7 +310,7 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.VariableExpressionIO.Read(nodal_area, KM.VELOCITY, False)
 
         filtered_field = self.shell_vector_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.196118198546968, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.196118198546968, 4)
 
     def test_bulk_surface_shape(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -323,7 +323,7 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
 
         filtered_field = self.bulk_surface_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
 
         for node in self.solid_bulk_surface_model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -338,9 +338,9 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.VariableExpressionIO.Read(nodal_area, KM.VELOCITY, False)
 
         filtered_field = self.bulk_surface_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
         filtered_field = self.bulk_surface_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
 
 
 if __name__ == '__main__':

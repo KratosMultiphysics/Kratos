@@ -6,6 +6,39 @@ import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
 class TestSympyFEUtilities(KratosUnittest.TestCase):
 
+    def testDefineShapeFunctions1(self):
+        n_dim = 2
+        n_nodes = 3
+        partition_of_unity = False
+        N, DN = KratosSympy.DefineShapeFunctions(n_nodes, n_dim, partition_of_unity)
+
+        for i in range(n_nodes):
+            self.assertEqual(N[i], sympy.var(f"N_{i}"))
+            for j in range(n_dim):
+                self.assertEqual(DN[i,j], sympy.var(f"DN_{i}_{j}"))
+
+    def testDefineTestFunctions2(self):
+        n_dim = 2
+        n_nodes = 3
+        N, DN = KratosSympy.DefineShapeFunctions(n_nodes, n_dim, shape_functions_name="my_N", first_derivatives_name="my_DN")
+
+        for i in range(n_nodes):
+            self.assertEqual(N[i], sympy.var(f"my_N_{i}"))
+            for j in range(n_dim):
+                self.assertEqual(DN[i,j], sympy.var(f"my_DN_{i}_{j}"))
+
+    def testDefineTestFunctions3(self):
+        n_dim = 2
+        n_nodes = 6
+        N, DN, DDN = KratosSympy.DefineShapeFunctions(n_nodes, n_dim, shape_functions_name="my_N", first_derivatives_name="my_DN", second_derivatives_name="my_DDN")
+
+        for i in range(n_nodes):
+            self.assertEqual(N[i], sympy.var(f"my_N_{i}"))
+            for j in range(n_dim):
+                self.assertEqual(DN[i,j], sympy.var(f"my_DN_{i}_{j}"))
+                for k in range(n_dim):
+                    self.assertEqual(DDN[i][j,k], sympy.var(f"my_DDN_{i}_{j}_{k}"))
+
     def testConvertVoigtMatrixToTensor2D(self):
         dim = 2
         C_voigt = sympy.Matrix([
@@ -72,6 +105,26 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
         matrix_voigt = KratosSympy.MatrixToVoigt(matrix)
         self._AuxCheckToVoigtResults(6, lambda i,j : 1.0, matrix, matrix_voigt)
 
+    def testVoigtToMatrix2D(self):
+        vector_voigt = sympy.Matrix([1.0,2.0,3.0])
+        matrix = KratosSympy.VoigtToMatrix(vector_voigt)
+        self._AuxCheckToMatrixResults(2, lambda i : 1.0, vector_voigt, matrix)
+
+    def testVoigtToMatrix3D(self):
+        vector_voigt = sympy.Matrix([1.0,2.0,3.0,4.0,5.0,6.0])
+        matrix = KratosSympy.VoigtToMatrix(vector_voigt)
+        self._AuxCheckToMatrixResults(3, lambda i : 1.0, vector_voigt, matrix)
+
+    def testStrainToMatrix2D(self):
+        strain_voigt = sympy.Matrix([1.0,2.0,3.0])
+        strain_matrix = KratosSympy.StrainToMatrix(strain_voigt)
+        self._AuxCheckToMatrixResults(2, lambda i : 1.0 if i < 2 else 0.5, strain_voigt, strain_matrix)
+
+    def testStrainToMatrix3D(self):
+        strain_voigt = sympy.Matrix([1.0,2.0,3.0,4.0,5.0,6.0])
+        strain_matrix = KratosSympy.StrainToMatrix(strain_voigt)
+        self._AuxCheckToMatrixResults(3, lambda i : 1.0 if i < 3 else 0.5, strain_voigt, strain_matrix)
+
     def _AuxCheckToVoigtResults(self, strain_size, factor_calculator, reference, voigt_output):
         dim = 2 if strain_size == 3 else 3
         aux_indices = KratosSympy._GetVoigtToTensorConversionIndices(strain_size)
@@ -79,6 +132,13 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
             for j in range(dim):
                 factor = factor_calculator(i,j)
                 self.assertEqual(voigt_output[aux_indices[(i, j)]], factor * reference[i,j])
+
+    def _AuxCheckToMatrixResults(self, dimension, factor_calculator, reference, matrix_output):
+        strain_size = 3 if dimension == 2 else 6
+        aux_indices = KratosSympy._GetTensorToVoigtConversionIndices(dimension)
+        for i in range(strain_size):
+            factor = factor_calculator(i)
+            self.assertEqual(matrix_output[aux_indices[i][0],aux_indices[i][1]], factor * reference[i])
 
     def testDoubleContraction(self):
         A_2nd_order = sympy.Matrix([
@@ -141,6 +201,40 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
         ])
 
         self.assertEqual(code, expected_code)
+
+    def testListOfMatricesOutput(self):
+        x = sympy.Matrix(1,2, lambda _, j : (sympy.Matrix(3,3, lambda m, n : sympy.var(f"x_{j}_{m}_{n}"))))
+
+        code_0 = KratosSympy.OutputMatrix(x[0], "f0", "c", 0, False, " = ")
+        code_1 = KratosSympy.OutputMatrix(x[1], "f1", "c", 0, False, " = ")
+
+        expected_code_0 = "\n".join([
+            "f0(0,0) = x_0_0_0;",
+            "f0(0,1) = x_0_0_1;",
+            "f0(0,2) = x_0_0_2;",
+            "f0(1,0) = x_0_1_0;",
+            "f0(1,1) = x_0_1_1;",
+            "f0(1,2) = x_0_1_2;",
+            "f0(2,0) = x_0_2_0;",
+            "f0(2,1) = x_0_2_1;",
+            "f0(2,2) = x_0_2_2;",
+            ""
+        ])
+        expected_code_1 = "\n".join([
+            "f1(0,0) = x_1_0_0;",
+            "f1(0,1) = x_1_0_1;",
+            "f1(0,2) = x_1_0_2;",
+            "f1(1,0) = x_1_1_0;",
+            "f1(1,1) = x_1_1_1;",
+            "f1(1,2) = x_1_1_2;",
+            "f1(2,0) = x_1_2_0;",
+            "f1(2,1) = x_1_2_1;",
+            "f1(2,2) = x_1_2_2;",
+            ""
+        ])
+
+        self.assertEqual(code_0, expected_code_0)
+        self.assertEqual(code_1, expected_code_1)
 
     def testOutputSymbolicVariableDeclaration(self):
         x = sympy.var('x')

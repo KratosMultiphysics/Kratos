@@ -1,6 +1,7 @@
 Language: Cpp
 AccessModifierOffset: -4
 AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
 AlignEscapedNewlines: Left
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
@@ -36,6 +37,7 @@ PenaltyBreakFirstLessLess: 300
 PenaltyExcessCharacter: 1
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
+SeparateDefinitionBlocks: Always
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false
