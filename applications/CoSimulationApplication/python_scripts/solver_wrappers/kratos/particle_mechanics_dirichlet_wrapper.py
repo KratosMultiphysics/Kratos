@@ -2,7 +2,6 @@ import KratosMultiphysics
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
-from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos.mpm_dirichlet_wrapper import MPMDirichletWrapper
 
 # Importing MPM
