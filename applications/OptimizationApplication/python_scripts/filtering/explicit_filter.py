@@ -102,6 +102,9 @@ class ExplicitFilter(Filter):
     def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         return self.filter.UnfilterField(filtered_field)
 
+    def UnfilterIntegratedField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        return self.filter.UnfilterIntegratedField(filtered_field)
+
     def _GetFilterRadiusExpression(self, filter_radius_settings: Kratos.Parameters) -> ContainerExpressionTypes:
         if not filter_radius_settings.Has("filter_radius_type"):
             raise RuntimeError(f"\"filter_radius_type\" not specified in the following settings:\n{filter_radius_settings}")

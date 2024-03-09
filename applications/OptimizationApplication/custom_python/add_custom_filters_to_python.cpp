@@ -43,6 +43,7 @@ void AddExplicitFilter(
         .def("FilterField", &ExplicitFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
         .def("FilterIntegratedField", &ExplicitFilter<TContainerType>::FilterIntegratedField, py::arg("unfiltered_field"))
         .def("UnfilterField", &ExplicitFilter<TContainerType>::UnfilterField, py::arg("filtered_field"))
+        .def("UnfilterIntegratedField", &ExplicitFilter<TContainerType>::UnfilterIntegratedField, py::arg("filtered_field"))
         .def("GetFilterRadius", &ExplicitFilter<TContainerType>::GetFilterRadius)
         .def("GetDampingCoefficients", &ExplicitFilter<TContainerType>::GetDampingCoefficients)
         .def("GetIntegrationWeights", &ExplicitFilter<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
