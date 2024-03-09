@@ -65,7 +65,9 @@ The following pictures show water pressure and displacement for each stage.
 
 ## Assertions
 
-The test asserts that the vertical distribution of pressure matches the given Terzaghi solution at all nodes at the end of every stage.
+The test asserts that at the end of each stage 
+-  the vertical distribution of pressure matches the given Terzaghi solution at all nodes,
+-  the total deformation.
 
 ## Bibliography
 Verruijt, A., 2001. [Soil Mechanics](https://ocw.tudelft.nl/wp-content/uploads/SoilMechBook.pdf). Delft University of Technology.
