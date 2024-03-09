@@ -252,8 +252,7 @@ void ExplicitFilterUtils<TContainerType>::CheckField(const ContainerExpression<T
 }
 
 template<class TContainerType>
-template<class TWeightIntegrationType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::ForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
     KRATOS_TRY
 
@@ -290,7 +289,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
-        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, TWeightIntegrationType>(
+        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, ExplicitFilterHelperUtilities::IntegratedWeight>(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
             entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
@@ -316,7 +315,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 }
 template<class TContainerType>
 template<class TWeightIntegrationType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericUnfilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
     KRATOS_TRY
 
@@ -385,27 +384,15 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    return GenericFilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(rContainerExpression);
+    return GenericBackwardFilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(rContainerExpression);
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    return GenericFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(rContainerExpression);
-}
-
-template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::UnfilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
-{
-    return GenericUnfilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(rContainerExpression);
-}
-
-template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::UnfilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
-{
-    return GenericUnfilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(rContainerExpression);
+    return GenericBackwardFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(rContainerExpression);
 }
 
 template<class TContainerType>
@@ -453,8 +440,8 @@ std::string ExplicitFilterUtils<TContainerType>::Info() const
 // template instantiations
 #define KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(CONTAINER_TYPE)                                                                                                                                                      \
     template class ExplicitFilterUtils<CONTAINER_TYPE>;                                                                                                                                                                        \
-    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericFilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(const ContainerExpression<CONTAINER_TYPE>&) const;     \
-    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(const ContainerExpression<CONTAINER_TYPE>&) const;
+    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(const ContainerExpression<CONTAINER_TYPE>&) const;     \
+    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(const ContainerExpression<CONTAINER_TYPE>&) const;
 
 KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::NodesContainerType)
 KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::ConditionsContainerType)

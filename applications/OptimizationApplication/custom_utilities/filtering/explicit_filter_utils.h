@@ -72,16 +72,50 @@ public:
 
     ContainerExpression<TContainerType> GetDampingCoefficients() const;
 
+    /**
+     * @brief Updates the internal KD trees or searching neghbours
+     *
+     */
     void Update();
 
-    ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    /**
+     * @brief Filters the given input.
+     * @details This method filters the given control space mesh-independent input field using the following formulae where
+     *          \f$\tilde{\underline{s}}\f$ represents the control space variables,
+     *          \f$\underline{s}\f$ represents the physical space variables, \f$\mathbf{D}\f$ is
+     *          the damping matrix and \f$\mathbf{A}\f$ is the smoothing matrix.
+     *          \f[
+     *              \Delta \underline{s} = \mathbf{D}\mathbf{A}\Delta \tilde{\underline{s}}
+     *          \f]
+     *
+     * @param rContainerExpression  mesh-independent update field in control space.
+     * @return ContainerExpression<TContainerType> Filtered/Smoothened mesh-independent update field in physical space
+     */
+    ContainerExpression<TContainerType> ForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    /**
+     * @brief Filters the given mesh-independent physical space gradients to mesh-independent control space gradients.
+     * @details This method transforms physical space gradients to control space gradients
+     *          by using the transpose of the @ref ForwardFilterField method.
+     *
+     * @param rContainerExpression  Mesh-independent physical space gradient.
+     * @return ContainerExpression<TContainerType> Mesh-independent control space gradient.
+     */
+    ContainerExpression<TContainerType> BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    ContainerExpression<TContainerType> UnfilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    /**
+     * @brief Filters the given mesh-dependent physical space gradients to mesh-independent control space gradients.
+     * @details This method transforms physical space gradients to control space gradients
+     *          by using the transpose of the @ref ForwardFilterField method.
+     *
+     * @param rContainerExpression  Mesh-dependent physical space gradient.
+     * @return ContainerExpression<TContainerType> Mesh-independent control space gradient.
+     */
+    ContainerExpression<TContainerType> BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    ContainerExpression<TContainerType> UnfilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
-
+    /**
+     * @brief Get the Integration Weights object
+     */
     void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
 
     std::string Info() const;
@@ -116,10 +150,7 @@ private:
     void CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     template<class TWeightIntegrationType>
-    ContainerExpression<TContainerType> GenericFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
-
-    template<class TWeightIntegrationType>
-    ContainerExpression<TContainerType> GenericUnfilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    ContainerExpression<TContainerType> GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     ///@}
 };
