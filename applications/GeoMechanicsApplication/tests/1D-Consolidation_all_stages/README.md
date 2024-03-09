@@ -55,7 +55,7 @@ Analysis stages are chosen such that at the end times of the stages and the corr
 | 8640000.0        | 10.0                |
 
 
-##Solution
+## Solution
 
 The following pictures show water pressure and displacement for each stage.
 
