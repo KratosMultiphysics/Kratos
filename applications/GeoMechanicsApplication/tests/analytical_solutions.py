@@ -1,6 +1,6 @@
-def calculate_1D_consolidation(y_coord, H, T_v):
+def calculate_pore_pressure_1D_consolidation(y_coord, H, T_v):
     """
-    Calculates the analytical solution for 1d consolidation on linear elastic soil [@@ref@@]
+    Calculates the analytical solution for water pressure in 1d consolidation on linear elastic soil [@@ref@@]
 
     :param y_coord: vertical coordinate
     :param H: sample height
@@ -29,6 +29,36 @@ def calculate_1D_consolidation(y_coord, H, T_v):
 
     rel_p = 4.0 / pi * rel_p
     return rel_p
+    
+def calculate_total_deformation_1D_consolidation(H, T_v):
+    """
+    Calculates the analytical solution for total deformation in 1d consolidation on linear elastic soil [@@ref@@]
+
+    :param H: sample height
+    :param T_v:  dimensionless time factor
+    :return: relative deformation
+    """
+    from math import fabs, pi, exp
+
+    convergence_criterion = 1e-10
+
+    j = 1
+    rel_d_old = 1
+    rel_d = 0
+    max_iterations = 1001
+    min_iterations=20
+    min_iterations_reached = False
+    while fabs(rel_d_old - rel_d) > convergence_criterion and j < max_iterations or not min_iterations_reached:
+
+        rel_d_old = rel_d
+        rel_d = 1 / (2 * j - 1) ** 2 * exp(-1 * (2 * j - 1) ** 2 * pi ** 2 / 4 * T_v) + rel_d_old
+        j += 1
+
+        if (j > min_iterations):
+            min_iterations_reached = True
+
+    rel_d = 1.0 - 8.0 / (pi * pi) * rel_d
+    return rel_d
 
 def calculate_max_deflections_ring(force, r, young, m_inertia):
     """
