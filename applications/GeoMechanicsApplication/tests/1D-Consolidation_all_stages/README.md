@@ -34,9 +34,9 @@ $$ p = \frac{4 p_0}{\pi} \sum_{j=1}^{\infty} \frac{(-1)^{j-1}}{2j-1} cos((2j-1) 
 
 The degree of consolidation is defined as
 $$U=\frac{\Delta h - \Delta h_0}{\Delta h_\infty - \Delta h_0}$$ where
-$$\Delta h_0=m_v h q\frac{n\betta}{m_v+n\betta}$$, $$\Delta h_\infty=m_v h q$$.
+$\Delta h_0=m_v h q\frac{n\beta}{m_v+n\beta}$, $\Delta h_\infty=m_v h q$.
 
-$$U=1-\frac{8}{\pi^2} \sum_{j=1}^{\infty} \frac{1}}{(2j-1)^2} exp(-(2j-1)^2 \frac{\pi^2 c_v t}{4 h^2}) $$
+$$U=1-\frac{8}{\pi^2} \sum_{j=1}^{\infty} \frac{1}{(2j-1)^2} exp(-(2j-1)^2 \frac{\pi^2 c_v t}{4 h^2})$$
 
 Analysis stages are chosen such that at the end times of the stages and the corresponding dimensionless time parameter $\frac{c_v t}{h^2}$ follows the pattern of the table below.
 
@@ -54,7 +54,10 @@ Analysis stages are chosen such that at the end times of the stages and the corr
 | 4320000.0        | 5.0                 |
 | 8640000.0        | 10.0                |
 
+
 ##Solution
+
+The following pictures show water pressure and displacement for each stage.
 
 ![WaterPressure](water_pressure.svg)
 
