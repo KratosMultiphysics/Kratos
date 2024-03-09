@@ -616,8 +616,8 @@ private:
     template <typename VectorType1, typename VectorType2>
     static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
     {
-        auto pos = rDestinationVector.begin() + Offset;
-        std::transform(rSourceVector.begin(), rSourceVector.end(), pos, pos, std::plus<double>{});
+        auto pos = std::begin(rDestinationVector) + Offset;
+        std::transform(std::begin(rSourceVector), std::end(rSourceVector), pos, pos, std::plus<double>{});
     }
 
     template <typename MatrixType1, typename MatrixType2>
