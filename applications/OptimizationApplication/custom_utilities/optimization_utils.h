@@ -70,6 +70,21 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
+    template<class TContainerType>
+    static const TContainerType& GetContainer(const ModelPart& rModelPart)
+    {
+        if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+            return rModelPart.Nodes();
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+            return rModelPart.Conditions();
+        } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+            return rModelPart.Elements();
+        } else {
+            static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported TContainerType");
+            return TContainerType{};
+        }
+    }
+
     ///@}
 };
 
