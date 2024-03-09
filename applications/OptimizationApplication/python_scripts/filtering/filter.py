@@ -90,7 +90,7 @@ class Filter(abc.ABC):
 
     @abc.abstractmethod
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        """Returns control space gradient from mesh-independent physical space gradient.
+        """Returns mesh-independent control space gradient from mesh-independent physical space gradient.
 
         This method filters the passed mesh-independent input field. This is not the inverse
         operator, it uses the transpose of the ForwardFilterField matrix.
@@ -105,7 +105,7 @@ class Filter(abc.ABC):
 
     @abc.abstractmethod
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        """Returns control space gradient from mesh-dependent physical space gradient.
+        """Returns mesh-independent control space gradient from mesh-dependent physical space gradient.
 
         This method filters the passed mesh-dependent input field. This is not the inverse
         operator, it uses the transpose of the ForwardFilterField matrix.
