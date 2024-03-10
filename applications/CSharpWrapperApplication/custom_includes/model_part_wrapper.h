@@ -69,6 +69,10 @@ namespace CSharpKratosWrapper {
 
         int getTrianglesCount();
 
+        int* getKratosNodesIdSubModelPart(char* name);
+
+        int getKratosIdsCountSubModelPart(char* name);
+
         /**
          * Fixes and updates DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
          * @param nodeId Surface id of the node to update
@@ -77,6 +81,22 @@ namespace CSharpKratosWrapper {
          * @param z Z coordinate
          */
         void updateNodePos(const int nodeId, const float x, const float y, const float z);
+
+        /**
+         * Fixes and updates DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
+         * @param nodeId Kratos id of the node to update
+         * @param x X coordinate
+         * @param y Y coordinate
+         * @param z Z coordinate
+         */
+        void updateNodePosKratosId(const int nodeId, const float x, const float y, const float z);
+
+        /**
+         * Update pressure of fixed nodes
+         * @param nodeId Surface id of the node to update
+         * @param nodePressure pressure value
+         */
+        void updateNodePressure(const int nodeId, float nodePressure);
 
         /**
          * Extracts new node positions and stress values

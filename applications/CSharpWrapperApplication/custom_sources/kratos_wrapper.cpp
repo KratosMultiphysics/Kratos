@@ -51,6 +51,74 @@ void KratosWrapper::init(const char *MDPAFilePath, const char *JSONFilePath) {
 
 }
 
+void KratosWrapper::initConvDiff(const char* MDPAFilePath, const char* JSONFilePath) {
+    // Init internals
+    mKratosInternals.initInternals();
+    mKratosInternals.initInternalsConvDiff();
+
+    // Load settings
+    const std::string json_file_name = JSONFilePath != NULL ? std::string(JSONFilePath) : "";
+    mKratosInternals.loadSettingsParameters(json_file_name);
+
+    // Init model part
+    mKratosInternals.initModelPart();
+
+    // Load MDPA file
+    mKratosInternals.loadMDPA(std::string(MDPAFilePath));
+
+    // Init dofs
+    mKratosInternals.initDofs();
+
+    // Read properties and materials
+    mKratosInternals.initProperties();
+
+    // Init solver
+    mKratosInternals.initSolverConvDiff();
+
+    // Create modelPart wrapper
+    pmMainModelPartWrapper = new ModelPartWrapper(mKratosInternals.GetMainModelPart(), mFixedNodes);
+
+}
+
+void KratosWrapper::initRom(const char* MDPAFilePath, const char* JSONFilePath, const char* JSONRomFilePath) {
+    // Init internals
+    mKratosInternals.initInternals();
+    mKratosInternals.initInternalsRom();
+
+    // Load settings
+    const std::string json_file_name = JSONFilePath != NULL ? std::string(JSONFilePath) : "";
+    mKratosInternals.loadSettingsParameters(json_file_name);
+
+    // Load Rom
+    const std::string json_file_rom_name = JSONRomFilePath != NULL ? std::string(JSONRomFilePath) : "";
+    mKratosInternals.loadRomParameters(json_file_rom_name);
+
+    // Init model part
+    mKratosInternals.initModelPart();
+
+    // Load MDPA file
+    mKratosInternals.loadMDPA(std::string(MDPAFilePath));
+
+    // Init dofs
+    mKratosInternals.initDofs();
+
+    // Read properties and materials
+    mKratosInternals.initProperties();
+    
+    // Init solver
+    mKratosInternals.initSolverRom();
+
+    //Init ROM geometry
+    mKratosInternals.initRomGeometry();
+
+
+    // Create modelPart wrapper
+    pmMainModelPartWrapper = new ModelPartWrapper(mKratosInternals.GetMainModelPart(), mFixedNodes);
+
+}
+
+
+
 void KratosWrapper::initWithSettings(const char *JSONFilePath) {
     // Init internals
     mKratosInternals.initInternals();

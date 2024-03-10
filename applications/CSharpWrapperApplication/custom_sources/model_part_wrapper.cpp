@@ -12,6 +12,7 @@
 //   license: CSharpWrapperApplication/license.txt
 //
 //  Main authors:    Hubert Balcerzak
+//                   Oscar de Coss Henning
 
 // System includes
 #include <cstdlib>
@@ -53,7 +54,7 @@ int *ModelPartWrapper::getTriangles() {
     int *triangles = new int[mTrianglesCount * 3];
     for (int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
         auto it_condition = it_condition_begin + i;
-        auto geometry = it_condition->GetGeometry();
+        auto &geometry = it_condition->GetGeometry();
 
         for (int j = 0; j < 3; j++) {
             triangles[3 * i + j] = idTranslator.getSurfaceId(geometry.GetPoint(j).Id());
@@ -93,6 +94,41 @@ void ModelPartWrapper::updateNodePos(const int nodeId, const float x, const floa
 
     // Adding to the database of fixed nodes
     mFixedNodes.push_back(p_node);
+}
+
+void ModelPartWrapper::updateNodePosKratosId(const int nodeId, const float x, const float y, const float z) {
+
+    // Get node
+    NodeType::Pointer p_node = mModelPart.pGetNode(nodeId);
+
+    // Fix nodes
+    p_node->Fix(Kratos::DISPLACEMENT_X);
+    p_node->Fix(Kratos::DISPLACEMENT_Y);
+    p_node->Fix(Kratos::DISPLACEMENT_Z);
+
+    // Arrays
+    Kratos::array_1d<double, 3>& r_displacement = p_node->FastGetSolutionStepValue(Kratos::DISPLACEMENT);
+
+    // Update displacement
+    r_displacement[0] = x ;
+    r_displacement[1] = y ;
+    r_displacement[2] = z ;
+
+    // Adding to the database of fixed nodes
+    mFixedNodes.push_back(p_node);
+}
+
+void ModelPartWrapper::updateNodePressure(const int nodeId, const float nodePressure) {
+
+    // Get node
+    NodeType::Pointer p_node = mModelPart.pGetNode(idTranslator.getKratosId(nodeId));
+
+    //Arrays
+    double& r_pressure = p_node->FastGetSolutionStepValue(Kratos::POSITIVE_FACE_PRESSURE);
+
+    //Update pressure
+    r_pressure = nodePressure;
+
 }
 
 void ModelPartWrapper::initialize() {
@@ -141,6 +177,7 @@ void ModelPartWrapper::saveTriangles(MeshConverter &meshConverter) {
     mTrianglesCount = faces.size();
     pmTriangles = new int[mTrianglesCount * 3];
 
+    int conditionCount = mModelPart.GetRootModelPart().Conditions().size();
 
     for (int i = 0; i < mTrianglesCount; i++) {
         std::vector<Kratos::IndexType> nodes;
@@ -150,7 +187,7 @@ void ModelPartWrapper::saveTriangles(MeshConverter &meshConverter) {
             rSkinModelPart.AddNode(mModelPart.pGetNode(idTranslator.getKratosId(faces.at(i).nodes[j])));
         }
         lastId++;
-        rSkinModelPart.CreateNewCondition("SurfaceCondition3D3N", lastId, nodes,
+        rSkinModelPart.CreateNewCondition("SurfaceCondition3D3N", static_cast<Kratos::ModelPart::IndexType>(conditionCount) + lastId, nodes,
                                           mModelPart.pGetProperties(0));
     }
     mMaxElementId = lastId;
@@ -209,6 +246,27 @@ ModelPartWrapper::~ModelPartWrapper() {
 
 ModelPartWrapper *ModelPartWrapper::getSubmodelPart(char *name) {
     return new ModelPartWrapper(mModelPart.GetSubModelPart(name), mFixedNodes, this);
+}
+
+int* ModelPartWrapper::getKratosNodesIdSubModelPart(char* name) {
+    auto& rSubModelPart = mModelPart.GetSubModelPart(name);
+    auto& rNodesArray = rSubModelPart.Nodes();
+    const auto nodeBegin = rNodesArray.begin();
+    std::vector<int> nodesId;
+    int* nodes = new int[rNodesArray.size()];
+
+
+    for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
+        auto it_node = nodeBegin + i;
+        nodesId.push_back(it_node->Id());
+        nodes[i] = nodesId[i];
+    }
+    return nodes;
+}
+
+int ModelPartWrapper::getKratosIdsCountSubModelPart(char* name) {
+    auto& nodes = mModelPart.GetSubModelPart(name).Nodes();
+    return nodes.size();
 }
 
 ModelPart &ModelPartWrapper::getKratosModelPart() {
@@ -331,7 +389,7 @@ NodeType *ModelPartWrapper::getNode(int id) {
 NodeType **ModelPartWrapper::getNodes() {
     int numberOfNodes = mModelPart.NumberOfNodes();
     auto **nodes = new NodeType *[numberOfNodes];
-    auto nodeVector = mModelPart.Nodes().GetContainer();
+    auto &nodeVector = mModelPart.Nodes().GetContainer();
     for (int i = 0; i < numberOfNodes; i++) {
         nodes[i] = nodeVector[i].get();
     }
@@ -350,7 +408,7 @@ ElementType *ModelPartWrapper::getElement(int id) {
 ElementType **ModelPartWrapper::getElements() {
     int numberOfElements = mModelPart.NumberOfElements();
     auto **elements = new ElementType *[numberOfElements];
-    auto elementVector = mModelPart.Elements().GetContainer();
+    auto &elementVector = mModelPart.Elements().GetContainer();
 
     for (int i = 0; i < numberOfElements; i++) elements[i] = elementVector[i].get();
 
@@ -368,7 +426,7 @@ ConditionType *ModelPartWrapper::getCondition(int id) {
 ConditionType **ModelPartWrapper::getConditions() {
     int numberOfConditions = mModelPart.NumberOfConditions();
     auto **conditions = new ConditionType *[numberOfConditions];
-    auto conditionVector = mModelPart.Conditions().GetContainer();
+    auto &conditionVector = mModelPart.Conditions().GetContainer();
 
     for (int i = 0; i < numberOfConditions; i++) conditions[i] = conditionVector[i].get();
     return conditions;
@@ -407,7 +465,7 @@ double *ModelPartWrapper::getNodalVariable3d(Kratos::Variable<Kratos::array_1d<d
     for (int i = 0; i < static_cast<int>(rNodesArray.size()); ++i) {
         auto it_node = nodeBegin + i;
         int current_node_id = idTranslator.getSurfaceId(it_node->Id());
-        auto value = it_node->FastGetSolutionStepValue(variable);
+        auto &value = it_node->FastGetSolutionStepValue(variable);
         for (int j = 0; j < 3; j++) values[current_node_id * 3 + j] = value[j];
     }
     return values;
