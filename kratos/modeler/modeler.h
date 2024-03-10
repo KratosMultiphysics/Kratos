@@ -125,6 +125,17 @@ public:
         KRATOS_ERROR << "This modeler CAN NOT be used for node generation." << std::endl;
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual const Parameters GetDefaultParameters() const
+    {
+        KRATOS_ERROR << "Calling the base Modeler class GetDefaultParameters. Please implement the GetDefaultParameters in your derived modeler class." << std::endl;
+        const Parameters default_parameters = Parameters(R"({})");
+
+        return default_parameters;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -187,5 +198,3 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Modeler
 }  // namespace Kratos.
 
 #endif // KRATOS_MODELER_H_INCLUDED  defined
-
-
