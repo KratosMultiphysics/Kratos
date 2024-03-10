@@ -184,7 +184,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             # vtu_output.AddContainerExpression("control_space_gradient", control_space_gradient)
             # vtu_output.AddContainerExpression("control_update", control_update)
             # vtu_output.AddContainerExpression("physical_update", physical_update)
-            # vtu_output.AddContainerExpression("damping", vm_filter.GetComponentDataView().GetUnBufferedData()["damping_coefficients"])
+            # vtu_output.AddContainerExpression("damping_coeffs", vm_filter.GetComponentDataView().GetUnBufferedData()["damping_coefficients"])
             # vtu_output.PrintOutput(f"output_{i+1}")
 
             # update the mesh
