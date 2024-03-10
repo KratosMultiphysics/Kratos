@@ -27,6 +27,10 @@ namespace Kratos
  * @class CrBeamElement2D2N
  *
  * @brief This is a 2D-2node beam element with 2 translational dofs and 1 rotational dof per node
+ *        For reference see:
+ *          Non-linear Modeling and Analysis of Solids and Structures
+ *          Steen Krenk
+ *          https://doi.org/10.1017/CBO9780511812163
  *
  * @author Klaus B Sautter
  */
