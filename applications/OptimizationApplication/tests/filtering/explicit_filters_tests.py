@@ -82,5 +82,13 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
             Kratos.Expression.Utils.InnerProduct(physical_sensitivity_field, physical_update),
             Kratos.Expression.Utils.InnerProduct(control_sensitivity_field, control_update), 9)
 
+        integration_weights = container_expression_type(model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
+        vm_filter.GetIntegrationWeights(integration_weights)
+        integrated_physical_sensitivity_field = physical_sensitivity_field * integration_weights
+
+        temp = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(temp - control_sensitivity_field), 0.0, 9)
+
 if __name__ == "__main__":
     kratos_unittest.main()
