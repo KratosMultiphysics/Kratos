@@ -30,6 +30,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
+// #include "containers/variables_list_visitor.h"
 
 #ifdef KRATOS_DEBUG
 #include "utilities/openmp_utils.h"
@@ -38,6 +39,7 @@
 
 namespace Kratos
 {
+	class VariablesListVisitorBase;
 
 	///@name Kratos Classes
 	///@{
@@ -279,6 +281,13 @@ namespace Kratos
 			mDataSize += static_cast<SizeType>(((block_size - 1) + ThisVariable.Size()) / block_size);
 		}
 
+		/// Adding variable by its name. 
+		/** Please note that this one is not very fast as it should search in the components. 
+		 *  So please use it when other methods cannot be used.
+		**/
+		void AddVariable(const std::string& rVarName);
+
+
 		int AddDof(VariableData const* pThisDofVariable){
 
 			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
@@ -349,6 +358,13 @@ namespace Kratos
 			return GetPosition(pThisVariable->SourceKey());
 		}
 
+		void ApplyVisitor(VariablesListVisitorBase& TheVisitor);
+
+		// template<typename TFunctionType>
+		// void ApplyVisitorFunction(TFunctionType&& TheFunction){
+		// 	ApplyVisitor(VariablesListVisitor<TFunctionType>(TheFunction));
+
+		// }
 
 		///@}
 		///@name Access

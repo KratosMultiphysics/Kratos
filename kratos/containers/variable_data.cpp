@@ -91,6 +91,10 @@ namespace Kratos
     {
     }
 
+    void VariableData::AcceptVisitor(VariablesListVisitorBase& TheVisitor) const {
+        KRATOS_ERROR << "Variables should define the AcceptVisitor method" << std::endl;
+    }
+
     /// NOTE: This function is for internal use and not
     /// to change arbitrary any variable's key
     void VariableData::SetKey(KeyType NewKey)
