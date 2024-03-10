@@ -26,20 +26,20 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
 
     def test_NodalExplicitFilterConditionConsistency(self):
         model_part = self.model_part.GetSubModelPart("design")
-        vm_filter = KratosOA.NodalExplicitFilterUtils(model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitFilterUtils(model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
     def test_NodalExplicitFilterElementConsistency(self):
         model_part = self.model_part.GetSubModelPart("structure")
-        vm_filter = KratosOA.NodalExplicitFilterUtils(model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitFilterUtils(model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
     def test_ConditionExplicitFilterConsistency(self):
-        vm_filter = KratosOA.ConditionExplicitFilterUtils(self.model_part, "linear", 1000)
+        vm_filter = KratosOA.ConditionExplicitFilterUtils(self.model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, self.model_part.Conditions, self.model_part)
 
     def test_ElementExplicitFilterConsistency(self):
-        vm_filter = KratosOA.ElementExplicitFilterUtils(self.model_part, "linear", 1000)
+        vm_filter = KratosOA.ElementExplicitFilterUtils(self.model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
 
     def __RunConsistencyTest(self, vm_filter: FilterUtilsType, entities: EntityContainerType, model_part: Kratos.ModelPart):
@@ -141,6 +141,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             "filter_type"               : "explicit_filter",
             "filter_function_type"      : "linear",
             "max_nodes_in_filter_radius": 100000,
+            "echo_level"                : 0,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
                 "filter_radius"     : 0.5

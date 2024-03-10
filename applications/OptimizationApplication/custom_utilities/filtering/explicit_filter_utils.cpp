@@ -138,9 +138,11 @@ template<class TContainerType>
 ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
     const ModelPart& rModelPart,
     const std::string& rKernelFunctionType,
-    const IndexType MaxNumberOfNeighbours)
+    const IndexType MaxNumberOfNeighbours,
+    const IndexType EchoLevel)
     : mrModelPart(rModelPart),
-      mMaxNumberOfNeighbors(MaxNumberOfNeighbours)
+      mMaxNumberOfNeighbors(MaxNumberOfNeighbours),
+      mEchoLevel(EchoLevel)
 {
     mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
 }
@@ -190,8 +192,6 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
 
     BuiltinTimer timer;
 
-    KRATOS_INFO("ExplicitFilterUtils") << "Creating search tree to perform mapping..." << std::endl;
-
     const auto& r_container = OptimizationUtils::GetContainer<TContainerType>(mrModelPart);
 
     if (mEntityPointVector.size() != r_container.size()) {
@@ -223,7 +223,7 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
         }
     }
 
-    KRATOS_INFO("ExplicitFilterUtils") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 0) << "Updated filter in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -309,6 +309,8 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
         }
     });
 
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed forward filter field." << std::endl;
+
     return result;
 
     KRATOS_CATCH("");
@@ -378,6 +380,8 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
             }
         }
     });
+
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed backward filter field." << std::endl;
 
     return result;
 

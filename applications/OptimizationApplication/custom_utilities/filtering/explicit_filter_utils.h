@@ -59,7 +59,8 @@ public:
     ExplicitFilterUtils(
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
-        const IndexType MaxNumberOfNeighbours);
+        const IndexType MaxNumberOfNeighbours,
+        const IndexType EchoLevel);
 
     ///@}
     ///@name Public operations
@@ -140,6 +141,8 @@ private:
     IndexType mBucketSize = 100;
 
     IndexType mMaxNumberOfNeighbors;
+
+    IndexType mEchoLevel;
 
     typename KDTree::Pointer mpSearchTree;
 

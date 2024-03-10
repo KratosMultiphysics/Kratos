@@ -18,6 +18,7 @@ class ExplicitFilter(Filter):
             "filter_type"               : "explicit_vertex_morphing",
             "filter_function_type"      : "linear",
             "max_nodes_in_filter_radius": 100000,
+            "echo_level"                : 0,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
                 "filter_radius"     : 0.2
@@ -64,12 +65,13 @@ class ExplicitFilter(Filter):
         # on sub model parts.
         filter_function_type = self.parameters["filter_function_type"].GetString()
         max_nodes_in_filter_radius = self.parameters["max_nodes_in_filter_radius"].GetInt()
+        echo_level = self.parameters["echo_level"].GetInt()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter_utils = KratosOA.NodalExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+            self.filter_utils = KratosOA.NodalExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
-            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
 
         self.Update()
 
