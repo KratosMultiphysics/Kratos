@@ -80,27 +80,27 @@ double GetDomainSize(
     return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
 }
 
-struct NonIntegratedWeight
+struct MeshIndependentType
 {
     static double Compute(
-        const double FilterFunctionWeight,
+        const double Value,
         const double DomainSize)
     {
-        return FilterFunctionWeight;
+        return Value;
     }
 };
 
-struct IntegratedWeight
+struct MeshDependentType
 {
     static double Compute(
-        const double FilterFunctionWeight,
+        const double Value,
         const double DomainSize)
     {
-        return FilterFunctionWeight * DomainSize;
+        return Value / DomainSize;
     }
 };
 
-template <class TEntityType, class TWeightComputationType>
+template <class TEntityType>
 void ComputeWeightForAllNeighbors(
     double& rSumOfWeights,
     std::vector<double>& rListOfWeights,
@@ -113,9 +113,9 @@ void ComputeWeightForAllNeighbors(
 {
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
         const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
-        const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius);
-        rListOfWeights[i] = TWeightComputationType::Compute(filter_weight, domain_size);
-        rSumOfWeights += filter_weight * domain_size;
+        const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius) * domain_size;
+        rListOfWeights[i] = filter_weight;
+        rSumOfWeights += filter_weight;
     }
 }
 
@@ -289,7 +289,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
-        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, ExplicitFilterHelperUtilities::IntegratedWeight>(
+        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
             entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
@@ -314,7 +314,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
     KRATOS_CATCH("");
 }
 template<class TContainerType>
-template<class TWeightIntegrationType>
+template<class TMeshDependencyType>
 ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
     KRATOS_TRY
@@ -356,14 +356,15 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
-        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, TWeightIntegrationType>(
+        ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
             entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         const IndexType current_data_begin = Index * stride;
+        const double domain_size = ExplicitFilterHelperUtilities::GetDomainSize(entity_point, mpNodalDomainSizeExpression.get());
 
         for (IndexType j = 0; j < stride; ++j) {
-            const double origin_value = r_origin_expression.Evaluate(Index, current_data_begin, j);
+            const double origin_value = TMeshDependencyType::Compute(r_origin_expression.Evaluate(Index, current_data_begin, j), domain_size);
             const double damping_coeff = r_damping_coeff_expression.Evaluate(Index, current_data_begin, j);
             const double damped_origin_value = origin_value * damping_coeff;
 
@@ -386,13 +387,13 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 template<class TContainerType>
 ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    return GenericBackwardFilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(rContainerExpression);
+    return GenericBackwardFilterField<ExplicitFilterHelperUtilities::MeshIndependentType>(rContainerExpression);
 }
 
 template<class TContainerType>
 ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    return GenericBackwardFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(rContainerExpression);
+    return GenericBackwardFilterField<ExplicitFilterHelperUtilities::MeshDependentType>(rContainerExpression);
 }
 
 template<class TContainerType>
@@ -440,8 +441,8 @@ std::string ExplicitFilterUtils<TContainerType>::Info() const
 // template instantiations
 #define KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(CONTAINER_TYPE)                                                                                                                                                      \
     template class ExplicitFilterUtils<CONTAINER_TYPE>;                                                                                                                                                                        \
-    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterHelperUtilities::IntegratedWeight>(const ContainerExpression<CONTAINER_TYPE>&) const;     \
-    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterHelperUtilities::NonIntegratedWeight>(const ContainerExpression<CONTAINER_TYPE>&) const;
+    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterHelperUtilities::MeshIndependentType>(const ContainerExpression<CONTAINER_TYPE>&) const;     \
+    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterHelperUtilities::MeshDependentType>(const ContainerExpression<CONTAINER_TYPE>&) const;
 
 KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::NodesContainerType)
 KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::ConditionsContainerType)

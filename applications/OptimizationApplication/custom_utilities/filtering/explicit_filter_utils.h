@@ -149,7 +149,7 @@ private:
 
     void CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    template<class TWeightIntegrationType>
+    template<class TMeshDependencyType>
     ContainerExpression<TContainerType> GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     ///@}
