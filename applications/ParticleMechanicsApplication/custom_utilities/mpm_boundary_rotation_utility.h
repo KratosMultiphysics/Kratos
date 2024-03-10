@@ -144,7 +144,8 @@ public:
 		{
 			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 			{
-				if(this->IsSlip(rGeometry[itNode]) )
+                // non-conforming SLIP BCs are treated within the resp. condition itself
+				if( this->IsSlip(rGeometry[itNode])&& !this->IsPenalty(rGeometry[itNode]))
 				{
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
@@ -185,109 +186,30 @@ public:
         this->ApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition
-	void ElementApplySlipCondition(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, don't do anything
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
-		}
-	}
+    bool IsPenalty(NodeType& rNode) const
+    {
+        if(this->IsSlip(rNode) )
+        {
+            const double identifier = rNode.FastGetSolutionStepValue(mrFlagVariable);
+            const double tolerance  = 1.e-6;
+            if (identifier > 1.00 + tolerance)
+                return true;
+        }
 
-	// An extra function to distinguish the application of slip in element considering penalty imposition (RHS Version)
-	void ElementApplySlipCondition(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, don't do anything
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalVector, rGeometry);
-		}
-	}
+        return false;
+    }
 
-	// An extra function to distinguish the application of slip in condition considering penalty imposition
-	void ConditionApplySlipCondition(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
-		}
-		// Otherwise, do the following modification
-		else
-		{
-			const unsigned int LocalSize = rLocalVector.size();
+    // Checking whether it is normal element or penalty element
+    bool IsPenalty(GeometryType& rGeometry) const
+    {
+        for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+        {
+            if(IsPenalty(rGeometry[itNode]))
+                return true;
+        }
 
-			if (LocalSize > 0)
-			{
-				const unsigned int block_size = this->GetBlockSize();
-				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
-				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-				{
-					if(this->IsSlip(rGeometry[itNode]) )
-					{
-						// We fix the first displacement dof (normal component) for each rotated block
-						unsigned int j = itNode * block_size;
-
-						// Copy all normal value in LHS to the temp_matrix
-                        // [ does nothing for dummy rLocalMatrix (size1() == 0) -- RHS only case ]
-						for (unsigned int i = j; i < rLocalMatrix.size1(); i+= block_size)
-						{
-							temp_matrix(i,j) = rLocalMatrix(i,j);
-							temp_matrix(j,i) = rLocalMatrix(j,i);
-						}
-
-						// Remove all other value in RHS than the normal component
-						for(unsigned int i = j; i < (j + block_size); ++i)
-						{
-							if (i!=j) rLocalVector[i] = 0.0;
-						}
-					}
-				}
-                // All entries in penalty matrix zeroed out except for normal component
-                // [ no effect in case of empty dummy rLocalMatrix ]
-				rLocalMatrix = temp_matrix;
-			}
-		}
-	}
-
-	// An extra function to distinguish the application of slip in condition considering penalty imposition (RHS Version)
-	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-        // creates an empty dummy matrix to pass into the 'full' ConditionApplySlipCondition -- this dummy matrix is
-        // ignored, effectively only updating the RHS
-        TLocalMatrixType dummyMatrix;
-        this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
-	}
-
-	// Checking whether it is normal element or penalty element
-	bool IsPenalty(GeometryType& rGeometry) const
-	{
-		bool is_penalty = false;
-		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-		{
-			if(this->IsSlip(rGeometry[itNode]) )
-			{
-				const double identifier = rGeometry[itNode].FastGetSolutionStepValue(mrFlagVariable);
-				const double tolerance  = 1.e-6;
-				if (identifier > 1.00 + tolerance)
-				{
-					is_penalty = true;
-					break;
-				}
-			}
-		}
-
-		return is_penalty;
-	}
+        return false;
+    }
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
 	virtual	void RotateDisplacements(ModelPart& rModelPart) const

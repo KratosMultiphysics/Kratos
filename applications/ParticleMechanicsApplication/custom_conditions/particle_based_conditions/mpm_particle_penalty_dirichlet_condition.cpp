@@ -203,12 +203,40 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
             rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
+
         }
 
         if ( CalculateResidualVectorFlag == true )
         {
             noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
             rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
+        }
+
+        if (Is(SLIP)){
+            if (CalculateStiffnessMatrixFlag == true){
+                GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+            } else {
+                GetRotationTool().RotateRHS(rRightHandSideVector, GetGeometry());
+            }
+
+            if (CalculateStiffnessMatrixFlag == true) {
+                MatrixType temp_matrix = ZeroMatrix(rLeftHandSideMatrix.size1(),rLeftHandSideMatrix.size2());
+                for (unsigned int i = 0; i < matrix_size; i+= block_size) {
+                    for (unsigned int j = i; j < matrix_size; j += block_size) {
+                        temp_matrix(i, j) = rLeftHandSideMatrix(i, j);
+                        temp_matrix(j, i) = rLeftHandSideMatrix(j, i);
+                    }
+                }
+                rLeftHandSideMatrix = temp_matrix;
+            }
+
+            if (CalculateResidualVectorFlag == true) {
+                for (unsigned int j = 0; j < matrix_size; j++) {
+                    if (j % block_size != 0) // tangential DoF
+                        rRightHandSideVector[j] = 0.0;
+                }
+            }
+
         }
     }
 
