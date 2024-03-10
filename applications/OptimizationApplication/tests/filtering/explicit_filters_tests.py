@@ -117,22 +117,22 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Current)
 
     def test_FilterCosine(self):
-        self.__RunTestCase("cosine", "cosine", "explicit_filter_reference_cosine.vtu.orig")
+        self.__RunTestCase("cosine", "cosine", "explicit_filter_reference_cosine.vtu")
 
     def test_FilterConstant(self):
-        self.__RunTestCase("constant", "cosine", "explicit_filter_reference_constant.vtu.orig")
+        self.__RunTestCase("constant", "cosine", "explicit_filter_reference_constant.vtu")
 
     def test_FilterLinear(self):
-        self.__RunTestCase("linear", "cosine", "explicit_filter_reference_linear.vtu.orig")
+        self.__RunTestCase("linear", "cosine", "explicit_filter_reference_linear.vtu")
 
     def test_FilterGaussian(self):
-        self.__RunTestCase("gaussian", "cosine", "explicit_filter_reference_gaussian.vtu.orig")
+        self.__RunTestCase("gaussian", "cosine", "explicit_filter_reference_gaussian.vtu")
 
     def test_FilterQuartic(self):
-        self.__RunTestCase("quartic", "cosine", "explicit_filter_reference_quartic.vtu.orig")
+        self.__RunTestCase("quartic", "cosine", "explicit_filter_reference_quartic.vtu")
 
     def test_FilterSigmoidal(self):
-        self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal.vtu.orig")
+        self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal.vtu")
 
     def __RunTestCase(self, filter_function_type: str, damping_function_type: str, ref_file: str) -> None:
         settings = Kratos.Parameters("""{
@@ -163,7 +163,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         nodal_neighbours = Kratos.Expression.NodalExpression(self.model_part)
         KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours)
 
-        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=3)
+        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=6)
         step_size = 5e-2
         for i in range(10):
             Kratos.NormalCalculationUtils().CalculateNormalsInElements(self.model_part, Kratos.NORMAL)
@@ -196,7 +196,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             vm_filter.Update()
 
         with kratos_unittest.WorkFolderScope(".", __file__):
-            vtu_output.PrintOutput(f"output_{ref_file}")
+            vtu_output.PrintOutput(f"output_{ref_file[:-4]}")
             params = Kratos.Parameters("""{
                 "reference_file_name"   : "explicit_filter_reference_1.vtu.orig",
                 "output_file_name"      : "explicit_filter_reference.vtu",
@@ -204,7 +204,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
                 "comparison_type"       : "deterministic"
             }""")
             params["reference_file_name"].SetString(ref_file)
-            params["output_file_name"].SetString(f"output_{ref_file}.vtu")
+            params["output_file_name"].SetString(f"output_{ref_file}")
             CompareTwoFilesCheckProcess(params).Execute()
 
 
