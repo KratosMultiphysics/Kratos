@@ -102,6 +102,11 @@ public:
     }
 
     /**
+     * @brief This method clears the assignation of the conditions
+     */
+    void Clear() override;
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
@@ -152,8 +157,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
-    /// Copy constructor.
     ///@}
     ///@name Protected Operations
     ///@{
@@ -216,6 +219,49 @@ private:
                 auto it_entity = it_begin + i;
 
                 it_entity->SetValue(rVar, Value);
+            }
+        }
+    }
+
+    /**
+     * @brief This method clears the value (with OMP)
+     * @param rVar The variable to be assigned
+     */
+    template< class TVarType >
+    void ClearValue(TVarType& rVar)
+    {
+        auto& r_entities_array = GetEntitiesContainer();
+        const int number_of_entities = static_cast<int>(r_entities_array.size());
+
+        if(number_of_entities != 0) {
+            const auto it_begin = r_entities_array.begin();
+
+            #pragma omp parallel for
+            for(int i = 0; i<number_of_entities; i++) {
+                auto it_entity = it_begin + i;
+
+                it_entity->SetValue(rVar, 0.0);
+            }
+        }
+    }
+
+    /**
+     * @brief This method clears the value (without OMP)
+     * @param rVar The variable to be assigned
+     */
+    template< class TVarType >
+    void ClearValueSerial(TVarType& rVar)
+    {
+        auto& r_entities_array = GetEntitiesContainer();
+        const int number_of_entities = static_cast<int>(r_entities_array.size());
+
+        if(number_of_entities != 0) {
+            const auto it_begin = r_entities_array.begin();
+
+            for(int i = 0; i<number_of_entities; i++) {
+                auto it_entity = it_begin + i;
+
+                it_entity->SetValue(rVar, 0.0);
             }
         }
     }
