@@ -226,6 +226,25 @@ public:
         mConditionsAreInitialized = ConditionsAreInitializedFlag;
     }
 
+
+    /**
+     * @brief This method returns if the master-slave constraints are initialized
+     * @return True if initilized, false otherwise
+     */
+    bool MasterSlaveConstraintsAreInitialized()
+    {
+        return mMasterSlaveConstraintsInitialized;
+    }
+
+    /**
+     * @brief This method sets if the master-slave constraints have been initilized or not (true by default)
+     * @param MasterSlaveConstraintsAreInitializedFlag If the flag must be set to true or false
+     */
+    void SetMasterSlaveConstraintsAreInitialized(bool MasterSlaveConstraintsAreInitializedFlag = true)
+    {
+        mMasterSlaveConstraintsInitialized = MasterSlaveConstraintsAreInitializedFlag;
+    }
+
     /**
      * @brief This is the place to initialize the elements.
      * @details This is intended to be called just once when the strategy is initialized
@@ -256,6 +275,28 @@ public:
         EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
         SetConditionsAreInitialized();
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is the place to initialize the master slave constraints.
+     * @details This is intended to be called just once when the strategy is initialized
+     * @param rModelPart The model part of the problem to solve
+     */
+    virtual void InitializeMasterSlaveConstraints(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); i++) {
+            auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
+            it_constraint->Initialize(r_current_process_info);
+        }
+
+        SetMasterSlaveConstraintsAreInitialized();
 
         KRATOS_CATCH("")
     }
@@ -755,6 +796,7 @@ protected:
     bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
     bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
     bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
+    bool mMasterSlaveConstraintsInitialized; /// Flag taking in account if the m-s constraints are initialized correctly or not
 
     ///@}
     ///@name Protected Operators
