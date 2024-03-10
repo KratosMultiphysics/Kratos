@@ -62,7 +62,7 @@ ModelPartIO::ModelPartIO(std::filesystem::path const& Filename, const Flags Opti
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(time_file_name.string());
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOutputFile(time_file_name.string());
 }
 
 /// Constructor with stream
@@ -81,7 +81,7 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
 
 /// Destructor.
 ModelPartIO::~ModelPartIO() {
-    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOutputFile();
 }
 
 bool ModelPartIO::ReadNode(NodeType& rThisNode)

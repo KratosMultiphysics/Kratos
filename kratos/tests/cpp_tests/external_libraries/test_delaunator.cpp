@@ -54,7 +54,7 @@ inline void validatewithtolerance(
     }
 
     if (Debug != "")
-        Timer::SetOuputFile("times/" + Debug + ".time");
+        Timer::SetOutputFile("times/" + Debug + ".time");
 
     // Comparing with the results obtained with triangle
     std::vector<double> triangles_areas;
@@ -65,7 +65,7 @@ inline void validatewithtolerance(
     Timer::Stop("Triangle");
 
     if (Debug != "")
-        Timer::CloseOuputFile();
+        Timer::CloseOutputFile();
 
     for (std::size_t i = 0; i < r_triangles_list.size(); i += 3) {
         const double ax = rCoordinates[2 * r_triangles_list[i]];
