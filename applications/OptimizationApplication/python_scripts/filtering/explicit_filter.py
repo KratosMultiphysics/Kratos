@@ -65,27 +65,27 @@ class ExplicitFilter(Filter):
         filter_function_type = self.parameters["filter_function_type"].GetString()
         max_nodes_in_filter_radius = self.parameters["max_nodes_in_filter_radius"].GetInt()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter = KratosOA.NodalExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+            self.filter_utils = KratosOA.NodalExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            self.filter = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
-            self.filter = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius)
 
         self.Update()
 
     def Update(self) -> None:
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
         filter_radius = self._GetFilterRadiusExpression(self.parameters["filter_radius_settings"])
-        self.filter.SetFilterRadius(filter_radius)
+        self.filter_utils.SetFilterRadius(filter_radius)
         self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
 
         # now set the damping
         damping_coefficients = self._GetDampingCoefficients(filter_radius, self.parameters["filtering_boundary_conditions"])
-        self.filter.SetDampingCoefficients(damping_coefficients)
+        self.filter_utils.SetDampingCoefficients(damping_coefficients)
         self.GetComponentDataView().GetUnBufferedData().SetValue("damping_coefficients", damping_coefficients.Clone(), overwrite=True)
 
         # initialize the filter
-        self.filter.Update()
+        self.filter_utils.Update()
 
     def Check(self) -> None:
         pass
@@ -94,13 +94,13 @@ class ExplicitFilter(Filter):
         pass
 
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        return self.filter.ForwardFilterField(control_field)
+        return self.filter_utils.ForwardFilterField(control_field)
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        return self.filter.BackwardFilterField(physical_mesh_independent_gradient_field)
+        return self.filter_utils.BackwardFilterField(physical_mesh_independent_gradient_field)
 
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        return self.filter.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
+        return self.filter_utils.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
 
     def UnfilterField(self, _: ContainerExpressionTypes) -> ContainerExpressionTypes:
         raise RuntimeError(f"Unfilter field cannot be used with the \"explicit_filter\".")
