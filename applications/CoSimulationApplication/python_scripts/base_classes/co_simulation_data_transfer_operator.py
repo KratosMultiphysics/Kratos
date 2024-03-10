@@ -15,6 +15,9 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
         self.data_communicator = parent_coupled_solver_data_communicator
         self.__checked_combinations = []
 
+    def InitializeSolutionStep(self): 
+        pass
+
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         # 1. Check if specified transfer options are available
         self._CheckAvailabilityTransferOptions(transfer_options)

@@ -39,6 +39,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         super().__init__(settings, parent_coupled_solver_data_communicator)
         self.__mappers = {}
 
+    def InitializeSolutionStep(self): 
+        for mapper in self.__mappers.values():
+            mapper.UpdateInterface()
+
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
