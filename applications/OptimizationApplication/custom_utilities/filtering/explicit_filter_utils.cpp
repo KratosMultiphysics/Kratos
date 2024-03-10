@@ -225,8 +225,6 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
 
     KRATOS_INFO("ExplicitFilterUtils") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
-    Update();
-
     KRATOS_CATCH("");
 }
 
