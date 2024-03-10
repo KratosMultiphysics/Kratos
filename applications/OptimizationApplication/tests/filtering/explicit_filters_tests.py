@@ -112,6 +112,8 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         cls.filter_data = ComponentDataView("test", cls.optimization_problem)
         cls.filter_data.SetDataBuffer(1)
 
+        cls.vtu_output = Kratos.VtuOutput(cls.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=6)
+
     def setUp(self) -> None:
         Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Initial)
         Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Current)
@@ -163,7 +165,6 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         nodal_neighbours = Kratos.Expression.NodalExpression(self.model_part)
         KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours)
 
-        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=6)
         step_size = 5e-2
         for i in range(10):
             Kratos.NormalCalculationUtils().CalculateNormalsInElements(self.model_part, Kratos.NORMAL)
@@ -180,12 +181,13 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             control_update = control_space_gradient * (step_size / Kratos.Expression.Utils.NormInf(control_space_gradient))
             physical_update = vm_filter.ForwardFilterField(control_update)
 
-            # vtu_output.AddContainerExpression("physical_space_gradient", physical_space_gradient)
-            # vtu_output.AddContainerExpression("control_space_gradient", control_space_gradient)
-            # vtu_output.AddContainerExpression("control_update", control_update)
-            # vtu_output.AddContainerExpression("physical_update", physical_update)
-            # vtu_output.AddContainerExpression("damping_coeffs", vm_filter.GetComponentDataView().GetUnBufferedData()["damping_coefficients"])
-            # vtu_output.PrintOutput(f"output_{i+1}")
+            # Purposefully left out for debugging if required.
+            # self.vtu_output.AddContainerExpression("physical_space_gradient", physical_space_gradient)
+            # self.vtu_output.AddContainerExpression("control_space_gradient", control_space_gradient)
+            # self.vtu_output.AddContainerExpression("control_update", control_update)
+            # self.vtu_output.AddContainerExpression("physical_update", physical_update)
+            # self.vtu_output.AddContainerExpression("damping_coeffs", vm_filter.GetComponentDataView().GetUnBufferedData()["damping_coefficients"])
+            # self.vtu_output.PrintOutput(f"output_{i+1}")
 
             # update the mesh
             nodal_coords = Kratos.Expression.NodalExpression(self.model_part)
@@ -196,7 +198,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             vm_filter.Update()
 
         with kratos_unittest.WorkFolderScope(".", __file__):
-            vtu_output.PrintOutput(f"output_{ref_file[:-4]}")
+            self.vtu_output.PrintOutput(f"output_{ref_file[:-4]}")
             params = Kratos.Parameters("""{
                 "reference_file_name"   : "explicit_filter_reference_1.vtu.orig",
                 "output_file_name"      : "explicit_filter_reference.vtu",
