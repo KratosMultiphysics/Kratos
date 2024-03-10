@@ -62,9 +62,14 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Counted pointer of EigensolverDynamicScheme
     KRATOS_CLASS_POINTER_DEFINITION( EigensolverDynamicScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+    /// The definition of the base type
+    typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+
+    /// Definition of the current scheme
+    typedef EigensolverDynamicScheme<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
@@ -74,8 +79,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
-    EigensolverDynamicScheme() : Scheme<TSparseSpace,TDenseSpace>() {}
+    /**
+     * @brief Constructor with parameters
+     * @details The EigensolverDynamicScheme method
+     * @param ThisParameters The parameters containing the configuration parameters
+     */
+    EigensolverDynamicScheme(Parameters ThisParameters = Parameters(R"({})"))
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters); 
+    }
 
     /// Destructor.
     ~EigensolverDynamicScheme() override {}
@@ -87,6 +102,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -223,9 +247,118 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "dynamic"
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "dynamic";
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
     ///@}
 
-}; /* Class Scheme */
+protected:
+
+    ///@}
+    ///@name Protected Structs
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+
+}; /* Class EigensolverDynamicScheme */
 
 ///@}
 

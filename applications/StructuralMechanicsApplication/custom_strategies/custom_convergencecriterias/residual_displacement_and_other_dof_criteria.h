@@ -61,25 +61,32 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualDisplacementAndOtherDoFCriteria );
 
+    /// The definition of the base ConvergenceCriteria
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-    typedef TSparseSpace SparseSpaceType;
+    /// The definition of the current class
+    typedef ResidualDisplacementAndOtherDoFCriteria< TSparseSpace, TDenseSpace > ClassType;
 
+    /// The data type
     typedef typename BaseType::TDataType TDataType;
 
+    /// The dofs array type
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
+    /// The sparse matrix type
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
+    /// The dense vector type
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    /// Definition of the IndexType
     typedef std::size_t IndexType;
 
+    /// Definition of the size type
     typedef std::size_t SizeType;
 
     ///@}
     ///@name Life Cycle
-
     ///@{
 
     /** Constructor.
@@ -100,8 +107,18 @@ public:
         this->mActualizeRHSIsNeeded = true;
     }
 
-    //* Copy constructor.
+    /// Default constructors
+    explicit ResidualDisplacementAndOtherDoFCriteria(Parameters ThisParameters = Parameters(R"({})"))
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
+        this->mActualizeRHSIsNeeded = true;
+    }
+
+    //* Copy constructor.
     ResidualDisplacementAndOtherDoFCriteria( ResidualDisplacementAndOtherDoFCriteria const& rOther )
       :BaseType(rOther)
       ,mOtherDoFName(rOther.mOtherDoFName)
@@ -116,14 +133,24 @@ public:
     }
 
     //* Destructor.
-
     ~ResidualDisplacementAndOtherDoFCriteria() override {}
-
 
     ///@}
     ///@name Operators
-
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * Compute relative and absolute error.
@@ -245,9 +272,34 @@ public:
         CalculateResidualNorm(rModelPart, mInitialResidualDispNorm, mInitialResidualOtherDoFNorm, size_residual, rDofSet, rb);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                        : "residual_displacement_and_other_dof_criteria",
+            "other_dof_name"              : "ROTATION",
+            "residual_absolute_tolerance" : 1.0e-4,
+            "residual_relative_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "residual_displacement_and_other_dof_criteria";
+    }
 
     ///@}
     ///@name Access
@@ -278,6 +330,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mOtherDoFName = ThisParameters["other_dof_name"].GetString();
+        mAbsoluteTolerance = ThisParameters["residual_absolute_tolerance"].GetDouble();
+        mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access

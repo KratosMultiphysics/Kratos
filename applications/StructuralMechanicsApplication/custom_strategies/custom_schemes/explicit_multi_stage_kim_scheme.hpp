@@ -20,6 +20,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos {
 
@@ -65,6 +66,9 @@ public:
     /// The definition of the base type
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
+    /// Definition of the current scheme
+    typedef ExplicitMultiStageKimScheme<TSparseSpace, TDenseSpace> ClassType;
+
     /// Some definitions related with the base class
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -109,7 +113,7 @@ public:
     ExplicitMultiStageKimScheme(
         const double DeltaTimeFraction
         )
-        : Scheme<TSparseSpace, TDenseSpace>()
+        : BaseType()
     {
         mDeltaTime.Fraction = DeltaTimeFraction;
     }
@@ -117,19 +121,15 @@ public:
     /**
      * @brief Constructor with parameters
      * @details The ExplicitMultiStageKimScheme method
-     * @param rParameters The parameters containing the configuration parameters
+     * @param ThisParameters The parameters containing the configuration parameters
      * @warning time_step_prediction_level should be an integer
      */
-    ExplicitMultiStageKimScheme(Parameters rParameters =  Parameters(R"({})"))
-        : Scheme<TSparseSpace, TDenseSpace>()
+    ExplicitMultiStageKimScheme(Parameters ThisParameters =  Parameters(R"({})"))
+        : BaseType()
     {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "fraction_delta_time"        : 0.333333333333333333333333333333333333
-        })" );
-
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-        mDeltaTime.Fraction = rParameters["fraction_delta_time"].GetDouble();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);   
     }
 
     /** Destructor.
@@ -139,6 +139,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
@@ -517,14 +530,11 @@ public:
         const Double3DArray& r_previous_velocity = itCurrentNode->FastGetSolutionStepValue(rVelocityVariable, 1);
         const Double3DArray& r_previous_acceleration = itCurrentNode->FastGetSolutionStepValue(rAccelerationVariable, 1);
 
-
         for (IndexType j = 0; j < DomainSize; j++) {
-
             r_current_displacement[j] = r_previous_displacement[j] + mTime.Delta * r_previous_velocity[j];
             r_current_displacement[j] += 0.50 * mTime.Delta * mTime.Delta * r_previous_acceleration[j] * ((4.0*mDeltaTime.Fraction-1.0)/(6.0*mDeltaTime.Fraction));
             r_current_displacement[j] -= 0.50 * mTime.Delta * mTime.Delta * r_fractional_acceleration[j] * (1.0/(6.0*mDeltaTime.Fraction*(mDeltaTime.Fraction-1.0)));
             r_current_displacement[j] += 0.50 * mTime.Delta * mTime.Delta * r_current_acceleration[j] * ((2.0*mDeltaTime.Fraction-1.0)/(6.0*(mDeltaTime.Fraction-1.0)));
-
 
             r_current_velocity[j] = r_previous_velocity[j];
             r_current_velocity[j] += mTime.Delta * r_previous_acceleration[j] * ((3.0*mDeltaTime.Fraction-1.0)/(6.0*mDeltaTime.Fraction));
@@ -664,15 +674,13 @@ public:
         KRATOS_CATCH("")
     }
 
-
-
     void CalculateAndAddRHS(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ConditionsArrayType& r_conditions = rModelPart.Conditions();
-        ElementsArrayType& r_elements = rModelPart.Elements();
+        auto& r_conditions = rModelPart.Conditions();
+        auto& r_elements = rModelPart.Elements();
 
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
         Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
@@ -691,8 +699,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-
 
     void Predict(
         ModelPart& rModelPart,
@@ -798,9 +804,32 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                : "multi_stage",
+            "fraction_delta_time" : 0.333333333333333333333333333333333333
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "multi_stage";
+    }
 
     ///@}
     ///@name Access
@@ -854,6 +883,16 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mDeltaTime.Fraction = ThisParameters["fraction_delta_time"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access
