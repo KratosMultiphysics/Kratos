@@ -117,10 +117,18 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Indicates the amount of DoFs per node (u0, v, theta)
+     */
     const IndexType GetDoFsPerNode() const
     {
         return 3;
     }
+
+    /**
+     * @brief Returns a 6 component vector including the values of the DoFs
+     */
+    const Vector GetNodalValuesVector();
 
     /**
      * @brief Called to initialize the element.

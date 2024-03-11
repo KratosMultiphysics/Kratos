@@ -64,7 +64,7 @@ void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInf
 
         const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
-        //Constitutive Law initialisation
+        // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
@@ -140,7 +140,7 @@ void TimoshenkoBeamElement2D2N::EquationIdVector(
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const SizeType index = i * 2;
-        rResult[index]     = r_geom[i].GetDof(DISPLACEMENT_X, pos).EquationId();
+        rResult[index]     = r_geom[i].GetDof(DISPLACEMENT_X, pos    ).EquationId();
         rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
         rResult[index + 2] = r_geom[i].GetDof(ROTATION_Z,     pos + 2).EquationId();
     }
@@ -305,7 +305,7 @@ Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector GetNu0ShapeFunctionsValues(
+Vector TimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
@@ -320,7 +320,7 @@ Vector GetNu0ShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector GetFirstDerivativesNu0ShapeFunctionsValues(
+Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
@@ -335,27 +335,62 @@ Vector GetFirstDerivativesNu0ShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
+const Vector TimoshenkoBeamElement2D2N::GetNodalValuesVector()
+{
+    Vector nodal_values(6);
+    const auto &r_geom = GetGeometry();
 
+    nodal_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    nodal_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    nodal_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+    nodal_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+    nodal_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    nodal_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+    return nodal_values;
+}
 
-
-
-
-
-
+/***********************************************************************************/
+/***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY;
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
-    //calculation flags
-    // const bool CalculateStiffnessMatrixFlag = true;
-    // const bool CalculateResidualVectorFlag = true;
+    if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
+        rLHS.resize(mat_size, false);
+        rLHS.clear();
+    }
 
-    // CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+    if (rRHS.size() != mat_size) {
+        rRHS.resize(mat_size, false);
+        rRHS.clear();
+    }
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double Phi    = CalculatePhi(cl_values);
+    const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    Vector strain_vector(3);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    const Vector &nodal_values = GetNodalValuesVector();
+
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP ) {
+        // TODO
+    }
 
     KRATOS_CATCH("");
 }
@@ -363,17 +398,12 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                             const ProcessInfo& rCurrentProcessInfo)
+void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
     KRATOS_TRY;
-
-    // Calculation flags
-    // const bool CalculateStiffnessMatrixFlag = true;
-    // const bool CalculateResidualVectorFlag = false;
-    // VectorType RHS;
-
-    // CalculateAll( rLeftHandSideMatrix, RHS, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 
     KRATOS_CATCH("");
 }
@@ -387,13 +417,6 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     )
 {
     KRATOS_TRY;
-
-    // Calculation flags
-    // const bool CalculateStiffnessMatrixFlag = false;
-    // const bool CalculateResidualVectorFlag = true;
-    // MatrixType temp = Matrix();
-
-    // CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("");
 }
@@ -419,15 +442,15 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // if (rVariable == CONSTITUTIVE_LAW) {
-    //     const SizeType integration_points_number = mConstitutiveLawVector.size();
-    //     if (rValues.size() != integration_points_number) {
-    //         rValues.resize(integration_points_number);
-    //     }
-    //     for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
-    //         rValues[point_number] = mConstitutiveLawVector[point_number];
-    //     }
-    // }
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -437,12 +460,7 @@ int  TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) co
 {
     KRATOS_TRY;
 
-    // int check = Element::Check(rCurrentProcessInfo);
-
-    // // Basic check
-    // check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
-
-    // return check;
+    // TODO
 
     KRATOS_CATCH( "" );
 }
@@ -481,5 +499,8 @@ void TimoshenkoBeamElement2D2N::load(Serializer& rSerializer)
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // Namespace Kratos
