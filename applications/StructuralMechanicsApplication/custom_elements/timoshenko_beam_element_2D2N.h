@@ -105,10 +105,6 @@ public:
     {
     }
 
-    // Destructor
-    // ~TimoshenkoBeamElement2D2N() override
-    // {};
-
     ///@}
     ///@name Operators
     ///@{
@@ -131,6 +127,13 @@ public:
     const Vector GetNodalValuesVector();
 
     /**
+     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
+     */
+    const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const Vector& rNodalValues);
+    const double CalculateShearStrain     (const double Length, const double Phi, const double xi, const Vector& rNodalValues);
+    const double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const Vector& rNodalValues);
+
+    /**
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
@@ -143,7 +146,7 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone (
+    Element::Pointer Clone(
         IndexType NewId,
         NodesArrayType const& rThisNodes
         ) const override;

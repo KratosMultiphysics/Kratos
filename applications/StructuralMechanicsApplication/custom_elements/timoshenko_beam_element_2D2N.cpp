@@ -352,6 +352,55 @@ const Vector TimoshenkoBeamElement2D2N::GetNodalValuesVector()
 /***********************************************************************************/
 /***********************************************************************************/
 
+const double CalculateAxialStrain(
+    const double Length,
+    const double Phi,
+    const double xi,
+    const Vector& rNodalValues
+    )
+{
+    const Vector N_u0_derivatives = GetFirstDerivativesNu0ShapeFunctionsValues(Length, Phi, xi);
+    return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const double CalculateShearStrain(
+    const double Length,
+    const double Phi,
+    const double xi,
+    const Vector& rNodalValues
+    )
+{
+    const Vector N_theta       = GetNThetaShapeFunctionsValues(Length, Phi, xi);
+    const Vector N_derivatives = GetFirstDerivativesShapeFunctionsValues(Length, Phi, xi);
+    const Vector N_s           = N_derivatives - N_theta;
+    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5]
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const double CalculateBendingCurvature(
+    const double Length,
+    const double Phi,
+    const double xi,
+    const Vector& rNodalValues
+    )
+{
+    const Vector N_theta_derivatives = GetFirstDerivativesNThetaShapeFunctionsValues(Length, Phi, xi);
+    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
+           N_theta_derivatives[2] * rNodalValues[4] + N_theta_derivatives[3] * rNodalValues[5];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
