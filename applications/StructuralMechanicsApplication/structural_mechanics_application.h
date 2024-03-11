@@ -489,6 +489,7 @@ private:
     const LinearPlaneStress  mLinearPlaneStress;
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
+    const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

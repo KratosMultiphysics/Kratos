@@ -63,6 +63,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< UserProvidedLinearElasticLaw<3>, typename UserProvidedLinearElasticLaw<3>::Pointer, ConstitutiveLaw >
     (m, "UserProvidedLinearElastic3DLaw").def(py::init<>() )
     ;
+
+    py::class_< TimoshenkoBeamElasticConstitutiveLaw, typename TimoshenkoBeamElasticConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "TimoshenkoBeamElasticConstitutiveLaw").def(py::init<>() )
+    ;
 }
 
 }  // namespace Kratos::Python.

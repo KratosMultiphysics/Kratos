@@ -126,19 +126,19 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
         const double EI  = E * I;
         const double GAs = G * A_s;
 
-        r_generalized_stress_vector[0] = EA * axial_strain;
-        r_generalized_stress_vector[1] = EI * curvature;
-        r_generalized_stress_vector[2] = GAs * shear_strain;
+        r_generalized_stress_vector[0] = EA * axial_strain;  // N
+        r_generalized_stress_vector[1] = EI * curvature;     // M
+        r_generalized_stress_vector[2] = GAs * shear_strain; // V
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            auto &r_stress_derivatives = rValues.GetConstitutiveMatrix();
+            auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
             if (r_stress_derivatives.size1() != strain_size)
                 r_stress_derivatives.resize(strain_size, strain_size, false);
             r_stress_derivatives.clear();
 
-            r_stress_derivatives(0, 0) = EA;
-            r_stress_derivatives(1, 1) = EI;
-            r_stress_derivatives(2, 2) = GAs;
+            r_stress_derivatives(0, 0) = EA;  // dN_dEl
+            r_stress_derivatives(1, 1) = EI;  // dM_dkappa
+            r_stress_derivatives(2, 2) = GAs; // dV_dGamma_xy
         }
     }
 }
