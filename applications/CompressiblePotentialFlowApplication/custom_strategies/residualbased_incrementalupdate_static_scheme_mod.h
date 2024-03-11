@@ -397,6 +397,30 @@ public:
         KRATOS_CATCH("")
     }
 
+    // /**
+    //  * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given element
+    //  * @param pCurrentElement The element to compute
+    //  * @param rDofList The list containing the element degrees of freedom
+    //  * @param rCurrentProcessInfo The current process info instance
+    //  */
+    // void GetDofList_all(
+    //     const Element& rElement,
+    //     Element::DofsVectorType& rDofList,
+    //     const ProcessInfo& rCurrentProcessInfo
+    //     )
+    // {
+    //     rElement.GetDofList_all(rDofList, rCurrentProcessInfo);
+    // }
+
+    void EquationId_MatrixConstruction(
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        rElement.EquationIdVector_MatrixConstruction(rEquationId, rCurrentProcessInfo);
+    }
+
     /**
      * @brief Liberate internal storage.
      */

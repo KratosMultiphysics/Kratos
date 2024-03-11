@@ -158,6 +158,9 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& CurrentProcessInfo) const override;
 
+    void EquationIdVector_MatrixConstruction(EquationIdVectorType& rResult,
+                          const ProcessInfo& CurrentProcessInfo) const override;
+
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -259,7 +262,11 @@ private:
 
     void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
+    void GetEquationIdVectorNormalElement_EmptyDofs(EquationIdVectorType& rResult) const;
+
     void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
+
+    void GetEquationIdVectorKuttaElement_EmptyDofs(EquationIdVectorType& rResult) const;
 
     void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const;
 
@@ -329,7 +336,7 @@ private:
     void FindUpwindEdge(GeometryType& rUpwindEdge,
                         const ProcessInfo& rCurrentProcessInfo);
 
-    void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
+    void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary) const;
 
 
     void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,

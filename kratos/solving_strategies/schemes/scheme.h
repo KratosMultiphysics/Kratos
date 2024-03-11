@@ -643,6 +643,21 @@ public:
     }
 
     /**
+     * @brief Gets empty DoFs from the specified Element. Must be overridden
+     * @param rElement The element to compute
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    virtual void EquationId_MatrixConstruction(
+        const Element& rElement,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        rElement.EquationIdVector_MatrixConstruction(rEquationId, rCurrentProcessInfo);
+    }
+
+    /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param rCondition The condition to compute
      * @param rEquationId The ID's of the condition degrees of freedom

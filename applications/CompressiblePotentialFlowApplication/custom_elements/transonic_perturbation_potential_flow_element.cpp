@@ -121,6 +121,104 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     }
 }
 
+// template <int TDim, int TNumNodes>
+// void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVector_EmptyDofs(
+//     EquationIdVectorType& rResult,
+//     const ProcessInfo& CurrentProcessInfo) const
+// {
+//     const TransonicPerturbationPotentialFlowElement& r_this = *this;
+//     const int wake = r_this.GetValue(WAKE);
+
+//     if (wake == 0) // Normal element
+//     {   
+//         if (rResult.size() != TNumNodes) {
+//             rResult.resize(TNumNodes, false);
+//         }
+
+//         const TransonicPerturbationPotentialFlowElement& r_this = *this;
+//         const int kutta = r_this.GetValue(KUTTA);
+
+//         if(kutta == 0) {
+//             GetEquationIdVectorNormalElement_EmptyDofs(rResult);
+//         } else {
+//             GetEquationIdVectorKuttaElement_EmptyDofs(rResult);
+//         }
+//     } else {
+//         if (rResult.size() != 0) {
+//             rResult.resize(0, false);
+//         }
+//     }
+// }
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVector_MatrixConstruction(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& CurrentProcessInfo) const
+{
+
+    // Get edge boundaries
+    GeometriesArrayType current_element_boundary_geometry;
+    GetElementGeometryBoundary(current_element_boundary_geometry);
+
+    // For eash element, we have all EquationIds from its own nodes and the additional node from neighbors that share an edge (2D) / face (3D)
+    if (rResult.size() != 2 * TNumNodes + 2 * current_element_boundary_geometry.size()) {
+        rResult.resize(2 * TNumNodes + 2 * current_element_boundary_geometry.size(), false);
+    }
+    
+    // Add first dof in all elements of result so that we just have redundancy in case of elements with less neighbors.
+    for (unsigned int i = 0; i < rResult.size(); i++)
+    {
+        rResult[i] = GetGeometry()[0].GetDof(VELOCITY_POTENTIAL).EquationId();
+    }
+    
+    // Add both DoFs of each node in the current element
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
+        rResult[i + TNumNodes] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+    }
+
+    // For all edges, find direct neighbor and, if exists, add missing node
+    for (SizeType i = 0; i < current_element_boundary_geometry.size(); i++)
+    {
+        std::vector<size_t> edge_nodes;
+        PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(edge_nodes, current_element_boundary_geometry[i]);
+        GlobalPointersVector<Element> upwind_element_candidates;
+        PotentialFlowUtilities::GetNodeNeighborElementCandidates<TDim, TNumNodes>(upwind_element_candidates, current_element_boundary_geometry[i]);
+        
+        for (SizeType j = 0; j < upwind_element_candidates.size(); j++)
+        {
+            // get sorted node ids of neighbording elements
+            std::vector<size_t> neighbor_element_ids;
+            PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(neighbor_element_ids, upwind_element_candidates[j].GetGeometry());
+            // find element which shares the boundary nodes with current element
+            // but is not the current element
+            if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(),
+                edge_nodes.begin(), edge_nodes.end())
+                && upwind_element_candidates[j].Id() != this->Id())
+            {   
+                // current and neighbor element geometry
+                const GeometryType& r_geom = GetGeometry();
+                const GeometryType& r_neighbor_geom = upwind_element_candidates[j].GetGeometry();
+                std::vector<size_t> current_element_nodes_ids;
+                PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(current_element_nodes_ids, r_geom);
+
+                for (unsigned int k = 0; k < TNumNodes; k++)
+                {   
+                    if( std::find(current_element_nodes_ids.begin(), current_element_nodes_ids.end(),
+                        r_neighbor_geom[k].Id()) == current_element_nodes_ids.end() )
+                    {
+                        rResult[2 * TNumNodes + i] = r_neighbor_geom[k].GetDof(VELOCITY_POTENTIAL).EquationId();
+                        rResult[2 * TNumNodes + i + current_element_boundary_geometry.size()] = r_neighbor_geom[k].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
@@ -158,38 +256,55 @@ template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
                                                                  const ProcessInfo& CurrentProcessInfo) const
 {
-    const TransonicPerturbationPotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
 
-    if (wake == 0) // Normal element
+    if (rElementalDofList.size() != 2 * TNumNodes)
     {
-        if (rElementalDofList.size() != TNumNodes)
-        {
-            rElementalDofList.resize(TNumNodes);
-        }
-
-        const int kutta = r_this.GetValue(KUTTA);
-
-        if (kutta == 0)
-        {
-            GetDofListNormalElement(rElementalDofList);
-
-        }
-        else
-        {
-            GetDofListKuttaElement(rElementalDofList);
-        }
+        rElementalDofList.resize(2 * TNumNodes);
     }
-    else // wake element
+    
+    for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        if (rElementalDofList.size() != 2 * TNumNodes)
-        {
-            rElementalDofList.resize(2 * TNumNodes);
-        }
-
-        GetDofListWakeElement(rElementalDofList);
+        rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
+        rElementalDofList[TNumNodes + i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 }
+
+// template <int TDim, int TNumNodes>
+// void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
+//                                                                  const ProcessInfo& CurrentProcessInfo) const
+// {
+//     const TransonicPerturbationPotentialFlowElement& r_this = *this;
+//     const int wake = r_this.GetValue(WAKE);
+
+//     if (wake == 0) // Normal element
+//     {
+//         if (rElementalDofList.size() != TNumNodes)
+//         {
+//             rElementalDofList.resize(TNumNodes);
+//         }
+
+//         const int kutta = r_this.GetValue(KUTTA);
+
+//         if (kutta == 0)
+//         {
+//             GetDofListNormalElement(rElementalDofList);
+
+//         }
+//         else
+//         {
+//             GetDofListKuttaElement(rElementalDofList);
+//         }
+//     }
+//     else // wake element
+//     {
+//         if (rElementalDofList.size() != 2 * TNumNodes)
+//         {
+//             rElementalDofList.resize(2 * TNumNodes);
+//         }
+
+//         GetDofListWakeElement(rElementalDofList);
+//     }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -406,7 +521,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::AddUpwindEquationId(
     EquationIdVectorType& rResult) const
-{
+{   
     const int additional_upwind_node_index = GetAdditionalUpwindNodeIndex();
     const auto& r_upstream_element = *pGetUpwindElement();
     const auto& r_upwind_geomtery = r_upstream_element.GetGeometry();
@@ -436,6 +551,16 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
 }
 
 template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorNormalElement_EmptyDofs(
+    EquationIdVectorType& rResult) const
+{
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+    }
+}
+
+template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorKuttaElement(
     EquationIdVectorType& rResult) const
 {
@@ -450,6 +575,25 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVe
         else
         {
             rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+        }
+    }
+}
+
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetEquationIdVectorKuttaElement_EmptyDofs(
+    EquationIdVectorType& rResult) const
+{
+    const auto& r_geometry = this->GetGeometry();
+    // Kutta elements have only negative part
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        if (!r_geometry[i].GetValue(TRAILING_EDGE))
+        {
+            rResult[i] = r_geometry[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+        }
+        else
+        {
+            rResult[i] = r_geometry[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         }
     }
 }
@@ -1254,7 +1398,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FindUpwindEdge(
 }
 
 template<int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary)
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary) const
 {
     const TransonicPerturbationPotentialFlowElement& r_this = *this;
 

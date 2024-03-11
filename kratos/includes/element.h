@@ -264,6 +264,19 @@ public:
     }
 
     /**
+     * this determines the elemental equation ID vector for empty dofs. has to be overridden
+     * @param rResult the elemental equation ID vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void EquationIdVector_MatrixConstruction(EquationIdVectorType& rResult,
+                                  const ProcessInfo& rCurrentProcessInfo) const
+    {
+        if (rResult.size() != 0) {
+        rResult.resize(0);
+        }
+    }
+
+    /**
      * determines the elemental list of DOFs
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance

@@ -22,6 +22,10 @@
 
 #include "spaces/ublas_space.h"
 
+
+//builders and solvers
+#include "custom_strategies/fullmatrix_resiudalbased_block_builder_and_solver.h"
+
 //schemes
 #include "custom_strategies/residualbased_incrementalupdate_static_scheme_mod.h"
 
@@ -39,6 +43,11 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
+    using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+
+
    
     py::class_< ResidualBasedIncrementalUpdateStaticSchemeMod< SparseSpaceType, LocalSpaceType>,
         typename ResidualBasedIncrementalUpdateStaticSchemeMod< SparseSpaceType, LocalSpaceType>::Pointer,
@@ -47,6 +56,15 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         .def(py::init<Parameters >() )
         .def(py::init< >()
         );
+
+
+    using FullMatrixResidualBasedBlockBuilderAndSolverType = FullMatrixResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    py::class_< FullMatrixResidualBasedBlockBuilderAndSolverType,
+        FullMatrixResidualBasedBlockBuilderAndSolverType::Pointer,
+        BuilderAndSolverType>
+        (m, "FullMatrixResidualBasedBlockBuilderAndSolver")
+            .def(py::init< LinearSolverType::Pointer >())
+            .def(py::init< LinearSolverType::Pointer, Parameters >());
 
 }
 

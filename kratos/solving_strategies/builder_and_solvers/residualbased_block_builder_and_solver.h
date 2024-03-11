@@ -986,6 +986,7 @@ public:
                         Avalues[j] = 0.0;
             }
         });
+
     }
 
     /**
@@ -1477,8 +1478,11 @@ protected:
         Element::EquationIdVectorType ids(3, 0);
 
         block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
-            pScheme->EquationId(rElem, rIdsTLS, CurrentProcessInfo);
-            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+            // pScheme->EquationId(rElem, rIdsTLS, CurrentProcessInfo);
+            pScheme->EquationId_MatrixConstruction(rElem, rIdsTLS, CurrentProcessInfo);
+            // for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+            // First NumNodes * 2 values of rIdsTLS should correspond to the EquationIds of the nodes strictly in the element
+            for (std::size_t i = 0; i < 6; i++) {
                 lock_array[rIdsTLS[i]].lock();
                 auto& row_indices = indices[rIdsTLS[i]];
                 row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());

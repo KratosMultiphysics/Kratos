@@ -254,6 +254,7 @@ class PotentialFlowSolver(FluidSolver):
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        # return KratosMultiphysics.FullMatrixResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateScheme(self):
         strategy_type = self._GetStrategyType()
