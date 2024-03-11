@@ -80,7 +80,7 @@
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
-/* CONDITIONS */
+/* Conditions */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
@@ -101,7 +101,7 @@
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 
-/* CONSTITUTIVE LAWS */
+/* Constitutive Laws */
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -109,6 +109,8 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
+// Constitutive laws for the Timoshenko beams
+#include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 
 
 namespace Kratos
