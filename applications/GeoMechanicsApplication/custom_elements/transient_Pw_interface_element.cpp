@@ -638,7 +638,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
     noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 
     KRATOS_CATCH("")
 }
@@ -659,7 +659,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
     noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 
     KRATOS_CATCH("")
 }
@@ -679,7 +679,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
                                   prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 
     KRATOS_CATCH("")
 }
