@@ -145,7 +145,7 @@ public:
 			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 			{
                 // non-conforming SLIP BCs are treated within the resp. condition itself
-				if( this->IsSlip(rGeometry[itNode])&& !this->IsPenalty(rGeometry[itNode]))
+				if( this->IsSlip(rGeometry[itNode])&& !this->IsParticleBased(rGeometry[itNode]))
 				{
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
@@ -186,7 +186,7 @@ public:
         this->ApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
-    bool IsPenalty(NodeType& rNode) const
+    bool IsParticleBased(NodeType& rNode) const
     {
         if(this->IsSlip(rNode) )
         {
@@ -200,11 +200,11 @@ public:
     }
 
     // Checking whether it is normal element or penalty element
-    bool IsPenalty(GeometryType& rGeometry) const
+    bool IsParticleBased(GeometryType& rGeometry) const
     {
         for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
         {
-            if(IsPenalty(rGeometry[itNode]))
+            if(IsParticleBased(rGeometry[itNode]))
                 return true;
         }
 

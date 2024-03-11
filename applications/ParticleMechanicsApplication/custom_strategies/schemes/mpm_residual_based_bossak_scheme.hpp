@@ -502,7 +502,7 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        if(!mRotationTool.IsPenalty(rCurrentCondition.GetGeometry())){
+        if(!mRotationTool.IsParticleBased(rCurrentCondition.GetGeometry())){
             // prevent redundant rotation of non-conforming conditions (alr rotated in condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
         }
@@ -539,7 +539,7 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        if(!mRotationTool.IsPenalty(rCurrentCondition.GetGeometry())){
+        if(!mRotationTool.IsParticleBased(rCurrentCondition.GetGeometry())){
             // prevent redundant rotation of non-conforming conditions (alr rotated in condition itself)
             mRotationTool.Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
         }
