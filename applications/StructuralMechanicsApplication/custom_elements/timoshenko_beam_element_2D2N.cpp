@@ -175,7 +175,7 @@ void TimoshenkoBeamElement2D2N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues)
+const double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues) const
 {
     const auto &r_material_properties = rValues.GetMaterialProperties();
     const double E   = r_material_properties[YOUNG_MODULUS];
@@ -376,7 +376,7 @@ const double CalculateShearStrain(
     const Vector N_theta       = GetNThetaShapeFunctionsValues(Length, Phi, xi);
     const Vector N_derivatives = GetFirstDerivativesShapeFunctionsValues(Length, Phi, xi);
     const Vector N_s           = N_derivatives - N_theta;
-    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5]
+    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5];
 }
 
 /***********************************************************************************/

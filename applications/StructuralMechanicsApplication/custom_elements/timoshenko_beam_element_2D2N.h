@@ -21,7 +21,7 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+// #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -203,7 +203,7 @@ public:
     /**
      * @brief This function computes the Phi parameter in Felippa et al.
     */
-    double CalculatePhi(ConstitutiveLaw::Parameters &rValues);
+    const double CalculatePhi(ConstitutiveLaw::Parameters &rValues) const;
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
