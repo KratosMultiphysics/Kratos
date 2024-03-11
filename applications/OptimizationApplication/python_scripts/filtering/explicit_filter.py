@@ -15,7 +15,7 @@ class ExplicitFilter(Filter):
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "filter_type"               : "explicit_vertex_morphing",
+            "filter_type"               : "explicit_filter",
             "filter_function_type"      : "linear",
             "max_nodes_in_filter_radius": 100000,
             "echo_level"                : 0,
