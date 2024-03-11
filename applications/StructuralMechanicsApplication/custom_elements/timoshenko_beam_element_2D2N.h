@@ -75,8 +75,8 @@ public:
     // ///StressMeasure from constitutive laws
     // typedef ConstitutiveLawType::StressMeasure StressMeasureType;
 
-    // ///Type definition for integration methods
-    // typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type definition for integration methods
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     // /// This is the definition of the node.
     // typedef Node NodeType;
@@ -85,22 +85,22 @@ public:
     using BaseType = Element;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BaseSolidElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    BaseSolidElement()
+    TimoshenkoBeamElement2D2N()
     {
     }
 
     // Constructor using an array of nodes
-    BaseSolidElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
+    TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
 
     // Constructor using an array of nodes with properties
-    BaseSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
@@ -108,14 +108,14 @@ public:
     }
 
     // Copy constructor
-    BaseSolidElement(BaseSolidElement const& rOther)
+    TimoshenkoBeamElement2D2N(TimoshenkoBeamElement2D2N const& rOther)
         : BaseType(rOther),
         mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     {
     }
 
     // Destructor
-    // ~BaseSolidElement() override
+    // ~TimoshenkoBeamElement2D2N() override
     // {};
 
     ///@}
@@ -125,6 +125,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    IndexType GetDoFsPerNode()
+    {
+        return 3;
+    }
 
     /**
      * @brief Called to initialize the element.
