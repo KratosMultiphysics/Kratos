@@ -143,6 +143,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
+        mpPrimalElement->SetProperties(this->pGetProperties());
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
     }
 

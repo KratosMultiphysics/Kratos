@@ -200,8 +200,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 {
     KRATOS_TRY;
 
-    if(this->Has(rVariable))
-    {
+    if(this->Has(rVariable)) {
         // Get result value for output
         const double& output_value = this->GetValue(rVariable);
 
@@ -214,9 +213,9 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
         // Write scalar result value on all Gauss-Points
         for(IndexType i = 0; i < gauss_points_number; ++i)
             rValues[i] = output_value;
+    } else {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
-    else
-        KRATOS_ERROR << "Unsupported output variable." << std::endl;
 
     KRATOS_CATCH("")
 }
