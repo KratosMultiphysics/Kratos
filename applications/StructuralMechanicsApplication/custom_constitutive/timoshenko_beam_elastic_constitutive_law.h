@@ -16,11 +16,21 @@
 // External includes
 
 // Project includes
-#include "includes/beam_constitutive_law.h"
+#include "beam_constitutive_law.h"
 
 namespace Kratos
 {
-
+/**
+ * @class TimoshenkoBeamElasticConstitutiveLaw
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class is used by the Timoshenko beam elements in such a way that the CL computes the axial, bending and shear forces according to elastic relations: 
+ * N = EA E_l
+ * M = EI Kappa
+ * V = GAs Gamma_xy
+ * As well as its derivatives dN_dE_l, dM_dKappa and dV_dGamma_xy
+ * @details This means that the input strain is size 3: (E_l, kappa, gamma_xy); output stress vector is size 3: (N, M, V); The constitutive law also retrieves the derivatives via the CalculateValue methods.
+ * @author Alejandro Cornejo
+ */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TimoshenkoBeamElasticConstitutiveLaw : public BeamConstitutiveLaw
 {
 public:
@@ -50,13 +60,7 @@ public:
     /**
      * Copy constructor.
      */
-    TimoshenkoBeamElasticConstitutiveLaw (const TimoshenkoBeamElasticConstitutiveLaw& rOther);
-
-
-    /**
-     * Destructor.
-     */
-    // ~TimoshenkoBeamElasticConstitutiveLaw() override;
+    TimoshenkoBeamElasticConstitutiveLaw(const TimoshenkoBeamElasticConstitutiveLaw &rOther);
 
     /**
      * Operators

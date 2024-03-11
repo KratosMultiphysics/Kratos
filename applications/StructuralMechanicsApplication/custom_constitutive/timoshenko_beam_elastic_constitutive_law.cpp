@@ -14,8 +14,7 @@
 // External includes
 
 // Project includes
-// #include "includes/properties.h"
-#include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
+#include "timoshenko_beam_elastic_constitutive_law.h"
 
 namespace Kratos
 {
@@ -45,22 +44,12 @@ ConstitutiveLaw::Pointer TimoshenkoBeamElasticConstitutiveLaw::Clone() const
     return p_clone;
 }
 
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
-
-// BeamConstitutiveLaw::~BeamConstitutiveLaw()
-// {
-// }
-
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
 void TimoshenkoBeamElasticConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
-    //Set the strain size
     rFeatures.mStrainSize = 3;
-
-    //Set the spacedimension
     rFeatures.mSpaceDimension = 2;
 }
 
@@ -73,7 +62,11 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 ) const
 {
-
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "POISSON_RATIO is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))    << "CROSS_AREA is not defined in the properties"    << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))       << "DENSITY is not defined in the properties"       << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))           << "I33 is not defined in the properties"           << std::endl;
     return 0;
 }
 
