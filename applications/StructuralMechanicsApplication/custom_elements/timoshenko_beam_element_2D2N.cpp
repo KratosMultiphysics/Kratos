@@ -269,8 +269,41 @@ Vector TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Vector TimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    const double one_plus_phi = 1.0 + Phi;
+    Vector n_theta_values(4);
+    n_theta_values[0] = (3.0 * xi * xi - 3.0) / (2.0 * one_plus_phi * Length);
+    n_theta_values[1] = (xi - 1.0) * (1.0 + 3.0 * xi - 2.0 * Phi) / (4.0 * one_plus_phi);
+    n_theta_values[2] = (3.0 - 3.0 * xi * xi) / (2 * one_plus_phi * Length);
+    n_theta_values[3] = (1.0 + xi) * (3.0 * xi - 1.0 + 2.0 * Phi) / (4.0 * one_plus_phi);
+    return n_theta_values;
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    const double one_plus_phi = 1.0 + Phi;
+    Vector n_theta_derivatives_values(4);
+    n_theta_derivatives_values[0] = 3.0 * xi / (one_plus_phi * Length);
+    n_theta_derivatives_values[1] = (-0.5 * Phi + 1.5 * xi - 0.5) / (Phi + 1.0);
+    n_theta_derivatives_values[2] = (-3.0 * xi) / (Length * Phi + Length);
+    n_theta_derivatives_values[3] = (0.5 * Phi + 1.5 * xi + 0.5) / (Phi + 1.0);
+    return (2.0 / Length) * n_theta_derivatives_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 
 

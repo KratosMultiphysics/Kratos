@@ -204,6 +204,13 @@ public:
     Vector GetThirdDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
 
     /**
+     * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
+     * Also its derivative
+    */
+    Vector GetNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetFirstDerivativesNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
+
+    /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
