@@ -211,6 +211,13 @@ public:
     Vector GetFirstDerivativesNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
 
     /**
+     * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
+     * Also its derivative
+    */
+    Vector GetNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetFirstDerivativesNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
+
+    /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrix container with the output Left Hand Side matrix

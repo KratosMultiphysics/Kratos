@@ -305,6 +305,35 @@ Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Vector GetNu0ShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    Vector nu_values(2);
+    nu_values[0] = 0.5 * (1.0 - xi);
+    nu_values[1] = 0.5 * (1.0 + xi);
+    return nu_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector GetFirstDerivativesNu0ShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    Vector nu_derivatives_values(2);
+    nu_derivatives_values[0] = -0.5;
+    nu_derivatives_values[1] =  0.5;
+    return 2.0 / Length * nu_derivatives_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 
 
