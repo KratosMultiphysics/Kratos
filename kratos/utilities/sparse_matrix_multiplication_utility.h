@@ -629,10 +629,12 @@ public:
         C.set_filled(NRows+1, nonzero_values);
     }
 
-        /// @brief Value type of sparse row iterator @ref IndexValuePairIterator.
-    /// @details This class is only meant to support sorting the rows of sparse matrices
-    ///          in-place. It stores a pointer to a component in the matrix and its column
-    ///          index, and provides operators used in sorting algorithms.
+    /**
+     * @brief Value type of sparse row iterator @ref IndexValuePairIterator.
+     * @details This class is only meant to support sorting the rows of sparse matrices
+     *           in-place. It stores a pointer to a component in the matrix and its column
+     *           index, and provides operators used in sorting algorithms.
+     */
     template <class TColumn, class TValue>
     class IndexValuePair
     {
@@ -689,7 +691,9 @@ public:
         TValue mValue;
     }; // class IndexValuePair
 
-    /// @brief Iterator to support sorting rows in a sparse matrix.
+    /** 
+     * @brief Iterator to support sorting rows in a sparse matrix.
+     */
     template <class TColumn, class TValue>
     class IndexValuePairIterator
     {
