@@ -44,6 +44,34 @@ void DEM_parallel_bond::Initialize(SphericContinuumParticle* element1,
             KRATOS_WARNING("DEM") << "\nWARNING: We are currently in DEBUG PRINTING mode, so the ids of the two particles involved must be given.\n\n";
         }
     }
+
+    #pragma omp critical
+    {
+        srand(element1->GetId());
+        mBondSigmaMax = rand_normal((*mpProperties)[BOND_SIGMA_MAX], (*mpProperties)[BOND_SIGMA_MAX_DEVIATION]);
+        srand(element1->GetId());
+        mBondTauZero = rand_normal((*mpProperties)[BOND_TAU_ZERO], (*mpProperties)[BOND_TAU_ZERO_DEVIATION]);
+    }
+
+}
+
+double DEM_parallel_bond::rand_normal(const double mean, const double stddev) {
+
+    KRATOS_TRY
+
+        if (!stddev) return mean;
+        double x, y, r;
+
+        do {
+            x = 2.0 * rand() / RAND_MAX - 1;
+            y = 2.0 * rand() / RAND_MAX - 1;
+            r = x*x + y*y;
+        } while (r == 0.0 || r > 1.0);
+
+        double d = sqrt(- 2.0 * log(r) / r);
+        return x * d * stddev + mean;
+
+    KRATOS_CATCH("")
 }
 
 void DEM_parallel_bond::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp){
@@ -763,7 +791,8 @@ void DEM_parallel_bond::CalculateMoments(SphericContinuumParticle* element,
                                 equiv_poisson, 
                                 indentation, 
                                 LocalContactForce);
-    }                      
+        CalculateBondRotationalDamping(element, neighbor, LocalCoordSystem, ViscoLocalRotationalMoment); 
+    }                  
 
     DemContact::ComputeParticleContactMoments(normalLocalContactForce,
                                              GlobalContactForce,
@@ -853,6 +882,54 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
     //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
     //DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
     
+    /*
+    // Bond rotational 'friction' based on particle rolling fricton 
+    //Not damping but simple implementation to help energy dissipation
+    
+    double LocalElement1AngularVelocity[3] = {0.0};
+    array_1d<double, 3> GlobalElement1AngularVelocity;
+    noalias(GlobalElement1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElement1AngularVelocity, LocalElement1AngularVelocity);
+    double element1AngularVelocity_modulus = sqrt(LocalElement1AngularVelocity[0] * LocalElement1AngularVelocity[0] + 
+                                                LocalElement1AngularVelocity[1] * LocalElement1AngularVelocity[1] +
+                                                LocalElement1AngularVelocity[2] * LocalElement1AngularVelocity[2]);
+
+    if (element1AngularVelocity_modulus){
+        array_1d<double, 3> other_to_me_vect;
+        noalias(other_to_me_vect) = element->GetGeometry()[0].Coordinates() - neighbor->GetGeometry()[0].Coordinates();
+        double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
+    
+        array_1d<double, 3> element1AngularVelocity_normalise;
+        element1AngularVelocity_normalise[0] = LocalElement1AngularVelocity[0] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[1] = LocalElement1AngularVelocity[1] / element1AngularVelocity_modulus;
+        element1AngularVelocity_normalise[2] = LocalElement1AngularVelocity[2] / element1AngularVelocity_modulus;
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbor->GetProperties().Id());
+
+        ViscoLocalRotationalMoment[0] = - element1AngularVelocity_normalise[0] * std::abs(mBondedLocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
+                                        * properties_of_this_contact[ROLLING_FRICTION]; 
+
+        ViscoLocalRotationalMoment[1] = - element1AngularVelocity_normalise[1] * std::abs(mBondedLocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
+                                        * properties_of_this_contact[ROLLING_FRICTION]; 
+
+        ViscoLocalRotationalMoment[2] = - element1AngularVelocity_normalise[2] * std::abs(mBondedLocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
+                                        * properties_of_this_contact[ROLLING_FRICTION]; 
+
+    } else {
+        ViscoLocalRotationalMoment[0] = 0.0;
+        ViscoLocalRotationalMoment[1] = 0.0;
+        ViscoLocalRotationalMoment[2] = 0.0;
+    } */
+     
+    KRATOS_CATCH("")
+}//ComputeParticleRotationalMoments
+
+void DEM_parallel_bond::CalculateBondRotationalDamping(SphericContinuumParticle* element,
+                                                SphericContinuumParticle* neighbor,
+                                                double LocalCoordSystem[3][3],
+                                                double ViscoLocalRotationalMoment[3]){
+    KRATOS_TRY
+    
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
     
@@ -890,10 +967,9 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
     } 
-     
-    KRATOS_CATCH("")
-}//ComputeParticleRotationalMoments
 
+    KRATOS_CATCH("")
+}
 
 //*************************************
 // Bond failure checking
@@ -916,9 +992,9 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
     if (failure_type == 0) {
 
         //parameters
-        const double& bond_sigma_max = (*mpProperties)[BOND_SIGMA_MAX];
+        //const double& bond_sigma_max = (*mpProperties)[BOND_SIGMA_MAX];
         //const double& bond_sigma_max_deviation = (*mpProperties)[BOND_SIGMA_MAX_DEVIATION];
-        const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
+        //const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
         //const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
         const double& bond_rotational_moment_coefficient_normal =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL];
@@ -943,7 +1019,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         const double I = 0.25 * Globals::Pi * bond_radius * bond_radius * bond_radius * bond_radius;
         const double J = 2.0 * I; // This is the polar inertia
 
-        double bond_current_tau_max = bond_tau_zero;
+        double bond_current_tau_max = mBondTauZero;
 
         if (contact_sigma >= 0) {
             bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
@@ -951,7 +1027,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         //bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
 
         if (contact_sigma < 0.0  /*break in tension*/
-                && ((-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I) > bond_sigma_max) 
+                && ((-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I) > mBondSigmaMax) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
@@ -966,9 +1042,9 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;
-            ViscoLocalRotationalMoment[0] = 0.0;
-            ViscoLocalRotationalMoment[1] = 0.0;
-            ViscoLocalRotationalMoment[2] = 0.0;
+            //ViscoLocalRotationalMoment[0] = 0.0;
+            //ViscoLocalRotationalMoment[1] = 0.0;
+            //ViscoLocalRotationalMoment[2] = 0.0;
             mBondedScalingFactor[0] = 0.0;
             mBondedScalingFactor[1] = 0.0;
             mBondedScalingFactor[2] = 0.0;
@@ -988,9 +1064,9 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             ElasticLocalRotationalMoment[0] = 0.0;
             ElasticLocalRotationalMoment[1] = 0.0;
             ElasticLocalRotationalMoment[2] = 0.0;
-            ViscoLocalRotationalMoment[0] = 0.0;
-            ViscoLocalRotationalMoment[1] = 0.0;
-            ViscoLocalRotationalMoment[2] = 0.0;
+            //ViscoLocalRotationalMoment[0] = 0.0;
+            //ViscoLocalRotationalMoment[1] = 0.0;
+            //ViscoLocalRotationalMoment[2] = 0.0;
             mBondedScalingFactor[0] = 0.0;
             mBondedScalingFactor[1] = 0.0;
             mBondedScalingFactor[2] = 0.0;
