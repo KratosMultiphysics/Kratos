@@ -105,7 +105,7 @@ Element::Pointer TimoshenkoBeamElement2D2N::Clone(
 {
     KRATOS_TRY
 
-    BaseSolidElement::Pointer p_new_elem = Kratos::make_intrusive<BaseSolidElement>
+    TimoshenkoBeamElement2D2N::Pointer p_new_elem = Kratos::make_intrusive<TimoshenkoBeamElement2D2N>
         (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
@@ -146,6 +146,7 @@ void TimoshenkoBeamElement2D2N::EquationIdVector(
         rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
         rResult[index + 2] = r_geom[i].GetDof(ROTATION_Z,     pos + 2).EquationId();
     }
+
     KRATOS_CATCH("")
 }
 
@@ -236,7 +237,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateOnIntegrationPoints(
+void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -268,7 +269,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int  TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -285,7 +286,7 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 //***********************************************************************
 //***********************************************************************
 
-double BaseSolidElement::GetIntegrationWeight(
+double TimoshenkoBeamElement2D2N::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
     const IndexType PointNumber,
     const double detJ
@@ -297,9 +298,9 @@ double BaseSolidElement::GetIntegrationWeight(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::save(Serializer& rSerializer) const
+void TimoshenkoBeamElement2D2N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
@@ -308,9 +309,9 @@ void BaseSolidElement::save(Serializer& rSerializer) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::load(Serializer& rSerializer)
+void TimoshenkoBeamElement2D2N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);

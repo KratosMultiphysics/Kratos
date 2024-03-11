@@ -126,7 +126,7 @@ public:
     ///@name Operations
     ///@{
 
-    IndexType GetDoFsPerNode()
+    const IndexType GetDoFsPerNode() const
     {
         return 3;
     }
@@ -277,21 +277,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    
-    /**
-     * @brief This method provides the specifications/requirements of the element
-     * @details This can be used to enhance solvers and analysis
-     * @return specifications The required specifications/requirements
-     */
-    const Parameters GetSpecifications() const override;
-    
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
-    }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
@@ -352,11 +337,6 @@ protected:
      * @brief It initializes the material
      */
     virtual void InitializeMaterial();
-
-    /**
-     * @brief Gives the StressMeasure used
-     */
-    virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
 
     /**
      * @brief This functions computes the integration weight to consider
