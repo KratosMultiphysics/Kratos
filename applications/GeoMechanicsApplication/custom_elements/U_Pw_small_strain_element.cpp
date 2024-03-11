@@ -959,13 +959,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 
     // Defining shape functions at all integration points
     // Defining necessary variables
-    BoundedMatrix<double, TDim + 1, TNumNodes*(TDim + 1)> Nut = ZeroMatrix(TDim + 1, TNumNodes * (TDim + 1));
-    BoundedMatrix<double, TDim + 1, TNumNodes*(TDim + 1)> AuxDensityMatrix =
-        ZeroMatrix(TDim + 1, TNumNodes * (TDim + 1));
-    BoundedMatrix<double, TDim + 1, TDim + 1> DensityMatrix = ZeroMatrix(TDim + 1, TDim + 1);
+    BoundedMatrix<double, TDim, TNumNodes * TDim> Nut = ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, TNumNodes * TDim> AuxDensityMatrix =
+        ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, TDim> DensityMatrix = ZeroMatrix(TDim, TDim);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        GeoElementUtilities::CalculateNuElementMatrix<TDim, TNumNodes>(Nut, Variables.NContainer, GPoint);
+        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nut, Variables.NContainer, GPoint);
 
         Matrix J0, InvJ0, DNu_DX0;
         this->CalculateDerivativesOnInitialConfiguration(Variables.detJInitialConfiguration, J0,
@@ -979,13 +979,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 
         this->CalculateSoilDensity(Variables);
 
-        GeoElementUtilities::AssembleDensityMatrix<TDim>(DensityMatrix, Variables.Density);
+        GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
 
         noalias(AuxDensityMatrix) = prod(DensityMatrix, Nut);
 
         // Adding contribution to Mass matrix
-        noalias(rMassMatrix) +=
-            prod(trans(Nut), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration;
+        GeoElementUtilities::AssembleUUBlockMatrix(
+            rMassMatrix, prod(trans(Nut), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration);
     }
 
     KRATOS_CATCH("")

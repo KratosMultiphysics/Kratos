@@ -46,23 +46,6 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void CalculateNuElementMatrix(BoundedMatrix<double, (TDim+1), TNumNodes*(TDim+1)>& rNut,
-                                                const Matrix& NContainer,
-                                                unsigned int GPoint)
-    {
-        const unsigned int offset = (TDim+1);
-
-        for (unsigned int i=0; i < TDim; ++i) {
-            unsigned int index = i - offset;
-            for (unsigned int j=0; j < TNumNodes; ++j) {
-                index += offset;
-                rNut(i, index) = NContainer(GPoint, j);
-            }
-        }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
     static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
                                                          const Matrix& NContainer,
                                                          const array_1d<double, TDim*TNumNodes>& VariableWithComponents,
@@ -230,9 +213,8 @@ public:
         }
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
-                                             double Density)
+    template <typename MatrixType>
+    static inline void AssembleDensityMatrix(MatrixType& DensityMatrix, double Density)
     {
         for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim) {
             for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim) {
