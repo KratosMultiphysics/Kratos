@@ -264,8 +264,6 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("LineNormalLoadDiffOrderCondition2D4N", mLineNormalLoadDiffOrderCondition2D4N)
     KRATOS_REGISTER_CONDITION("LineNormalLoadDiffOrderCondition2D5N", mLineNormalLoadDiffOrderCondition2D5N)
     KRATOS_REGISTER_CONDITION("LineNormalFluidFluxDiffOrderCondition2D3N", mLineNormalFluidFluxDiffOrderCondition2D3N)
-    KRATOS_REGISTER_CONDITION("LineNormalFluidFluxDiffOrderCondition2D4N", mLineNormalFluidFluxDiffOrderCondition2D4N)
-    KRATOS_REGISTER_CONDITION("LineNormalFluidFluxDiffOrderCondition2D5N", mLineNormalFluidFluxDiffOrderCondition2D5N)
     KRATOS_REGISTER_CONDITION("SurfaceLoadDiffOrderCondition3D6N", mSurfaceLoadDiffOrderCondition3D6N)
     KRATOS_REGISTER_CONDITION("SurfaceLoadDiffOrderCondition3D8N", mSurfaceLoadDiffOrderCondition3D8N)
     KRATOS_REGISTER_CONDITION("SurfaceLoadDiffOrderCondition3D9N", mSurfaceLoadDiffOrderCondition3D9N)

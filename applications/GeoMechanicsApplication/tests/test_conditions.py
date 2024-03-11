@@ -85,6 +85,15 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(self.etalon_value3, pres)
         
         
+    def test_LineNormalFluidFluxDiffOrderCondition2D3N(self):
+        test_name = 'test_LineNormalFluidFluxDiffOrderCondition2D3N'
+        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        pressure = test_helper.get_water_pressure(simulation)
+        pres = pressure[2]
+        self.assertAlmostEqual(self.etalon_value3, pres)
+
+        
     def test_UPwFaceLoadCondition2D2N(self):
         test_name = 'test_UPwFaceLoadCondition2D2N'
         file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
@@ -217,5 +226,21 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
         disp = displacement[2]
         self.assertAlmostEqual(self.etalon_value2, disp[1])
         
+    def test_AxisymmetricUPwNormalFaceLoadCondition2D4N(self):
+        test_name = 'test_AxisymmetricUPwNormalFaceLoadCondition2D4N'
+        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        displacement = test_helper.get_displacement(simulation)
+        disp = displacement[2]
+        self.assertAlmostEqual(self.etalon_value2, disp[1])
+        
+    def test_AxisymmetricUPwNormalFaceLoadCondition2D5N(self):
+        test_name = 'test_AxisymmetricUPwNormalFaceLoadCondition2D5N'
+        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        displacement = test_helper.get_displacement(simulation)
+        disp = displacement[2]
+        self.assertAlmostEqual(self.etalon_value2, disp[1])
+
 if __name__ == '__main__':
     KratosUnittest.main()
