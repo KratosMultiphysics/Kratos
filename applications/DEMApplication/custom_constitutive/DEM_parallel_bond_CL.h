@@ -171,7 +171,12 @@ namespace Kratos{
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
                                                 double indentation,
-                                                double LocalElasticContactForce[3]) override;       
+                                                double LocalElasticContactForce[3]) override; 
+
+        void CalculateBondRotationalDamping(SphericContinuumParticle* element,
+                                                SphericContinuumParticle* neighbor,
+                                                double LocalCoordSystem[3][3],
+                                                double ViscoLocalRotationalMoment[3]);
         
         void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
                                                     double LocalElasticExtraContactForce[3],
@@ -183,6 +188,8 @@ namespace Kratos{
                                                     SphericContinuumParticle* element2);
 
         double GetTangentialStiffness() override;
+
+        double rand_normal(const double mean, const double stddev);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant = 0.0;
@@ -201,6 +208,9 @@ namespace Kratos{
         double mKn;
         double mKt;
         bool mDebugPrintingOption = false;
+        double mBondSigmaMax = 0.0;
+        double mBondTauZero = 0.0;
+
 
     protected:
 
