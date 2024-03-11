@@ -29,6 +29,7 @@ namespace Kratos
  * V = GAs Gamma_xy
  * As well as its derivatives dN_dE_l, dM_dKappa and dV_dGamma_xy
  * @details This means that the input strain is size 3: (E_l, kappa, gamma_xy); output stress vector is size 3: (N, M, V); The constitutive law also retrieves the derivatives via the CalculateValue methods.
+ * The beam is supposed to be in the x-y plane. Rotations along the z-axis
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TimoshenkoBeamElasticConstitutiveLaw : public BeamConstitutiveLaw
@@ -98,6 +99,46 @@ public:
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
+
+    /**
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
 
 protected:
 

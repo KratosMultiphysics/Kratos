@@ -9,12 +9,12 @@
 //  Main authors:    Alejandro Cornejo
 //
 // System includes
-// #include <iostream>
 
 // External includes
 
 // Project includes
 #include "timoshenko_beam_elastic_constitutive_law.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -68,6 +68,48 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))       << "DENSITY is not defined in the properties"       << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))           << "I33 is not defined in the properties"           << std::endl;
     return 0;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    CalculateMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    CalculateMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    CalculateMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    auto &r_material_properties = rValues.GetMaterialProperties();
+    auto &r_strain_vector = rValues.GetStrainVector();
+
+    const double axial_strain = r_strain_vector[0]; // E_l
+    const double curvature    = r_strain_vector[1]; // Kappa
+    const double shear_strain = r_strain_vector[2]; // Gamma_xy
+
+    const double E  = r_material_properties[YOUNG_MODULUS];
+    const double nu = r_material_properties[POISSON_RATIO];
+    const double A  = r_material_properties[CROSS_AREA];
+    const double I  = r_material_properties[IZ];
 }
 
 } // Namespace Kratos
