@@ -30,13 +30,13 @@ def calculate_pore_pressure_1D_consolidation(y_coord, H, T_v):
     rel_p = 4.0 / pi * rel_p
     return rel_p
     
-def calculate_total_deformation_1D_consolidation(H, T_v):
+def calculate_degree_of_1D_consolidation(H, T_v):
     """
-    Calculates the analytical solution for total deformation in 1d consolidation on linear elastic soil [@@ref@@]
+    Calculates the analytical solution for degree of consolidatuion in 1d consolidation on linear elastic soil [@@ref@@]
 
     :param H: sample height
     :param T_v:  dimensionless time factor
-    :return: relative deformation
+    :return: degree of consolidation
     """
     from math import fabs, pi, exp
 
