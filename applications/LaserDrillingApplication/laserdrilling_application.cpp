@@ -53,6 +53,7 @@ void KratosLaserDrillingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DECOMPOSITION_LAW_REFERENCE_TEMPERATURE)
     KRATOS_REGISTER_VARIABLE(DECOMPOSITION_LAW_CONSTANT_1)
     KRATOS_REGISTER_VARIABLE(DECOMPOSITION_LAW_CONSTANT_2)
+    KRATOS_REGISTER_VARIABLE(DECOMPOSED_NODE)
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("LaserAxisymmetricEulerianConvectionDiffusion2D3N", mLaserAxisymmetricEulerianConvectionDiffusion2D3N);
