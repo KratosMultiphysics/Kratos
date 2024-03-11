@@ -124,14 +124,14 @@ public:
     /**
      * @brief Returns a 6 component vector including the values of the DoFs
      */
-    VectorType GetNodalValuesVector();
+    Vector GetNodalValuesVector();
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
      */
-    const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    const double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    const double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const Vector& rNodalValues);
+    const double CalculateShearStrain     (const double Length, const double Phi, const double xi, const Vector& rNodalValues);
+    const double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const Vector& rNodalValues);
 
     /**
      * @brief Called to initialize the element.
@@ -157,7 +157,7 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void EquationIdVector(
-        EquationIdVectorType& rResult,
+        EquationIdVector& rResult,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
@@ -167,7 +167,7 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
-        DofsVectorType& rElementalDofList,
+        DofsVector& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
@@ -209,24 +209,24 @@ public:
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
      * Also its derivatives
     */
-    VectorType GetShapeFunctionsValues(const double Length, const double Phi, const double xi);
-    VectorType GetFirstDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
-    VectorType GetSecondDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
-    VectorType GetThirdDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetFirstDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetSecondDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetThirdDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
      * Also its derivative
     */
-    VectorType GetNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
-    VectorType GetFirstDerivativesNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetFirstDerivativesNThetaShapeFunctionsValues(const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
      * Also its derivative
     */
-    VectorType GetNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
-    VectorType GetFirstDerivativesNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetFirstDerivativesNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -237,7 +237,7 @@ public:
      */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
+        Vector& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -257,7 +257,7 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
+        Vector& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
