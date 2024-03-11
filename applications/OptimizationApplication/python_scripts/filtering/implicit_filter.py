@@ -53,6 +53,7 @@ class ImplicitFilter(Filter):
         self.filter_analysis = HelmholtzAnalysis(self.model, helmholtz_settings)
 
     def Initialize(self) -> None:
+        self.filter_analysis.SetHelmholtzModelPartNameSuffix(f"_helmholtz_filter_mdp_{self.GetComponentDataView().GetComponentName()}")
         self.filter_analysis.Initialize()
 
         # fix boundaries

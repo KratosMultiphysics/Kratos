@@ -34,12 +34,6 @@ class HelmholtzSolverBase(PythonSolver):
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
         self.origin_root_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        # Create Helmholtz model part
-        # replacing "." with "_" if the filtering model part is a sub model part since model part names
-        # cannot have ".", and helmholtz_model_part needs to be a root model part
-        helmholtz_model_part_name = self.filtering_model_part_name.replace(".", "_") + "_helmholtz_filter_mdp"
-        self.helmholtz_model_part = self.model.CreateModelPart(helmholtz_model_part_name)
-
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
         self.filter_type = self.settings["filter_type"].GetString()

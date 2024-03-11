@@ -18,6 +18,7 @@ class HelmholtzAnalysis(AnalysisStage):
         super().__init__(model, project_parameters)
         self.__source_data: ContainerExpressionTypes = None
         self.__neighbour_entities: 'dict[Any, KM.Expression.NodalExpression]' = {}
+        self.__helmholtz_model_part_name_suffix = "_helmholtz_filter_mdp"
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -36,8 +37,17 @@ class HelmholtzAnalysis(AnalysisStage):
     def _SetHelmHoltzSourceMode(self, integrated_field=False):
         self._GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_INTEGRATED_FIELD, integrated_field)
 
+    def SetHelmholtzModelPartNameSuffix(self, suffix: str) -> None:
+        self.__helmholtz_model_part_name_suffix = suffix
+
     #### Public user interface functions ####
     def Initialize(self):
+        # Create Helmholtz model part
+        # replacing "." with "_" if the filtering model part is a sub model part since model part names
+        # cannot have ".", and helmholtz_model_part needs to be a root model part
+        helmholtz_model_part_name = self._GetSolver().filtering_model_part_name.replace(".", "_") + self.__helmholtz_model_part_name_suffix
+        self._GetSolver().helmholtz_model_part = self.model.CreateModelPart(helmholtz_model_part_name)
+
         super().Initialize()
         self._SetSolverMode()
         self.SetFilterRadius(self._GetSolver().GetFilterRadius())
