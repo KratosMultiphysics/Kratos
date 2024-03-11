@@ -15,9 +15,7 @@
 // External includes
 
 // Project includes
-#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-// #include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "custom_elements/timoshenko_beam_element_2D2N.h"
@@ -174,10 +172,114 @@ void TimoshenkoBeamElement2D2N::GetDofList(
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
+double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues)
+{
+    const auto &r_material_properties = rValues.GetMaterialProperties();
+    const double E   = r_material_properties[YOUNG_MODULUS];
+    const double A   = r_material_properties[CROSS_AREA];
+    const double I   = r_material_properties[IZ];
+    const double k_s = r_material_properties.Has(SHEAR_CORRECTION_XY) ? r_material_properties[SHEAR_CORRECTION_XY] : 5.0 / 6.0; // We assume rectangular shape
+    const double A_s = k_s * A;
+    const double G   = ConstitutiveLawUtilities<>::CalculateShearModulus(rValues);
+    const double L   = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    return 12.0 * E * I / (G * A_s * std::pow(L, 2));
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
+
+Vector TimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    Vector shape_functions_values(4);
+    const double one_plus_phi = 1.0 + Phi;
+    const double xi_square = xi * xi;
+    shape_functions_values[0] = (xi - 1.0) * (xi + xi_square - 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
+    shape_functions_values[1] = (1.0 - xi_square) * (1.0 - xi + Phi) * Length / (8.0 * one_plus_phi);
+    shape_functions_values[2] = (1.0 + xi) * (xi - xi_square + 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
+    shape_functions_values[3] = (xi_square - 1.0) * (1.0 + xi + Phi) * Length / (8.0 * one_plus_phi);
+    return shape_functions_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    Vector shape_functions_derivatives_values(4);
+    const double one_plus_phi = 1.0 + Phi;
+    const double xi_square = xi * xi;
+    shape_functions_derivatives_values[0] = (-6.0 + 6.0 * xi_square - 4.0 * Phi) / (4.0 * one_plus_phi * Length);
+    shape_functions_derivatives_values[1] = (-1.0 + 3.0 * xi_square - 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
+    shape_functions_derivatives_values[2] = (6.0 - 6.0 * xi_square + 4.0 * Phi) / (4.0 * one_plus_phi * Length);
+    shape_functions_derivatives_values[3] = (-1.0 + 3.0 * xi_square + 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
+    return shape_functions_derivatives_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector TimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    Vector shape_functions_second_derivatives_values(4);
+    const double one_plus_phi = 1.0 + Phi;
+    const double xi_square = xi * xi;
+    const double L_square = std::pow(Length, 2);
+    shape_functions_second_derivatives_values[0] = 6.0 * xi / (one_plus_phi * L_square);
+    shape_functions_second_derivatives_values[1] = (-1.0 + 3.0 * xi - Phi) / (one_plus_phi * Length);
+    shape_functions_second_derivatives_values[2] = -6.0 * xi / (one_plus_phi * L_square);
+    shape_functions_second_derivatives_values[3] = (1.0 + 3.0 * xi + Phi) / (one_plus_phi * Length);
+    return shape_functions_second_derivatives_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    Vector shape_functions_third_derivatives_values(4);
+    const double one_plus_phi = 1.0 + Phi;
+    const double xi_square = xi * xi;
+    const double L_square = std::pow(Length, 2);
+    shape_functions_third_derivatives_values[0] = 12.0  / (one_plus_phi * Length * L_square);
+    shape_functions_third_derivatives_values[1] = 6.0   / (one_plus_phi * L_square);
+    shape_functions_third_derivatives_values[2] = -12.0 / (one_plus_phi * Length * L_square);
+    shape_functions_third_derivatives_values[3] = 6.0   / (one_plus_phi * L_square);
+    return shape_functions_third_derivatives_values;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
 
 void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,

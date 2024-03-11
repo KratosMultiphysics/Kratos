@@ -66,15 +66,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///Reference type definition for constitutive laws
-    // typedef ConstitutiveLaw ConstitutiveLawType;
-
-    // ///Pointer type for constitutive laws
-    // typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-
-    // ///StressMeasure from constitutive laws
-    // typedef ConstitutiveLawType::StressMeasure StressMeasureType;
-
     ///Type definition for integration methods
     using IntegrationMethod = GeometryData::IntegrationMethod;
 
@@ -188,15 +179,29 @@ public:
         return true;
     }
 
-    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
+    const virtual GeometryType::IntegrationPointsArrayType IntegrationPoints() const 
     {
         return GetGeometry().IntegrationPoints();
     }
 
-    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints(IntegrationMethod ThisMethod) const
+    const virtual GeometryType::IntegrationPointsArrayType IntegrationPoints(IntegrationMethod ThisMethod) const
     {
         return GetGeometry().IntegrationPoints(ThisMethod);
     }
+
+    /**
+     * @brief This function computes the Phi parameter in Felippa et al.
+    */
+    double CalculatePhi(ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
+     * Also its derivatives
+    */
+    Vector GetShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetFirstDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetSecondDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    Vector GetThirdDerivativesShapeFunctionsValues(const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function provides a more general interface to the element.
