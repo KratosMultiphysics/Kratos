@@ -176,10 +176,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     // Defining necessary variables
-    BoundedMatrix<double, TDim + 1, TNumNodes*(TDim + 1)> Nut = ZeroMatrix(TDim + 1, TNumNodes * (TDim + 1));
-    BoundedMatrix<double, TDim + 1, TNumNodes*(TDim + 1)> AuxDensityMatrix =
-        ZeroMatrix(TDim + 1, TNumNodes * (TDim + 1));
-    BoundedMatrix<double, TDim + 1, TDim + 1> DensityMatrix = ZeroMatrix(TDim + 1, TDim + 1);
+    BoundedMatrix<double, TDim, TNumNodes * TDim> AuxDensityMatrix =
+        ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, TDim> DensityMatrix = ZeroMatrix(TDim, TDim);
 
     array_1d<double, TDim> LocalRelDispVector;
     array_1d<double, TDim> RelDispVector;
@@ -195,8 +194,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
 
         this->CalculateJointWidth(Variables.JointWidth, LocalRelDispVector[TDim - 1], MinimumJointWidth, GPoint);
 
-        InterfaceElementUtilities::CalculateNuElementMatrix(Nut, NContainer, GPoint);
-
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
@@ -205,13 +202,14 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
 
         this->CalculateSoilDensity(Variables);
 
-        GeoElementUtilities::AssembleDensityMatrix<TDim>(DensityMatrix, Variables.Density);
+        GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
 
-        noalias(AuxDensityMatrix) = prod(DensityMatrix, Nut);
+        noalias(AuxDensityMatrix) = prod(DensityMatrix, Variables.Nu);
 
         // Adding contribution to Mass matrix
-        noalias(rMassMatrix) +=
-            prod(trans(Nut), AuxDensityMatrix) * Variables.JointWidth * Variables.IntegrationCoefficient;
+        GeoElementUtilities::AssembleUUBlockMatrix(
+            rMassMatrix, prod(trans(Variables.Nu), AuxDensityMatrix) * Variables.JointWidth *
+                             Variables.IntegrationCoefficient);
     }
 
     KRATOS_CATCH("")
