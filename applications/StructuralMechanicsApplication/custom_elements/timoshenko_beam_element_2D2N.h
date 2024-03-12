@@ -129,6 +129,7 @@ public:
 
     /**
      * @brief Returns a 6 component vector including the values of the DoFs
+     * in LOCAL axes
      */
     void GetNodalValuesVector(VectorType& rNodalValue);
 
