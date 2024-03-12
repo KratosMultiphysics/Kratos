@@ -157,7 +157,7 @@ public:
     BoundingBox<Point> GetGlobalBoundingBox() const;
 
     /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @brief This method takes several points and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator.
      * @param itPointEnd The last point iterator.
@@ -227,7 +227,7 @@ public:
     }
 
     /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @brief This method takes several points and finds the nearest object to it in a given radius.
      * @details If there are more than one object in the same minimum distance only one is returned.
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
@@ -304,7 +304,7 @@ public:
     }
 
     /**
-     * @brief This method takes a point and finds the nearest object to it.
+     * @brief This method takes several points and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned.
      * Result contains a flag is the object has been found or not.
      * @param itPointBegin The first point iterator.
@@ -380,7 +380,7 @@ public:
     }
 
     /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
+     * @brief This method takes several points and search if it's inside an geometrical object of the domain (iterative version).
      * @details If it is inside an object, it returns it, and search distance is set to zero.
      * If there is no object, the result will be set to not found.
      * Result contains a flag is the object has been found or not.
@@ -557,7 +557,7 @@ private:
         );
 
     /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @brief This method takes several points and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
      * @param rPoint The point to be checked.
      * @param Radius The radius to be checked.
@@ -574,7 +574,7 @@ private:
         );
 
     /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @brief This method takes several points and finds the nearest object to it in a given radius.
      * @details If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
@@ -593,7 +593,7 @@ private:
         );
 
     /**
-     * @brief This method takes a point and finds the nearest object to it.
+     * @brief This method takes several points and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
      * @param rPoint The point to be checked.
@@ -607,7 +607,7 @@ private:
         );
 
     /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+     * @brief This method takes several points and search if it's inside an geometrical object of the domain.
      * @details If it is inside an object, it returns it, and search distance is set to zero.
      * If there is no object, the result will be set to not found.
      * Result contains a flag is the object has been found or not.
