@@ -258,5 +258,14 @@ void BuildRotationMatrix(
     const array_1d<double, 3>& rv2,
     const array_1d<double, 3>& rv3);
 
+/**
+ * @brief This function fills a rotation matrix from an angle of the beam
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 3 dofs per node: u,v,theta
+ */
+void BuildRotationMatrixFor2D2NBeam(
+    BoundedMatrix<double, 3, 3> &rRotationMatrix,
+    const double AlphaAngle);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

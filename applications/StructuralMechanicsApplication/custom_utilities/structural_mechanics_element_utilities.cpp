@@ -339,8 +339,29 @@ void BuildRotationMatrix(
     rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv1[1]; rRotationMatrix(0, 2) = rv1[2];
     rRotationMatrix(1, 0) = rv2[0]; rRotationMatrix(1, 1) = rv2[1]; rRotationMatrix(1, 2) = rv2[2];
     rRotationMatrix(2, 0) = rv3[0]; rRotationMatrix(2, 1) = rv3[1]; rRotationMatrix(2, 2) = rv3[2];
-
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildRotationMatrixFor2D2NBeam(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const double AlphaAngle
+)
+{
+    rRotationMatrix.clear();
+    const double s = std::sin(AlphaAngle);
+    const double c = std::cos(AlphaAngle);
+    rRotationMatrix(0, 0) = c;
+    rRotationMatrix(0, 1) = -s;
+    rRotationMatrix(1, 0) = -s;
+    rRotationMatrix(1, 1) = c;
+    rRotationMatrix(2, 2) = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

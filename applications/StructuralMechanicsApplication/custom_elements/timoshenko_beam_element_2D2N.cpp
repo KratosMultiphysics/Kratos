@@ -455,15 +455,16 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     GetNodalValuesVector(nodal_values);
     VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
 
+    // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
         global_size_N.clear();
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
-        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);
-        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values);
-        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);
+        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
+        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
+        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const Vector &r_generalized_stresses = cl_values.GetStressVector();
@@ -538,7 +539,12 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 }
 
 /***********************************************************************************/
-/*****************  ******************************************************************/
+/***********************************************************************************/
+
+
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
@@ -572,12 +578,11 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
+int TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    // TODO
-    return 0;
+    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
 }
