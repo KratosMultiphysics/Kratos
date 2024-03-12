@@ -97,12 +97,6 @@ public:
     ///@name Operations
     ///@{
 
-    /// Metafunction that returns value type of a matrix or a vector type.
-    template <class T, class Enable = void>
-    struct value_type {
-        using type = typename T::value_type;
-    };
-
     /**
      * @brief Matrix-matrix product C = A·B
      * @detail This method uses a template for each matrix
@@ -144,7 +138,7 @@ public:
         CMatrix& C
         )
     {
-        using ValueType = typename value_type<CMatrix>::type;
+        using ValueType = typename CMatrix::value_type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -260,7 +254,7 @@ public:
         CMatrix &C
         )
     {
-        using ValueType = typename value_type<CMatrix>::type;
+        using ValueType = typename CMatrix::value_type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -389,7 +383,7 @@ public:
         const double Factor = 1.0
         )
     {
-        using ValueType = typename value_type<AMatrix>::type;
+        using ValueType = typename AMatrix::value_type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -516,7 +510,7 @@ public:
         const double Factor = 1.0
         )
     {
-        using ValueType = typename value_type<AMatrix>::type;
+        using ValueType = typename AMatrix::value_type;
 
         // Get access to B data
         const IndexType* index1 = rB.index1_data().begin();
