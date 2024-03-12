@@ -15,12 +15,9 @@
 // External includes
 
 // Project includes
-// #include "utilities/geometry_utilities.h"
-// #include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_elements/timoshenko_beam_element_2D2N.h"
-#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"

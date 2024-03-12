@@ -17,12 +17,7 @@
 // External includes
 
 // Project includes
-// #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/define.h"
-#include "includes/variables.h"
-// #include "utilities/integration_utilities.h"
-// #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -321,7 +316,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -395,7 +390,7 @@ protected:
     /**
      * @brief It initializes the material
      */
-    virtual void InitializeMaterial();
+    void InitializeMaterial();
 
 
     ///@}
