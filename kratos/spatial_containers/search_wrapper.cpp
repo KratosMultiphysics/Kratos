@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetBoundingBox() const
+BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetGlobalBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;

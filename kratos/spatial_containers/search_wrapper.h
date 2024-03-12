@@ -151,10 +151,10 @@ public:
     ///@{
 
     /**
-     * @brief Getting the bins bounding box
-     * @return The bounding box of the bins
+     * @brief Getting the bins global bounding box
+     * @return The global bounding box of the bins
      */
-    BoundingBox<Point> GetBoundingBox() const;
+    BoundingBox<Point> GetGlobalBoundingBox() const;
 
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
@@ -327,8 +327,8 @@ public:
         }
 
         // Get the maximum radius
-        const auto bb = GetBoundingBox();
-        const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
+        const auto global_bb = GetGlobalBoundingBox();
+        const array_1d<double, 3> box_size = global_bb.GetMaxPoint() - global_bb.GetMinPoint();
         const double max_radius= *std::max_element(box_size.begin(), box_size.end());
 
         // The local bounding box

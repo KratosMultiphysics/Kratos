@@ -267,7 +267,7 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
         search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>());
         search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>());
     }
-    search_wrapper.def("GetBoundingBox", &SearchWrapperType::GetBoundingBox);
+    search_wrapper.def("GetGlobalBoundingBox", &SearchWrapperType::GetGlobalBoundingBox);
     search_wrapper.def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
