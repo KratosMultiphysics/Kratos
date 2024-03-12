@@ -508,6 +508,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     }
 
     // NOTE rotations!
+    RotateLHS(rLHS, GetGeometry());
 
     KRATOS_CATCH("");
 }
@@ -541,7 +542,30 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TimoshenkoBeamElement2D2N::RotateLHS(
+    MatrixType& rLHS,
+    const GeometryType& rGeometry
+)
+{
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T, Tt;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        noalias(Tt) = trans(T);
 
+        // We rotate each submatrix independently
+        RangeMatrixType LHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType LHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 5));
+        RangeMatrixType LHSba(rLHS, boost::numeric::ublas::range(3, 5), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType LHSbb(rLHS, boost::numeric::ublas::range(3, 5), boost::numeric::ublas::range(3, 5));
+
+        LHSaa = prod(T, MatrixType(prod(LHSaa, Tt)));
+        LHSab = prod(T, MatrixType(prod(LHSab, Tt)));
+        LHSba = prod(T, MatrixType(prod(LHSba, Tt)));
+        LHSbb = prod(T, MatrixType(prod(LHSbb, Tt)));
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

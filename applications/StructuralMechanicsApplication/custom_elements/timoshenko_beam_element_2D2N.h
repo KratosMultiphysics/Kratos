@@ -63,19 +63,10 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///Type definition for integration methods
-    // using IntegrationMethod = GeometryData::IntegrationMethod;
-
     /// The base element type
     using BaseType = Element;
 
-    /// The definition of the sizetype
-    // using IndexType = std::size_t;
-    // using SizeType  = std::size_t;
-
-    // using VectorType = BaseType::VectorType;
-
-    // using MatrixType = BaseType::MatrixType;
+    using RangeMatrixType = boost::numeric::ublas::matrix_range<MatrixType>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
@@ -241,6 +232,13 @@ public:
     */
     void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
     void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+
+    /**
+     * @brief This function rotates the LHS from local to global coordinates
+    */
+    void RotateLHS(
+        MatrixType &rLHS,
+        const GeometryType &rGeometry);
 
     /**
      * @brief This function provides a more general interface to the element.
