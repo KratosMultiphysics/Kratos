@@ -271,11 +271,11 @@ public:
         const double* values_b = B.value_data().begin();
 
         // Definition of TLS
-        struct TLS {
+        struct TLS_max {
             IndexType my_max = 0;
         };
 
-        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS(), [&](IndexType i, TLS& rTLS) {
+        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS_max(), [&](IndexType i, TLS_max& rTLS) {
             const IndexType row_beg = index1_a[i];
             const IndexType row_end = index1_a[i+1];
 
@@ -306,25 +306,27 @@ public:
         IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
-        #ifdef _OPENMP
-            const int tid = omp_get_thread_num();
-        #else
-            const int tid = 0;
-        #endif
-
-            IndexType* t_col = &tmp_col[tid][0];
-
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
-
-                c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
+        // Definition of TLS
+        struct TLS_col {
+            TLS_col(std::vector<std::vector<IndexType>>& rTmpCol)
+            {
+            #ifdef _OPENMP
+                const int tid = omp_get_thread_num();
+            #else
+                const int tid = 0;
+            #endif
+                t_col = &rTmpCol[tid][0];
             }
-        }
+            IndexType* t_col;
+        };
+
+        IndexPartition<IndexType>(nrows).for_each(TLS_col(tmp_col), [&](IndexType i, TLS_col& rTLS) {
+
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
+
+            c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, rTLS.t_col, rTLS.t_col + max_row_width, rTLS.t_col + 2 * max_row_width );
+        });
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
