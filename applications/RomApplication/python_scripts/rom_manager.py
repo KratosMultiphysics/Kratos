@@ -239,11 +239,13 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
+            np.save(f'nonconvereged_solutions_{Id}.npy',np.array(simulation._GetSolver()._GetSolutionStrategy().GetIntermediateSolutionsMatrix()))
             self.QoI_Fit_FOM.append(simulation.GetFinalData())
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+        error #stop here after all snapshots have been obtained
         SnapshotsMatrix = np.block(SnapshotsMatrix)
         BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
 
