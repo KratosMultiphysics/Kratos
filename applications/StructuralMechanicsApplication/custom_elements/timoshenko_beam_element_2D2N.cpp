@@ -556,9 +556,9 @@ void TimoshenkoBeamElement2D2N::RotateLHS(
 
         // We rotate each submatrix independently
         RangeMatrixType LHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType LHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 5));
-        RangeMatrixType LHSba(rLHS, boost::numeric::ublas::range(3, 5), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType LHSbb(rLHS, boost::numeric::ublas::range(3, 5), boost::numeric::ublas::range(3, 5));
+        RangeMatrixType LHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 6));
+        RangeMatrixType LHSba(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType LHSbb(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(3, 6));
 
         LHSaa = prod(T, MatrixType(prod(LHSaa, Tt)));
         LHSab = prod(T, MatrixType(prod(LHSab, Tt)));
