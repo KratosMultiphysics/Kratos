@@ -507,7 +507,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
     }
 
-    RotateLHS(rLHS, GetGeometry());
+    RotateAll(rLHS, rRHS, GetGeometry());
 
     KRATOS_CATCH("");
 }
