@@ -23,6 +23,7 @@ exclude:
 
 include:
   - pages
+  - assets
 
 feedback_subject_line: Kratos Multiphysics Documentation
 
@@ -40,6 +41,8 @@ kramdown:
  syntax_highlighter: rouge
  syntax_highlighter_opts:
   guess_lang: true
+plugins:
+  - jekyll-seo-tag
 
 # filter used to process markdown. note that kramdown differs from github-flavored markdown in some subtle ways
 
