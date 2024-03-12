@@ -449,12 +449,13 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetStrainVector(strain_vector);
     VectorType nodal_values(6);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4)
+    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
 
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
         global_size_N.clear();
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J;
 
         strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);
         strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values);
@@ -466,10 +467,39 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         const double M = r_generalized_stresses[1];
         const double V = r_generalized_stresses[2];
 
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const double dN_dEl    = r_constitutive_matrix(0, 0);
+        const double dM_dkappa = r_constitutive_matrix(1, 1);
+        const double dV_dgamma = r_constitutive_matrix(2, 2);
+
         GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, Phi, xi);
         GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
         GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
         GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
+
+        // Axial contributions
+        global_size_N[0] = N_u_derivatives[0];
+        global_size_N[3] = N_u_derivatives[1];
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
+        noalias(rRHS) -= global_size_N * N * jacobian_weight;
+
+        // Bending contributions
+        global_size_N.clear();
+        global_size_N[1] = N_theta_derivatives[0];
+        global_size_N[2] = N_theta_derivatives[1];
+        global_size_N[4] = N_theta_derivatives[2];
+        global_size_N[5] = N_theta_derivatives[3];
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
+        noalias(rRHS) -= global_size_N * M * jacobian_weight;
+
+        // Shear contributions
+        global_size_N.clear();
+        global_size_N[1] = N_derivatives[0] - N_theta[0];
+        global_size_N[2] = N_derivatives[1] - N_theta[1];
+        global_size_N[4] = N_derivatives[2] - N_theta[2];
+        global_size_N[5] = N_derivatives[3] - N_theta[3];
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
+        noalias(rRHS) -= global_size_N * V * jacobian_weight;
     }
 
     KRATOS_CATCH("");
@@ -502,7 +532,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 }
 
 /***********************************************************************************/
-/***********************************************************************************/
+/*****************  ******************************************************************/
 
 void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
