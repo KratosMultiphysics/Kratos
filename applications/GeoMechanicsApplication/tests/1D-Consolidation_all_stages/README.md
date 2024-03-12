@@ -15,7 +15,7 @@ direction. At the top of the column a vertical compressive line load with a magn
 The material is described using:
 -   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw)
 -   A Young's modulus $E = 1.0E3 \mathrm{[Pa]}$ with Poisson's ratio $\nu = 0.0 \mathrm{[-]}$.
--   The soil and water density are specified, but irrelevant due to the absence of gravity. The porosity is 0.3.
+-   The soil and water density are specified, but irrelevant due to the absence of gravity. The porosity is $n=0.3$.
 These material properties of the dry soil give a compression modulus $K = E / (3(1-2\nu)) = 3.33E2 \mathrm{[Pa]}$ and a shear modulus $G = E / (2( 1 + \nu )) = 5.0E2 \mathrm{[Pa]}$.
 -   The dynamic viscosity of water is given as $\mu = 1.0E-6 \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil as $\kappa = 1.17982E-15 \mathrm{[m^2]}$
 -   The bulk modulus of water $K_w = 2.0E9 \mathrm{[Pa]}$
@@ -33,8 +33,18 @@ The analytical solution for pore pressure is given by Terzaghi:
 $$ p = \frac{4 p_0}{\pi} \sum_{j=1}^{\infty} \frac{(-1)^{j-1}}{2j-1} cos((2j-1) \frac{\pi y}{2 h}) exp(-(2j-1)^2 \frac{\pi^2 c_v t}{4 h^2}) $$
 
 The degree of consolidation is defined as
-$$U=\frac{\Delta h - \Delta h_0}{\Delta h_\infty - \Delta h_0}$$ where
-$\Delta h_0=m_v h q\frac{n\beta}{m_v+n\beta}$, $\Delta h_\infty=m_v h q$.
+$$U=\frac{\Delta h - \Delta h_0}{\Delta h_\infty - \Delta h_0}$$, where 
+
+the deformation immediately after the application of the load
+$\Delta h_0=m_v h q\frac{n\beta}{m_v+n\beta}$, 
+
+the final deformation $\Delta h_\infty=m_v h q$, 
+
+the compressibility coefficient $m_v=\frac{1}{K + 4G/3}$, 
+
+the compressibility of the water $\beta=1\over K_w$.
+
+Using the analytical solution for the pore pressure, the degree of consolidation is the following
 
 $$U=1-\frac{8}{\pi^2} \sum_{j=1}^{\infty} \frac{1}{(2j-1)^2} exp(-(2j-1)^2 \frac{\pi^2 c_v t}{4 h^2})$$
 
@@ -67,7 +77,7 @@ The following pictures show water pressure and displacement for each stage.
 
 The test asserts that at the end of each stage 
 -  the vertical distribution of pressure matches the given Terzaghi solution at all nodes,
--  the total deformation.
+-  the total deformation of the sample matches the analytical solution.
 
 ## Bibliography
 Verruijt, A., 2001. [Soil Mechanics](https://ocw.tudelft.nl/wp-content/uploads/SoilMechBook.pdf). Delft University of Technology.
