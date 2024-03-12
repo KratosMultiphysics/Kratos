@@ -404,12 +404,10 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsIn
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
 const Parameters SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetDefaultParameters() const
 {
-    const Parameters default_parameters = Parameters(R"(
-    {
+    return Parameters(R"({
         "allocation_size"   : 1000,
-        "bucket_size"       : 4
-    })" );
-    return default_parameters;
+        "bucket_size"       : 10
+    })");
 }
 
 /***********************************************************************************/
