@@ -67,6 +67,7 @@ public:
     using BaseType = Element;
 
     using RangeMatrixType = boost::numeric::ublas::matrix_range<MatrixType>;
+    using RangeVectorType = boost::numeric::ublas::vector_range<VectorType>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
@@ -238,6 +239,21 @@ public:
     */
     void RotateLHS(
         MatrixType &rLHS,
+        const GeometryType &rGeometry);
+
+    /**
+     * @brief This function rotates the RHS from local to global coordinates
+    */
+    void RotateRHS(
+        VectorType &rRHS,
+        const GeometryType &rGeometry);
+
+    /**
+     * @brief This function rotates the LHS and RHS from local to global coordinates
+    */
+    void RotateAll(
+        MatrixType &rLHS,
+        VectorType &rRHS,
         const GeometryType &rGeometry);
 
     /**

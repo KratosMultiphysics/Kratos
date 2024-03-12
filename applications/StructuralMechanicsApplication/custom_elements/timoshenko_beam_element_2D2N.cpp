@@ -507,7 +507,6 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
     }
 
-    // NOTE rotations!
     RotateLHS(rLHS, GetGeometry());
 
     KRATOS_CATCH("");
@@ -555,15 +554,98 @@ void TimoshenkoBeamElement2D2N::RotateLHS(
         noalias(Tt) = trans(T);
 
         // We rotate each submatrix independently
-        RangeMatrixType LHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType LHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 6));
-        RangeMatrixType LHSba(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType LHSbb(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(3, 6));
+        RangeMatrixType rLHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType rLHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 6));
+        RangeMatrixType rLHSba(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType rLHSbb(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(3, 6));
 
-        LHSaa = prod(T, MatrixType(prod(LHSaa, Tt)));
-        LHSab = prod(T, MatrixType(prod(LHSab, Tt)));
-        LHSba = prod(T, MatrixType(prod(LHSba, Tt)));
-        LHSbb = prod(T, MatrixType(prod(LHSbb, Tt)));
+        rLHSaa = prod(T, MatrixType(prod(rLHSaa, Tt)));
+        rLHSab = prod(T, MatrixType(prod(rLHSab, Tt)));
+        rLHSba = prod(T, MatrixType(prod(rLHSba, Tt)));
+        rLHSbb = prod(T, MatrixType(prod(rLHSbb, Tt)));
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TimoshenkoBeamElement2D2N::RotateRHS(
+    VectorType& rRHS,
+    const GeometryType& rGeometry
+)
+{
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T, Tt;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+
+        VectorType rRHSa(3);
+        rRHSa[0] = rRHS[0];
+        rRHSa[1] = rRHS[1];
+        rRHSa[2] = rRHS[2];
+        VectorType rRHSb(3);
+        rRHSb[0] = rRHS[3];
+        rRHSb[1] = rRHS[4];
+        rRHSb[2] = rRHS[5];
+
+        rRHSa = prod(T, rRHSa);
+        rRHSb = prod(T, rRHSb);
+
+        rRHS[0] = rRHSa[0];
+        rRHS[1] = rRHSa[1];
+        rRHS[2] = rRHSa[2];
+        rRHS[3] = rRHSb[0];
+        rRHS[4] = rRHSb[1];
+        rRHS[5] = rRHSb[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TimoshenkoBeamElement2D2N::RotateAll(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const GeometryType& rGeometry
+)
+{
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T, Tt;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        noalias(Tt) = trans(T);
+
+        // We rotate each submatrix independently
+        RangeMatrixType rLHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType rLHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 6));
+        RangeMatrixType rLHSba(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(0, 3));
+        RangeMatrixType rLHSbb(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(3, 6));
+
+        rLHSaa = prod(T, MatrixType(prod(rLHSaa, Tt)));
+        rLHSab = prod(T, MatrixType(prod(rLHSab, Tt)));
+        rLHSba = prod(T, MatrixType(prod(rLHSba, Tt)));
+        rLHSbb = prod(T, MatrixType(prod(rLHSbb, Tt)));
+
+        VectorType rRHSa(3);
+        rRHSa[0] = rRHS[0];
+        rRHSa[1] = rRHS[1];
+        rRHSa[2] = rRHS[2];
+        VectorType rRHSb(3);
+        rRHSb[0] = rRHS[3];
+        rRHSb[1] = rRHS[4];
+        rRHSb[2] = rRHS[5];
+
+        rRHSa = prod(T, rRHSa);
+        rRHSb = prod(T, rRHSb);
+
+        rRHS[0] = rRHSa[0];
+        rRHS[1] = rRHSa[1];
+        rRHS[2] = rRHSa[2];
+        rRHS[3] = rRHSb[0];
+        rRHS[4] = rRHSb[1];
+        rRHS[5] = rRHSb[2];
     }
 }
 
