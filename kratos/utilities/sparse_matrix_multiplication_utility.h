@@ -334,27 +334,32 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
-        #ifdef _OPENMP
-            const int tid = omp_get_thread_num();
-        #else
-            const int tid = 0;
-        #endif
-
-            IndexType* t_col = tmp_col[tid].data();
-            ValueType *t_val = tmp_val[tid].data();
-
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
-
-                ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
-                        index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
+        // Definition of TLS
+        struct TLS_col_value {
+            TLS_col_value(
+                std::vector<std::vector<IndexType>>& rTmpCol,
+                std::vector<std::vector<ValueType>>& rTmpVal
+                )
+            {
+            #ifdef _OPENMP
+                const int tid = omp_get_thread_num();
+            #else
+                const int tid = 0;
+            #endif
+                t_col = rTmpCol[tid].data();
+                t_val = rTmpVal[tid].data();
             }
-        }
+            IndexType* t_col;
+            ValueType* t_val;
+        };
+
+        IndexPartition<IndexType>(nrows).for_each(TLS_col_value(tmp_col, tmp_val), [&](IndexType i, TLS_col_value& rTLS) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
+
+            ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
+                    index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], rTLS.t_col, rTLS.t_val, rTLS.t_col + max_row_width, rTLS.t_val + max_row_width );
+        });
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
