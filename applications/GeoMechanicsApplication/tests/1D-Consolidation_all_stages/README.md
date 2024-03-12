@@ -67,7 +67,7 @@ Analysis stages are chosen such that at the end times of the stages and the corr
 
 ## Solution
 
-The following pictures show water pressure and displacement for each stage.
+The following pictures show water pressure and displacement for each value of the dimensionless time parameter.
 
 ![WaterPressure](water_pressure.svg)
 
