@@ -352,12 +352,41 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         rNodalValues.resize(6, false);
     const auto &r_geom = GetGeometry();
 
-    rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-    rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-    rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T, Tt;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        noalias(Tt) = trans(T);
+
+        VectorType u_a(3);
+        VectorType u_b(3);
+
+        u_a[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        u_a[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        u_a[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+        u_b[0] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+        u_b[1] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        u_b[2] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+
+        u_a = prod(Tt, u_a);
+        u_b = prod(Tt, u_b);
+
+        // We return the values in local axes
+        rNodalValues[0] = u_a[0];
+        rNodalValues[1] = u_a[1];
+        rNodalValues[2] = u_a[2];
+        rNodalValues[3] = u_b[0];
+        rNodalValues[4] = u_b[1];
+        rNodalValues[5] = u_b[2];
+    } else {
+        rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+        rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+    }
 }
 
 /***********************************************************************************/
