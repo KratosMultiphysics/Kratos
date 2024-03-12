@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosFluidTransportApplication ****")
 
 ################### PYBIND11
-include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )

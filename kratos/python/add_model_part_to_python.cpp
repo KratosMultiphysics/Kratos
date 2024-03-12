@@ -737,7 +737,7 @@ void AddModelPartToPython(pybind11::module& m)
 
     namespace py = pybind11;
 
-    py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
+    py::class_<ModelPart::SubModelPartsContainerType, ModelPart::SubModelPartsContainerType::Pointer>(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
         ;
 
@@ -917,8 +917,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetParentModelPart", [](ModelPart& self) -> ModelPart& {return self.GetParentModelPart();}, py::return_value_policy::reference_internal)
         .def("GetRootModelPart",   [](ModelPart& self) -> ModelPart& {return self.GetRootModelPart();},   py::return_value_policy::reference_internal)
         .def("GetModel",           [](ModelPart& self) -> Model& {return self.GetModel();}, py::return_value_policy::reference_internal)
-        .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
-                                        [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
+        .def_property_readonly("SubModelParts",  [](ModelPart& self) -> ModelPart::SubModelPartsContainerType::Pointer {return std::make_shared<ModelPart::SubModelPartsContainerType>(self.SubModelParts());})
         .def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
         .def("GetHistoricalVariablesNames", [](ModelPart& rModelPart) -> std::unordered_set<std::string> {
             std::unordered_set<std::string> variable_names;

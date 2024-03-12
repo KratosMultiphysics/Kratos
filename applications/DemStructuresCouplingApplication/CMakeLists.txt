@@ -7,7 +7,6 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsAppli
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PoromechanicsApplication)
 
 ################### PYBIND11
-include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )

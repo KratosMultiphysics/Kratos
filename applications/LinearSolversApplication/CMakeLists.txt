@@ -14,7 +14,6 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 message( "**** configuring KratosLinearSolversApplication ****" )
 
 ################### PYBIND11
-include(pybind11Tools)
 
 add_definitions( -DEIGEN_MPL2_ONLY)
 

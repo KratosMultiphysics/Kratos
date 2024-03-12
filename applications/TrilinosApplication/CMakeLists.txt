@@ -2,8 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** Configuring KratosTrilinosApplication ****")
 
-include(pybind11Tools)
-
 if(${TRILINOS_EXCLUDE_ML_SOLVER} MATCHES ON)
     add_definitions(-DTRILINOS_EXCLUDE_ML_SOLVER)
     message("**** WARNING: Manually disabled ML-Solver ****")

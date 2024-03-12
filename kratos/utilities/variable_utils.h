@@ -1035,7 +1035,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    [[nodiscard]] NodesContainerType SelectNodeList(
+    [[nodiscard]] NodesContainerType::Pointer SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
         const NodesContainerType& rOriginNodes
