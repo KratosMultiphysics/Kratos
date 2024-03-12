@@ -872,18 +872,6 @@ int TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) con
     KRATOS_CATCH( "" );
 }
 
-//***********************************************************************
-//***********************************************************************
-
-double TimoshenkoBeamElement2D2N::GetIntegrationWeight(
-    const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
-    const SizeType PointNumber,
-    const double detJ
-    ) const
-{
-    return rThisIntegrationPoints[PointNumber].Weight() * detJ;
-}
-
 /***********************************************************************************/
 /***********************************************************************************/
 

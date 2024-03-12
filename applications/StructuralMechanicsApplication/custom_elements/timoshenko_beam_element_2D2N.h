@@ -397,17 +397,6 @@ protected:
      */
     virtual void InitializeMaterial();
 
-    /**
-     * @brief This functions computes the integration weight to consider
-     * @param ThisIntegrationMethod The array containing the integration points
-     * @param PointNumber The id of the integration point considered
-     * @param detJ The determinant of the jacobian of the element
-     */
-    double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
-        const SizeType PointNumber,
-        const double detJ
-        ) const;
 
     ///@}
     ///@name Protected  Access
