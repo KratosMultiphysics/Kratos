@@ -31,8 +31,8 @@ namespace Kratos
 
 /**
  * @class SpatialSearchResultContainerVector
- * @brief Spatial search result container map.
- * @details This class is used to store the results of a spatial search, in a map to be identify results for a given coordinates.
+ * @brief Spatial search result container vector.
+ * @details This class is used to store the results of a spatial search of several points, in a vector which assumes the order.
  * @tparam TObjectType The type of the object.
  * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
  * @ingroup KratosCore

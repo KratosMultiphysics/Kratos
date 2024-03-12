@@ -54,7 +54,7 @@ class DataCommunicator;  // forward declaration
 /**
  * @class SpatialSearchResultContainer
  * @brief Spatial search result container.
- * @details This class is used to store the results of a spatial search.
+ * @details This class is used to store the results of a spatial search for one point.
  * @tparam TObjectType The type of the object.
  * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
  * @ingroup KratosCore
