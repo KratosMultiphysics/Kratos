@@ -174,6 +174,9 @@ void MPMUpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, co
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
+    const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
+    const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
+
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_acceleration = ZeroVector(3);
     array_1d<double,3> MP_velocity = ZeroVector(3);
@@ -210,10 +213,14 @@ void MPMUpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, co
 
     }
 
+    
     /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
+    Update velocity with Newmark integration rule 
+    This assumes newmark (since n.gamma=0.5 and beta=0.25) rule of integration*/
+    if (std::sqrt(MP_PreviousAcceleration[0]*MP_PreviousAcceleration[0]+MP_PreviousAcceleration[1]*MP_PreviousAcceleration[1]+MP_PreviousAcceleration[2]*MP_PreviousAcceleration[2])<std::numeric_limits<double>::epsilon())
+        mMP.velocity = 2.0/delta_time* delta_xg -  MP_PreviousVelocity;
+    else
+        mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
 
     /* NOTE: The following interpolation techniques have been tried:
         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
