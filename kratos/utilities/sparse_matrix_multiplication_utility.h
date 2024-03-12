@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
