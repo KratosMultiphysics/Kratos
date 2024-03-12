@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "test_AxisymmetricUPwNormalFaceLoadCondition2D4N",
         "start_time":           0.0,
-        "end_time":             18000.0,
+        "end_time":             1200.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -96,8 +96,8 @@
                         "node_output":         true,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","NORMAL_FLUID_FLUX","VOLUME_ACCELERATION","HYDRAULIC_DISCHARGE"],
-                        "gauss_point_results": ["FLUID_FLUX_VECTOR","LOCAL_FLUID_FLUX_VECTOR","HYDRAULIC_HEAD"]
+                        "nodal_results":       ["DISPLACEMENT"],
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }

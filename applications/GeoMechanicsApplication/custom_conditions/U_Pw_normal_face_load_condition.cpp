@@ -72,26 +72,22 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
     }
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFaceLoadCondition<TDim, TNumNodes>::InitializeConditionVariables(
     NormalFaceLoadVariables& rVariables,
     const GeometryType& rGeom)
 {
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-    }
-    //
-    if (TDim == 2) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
-        }
+    std::transform(rGeom.begin(), rGeom.end(), rVariables.NormalStressVector.begin(), [](const auto& node) {
+        return node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS); });
+
+    if constexpr (TDim == 2) {
+        std::transform(rGeom.begin(), rGeom.end(), rVariables.TangentialStressVector.begin(), [](const auto& node) {
+            return node.FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS); });
     }
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
     array_1d<double, TDim>& rTractionVector,
@@ -101,22 +97,21 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
     const unsigned int& GPoint)
 {
     Vector NormalVector = ZeroVector(TDim);
-    double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
-    //
-    if (TDim == 2) {
-        double TangentialStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
+    const double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
+
+    if constexpr (TDim == 2) {
+        const double TangentialStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
         NormalVector = column(Jacobian, 0);
         rTractionVector[0] = TangentialStress * NormalVector[0] - NormalStress * NormalVector[1];
         rTractionVector[1] = NormalStress * NormalVector[0] + TangentialStress * NormalVector[1];
     }
-    else if (TDim == 3) {
+    else if constexpr (TDim == 3) {
         MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
         rTractionVector = NormalStress * NormalVector;
     }
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     const IndexType PointNumber,
@@ -125,8 +120,7 @@ double UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateIntegrationCoefficie
     return IntegrationPoints[PointNumber].Weight();
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template class UPwNormalFaceLoadCondition<2,2>;
 template class UPwNormalFaceLoadCondition<2,3>;
 template class UPwNormalFaceLoadCondition<2,4>;

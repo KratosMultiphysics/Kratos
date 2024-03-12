@@ -47,11 +47,9 @@ GeometryData::IntegrationMethod
     AxisymmetricUPwNormalFaceLoadCondition<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     GeometryData::IntegrationMethod GI_GAUSS;
-    //
+
     switch (TNumNodes) {
     case 2:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
     case 3:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
