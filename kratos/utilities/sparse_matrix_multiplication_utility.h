@@ -343,7 +343,7 @@ public:
         #endif
 
             IndexType* t_col = tmp_col[tid].data();
-            ValueType *t_val = tmp_val[tid].data();
+            ValueType* t_val = tmp_val[tid].data();
 
             #pragma omp for
             for(int i = 0; i < static_cast<int>(nrows); ++i) {
