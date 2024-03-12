@@ -126,14 +126,14 @@ public:
     /**
      * @brief Returns a 6 component vector including the values of the DoFs
      */
-    // VectorType GetNodalValuesVector();
+    void GetNodalValuesVector(VectorType& rNodalValue);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
      */
-    // const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
     const double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    // const double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    const double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
 
     /**
      * @brief Called to initialize the element.
@@ -227,8 +227,8 @@ public:
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
      * Also its derivative
     */
-    // Vector GetNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
-    // VectorType GetFirstDerivativesNu0ShapeFunctionsValues(const double Length, const double Phi, const double xi);
+    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function provides a more general interface to the element.
