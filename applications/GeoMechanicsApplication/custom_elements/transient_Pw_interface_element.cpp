@@ -580,12 +580,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) =
+    noalias(rVariables.PPMatrix) =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse *
         outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PMatrix;
+    rLeftHandSideMatrix += rVariables.PPMatrix;
 
     KRATOS_CATCH("")
 }
@@ -599,12 +599,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
     noalias(rVariables.PDimMatrix) =
         -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
+                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
+                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PMatrix;
+    rLeftHandSideMatrix += rVariables.PPMatrix;
 
     KRATOS_CATCH("")
 }
@@ -631,11 +631,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                  outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth *
-                                  rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
+                                   outer_prod(rVariables.Np, rVariables.Np) *
+                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.DtPressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
     rRightHandSideVector += rVariables.PVector;
@@ -651,12 +651,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
 
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-                                  rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
+                                   rVariables.RelativePermeability *
+                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
+                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.PressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
     rRightHandSideVector += rVariables.PVector;

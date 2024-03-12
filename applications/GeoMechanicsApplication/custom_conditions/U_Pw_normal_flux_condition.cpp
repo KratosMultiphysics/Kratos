@@ -83,7 +83,7 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
 {
     noalias(rVariables.PVector) = - rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
 
-    GeoElementUtilities::AssemblePBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

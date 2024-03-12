@@ -53,23 +53,23 @@ std::vector<Dof<double>*> ExtractDofsFromNodes(const NodeRange& rNodes, const Va
     return ExtractDofsFromNodes(std::begin(rNodes), std::end(rNodes), rDofVariable);
 }
 
-template <typename NodeRange1, typename NodeRange2>
-std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const NodeRange2& rSecondOrderNodes,
-                                                  const NodeRange1& rFirstOrderNodes,
-                                                  std::size_t       ModelDimension)
+template <typename DisplacementNodeRange, typename WaterPressureNodeRange>
+std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const DisplacementNodeRange&  rDisplacementNodes,
+                                                  const WaterPressureNodeRange& rWaterPressureNodes,
+                                                  std::size_t                   ModelDimension)
 {
     auto result = std::vector<Dof<double>*>{};
     auto displacement_variables =
         Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y)};
     if (ModelDimension == 3) displacement_variables.push_back(std::cref(DISPLACEMENT_Z));
 
-    for (const auto& r_node : rSecondOrderNodes) {
+    for (const auto& r_node : rDisplacementNodes) {
         for (const auto& r_variable : displacement_variables) {
             result.push_back(r_node.pGetDof(r_variable.get()));
         }
     }
 
-    ExtractDofsFromNodes(std::begin(rFirstOrderNodes), std::end(rFirstOrderNodes),
+    ExtractDofsFromNodes(std::begin(rWaterPressureNodes), std::end(rWaterPressureNodes),
                          std::back_inserter(result), WATER_PRESSURE);
 
     return result;

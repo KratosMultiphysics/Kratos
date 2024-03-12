@@ -120,7 +120,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * integration_coefficient;
-        GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,UVector);
+        GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
     }
 }
 

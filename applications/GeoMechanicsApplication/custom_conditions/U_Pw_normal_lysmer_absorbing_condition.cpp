@@ -420,13 +420,13 @@ CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnes
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix)
+AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUUMatrix)
 {
 	// assemble left hand side vector
     rLeftHandSideMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 
     //Adding contribution to left hand side
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, rUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, rUUMatrix);
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >

@@ -224,53 +224,48 @@ public:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUBlockMatrix)
+    static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
     {
         constexpr auto row_offset    = std::size_t{0};
         constexpr auto column_offset = row_offset;
-        AddMatrixAtPosition(rUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
+        AddMatrixAtPosition(rUUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                             const BoundedMatrix<double, TDim * TNumNodes, TNumNodes>& rUPBlockMatrix)
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssembleUPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUPBlockMatrix)
     {
         constexpr auto row_offset    = std::size_t{0};
-        constexpr auto column_offset = TNumNodes * TDim;
+        const auto     column_offset = rLeftHandSideMatrix.size2() - rUPBlockMatrix.size2();
         AddMatrixAtPosition(rUPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                             const BoundedMatrix<double, TNumNodes, TNumNodes * TDim>& rPUBlockMatrix)
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssemblePUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPUBlockMatrix)
     {
-        constexpr auto row_offset    = TNumNodes * TDim;
+        const auto     row_offset    = rLeftHandSideMatrix.size1() - rPUBlockMatrix.size1();
         constexpr auto column_offset = std::size_t{0};
         AddMatrixAtPosition(rPUBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void AssemblePPBlockMatrix(Matrix& rLeftHandSideMatrix,
-                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rPBlockMatrix)
+    template <typename MatrixType1, typename MatrixType2>
+    static inline void AssemblePPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPPBlockMatrix)
     {
-        constexpr auto row_offset    = TNumNodes * TDim;
-        constexpr auto column_offset = row_offset;
-        AddMatrixAtPosition(rPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
+        const auto row_offset    = rLeftHandSideMatrix.size1() - rPPBlockMatrix.size1();
+        const auto column_offset = row_offset;
+        AddMatrixAtPosition(rPPBlockMatrix, rLeftHandSideMatrix, row_offset, column_offset);
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double, TDim * TNumNodes>& rUBlockVector)
+    template <typename VectorType1, typename VectorType2>
+    static inline void AssembleUBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rUBlockVector)
     {
         constexpr auto offset = std::size_t{0};
         AddVectorAtPosition(rUBlockVector, rRightHandSideVector, offset);
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void AssemblePBlockVector(Vector&                            rRightHandSideVector,
-                                            const array_1d<double, TNumNodes>& rPBlockVector)
+    template <typename VectorType1, typename VectorType2>
+    static inline void AssemblePBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rPBlockVector)
     {
-        constexpr auto offset = TNumNodes * TDim;
+        const auto offset = rRightHandSideVector.size() - rPBlockVector.size();
         AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
     }
 

@@ -243,13 +243,13 @@ KRATOS_TEST_CASE_IN_SUITE(UDofsPrecedePwDofsWhenExtractingUPwDofsFromDiffOrder2D
     auto model = Model{};
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NUPwDiffOrderElement(model);
 
-    const auto second_order_nodes = r_model_part.Elements().front().GetGeometry();
-    const auto first_order_nodes =
-        Triangle2D3<Node>{second_order_nodes(0), second_order_nodes(1), second_order_nodes(2)};
+    const auto displacement_nodes = r_model_part.Elements().front().GetGeometry();
+    const auto water_pressure_nodes =
+        Triangle2D3<Node>{displacement_nodes(0), displacement_nodes(1), displacement_nodes(2)};
     const auto dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
-        second_order_nodes, first_order_nodes, second_order_nodes.WorkingSpaceDimension());
+        displacement_nodes, water_pressure_nodes, displacement_nodes.WorkingSpaceDimension());
 
-    KRATOS_EXPECT_EQ(dofs.size(), second_order_nodes.size() * 2 + first_order_nodes.size());
+    KRATOS_EXPECT_EQ(dofs.size(), displacement_nodes.size() * 2 + water_pressure_nodes.size());
     ExpectDofsDontContainAnyNullptrs(dofs);
     ExpectDofsHaveThisVariable({dofs[0], dofs[2], dofs[4], dofs[6], dofs[8], dofs[10]}, DISPLACEMENT_X);
     ExpectDofsHaveThisVariable({dofs[1], dofs[3], dofs[5], dofs[7], dofs[9], dofs[11]}, DISPLACEMENT_Y);
