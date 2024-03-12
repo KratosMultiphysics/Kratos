@@ -123,7 +123,7 @@ Element::Pointer TimoshenkoBeamElement2D2N::Clone(
 /***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::EquationIdVector(
-    EquationIdVector& rResult,
+    EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
@@ -152,7 +152,7 @@ void TimoshenkoBeamElement2D2N::EquationIdVector(
 /***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::GetDofList(
-    DofsVector& rElementalDofList,
+    DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
@@ -359,8 +359,9 @@ const double CalculateAxialStrain(
     const Vector& rNodalValues
     )
 {
-    const Vector N_u0_derivatives = GetFirstDerivativesNu0ShapeFunctionsValues(Length, Phi, xi);
-    return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3];
+    // const Vector N_u0_derivatives = GetFirstDerivativesNu0ShapeFunctionsValues(Length, Phi, xi);
+    // return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3];
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -373,10 +374,11 @@ const double CalculateShearStrain(
     const Vector& rNodalValues
     )
 {
-    const Vector N_theta       = GetNThetaShapeFunctionsValues(Length, Phi, xi);
-    const Vector N_derivatives = GetFirstDerivativesShapeFunctionsValues(Length, Phi, xi);
-    const Vector N_s           = N_derivatives - N_theta;
-    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5];
+    // const Vector N_theta       = GetNThetaShapeFunctionsValues(Length, Phi, xi);
+    // const Vector N_derivatives = GetFirstDerivativesShapeFunctionsValues(Length, Phi, xi);
+    // const Vector N_s           = N_derivatives - N_theta;
+    // return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5];
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -389,9 +391,10 @@ const double CalculateBendingCurvature(
     const Vector& rNodalValues
     )
 {
-    const Vector N_theta_derivatives = GetFirstDerivativesNThetaShapeFunctionsValues(Length, Phi, xi);
-    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
-           N_theta_derivatives[2] * rNodalValues[4] + N_theta_derivatives[3] * rNodalValues[5];
+    // const Vector N_theta_derivatives = GetFirstDerivativesNThetaShapeFunctionsValues(Length, Phi, xi);
+    // return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
+    //        N_theta_derivatives[2] * rNodalValues[4] + N_theta_derivatives[3] * rNodalValues[5];
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -510,6 +513,7 @@ int  TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) co
     KRATOS_TRY;
 
     // TODO
+    return 0;
 
     KRATOS_CATCH( "" );
 }

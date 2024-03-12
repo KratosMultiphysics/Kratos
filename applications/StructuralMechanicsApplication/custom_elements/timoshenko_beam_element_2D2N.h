@@ -157,7 +157,7 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void EquationIdVector(
-        EquationIdVector& rResult,
+        EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
@@ -167,7 +167,7 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
-        DofsVector& rElementalDofList,
+        DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
