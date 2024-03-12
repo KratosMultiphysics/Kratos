@@ -267,5 +267,12 @@ void BuildRotationMatrixFor2D2NBeam(
     BoundedMatrix<double, 3, 3> &rRotationMatrix,
     const double AlphaAngle);
 
+/**
+ * @brief This function computes the inclination angle of a 2 noded beam
+ * @param rGeometry The geometry of the beam
+ * It assumes 3 dofs per node: u,v,theta
+ */
+const double GetReferenceRotationAngle2D2NBeam(GeometryType &rGeometry);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
