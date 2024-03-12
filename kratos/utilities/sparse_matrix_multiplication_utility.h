@@ -270,29 +270,23 @@ public:
         const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
-        IndexType max_row_width = 0;
-
-        // TODO: Replace with block_for_each. Difficult due to critical section
-        #pragma omp parallel
-        {
+        // Definition of TLS
+        struct TLS {
             IndexType my_max = 0;
+        };
 
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
+        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS(), [&](IndexType i, TLS& rTLS) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
 
-                IndexType row_width = 0;
-                for(IndexType j = row_beg; j < row_end; ++j) {
-                    const IndexType a_col = index2_a[j];
-                    row_width += index1_b[a_col + 1] - index1_b[a_col];
-                }
-                my_max = std::max(my_max, row_width);
+            IndexType row_width = 0;
+            for(IndexType j = row_beg; j < row_end; ++j) {
+                const IndexType a_col = index2_a[j];
+                row_width += index1_b[a_col + 1] - index1_b[a_col];
             }
-
-            #pragma omp critical
-            max_row_width = std::max(max_row_width, my_max);
-        }
+            rTLS.my_max = std::max(rTLS.my_max, row_width);
+            return rTLS.my_max;
+        });
 
     #ifdef _OPENMP
         const int nthreads = omp_get_max_threads();
@@ -300,8 +294,8 @@ public:
         const int nthreads = 1;
     #endif
 
-        std::vector< std::vector<IndexType> > tmp_col(nthreads);
-        std::vector< std::vector<ValueType> > tmp_val(nthreads);
+        std::vector<std::vector<IndexType>> tmp_col(nthreads);
+        std::vector<std::vector<ValueType>> tmp_val(nthreads);
 
         for(int i = 0; i < nthreads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
