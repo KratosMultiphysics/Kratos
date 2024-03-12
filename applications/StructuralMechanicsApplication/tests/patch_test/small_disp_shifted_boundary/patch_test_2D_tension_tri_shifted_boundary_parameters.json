@@ -1,0 +1,59 @@
+{
+    "problem_data" : {
+        "problem_name"    : "patch_test_2D_tension_tri_shifted_boundary",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 0.99,
+        "echo_level"      : 0
+    },
+    "solver_settings" : {
+        "solver_type" : "static_shifted_boundary",
+        "echo_level" : 1,
+        "model_part_name" : "Structure",
+        "domain_size" : 2,
+        "time_stepping" : {
+            "time_step" : 1.0
+        },
+        "analysis_type" : "linear",
+        "model_import_settings" : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "patch_test/small_disp_shifted_boundary/patch_test_2D_tension_tri_shifted_boundary"
+        },
+        "material_import_settings" :{
+            "materials_filename": "patch_test/materials_2D.json"
+        }
+    },
+    "processes" : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a vector variable value over a condition",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 1.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "check_analytic_results_process" : [{
+            "python_module" : "check_scalar_to_nodes_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name" : "AssignValueProcess",
+            "Parameters" : {
+                "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
+                "variable_name"   : "DISPLACEMENT_X",
+                "interval"        : [0.0, "End"],
+                "value"           : "2.73E-03",
+                "tolerance_rank"  : 3
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : []
+    }
+}
