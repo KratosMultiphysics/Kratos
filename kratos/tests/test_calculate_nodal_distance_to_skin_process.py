@@ -47,8 +47,6 @@ def post_process_vtk(model):
             "output_sub_model_parts"             : true,
             "entity_type"                        : "element",
             "nodal_data_value_variables"         : ["DISTANCE"],
-            "condition_data_value_variables"     : [],
-            "condition_flags"                    : [],
             "output_path"                        : "test_vtk_output"
         }
     }""")
@@ -125,6 +123,7 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
     def tearDownClass(cls):
         """Clean up by removing the generated files."""
         RemoveFiles(cls.mdpa_name)
+        RemoveFiles(cls.skin_mdpa_name)
 
     def setUp(self):
         """Setup tasks before each test method."""
