@@ -42,14 +42,10 @@ BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::Ge
     }
 
     // Getting max values
-    r_max[0] = mrDataCommunicator.MaxAll(local_max[0]);
-    r_max[1] = mrDataCommunicator.MaxAll(local_max[1]);
-    r_max[2] = mrDataCommunicator.MaxAll(local_max[2]);
+    r_max.Coordinates() = mrDataCommunicator.MaxAll(local_max);
 
     // Getting min values
-    r_min[0] = mrDataCommunicator.MinAll(local_min[0]);
-    r_min[1] = mrDataCommunicator.MinAll(local_min[1]);
-    r_min[2] = mrDataCommunicator.MinAll(local_min[2]);
+    r_min.Coordinates() = mrDataCommunicator.MinAll(local_min);
 
     return bb;
 }
