@@ -727,7 +727,7 @@ void TimoshenkoBeamElement2D2N::RotateRHS(
     const double angle = StructuralMechanicsElementUtilities::
         GetReferenceRotationAngle2D2NBeam(GetGeometry());
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-        BoundedMatrix<double, 3, 3> T, Tt;
+        BoundedMatrix<double, 3, 3> T;
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
 
         VectorType rRHSa(3);
