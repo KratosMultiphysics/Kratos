@@ -442,14 +442,34 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
 
     const double Phi    = CalculatePhi(cl_values);
     const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    const double J      = 0.5 * length;
 
-    Vector strain_vector(3);
+    VectorType strain_vector(3);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
-    // const Vector &nodal_values = GetNodalValuesVector();
+    VectorType nodal_values(6);
+    GetNodalValuesVector(nodal_values);
+    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4)
 
-    for (SizeType IP = 0; IP < integration_points.size(); ++IP ) {
-        // TODO
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        global_size_N.clear();
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+
+        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);
+        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values);
+        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N = r_generalized_stresses[0];
+        const double M = r_generalized_stresses[1];
+        const double V = r_generalized_stresses[2];
+
+        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, Phi, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
+        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
     }
 
     KRATOS_CATCH("");
