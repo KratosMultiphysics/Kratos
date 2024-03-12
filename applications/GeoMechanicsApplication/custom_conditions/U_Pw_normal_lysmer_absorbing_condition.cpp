@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
@@ -178,71 +179,14 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-
-    KRATOS_TRY
-
-        const GeometryType& r_geom = this->GetGeometry();
-
-        if (rValues.size() != CONDITION_SIZE) {
-            rValues.resize(CONDITION_SIZE, false);
-        }
-
-        if constexpr (TDim == 2) {
-            unsigned int index = 0;
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-                rValues[index++] = 0.0;
-            }
-        }
-        else if constexpr (TDim == 3) {
-            unsigned int index = 0;
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
-                rValues[index++] = 0.0;
-            }
-        }
-        else {
-            KRATOS_ERROR << "undefined dimension in GetValuesVector... illegal operation!!" << this->Id() << std::endl;
-        }
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(this->GetDofs(), Step);
 }
 
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& r_geom = this->GetGeometry();
-
-    if (rValues.size() != CONDITION_SIZE)
-        rValues.resize(CONDITION_SIZE, false);
-
-    if constexpr(TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = 0.0;
-        }
-    }
-    else if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-            rValues[index++] = 0.0;
-        }
-    }
-    else {
-        KRATOS_ERROR << "undefined dimension in GetFirstDerivativesVector... illegal operation!!" << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
 }
 
 

@@ -23,7 +23,7 @@ namespace Kratos
 
 ConstitutiveLaw::Pointer LinearElastic2DInterfaceLaw::Clone() const
 {
-    return Kratos::make_shared< LinearElastic2DInterfaceLaw>(*this);
+    return Kratos::make_shared<LinearElastic2DInterfaceLaw>(*this);
 }
 
 bool& LinearElastic2DInterfaceLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
@@ -38,19 +38,19 @@ bool& LinearElastic2DInterfaceLaw::GetValue(const Variable<bool>& rThisVariable,
 
 void LinearElastic2DInterfaceLaw::GetLawFeatures(Features& rFeatures)
 {
-    //Set the type of law
-    rFeatures.mOptions.Set( PLANE_STRAIN_LAW);
-    rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-    rFeatures.mOptions.Set( ISOTROPIC );
+    // Set the type of law
+    rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
+    rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
+    rFeatures.mOptions.Set(ISOTROPIC);
 
-    //Set strain measure required by the consitutive law
+    // Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
-    //Set the strain size
+    // Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
-    //Set the space dimension
+    // Set the space dimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
@@ -59,27 +59,27 @@ void LinearElastic2DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
     KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E  = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    const double      E                     = r_material_properties[YOUNG_MODULUS];
+    const double      NU                    = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
-    const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
-    C(INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_XZ) = (0.5 - NU)*c0;
-    C(INDEX_2D_INTERFACE_ZZ, INDEX_2D_INTERFACE_ZZ) = (1.0 - NU)*c0;
+    const double c0                                 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    C(INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_XZ) = (0.5 - NU) * c0;
+    C(INDEX_2D_INTERFACE_ZZ, INDEX_2D_INTERFACE_ZZ) = (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }
 
-void LinearElastic2DInterfaceLaw::CalculatePK2Stress(const Vector& rStrainVector,
-                                                     Vector& rStressVector,
+void LinearElastic2DInterfaceLaw::CalculatePK2Stress(const Vector&                rStrainVector,
+                                                     Vector&                      rStressVector,
                                                      ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
     Matrix C;
     this->CalculateElasticMatrix(C, rValues);
-    rStressVector = prod(C,rStrainVector);
+    rStressVector = prod(C, rStrainVector);
 
     KRATOS_CATCH("")
 }

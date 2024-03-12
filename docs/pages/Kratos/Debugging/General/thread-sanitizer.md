@@ -12,14 +12,14 @@ Let us notice that ThreadSanitizer is supported on Linux x86_64 and is part of c
 
 First, modify the CMAKE_CXX_FLAGS in your configure.sh with `-fsanitize=thread` and `-ltsan` flags:
 
-```sh
+```console
  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fsanitize=thread -ltsan"     \
 ```
 {: data-lang="configure.sh"}
 
 Once the compilation finishes, test examples must be run by '''pre-loading the ThreadSanitizer library''' of your compiler. For instance, in our case it was:
 
-```sh
+```console
  LD_PRELOAD=/path/to/gcc-6.3.0/lib64/libtsan.so python3 MainKratos.py
 ```
 {: data-lang="Terminal Command"}
