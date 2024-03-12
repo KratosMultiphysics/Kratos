@@ -444,9 +444,13 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double J      = 0.5 * length;
 
-    VectorType strain_vector(3);
+    // Let's initialize the cl values
+    VectorType strain_vector(3), stress_vector(3);
+    MatrixType constitutive_matrix(3, 3);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(6);
     GetNodalValuesVector(nodal_values);
     VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
