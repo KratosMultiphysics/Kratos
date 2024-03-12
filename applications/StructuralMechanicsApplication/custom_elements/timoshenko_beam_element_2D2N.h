@@ -107,6 +107,18 @@ public:
     {
     }
 
+    // Create method
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    {
+        return Kratos::make_intrusive<TimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+    // Create method
+    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+    {
+        return Kratos::make_intrusive<TimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
+    }
+
     ///@}
     ///@name Operators
     ///@{

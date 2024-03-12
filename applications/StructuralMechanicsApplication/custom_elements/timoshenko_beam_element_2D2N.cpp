@@ -37,7 +37,7 @@ void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInf
         if (this->UseGeometryIntegrationMethod()) {
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
                 const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-                switch ( integration_order )
+                switch (integration_order)
                 {
                 case 1:
                     mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -60,7 +60,7 @@ void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInf
                     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
                 }
             } else {
-                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
         }
 
@@ -501,6 +501,8 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
     }
+
+    // NOTE rotations!
 
     KRATOS_CATCH("");
 }
