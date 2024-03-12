@@ -84,7 +84,7 @@ public:
     ///@{
 
     /// Default constructor
-    SparseMatrixMultiplicationUtility() = default;
+    SparseMatrixMultiplicationUtility() = delete;
 
     /// Desctructor
     virtual ~SparseMatrixMultiplicationUtility()= default;
