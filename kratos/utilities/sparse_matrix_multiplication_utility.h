@@ -164,9 +164,7 @@ public:
             TLS(const SizeType NumberOfColumns)
                 : marker(NumberOfColumns)
             {
-                for (IndexType i_fill = 0; i_fill < NumberOfColumns; ++i_fill) {
-                    marker[i_fill] = -1;
-                }
+                std::fill(marker.begin(), marker.end(), -1);
             }
             SignedIndexVectorType marker;
         };
@@ -447,9 +445,7 @@ public:
 
         IndexPartition<IndexType>(nrows).for_each([&](IndexType ia) {
             SignedIndexVectorType marker(ncols);
-            for (int i = 0; i < static_cast<int>(ncols); ++i) {
-                marker[i] = -1;
-            }
+            std::fill(marker.begin(), marker.end(), -1);
 
             // Initialize
             const IndexType row_beg = new_a_ptr[ia];
@@ -1269,22 +1265,6 @@ private:
 ///@name Input and output
 ///@{
 
-// /****************************** INPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-//
-// template<class TPointType, class TPointerType>
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   SparseMatrixMultiplicationUtility& rThis);
-//
-// /***************************** OUTPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-//
-// template<class TPointType, class TPointerType>
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const SparseMatrixMultiplicationUtility& rThis)
-// {
-//     return rOStream;
-// }
 
 ///@}
 
