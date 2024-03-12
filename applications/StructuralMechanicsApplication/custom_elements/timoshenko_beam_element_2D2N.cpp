@@ -516,12 +516,87 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
 /***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo
+    MatrixType& rLHS,
+    const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY;
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
+    if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
+        rLHS.resize(mat_size, false);
+        rLHS.clear();
+    }
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double Phi    = CalculatePhi(cl_values);
+    const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    const double J      = 0.5 * length;
+
+    // Let's initialize the cl values
+    VectorType strain_vector(3), stress_vector(3);
+    MatrixType constitutive_matrix(3, 3);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    VectorType nodal_values(6);
+    GetNodalValuesVector(nodal_values);
+    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        global_size_N.clear();
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J;
+
+        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
+        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
+        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const double dN_dEl    = r_constitutive_matrix(0, 0);
+        const double dM_dkappa = r_constitutive_matrix(1, 1);
+        const double dV_dgamma = r_constitutive_matrix(2, 2);
+
+        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, Phi, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
+        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
+
+        // Axial contributions
+        global_size_N[0] = N_u_derivatives[0];
+        global_size_N[3] = N_u_derivatives[1];
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
+
+        // Bending contributions
+        global_size_N.clear();
+        global_size_N[1] = N_theta_derivatives[0];
+        global_size_N[2] = N_theta_derivatives[1];
+        global_size_N[4] = N_theta_derivatives[2];
+        global_size_N[5] = N_theta_derivatives[3];
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
+
+        // Shear contributions
+        global_size_N.clear();
+        global_size_N[1] = N_derivatives[0] - N_theta[0];
+        global_size_N[2] = N_derivatives[1] - N_theta[1];
+        global_size_N[4] = N_derivatives[2] - N_theta[2];
+        global_size_N[5] = N_derivatives[3] - N_theta[3];
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
+    }
+
+    RotateLHS(rLHS, GetGeometry());
     KRATOS_CATCH("");
 }
 
@@ -529,12 +604,87 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
 /***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY;
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
+    if (rRHS.size() != mat_size) {
+        rRHS.resize(mat_size, false);
+        rRHS.clear();
+    }
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const double Phi    = CalculatePhi(cl_values);
+    const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    const double J      = 0.5 * length;
+
+    // Let's initialize the cl values
+    VectorType strain_vector(3), stress_vector(3);
+    MatrixType constitutive_matrix(3, 3);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    VectorType nodal_values(6);
+    GetNodalValuesVector(nodal_values);
+    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        global_size_N.clear();
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double jacobian_weight = weight * J;
+
+        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
+        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
+        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N = r_generalized_stresses[0];
+        const double M = r_generalized_stresses[1];
+        const double V = r_generalized_stresses[2];
+
+        GetFirstDerivativesNu0ShapeFunctionsValues(N_u_derivatives, length, Phi, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
+        GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
+        GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
+
+        // Axial contributions
+        global_size_N[0] = N_u_derivatives[0];
+        global_size_N[3] = N_u_derivatives[1];
+        noalias(rRHS) -= global_size_N * N * jacobian_weight;
+
+        // Bending contributions
+        global_size_N.clear();
+        global_size_N[1] = N_theta_derivatives[0];
+        global_size_N[2] = N_theta_derivatives[1];
+        global_size_N[4] = N_theta_derivatives[2];
+        global_size_N[5] = N_theta_derivatives[3];
+        noalias(rRHS) -= global_size_N * M * jacobian_weight;
+
+        // Shear contributions
+        global_size_N.clear();
+        global_size_N[1] = N_derivatives[0] - N_theta[0];
+        global_size_N[2] = N_derivatives[1] - N_theta[1];
+        global_size_N[4] = N_derivatives[2] - N_theta[2];
+        global_size_N[5] = N_derivatives[3] - N_theta[3];
+        noalias(rRHS) -= global_size_N * V * jacobian_weight;
+    }
+
+    RotateRHS(rRHS, GetGeometry());
     KRATOS_CATCH("");
 }
 
