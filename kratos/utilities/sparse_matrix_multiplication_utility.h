@@ -302,7 +302,7 @@ public:
             tmp_val[i].resize(2 * max_row_width);
         }
 
-        // We create the c_ptr auxiliar variable
+        // We create the c_ptr auxiliary variable
         IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
@@ -569,7 +569,7 @@ public:
     }
 
     /**
-     * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
+     * @brief This method is designed to create the final solution sparse matrix from the auxiliary values
      * @param C The matrix solution
      * @param NRows The number of rows of the matrix
      * @param NCols The number of columns of the matrix
@@ -847,7 +847,7 @@ public:
 
     /**
      * @brief This is a method to check the block containing nonzero values
-     * @param rMatrix The auxiliar block
+     * @param rMatrix The auxiliary block
      * @param CurrentRow The current row computed
      * @param rNonZeroColsAux2 The nonzero rows array
      */
@@ -869,13 +869,13 @@ public:
     }
 
     /**
-     * @brief This is a method to compute the contribution of the auxiliar blocks
-     * @param AuxK The auxiliar block
+     * @brief This is a method to compute the contribution of the auxiliary blocks
+     * @param AuxK The auxiliary block
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      * @param CurrentRow The current row computed
      * @param RowEnd The last column computed
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
+     * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
      */
     static inline void ComputeAuxiliarValuesBlocks(
         const CompressedMatrix& rMatrix,
