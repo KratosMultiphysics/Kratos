@@ -16,12 +16,14 @@
 
 // Project includes
 // #include "utilities/geometry_utilities.h"
+// #include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_elements/timoshenko_beam_element_2D2N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -175,7 +177,7 @@ void TimoshenkoBeamElement2D2N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues) const
+const double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues)
 {
     const auto &r_material_properties = rValues.GetMaterialProperties();
     const double E   = r_material_properties[YOUNG_MODULUS];
@@ -183,7 +185,7 @@ const double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters
     const double I   = r_material_properties[IZ];
     const double k_s = r_material_properties.Has(SHEAR_CORRECTION_XY) ? r_material_properties[SHEAR_CORRECTION_XY] : 5.0 / 6.0; // We assume rectangular shape
     const double A_s = k_s * A;
-    const double G   = ConstitutiveLawUtilities<>::CalculateShearModulus(rValues);
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
     const double L   = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     return 12.0 * E * I / (G * A_s * std::pow(L, 2));
 }
@@ -191,211 +193,218 @@ const double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
+void TimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
+    VectorType& rN,
     const double Length,
     const double Phi,
     const double xi
     )
 {
-    Vector shape_functions_values(4);
+    if (rN.size() != 4)
+        rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
     const double xi_square = xi * xi;
-    shape_functions_values[0] = (xi - 1.0) * (xi + xi_square - 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
-    shape_functions_values[1] = (1.0 - xi_square) * (1.0 - xi + Phi) * Length / (8.0 * one_plus_phi);
-    shape_functions_values[2] = (1.0 + xi) * (xi - xi_square + 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
-    shape_functions_values[3] = (xi_square - 1.0) * (1.0 + xi + Phi) * Length / (8.0 * one_plus_phi);
-    return shape_functions_values;
+    rN[0] = (xi - 1.0) * (xi + xi_square - 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
+    rN[1] = (1.0 - xi_square) * (1.0 - xi + Phi) * Length / (8.0 * one_plus_phi);
+    rN[2] = (1.0 + xi) * (xi - xi_square + 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
+    rN[3] = (xi_square - 1.0) * (1.0 + xi + Phi) * Length / (8.0 * one_plus_phi);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
+void TimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
+    VectorType& rN,
     const double Length,
     const double Phi,
     const double xi
     )
 {
-    Vector shape_functions_derivatives_values(4);
+    if (rN.size() != 4)
+        rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
     const double xi_square = xi * xi;
-    shape_functions_derivatives_values[0] = (-6.0 + 6.0 * xi_square - 4.0 * Phi) / (4.0 * one_plus_phi * Length);
-    shape_functions_derivatives_values[1] = (-1.0 + 3.0 * xi_square - 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
-    shape_functions_derivatives_values[2] = (6.0 - 6.0 * xi_square + 4.0 * Phi) / (4.0 * one_plus_phi * Length);
-    shape_functions_derivatives_values[3] = (-1.0 + 3.0 * xi_square + 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
-    return shape_functions_derivatives_values;
+    rN[0] = (-6.0 + 6.0 * xi_square - 4.0 * Phi) / (4.0 * one_plus_phi * Length);
+    rN[1] = (-1.0 + 3.0 * xi_square - 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
+    rN[2] = (6.0 - 6.0 * xi_square + 4.0 * Phi) / (4.0 * one_plus_phi * Length);
+    rN[3] = (-1.0 + 3.0 * xi_square + 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
+void TimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
+    VectorType& rN,
     const double Length,
     const double Phi,
     const double xi
     )
 {
-    Vector shape_functions_second_derivatives_values(4);
-    const double one_plus_phi = 1.0 + Phi;
-    const double xi_square = xi * xi;
-    const double L_square = std::pow(Length, 2);
-    shape_functions_second_derivatives_values[0] = 6.0 * xi / (one_plus_phi * L_square);
-    shape_functions_second_derivatives_values[1] = (-1.0 + 3.0 * xi - Phi) / (one_plus_phi * Length);
-    shape_functions_second_derivatives_values[2] = -6.0 * xi / (one_plus_phi * L_square);
-    shape_functions_second_derivatives_values[3] = (1.0 + 3.0 * xi + Phi) / (one_plus_phi * Length);
-    return shape_functions_second_derivatives_values;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Vector TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
-    const double Length,
-    const double Phi,
-    const double xi
-    )
-{
-    Vector shape_functions_third_derivatives_values(4);
+    if (rN.size() != 4)
+        rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
     const double xi_square = xi * xi;
     const double L_square = std::pow(Length, 2);
-    shape_functions_third_derivatives_values[0] = 12.0  / (one_plus_phi * Length * L_square);
-    shape_functions_third_derivatives_values[1] = 6.0   / (one_plus_phi * L_square);
-    shape_functions_third_derivatives_values[2] = -12.0 / (one_plus_phi * Length * L_square);
-    shape_functions_third_derivatives_values[3] = 6.0   / (one_plus_phi * L_square);
-    return shape_functions_third_derivatives_values;
+    rN[0] = 6.0 * xi / (one_plus_phi * L_square);
+    rN[1] = (-1.0 + 3.0 * xi - Phi) / (one_plus_phi * Length);
+    rN[2] = -6.0 * xi / (one_plus_phi * L_square);
+    rN[3] = (1.0 + 3.0 * xi + Phi) / (one_plus_phi * Length);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
+void TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
+    VectorType& rN,
+    const double Length,
+    const double Phi,
+    const double xi
+    )
+{
+    if (rN.size() != 4)
+        rN.resize(4, false);
+    const double one_plus_phi = 1.0 + Phi;
+    const double xi_square = xi * xi;
+    const double L_square = std::pow(Length, 2);
+    rN[0] = 12.0  / (one_plus_phi * Length * L_square);
+    rN[1] = 6.0   / (one_plus_phi * L_square);
+    rN[2] = -12.0 / (one_plus_phi * Length * L_square);
+    rN[3] = 6.0   / (one_plus_phi * L_square);
+}
+
+// /***********************************************************************************/
+// /***********************************************************************************/
+
+void TimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
+    VectorType& rN,
     const double Length,
     const double Phi,
     const double xi
     )
 {
     const double one_plus_phi = 1.0 + Phi;
-    Vector n_theta_values(4);
-    n_theta_values[0] = (3.0 * xi * xi - 3.0) / (2.0 * one_plus_phi * Length);
-    n_theta_values[1] = (xi - 1.0) * (1.0 + 3.0 * xi - 2.0 * Phi) / (4.0 * one_plus_phi);
-    n_theta_values[2] = (3.0 - 3.0 * xi * xi) / (2 * one_plus_phi * Length);
-    n_theta_values[3] = (1.0 + xi) * (3.0 * xi - 1.0 + 2.0 * Phi) / (4.0 * one_plus_phi);
-    return n_theta_values;
+    if (rN.size() != 4)
+        rN.resize(4, false);
+    rN[0] = (3.0 * xi * xi - 3.0) / (2.0 * one_plus_phi * Length);
+    rN[1] = (xi - 1.0) * (1.0 + 3.0 * xi - 2.0 * Phi) / (4.0 * one_plus_phi);
+    rN[2] = (3.0 - 3.0 * xi * xi) / (2 * one_plus_phi * Length);
+    rN[3] = (1.0 + xi) * (3.0 * xi - 1.0 + 2.0 * Phi) / (4.0 * one_plus_phi);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
+void TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
+    VectorType& rN,
     const double Length,
     const double Phi,
     const double xi
     )
 {
     const double one_plus_phi = 1.0 + Phi;
-    Vector n_theta_derivatives_values(4);
-    n_theta_derivatives_values[0] = 3.0 * xi / (one_plus_phi * Length);
-    n_theta_derivatives_values[1] = (-0.5 * Phi + 1.5 * xi - 0.5) / (Phi + 1.0);
-    n_theta_derivatives_values[2] = (-3.0 * xi) / (Length * Phi + Length);
-    n_theta_derivatives_values[3] = (0.5 * Phi + 1.5 * xi + 0.5) / (Phi + 1.0);
-    return (2.0 / Length) * n_theta_derivatives_values;
+    if (rN.size() != 4)
+        rN.resize(4, false);
+    rN[0] = 3.0 * xi / (one_plus_phi * Length);
+    rN[1] = (-0.5 * Phi + 1.5 * xi - 0.5) / (Phi + 1.0);
+    rN[2] = (-3.0 * xi) / (Length * Phi + Length);
+    rN[3] = (0.5 * Phi + 1.5 * xi + 0.5) / (Phi + 1.0);
+    rN *= (2.0 / Length);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
-    const double Length,
-    const double Phi,
-    const double xi
-    )
-{
-    Vector nu_values(2);
-    nu_values[0] = 0.5 * (1.0 - xi);
-    nu_values[1] = 0.5 * (1.0 + xi);
-    return nu_values;
-}
+// Vector TimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
+//     const double Length,
+//     const double Phi,
+//     const double xi
+//     )
+// {
+//     Vector nu_values(2);
+//     nu_values[0] = 0.5 * (1.0 - xi);
+//     nu_values[1] = 0.5 * (1.0 + xi);
+//     return nu_values;
+// }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-Vector TimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
-    const double Length,
-    const double Phi,
-    const double xi
-    )
-{
-    Vector nu_derivatives_values(2);
-    nu_derivatives_values[0] = -0.5;
-    nu_derivatives_values[1] =  0.5;
-    return 2.0 / Length * nu_derivatives_values;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Vector TimoshenkoBeamElement2D2N::GetNodalValuesVector()
-{
-    Vector nodal_values(6);
-    const auto &r_geom = GetGeometry();
-
-    nodal_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    nodal_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    nodal_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-    nodal_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-    nodal_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    nodal_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
-    return nodal_values;
-}
+// VectorType TimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
+//     const double Length,
+//     const double Phi,
+//     const double xi
+//     )
+// {
+//     VectorType nu_derivatives_values(2);
+//     nu_derivatives_values[0] = -1.0 / Length;
+//     nu_derivatives_values[1] =  1.0 / Length;
+//     return nu_derivatives_values;
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double CalculateAxialStrain(
-    const double Length,
-    const double Phi,
-    const double xi,
-    const Vector& rNodalValues
-    )
-{
-    // const Vector N_u0_derivatives = GetFirstDerivativesNu0ShapeFunctionsValues(Length, Phi, xi);
-    // return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3];
-    return 0.0;
-}
+// VectorType TimoshenkoBeamElement2D2N::GetNodalValuesVector()
+// {
+//     VectorType nodal_values(6);
+//     const auto &r_geom = GetGeometry();
+
+//     nodal_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+//     nodal_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+//     nodal_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+//     nodal_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+//     nodal_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+//     nodal_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+//     return nodal_values;
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double CalculateShearStrain(
-    const double Length,
-    const double Phi,
-    const double xi,
-    const Vector& rNodalValues
-    )
-{
-    // const Vector N_theta       = GetNThetaShapeFunctionsValues(Length, Phi, xi);
-    // const Vector N_derivatives = GetFirstDerivativesShapeFunctionsValues(Length, Phi, xi);
-    // const Vector N_s           = N_derivatives - N_theta;
-    // return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5];
-    return 0.0;
-}
+// const double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
+//     const double Length,
+//     const double Phi,
+//     const double xi,
+//     const VectorType& rNodalValues
+//     )
+// {
+//     const VectorType N_u0_derivatives = GetFirstDerivativesNu0ShapeFunctionsValues(Length, Phi, xi);
+//     // return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3];
+//     return 0.0;
+// }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-const double CalculateBendingCurvature(
+const double TimoshenkoBeamElement2D2N::CalculateShearStrain(
     const double Length,
     const double Phi,
     const double xi,
-    const Vector& rNodalValues
+    const VectorType& rNodalValues
     )
 {
-    // const Vector N_theta_derivatives = GetFirstDerivativesNThetaShapeFunctionsValues(Length, Phi, xi);
-    // return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
-    //        N_theta_derivatives[2] * rNodalValues[4] + N_theta_derivatives[3] * rNodalValues[5];
-    return 0.0;
+    VectorType N_derivatives(4), N_theta(4);
+    GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
+    GetNThetaShapeFunctionsValues(N_theta, Length, Phi, xi);
+    const Vector N_s = N_derivatives - N_theta;
+    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + N_s[3] * rNodalValues[5];
 }
+
+// /***********************************************************************************/
+// /***********************************************************************************/
+
+// const double TimoshenkoBeamElement2D2N::CalculateBendingCurvature(
+//     const double Length,
+//     const double Phi,
+//     const double xi,
+//     const VectorType& rNodalValues
+//     )
+// {
+//     const Vector N_theta_derivatives = GetFirstDerivativesNThetaShapeFunctionsValues(Length, Phi, xi);
+//     return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
+//            N_theta_derivatives[2] * rNodalValues[4] + N_theta_derivatives[3] * rNodalValues[5];
+//     return 0.0;
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -406,7 +415,7 @@ const double CalculateBendingCurvature(
 
 void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     MatrixType& rLHS,
-    Vector& rRHS,
+    VectorType& rRHS,
     const ProcessInfo& rProcessInfo
     )
 {
@@ -438,7 +447,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     Vector strain_vector(3);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
-    const Vector &nodal_values = GetNodalValuesVector();
+    // const Vector &nodal_values = GetNodalValuesVector();
 
     for (SizeType IP = 0; IP < integration_points.size(); ++IP ) {
         // TODO
@@ -464,7 +473,7 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
 /***********************************************************************************/
 
 void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
-    Vector& rRightHandSideVector,
+    VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -523,7 +532,7 @@ int  TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) co
 
 double TimoshenkoBeamElement2D2N::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
-    const IndexType PointNumber,
+    const SizeType PointNumber,
     const double detJ
     ) const
 {
