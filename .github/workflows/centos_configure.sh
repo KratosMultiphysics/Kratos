@@ -8,10 +8,6 @@
 # You can find a list with all the compilation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
-add_app () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
-
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -19,13 +15,8 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3"}
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
-add_app ${KRATOS_APP_DIR}/MappingApplication;
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/MeshingApplication;
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
-add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
+# Set applications to compile .. see "ci_apps_centos.json"
+export KRATOS_APPLICATIONS_FILE="${KRATOS_SOURCE}/ci_compiled_apps.txt"
 
 # Clean
 clear

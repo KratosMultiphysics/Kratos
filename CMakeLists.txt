@@ -390,7 +390,7 @@ endif(DEFINED ENV{BOOST_ROOT})
 find_package(Boost)
 
 if(NOT Boost_FOUND)
-  # Trying to find in in external libraries
+  # Trying to find in external libraries
   set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
   find_package(Boost)
   if(NOT Boost_FOUND)
@@ -500,7 +500,6 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
-  find_package(TRILINOS QUIET)
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -561,6 +560,29 @@ add_subdirectory(kratos)
 # Configure kratos applications
 message(STATUS "Configuring applications (ENV):")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
+
+# The apps that are to be compiled can be specified in a file and set with env-var "KRATOS_APPLICATIONS_FILE"
+# The applications are expected to be separated with escaped semicolons: "\;" (escaping is required by CMake)
+# e.g. "apps/app1\;other_folder/app2\;apps/new_app"
+if(DEFINED ENV{KRATOS_APPLICATIONS_FILE})
+  # first some checks
+  if(NOT EXISTS $ENV{KRATOS_APPLICATIONS_FILE})
+    message(FATAL_ERROR "KRATOS_APPLICATIONS_FILE was specified, but file '$ENV{KRATOS_APPLICATIONS_FILE}' does not exist!")
+  endif(NOT EXISTS $ENV{KRATOS_APPLICATIONS_FILE})
+  if(DEFINED ENV{KRATOS_APPLICATIONS})
+    message(WARNING "Both KRATOS_APPLICATIONS and KRATOS_APPLICATIONS_FILE were specified. KRATOS_APPLICATIONS_FILE is used!")
+  endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
+  file(READ $ENV{KRATOS_APPLICATIONS_FILE} KRATOS_APPLICATIONS_FILE_CONTENT)
+  set(ENV{KRATOS_APPLICATIONS} ${KRATOS_APPLICATIONS_FILE_CONTENT})
+
+endif(DEFINED ENV{KRATOS_APPLICATIONS_FILE})
+
+# find trilinos. Requires apps-file to be read
+if(${USE_MPI} MATCHES ON )
+  find_package(TRILINOS QUIET)
+endif(${USE_MPI} MATCHES ON )
+
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)

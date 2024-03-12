@@ -8,10 +8,6 @@
 # You can find a list with all the compilation options in INSTALL.md or here:
 #   - https://github.com/KratosMultiphysics/Kratos/wiki/Compilation-options
 
-add_app () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
-
 # Set variables
 export KRATOS_SOURCE="${KRATOS_SOURCE:-${PWD}}"
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -19,41 +15,8 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 export PYTHON_EXECUTABLE="/usr/bin/python3.8"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
-# Set applications to compile
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsHydraulicsApplication;
-add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-add_app ${KRATOS_APP_DIR}/DEMApplication;
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
-add_app ${KRATOS_APP_DIR}/MetisApplication;
-add_app ${KRATOS_APP_DIR}/TrilinosApplication;
-add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
-add_app ${KRATOS_APP_DIR}/CableNetApplication;
-add_app ${KRATOS_APP_DIR}/RANSApplication;
-add_app ${KRATOS_APP_DIR}/MappingApplication;
-add_app ${KRATOS_APP_DIR}/FSIApplication;
-add_app ${KRATOS_APP_DIR}/MeshingApplication;
-add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
-add_app ${KRATOS_APP_DIR}/HDF5Application;
-add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/IgaApplication;
-add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/ChimeraApplication;
-add_app ${KRATOS_APP_DIR}/StatisticsApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-add_app ${KRATOS_APP_DIR}/RomApplication;
-add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
-add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/DamApplication;
-add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
-add_app ${KRATOS_APP_DIR}/OptimizationApplication;
-add_app ${KRATOS_APP_DIR}/MedApplication;
+# Set applications to compile .. see "ci_apps_linux.json"
+export KRATOS_APPLICATIONS_FILE="${KRATOS_SOURCE}/ci_compiled_apps.txt"
 
 # Clean
 clear

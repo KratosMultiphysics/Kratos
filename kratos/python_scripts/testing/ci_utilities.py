@@ -3,7 +3,9 @@ from functools import lru_cache
 from os import getenv
 from pathlib import Path
 from pprint import pprint
-from typing import List, Set
+from typing import List, Set, Optional
+
+# Note: this file cannot contain any Kratos imports, since it is used before Kratos is compiled!
 
 
 def check_valid_environment_configuration_exists() -> None:
@@ -62,8 +64,13 @@ def are_only_python_files_changed() -> bool:
 
 def print_ci_information() -> None:
     """This function prints an overview of the CI related information"""
-    pprint(sorted(map(lambda p : p.as_posix(), changed_files())))
     pprint(sorted(ci_applications()))
+
+    if getenv("KRATOS_CI_CHANGED_FILES") == "ALL":
+        print("All applications will be compiled")
+        return
+
+    pprint(sorted(map(lambda p: p.as_posix(), changed_files())))
     print(f"{sorted(get_changed_files_extensions())=}")
     print(f"{are_only_python_files_changed()=}")
     print(f"{sorted(get_changed_applications())=}")
@@ -71,5 +78,29 @@ def print_ci_information() -> None:
     print(f"{is_mpi_core_changed()=}\n")
 
 
-if __name__ == "__main__":
+def write_compiled_apps_to_file() -> None:
+    """This function add the applications that are to be compiled to the environment
+    For now this adds everything, but in the future this will be depending on the actual changes of the PR
+    """
+    # TODO add path only if app is not an absolute path
+    kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
+    with open(kratos_path / "ci_compiled_apps.txt", "w") as ci_apps_file:
+        for app in ci_applications():
+            ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
+
+
+def write_tested_apps_to_file() -> None:
+    kratos_path: Path = Path(__file__).resolve().parent.parent.parent.parent
+    with open(kratos_path / "ci_tested_apps.txt", "w") as ci_apps_file:
+        for app in ci_applications():
+            ci_apps_file.write(f"{kratos_path / 'applications' / app}\;")
+
+
+def prepare_ci():
     print_ci_information()
+    write_compiled_apps_to_file()
+    write_tested_apps_to_file()
+
+
+if __name__ == "__main__":
+    prepare_ci()
