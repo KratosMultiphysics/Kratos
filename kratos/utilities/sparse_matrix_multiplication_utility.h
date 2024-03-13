@@ -80,6 +80,12 @@ public:
     /// A vector of indexes (signed)
     using SignedIndexVectorType = DenseVector<SignedIndexType>;
 
+#ifdef _OPENMP
+    static constexpr bool UsesOpenMP = true;
+#else
+    static constexpr bool UsesOpenMP = false;
+#endif
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -112,11 +118,10 @@ public:
         CMatrix& rC
         )
     {
-    #ifdef _OPENMP
-        const int nt = omp_get_max_threads();
-    #else
-        const int nt = 1;
-    #endif
+        int nt = 1;
+        if constexpr(UsesOpenMP) {
+            nt = omp_get_max_threads();
+        }
 
         if (nt > 16) {
             MatrixMultiplicationRMerge(rA, rB, rC);
@@ -272,11 +277,11 @@ public:
         const double* values_b = B.value_data().begin();
 
         // Definition of TLS
-        struct TLS {
+        struct TLS_max {
             IndexType my_max = 0;
         };
 
-        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS(), [&](IndexType i, TLS& rTLS) {
+        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS_max(), [&](IndexType i, TLS_max& rTLS) {
             const IndexType row_beg = index1_a[i];
             const IndexType row_end = index1_a[i+1];
 
@@ -289,11 +294,10 @@ public:
             return rTLS.my_max;
         });
 
-    #ifdef _OPENMP
-        const int nthreads = omp_get_max_threads();
-    #else
-        const int nthreads = 1;
-    #endif
+        int nthreads = 1;
+        if constexpr(UsesOpenMP) {
+            nthreads = omp_get_max_threads();
+        }
 
         std::vector<std::vector<IndexType>> tmp_col(nthreads);
         std::vector<std::vector<ValueType>> tmp_val(nthreads);
@@ -310,11 +314,10 @@ public:
         // TODO: Replace with block_for_each
         #pragma omp parallel
         {
-        #ifdef _OPENMP
-            const int tid = omp_get_thread_num();
-        #else
-            const int tid = 0;
-        #endif
+            int tid = 0;
+            if constexpr(UsesOpenMP) {
+                tid = omp_get_thread_num();
+            }
 
             IndexType* t_col = &tmp_col[tid][0];
 
@@ -336,11 +339,10 @@ public:
         // TODO: Replace with block_for_each
         #pragma omp parallel
         {
-        #ifdef _OPENMP
-            const int tid = omp_get_thread_num();
-        #else
-            const int tid = 0;
-        #endif
+            int tid = 0;
+            if constexpr(UsesOpenMP) {
+                tid = omp_get_thread_num();
+            }
 
             IndexType* t_col = tmp_col[tid].data();
             ValueType* t_val = tmp_val[tid].data();
