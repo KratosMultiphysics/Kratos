@@ -859,7 +859,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            const double xi     = integration_points[IP].X();
+            const double xi = integration_points[IP].X();
 
             strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
             strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
@@ -923,7 +923,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            const double xi     = integration_points[IP].X();
+            const double xi = integration_points[IP].X();
 
             strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
             strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
