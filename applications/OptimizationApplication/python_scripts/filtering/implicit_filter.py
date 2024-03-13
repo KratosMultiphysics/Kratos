@@ -40,43 +40,18 @@ class ImplicitFilter(Filter):
             raise RuntimeError(f"Unsupported data location = \"{data_location.name}\" requested. Followings are supported:\n\t" + "\n\t".join([v.name for v in supported_data_locations]))
 
         if isinstance(filtering_variable, Kratos.DoubleVariable):
-            self.filter_variable = KratosOA.HELMHOLTZ_SCALAR
-            self.number_of_components = 1
-            helmholtz_settings = self.GetImplicitFilterParameters(filtering_model_part_name, "general_scalar", self.parameters)
+            self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_SCALAR]
+            helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_scalar", self.parameters)
         elif isinstance(filtering_variable, Kratos.Array1DVariable3):
-            self.filter_variable = KratosOA.HELMHOLTZ_VECTOR
-            self.number_of_components = 3
-            helmholtz_settings = self.GetImplicitFilterParameters(filtering_model_part_name, "general_vector", self.parameters)
+            self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_VECTOR_X, KratosOA.HELMHOLTZ_VECTOR_Y, KratosOA.HELMHOLTZ_VECTOR_Z]
+            helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_vector", self.parameters)
         else:
             raise RuntimeError(f"Unsupported variable = \"{filtering_variable.Name()}\". Only supports DoubleVariable and Array1DVariable3.")
 
         self.filter_analysis = HelmholtzAnalysis(self.model, helmholtz_settings)
 
     def Initialize(self) -> None:
-        self.filter_analysis.SetHelmholtzModelPartNameSuffix(f"_helmholtz_filter_mdp_{self.GetComponentDataView().GetComponentName()}")
         self.filter_analysis.Initialize()
-
-        # fix boundaries
-        all_component_boundary_model_parts = KratosOA.ExplicitDampingUtils.GetComponentWiseDampedModelParts(self.model, self.parameters["filtering_boundary_conditions"], self.number_of_components)
-        list_of_boundary_model_parts: 'list[Kratos.ModelPart]' = []
-        for component_index, boundary_model_parts in enumerate(all_component_boundary_model_parts):
-            for model_part in boundary_model_parts:
-                list_of_boundary_model_parts.append(model_part)
-                if self.number_of_components == 1:
-                    Kratos.VariableUtils().ApplyFixity(KratosOA.HELMHOLTZ_SCALAR, True, model_part.Nodes)
-                elif self.number_of_components == 3:
-                    if component_index == 0:
-                        Kratos.VariableUtils().ApplyFixity(KratosOA.HELMHOLTZ_VECTOR_X, True, model_part.Nodes)
-                    elif component_index == 1:
-                        Kratos.VariableUtils().ApplyFixity(KratosOA.HELMHOLTZ_VECTOR_Y, True, model_part.Nodes)
-                    elif component_index == 2:
-                        Kratos.VariableUtils().ApplyFixity(KratosOA.HELMHOLTZ_VECTOR_Z, True, model_part.Nodes)
-
-        # make all the boundaries to zero
-        for model_part in list_of_boundary_model_parts:
-            field =  Kratos.Expression.NodalExpression(model_part)
-            Kratos.Expression.LiteralExpressionIO.SetDataToZero(field, self.filter_variable)
-            Kratos.Expression.VariableExpressionIO.Write(field, self.filter_variable, True)
 
     def Update(self) -> None:
         pass
@@ -88,18 +63,22 @@ class ImplicitFilter(Filter):
         self.filter_analysis.Finalize()
 
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        self.__ApplyBoundaryConditions()
         return self.filter_analysis.FilterField(control_field)
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        self.__ApplyBoundaryConditions()
         return self.filter_analysis.FilterField(physical_mesh_independent_gradient_field)
 
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        self.__ApplyBoundaryConditions()
         return self.filter_analysis.FilterIntegratedField(physical_mesh_dependent_gradient_field)
 
     def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        self.__ApplyBoundaryConditions()
         return self.UnfilterField(physical_field)
 
-    def GetImplicitFilterParameters(self, filter_model_part_name: str, filter_type: str, parameters: Kratos.Parameters):
+    def __GetImplicitFilterParameters(self, filter_model_part_name: str, filter_type: str, parameters: Kratos.Parameters):
         implicit_vector_filter_parameters = Kratos.Parameters("""
         {
             "solver_settings" : {
@@ -131,5 +110,27 @@ class ImplicitFilter(Filter):
 
         return implicit_vector_filter_parameters
 
+    def __ApplyBoundaryConditions(self) -> None:
+        # first free the domain, because if the same type of filter used, that means same nodes
+        # were used before with different boundary conditions. Hence it is important to free all dofs
+        # and apply the boundary conditions again when ever filter is used.
+        # This is because, every implicit filter shares the same nodes
+        list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.model[self.filtering_model_part_name]), self.filter_variables))
+
+        # now re-apply the boundary conditions
+        all_component_boundary_model_parts = KratosOA.ExplicitDampingUtils.GetComponentWiseDampedModelParts(self.model, self.parameters["filtering_boundary_conditions"], len(self.filter_variables))
+        list_of_boundary_model_parts: 'list[Kratos.ModelPart]' = []
+
+        for component_index, boundary_model_parts in enumerate(all_component_boundary_model_parts):
+            for model_part in boundary_model_parts:
+                list_of_boundary_model_parts.append(model_part)
+                Kratos.VariableUtils().ApplyFixity(self.filter_variables[component_index], True, model_part.Nodes)
+
+        # make all the boundaries to zero
+        for model_part in list_of_boundary_model_parts:
+            zero_field =  Kratos.Expression.NodalExpression(model_part)
+            Kratos.Expression.LiteralExpressionIO.SetData(zero_field, 0.0)
+            for filter_variable in self.filter_variables:
+                Kratos.Expression.VariableExpressionIO.Write(zero_field, filter_variable, True)
 
 
