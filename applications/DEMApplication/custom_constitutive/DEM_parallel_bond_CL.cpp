@@ -300,9 +300,9 @@ double DEM_parallel_bond::LocalMaxSearchDistance(const int i,
     double kn_el = equiv_young * calculation_area / initial_dist;
 
     //tension_limit = GetContactSigmaMax();
-    tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: add BOND_SIGMA_MAX_DEVIATION
+    //tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: add BOND_SIGMA_MAX_DEVIATION
 
-    const double max_normal_bond_force = tension_limit * calculation_area;
+    const double max_normal_bond_force = mBondSigmaMax * calculation_area;
     double u_max = max_normal_bond_force / kn_el;
 
     //TODO: need to choose whether the [if] below is necessary
