@@ -79,8 +79,6 @@ protected:
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
 
-    virtual double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight);
-    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

@@ -16,6 +16,7 @@
 
 // Application includes
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -66,7 +67,9 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
                 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
                 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -86,23 +89,6 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
     GeoElementUtilities::
         AssemblePBlockVector< 0, TNumNodes >(rRightHandSideVector,
                                                 rVariables.PVector);
-}
-
-
-template<unsigned int TDim, unsigned int TNumNodes>
-double PwNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    Vector NormalVector = ZeroVector(TDim);
-
-    if constexpr (TDim == 2) {
-        NormalVector = column(Jacobian, 0);
-    }
-    else if constexpr (TDim == 3) {
-        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
-    }
-    return MathUtils<double>::Norm(NormalVector) * Weight;
 }
 
 

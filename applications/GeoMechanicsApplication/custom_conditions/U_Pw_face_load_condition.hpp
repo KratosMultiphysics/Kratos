@@ -75,8 +75,6 @@ protected:
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
 
-    virtual double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight);
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

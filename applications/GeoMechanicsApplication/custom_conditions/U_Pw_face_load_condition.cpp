@@ -15,6 +15,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_face_load_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp" 
 
 namespace Kratos
 {
@@ -66,31 +67,14 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu,NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        double integration_coefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
-                                                                              IntegrationPoints[GPoint].Weight());
+        double integration_coefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * integration_coefficient;
         ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, UVector);
     }
-}
-
-
-template<unsigned int TDim, unsigned int TNumNodes>
-double UPwFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    Vector NormalVector = ZeroVector(TDim);
-
-    if constexpr (TDim == 2) {
-        NormalVector = column(Jacobian, 0);
-    }
-    else if constexpr (TDim == 3) {
-        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
-    }
-
-    return MathUtils<double>::Norm(NormalVector) * Weight;
 }
 
 

@@ -534,8 +534,6 @@ private:
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5<NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3<NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D4N{ 0, Kratos::make_shared< Line2D4<NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5<NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const UPwLysmerAbsorbingCondition<2,2> mUPwLysmerAbsorbingCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwLysmerAbsorbingCondition<2,3> mUPwLysmerAbsorbingCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
