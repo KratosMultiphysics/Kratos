@@ -16,7 +16,7 @@
             "input_filename":   "test_PwNormalFluxCondition2D3N"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../Common/MaterialParametersPw.json"
         },
         "time_stepping":              {
             "time_step":                0.05,
