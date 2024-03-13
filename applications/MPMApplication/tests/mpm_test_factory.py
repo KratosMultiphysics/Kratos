@@ -88,6 +88,12 @@ class CLLinearElastic3DQuadTest(MPMTestFactory):
 class CLDispNewtonianFluidTest(MPMTestFactory):
     file_name = "cl_tests/fluid_cl/newtonian_fluid_test"
 
+
+### Friction tests
+class FrictionConformingTest(MPMTestFactory):
+    file_name = "friction_tests/conforming/friction_conforming_test"
+
+
 ### Gravity Application Tests
 class GravityApplicationTest(MPMTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
