@@ -312,12 +312,6 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
-      env:
-        CCACHE_SLOPPINESS: pch_defines,time_macros
-        CCACHE_COMPILERCHECK: content
-        CCACHE_COMPRESS: true
-        CCACHE_NODISABLE: true
-        CCACHE_MAXSIZE: 500M
 
     steps:
     - uses: actions/checkout@v4
@@ -359,8 +353,6 @@ jobs:
         # Build
         # Please do not use more than 2 cores or it will produce an out of heap memory error
         cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2
-
-        ccache -s
 
     - name: Running python tests
       shell: bash
