@@ -34,19 +34,19 @@ The following conditions are tested.
 
 ## Setup
 
-This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \cdot 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
+This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \times 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
 
 <img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="600">
 
 All nodes on the sides have fixed horizontal displacements. The bottom nodes have fixed displacement in both the horizontal and the vertical
-direction. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m (or a flux of 1.0e-4 $\mathrm{[m^3/s]}$ for pressure test cases) is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. For cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
+direction. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m (or a flux of $10^{-4} \mathrm{[m^3/s]}$ for pressure test cases) is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. For cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
 
 The material is described using:
 -   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw)
--   A Young's modulus $E = 2.0E6 \mathrm{[Pa]}$ with Poisson's ratio $\nu = 0.0 \mathrm{[-]}$.
+-   A Young's modulus $E = 2 \times 10^{6} \mathrm{[Pa]}$ with Poisson's ratio $\nu = 0.0 \mathrm{[-]}$.
 -   The soil and water density are specified, but irrelevant due to the absence of gravity. The porosity is 0.
--   The dynamic viscosity of water is given as $\mu = 1.0E-3 \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil as $\kappa = 1.157E-12 \mathrm{[m^2]}$
--   The bulk modulus of water $K_w = 2.0E6 \mathrm{[Pa]}$
+-   The dynamic viscosity of water is given as $\mu = 10^{-3} \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil as $\kappa = 1.157 \times 10^{-12} \mathrm{[m^2]}$
+-   The bulk modulus of water $K_w = 2 \times 10^6 \mathrm{[Pa]}$
 
 ## Assertions
 The test asserts that the vertical distribution of displacement and pressure matches the linear distribution which matches the analytical solution.
