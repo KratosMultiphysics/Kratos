@@ -552,9 +552,9 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
-        rLHS.resize(mat_size, false);
+        rLHS.resize(mat_size, mat_size, false);
     }
-    rLHS.clear();
+    noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
@@ -642,7 +642,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
     }
-    rRHS.clear();
+    noalias(rRHS) = ZeroVector(mat_size);
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
