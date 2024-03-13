@@ -10,8 +10,8 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED)
-#define  KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED)
+#define KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED
 
 // System includes
 
@@ -52,11 +52,9 @@ namespace Kratos
  * @details This class derives from the base constitutive law
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ElasticIsotropicK03DLaw
-    : public GeoLinearElasticLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ElasticIsotropicK03DLaw : public GeoLinearElasticLaw
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
@@ -72,7 +70,7 @@ public:
     static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
 
     /// Counted pointer of ElasticIsotropicK03DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropicK03DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(ElasticIsotropicK03DLaw);
 
     ///@}
     ///@name Life Cycle
@@ -98,23 +96,16 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-    * @brief Dimension of the law:
-    */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    }
+     * @brief Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override { return Dimension; }
 
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override
-    {
-        return VoigtSize;
-    }
+    SizeType GetStrainSize() const override { return VoigtSize; }
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -131,12 +122,11 @@ protected:
     ///@{
 
     /**
-    * @brief It calculates the constitutive matrix rConstitutiveMatrix
-    * @param rConstitutiveMatrix The constitutive matrix
-    * @param rValues Parameters of the constitutive law
-    */
-    void CalculateElasticMatrix(Matrix& rConstitutiveMatrix,
-                                ConstitutiveLaw::Parameters& rValues) override;
+     * @brief It calculates the constitutive matrix rConstitutiveMatrix
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
+    void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the stress vector
@@ -144,8 +134,8 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
     /**
@@ -153,13 +143,11 @@ protected:
      * @param rValues The internal values of the law
      * @param rStrainVector The strain vector in Voigt notation
      */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                    Vector& rStrainVector) override;
+    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -195,5 +183,5 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     }
 }; // Class ElasticIsotropicK03DLaw
-}  // namespace Kratos.
+} // namespace Kratos.
 #endif // KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED  defined
