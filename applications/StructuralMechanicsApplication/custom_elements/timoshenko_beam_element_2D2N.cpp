@@ -831,10 +831,126 @@ void TimoshenkoBeamElement2D2N::RotateAll(
 void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rProcessInfo
     )
 {
-    
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(integration_points.size());
+
+    if (rVariable == AXIAL_FORCE) {
+
+        const auto &r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        const double Phi    = CalculatePhi(cl_values);
+        const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        const double J      = 0.5 * length;
+
+        // Let's initialize the cl values
+        VectorType strain_vector(3), stress_vector(3);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        VectorType nodal_values(6);
+        GetNodalValuesVector(nodal_values);
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi     = integration_points[IP].X();
+            const double weight = integration_points[IP].Weight();
+            const double jacobian_weight = weight * J;
+
+            strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
+            strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
+            strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+            rOutput[IP] = r_generalized_stresses[0];
+            // const double M = r_generalized_stresses[1];
+            // const double V = r_generalized_stresses[2];
+        }
+    } else if (rVariable == BENDING_MOMENT) {
+
+        const auto &r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        const double Phi    = CalculatePhi(cl_values);
+        const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        const double J      = 0.5 * length;
+
+        // Let's initialize the cl values
+        VectorType strain_vector(3), stress_vector(3);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        VectorType nodal_values(6);
+        GetNodalValuesVector(nodal_values);
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi     = integration_points[IP].X();
+            const double weight = integration_points[IP].Weight();
+            const double jacobian_weight = weight * J;
+
+            strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
+            strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
+            strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+            rOutput[IP] = r_generalized_stresses[1];
+        }
+    } else if (rVariable == SHEAR_FORCE) {
+
+        const auto &r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        const double Phi    = CalculatePhi(cl_values);
+        const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        const double J      = 0.5 * length;
+
+        // Let's initialize the cl values
+        VectorType strain_vector(3), stress_vector(3);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        VectorType nodal_values(6);
+        GetNodalValuesVector(nodal_values);
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi     = integration_points[IP].X();
+            const double weight = integration_points[IP].Weight();
+            const double jacobian_weight = weight * J;
+
+            strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
+            strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
+            strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+            rOutput[IP] = r_generalized_stresses[2];
+        }
+    }
 }
 
 /***********************************************************************************/
