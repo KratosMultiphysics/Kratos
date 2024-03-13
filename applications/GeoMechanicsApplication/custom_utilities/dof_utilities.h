@@ -64,9 +64,9 @@ std::vector<Dof<double>*> ExtractUPwDofsFromNodes(const DisplacementNodeRange&  
     if (ModelDimension == 3) displacement_variables.push_back(std::cref(DISPLACEMENT_Z));
 
     for (const auto& r_node : rDisplacementNodes) {
-        for (const auto& r_variable : displacement_variables) {
-            result.push_back(r_node.pGetDof(r_variable.get()));
-        }
+        std::transform(std::begin(displacement_variables), std::end(displacement_variables),
+                       std::back_inserter(result),
+                       [&r_node](const auto& r_variable) { return r_node.pGetDof(r_variable.get()); });
     }
 
     ExtractDofsFromNodes(std::begin(rWaterPressureNodes), std::end(rWaterPressureNodes),
