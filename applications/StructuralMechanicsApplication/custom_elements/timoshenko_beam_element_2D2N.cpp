@@ -239,7 +239,6 @@ void TimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
     if (rN.size() != 4)
         rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
-    const double xi_square = xi * xi;
     const double L_square = std::pow(Length, 2);
     rN[0] = 6.0 * xi / (one_plus_phi * L_square);
     rN[1] = (-1.0 + 3.0 * xi - Phi) / (one_plus_phi * Length);
@@ -260,7 +259,6 @@ void TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
     if (rN.size() != 4)
         rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
-    const double xi_square = xi * xi;
     const double L_square = std::pow(Length, 2);
     rN[0] = 12.0  / (one_plus_phi * Length * L_square);
     rN[1] = 6.0   / (one_plus_phi * L_square);
