@@ -834,7 +834,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-
+    
 }
 
 /***********************************************************************************/
