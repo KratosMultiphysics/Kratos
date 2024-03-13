@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
 //
 
-#if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
-#define  KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -28,7 +27,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -36,11 +34,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
+/// The definition of the index type
+using IndexType = std::size_t;
 
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+/// The definition of the size type
+using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -130,25 +128,22 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    /// Reference type definition for constitutive laws
+    using ConstitutiveLawType = ConstitutiveLaw;
 
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    /// Pointer type for constitutive laws
+    using ConstitutiveLawPointerType = typename ConstitutiveLawType::Pointer;
 
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    /// StressMeasure from constitutive laws
+    using StressMeasureType = typename ConstitutiveLawType::StressMeasure;
 
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// This is the definition of the node.
-    typedef Node NodeType;
+    /// Type definition for integration methods
+    using IntegrationMethod = typename GeometryData::IntegrationMethod;
 
     /// The base element type
-    typedef Element BaseType;
+    using BaseType = Element;
 
-    // Counted pointer of BaseSolidElement
+    /// Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
     ///@}
@@ -543,7 +538,6 @@ public:
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
-
      /**
       * @brief Set a array of 3 compoenents Value on the Element
       * @param rVariable The variable we want to set
@@ -582,21 +576,28 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
+    /**
+     * @brief Calculate the Rayleigh damping matrix.
+     * @details This function calculates the Rayleigh damping matrix for the given element based on the current process information and matrix size.
+     * @param rElement The element for which the damping matrix is calculated.
+     * @param rDampingMatrix The damping matrix to be computed.
+     * @param rCurrentProcessInfo The current process information.
+     * @param MatrixSize The size of the damping matrix.
+     */
     void CalculateRayleighDampingMatrix(
         Element& rElement,
         Element::MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo,
-        const std::size_t MatrixSize);
+        const std::size_t MatrixSize
+        );
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -875,8 +876,30 @@ protected:
     */
     void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
-    double GetRayleighAlpha(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo);
-    double GetRayleighBeta(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo);
+    /**
+     * @brief Get the Rayleigh alpha parameter.
+     * @details This function calculates and returns the Rayleigh alpha parameter based on the provided properties and current process information.
+     * @param rProperties The properties needed for the calculation.
+     * @param rCurrentProcessInfo The current process information.
+     * @return The Rayleigh alpha parameter.
+     */
+    double GetRayleighAlpha(
+        const Properties& rProperties,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * @brief Get the Rayleigh beta parameter.
+     * @details This function calculates and returns the Rayleigh beta parameter based on the provided properties and current process information.
+     * @param rProperties The properties needed for the calculation.
+     * @param rCurrentProcessInfo The current process information.
+     * @return The Rayleigh beta parameter.
+     */
+    double GetRayleighBeta(
+        const Properties& rProperties,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1013,11 +1036,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED  defined
