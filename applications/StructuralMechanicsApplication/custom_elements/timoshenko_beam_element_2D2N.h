@@ -61,8 +61,8 @@ public:
     /// The base element type
     using BaseType = Element;
 
+    /// used for creating submatrices
     using RangeMatrixType = boost::numeric::ublas::matrix_range<MatrixType>;
-    using RangeVectorType = boost::numeric::ublas::vector_range<VectorType>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
@@ -134,6 +134,10 @@ public:
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
+     * @param Length The size of the beam element
+     * @param Phi The shear slenderness parameter
+     * @param xi The coordinate in the natural axes
+     * @param rNodalValues The vector containing the nodal values in local axes
      */
     const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
     const double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
@@ -196,11 +200,17 @@ public:
         return true;
     }
 
+    /**
+     * @brief Returns the set of integration points
+     */
     const GeometryType::IntegrationPointsArrayType IntegrationPoints() const 
     {
         return GetGeometry().IntegrationPoints();
     }
 
+    /**
+     * @brief Returns the set of integration points
+     */
     const GeometryType::IntegrationPointsArrayType IntegrationPoints(IntegrationMethod ThisMethod) const
     {
         return GetGeometry().IntegrationPoints(ThisMethod);
@@ -214,6 +224,10 @@ public:
     /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
      * Also its derivatives
+     * @param rN reference to the shape functions (or derivatives)
+     * @param Length The size of the beam element
+     * @param Phi The shear slenderness parameter
+     * @param xi The coordinate in the natural axes
     */
     void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
     void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
@@ -223,19 +237,29 @@ public:
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
      * Also its derivative
+     * @param rN reference to the shape functions (or derivatives)
+     * @param Length The size of the beam element
+     * @param Phi The shear slenderness parameter
+     * @param xi The coordinate in the natural axes
     */
     void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
     void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
-     * Also its derivative
+     * Also its derivatives
+     * @param rN reference to the shape functions (or derivatives)
+     * @param Length The size of the beam element
+     * @param Phi The shear slenderness parameter
+     * @param xi The coordinate in the natural axes
     */
     void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
     void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
+     * @param rLHS the left hand side
+     * @param rGeometry the geometry of the FE
     */
     void RotateLHS(
         MatrixType &rLHS,
@@ -243,6 +267,8 @@ public:
 
     /**
      * @brief This function rotates the RHS from local to global coordinates
+     * @param rRHS the right hand side
+     * @param rGeometry the geometry of the FE
     */
     void RotateRHS(
         VectorType &rRHS,
@@ -250,6 +276,9 @@ public:
 
     /**
      * @brief This function rotates the LHS and RHS from local to global coordinates
+     * @param rLHS the left hand side
+     * @param rRHS the right hand side
+     * @param rGeometry the geometry of the FE
     */
     void RotateAll(
         MatrixType &rLHS,
