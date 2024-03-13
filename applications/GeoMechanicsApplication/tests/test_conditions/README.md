@@ -49,6 +49,6 @@ The material is described using:
 -   The bulk modulus of water $K_w = 2 \times 10^6 \mathrm{[Pa]}$
 
 ## Assertions
-The test asserts that the vertical distribution of displacement and pressure matches the linear distribution which matches the analytical solution.
+The tests assert that the vertical distribution of displacement and pressure matches the analytical distribution, which is a linear distribution over the height of the column.
 
 
