@@ -7,9 +7,9 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests which are checked with the regression on a previously obtained value.
     """
-    etalon_value1 = -76430.423509075
+    etalon_value1 = -86430.42350907
     etalon_value2 = -0.0005
-    etalon_value3 = 1356.95764908908
+    etalon_value3 = -8643.04235086
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.

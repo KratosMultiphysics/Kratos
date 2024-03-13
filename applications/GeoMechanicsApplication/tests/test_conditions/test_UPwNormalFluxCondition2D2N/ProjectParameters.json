@@ -70,7 +70,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Init","PressureBottom","FluxTop","Gravity"],
+        "processes_sub_model_part_list":      ["Init","PressureBottom","FluxTop"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -125,12 +125,9 @@
             "model_part_name":      "PorousDomain.PressureBottom",
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
-            "fluid_pressure_type": "Hydrostatic",
-            "gravity_direction":    1,
-            "reference_coordinate": -2,
-            "table":                0,
-            "pressure_tension_cut_off":      0.0,
-            "specific_weight":      10
+            "fluid_pressure_type": "Uniform",
+            "value":                0,
+            "table":                0
         }
     }],
     "loads_process_list": [{
@@ -142,17 +139,6 @@
             "variable_name":   "NORMAL_FLUID_FLUX",
             "value":           -1.0e-5,
             "table":           0
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Gravity",
-            "variable_name":   "VOLUME_ACCELERATION",
-            "active":          [false,true,false],
-            "value":           [0.0,-10,0.0],
-            "table":           [0,0,0]
         }
     }],
         "auxiliar_process_list": []
