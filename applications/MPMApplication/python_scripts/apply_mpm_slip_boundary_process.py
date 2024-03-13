@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -33,7 +33,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         if self.friction_coefficient > 0 and self.tangential_penalty_factor > 0:
             # friction active -- set flag on ProcessInfo
-            self.model_part.ProcessInfo[KratosParticle.FRICTION_ACTIVE] = True
+            self.model_part.ProcessInfo[KratosMPM.FRICTION_ACTIVE] = True
 
 
         # Compute the normal on the nodes of interest -
@@ -48,7 +48,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
-            node.SetValue(KratosParticle.TANGENTIAL_PENALTY_FACTOR, self.tangential_penalty_factor)
+            node.SetValue(KratosMPM.TANGENTIAL_PENALTY_FACTOR, self.tangential_penalty_factor)
             node.Set(KratosMultiphysics.MODIFIED, self.flip_normal)
 
 
