@@ -302,9 +302,9 @@ void TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
     if (rN.size() != 4)
         rN.resize(4, false);
     rN[0] = 3.0 * xi / (one_plus_phi * Length);
-    rN[1] = (-0.5 * Phi + 1.5 * xi - 0.5) / (Phi + 1.0);
+    rN[1] = (-0.5 * Phi + 1.5 * xi - 0.5) / (one_plus_phi);
     rN[2] = (-3.0 * xi) / (Length * Phi + Length);
-    rN[3] = (0.5 * Phi + 1.5 * xi + 0.5) / (Phi + 1.0);
+    rN[3] = (0.5 * Phi + 1.5 * xi + 0.5) / (one_plus_phi);
     rN *= (2.0 / Length);
 }
 
@@ -351,6 +351,7 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
 
     const double angle = StructuralMechanicsElementUtilities::
         GetReferenceRotationAngle2D2NBeam(GetGeometry());
+
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T, Tt;
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
