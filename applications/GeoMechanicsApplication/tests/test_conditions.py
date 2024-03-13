@@ -19,203 +19,89 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    def test_PwNormalFluxCondition2D2N(self):
-        test_name = 'test_PwNormalFluxCondition2D2N'
+    def check_water_pressure(self, test_name, etalon_value):
         file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
         simulation = test_helper.run_kratos(file_path)
         pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value1, pres)
+        self.assertAlmostEqual(etalon_value, pressure[2])
+
+    def check_displacement(self, test_name, etalon_value):
+        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        displacement = test_helper.get_displacement(simulation)
+        self.assertAlmostEqual(etalon_value, displacement[2][1])
+
+    def test_PwNormalFluxCondition2D2N(self):
+        self.check_water_pressure('test_PwNormalFluxCondition2D2N', self.etalon_value1)
 
     def test_PwNormalFluxCondition2D3N(self):
-        test_name = 'test_PwNormalFluxCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value1, pres)
+        self.check_water_pressure('test_PwNormalFluxCondition2D3N', self.etalon_value1)
 
     def test_PwNormalFluxCondition2D4N(self):
-        test_name = 'test_PwNormalFluxCondition2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value1, pres)
-        
+        self.check_water_pressure('test_PwNormalFluxCondition2D4N', self.etalon_value1)
+
     def test_PwNormalFluxCondition2D5N(self):
-        test_name = 'test_PwNormalFluxCondition2D5N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value1, pres)
-        
-        
+        self.check_water_pressure('test_PwNormalFluxCondition2D5N', self.etalon_value1)
+
     def test_UPwNormalFluxCondition2D2N(self):
-        test_name = 'test_UPwNormalFluxCondition2D2N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value3, pres)
+        self.check_water_pressure('test_UPwNormalFluxCondition2D2N', self.etalon_value3)
 
     def test_UPwNormalFluxCondition2D3N(self):
-        test_name = 'test_UPwNormalFluxCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value3, pres)
+        self.check_water_pressure('test_UPwNormalFluxCondition2D3N', self.etalon_value3)
 
     def test_UPwNormalFluxCondition2D4N(self):
-        test_name = 'test_UPwNormalFluxCondition2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value3, pres)
-        
+        self.check_water_pressure('test_UPwNormalFluxCondition2D4N', self.etalon_value3)
+
     def test_UPwNormalFluxCondition2D5N(self):
-        test_name = 'test_UPwNormalFluxCondition2D5N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pressure = test_helper.get_water_pressure(simulation)
-        pres = pressure[2]
-        self.assertAlmostEqual(self.etalon_value3, pres)
-        
-        
+        self.check_water_pressure('test_UPwNormalFluxCondition2D5N', self.etalon_value3)
+
     def test_UPwFaceLoadCondition2D2N(self):
-        test_name = 'test_UPwFaceLoadCondition2D2N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_UPwFaceLoadCondition2D2N', self.etalon_value2)
+
     def test_UPwFaceLoadCondition2D3N(self):
-        test_name = 'test_UPwFaceLoadCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_UPwFaceLoadCondition2D3N', self.etalon_value2)
+
     def test_UPwFaceLoadCondition2D4N(self):
-        test_name = 'test_UPwFaceLoadCondition2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_UPwFaceLoadCondition2D4N', self.etalon_value2)
+
     def test_UPwFaceLoadCondition2D5N(self):
-        test_name = 'test_UPwFaceLoadCondition2D5N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
-        
+        self.check_displacement('test_UPwFaceLoadCondition2D5N', self.etalon_value2)
+
     def test_LineLoadDiffOrderCondition2D3N(self):
-        test_name = 'test_LineLoadDiffOrderCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_LineLoadDiffOrderCondition2D3N', self.etalon_value2)
+
     def test_LineLoadDiffOrderCondition2D4N(self):
-        test_name = 'test_LineLoadDiffOrderCondition2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_LineLoadDiffOrderCondition2D4N', self.etalon_value2)
+
     def test_LineLoadDiffOrderCondition2D5N(self):
-        test_name = 'test_LineLoadDiffOrderCondition2D5N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
-        
+        self.check_displacement('test_LineLoadDiffOrderCondition2D5N', self.etalon_value2)
+
     def test_UPwNormalFaceLoadCondition2D2N(self):
-        test_name = 'test_UPwNormalFaceLoadCondition2D2N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_UPwNormalFaceLoadCondition2D2N', self.etalon_value2)
+
     def test_UPwNormalFaceLoadCondition2D3N(self):
-        test_name = 'test_UPwNormalFaceLoadCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_UPwNormalFaceLoadCondition2D3N', self.etalon_value2)
+
     def test_UPwNormalFaceLoadCondition2D4N(self):
-        test_name = 'test_UPwNormalFaceLoadCondition2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_UPwNormalFaceLoadCondition2D4N', self.etalon_value2)
+
     def test_UPwNormalFaceLoadCondition2D5N(self):
-        test_name = 'test_UPwNormalFaceLoadCondition2D5N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
-        
+        self.check_displacement('test_UPwNormalFaceLoadCondition2D5N', self.etalon_value2)
+
     def test_LineNormalLoadDiffOrderCondition2D3N(self):
-        test_name = 'test_LineNormalLoadDiffOrderCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_LineNormalLoadDiffOrderCondition2D3N', self.etalon_value2)
+
     def test_LineNormalLoadDiffOrderCondition2D4N(self):
-        test_name = 'test_LineNormalLoadDiffOrderCondition2D4N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_LineNormalLoadDiffOrderCondition2D4N', self.etalon_value2)
+
     def test_LineNormalLoadDiffOrderCondition2D5N(self):
-        test_name = 'test_LineNormalLoadDiffOrderCondition2D5N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
-        
+        self.check_displacement('test_LineNormalLoadDiffOrderCondition2D5N', self.etalon_value2)
+
     def test_AxisymmetricUPwNormalFaceLoadCondition2D2N(self):
-        test_name = 'test_AxisymmetricUPwNormalFaceLoadCondition2D2N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_AxisymmetricUPwNormalFaceLoadCondition2D2N', self.etalon_value2)
+
     def test_AxisymmetricUPwNormalFaceLoadCondition2D3N(self):
-        test_name = 'test_AxisymmetricUPwNormalFaceLoadCondition2D3N'
-        file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        displacement = test_helper.get_displacement(simulation)
-        disp = displacement[2]
-        self.assertAlmostEqual(self.etalon_value2, disp[1])
-        
+        self.check_displacement('test_AxisymmetricUPwNormalFaceLoadCondition2D3N', self.etalon_value2)
+
 if __name__ == '__main__':
     KratosUnittest.main()
