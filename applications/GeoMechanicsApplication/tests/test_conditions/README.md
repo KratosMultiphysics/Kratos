@@ -34,7 +34,7 @@ The following conditions are tested.
 
 ## Setup
 
-This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \cdot 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
+This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \times 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
 
 <img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="600">
 
