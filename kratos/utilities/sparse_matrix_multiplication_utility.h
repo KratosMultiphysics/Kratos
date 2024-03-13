@@ -311,24 +311,18 @@ public:
         IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
+
             int tid = 0;
             if constexpr(UsesOpenMP) {
                 tid = omp_get_thread_num();
             }
-
             IndexType* t_col = &tmp_col[tid][0];
 
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
-
-                c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
-            }
-        }
+            c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
+        });
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
@@ -336,9 +330,10 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
+
             int tid = 0;
             if constexpr(UsesOpenMP) {
                 tid = omp_get_thread_num();
@@ -347,15 +342,9 @@ public:
             IndexType* t_col = tmp_col[tid].data();
             ValueType* t_val = tmp_val[tid].data();
 
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
-
-                ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
-                        index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
-            }
-        }
+            ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
+                    index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
+        });
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
