@@ -99,13 +99,13 @@ public:
     }
 
     // Create method
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<TimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
     {
         return Kratos::make_intrusive<TimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
     }
@@ -121,7 +121,7 @@ public:
     /**
      * @brief Indicates the amount of DoFs per node (u0, v, theta)
      */
-    const IndexType GetDoFsPerNode() const
+    IndexType GetDoFsPerNode() const
     {
         return 3;
     }
@@ -139,9 +139,9 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    const double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    const double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    const double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
 
     /**
      * @brief Called to initialize the element.
@@ -219,7 +219,7 @@ public:
     /**
      * @brief This function computes the Phi parameter in Felippa et al.
     */
-    const double CalculatePhi(ConstitutiveLaw::Parameters &rValues);
+    double CalculatePhi(ConstitutiveLaw::Parameters &rValues);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)

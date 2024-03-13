@@ -173,7 +173,7 @@ void TimoshenkoBeamElement2D2N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues)
+double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues)
 {
     const auto &r_material_properties = rValues.GetMaterialProperties();
     const double E   = r_material_properties[YOUNG_MODULUS];
@@ -389,7 +389,7 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
+double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
     const double Length,
     const double Phi,
     const double xi,
@@ -404,7 +404,7 @@ const double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double TimoshenkoBeamElement2D2N::CalculateShearStrain(
+double TimoshenkoBeamElement2D2N::CalculateShearStrain(
     const double Length,
     const double Phi,
     const double xi,
@@ -422,7 +422,7 @@ const double TimoshenkoBeamElement2D2N::CalculateShearStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double TimoshenkoBeamElement2D2N::CalculateBendingCurvature(
+double TimoshenkoBeamElement2D2N::CalculateBendingCurvature(
     const double Length,
     const double Phi,
     const double xi,
