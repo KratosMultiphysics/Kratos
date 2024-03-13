@@ -286,6 +286,17 @@ public:
         const GeometryType &rGeometry);
 
     /**
+     * @brief This function retrieves the body forces in local axes
+     * @param rElement the element reference
+     * @param rIntegrationPoints array of IP
+     * @param PointNumber tthe IP to be evaluated
+    */
+    array_1d<double, 3> GetLocalAxesBodyForce(
+        const Element &rElement,
+        const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
+        const IndexType PointNumber);
+
+    /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrix container with the output Left Hand Side matrix

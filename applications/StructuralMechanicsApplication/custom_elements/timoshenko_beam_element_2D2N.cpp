@@ -438,6 +438,30 @@ const double TimoshenkoBeamElement2D2N::CalculateBendingCurvature(
 /***********************************************************************************/
 /***********************************************************************************/
 
+array_1d<double, 3> TimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
+    const Element &rElement,
+    const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
+    const IndexType PointNumber
+    )
+{
+    const double angle = StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        const double c = std::cos(angle);
+        const double s = std::sin(angle);
+        array_1d<double, 3> local_body_force = ZeroVector(3);
+        local_body_force[0] = c * body_force[0] + s * body_force[1];
+        local_body_force[1] = -s * body_force[0] + c * body_force[1];
+        return local_body_force;
+    } else {
+        return body_force;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
