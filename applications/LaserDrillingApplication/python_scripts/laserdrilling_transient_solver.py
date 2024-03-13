@@ -2,6 +2,7 @@ import os
 import numpy as np
 from scipy.interpolate import interp1d
 import h5py
+import time as timer
 
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
@@ -22,6 +23,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # Construct the base solver and validate the settings in base class
         super().__init__(model, custom_settings)
         self.jump_between_pulses_counter = 0
+        self.starting_time = timer.time()
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
@@ -128,12 +130,20 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         if self.ablation_energy_fraction:
             # Find F_th_fraction multiplying F_th so Radius_th = R_far
+            # This gives a F_th_fraction of 0.313, a little too flat (maximum not captured)
             # F_th_fraction = self.C * np.exp(-self.K * self.R_far**2) / (self.ablation_energy_fraction * self.Q / A)
-            F_th_fraction = 0.33
+
+            F_th_fraction = 0.333
 
             self.F_th = F_th_fraction * self.ablation_energy_fraction * self.Q / A
+            F_th_in_cm_units = 100 * self.F_th
+            print("\nF_th in J/cm2:", F_th_in_cm_units)
             self.radius_th = np.sqrt(np.log(self.C / self.F_th) / self.K)
-            self.l_s = self.PenetrationDepth()
+            self.l_s = self.PenetrationDepth() # In mm
+            print("\nl_s in mm:", self.l_s)
+            l_s_in_nm = 1e6 * self.l_s  # In nm
+            print("\nl_s in nm:", l_s_in_nm)
+
             # self.l_s = 0.002
 
         if os.path.exists("temperature_alpha.txt"):
@@ -149,10 +159,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         # TODO: Initial condition, ambient temperature. Do this using GUI!
         for node in self.main_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+            #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
 
         initial_system_energy = self.MonitorEnergy()
-        print("\nInitial system energy:", initial_system_energy)
+        #print("\nInitial system energy:", initial_system_energy)
 
         self.pulse_number += 1
         print("\nPulse_number:", self.pulse_number)
@@ -160,7 +170,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.RemoveElementsByAblation()
 
         computed_energy_after_laser = self.MonitorEnergy()
-        print("\nComputed energy after laser:", computed_energy_after_laser)
+        #print("\nComputed energy after laser:", computed_energy_after_laser)
 
         residual_heat = self.residual_heat_fraction * self.Q
         print("\nResidual_heat:", residual_heat)
@@ -169,10 +179,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.ImposeTemperatureDistributionDueToLaser1D()
         
         system_energy_after_residual_heat = self.MonitorEnergy()
-        print("System energy after residual heat:", system_energy_after_residual_heat)
+        #print("System energy after residual heat:", system_energy_after_residual_heat)
 
         difference_after_and_before_residual_heat = system_energy_after_residual_heat - computed_energy_after_laser
-        print("\nDifference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
+        print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
 
         radius_2 = lambda node: node.X**2 + node.Y**2 + node.Z**2
         self.near_field_nodes = [node for node in self.main_model_part.Nodes if radius_2(node) < self.R_far**2]
@@ -201,20 +211,17 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                 new_temp = old_temp + delta_temp
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
-        '''print("Minimum characteristic Z:", self.minimum_characteristic_Z)
-        print("Maximum characteristic Z:", self.maximum_characteristic_Z)
-        print("kappa:", self.kappa)
-        minimum_time_step = 0.1 * self.minimum_characteristic_Z**2 / self.kappa
-        print("Minimum time step:", minimum_time_step, '\n')'''
-
-    def AdjustTemperatureField(self, temperature_factor):
-        for node in self.main_model_part.Nodes:
-            radius = node.Y
-            if radius <= self.R_far:
-                temp = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-                temp *= temperature_factor
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, temp)
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, temp)
+        print("\nResidual heat fraction:", self.residual_heat_fraction)
+        print("\nMinimum characteristic depth:", self.minimum_characteristic_Z)
+        print("\nMaximum characteristic depth:", self.maximum_characteristic_Z)
+        problem_characteristic_time_minimum_depth = self.minimum_characteristic_Z**2 / self.kappa
+        problem_characteristic_time_maximum_depth = self.maximum_characteristic_Z**2 / self.kappa
+        minimum_time_step_for_minimum_depth = 0.1 * problem_characteristic_time_minimum_depth
+        minimum_time_step_for_maximum_depth = 0.1 * problem_characteristic_time_maximum_depth
+        print("\nThermal problem characteristic time for minimum depth:", problem_characteristic_time_minimum_depth)
+        print("\nThermal problem characteristic time for maximum depth:", problem_characteristic_time_maximum_depth)
+        print("\nNecessary time step for minimum depth:", minimum_time_step_for_minimum_depth)
+        print("\nNecessary time step for maximum depth:", minimum_time_step_for_maximum_depth, '\n')
 
     def EnergyPerUnitArea1D(self, radius):
         C = (1 - self.ablation_energy_fraction) * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
@@ -266,6 +273,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.time_alpha_file.close()
         if self.plot_decomposed_volume_graph:
             self.PrintDecomposedVolumeEvolution()
+        elapsed_time = timer.time() - self.starting_time
+        print("\nElapsed_time:", elapsed_time, '\n')
 
     def PrintDecomposedVolumeEvolution(self):
         import matplotlib.pyplot as plt
@@ -321,8 +330,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                 elem.Set(KratosMultiphysics.ACTIVE, False)
         self.AddDecomposedNodesToSurfaceList()
         print('\nR_far:', self.R_far)
-        print('Radius_th:', self.radius_th)
-        print("Decomposed volume:", self.MonitorDecomposedVolume())
+        print('\nRadius_th:', self.radius_th)
+        print("\nDecomposed volume:", self.MonitorDecomposedVolume())
 
     def sortSecond(self, val):
         return val[1]
