@@ -503,10 +503,12 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(6);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
+    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4), N_u(2), N_shape(4);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+
         global_size_N.clear();
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
@@ -531,6 +533,8 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
         GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
         GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
+        GetShapeFunctionsValues(N_shape, length, Phi, xi);
+        GetNu0ShapeFunctionsValues(N_u, length, Phi, xi);
 
         // Axial contributions
         global_size_N[0] = N_u_derivatives[0];
@@ -555,6 +559,18 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         global_size_N[5] = N_derivatives[3] - N_theta[3];
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
+
+        // Now we add the body forces contributions
+        global_size_N.clear();
+        global_size_N[0] = N_u[0];
+        global_size_N[3] = N_u[1];
+        noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * GetProperties()[CROSS_AREA];
+        global_size_N.clear();
+        global_size_N[1] = N_shape[0];
+        global_size_N[2] = N_shape[1];
+        global_size_N[4] = N_shape[2];
+        global_size_N[5] = N_shape[3];
+        noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * GetProperties()[CROSS_AREA];
     }
 
     RotateAll(rLHS, rRHS, r_geometry);
@@ -688,10 +704,12 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(6);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
+    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4), N_u(2), N_shape(4);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+
         global_size_N.clear();
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
@@ -711,6 +729,8 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
         GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, length, Phi, xi);
         GetNThetaShapeFunctionsValues(N_theta, length, Phi, xi);
         GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
+        GetShapeFunctionsValues(N_shape, length, Phi, xi);
+        GetNu0ShapeFunctionsValues(N_u, length, Phi, xi);
 
         // Axial contributions
         global_size_N[0] = N_u_derivatives[0];
@@ -732,6 +752,18 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
         global_size_N[4] = N_derivatives[2] - N_theta[2];
         global_size_N[5] = N_derivatives[3] - N_theta[3];
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
+
+        // Now we add the body forces contributions
+        global_size_N.clear();
+        global_size_N[0] = N_u[0];
+        global_size_N[3] = N_u[1];
+        noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * GetProperties()[CROSS_AREA];
+        global_size_N.clear();
+        global_size_N[1] = N_shape[0];
+        global_size_N[2] = N_shape[1];
+        global_size_N[4] = N_shape[2];
+        global_size_N[5] = N_shape[3];
+        noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * GetProperties()[CROSS_AREA];
     }
 
     RotateRHS(rRHS, r_geometry);
