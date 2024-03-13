@@ -77,20 +77,24 @@ public:
     }
 
     // Constructor using an array of nodes
-    TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
+    TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    {
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    }
 
     // Constructor using an array of nodes with properties
     TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Copy constructor
     TimoshenkoBeamElement2D2N(TimoshenkoBeamElement2D2N const& rOther)
         : BaseType(rOther),
-        mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+        mThisIntegrationMethod(rOther.mThisIntegrationMethod),
+        mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     {
     }
 
