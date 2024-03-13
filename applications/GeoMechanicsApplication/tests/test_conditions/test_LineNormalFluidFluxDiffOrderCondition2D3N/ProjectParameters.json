@@ -1,26 +1,26 @@
 {
     "problem_data": {
-        "problem_name":         "test_PwNormalFluxCondition2D2N",
+        "problem_name":         "test_LineNormalFluidFluxDiffOrderCondition2D3N",
         "start_time":           0.0,
-        "end_time":             1.0,
+        "end_time":             7200.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
     },
     "solver_settings": {
-        "solver_type":                        "Pw",
+        "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_PwNormalFluxCondition2D2N"
+            "input_filename":   "test_LineNormalFluidFluxDiffOrderCondition2D3N"
         },
         "material_import_settings":              {
-            "materials_filename":       "../Common/MaterialParametersPw.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.05,
-            "max_delta_time_factor":    1000
+            "time_step":                60,
+            "max_delta_time_factor":    1
         },
         "buffer_size":                        2,
         "echo_level":                         1,
@@ -30,7 +30,7 @@
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
-        "solution_type":                      "Steady_State_Groundwater_Flow",
+        "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
         "reset_displacements":                true,
         "newmark_beta":                       0.25,
@@ -70,7 +70,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["PressureBottom","FluxTop","Gravity"],
+        "processes_sub_model_part_list":      ["Init","PressureBottom","FluxTop","Gravity"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -80,7 +80,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_PwNormalFluxCondition2D2N",
+                "output_name": "test_LineNormalFluidFluxDiffOrderCondition2D3N",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -106,6 +106,18 @@
     },
     "processes": {
         "constraints_process_list": [{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.Init",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [true,true,true],
+            "is_fixed":        [true,true,true],
+            "value":           [0.0,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
         "python_module": "apply_scalar_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
@@ -128,7 +140,7 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.FluxTop",
             "variable_name":   "NORMAL_FLUID_FLUX",
-            "value":           -1.0e-4,
+            "value":           -1.0e-5,
             "table":           0
         }
     },{

@@ -70,7 +70,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Init","PressureBottom","FluxTop","Body_Acceleration-auto-1"],
+        "processes_sub_model_part_list":      ["Init","PressureBottom","FluxTop","Gravity"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -96,8 +96,8 @@
                         "node_output":         true,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["WATER_PRESSURE","NORMAL_FLUID_FLUX","VOLUME_ACCELERATION","HYDRAULIC_DISCHARGE"],
-                        "gauss_point_results": ["FLUID_FLUX_VECTOR","LOCAL_FLUID_FLUX_VECTOR","HYDRAULIC_HEAD"]
+                        "nodal_results":       ["WATER_PRESSURE"],
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }
@@ -148,7 +148,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Body_Acceleration-auto-1",
+            "model_part_name": "PorousDomain.Gravity",
             "variable_name":   "VOLUME_ACCELERATION",
             "active":          [false,true,false],
             "value":           [0.0,-10,0.0],

@@ -88,8 +88,7 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
                                                 rVariables.PVector);
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template class UPwNormalFluxCondition<2,2>;
 template class UPwNormalFluxCondition<2,3>;
 template class UPwNormalFluxCondition<2,4>;

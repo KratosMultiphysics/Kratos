@@ -75,8 +75,7 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     }
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template<unsigned int TDim, unsigned int TNumNodes>
 double UPwFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const Matrix& Jacobian,
@@ -94,8 +93,7 @@ double UPwFaceLoadCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     return MathUtils<double>::Norm(NormalVector) * Weight;
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template class UPwFaceLoadCondition<2,2>;
 template class UPwFaceLoadCondition<2,3>;
 template class UPwFaceLoadCondition<2,4>;

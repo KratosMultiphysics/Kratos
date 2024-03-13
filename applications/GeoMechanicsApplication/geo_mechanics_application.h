@@ -511,8 +511,6 @@ private:
     const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const SurfaceLoad3DDiffOrderCondition mSurfaceLoadDiffOrderCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
     const SurfaceLoad3DDiffOrderCondition mSurfaceLoadDiffOrderCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };

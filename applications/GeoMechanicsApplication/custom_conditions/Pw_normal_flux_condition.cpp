@@ -88,8 +88,7 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
                                                 rVariables.PVector);
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template<unsigned int TDim, unsigned int TNumNodes>
 double PwNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const Matrix& Jacobian,
@@ -97,19 +96,16 @@ double PwNormalFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
 {
     Vector NormalVector = ZeroVector(TDim);
 
-    if constexpr (TDim == 2)
-    {
+    if constexpr (TDim == 2) {
         NormalVector = column(Jacobian, 0);
     }
-    else if constexpr (TDim == 3)
-    {
+    else if constexpr (TDim == 3) {
         MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
     }
     return MathUtils<double>::Norm(NormalVector) * Weight;
 }
 
-// ============================================================================================
-// ============================================================================================
+
 template class PwNormalFluxCondition<2,2>;
 template class PwNormalFluxCondition<2,3>;
 template class PwNormalFluxCondition<2,4>;

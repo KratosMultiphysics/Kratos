@@ -128,7 +128,7 @@ Begin SubModelPart FluxTop
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Body_Acceleration-auto-1
+Begin SubModelPart Gravity
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
