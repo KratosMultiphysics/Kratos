@@ -36,10 +36,10 @@ The following conditions are tested.
 
 This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \cdot 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
 
-<img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="400">
+<img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="600">
 
 All nodes on the sides have fixed horizontal displacements. The bottom nodes have fixed displacement in both the horizontal and the vertical
-direction. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. Foe cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
+direction. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m (or a flux of 1.0e-4 $\mathrm{[m^3/s]}$ for pressure test cases) is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. For cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
 
 The material is described using:
 -   A linear elastic plane strain model (LinearElasticPlaneStrain2DLaw)
