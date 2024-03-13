@@ -534,7 +534,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
     }
 
-    RotateAll(rLHS, rRHS, GetGeometry());
+    RotateAll(rLHS, rRHS, r_geometry);
 
     KRATOS_CATCH("");
 }
@@ -623,7 +623,7 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
     }
 
-    RotateLHS(rLHS, GetGeometry());
+    RotateLHS(rLHS, r_geometry);
     KRATOS_CATCH("");
 }
 
@@ -711,7 +711,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
     }
 
-    RotateRHS(rRHS, GetGeometry());
+    RotateRHS(rRHS, r_geometry);
     KRATOS_CATCH("");
 }
 
