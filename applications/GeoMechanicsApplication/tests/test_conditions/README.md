@@ -36,7 +36,7 @@ The following conditions are tested.
 
 This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \cdot 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
 
-<img src="../documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="400">
+<img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="400">
 
 All nodes on the sides have fixed horizontal displacements. The bottom nodes have fixed displacement in both the horizontal and the vertical
 direction. At the top of the column a vertical compressive line load with a magnitude of 1000.0 N/m is applied. This load is kept constant during the whole analysis time. Note that gravity is absent in this computation. Foe cases with load conditions, the pressure is kept constant, and for cases with top fluid flux conditions, the deformation is kept constant.
@@ -48,7 +48,7 @@ The material is described using:
 -   The dynamic viscosity of water is given as $\mu = 1.0E-3 \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil as $\kappa = 1.157E-12 \mathrm{[m^2]}$
 -   The bulk modulus of water $K_w = 2.0E6 \mathrm{[Pa]}$
 
-
-The test asserts that the vertical distribution of pressure matches the given Terzaghi solution at all nodes at the end of every stage.
+## Assertions
+The test asserts that the vertical distribution of displacement and pressure matches the linear distribution which matches the analytical solution.
 
 
