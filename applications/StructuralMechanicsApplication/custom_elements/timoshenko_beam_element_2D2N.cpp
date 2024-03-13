@@ -133,15 +133,14 @@ void TimoshenkoBeamElement2D2N::EquationIdVector(
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
 
     if (rResult.size() != dofs_per_node * number_of_nodes)
-        rResult.resize(dofs_per_node * number_of_nodes, false);
+        rResult.resize(dofs_per_node * number_of_nodes);
 
-    const SizeType pos = r_geom[0].GetDofPosition(DISPLACEMENT_X);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        const SizeType index = i * 2;
-        rResult[index]     = r_geom[i].GetDof(DISPLACEMENT_X, pos    ).EquationId();
-        rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();
-        rResult[index + 2] = r_geom[i].GetDof(ROTATION_Z,     pos + 2).EquationId();
+        const SizeType index = i * dofs_per_node;
+        rResult[index]     = r_geom[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y).EquationId();
+        rResult[index + 2] = r_geom[i].GetDof(ROTATION_Z    ).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -160,13 +159,13 @@ void TimoshenkoBeamElement2D2N::GetDofList(
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
-    rElementalDofList.resize(0);
-    rElementalDofList.reserve(dofs_per_node * number_of_nodes);
+    rElementalDofList.resize(dofs_per_node * number_of_nodes);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_X));
-        rElementalDofList.push_back(r_geom[i].pGetDof(DISPLACEMENT_Y));
-        rElementalDofList.push_back(r_geom[i].pGetDof(ROTATION_Z));
+        const SizeType index = i * dofs_per_node;
+        rElementalDofList[index]     = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index + 1] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[index + 2] = r_geom[i].pGetDof(ROTATION_Z    );
     }
     KRATOS_CATCH("")
 }
@@ -451,14 +450,14 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
-        rLHS.resize(mat_size, false);
+        rLHS.resize(mat_size, mat_size, false);
     }
-    rLHS.clear();
+    noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
 
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
     }
-    rRHS.clear();
+    noalias(rRHS) = ZeroVector(mat_size);
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
