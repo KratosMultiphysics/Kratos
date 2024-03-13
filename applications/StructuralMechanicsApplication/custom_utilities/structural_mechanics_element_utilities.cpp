@@ -354,7 +354,7 @@ void BuildRotationMatrixFor2D2NBeam(
     const double c = std::cos(AlphaAngle);
     rRotationMatrix(0, 0) = c;
     rRotationMatrix(0, 1) = -s;
-    rRotationMatrix(1, 0) = -s;
+    rRotationMatrix(1, 0) = s;
     rRotationMatrix(1, 1) = c;
     rRotationMatrix(2, 2) = 1.0;
 }

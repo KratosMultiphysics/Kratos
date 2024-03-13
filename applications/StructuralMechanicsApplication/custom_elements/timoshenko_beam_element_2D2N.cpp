@@ -840,8 +840,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     if (rVariable == AXIAL_FORCE) {
 
         const auto &r_geometry = GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
@@ -850,7 +848,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         const double Phi    = CalculatePhi(cl_values);
         const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-        const double J      = 0.5 * length;
 
         // Let's initialize the cl values
         VectorType strain_vector(3), stress_vector(3);
@@ -863,8 +860,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi     = integration_points[IP].X();
-            const double weight = integration_points[IP].Weight();
-            const double jacobian_weight = weight * J;
 
             strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
             strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
@@ -873,14 +868,10 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
             mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
             const Vector &r_generalized_stresses = cl_values.GetStressVector();
             rOutput[IP] = r_generalized_stresses[0];
-            // const double M = r_generalized_stresses[1];
-            // const double V = r_generalized_stresses[2];
         }
     } else if (rVariable == BENDING_MOMENT) {
 
         const auto &r_geometry = GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
@@ -889,7 +880,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         const double Phi    = CalculatePhi(cl_values);
         const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-        const double J      = 0.5 * length;
 
         // Let's initialize the cl values
         VectorType strain_vector(3), stress_vector(3);
@@ -901,9 +891,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            const double xi     = integration_points[IP].X();
-            const double weight = integration_points[IP].Weight();
-            const double jacobian_weight = weight * J;
+            const double xi = integration_points[IP].X();
 
             strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
             strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
@@ -916,8 +904,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     } else if (rVariable == SHEAR_FORCE) {
 
         const auto &r_geometry = GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
         ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
@@ -926,7 +912,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         const double Phi    = CalculatePhi(cl_values);
         const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-        const double J      = 0.5 * length;
 
         // Let's initialize the cl values
         VectorType strain_vector(3), stress_vector(3);
@@ -939,8 +924,6 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi     = integration_points[IP].X();
-            const double weight = integration_points[IP].Weight();
-            const double jacobian_weight = weight * J;
 
             strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
             strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
