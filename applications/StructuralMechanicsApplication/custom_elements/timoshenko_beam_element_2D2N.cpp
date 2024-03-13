@@ -415,7 +415,7 @@ const double TimoshenkoBeamElement2D2N::CalculateShearStrain(
     VectorType N_derivatives(4), N_theta(4);
     GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
     GetNThetaShapeFunctionsValues(N_theta, Length, Phi, xi);
-    const Vector N_s = N_derivatives - N_theta;
+    const VectorType N_s = N_derivatives - N_theta;
     return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + 
            N_s[3] * rNodalValues[5];
 }
@@ -452,13 +452,13 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, false);
-        rLHS.clear();
     }
+    rLHS.clear();
 
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
-        rRHS.clear();
     }
+    rRHS.clear();
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
@@ -554,8 +554,8 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
 
     if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
         rLHS.resize(mat_size, false);
-        rLHS.clear();
     }
+    rLHS.clear();
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
@@ -642,8 +642,8 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 
     if (rRHS.size() != mat_size) {
         rRHS.resize(mat_size, false);
-        rRHS.clear();
     }
+    rRHS.clear();
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
