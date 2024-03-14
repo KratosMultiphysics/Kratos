@@ -850,13 +850,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const unsigned int& IntegrationPointsNumber =
+    const auto number_of_integration_points =
         GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    if (rValues.size() != IntegrationPointsNumber) {
-        rValues.resize(IntegrationPointsNumber);
-    }
-    for (unsigned int i = 0; i < IntegrationPointsNumber; ++i) {
+    rValues.resize(number_of_integration_points);
+    for (auto i = SizeType{0}; i < number_of_integration_points; ++i) {
         rValues[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
     }
 
@@ -1222,11 +1220,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
-    const unsigned int& IntegrationPointsNumber =
-        rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const auto number_of_integration_points = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    const auto dimension = rGeom.WorkingSpaceDimension();
 
-    if (rOutput.size() != IntegrationPointsNumber) rOutput.resize(IntegrationPointsNumber);
+    rOutput.resize(number_of_integration_points);
 
     if (rVariable == CAUCHY_STRESS_TENSOR) {
         std::vector<Vector> StressVector;
