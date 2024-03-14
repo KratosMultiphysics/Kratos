@@ -183,8 +183,12 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         elif self.rom_basis_output_format == "numpy":
             # Storing modes in Numpy format
+            node_ids = []
+            for node in self.model_part.Nodes:
+                node_ids.append(node.Id)
+            node_ids = numpy.array(node_ids)
             numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
-            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int))
+            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", node_ids)
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)

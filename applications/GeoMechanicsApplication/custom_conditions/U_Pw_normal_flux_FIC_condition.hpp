@@ -79,7 +79,7 @@ protected:
         double BiotModulusInverse;
 
         array_1d<double,TNumNodes> DtPressureVector;
-        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PPMatrix;
     };
 
     // Member Variables
