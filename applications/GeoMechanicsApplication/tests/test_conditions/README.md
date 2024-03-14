@@ -34,7 +34,7 @@ The following conditions are tested.
 
 ## Setup
 
-This tests consist of 3, 6, 10 and 15-noded elements wuth 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \times 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
+This tests consist of 3, 6, 10 and 15-noded elements with 2, 3, 4, 5 noded line conditions, respectively. For all cases, a rectangular domain of $1 \mathrm{m} \times 2 \mathrm{m}$, with 8 triangular elements is used. A schematic representation can be found in the figure below:
 
 <img src="documentation_data/load_flux_domain.svg" alt="Visualization of the domain and conditions" title="Visualization of the domain and conditions" width="600">
 
@@ -47,8 +47,3 @@ The material is described using:
 -   The soil and water density are specified, but irrelevant due to the absence of gravity. The porosity is 0.
 -   The dynamic viscosity of water is given as $\mu = 10^{-3} \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil as $\kappa = 1.157 \times 10^{-12} \mathrm{[m^2]}$
 -   The bulk modulus of water $K_w = 2 \times 10^6 \mathrm{[Pa]}$
-
-## Assertions
-The tests assert that the vertical distribution of displacement and pressure matches the analytical distribution, which is a linear distribution over the height of the column.
-
-

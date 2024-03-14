@@ -103,5 +103,11 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
     def test_AxisymmetricUPwNormalFaceLoadCondition2D3N(self):
         self.check_displacement('test_AxisymmetricUPwNormalFaceLoadCondition2D3N', self.etalon_value2)
 
+    def test_AxisymmetricUPwNormalFaceLoadCondition2D4N(self):
+        self.check_displacement('test_AxisymmetricUPwNormalFaceLoadCondition2D4N', self.etalon_value2)
+
+    def test_AxisymmetricUPwNormalFaceLoadCondition2D5N(self):
+        self.check_displacement('test_AxisymmetricUPwNormalFaceLoadCondition2D5N', self.etalon_value2)
+        
 if __name__ == '__main__':
     KratosUnittest.main()
