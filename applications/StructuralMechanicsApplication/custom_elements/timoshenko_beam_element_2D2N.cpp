@@ -381,6 +381,19 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
+    VectorType& rStrain,
+    const double Length,
+    const double Phi,
+    const double xi,
+    const VectorType &rNodalValues
+    )
+{
+    rStrain[0] = CalculateAxialStrain(Length, Phi, xi, rNodalValues);      // El
+    rStrain[1] = CalculateBendingCurvature(Length, Phi, xi, rNodalValues); // Kappa
+    rStrain[2] = CalculateShearStrain(Length, Phi, xi, rNodalValues);      // Gamma_xy
+}
+
 double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
     const double Length,
     const double Phi,
@@ -506,9 +519,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         const double weight = integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
-        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
-        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
-        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+        CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const Vector &r_generalized_stresses = cl_values.GetStressVector();
@@ -617,9 +628,7 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
         const double weight = integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
-        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
-        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
-        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+        CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
@@ -707,9 +716,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
         const double weight = integration_points[IP].Weight();
         const double jacobian_weight = weight * J;
 
-        strain_vector[0] = CalculateAxialStrain(length, Phi, xi, nodal_values);      // El
-        strain_vector[1] = CalculateBendingCurvature(length, Phi, xi, nodal_values); // Kappa
-        strain_vector[2] = CalculateShearStrain(length, Phi, xi, nodal_values);      // Gamma_xy
+        CalculateGeneralizedStrainsVector(strain_vector, length, Phi, xi, nodal_values);
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const Vector &r_generalized_stresses = cl_values.GetStressVector();

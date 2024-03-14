@@ -144,6 +144,15 @@ public:
     double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
 
     /**
+     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
+     * @param Length The size of the beam element
+     * @param Phi The shear slenderness parameter
+     * @param xi The coordinate in the natural axes
+     * @param rNodalValues The vector containing the nodal values in local axes
+     */
+    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues);
+
+    /**
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
