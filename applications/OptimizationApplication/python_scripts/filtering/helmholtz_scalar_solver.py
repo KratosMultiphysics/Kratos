@@ -24,12 +24,12 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
     def PrepareModelPart(self) -> None:
 
         if len(self.GetOriginModelPart().Conditions)>0 and len(self.GetOriginModelPart().Elements)>0:
-            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to elements ")
+            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")
 
-        if len(self.GetOriginModelPart().Elements)>0:
-           filter_container = self.GetOriginModelPart().Elements
-        elif len(self.GetOriginModelPart().Conditions)>0:
+        if len(self.GetOriginModelPart().Conditions)>0:
            filter_container = self.GetOriginModelPart().Conditions
+        elif len(self.GetOriginModelPart().Elements)>0:
+           filter_container = self.GetOriginModelPart().Elements
 
         is_surface_filter = self._IsSurfaceContainer(filter_container)
         num_nodes = self._GetContainerTypeNumNodes(filter_container)
@@ -39,4 +39,14 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
         else:
             element_name = f"HelmholtzSolidElement3D{num_nodes}N"
 
-        KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.helmholtz_model_part, element_name)
+        filter_properties = self.helmholtz_model_part.GetRootModelPart().CreateNewProperties(self.helmholtz_model_part.GetRootModelPart().NumberOfProperties()+1)
+        for node in self.GetOriginModelPart().Nodes:
+            self.helmholtz_model_part.AddNode(node)
+
+        elem_index = len(self.helmholtz_model_part.GetRootModelPart().Elements) + 1
+        for cond in filter_container:
+            element_nodes_ids = []
+            for node in cond.GetNodes():
+                element_nodes_ids.append(node.Id)
+            self.helmholtz_model_part.CreateNewElement(element_name, elem_index, element_nodes_ids, filter_properties)
+            elem_index += 1
