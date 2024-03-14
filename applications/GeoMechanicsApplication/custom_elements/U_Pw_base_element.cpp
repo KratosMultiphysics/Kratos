@@ -618,14 +618,8 @@ unsigned int UPwBaseElement<TDim, TNumNodes>::GetNumberOfDOF() const
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
 {
-    auto result = Element::DofsVectorType{};
-    for (const auto& r_node : this->GetGeometry()) {
-        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
-        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
-        result.push_back(r_node.pGetDof(WATER_PRESSURE));
-    }
-    return result;
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(this->GetGeometry(),
+                                                      this->GetGeometry().WorkingSpaceDimension());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
