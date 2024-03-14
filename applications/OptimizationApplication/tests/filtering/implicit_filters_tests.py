@@ -191,6 +191,61 @@ class HelmholtzAnalysisTest(TestCase):
             cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 5, [3,2,6,7], properties_1)
             cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 6, [4,3,7,8], properties_1)
 
+            shape_bulk_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "shape",
+                                        "filter_radius"     : 2.0,
+                                        "model_part_name" : "solid_bulk_surf.design",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "skyline_lu_factorization"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
+                                    }
+                                }""")
+            shape_shell_vector_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "shape",
+                                        "filter_radius"     : 500.0,
+                                        "model_part_name" : "shell",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "skyline_lu_factorization"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
+                                    }
+                                }""")
+            cls.shape_bulk_surface_filter = HelmholtzAnalysis(cls.model, shape_bulk_filter_parameters)
+            cls.shape_shell_surface_filter = HelmholtzAnalysis(cls.model, shape_shell_vector_filter_parameters)
+
+    def setUp(self) -> None:
+        for model_part_name in self.model.GetModelPartNames():
+            model_part = self.model[model_part_name]
+            if model_part.HasNodalSolutionStepVariable(KOA.HELMHOLTZ_VECTOR):
+                KM.VariableUtils().SetHistoricalVariableToZero(KOA.HELMHOLTZ_VECTOR, model_part.Nodes)
+            if model_part.HasNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR):
+                KM.VariableUtils().SetHistoricalVariableToZero(KOA.HELMHOLTZ_SCALAR, model_part.Nodes)
+
 
     def test_scalar_solid_filter(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -342,6 +397,26 @@ class HelmholtzAnalysisTest(TestCase):
         filtered_field = self.bulk_surface_filter.UnFilterField(unfiltered_uniform_field_nodal)
         self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
 
+    def test_shape_surface_shape(self):
+        self.shape_bulk_surface_filter.Initialize()
+
+        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_bulk_surface_model_part)
+        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+
+        filtered_field = self.shape_bulk_surface_filter.FilterField(unfiltered_uniform_field_nodal)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
+
+        self.shape_shell_surface_filter.Initialize()
+
+        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.shell_model_part)
+        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+
+        filtered_field = self.shape_shell_surface_filter.UnFilterField(unfiltered_uniform_field_nodal)
+        filtered_field = self.shape_shell_surface_filter.FilterField(filtered_field)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.196153341144455, 4)
+
+        filtered_field = self.shape_shell_surface_filter.FilterField(unfiltered_uniform_field_nodal)
+        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.1961524, 4)
 
 if __name__ == '__main__':
     KM.KratosUnittest.main()
