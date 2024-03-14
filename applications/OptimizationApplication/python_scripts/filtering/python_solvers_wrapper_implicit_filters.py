@@ -11,7 +11,7 @@ def CreateSolverByParameters(model: KratosMultiphysics.Model, solver_settings: K
         if (filter_type == "general_scalar" ):
             solver_module_name = "helmholtz_scalar_solver"
 
-        elif (filter_type == "bulk_surface_shape" or filter_type == "general_vector"):
+        elif (filter_type == "bulk_surface_shape" or filter_type == "general_vector" or filter_type == "shape"):
             solver_module_name = "helmholtz_vector_solver"
         else:
             err_msg =  'The requested solver type "' + filter_type + '" is not in the python solvers wrapper\n'
@@ -21,7 +21,7 @@ def CreateSolverByParameters(model: KratosMultiphysics.Model, solver_settings: K
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
 
-        if (filter_type == filter_type == "bulk_surface_shape" or filter_type == "general_vector"):
+        if (filter_type == filter_type == "bulk_surface_shape" or filter_type == "general_vector" or filter_type == "shape"):
             solver_module_name = "trilinos_general_vector_filter_solver"
 
         elif (filter_type == "general_scalar" ):

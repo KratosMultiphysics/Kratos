@@ -1,3 +1,5 @@
+import typing
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -13,10 +15,10 @@ def CreateSolver(model, custom_settings):
 class HelmholtzVectorSolver(HelmholtzSolverBase):
     def __init__(self, model: KM.Model, custom_settings: KM.Parameters) -> None:
         super().__init__(model, custom_settings)
-        if self.settings["filter_type"].GetString() == "bulk_surface_shape":
-            self.bulk_surface_shape_filter = True
-        else:
-            self.bulk_surface_shape_filter = False
+        self.__containers: 'list[typing.Union[KM.ConditionsArray, KM.ElementsArray]]' = []
+        self.__element_name = ""
+        self.__condition_name = ""
+        self.__materials = KM.Parameters("""{}""")
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: Construction finished")
 
     def AddVariables(self) -> None:
@@ -30,91 +32,79 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
         KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Z, self.GetOriginRootModelPart())
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: DOFs ADDED.")
 
-    def PrepareModelPart(self) -> None:
-
-        if self.bulk_surface_shape_filter:
-
-            num_root_elems_nodes = self._GetContainerTypeNumNodes(self.GetOriginModelPart().GetRootModelPart().Elements)
-            is_root_surface = self._IsSurfaceContainer(self.GetOriginModelPart().GetRootModelPart().Elements)
-            num_cond_nodes = self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)
-            is_surface_condition = self._IsSurfaceContainer(self.GetOriginModelPart().Conditions)
-
-            if num_root_elems_nodes != 4:
-                raise Exception('::[HelmholtzVectorSolver]:: given model part must have only tetrahedral elemenst')
-            if num_cond_nodes != 3:
-                raise Exception('::[HelmholtzVectorSolver]:: given model part must have only triangular conditions')
-            if not is_surface_condition or is_root_surface:
-                raise Exception('::[HelmholtzVectorSolver]:: bulk surface should have solid tetrahedral elemenst and triangular conditions')
-
-            # add nodes
-            for node in self.GetOriginModelPart().GetRootModelPart().Nodes:
-                self.helmholtz_model_part.AddNode(node)
-
-            # add elems
-            elem_properties = self.helmholtz_model_part.CreateNewProperties(self.helmholtz_model_part.NumberOfProperties()+1)
-            elem_index = len(self.helmholtz_model_part.Elements) + 1
-            for elem in self.GetOriginModelPart().GetRootModelPart().Elements:
-                element_nodes_ids = []
-                for node in elem.GetNodes():
-                    element_nodes_ids.append(node.Id)
-                self.helmholtz_model_part.CreateNewElement("HelmholtzSolidShapeElement3D4N", elem_index, element_nodes_ids, elem_properties)
-                elem_index += 1
-
-            # add conds
-            cond_properties = self.helmholtz_model_part.CreateNewProperties(self.helmholtz_model_part.NumberOfProperties()+1)
-            cond_index = len(self.helmholtz_model_part.GetRootModelPart().Conditions) + 1
-            for cond in self.GetOriginModelPart().Conditions:
-                cond_nodes_ids = []
-                for node in cond.GetNodes():
-                    cond_nodes_ids.append(node.Id)
-                self.helmholtz_model_part.CreateNewCondition("HelmholtzSurfaceShapeCondition3D3N", cond_index, cond_nodes_ids, cond_properties)
-                cond_index += 1
-
-            material_properties = self.settings["material_properties"]
-            defaults = KM.Parameters("""{
-                "properties_id": 10000000000000000,
-                "Material": {
-                    "constitutive_law": {
-                        "name": "HelmholtzJacobianStiffened3D"
-                    },
-                    "Variables": {
-                        "POISSON_RATIO": 0.3
-                    }
+    def __InitializeBulkSurfaceShapeModelPartConfiguration(self) -> None:
+        self.__containers = [self.GetOriginModelPart().Conditions, self.GetOriginRootModelPart().Elements]
+        self.__condition_name = f"HelmholtzSurfaceShapeCondition3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
+        self.__element_name = f"HelmholtzSolidShapeElement3D{self._GetContainerTypeNumNodes(self.__containers[1])}N"
+        self.__materials = KM.Parameters("""{
+                "constitutive_law": {
+                    "name": "HelmholtzJacobianStiffened3D"
+                },
+                "Variables": {
+                    "POISSON_RATIO": 0.3
                 }
-            }""")
-            material_properties.RecursivelyAddMissingParameters(defaults)
-            self._AssignProperties(material_properties)
+        }""")
 
-            tmoc = KM.TetrahedralMeshOrientationCheck
-            flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-            KM.TetrahedralMeshOrientationCheck(self.helmholtz_model_part, False, flags).Execute()
+    def InitializeModelPartConfiguration(self) -> None:
+        filter_type = self.GetFilterType()
+        number_of_conditions = self.GetOriginModelPart().NumberOfConditions()
+        number_of_elements = self.GetOriginModelPart().NumberOfElements()
+        self.__materials = KM.Parameters("""{}""")
 
-        else:
+        if filter_type == "shape":
+            # this is the filter type which is used to switch automatically between
+            # bulk_surface_shape and general_vector filters based on the type
+            # of entities present in the filtering model part.
 
-            if len(self.GetOriginModelPart().Conditions)>0 and len(self.GetOriginModelPart().Elements)>0:
-                KM.Logger.PrintWarning("::[HelmholtzVectorSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")
-
-            if len(self.GetOriginModelPart().Conditions)>0:
-               filter_container = self.GetOriginModelPart().Conditions
-            elif len(self.GetOriginModelPart().Elements)>0:
-               filter_container = self.GetOriginModelPart().Elements
-
-            is_surface_filter = self._IsSurfaceContainer(filter_container)
-            num_nodes = self._GetContainerTypeNumNodes(filter_container)
-
-            if is_surface_filter:
-                element_name = f"HelmholtzVectorSurfaceElement3D{num_nodes}N"
+            if number_of_elements > 0:
+                # if there are elements in the filtering model part, then those
+                # elements should be surface elements (such as shell), otherwise
+                # we cannot do shape filtering. Shape filtering must only be done
+                # on surfaces. If someone wants to do filtering on conditions where
+                # there are elements in the model part, then
+                # the proper sub-model part should be chosen for filtering model part.
+                self.__containers = [self.GetOriginModelPart().Elements]
+                self.__element_name = f"HelmholtzVectorSurfaceElement3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
+            elif number_of_conditions > 0:
+                # now this model part only has conditions. So, we check whether they are
+                # surface conditions and add both conditions and root model part elements
+                self.__InitializeBulkSurfaceShapeModelPartConfiguration()
+                raise RuntimeError(1)
             else:
-                element_name = f"HelmholtzVectorSolidElement3D{num_nodes}N"
+                raise RuntimeError(f"The filtering model part \"{self.GetOriginModelPart().FullName()} does not have elements or conditions.")
+        elif filter_type == "bulk_surface_shape":
+            self.__InitializeBulkSurfaceShapeModelPartConfiguration()
+        elif filter_type == "general_vector":
+            # this is to use helmholtz for general vector filtering. Again here we have to
+            # check whether we have elements and conditions. This needs to support
+            # surface elements, bulk elements, surface conditions.
+            if number_of_elements > 0:
+                # filter surface has elements.
+                self.__containers = [self.GetOriginModelPart().Elements]
+                if self._IsSurfaceContainer(self.__containers[0]):
+                    # filter is used on a model part with surface elements
+                    self.__element_name = f"HelmholtzVectorSurfaceElement3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
+                else:
+                    # filter is used on a model part with solid elements
+                    self.__element_name = f"HelmholtzVectorSolidElement3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
+            elif number_of_conditions > 0:
+                self.__containers = [self.GetOriginModelPart().Conditions]
+                if self._IsSurfaceContainer(self.__containers[0]):
+                    # filter is used on a model part with surface conditions
+                    self.__element_name = f"HelmholtzVectorSurfaceElement3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
+                else:
+                    raise RuntimeError("Unsupported model part.")
+            else:
+                raise RuntimeError(f"The filtering model part \"{self.GetOriginModelPart().FullName()} does not have elements or conditions.")
 
-            filter_properties = self.helmholtz_model_part.GetRootModelPart().CreateNewProperties(self.helmholtz_model_part.GetRootModelPart().NumberOfProperties()+1)
-            for node in self.GetOriginModelPart().Nodes:
-                self.helmholtz_model_part.AddNode(node)
+    def GetElementName(self) -> str:
+        return self.__element_name
 
-            elem_index = len(self.helmholtz_model_part.GetRootModelPart().Elements) + 1
-            for cond in filter_container:
-                element_nodes_ids = []
-                for node in cond.GetNodes():
-                    element_nodes_ids.append(node.Id)
-                self.helmholtz_model_part.CreateNewElement(element_name, elem_index, element_nodes_ids, filter_properties)
-                elem_index += 1
+    def GetConditionName(self) -> str:
+        return self.__condition_name
+
+    def GetContainers(self) -> 'list[typing.Union[KM.ConditionsArray | KM.ElementsArray]]':
+        return self.__containers
+
+    def GetMaterialProperties(self) -> KM.Parameters:
+        return self.__materials

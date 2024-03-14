@@ -1,3 +1,5 @@
+import typing
+
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -11,6 +13,11 @@ def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
     return HelmholtzScalarSolver(model, custom_settings)
 
 class HelmholtzScalarSolver(HelmholtzSolverBase):
+    def __init__(self, model: KM.Model, custom_settings: KM.Parameters):
+        super().__init__(model, custom_settings)
+        self.__containers: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]' = []
+        self.__element_name = ""
+        KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Construction finished")
 
     def AddVariables(self) -> None:
         # Add variables required for the helmholtz filtering
@@ -21,32 +28,35 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
         KM.VariableUtils().AddDof(KOA.HELMHOLTZ_SCALAR, self.GetOriginRootModelPart())
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: DOFs ADDED.")
 
-    def PrepareModelPart(self) -> None:
+    def InitializeModelPartConfiguration(self) -> None:
+        number_of_conditions = self.GetOriginModelPart().NumberOfConditions()
+        number_of_elements = self.GetOriginModelPart().NumberOfElements()
 
-        if len(self.GetOriginModelPart().Conditions)>0 and len(self.GetOriginModelPart().Elements)>0:
-            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")
+        if number_of_conditions > 0 and number_of_elements > 0:
+            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]::", f"Filter model part {self.GetOriginModelPart().FullName()} has both elements and conditions. Giving precedence to elements.")
 
-        if len(self.GetOriginModelPart().Conditions)>0:
-           filter_container = self.GetOriginModelPart().Conditions
-        elif len(self.GetOriginModelPart().Elements)>0:
-           filter_container = self.GetOriginModelPart().Elements
-
-        is_surface_filter = self._IsSurfaceContainer(filter_container)
-        num_nodes = self._GetContainerTypeNumNodes(filter_container)
-
-        if is_surface_filter:
-            element_name = f"HelmholtzSurfaceElement3D{num_nodes}N"
+        if number_of_elements > 0:
+            self.__containers = [self.GetOriginModelPart().Elements]
+        elif number_of_conditions > 0:
+           self.__containers = [self.GetOriginModelPart().Conditions]
         else:
-            element_name = f"HelmholtzSolidElement3D{num_nodes}N"
+           raise RuntimeError(f"No elements or conditions found in the filtering model part \"{self.GetOriginModelPart().FullName()}\"")
 
-        filter_properties = self.helmholtz_model_part.GetRootModelPart().CreateNewProperties(self.helmholtz_model_part.GetRootModelPart().NumberOfProperties()+1)
-        for node in self.GetOriginModelPart().Nodes:
-            self.helmholtz_model_part.AddNode(node)
+        num_nodes = self._GetContainerTypeNumNodes(self.__containers[0])
 
-        elem_index = len(self.helmholtz_model_part.GetRootModelPart().Elements) + 1
-        for cond in filter_container:
-            element_nodes_ids = []
-            for node in cond.GetNodes():
-                element_nodes_ids.append(node.Id)
-            self.helmholtz_model_part.CreateNewElement(element_name, elem_index, element_nodes_ids, filter_properties)
-            elem_index += 1
+        if self._IsSurfaceContainer(self.__containers[0]):
+            self.__element_name = f"HelmholtzSurfaceElement3D{num_nodes}N"
+        else:
+            self.__element_name = f"HelmholtzSolidElement3D{num_nodes}N"
+
+    def GetElementName(self) -> str:
+        return self.__element_name
+
+    def GetConditionName(self) -> str:
+        return ""
+
+    def GetContainers(self) -> 'list[typing.Union[KM.ConditionsArray | KM.ElementsArray]]':
+        return self.__containers
+
+    def GetMaterialProperties(self) -> KM.Parameters:
+        return KM.Parameters("""{}""")

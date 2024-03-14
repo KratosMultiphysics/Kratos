@@ -1,9 +1,13 @@
+import abc
+import typing
+
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KOA
 
 # Other imports
 from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 class HelmholtzSolverBase(PythonSolver):
     """The base class for Helmholtz-based solvers.
@@ -11,19 +15,19 @@ class HelmholtzSolverBase(PythonSolver):
     This class defines the user interface to Helmholtz solvers.
 
     """
-    def __init__(self, model: KratosMultiphysics.Model, custom_settings: KratosMultiphysics.Parameters):
+    def __init__(self, model: KM.Model, custom_settings: KM.Parameters):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
 
         # Either retrieve the model part from the model or create a new one
-        self.filtering_model_part_name = self.settings["model_part_name"].GetString()
+        self.__filtering_model_part_name = self.settings["model_part_name"].GetString()
 
-        if self.filtering_model_part_name == "":
+        if self.__filtering_model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
-        # the filtering_model_part_name can be a sub model part. Hence we need the main model part
+        # the __filtering_model_part_name can be a sub model part. Hence we need the main model part
         # for variable and dof addition.
-        root_model_part_name = self.filtering_model_part_name.split(".")[0]
+        root_model_part_name = self.__filtering_model_part_name.split(".")[0]
         if self.model.HasModelPart(root_model_part_name):
             self.origin_root_model_part = self.model.GetModelPart(root_model_part_name)
         else:
@@ -32,23 +36,22 @@ class HelmholtzSolverBase(PythonSolver):
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
-        self.origin_root_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        self.origin_root_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
 
-        # Create Helmholtz model part
-        # replacing "." with "_" if the filtering model part is a sub model part since model part names
-        # cannot have ".", and helmholtz_model_part needs to be a root model part
-        helmholtz_model_part_name = self.filtering_model_part_name.replace(".", "_") + "_helmholtz_filter_mdp"
-        self.helmholtz_model_part = self.model.CreateModelPart(helmholtz_model_part_name)
+        # we don't create the helmholtz model part here, because
+        # we need to have unique model parts for different filtering variable types
+        # hence, it cannot be determined at this point.
+        self.__helmholtz_model_part: 'typing.Optional[KM.ModelPart]' = None
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
         self.filter_type = self.settings["filter_type"].GetString()
 
-        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
+        KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        this_defaults = KratosMultiphysics.Parameters("""{
+    def GetDefaultParameters(cls) -> KM.Parameters:
+        this_defaults = KM.Parameters("""{
             "solver_type"           : "helmholtz_solver_base",
             "domain_size"           : -1,
             "filter_type"     : "",
@@ -86,15 +89,18 @@ class HelmholtzSolverBase(PythonSolver):
     def AdvanceInTime(self, current_time: float) -> float:
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
         new_time = current_time + dt
-        self.helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.helmholtz_model_part.CloneTimeStep(new_time)
+        self.__helmholtz_model_part.ProcessInfo[KM.STEP] += 1
+        self.__helmholtz_model_part.CloneTimeStep(new_time)
 
         return new_time
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.helmholtz_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
+        # neighbours_exp = KM.Expression.NodalExpression(self.__helmholtz_model_part)
+        # KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
+        # KM.Expression.VariableExpressionIO.Write(neighbours_exp, KM.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
+        KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.__helmholtz_model_part)
+        KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self) -> None:
         self._GetSolutionStrategy().InitializeSolutionStep()
@@ -121,14 +127,14 @@ class HelmholtzSolverBase(PythonSolver):
     def ImportModelPart(self) -> None:
         self._ImportModelPart(self.origin_root_model_part, self.settings["model_import_settings"])
 
-    def GetComputingModelPart(self) -> KratosMultiphysics.ModelPart:
-        return self.helmholtz_model_part
+    def GetComputingModelPart(self) -> KM.ModelPart:
+        return self.__helmholtz_model_part
 
-    def GetOriginRootModelPart(self) -> KratosMultiphysics.ModelPart:
+    def GetOriginRootModelPart(self) -> KM.ModelPart:
         return self.origin_root_model_part
 
-    def GetOriginModelPart(self) -> KratosMultiphysics.ModelPart:
-        return self.model[self.filtering_model_part_name]
+    def GetOriginModelPart(self) -> KM.ModelPart:
+        return self.model[self.__filtering_model_part_name]
 
     def GetFilterType(self) -> str:
         return self.filter_type
@@ -162,20 +168,19 @@ class HelmholtzSolverBase(PythonSolver):
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
-        return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        return KM.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateLinearSolver(self):
-        from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
         return ConstructSolver(self.settings["linear_solver_settings"])
 
     def _CreateScheme(self):
-        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        return KM.ResidualBasedIncrementalUpdateStaticScheme()
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         scheme = self._GetScheme()
         builder_and_solver = self._GetBuilderAndSolver()
-        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+        return KM.ResidualBasedLinearStrategy(computing_model_part,
                                                               scheme,
                                                               builder_and_solver,
                                                               False,
@@ -183,22 +188,107 @@ class HelmholtzSolverBase(PythonSolver):
                                                               False,
                                                               False)
 
-    def _AssignProperties(self, parameters: KratosMultiphysics.Parameters):
+    def _AssignProperties(self, parameters: KM.Parameters):
         KOA.ImplicitFilterUtils.AssignProperties(self.GetComputingModelPart(), parameters)
 
-    def _GetContainerTypeNumNodes(self, container) -> int:
+    def _GetContainerTypeNumNodes(self, container: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]') -> int:
         num_nodes = None
         for cont_type in container:
-            num_nodes = len(cont_type.GetNodes())
-            break
+            return len(cont_type.GetNodes())
         return num_nodes
 
-    def _IsSurfaceContainer(self, container) -> bool:
-        is_surface = False
-        for cont_type in container:
-            geom = cont_type.GetGeometry()
-            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-                is_surface = True
-            break
-        return is_surface
+    def _IsSurfaceContainer(self, container: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]') -> bool:
+        return any(map(lambda x: x.GetGeometry().WorkingSpaceDimension() != x.GetGeometry().LocalSpaceDimension(), container))
+
+    def GetComputingModelPartName(self) -> str:
+        model_part_name = self.__filtering_model_part_name.replace(".", "_")
+        for container in self.GetContainers():
+            if isinstance(container, KM.ConditionsArray):
+                model_part_name += "_conditions"
+            elif isinstance(container, KM.ElementsArray):
+                model_part_name += "_elements"
+            else:
+                raise RuntimeError("Unsupported container type provided.")
+        return model_part_name + f"_{self.GetConditionName()}_{self.GetElementName()}"
+
+    @abc.abstractmethod
+    def GetContainers(self) -> 'list[typing.Union[KM.ConditionsArray, KM.ElementsArray]]':
+        pass
+
+    @abc.abstractmethod
+    def GetElementName(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def GetConditionName(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def GetMaterialProperties(self) -> KM.Parameters:
+        pass
+
+    @abc.abstractmethod
+    def InitializeModelPartConfiguration(self) -> None:
+        pass
+
+    def PrepareModelPart(self) -> str:
+        # first we let the derived class to initialize the required model part information
+        # now because, at this point, the origin model part is populated.
+        self.InitializeModelPartConfiguration()
+
+        if self.model.HasModelPart(self.GetComputingModelPartName()):
+            # a same model part with same entities were already created by some other filter
+            # hence reusing it
+            self.__helmholtz_model_part = self.model[self.GetComputingModelPartName()]
+
+            # we increase the number of filters using the model part
+            # this is required to know whether we need to apply boundary conditions
+            # every time filter is used so that we don't mix-up different BCs from
+            # different filters
+            self.__helmholtz_model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] += 1
+        else:
+            # the model part needs to be created.
+            self.__helmholtz_model_part = self.model.CreateModelPart(self.GetComputingModelPartName())
+
+            for node in self.GetOriginRootModelPart().Nodes:
+                self.__helmholtz_model_part.AddNode(node)
+
+            # now add the geometries from the container to the computing model part
+            for container in self.GetContainers():
+                KOA.OptimizationUtils.CopyGeometries(self.__helmholtz_model_part, container)
+
+            # now use the geometry modeller to create the respective elements and conditions
+            # from geometries
+            modeler_params = KM.Parameters("""{
+                "elements_list": [
+                    {
+                        "model_part_name": \"""" + self.__helmholtz_model_part.FullName() + """\",
+                        "element_name"   : \"""" + self.GetElementName() + """\"
+                    }
+                ]
+            }""")
+            if self.GetConditionName() != "":
+                modeler_params.AddEmptyArray("conditions_list")
+                modeler_params["conditions_list"].values().append(KM.Parameters("""
+                    {
+                        "model_part_name": \"""" + self.__helmholtz_model_part.FullName() + """\",
+                        "condition_name" : \"""" + self.GetConditionName() + """\"
+                    }
+                """))
+            modeler = KM.CreateEntitiesFromGeometriesModeler(self.model, modeler_params)
+            modeler.SetupGeometryModel()
+            modeler.PrepareGeometryModel()
+            modeler.SetupModelPart()
+
+            # now we assign properties
+            properties = KM.Parameters("""{
+                "properties" : [
+                    {
+                        "model_part_name": \"""" + self.__helmholtz_model_part.FullName() + """\",
+                        "properties_id"  : 1
+                    }
+                ]
+            }""")
+            properties["properties"].values()[0].AddValue("Material", self.GetMaterialProperties())
+            KM.ReadMaterialsUtility(self.model).ReadMaterials(properties)
 
