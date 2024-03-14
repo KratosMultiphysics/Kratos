@@ -56,6 +56,9 @@ GeometryData::IntegrationMethod
     case 4:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
         break;
+    case 5:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        break;
     default:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
