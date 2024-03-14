@@ -1789,7 +1789,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                          ElementVariables& rVariables)
+                                                                          ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1804,7 +1804,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(Matrix
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                       ElementVariables& rVariables)
+                                                                       ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1937,7 +1937,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                        ElementVariables& rVariables)
+                                                                        ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1953,7 +1953,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                     ElementVariables& rVariables)
+                                                                     ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
