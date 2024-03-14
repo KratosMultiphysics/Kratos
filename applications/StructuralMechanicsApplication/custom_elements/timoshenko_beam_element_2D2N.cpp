@@ -260,9 +260,10 @@ void TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
         rN.resize(4, false);
     const double one_plus_phi = 1.0 + Phi;
     const double L_square = std::pow(Length, 2);
-    rN[0] = 12.0  / (one_plus_phi * Length * L_square);
+    const double L_cube   = std::pow(Length, 3);
+    rN[0] = 12.0  / (one_plus_phi * L_cube);
     rN[1] = 6.0   / (one_plus_phi * L_square);
-    rN[2] = -12.0 / (one_plus_phi * Length * L_square);
+    rN[2] = -12.0 / (one_plus_phi * L_cube);
     rN[3] = 6.0   / (one_plus_phi * L_square);
 }
 
@@ -333,8 +334,9 @@ void TimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
 {
     if (rN.size() != 2)
         rN.resize(2, false);
-    rN[0] = -1.0 / Length;
-    rN[1] =  1.0 / Length;
+    const double inverse_l = 1.0 / Length;
+    rN[0] = -inverse_l;
+    rN[1] =  inverse_l;
 }
 
 /***********************************************************************************/
