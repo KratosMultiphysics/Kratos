@@ -1,0 +1,140 @@
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+  CONSTITUTIVE_LAW_NAME LinearElasticPlaneStrainSolid2DLaw
+  SATURATION_LAW_NAME BrooksAndCoreyLaw
+  YOUNG_MODULUS 3.0e7
+  POISSON_RATIO 0.2
+  DENSITY_SOLID 1.0e3
+  DENSITY_LIQUID 1.0e3
+  DENSITY_GAS 1.0e3
+  POROSITY 0.3
+  BULK_MODULUS_SOLID 1.0e99
+  BULK_MODULUS_LIQUID 1.0e99
+  BULK_MODULUS_GAS 1.0e99
+  PERMEABILITY_XX 1.0e-10
+  PERMEABILITY_YY 1.0e-10
+  PERMEABILITY_ZZ 4.5e-13
+  PERMEABILITY_XY 0.0
+  PERMEABILITY_YZ 0.0
+  PERMEABILITY_ZX 0.0
+  DYNAMIC_VISCOSITY_LIQUID 1.0e-3
+  DYNAMIC_VISCOSITY_GAS 1.0e-3
+  BIOT_COEFFICIENT 1.0
+  GAS_DIFFUSION_COEFF 0.0
+  RESIDUAL_LIQUID_SATURATION 0.0
+  RESIDUAL_GAS_SATURATION 0.0
+  PORE_SIZE_FACTOR 2.0
+  GAS_ENTRY_PRESSURE 5.0e3
+  MINIMUM_RELATIVE_PERMEABILITY 1.0e-9
+  THICKNESS 1.0
+  DAMAGE_THRESHOLD 1.0e-4
+  STRENGTH_RATIO 10.0
+  FRACTURE_ENERGY 100.0
+  RESIDUAL_STRENGTH 0.8
+  SOFTENING_SLOPE 9000.0
+End Properties
+
+
+Begin Nodes
+  1  0.0000000000 0.0000000000 0.0000000000
+  2  0.0000000000 0.0200000000 0.0000000000
+  3  2.6000000000 0.0000000000 0.0000000000
+  4  2.6000000000 0.0200000000 0.0000000000
+End Nodes
+
+
+Begin Elements UPlPgSmallStrainElement2D4N
+  1  0  3 4 2 1
+End Elements
+
+
+
+Begin SubModelPart Body_Part-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Solid_Displacement-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Liquid_init_pressure
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Liquid_left_pressure
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Gas_init_pressure
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Gas_left_pressure
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+

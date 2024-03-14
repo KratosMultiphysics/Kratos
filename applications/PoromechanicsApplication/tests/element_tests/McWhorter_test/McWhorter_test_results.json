@@ -1,0 +1,37 @@
+{
+  "TIME": [
+    0.05
+  ],
+  "NODE_1": {
+    "LIQUID_PRESSURE": [
+      195000.0
+    ],
+    "GAS_PRESSURE": [
+      200000.0
+    ]
+  },
+  "NODE_2": {
+    "LIQUID_PRESSURE": [
+      195000.0
+    ],
+    "GAS_PRESSURE": [
+      200000.0
+    ]
+  },
+  "NODE_3": {
+    "LIQUID_PRESSURE": [
+      150005.17606326882
+    ],
+    "GAS_PRESSURE": [
+      200005.15766812614
+    ]
+  },
+  "NODE_4": {
+    "LIQUID_PRESSURE": [
+      150005.17606326885
+    ],
+    "GAS_PRESSURE": [
+      200005.15766812614
+    ]
+  }
+}

@@ -30,6 +30,10 @@ class nodal_discharge_2D(TF.TestFactory):
     file_name = "element_tests/nodal_discharge/2_NodalDischarge3elem"
     file_parameters = "element_tests/nodal_discharge/ProjectParameters.json"
 
+class McWhorter_test(TF.TestFactory):
+    file_name = "element_tests/McWhorter_test/McWhorter_test"
+    file_parameters = "element_tests/McWhorter_test/ProjectParameters.json"
+
 def SetTestSuite(suites):
     small_suite = suites['small']
 
@@ -40,7 +44,8 @@ def SetTestSuite(suites):
             interface_elastic_linear,
             interface_isotropic_damage,
             interface_mc_tension_cutoff,
-            nodal_discharge_2D
+            nodal_discharge_2D,
+            McWhorter_test
         ])
     )
 
