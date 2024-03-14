@@ -137,33 +137,12 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
-template<class TContainerType>
-void OptimizationUtils::CopyGeometries(
-    ModelPart& rDestinationModelPart,
-    TContainerType& rContainer)
-{
-    KRATOS_TRY
-
-    ModelPart::NodesContainerType nodes;
-    for (auto& r_entity : rContainer) {
-        rDestinationModelPart.AddGeometry(r_entity.pGetGeometry());
-        nodes.insert(r_entity.GetGeometry().ptr_begin(), r_entity.GetGeometry().ptr_end());
-    }
-
-    // rDestinationModelPart.AddNodes(nodes.begin(), nodes.end());
-
-    KRATOS_CATCH("");
-}
-
 // template instantiations
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
 
 template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ConditionsContainerType&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(ModelPart&, ModelPart::ElementsContainerType&);
-
-template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CopyGeometries(ModelPart&, ModelPart::ConditionsContainerType&);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void OptimizationUtils::CopyGeometries(ModelPart&, ModelPart::ElementsContainerType&);
 
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ConditionsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);
 template KRATOS_API(OPTIMIZATION_APPLICATION) bool OptimizationUtils::IsVariableExistsInAllContainerProperties(const ModelPart::ElementsContainerType&, const Variable<double>&, const DataCommunicator& rDataCommunicator);

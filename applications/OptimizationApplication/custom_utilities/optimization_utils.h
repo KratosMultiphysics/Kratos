@@ -70,11 +70,6 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
-    template<class TContainerType>
-    static void CopyGeometries(
-        ModelPart& rDestinationModelPart,
-        TContainerType& rContainer);
-
     ///@}
 };
 

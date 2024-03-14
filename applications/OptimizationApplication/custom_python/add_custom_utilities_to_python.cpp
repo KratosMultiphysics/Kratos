@@ -184,8 +184,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
-        .def("CopyGeometries", &OptimizationUtils::CopyGeometries<ModelPart::ConditionsContainerType>, py::arg("destination_model_part"), py::arg("source_conditions_container"))
-        .def("CopyGeometries", &OptimizationUtils::CopyGeometries<ModelPart::ElementsContainerType>, py::arg("destination_model_part"), py::arg("source_elements_container"))
         ;
 
     // Add collective expression to python
@@ -329,9 +327,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     collective_expression_io.def("Write", [](CollectiveExpression& rCExpression, const std::vector<CollectiveExpressionIO::ContainerVariableType>& rContainerVariable){ CollectiveExpressionIO::Write(rCExpression, rContainerVariable); }, py::arg("collective_expression"), py::arg("list_of_variable_containers"));
 
     m.def_submodule("ImplicitFilterUtils")
-        .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount, py::arg("input_model_part"))
         .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering, py::arg("input_model_part"))
-        .def("AssignProperties", &ImplicitFilterUtils::AssignProperties, py::arg("model_part"), py::arg("properties_parameters"))
         ;
 
 
