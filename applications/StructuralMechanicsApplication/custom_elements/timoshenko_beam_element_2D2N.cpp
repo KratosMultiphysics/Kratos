@@ -498,6 +498,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     const double Phi    = CalculatePhi(cl_values);
     const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double J      = 0.5 * length;
+    const double area   = GetProperties()[CROSS_AREA];
 
     // Let's initialize the cl values
     VectorType strain_vector(3), stress_vector(3);
@@ -567,13 +568,13 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         global_size_N.clear();
         global_size_N[0] = N_u[0];
         global_size_N[3] = N_u[1];
-        noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * GetProperties()[CROSS_AREA];
+        noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * area;
         global_size_N.clear();
         global_size_N[1] = N_shape[0];
         global_size_N[2] = N_shape[1];
         global_size_N[4] = N_shape[2];
         global_size_N[5] = N_shape[3];
-        noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * GetProperties()[CROSS_AREA];
+        noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * area;
     }
 
     RotateAll(rLHS, rRHS, r_geometry);
@@ -695,6 +696,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     const double Phi    = CalculatePhi(cl_values);
     const double length = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     const double J      = 0.5 * length;
+    const double area   = GetProperties()[CROSS_AREA];
 
     // Let's initialize the cl values
     VectorType strain_vector(3), stress_vector(3);
@@ -756,13 +758,14 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
         global_size_N.clear();
         global_size_N[0] = N_u[0];
         global_size_N[3] = N_u[1];
-        noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * GetProperties()[CROSS_AREA];
+        const double J_area = jacobian_weight * area;
+        noalias(rRHS) += global_size_N * local_body_forces[0] * J_area;
         global_size_N.clear();
         global_size_N[1] = N_shape[0];
         global_size_N[2] = N_shape[1];
         global_size_N[4] = N_shape[2];
         global_size_N[5] = N_shape[3];
-        noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * GetProperties()[CROSS_AREA];
+        noalias(rRHS) += global_size_N * local_body_forces[1] * J_area;
     }
 
     RotateRHS(rRHS, r_geometry);
