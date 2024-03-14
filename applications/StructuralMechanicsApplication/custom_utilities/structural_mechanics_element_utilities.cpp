@@ -362,7 +362,7 @@ void BuildRotationMatrixFor2D2NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetReferenceRotationAngle2D2NBeam(GeometryType &rGeometry)
+double GetReferenceRotationAngle2D2NBeam(GeometryType& rGeometry)
 {
     const auto &r_node_1 = rGeometry[0];
     const auto &r_node_2 = rGeometry[1];
@@ -381,6 +381,41 @@ double GetReferenceRotationAngle2D2NBeam(GeometryType &rGeometry)
             KRATOS_ERROR << "The beam angle cannot be computed, check nodes coordinates..." << std::endl;
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildElementSizeRotationMatrixFor2D2NBeam(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix
+    )
+{
+    rElementSizeRotationMatrix.clear();
+
+    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
+
+    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
+    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
+    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
+
+    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
+    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
+    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
+
+    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
+    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
+    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
 }
 
 /***********************************************************************************/

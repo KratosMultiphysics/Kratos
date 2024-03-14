@@ -352,30 +352,22 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         GetReferenceRotationAngle2D2NBeam(GetGeometry());
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-        BoundedMatrix<double, 3, 3> T, Tt;
+        BoundedMatrix<double, 3, 3> T;
+        BoundedVector<double, 6> global_values;
+        BoundedMatrix<double, 6, 6> global_size_T;
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
-        noalias(Tt) = trans(T);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
-        VectorType u_a(3);
-        VectorType u_b(3);
+        global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        global_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        global_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+        global_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+        global_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        global_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
 
-        u_a[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        u_a[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        u_a[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        u_b[0] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        u_b[1] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        u_b[2] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+        // We rotate to local axes
+        noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 
-        u_a = prod(Tt, u_a);
-        u_b = prod(Tt, u_b);
-
-        // We return the values in local axes
-        rNodalValues[0] = u_a[0];
-        rNodalValues[1] = u_a[1];
-        rNodalValues[2] = u_a[2];
-        rNodalValues[3] = u_b[0];
-        rNodalValues[4] = u_b[1];
-        rNodalValues[5] = u_b[2];
     } else {
         rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
         rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
@@ -780,21 +772,14 @@ void TimoshenkoBeamElement2D2N::RotateLHS(
 {
     const double angle = StructuralMechanicsElementUtilities::
         GetReferenceRotationAngle2D2NBeam(GetGeometry());
+
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T, Tt;
+        BoundedMatrix<double, 6, 6> global_size_T, aux_product;
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
-        noalias(Tt) = trans(T);
-
-        // We rotate each submatrix independently
-        RangeMatrixType rLHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType rLHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 6));
-        RangeMatrixType rLHSba(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType rLHSbb(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(3, 6));
-
-        rLHSaa = prod(T, MatrixType(prod(rLHSaa, Tt)));
-        rLHSab = prod(T, MatrixType(prod(rLHSab, Tt)));
-        rLHSba = prod(T, MatrixType(prod(rLHSba, Tt)));
-        rLHSbb = prod(T, MatrixType(prod(rLHSbb, Tt)));
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
     }
 }
 
@@ -810,26 +795,13 @@ void TimoshenkoBeamElement2D2N::RotateRHS(
         GetReferenceRotationAngle2D2NBeam(GetGeometry());
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
+        BoundedMatrix<double, 6, 6> global_size_T;
+        BoundedVector<double, 6> local_rhs;
+        noalias(local_rhs) = rRHS;
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
-        VectorType rRHSa(3);
-        rRHSa[0] = rRHS[0];
-        rRHSa[1] = rRHS[1];
-        rRHSa[2] = rRHS[2];
-        VectorType rRHSb(3);
-        rRHSb[0] = rRHS[3];
-        rRHSb[1] = rRHS[4];
-        rRHSb[2] = rRHS[5];
-
-        rRHSa = prod(T, rRHSa);
-        rRHSb = prod(T, rRHSb);
-
-        rRHS[0] = rRHSa[0];
-        rRHS[1] = rRHSa[1];
-        rRHS[2] = rRHSa[2];
-        rRHS[3] = rRHSb[0];
-        rRHS[4] = rRHSb[1];
-        rRHS[5] = rRHSb[2];
+        noalias(rRHS) = prod(global_size_T, local_rhs);
     }
 }
 
@@ -845,39 +817,17 @@ void TimoshenkoBeamElement2D2N::RotateAll(
     const double angle = StructuralMechanicsElementUtilities::
         GetReferenceRotationAngle2D2NBeam(GetGeometry());
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-        BoundedMatrix<double, 3, 3> T, Tt;
+        BoundedMatrix<double, 3, 3> T;
+        BoundedMatrix<double, 6, 6> global_size_T, aux_product;
+        BoundedVector<double, 6> local_rhs;
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
-        noalias(Tt) = trans(T);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
-        // We rotate each submatrix independently
-        RangeMatrixType rLHSaa(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType rLHSab(rLHS, boost::numeric::ublas::range(0, 3), boost::numeric::ublas::range(3, 6));
-        RangeMatrixType rLHSba(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(0, 3));
-        RangeMatrixType rLHSbb(rLHS, boost::numeric::ublas::range(3, 6), boost::numeric::ublas::range(3, 6));
+        noalias(local_rhs) = rRHS;
+        noalias(rRHS) = prod(global_size_T, local_rhs);
 
-        rLHSaa = prod(T, MatrixType(prod(rLHSaa, Tt)));
-        rLHSab = prod(T, MatrixType(prod(rLHSab, Tt)));
-        rLHSba = prod(T, MatrixType(prod(rLHSba, Tt)));
-        rLHSbb = prod(T, MatrixType(prod(rLHSbb, Tt)));
-
-        VectorType rRHSa(3);
-        rRHSa[0] = rRHS[0];
-        rRHSa[1] = rRHS[1];
-        rRHSa[2] = rRHS[2];
-        VectorType rRHSb(3);
-        rRHSb[0] = rRHS[3];
-        rRHSb[1] = rRHS[4];
-        rRHSb[2] = rRHS[5];
-
-        rRHSa = prod(T, rRHSa);
-        rRHSb = prod(T, rRHSb);
-
-        rRHS[0] = rRHSa[0];
-        rRHS[1] = rRHSa[1];
-        rRHS[2] = rRHSa[2];
-        rRHS[3] = rRHSb[0];
-        rRHS[4] = rRHSb[1];
-        rRHS[5] = rRHSb[2];
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
     }
 }
 
