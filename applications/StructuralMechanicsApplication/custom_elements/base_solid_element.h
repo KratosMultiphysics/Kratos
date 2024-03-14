@@ -35,11 +35,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
+/// The definition of the index type
+using IndexType = std::size_t;
 
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+/// The definition of the size type
+using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -138,27 +138,25 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    /// Reference type definition for constitutive laws
+    using ConstitutiveLawType = ConstitutiveLaw;
 
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    /// Pointer type for constitutive laws
+    using ConstitutiveLawPointerType = typename ConstitutiveLawType::Pointer;
 
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    /// StressMeasure from constitutive laws
+    using StressMeasureType = typename ConstitutiveLawType::StressMeasure;
 
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    /// This is the definition of the node.
-    typedef Node NodeType;
+    /// Type definition for integration methods
+    using IntegrationMethod = typename GeometryData::IntegrationMethod;
 
     /// The base element type
-    typedef Element BaseType;
+    using BaseType = Element;
 
-    // Counted pointer of BaseSolidElement
+    /// Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
+    /// Local flags
     KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
 
     ///@}
