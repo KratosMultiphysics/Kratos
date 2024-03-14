@@ -32,10 +32,16 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
         KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Z, self.GetOriginRootModelPart())
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: DOFs ADDED.")
 
+    def Initialize(self) -> None:
+        tmoc = KM.TetrahedralMeshOrientationCheck
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), False, flags).Execute()
+        super().Initialize()
+
     def __InitializeBulkSurfaceShapeModelPartConfiguration(self) -> None:
-        self.__containers = [self.GetOriginModelPart().Conditions, self.GetOriginRootModelPart().Elements]
-        self.__condition_name = f"HelmholtzSurfaceShapeCondition3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
-        self.__element_name = f"HelmholtzSolidShapeElement3D{self._GetContainerTypeNumNodes(self.__containers[1])}N"
+        self.__containers = [self.GetOriginRootModelPart().Elements, self.GetOriginModelPart().Conditions]
+        self.__element_name = f"HelmholtzSolidShapeElement3D{self._GetContainerTypeNumNodes(self.__containers[0])}N"
+        self.__condition_name = f"HelmholtzSurfaceShapeCondition3D{self._GetContainerTypeNumNodes(self.__containers[1])}N"
         self.__materials = KM.Parameters("""{
                 "constitutive_law": {
                     "name": "HelmholtzJacobianStiffened3D"
@@ -69,7 +75,6 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
                 # now this model part only has conditions. So, we check whether they are
                 # surface conditions and add both conditions and root model part elements
                 self.__InitializeBulkSurfaceShapeModelPartConfiguration()
-                raise RuntimeError(1)
             else:
                 raise RuntimeError(f"The filtering model part \"{self.GetOriginModelPart().FullName()} does not have elements or conditions.")
         elif filter_type == "bulk_surface_shape":

@@ -96,10 +96,9 @@ class HelmholtzSolverBase(PythonSolver):
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        # neighbours_exp = KM.Expression.NodalExpression(self.__helmholtz_model_part)
-        # KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
-        # KM.Expression.VariableExpressionIO.Write(neighbours_exp, KM.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
-        KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.__helmholtz_model_part)
+        neighbours_exp = KM.Expression.NodalExpression(self.__helmholtz_model_part)
+        KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
+        KM.Expression.VariableExpressionIO.Write(neighbours_exp, KM.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
         KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self) -> None:
@@ -188,9 +187,6 @@ class HelmholtzSolverBase(PythonSolver):
                                                               False,
                                                               False)
 
-    def _AssignProperties(self, parameters: KM.Parameters):
-        KOA.ImplicitFilterUtils.AssignProperties(self.GetComputingModelPart(), parameters)
-
     def _GetContainerTypeNumNodes(self, container: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]') -> int:
         num_nodes = None
         for cont_type in container:
@@ -250,35 +246,25 @@ class HelmholtzSolverBase(PythonSolver):
             # the model part needs to be created.
             self.__helmholtz_model_part = self.model.CreateModelPart(self.GetComputingModelPartName())
 
-            for node in self.GetOriginRootModelPart().Nodes:
-                self.__helmholtz_model_part.AddNode(node)
+            # create dummy properties
+            dummy_properties = self.__helmholtz_model_part.CreateNewProperties(0)
 
-            # now add the geometries from the container to the computing model part
-            for container in self.GetContainers():
-                KOA.OptimizationUtils.CopyGeometries(self.__helmholtz_model_part, container)
+            # get the nodes from the elements
+            for element in self.GetContainers()[0]:
+                for node in element.GetNodes():
+                    self.__helmholtz_model_part.AddNode(node)
 
-            # now use the geometry modeller to create the respective elements and conditions
-            # from geometries
-            modeler_params = KM.Parameters("""{
-                "elements_list": [
-                    {
-                        "model_part_name": \"""" + self.__helmholtz_model_part.FullName() + """\",
-                        "element_name"   : \"""" + self.GetElementName() + """\"
-                    }
-                ]
-            }""")
-            if self.GetConditionName() != "":
-                modeler_params.AddEmptyArray("conditions_list")
-                modeler_params["conditions_list"].values().append(KM.Parameters("""
-                    {
-                        "model_part_name": \"""" + self.__helmholtz_model_part.FullName() + """\",
-                        "condition_name" : \"""" + self.GetConditionName() + """\"
-                    }
-                """))
-            modeler = KM.CreateEntitiesFromGeometriesModeler(self.model, modeler_params)
-            modeler.SetupGeometryModel()
-            modeler.PrepareGeometryModel()
-            modeler.SetupModelPart()
+            # first create the elements
+            entity_index = 1
+            for element in self.GetContainers()[0]:
+                self.__helmholtz_model_part.CreateNewElement(self.GetElementName(), entity_index, [node.Id for node in element.GetNodes()], dummy_properties)
+                entity_index += 1
+
+            if len(self.GetContainers()) == 2:
+                entity_index = 1
+                for condition in self.GetContainers()[1]:
+                    self.__helmholtz_model_part.CreateNewCondition(self.GetConditionName(), entity_index, [node.Id for node in condition.GetNodes()], dummy_properties)
+                    entity_index += 1
 
             # now we assign properties
             properties = KM.Parameters("""{
