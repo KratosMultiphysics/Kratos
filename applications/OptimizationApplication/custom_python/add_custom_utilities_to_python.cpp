@@ -184,6 +184,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
+        .def("CopyGeometries", &OptimizationUtils::CopyGeometries<ModelPart::ConditionsContainerType>, py::arg("destination_model_part"), py::arg("source_conditions_container"))
+        .def("CopyGeometries", &OptimizationUtils::CopyGeometries<ModelPart::ElementsContainerType>, py::arg("destination_model_part"), py::arg("source_elements_container"))
         ;
 
     // Add collective expression to python
