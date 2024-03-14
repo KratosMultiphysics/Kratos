@@ -238,9 +238,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<double> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetDistances()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<double> distances(number_of_gp);
@@ -265,9 +262,6 @@ std::vector<double> SpatialSearchResultContainer<TObjectType, TSpatialSearchComm
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsLocal()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<bool> is_local(number_of_gp, false);
@@ -294,9 +288,6 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommun
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<int> ranks(number_of_gp, false);
@@ -321,9 +312,6 @@ std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommuni
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsActive()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<bool> is_active(number_of_gp, false);
@@ -357,9 +345,6 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommun
     const double Tolerance
     )
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<bool> is_inside(number_of_gp, false);
@@ -395,9 +380,6 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommun
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<Vector> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultShapeFunctions(const array_1d<double, 3>& rPoint)
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<Vector> shape_functions(number_of_gp);
@@ -438,9 +420,6 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType, TSpatialSearchComm
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIndices()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the indices vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<IndexType> indices(number_of_gp);
@@ -466,9 +445,6 @@ std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchC
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultNodeIndices()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<std::vector<IndexType>> indices(number_of_gp);
@@ -508,9 +484,6 @@ std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType, TS
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultPartitionIndices()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<std::vector<int>> indices(number_of_gp);
@@ -550,9 +523,6 @@ std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatial
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultCoordinates()
 {
-    // Check if the communicator has been created
-    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<std::vector<array_1d<double, 3>>> coordinates(number_of_gp);
