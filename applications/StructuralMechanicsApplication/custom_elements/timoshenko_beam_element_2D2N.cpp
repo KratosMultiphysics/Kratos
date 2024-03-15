@@ -33,29 +33,7 @@ void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInf
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         if (this->UseGeometryIntegrationMethod()) {
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
-                const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
-                switch (integration_order)
-                {
-                case 1:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-                    break;
-                case 2:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-                    break;
-                case 3:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-                    break;
-                case 4:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
-                    break;
-                case 5:
-                    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
-                    break;
-                default:
-                    KRATOS_WARNING("TimoshenkoBeamElement2D2N") << "Integration order "
-                        << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-                    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-                }
+                mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
             } else {
                 mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
