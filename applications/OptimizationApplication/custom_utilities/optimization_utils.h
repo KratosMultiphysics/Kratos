@@ -18,6 +18,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
+#include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 // Application includes
 
@@ -69,6 +71,11 @@ public:
     static void CopySolutionStepVariablesList(
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
+
+    static std::vector<std::vector<const ModelPart*>> GetComponentWiseModelParts(
+        Model& rModel,
+        Parameters Settings,
+        const IndexType NumberOfComponents);
 
     ///@}
 };

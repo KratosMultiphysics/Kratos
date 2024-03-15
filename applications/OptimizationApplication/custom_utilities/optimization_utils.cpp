@@ -137,6 +137,36 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
+std::vector<std::vector<const ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
+    Model& rModel,
+    Parameters Settings,
+    const IndexType NumberOfComponents)
+{
+    KRATOS_TRY
+
+    std::vector<std::vector<const ModelPart*>> result;
+    result.resize(NumberOfComponents);
+
+    for (auto it = Settings.begin(); it != Settings.end(); ++it) {
+        IndexType i_component = 0;
+        for (const auto& r_value : *it) {
+            if (r_value.GetBool()) {
+                result[i_component].push_back(&rModel.GetModelPart(it.name()));
+            }
+            ++i_component;
+        }
+
+        KRATOS_ERROR_IF_NOT(i_component == NumberOfComponents)
+            << "Number of damping component mismatch [ Number of components required = "
+            << NumberOfComponents << ", number of components specified for damping model part "
+            << it.name() << " = " << i_component << " ].\n";
+    }
+
+    return result;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
 template KRATOS_API(OPTIMIZATION_APPLICATION) GeometryData::KratosGeometryType OptimizationUtils::GetContainerEntityGeometryType(const ModelPart::ElementsContainerType&, const DataCommunicator&);
