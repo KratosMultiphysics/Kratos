@@ -161,6 +161,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ApplyNormalLoadTableProcess, ApplyNormalLoadTableProcess::Pointer, Process>
         (m, "ApplyNormalLoadTableProcess")
         .def(py::init<ModelPart&, const Parameters&>());
+
+    //py::class_<ExtrapolateAndSmoothResultsProcess, ExtrapolateAndSmoothResultsProcess::Pointer, Process>
+    //        (m, "ExtrapolateAndSmoothResultsProcess")
+    //        .def(py::init<ModelPart&, const Parameters&>());
+
 }
 
 } // Namespace Kratos::Python.
