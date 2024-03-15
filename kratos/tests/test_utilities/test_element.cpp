@@ -115,15 +115,23 @@ void TestElement::GetDofList(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const auto& r_geom = GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int local_size = num_nodes * dimension;
+    if (rElementalDofList.size() != local_size) {
+        rElementalDofList.resize(local_size);
+    }
 
-    rElementalDofList.resize( 0 );
+    unsigned int local_index = 0;
 
-    rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_X ) );
-    rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_Y ) );
-    if( dimension == 3 )
-        rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_Z ) );
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        if (dimension == 3) {
+            rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+        }
+    }
 }
 
 //************************************************************************************//
@@ -134,16 +142,23 @@ void TestElement::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const auto& r_geom = GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int local_size = num_nodes * dimension;
+    if (rResult.size() != local_size) {
+        rResult.resize(local_size);
+    }
 
-    if ( rResult.size() != dimension )
-        rResult.resize( dimension, false );
+    unsigned int local_index = 0;
 
-    rResult[0] = GetGeometry()[0].GetDof( DISPLACEMENT_X ).EquationId();
-    rResult[1] = GetGeometry()[0].GetDof( DISPLACEMENT_Y ).EquationId();
-    if( dimension == 3)
-        rResult[2] = GetGeometry()[0].GetDof( DISPLACEMENT_Z ).EquationId();
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_Y).EquationId();
+        if (dimension == 3) {
+            rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_Z).EquationId();
+        }
+    }
 }
 
 //*********************************DISPLACEMENT***************************************//
@@ -351,7 +366,7 @@ int TestElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 //************************************************************************************//
 //************************************************************************************//
 
-void TestElement::CalculateOnIntegrationPoints(
+    void TestElement::CalculateOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo

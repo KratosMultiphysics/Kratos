@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//
+//                   Jordi Cotela Dalmau
 //
 
-#if !defined(KRATOS_MPI_COMMUNICATOR_H_INCLUDED )
-#define  KRATOS_MPI_COMMUNICATOR_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -178,6 +177,14 @@ template<> struct SendTraits< Node::DofsContainerType >
     {
         return rValue.size();
     }
+};
+
+class DofSetSyncValueType;
+template<> struct SendTraits< DofSetSyncValueType >
+{
+    using SendType = std::size_t;
+    using BufferType = std::vector<SendType>;
+    constexpr static bool IsFixedSize = false;
 };
 
 template<typename ValueType> struct DirectCopyTransfer
@@ -512,6 +519,48 @@ public:
     }
 };
 
+class DofSetAccess: public MPIInternals::NodalContainerAccess
+{
+public:
+
+    using ValueType = DofSetSyncValueType;
+    using SendType = typename SendTraits<ValueType>::SendType;
+    typedef std::map<std::size_t, std::pair<std::size_t, std::size_t>> MapType;
+
+    DofSetAccess(Communicator::DofSetType& rDofSet):
+        mrDofSet(rDofSet)
+    {
+        mNodeMap = std::map<std::size_t, std::pair<std::size_t, std::size_t>>();
+        std::size_t node_id, last_id = 0;
+        std::size_t i = 0;
+
+        for (auto& r_dof: rDofSet) {
+            node_id = r_dof.Id();
+
+            if (last_id != node_id) {
+                mNodeMap[node_id] = {i, 1};
+            } else {
+                mNodeMap[node_id].second += 1;
+            }
+            last_id = node_id;
+            ++i;
+        }
+    }
+
+    Communicator::DofSetType& GetDofSet() {
+        return mrDofSet;
+    }
+
+    MapType& GetNodeMap() {
+        return mNodeMap;
+    }
+
+private:
+
+    Communicator::DofSetType& mrDofSet;
+    MapType mNodeMap;
+};
+
 template<class TValue> class ElementalDataAccess: public ElementalContainerAccess
 {
     const Variable<TValue>& mrVariable;
@@ -570,7 +619,8 @@ class MPICommunicator : public Communicator
 
 enum class DistributedType {
     Local,
-    Ghost
+    Ghost,
+    Interface
 };
 
 // Auxiliary type for compile-time dispatch of local/ghost mesh access
@@ -588,7 +638,8 @@ enum class OperationType {
     AbsMaxValues,
     OrAccessedFlags,
     AndAccessedFlags,
-    ReplaceAccessedFlags
+    ReplaceAccessedFlags,
+    Combine
 };
 
 // Auxiliary type for compile-time dispatch of the reduction operation in data transfer methods
@@ -782,6 +833,8 @@ public:
 
         return true;
     }
+
+    bool SynchronizeDofSet(DofSetType& rDofSet) override;
 
     bool SynchronizeVariable(Variable<int> const& rThisVariable) override
     {
@@ -1675,6 +1728,11 @@ private:
         return GhostMesh(Color);
     }
 
+    MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Interface>)
+    {
+        return InterfaceMesh(Color);
+    }
+
     template<class TDatabaseAccess>
     std::size_t ReduceValues(
         const typename TDatabaseAccess::SendType* pBuffer,
@@ -1739,7 +1797,7 @@ private:
 
         return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
     }
-    
+
     template<class TDatabaseAccess>
     std::size_t ReduceValues(
         const typename TDatabaseAccess::SendType* pBuffer,
@@ -2241,6 +2299,17 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-} // namespace Kratos.
+template<>
+void MPICommunicator::FillBuffer(
+    std::vector<std::size_t>& rBuffer,
+    MPICommunicator::MeshType& rSourceMesh,
+    MPIInternals::DofSetAccess& rAccess);
 
-#endif // KRATOS_MPI_COMMUNICATOR_H_INCLUDED  defined
+template<>
+void MPICommunicator::UpdateValues(
+    const std::vector<size_t>& rBuffer,
+    MPICommunicator::MeshType& rSourceMesh,
+    MPIInternals::DofSetAccess& rAccess,
+    MPICommunicator::Operation<OperationType::Combine>);
+
+} // namespace Kratos.
