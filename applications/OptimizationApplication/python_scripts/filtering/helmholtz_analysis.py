@@ -51,7 +51,7 @@ class HelmholtzAnalysis(AnalysisStage):
         self._GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS, filter_radius)
 
     def SetBulkFilterRadius(self):
-        if self._GetSolver().GetFilterType() == "bulk_surface_shape":
+        if self._GetSolver().GetFilterType() == "bulk_surface_shape" or self._GetSolver().GetFilterType() == "shape":
             KOA.ImplicitFilterUtils.SetBulkRadiusForShapeFiltering(self._GetComputingModelPart())
 
     def RunSolver(self):
