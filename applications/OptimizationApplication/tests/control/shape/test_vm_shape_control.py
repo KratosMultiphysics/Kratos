@@ -47,6 +47,13 @@ class TestVMShapeControlBase(kratos_unittest.TestCase):
             cls.implicit_shape_control.Initialize()
             cls.explicit_shape_control.Initialize()
 
+        cls.initial_nodal_positions_exp = Kratos.Expression.NodalExpression(cls.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(cls.initial_nodal_positions_exp, Kratos.Configuration.Initial)
+
+    def setUp(self) -> None:
+        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_positions_exp, Kratos.Configuration.Initial)
+        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_positions_exp, Kratos.Configuration.Current)
+
     @classmethod
     def tearDownClass(cls):
         with kratos_unittest.WorkFolderScope(".", __file__):
@@ -108,7 +115,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         explicit_mapped_gradient = self.explicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_mapped_gradient), 28.102970155390018, 10)
 
-    def test_Update(self):
+    def test_UpdateImplicit(self):
         update_field = self.implicit_shape_control.GetEmptyField()
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
@@ -118,13 +125,15 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_control_field), 3.633180424916991, 10)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_shape_field), 10.365298105786017, 10)
 
+    def test_UpdateExplicit(self):
         update_field = self.explicit_shape_control.GetEmptyField()
+        constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
         self.explicit_shape_control.Update(update_field)
         explicit_control_field = self.explicit_shape_control.GetControlField()
         explicit_shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 10.365298105786017, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 22.012908625095587, 10)
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestVMShapeControlSolid(TestVMShapeControlBase):
@@ -184,7 +193,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: solid_physical_gradient})
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 20.108624626448545, 10)
 
-    def test_Update(self):
+    def test_UpdateImplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
 
         update_field = self.explicit_shape_control.GetEmptyField()
@@ -195,13 +204,15 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.355456348076514, 10)
 
+    def test_UpdateImplicit(self):
+        constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
         update_field = self.implicit_shape_control.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
         self.implicit_shape_control.Update(update_field)
         control_field = self.implicit_shape_control.GetControlField()
         shape_field = self.implicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.659810096023579, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.370590586297029, 10)
 
 if __name__ == "__main__":
     kratos_unittest.main()
