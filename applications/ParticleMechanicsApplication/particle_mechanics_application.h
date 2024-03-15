@@ -40,6 +40,7 @@
 #include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.h"
 #include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_navier_slip_friction_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_load_condition.h"
@@ -252,6 +253,8 @@ private:
     const MPMGridAxisymLineLoadCondition2D mMPMGridAxisymLineLoadCondition2D2N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
     const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
+    const MPMGridNavierSlipFrictionCondition<2,2> mMPMGridNavierSlipFrictionCondition2D;
+    const MPMGridNavierSlipFrictionCondition<3,3> mMPMGridNavierSlipFrictionCondition3D;
     // Particle Conditions:
     const MPMParticlePenaltyDirichletCondition mMPMParticlePenaltyDirichletCondition;
     const MPMParticlePointLoadCondition mMPMParticlePointLoadCondition;

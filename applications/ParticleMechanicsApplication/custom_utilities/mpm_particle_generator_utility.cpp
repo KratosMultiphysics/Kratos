@@ -250,14 +250,15 @@ namespace MPMParticleGeneratorUtility
 
                 // For regular conditions: straight copy all conditions
                 if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
-                    if (submodelpart.NodesBegin()->Is(SLIP)){
+                    const bool is_slip_condition = submodelpart.NodesBegin()->Is(SLIP);
+                    const bool has_friction = submodelpart.ConditionsBegin()->Has(FRICTION_COEFFICIENT);
+                    if (is_slip_condition && !has_friction){
                         // Do nothing, this is a slip condition applied directly
-                        // to the background grid nodes.
+                        // to the background grid nodes (without friction).
                         // Check 'apply_mpm_slip_boundary_process.py'
-                    }
-                    else {
-                        rMPMModelPart.CreateSubModelPart(submodelpart_name);
-                        rMPMModelPart.SetConditions(submodelpart.pConditions());
+                    } else {
+                        ModelPart& rMPMSubModelPart = rMPMModelPart.CreateSubModelPart(submodelpart_name);
+                        rMPMSubModelPart.AddConditions(submodelpart.ConditionsBegin(),submodelpart.ConditionsEnd());
                     }
                 }
                  // For boundary conditions: create particle conditions for all the necessary conditions
