@@ -204,7 +204,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.355456348076514, 10)
 
-    def test_UpdateImplicit(self):
+    def test_UpdateExplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
         update_field = self.implicit_shape_control.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
