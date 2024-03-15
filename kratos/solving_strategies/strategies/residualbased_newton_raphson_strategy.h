@@ -600,6 +600,7 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
+        mpConvergenceCriteria->SetEchoLevel(Level);
     }
 
     //*********************************************************************************

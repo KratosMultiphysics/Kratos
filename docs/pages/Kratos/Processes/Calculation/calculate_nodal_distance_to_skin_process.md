@@ -28,7 +28,7 @@ The process is currently optimized for serial execution. However, plans are unde
 
 ## Execution
 
-#### `Execute`
+### `Execute`
 
 `Execute` method is used to execute the Process algorithms.
 
@@ -48,7 +48,7 @@ The core of the distance calculation is performed by the `Bins.SearchNearest(Nod
 
 The selected lambda function is then applied to calculate the distances for all nodes in volumetric model part based on the geometrical objects (elements or conditions) found in skin model part. Before applying the lambda, the code checks whether to use elements or conditions from skin model part for the distance calculation, prioritizing elements if both exist.
 
-##### ⚠️ Warning
+#### ⚠️ Warning
 
 > A warning is issued if both elements and conditions are found in the skin model part, indicating that elements will be considered for the distance calculation.
 

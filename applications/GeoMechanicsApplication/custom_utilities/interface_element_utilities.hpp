@@ -94,49 +94,6 @@ public:
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculateNuElementMatrix(BoundedMatrix<double,3,12>& rNut,
-                                                const Matrix& Ncontainer,
-                                                const unsigned int& GPoint)
-    {
-        //Quadrilateral_interface_2d_4
-        rNut(0,0) = -Ncontainer(GPoint,0); rNut(0,3) = -Ncontainer(GPoint,1);
-        rNut(1,1) = -Ncontainer(GPoint,0); rNut(1,4) = -Ncontainer(GPoint,1);
-
-        rNut(0,6) =  Ncontainer(GPoint,2); rNut(0,9)  = Ncontainer(GPoint,3);
-        rNut(1,7) =  Ncontainer(GPoint,2); rNut(1,10) = Ncontainer(GPoint,3);
-    }
-
-    //----------------------------------------------------------------------------------------
-    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,24>& rNut,
-                                                const Matrix& Ncontainer,
-                                                const unsigned int& GPoint)
-    {
-        //Prism_interface_3d_6
-        rNut(0,0) = -Ncontainer(GPoint,0); rNut(0,4) = -Ncontainer(GPoint,1); rNut(0,8)  = -Ncontainer(GPoint,2);
-        rNut(1,1) = -Ncontainer(GPoint,0); rNut(1,5) = -Ncontainer(GPoint,1); rNut(1,9)  = -Ncontainer(GPoint,2);
-        rNut(2,2) = -Ncontainer(GPoint,0); rNut(2,6) = -Ncontainer(GPoint,1); rNut(2,10) = -Ncontainer(GPoint,2);
-
-        rNut(0,12) = Ncontainer(GPoint,3); rNut(0,16) = Ncontainer(GPoint,4); rNut(0,20)  = Ncontainer(GPoint,5);
-        rNut(1,13) = Ncontainer(GPoint,3); rNut(1,17) = Ncontainer(GPoint,4); rNut(1,21)  = Ncontainer(GPoint,5);
-        rNut(2,14) = Ncontainer(GPoint,3); rNut(2,18) = Ncontainer(GPoint,4); rNut(2,22)  = Ncontainer(GPoint,5);
-    }
-
-    //----------------------------------------------------------------------------------------
-    static inline void CalculateNuElementMatrix(BoundedMatrix<double,4,32>& rNut,
-                                                const Matrix& Ncontainer,
-                                                const unsigned int& GPoint)
-    {
-        //Hexahedral_interface_3d_8
-        rNut(0,0) = -Ncontainer(GPoint,0); rNut(0,4) = -Ncontainer(GPoint,1); rNut(0,8)  = -Ncontainer(GPoint,2); rNut(0,12) = -Ncontainer(GPoint,3);
-        rNut(1,1) = -Ncontainer(GPoint,0); rNut(1,5) = -Ncontainer(GPoint,1); rNut(1,9)  = -Ncontainer(GPoint,2); rNut(1,13) = -Ncontainer(GPoint,3);
-        rNut(2,2) = -Ncontainer(GPoint,0); rNut(2,6) = -Ncontainer(GPoint,1); rNut(2,10) = -Ncontainer(GPoint,2); rNut(2,14) = -Ncontainer(GPoint,3);
-
-        rNut(0,16) = Ncontainer(GPoint,4); rNut(0,20) = Ncontainer(GPoint,5); rNut(0,24)  = Ncontainer(GPoint,6); rNut(0,28) =  Ncontainer(GPoint,7);
-        rNut(1,17) = Ncontainer(GPoint,4); rNut(1,21) = Ncontainer(GPoint,5); rNut(1,25)  = Ncontainer(GPoint,6); rNut(1,29) =  Ncontainer(GPoint,7);
-        rNut(2,18) = Ncontainer(GPoint,4); rNut(2,22) = Ncontainer(GPoint,5); rNut(2,26)  = Ncontainer(GPoint,6); rNut(2,30) =  Ncontainer(GPoint,7);
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
                                                    const double& JointWidth,
                                                    const double& Transversal_Permeability)
@@ -151,7 +108,7 @@ public:
                                                    const double& JointWidth,
                                                    const double& Transversal_Permeability)
     {
-        //Prism_interface_3d_6 & Hexahedral_interface_3d_8
+        //Prism_interface_3d_6 and Hexahedral_interface_3d_8
         rPermeabilityMatrix(0,0) = JointWidth*JointWidth/12.0;
         rPermeabilityMatrix(1,1) = JointWidth*JointWidth/12.0;
         rPermeabilityMatrix(2,2) = Transversal_Permeability;
@@ -168,7 +125,7 @@ public:
     //----------------------------------------------------------------------------------------
     static inline void CalculateVoigtVector(array_1d<double,3>& rVoigtVector)
     {
-        //Prism_interface_3d_6 & Hexahedral_interface_3d_8
+        //Prism_interface_3d_6 and Hexahedral_interface_3d_8
         rVoigtVector[0] = 0.0;
         rVoigtVector[1] = 0.0;
         rVoigtVector[2] = 1.0;
@@ -187,7 +144,7 @@ public:
     static inline void CalculateLinkPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
                                                        const double& JointWidth)
     {
-        //Prism_interface_3d_6 & Hexahedral_interface_3d_8
+        //Prism_interface_3d_6 and Hexahedral_interface_3d_8
         rPermeabilityMatrix(0,0) = JointWidth*JointWidth/12.0;
         rPermeabilityMatrix(1,1) = JointWidth*JointWidth/12.0;
         rPermeabilityMatrix(2,2) = JointWidth*JointWidth/12.0;

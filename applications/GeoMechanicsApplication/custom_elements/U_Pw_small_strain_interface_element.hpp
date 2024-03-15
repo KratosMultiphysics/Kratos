@@ -49,20 +49,27 @@ public:
     UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwSmallStrainInterfaceElement(IndexType                          NewId,
+                                   const NodesArrayType&              ThisNodes,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainInterfaceElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainInterfaceElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   PropertiesType::Pointer            pProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -157,10 +164,10 @@ protected:
 
         double                                                    IntegrationCoefficient;
         double                                                    JointWidth;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes>               PPMatrix;
         BoundedMatrix<double, TDim, TDim>                         DimMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TDim>             UDimMatrix;
         BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;

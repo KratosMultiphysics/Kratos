@@ -51,20 +51,23 @@ public:
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainElement(IndexType                          NewId,
+                          GeometryType::Pointer              pGeometry,
+                          PropertiesType::Pointer            pProperties,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -190,10 +193,10 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes>               PPMatrix;
         Matrix                                                    UVoigtMatrix;
         BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
         array_1d<double, TNumNodes * TDim>                        UVector;
