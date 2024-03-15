@@ -476,7 +476,7 @@ private:
 
     bool IsMoreThanOneElementWithThisEdgeFast(const std::vector<int>&              FaceID,
                                               const std::vector<std::vector<int>>& ELementsOfNodes,
-                                              const std::vector<int>&              ELementsOfNodesSize) const
+                                              const std::vector<int>& ELementsOfNodesSize) const
 
     {
         const int ID_UNDEFINED = -1;

@@ -56,7 +56,7 @@ public:
         const double Time   = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
         const double deltaH = mpTable->GetValue(Time);
 
-        block_for_each(GetModelPart().Nodes(), [&deltaH, &var, this](Node& rNode){
+        block_for_each(GetModelPart().Nodes(), [&deltaH, &var, this](Node& rNode) {
             double xcoord = rNode.Coordinates()[GetHorizontalDirection()];
             xcoord        = std::max(xcoord, GetMinHorizontalCoordinate());
             xcoord        = std::min(xcoord, GetMaxHorizontalCoordinate());
@@ -64,7 +64,7 @@ public:
                             GetFirstReferenceCoordinate()[GetGravityDirection()];
             const double distance = height - rNode.Coordinates()[GetGravityDirection()];
             const double pressure = GetSpecificWeight() * (distance + deltaH);
-            rNode.FastGetSolutionStepValue(var) = std::max(pressure,0.0);
+            rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.0);
         });
 
         KRATOS_CATCH("")

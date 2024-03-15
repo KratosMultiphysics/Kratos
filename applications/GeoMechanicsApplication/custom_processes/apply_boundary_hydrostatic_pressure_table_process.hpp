@@ -53,14 +53,14 @@ public:
     {
         KRATOS_TRY
 
-        const auto& var = KratosComponents<Variable<double>>::Get(GetVariableName());
-        const double Time   = GetModelPart().GetProcessInfo()[TIME]/mTimeUnitConverter;
+        const auto&  var    = KratosComponents<Variable<double>>::Get(GetVariableName());
+        const double Time   = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
         const double deltaH = mpTable->GetValue(Time);
 
-        block_for_each(GetModelPart().Nodes(), [&deltaH, &var, this](Node& rNode){
+        block_for_each(GetModelPart().Nodes(), [&deltaH, &var, this](Node& rNode) {
             const double distance = GetReferenceCoordinate() - rNode.Coordinates()[GetGravityDirection()];
-            const double pressure = GetSpecificWeight() * (distance + deltaH);
-            rNode.FastGetSolutionStepValue(var) = std::max(pressure,0.0);
+            const double pressure               = GetSpecificWeight() * (distance + deltaH);
+            rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.0);
         });
         KRATOS_CATCH("")
     }

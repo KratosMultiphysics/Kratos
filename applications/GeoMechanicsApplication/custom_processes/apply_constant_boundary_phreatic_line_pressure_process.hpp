@@ -129,55 +129,28 @@ public:
     }
 
 protected:
-    [[nodiscard]] const ModelPart& GetModelPart() const
-    {
-        return mrModelPart;
-    }
+    [[nodiscard]] const ModelPart& GetModelPart() const { return mrModelPart; }
 
-    [[nodiscard]] ModelPart& GetModelPart()
-    {
-        return mrModelPart;
-    }
+    [[nodiscard]] ModelPart& GetModelPart() { return mrModelPart; }
 
-    [[nodiscard]] const std::string& GetVariableName() const
-    {
-        return mVariableName;
-    }
+    [[nodiscard]] const std::string& GetVariableName() const { return mVariableName; }
 
-    [[nodiscard]] unsigned int GetGravityDirection() const
-    {
-        return mGravityDirection;
-    }
+    [[nodiscard]] unsigned int GetGravityDirection() const { return mGravityDirection; }
 
-    [[nodiscard]] unsigned int GetHorizontalDirection() const
-    {
-        return mHorizontalDirection;
-    }
+    [[nodiscard]] unsigned int GetHorizontalDirection() const { return mHorizontalDirection; }
 
-    [[nodiscard]] double GetSpecificWeight() const
-    {
-        return mSpecificWeight;
-    }
+    [[nodiscard]] double GetSpecificWeight() const { return mSpecificWeight; }
 
     [[nodiscard]] const Vector3& GetFirstReferenceCoordinate() const
     {
         return mFirstReferenceCoordinate;
     }
 
-    [[nodiscard]] double GetSlope() const
-    {
-        return mSlope;
-    }
+    [[nodiscard]] double GetSlope() const { return mSlope; }
 
-    [[nodiscard]] double GetMinHorizontalCoordinate() const
-    {
-        return mMinHorizontalCoordinate;
-    }
+    [[nodiscard]] double GetMinHorizontalCoordinate() const { return mMinHorizontalCoordinate; }
 
-    [[nodiscard]] double GetMaxHorizontalCoordinate() const
-    {
-        return mMaxHorizontalCoordinate;
-    }
+    [[nodiscard]] double GetMaxHorizontalCoordinate() const { return mMaxHorizontalCoordinate; }
 
 private:
     ModelPart&   mrModelPart;

@@ -83,7 +83,8 @@ public:
             if (mIsFixed) rNode.Fix(var);
             else if (mIsFixedProvided) rNode.Free(var);
 
-            const double pressure = GetSpecificWeight() * (GetReferenceCoordinate() - rNode.Coordinates()[GetGravityDirection()]);
+            const double pressure               = GetSpecificWeight() * (GetReferenceCoordinate() -
+                                                           rNode.Coordinates()[GetGravityDirection()]);
             rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.);
         });
 
@@ -96,30 +97,15 @@ public:
         return "ApplyConstantBoundaryHydrostaticPressureProcess";
     }
 
-    ModelPart& GetModelPart()
-    {
-        return mrModelPart;
-    }
+    ModelPart& GetModelPart() { return mrModelPart; }
 
-    [[nodiscard]] const std::string& GetVariableName() const
-    {
-        return mVariableName;
-    }
+    [[nodiscard]] const std::string& GetVariableName() const { return mVariableName; }
 
-    [[nodiscard]] unsigned int GetGravityDirection() const
-    {
-        return mGravityDirection;
-    }
+    [[nodiscard]] unsigned int GetGravityDirection() const { return mGravityDirection; }
 
-    [[nodiscard]] double GetReferenceCoordinate() const
-    {
-        return mReferenceCoordinate;
-    }
+    [[nodiscard]] double GetReferenceCoordinate() const { return mReferenceCoordinate; }
 
-    [[nodiscard]] double GetSpecificWeight() const
-    {
-        return mSpecificWeight;
-    }
+    [[nodiscard]] double GetSpecificWeight() const { return mSpecificWeight; }
 
 private:
     ModelPart&   mrModelPart;
