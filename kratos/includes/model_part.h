@@ -354,14 +354,14 @@ public:
     /** Inserts a list of pointers to nodes
      */
     template<class TIteratorType >
-    void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
+    void AddNodes(TIteratorType iNodesBegin,  TIteratorType iNodesEnd, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
         ModelPart::NodesContainerType  aux;
         ModelPart::NodesContainerType  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
 
-        for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
+        for(TIteratorType it = iNodesBegin; it!=iNodesEnd; it++)
         {
             auto it_found = root_model_part->Nodes().find(it->Id());
             if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
@@ -393,6 +393,29 @@ public:
 
             current_part->Nodes().Unique();
 
+            current_part = &(current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    template<class TIteratorType >
+    void AddNodesFromOrderedContainer(TIteratorType iNodesBegin,  TIteratorType iNodesEnd)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType aux;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = iNodesBegin; it!=iNodesEnd; it++) {
+            aux.push_back( *(it.base()) );
+        }
+        // Add the nodes to the root modelpart
+        root_model_part->Nodes() = JoinOrderedNodesContainerType(root_model_part->Nodes().begin(), root_model_part->Nodes().end(), aux.begin(), aux.end());
+
+        // Add to all of the leaves
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart()) {
+            current_part->Nodes() = JoinOrderedNodesContainerType(current_part->Nodes().begin(), current_part->Nodes().end(), aux.begin(), aux.end());
             current_part = &(current_part->GetParentModelPart());
         }
 
@@ -2009,6 +2032,7 @@ private:
     void SetBufferSizeSubModelParts(IndexType NewBufferSize);
 
 
+
     void SetParentModelPart(ModelPart* pParentModelPart)
     {
         mpParentModelPart = pParentModelPart;
@@ -2021,6 +2045,50 @@ private:
         //{
         //	if(Options->Is())
         //}
+    }
+
+    template<class TIteratorType >
+    NodesContainerType JoinOrderedNodesContainerType(TIteratorType iC1Begin,  TIteratorType iC1End, TIteratorType iC2Begin,  TIteratorType iC2End)
+    {
+        std::size_t c1length = std::distance(iC1Begin,iC1End);
+        std::size_t c2length = std::distance(iC2Begin,iC2End);
+        TIteratorType blong, elong, bshort, eshort;
+        NodesContainerType aux;
+        aux.reserve(c1length + c2length);
+        
+        // We order c1 and c2 to long and short
+        if(c1length>c2length){
+            blong = iC1Begin; elong = iC1End;
+            bshort = iC2Begin; eshort = iC2End;
+        } else {
+            blong = iC2Begin; elong = iC2End;
+            bshort = iC1Begin; eshort = iC1End;
+        }
+
+        // If short is empty we return long. If both empty it returns empty aux
+        if(c2length == 0 || c1length == 0){
+            for(TIteratorType it1=blong; it1!=elong; it1++){
+                aux.push_back(*(it1.base()) );
+            }
+            return aux;
+        }
+        TIteratorType it2 = blong;
+        for(TIteratorType it1=bshort; it1!=eshort; it1++) {
+            while(it2!=elong && it2->Id()<it1->Id()) {
+                aux.push_back(*(it2.base()));
+                it2++;
+            }
+            aux.push_back(*(it1.base()) );
+            if(it2!=elong && (it1->Id() == it2->Id())) { //If both are the same, then we need to skip
+                it2++;
+            }
+        }
+        while(it2 != elong) {
+            aux.push_back(*(it2.base()));
+            it2++;
+        }
+
+        return aux;
     }
 
     /**
