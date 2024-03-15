@@ -23,6 +23,7 @@
 #include "custom_python/add_co_sim_io_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 namespace Kratos::Python {
 
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosCoSimulationApplication,m)
     AddCoSimIOToPython(m);
     AddCustomIOToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_DISPLACEMENT );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_ROOT_POINT_DISPLACEMENT );
