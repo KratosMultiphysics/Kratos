@@ -14,7 +14,6 @@
 
 // System includes
 #include <vector>
-#include <unordered_map>
 #include <type_traits>
 
 // Project includes
@@ -77,15 +76,9 @@ private:
     ///@{
 
     template<class TContainerType>
-    static void FillEntityIdEntityPointMap(
-        std::unordered_map<IndexType, typename EntityPointType<TContainerType>::Pointer>& rMap,
-        const TContainerType& rContainer);
-
-    template<class TContainerType>
     static void ComputeDampingCoefficientsBasedOnNearestEntityForComponent(
         LiteralFlatExpression<double>& rOutputExpression,
         const ContainerExpression<TContainerType>& rDampingRadiusExpression,
-        const std::unordered_map<IndexType, typename EntityPointType<TContainerType>::Pointer>& rFilterEntityIdEntityPointMap,
         const std::vector<const ModelPart*>& rDampedModelParts,
         const FilterFunction& rFilterFunction,
         const IndexType BucketSize,
