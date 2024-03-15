@@ -102,7 +102,7 @@ class VertexMorphingShapeControl(Control):
 
     def Finalize(self) -> None:
         self.filter.Finalize()
-        if self.use_mesh_motion_solver:
+        if not self._mesh_moving_analysis is None:
             self._mesh_moving_analysis.Finalize()
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
