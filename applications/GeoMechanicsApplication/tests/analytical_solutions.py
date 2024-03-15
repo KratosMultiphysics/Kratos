@@ -1,4 +1,4 @@
-def calculate_pore_pressure_OneD_consolidation(y_coord, height, t_v):
+def calculate_pore_pressure_1d_consolidation(y_coord, height, t_v):
     """
     Calculates the analytical solution for water pressure in 1d consolidation on linear elastic soil [@@ref@@]
 
@@ -25,7 +25,7 @@ def calculate_pore_pressure_OneD_consolidation(y_coord, height, t_v):
 
     return 4.0 / pi * rel_p
     
-def calculate_degree_of_OneD_consolidation(t_v):
+def calculate_degree_of_1d_consolidation(t_v):
     """
     Calculates the analytical solution for degree of consolidation in 1d consolidation on linear elastic soil [@@ref@@]
 
