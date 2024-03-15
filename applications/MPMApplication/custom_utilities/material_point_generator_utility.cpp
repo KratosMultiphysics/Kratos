@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "integration/integration_point_utilities.h"
 #include "utilities/quadrature_points_utility.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos::MaterialPointGeneratorUtility
@@ -239,17 +240,9 @@ namespace Kratos::MaterialPointGeneratorUtility
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
-        // initialize NODAL_AREA for SLIP nodes
-        // [ SetValue is used since NODAL_AREA may not be incl. as solution step variable for conforming conditions ]
-        #pragma omp parallel for
-        for(int iter = 0; iter < static_cast<int>(rBackgroundGridModelPart.Nodes().size()); ++iter)
-        {
-            auto i = rBackgroundGridModelPart.NodesBegin() + iter;
-
-            if ((i)->Is(SLIP)){
-                (i)->SetValue(NODAL_AREA, 0.0);
-            }
-        }
+        // initialize NODAL_AREA for SLIP nodes on NonHistorialVariable
+        // [ since NODAL_AREA may not be incl. as solution step variable for conforming conditions ]
+        VariableUtils().SetNonHistoricalVariable<double>(NODAL_AREA, 0.0, rBackgroundGridModelPart.Nodes(), SLIP);
 
 
         // Loop over the submodelpart of rBackgroundGridModelPart
@@ -269,9 +262,8 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // Compute NODAL_AREA and perform checks for conforming friction
                         if(rBackgroundGridModelPart.GetProcessInfo()[FRICTION_ACTIVE]) {
-                            for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
-                                 i != submodelpart.ConditionsEnd(); i++) {
-                                const Geometry<Node>& r_geometry = i->GetGeometry(); // current condition's geometry
+                            for (auto& r_cond : submodelpart.Conditions()) {
+                                const Geometry<Node>& r_geometry = r_cond.GetGeometry(); // current condition's geometry
 
                                 const double condition_area = r_geometry.DomainSize();
                                 const auto number_of_nodes = static_cast<double>(r_geometry.PointsNumber());
@@ -306,18 +298,17 @@ namespace Kratos::MaterialPointGeneratorUtility
                     // NOTE: To create material point Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
                     rMPMModelPart.CreateSubModelPart(submodelpart_name);
-                    for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
-                            i != submodelpart.ConditionsEnd(); i++)
+                    for (auto& r_cond : submodelpart.Conditions())
                     {
-                        Properties::Pointer properties = i->pGetProperties();
+                        Properties::Pointer properties = r_cond.pGetProperties();
                         // Flag whether condition is Neumann or Dirichlet
-                        const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
-                        const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
+                        const bool is_neumann_condition = r_cond.GetValue(MPC_IS_NEUMANN);
+                        const int boundary_condition_type = r_cond.GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
                         // Check number of material points per condition to be created
                         unsigned int material_points_per_condition = 0; // Default zero
-                        if (i->Has( MATERIAL_POINTS_PER_CONDITION )){
-                            material_points_per_condition = i->GetValue(MATERIAL_POINTS_PER_CONDITION);
+                        if (r_cond.Has( MATERIAL_POINTS_PER_CONDITION )){
+                            material_points_per_condition = r_cond.GetValue(MATERIAL_POINTS_PER_CONDITION);
                         }
                         else{
                             KRATOS_WARNING("MaterialPointGeneratorUtility") << "MATERIAL_POINTS_PER_CONDITION is not specified. Only one material point is assumed." << std::endl;
@@ -325,16 +316,16 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // Get condition variables:
                         // Normal vector
-                        if (i->Has(NORMAL)) mpc_normal = i->GetValue(NORMAL);
+                        if (r_cond.Has(NORMAL)) mpc_normal = r_cond.GetValue(NORMAL);
                         MPMMathUtilities<double>::Normalize(mpc_normal);
 
                         // Get shape_function_values from defined material_points_per_condition
-                        const Geometry< Node >& r_geometry = i->GetGeometry(); // current condition's geometry
+                        const Geometry< Node >& r_geometry = r_cond.GetGeometry(); // current condition's geometry
 
                         // Check number of material points per condition to be created
                         bool is_equal_int_volumes = false; // default GAUSS
-                        if (i->Has( IS_EQUAL_DISTRIBUTED )){
-                            is_equal_int_volumes = i->GetValue(IS_EQUAL_DISTRIBUTED);
+                        if (r_cond.Has( IS_EQUAL_DISTRIBUTED )){
+                            is_equal_int_volumes = r_cond.GetValue(IS_EQUAL_DISTRIBUTED);
                         }
 
                         std::vector<IntegrationPoint<3>> integration_points;
@@ -374,19 +365,19 @@ namespace Kratos::MaterialPointGeneratorUtility
                         }
 
                         // Check condition variables
-                        if (i->Has(DISPLACEMENT))
-                            mpc_imposed_displacement[0] = i->GetValue(DISPLACEMENT);
-                        if (i->Has(VELOCITY))
-                            mpc_imposed_velocity[0] = i->GetValue(VELOCITY);
-                        if (i->Has(ACCELERATION))
-                            mpc_imposed_acceleration[0] = i->GetValue(ACCELERATION);
-                        if (i->Has(PENALTY_FACTOR))
-                            mpc_penalty_factor[0] = i->GetValue(PENALTY_FACTOR);
+                        if (r_cond.Has(DISPLACEMENT))
+                            mpc_imposed_displacement[0] = r_cond.GetValue(DISPLACEMENT);
+                        if (r_cond.Has(VELOCITY))
+                            mpc_imposed_velocity[0] = r_cond.GetValue(VELOCITY);
+                        if (r_cond.Has(ACCELERATION))
+                            mpc_imposed_acceleration[0] = r_cond.GetValue(ACCELERATION);
+                        if (r_cond.Has(PENALTY_FACTOR))
+                            mpc_penalty_factor[0] = r_cond.GetValue(PENALTY_FACTOR);
 
-                        const bool is_slip = i->Is(SLIP);
-                        const bool is_contact = i->Is(CONTACT);
-                        const bool is_interface = i->Is(INTERFACE);
-                        const bool flip_normal_direction = i->Is(MODIFIED);
+                        const bool is_slip = r_cond.Is(SLIP);
+                        const bool is_contact = r_cond.Is(CONTACT);
+                        const bool is_interface = r_cond.Is(INTERFACE);
+                        const bool flip_normal_direction = r_cond.Is(MODIFIED);
 
                         std::string condition_type_name;
 
@@ -395,8 +386,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                             condition_type_name = "MPMParticlePenaltyDirichletCondition";
                         }
                         else{
-                            if( i->Has( POINT_LOAD ) ){
-                                point_load[0] = i->GetValue( POINT_LOAD );
+                            if(r_cond.Has( POINT_LOAD ) ){
+                                point_load[0] = r_cond.GetValue( POINT_LOAD );
                                 condition_type_name = "MPMParticlePointLoadCondition";
                             }
                             else{
@@ -554,17 +545,15 @@ namespace Kratos::MaterialPointGeneratorUtility
         }
 
         // Scale TANGENTIAL_PENALTY_FACTOR by NODAL_AREA (in effect incorporating the integration weight)
-        #pragma omp parallel for
-        for(int iter = 0; iter < static_cast<int>(rBackgroundGridModelPart.Nodes().size()); ++iter)
+        block_for_each(rBackgroundGridModelPart.Nodes(), [&](Node& rNode)
         {
-            auto i = rBackgroundGridModelPart.NodesBegin() + iter;
             double modified_factor;
 
-            if ((i)->Is(SLIP)){
-                modified_factor = (i)->GetValue(NODAL_AREA) * (i)->GetValue(TANGENTIAL_PENALTY_FACTOR);
-                (i)->SetValue(TANGENTIAL_PENALTY_FACTOR, modified_factor);
+            if (rNode.Is(SLIP)){
+                modified_factor = rNode.GetValue(NODAL_AREA) * rNode.GetValue(TANGENTIAL_PENALTY_FACTOR);
+                rNode.SetValue(TANGENTIAL_PENALTY_FACTOR, modified_factor);
             }
-        }
+        });
 
     }
 

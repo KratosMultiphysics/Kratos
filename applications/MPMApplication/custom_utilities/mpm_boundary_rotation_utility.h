@@ -24,6 +24,7 @@
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 #include "utilities/coordinate_transformation_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -432,7 +433,7 @@ public:
 		}
 	}
 
-	void CalculateReactionForces(ModelPart& rModelPart)
+	void CalculateReactionForces(ModelPart& rModelPart) const
 	{
 		TLocalVectorType global_reaction(this->GetDomainSize());
 		TLocalVectorType local_reaction(this->GetDomainSize());
@@ -527,22 +528,21 @@ public:
 
 
     // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the friction force in REACTION
-    void ComputeFrictionAndResetFlags(ModelPart& rModelPart){
-        #pragma omp parallel for
-        for (int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter) {
-            auto pNode = rModelPart.NodesBegin() + iter;
+    void ComputeFrictionAndResetFlags(ModelPart& rModelPart) const {
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
+        {
 
-            int& r_friction_state = pNode->FastGetSolutionStepValue(FRICTION_STATE, 0);
-            const double mu = pNode->GetValue(FRICTION_COEFFICIENT);
+            int& r_friction_state = rNode.FastGetSolutionStepValue(FRICTION_STATE, 0);
+            const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
 
-            array_1d<double, 3>& r_friction_force = pNode->FastGetSolutionStepValue(REACTION);
+            array_1d<double, 3>& r_friction_force = rNode.FastGetSolutionStepValue(REACTION);
 
             // Limit tangential forces for friction
             if (mu > 0) {
                 // obtain normal and tangent forces assoc. with node at the desired timestep
-                double normal_force = pNode->FastGetSolutionStepValue(STICK_FORCE_X, 1);
-                const double tangent_force1 = pNode->FastGetSolutionStepValue(STICK_FORCE_Y, 0);
-                const double tangent_force2 = pNode->FastGetSolutionStepValue(STICK_FORCE_Z, 0);
+                double normal_force = rNode.FastGetSolutionStepValue(STICK_FORCE_X, 1);
+                const double tangent_force1 = rNode.FastGetSolutionStepValue(STICK_FORCE_Y, 0);
+                const double tangent_force2 = rNode.FastGetSolutionStepValue(STICK_FORCE_Z, 0);
 
                 // forces unmodified in normal direction
                 r_friction_force[0] = normal_force;
@@ -557,7 +557,7 @@ public:
 
                 // special treatment for initial loop
                 if (!rModelPart.GetProcessInfo()[INITIAL_LOOP_COMPLETE]) {
-                    if (pNode->GetValue(HAS_INITIAL_MOMENTUM)) {
+                    if (rNode.GetValue(HAS_INITIAL_MOMENTUM)) {
                         r_friction_state = SLIDING;
                     }
                     else {
@@ -585,16 +585,16 @@ public:
                 }
 
                 // reset friction-related flags/variables
-                pNode->SetValue(FRICTION_ASSIGNED, false);
-                pNode->FastGetSolutionStepValue(STICK_FORCE).clear();
+                rNode.SetValue(FRICTION_ASSIGNED, false);
+                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
             }
-        }
+        });
     }
 
 	///@}
 	///@name Access
 	///@{
-	int GetSlidingState(){
+	int GetSlidingState() const{
         return SLIDING;
     }
 

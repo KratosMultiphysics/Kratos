@@ -29,6 +29,7 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -168,27 +169,22 @@ public:
         mRotationTool.RecoverDisplacements(rModelPart);
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-        const auto it_node_begin = rModelPart.Nodes().begin();
-
-        #pragma omp parallel for
-        for(int i = 0;  i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
-
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+        {
             // In MPM the delta_displacement is the current displacement as the previous_displacement is always reset
-            const array_1d<double, 3 > & r_delta_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & r_delta_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
             if (mIsDynamic){
                 BossakBaseType::UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
                 BossakBaseType::UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
             }
-        }
+        });
 
         KRATOS_CATCH( "" )
     }
@@ -211,55 +207,53 @@ public:
     {
         KRATOS_TRY;
 
-		#pragma omp parallel for
-		for(int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter)
+		block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
-			auto i = rModelPart.NodesBegin() + iter;
-            const array_1d<double, 3 > & r_previous_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-			const array_1d<double, 3 > & r_previous_velocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3 > & r_previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3 > & r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+			const array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION, 1);
 
-            array_1d<double, 3 > & r_current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & r_current_displacement  = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
             // Displacement prediction for implicit MPM
-            if (!(i->pGetDof(DISPLACEMENT_X)->IsFixed()))
+            if (!(rNode.pGetDof(DISPLACEMENT_X)->IsFixed()))
                 r_current_displacement[0] = 0.0;
             else
                 r_current_displacement[0]  = r_previous_displacement[0];
 
-            if (!(i->pGetDof(DISPLACEMENT_Y)->IsFixed()))
+            if (!(rNode.pGetDof(DISPLACEMENT_Y)->IsFixed()))
                 r_current_displacement[1] = 0.0;
             else
                 r_current_displacement[1]  = r_previous_displacement[1];
 
-            if (i->HasDofFor(DISPLACEMENT_Z))
+            if (rNode.HasDofFor(DISPLACEMENT_Z))
             {
-                if (!(i->pGetDof(DISPLACEMENT_Z)->IsFixed()))
+                if (!(rNode.pGetDof(DISPLACEMENT_Z)->IsFixed()))
                     r_current_displacement[2] = 0.0;
                 else
                     r_current_displacement[2]  = r_previous_displacement[2];
             }
 
             // Pressure prediction for implicit MPM
-            if (i->HasDofFor(PRESSURE))
+            if (rNode.HasDofFor(PRESSURE))
             {
-                double& r_current_pressure        = (i)->FastGetSolutionStepValue(PRESSURE);
-                const double& r_previous_pressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+                double& r_current_pressure        = rNode.FastGetSolutionStepValue(PRESSURE);
+                const double& r_previous_pressure = rNode.FastGetSolutionStepValue(PRESSURE, 1);
 
-                if (!(i->pGetDof(PRESSURE))->IsFixed())
+                if (!(rNode.pGetDof(PRESSURE))->IsFixed())
                     r_current_pressure = r_previous_pressure;
             }
 
             // Updating time derivatives
-            array_1d<double, 3 > & current_velocity       = (i)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & current_acceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3 > & current_velocity       = rNode.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 > & current_acceleration   = rNode.FastGetSolutionStepValue(ACCELERATION);
 
             if (mIsDynamic){
                 BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
                 BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
             }
 
-		}
+		});
 
         KRATOS_CATCH( "" );
     }
@@ -305,22 +299,19 @@ public:
         KRATOS_TRY
 
         // Loop over the grid nodes performed to clear all nodal information
-		#pragma omp parallel for
-		for(int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter)
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
-			auto i = mGridModelPart.NodesBegin() + iter;
-
             // Variables to be cleaned
-            double & r_nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-            array_1d<double, 3 > & r_nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-            array_1d<double, 3 > & r_nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+            double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
+            array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+            array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
 
-            array_1d<double, 3 > & r_nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & r_nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
-            array_1d<double, 3 > & r_nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+            array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+            array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
 
-            double & r_nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
-            double & r_nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
+            double & r_nodal_old_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
+            double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE);
 
             // Clear
             r_nodal_mass = 0.0;
@@ -334,52 +325,45 @@ public:
             r_nodal_pressure = 0.0;
 
             // Other additional variables
-            if ((i)->SolutionStepsDataHas(NODAL_AREA)){
-                double & r_nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
+            if (rNode.SolutionStepsDataHas(NODAL_AREA)){
+                double & r_nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
                 r_nodal_area          = 0.0;
             }
-            if(i->SolutionStepsDataHas(NODAL_MPRESSURE)) {
-                double & r_nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+            if(rNode.SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                double & r_nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
                 r_nodal_mpressure = 0.0;
             }
 
             // friction-related
-            if(i->SolutionStepsDataHas(STICK_FORCE)) {
-                array_1d<double, 3 > & r_stick_force = (i)->FastGetSolutionStepValue(STICK_FORCE);
-                r_stick_force.clear();
+            if(rModelPart.GetProcessInfo()[FRICTION_ACTIVE]){
+                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
+                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
             }
-
-            if(i->SolutionStepsDataHas(FRICTION_STATE)) {
-                int & r_friction_state = (i)->FastGetSolutionStepValue(FRICTION_STATE);
-                r_friction_state = mRotationTool.GetSlidingState();
-            }
-		}
+		});
 
         // Extrapolate from Material Point Elements and Conditions
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
         // Assign nodal variables after extrapolation
-        #pragma omp parallel for
-        for(int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter)
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
         {
-            auto i = mGridModelPart.NodesBegin() + iter;
-            const double & r_nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
 
             if (r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
-                const array_1d<double, 3 > & r_nodal_momentum   = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-                const array_1d<double, 3 > & r_nodal_inertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
+                const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+                const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
 
-                array_1d<double, 3 > & r_nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
-                array_1d<double, 3 > & r_nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-                double & r_nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
+                array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+                array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
+                double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
 
                 double delta_nodal_pressure = 0.0;
 
                 // For mixed formulation
-                if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
+                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
                 {
-                    double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
+                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
                     delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
                 }
 
@@ -394,10 +378,10 @@ public:
                 // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
                 // an initial friction state of SLIDING instead of STICK
                 if(mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon()){
-                    (i)->SetValue(HAS_INITIAL_MOMENTUM, true);
+                    rNode.SetValue(HAS_INITIAL_MOMENTUM, true);
                 }
             }
-        }
+        });
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
@@ -428,18 +412,13 @@ public:
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
-
-        #pragma omp parallel for
-        for(int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
-            auto i = mGridModelPart.NodesBegin() + iter;
-
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+        {
             // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-            if( (i)->GetValue(IS_STRUCTURE) <= 1.000001 &&
-                (i)->GetValue(FRICTION_COEFFICIENT) > 0        ){
-                mRotationTool.RotateVector((i)->FastGetSolutionStepValue(REACTION), *i, true);
+            if( !mRotationTool.IsPenalty(rNode) && rNode.GetValue(FRICTION_COEFFICIENT) > 0 ){
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
             }
-        }
-
+        });
     }
 
     /**
@@ -604,13 +583,11 @@ protected:
 
     void ClearReactionOnPenaltyBoundary() const
     {
-        #pragma omp parallel for
-        for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
-            auto i = mGridModelPart.NodesBegin() + iter;
-
-            if( (i)->GetValue(IS_STRUCTURE) > 1.000001 )
-                (i)->FastGetSolutionStepValue(REACTION).clear();
-        }
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+        {
+            if( mRotationTool.IsPenalty(rNode) )
+                rNode.FastGetSolutionStepValue(REACTION).clear();
+        });
     }
 
 }; /* Class MPMResidualBasedBossakScheme */
