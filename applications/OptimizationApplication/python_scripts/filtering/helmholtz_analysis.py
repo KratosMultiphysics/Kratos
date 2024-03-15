@@ -39,6 +39,9 @@ class HelmholtzAnalysis(AnalysisStage):
     #### Public user interface functions ####
     def Initialize(self):
         super().Initialize()
+        self.InitializeFilterModelPart()
+
+    def InitializeFilterModelPart(self):
         self._SetSolverMode()
         self.SetFilterRadius(self._GetSolver().GetFilterRadius())
         self.SetBulkFilterRadius()
