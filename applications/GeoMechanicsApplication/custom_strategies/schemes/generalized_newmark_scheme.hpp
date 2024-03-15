@@ -159,6 +159,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
+            // Save old values
             const std::vector<std::string> components = {"X", "Y", "Z"};
             std::vector<double>            current_values;
             for (const auto& component : components) {
@@ -176,6 +177,7 @@ protected:
                      rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1)) /
                 (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
 
+            // Restore values if component was fixed
             int counter = 0;
             for (const auto& component : components) {
                 const auto& component_variable = this->GetComponentFromVectorVariable(
