@@ -33,6 +33,11 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
         KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Z, self.GetOriginRootModelPart())
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: DOFs ADDED.")
 
+    def AssignSolutionToVariable(self, variable) -> None:
+        nodal_expression = KM.Expression.NodalExpression(self.GetComputingModelPart())
+        KM.Expression.VariableExpressionIO.Read(nodal_expression, KOA.HELMHOLTZ_VECTOR, True)
+        KM.Expression.VariableExpressionIO.Write(nodal_expression, variable, True)
+
     def Initialize(self) -> None:
         if self.__using_bulk_surface_shape_filtering:
             tmoc = KM.TetrahedralMeshOrientationCheck
