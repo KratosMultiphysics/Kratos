@@ -52,19 +52,20 @@ public:
     {
         KRATOS_TRY
 
-        const auto&  var    = KratosComponents<Variable<double>>::Get(GetVariableName());
-        const double Time   = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
-        const double deltaH = mpTable->GetValue(Time);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(GetVariableName());
+        const auto  time       = GetModelPart().GetProcessInfo()[TIME] / mTimeUnitConverter;
+        const auto  delta_h    = mpTable->GetValue(time);
 
-        block_for_each(GetModelPart().Nodes(), [&deltaH, &var, this](Node& rNode) {
-            double xcoord = rNode.Coordinates()[GetHorizontalDirection()];
-            xcoord        = std::max(xcoord, GetMinHorizontalCoordinate());
-            xcoord        = std::min(xcoord, GetMaxHorizontalCoordinate());
-            double height = GetSlope() * (xcoord - GetFirstReferenceCoordinate()[GetHorizontalDirection()]) +
-                            GetFirstReferenceCoordinate()[GetGravityDirection()];
-            const double distance = height - rNode.Coordinates()[GetGravityDirection()];
-            const double pressure = GetSpecificWeight() * (distance + deltaH);
-            rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.0);
+        block_for_each(GetModelPart().Nodes(), [&delta_h, &r_variable, this](Node& rNode) {
+            auto xcoord = rNode.Coordinates()[GetHorizontalDirection()];
+            xcoord      = std::max(xcoord, GetMinHorizontalCoordinate());
+            xcoord      = std::min(xcoord, GetMaxHorizontalCoordinate());
+            const auto height =
+                GetSlope() * (xcoord - GetFirstReferenceCoordinate()[GetHorizontalDirection()]) +
+                GetFirstReferenceCoordinate()[GetGravityDirection()];
+            const auto distance = height - rNode.Coordinates()[GetGravityDirection()];
+            const auto pressure = GetSpecificWeight() * (distance + delta_h);
+            rNode.FastGetSolutionStepValue(r_variable) = std::max(pressure, 0.0);
         });
 
         KRATOS_CATCH("")

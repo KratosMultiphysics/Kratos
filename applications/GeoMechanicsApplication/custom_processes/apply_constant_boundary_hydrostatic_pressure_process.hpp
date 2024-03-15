@@ -77,15 +77,15 @@ public:
     {
         KRATOS_TRY
 
-        const auto& var = KratosComponents<Variable<double>>::Get(GetVariableName());
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(GetVariableName());
 
-        block_for_each(GetModelPart().Nodes(), [&var, this](Node& rNode) {
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
+        block_for_each(GetModelPart().Nodes(), [&r_variable, this](Node& rNode) {
+            if (mIsFixed) rNode.Fix(r_variable);
+            else if (mIsFixedProvided) rNode.Free(r_variable);
 
-            const double pressure               = GetSpecificWeight() * (GetReferenceCoordinate() -
-                                                           rNode.Coordinates()[GetGravityDirection()]);
-            rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.);
+            const auto pressure = GetSpecificWeight() * (GetReferenceCoordinate() -
+                                                         rNode.Coordinates()[GetGravityDirection()]);
+            rNode.FastGetSolutionStepValue(r_variable) = std::max(pressure, 0.);
         });
 
         KRATOS_CATCH("")

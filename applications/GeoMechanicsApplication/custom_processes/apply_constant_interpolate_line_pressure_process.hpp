@@ -192,12 +192,12 @@ private:
     }
 
     void InterpolateBoundaryPressureWithOneContainer(const Node&               rNode,
-                                                     const std::vector<Node*>& BoundaryNodes,
-                                                     double&                   pressure,
-                                                     double&                   coordinate) const
+                                                     const std::vector<Node*>& rBoundaryNodes,
+                                                     double&                   rPressure,
+                                                     double&                   rCoordinate) const
     {
         std::vector< Node*> FoundNodes;
-        FindTwoClosestNodeOnBoundaryNodes(rNode, BoundaryNodes, FoundNodes);
+        FindTwoClosestNodeOnBoundaryNodes(rNode, rBoundaryNodes, FoundNodes);
 
         const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
@@ -211,75 +211,90 @@ private:
 
         // calculate pressure
         if (std::abs(CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) > TINY) {
-            const double slopeP = (pressureRight - pressureLeft) / (CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]);
-            pressure = slopeP * (rNode.Coordinates()[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) + pressureLeft;
+            const auto slope_p =
+                (pressureRight - pressureLeft) /
+                (CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]);
+            rPressure = slope_p * (rNode.Coordinates()[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) +
+                        pressureLeft;
 
-            const double slopeY = (CoordinatesRight[mGravityDirection] - CoordinatesLeft[mGravityDirection]) / (CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]);
-            coordinate = slopeY * (rNode.Coordinates()[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) + CoordinatesLeft[mGravityDirection];
+            const auto slope_y =
+                (CoordinatesRight[mGravityDirection] - CoordinatesLeft[mGravityDirection]) /
+                (CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]);
+            rCoordinate = slope_y * (rNode.Coordinates()[mHorizontalDirection] -
+                                     CoordinatesLeft[mHorizontalDirection]) +
+                          CoordinatesLeft[mGravityDirection];
         } else {
-            pressure   = pressureLeft;
-            coordinate = CoordinatesLeft[mGravityDirection];
+            rPressure   = pressureLeft;
+            rCoordinate = CoordinatesLeft[mGravityDirection];
         }
     }
 
     void InterpolateBoundaryPressure(const Node& rNode,
-                                     const Node* LeftNode,
-                                     const Node* RightNode,
-                                     double&     pressure,
-                                     double&     coordinate) const
+                                     const Node* pLeftNode,
+                                     const Node* pRightNode,
+                                     double&     rPressure,
+                                     double&     rCoordinate) const
     {
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        const double &pressureLeft = LeftNode->FastGetSolutionStepValue(var);
-        Vector3 CoordinatesLeft;
-        noalias(CoordinatesLeft) = LeftNode->Coordinates();
+        const auto pressure_left = pLeftNode->FastGetSolutionStepValue(r_variable);
+        Vector3    coordinates_left;
+        noalias(coordinates_left) = pLeftNode->Coordinates();
 
-        const double &pressureRight = RightNode->FastGetSolutionStepValue(var);
-        Vector3 CoordinatesRight;
-        noalias(CoordinatesRight) = RightNode->Coordinates();
+        const auto pressure_right = pRightNode->FastGetSolutionStepValue(r_variable);
+        Vector3    coordinates_right;
+        noalias(coordinates_right) = pRightNode->Coordinates();
 
         // calculate pressure
-        if (std::abs(CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) > TINY) {
-            const double slopeP = (pressureRight - pressureLeft) / (CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]);
-            pressure = slopeP * (rNode.Coordinates()[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) + pressureLeft;
+        if (std::abs(coordinates_right[mHorizontalDirection] - coordinates_left[mHorizontalDirection]) > TINY) {
+            const auto slope_p =
+                (pressure_right - pressure_left) /
+                (coordinates_right[mHorizontalDirection] - coordinates_left[mHorizontalDirection]);
+            rPressure = slope_p * (rNode.Coordinates()[mHorizontalDirection] -
+                                   coordinates_left[mHorizontalDirection]) +
+                        pressure_left;
 
-            const double slopeY = (CoordinatesRight[mGravityDirection] - CoordinatesLeft[mGravityDirection]) / (CoordinatesRight[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]);
-            coordinate = slopeY * (rNode.Coordinates()[mHorizontalDirection] - CoordinatesLeft[mHorizontalDirection]) + CoordinatesLeft[mGravityDirection];
+            const auto slope_y =
+                (coordinates_right[mGravityDirection] - coordinates_left[mGravityDirection]) /
+                (coordinates_right[mHorizontalDirection] - coordinates_left[mHorizontalDirection]);
+            rCoordinate = slope_y * (rNode.Coordinates()[mHorizontalDirection] -
+                                     coordinates_left[mHorizontalDirection]) +
+                          coordinates_left[mGravityDirection];
         } else {
-            pressure   = pressureLeft;
-            coordinate = CoordinatesLeft[mGravityDirection];
+            rPressure   = pressure_left;
+            rCoordinate = coordinates_left[mGravityDirection];
         }
     }
 
     void FindTwoClosestNodeOnBoundaryNodes(const Node&               rNode,
-                                           const std::vector<Node*>& BoundaryNodes,
-                                           std::vector<Node*>&       FoundNodes) const
+                                           const std::vector<Node*>& rBoundaryNodes,
+                                           std::vector<Node*>&       rFoundNodes) const
     {
         const double HorizontalCoordinate = rNode.Coordinates()[mHorizontalDirection];
-        FoundNodes.resize(2);
+        rFoundNodes.resize(2);
 
         unsigned int nFound = 0;
         double horizontalDistanceClosest_1 = LARGE;
-        for (auto boundary_node : BoundaryNodes) {
+        for (auto boundary_node : rBoundaryNodes) {
             Vector3 CoordinatesBoundary;
             noalias(CoordinatesBoundary) = boundary_node->Coordinates();
 
             if (std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate) <= horizontalDistanceClosest_1) {
                 horizontalDistanceClosest_1 = std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate);
-                FoundNodes[0] = boundary_node;
+                rFoundNodes[0] = boundary_node;
                 nFound++;
             }
         }
 
         double horizontalDistanceClosest_2 = LARGE;
-        for (auto boundary_node : BoundaryNodes) {
+        for (auto boundary_node : rBoundaryNodes) {
             Vector3 CoordinatesBoundary;
             noalias(CoordinatesBoundary) = boundary_node->Coordinates();
 
             if (std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate) <= horizontalDistanceClosest_2 &&
                 std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate) > horizontalDistanceClosest_1) {
                 horizontalDistanceClosest_2 = std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate);
-                FoundNodes[1] = boundary_node;
+                rFoundNodes[1] = boundary_node;
                 nFound++;
             }
         }
@@ -303,26 +318,26 @@ private:
             }
         }
 
-        Node* result = nullptr;
+        Node* p_result = nullptr;
         if (isBottom) {
             double height = LARGE;
             for (auto found_node : FoundNodes) {
                 if (found_node->Coordinates()[mGravityDirection] < height) {
-                    result = found_node;
-                    height = found_node->Coordinates()[mGravityDirection];
+                    p_result = found_node;
+                    height   = found_node->Coordinates()[mGravityDirection];
                 }
             }
         } else {
             double height = -LARGE;
             for (auto found_node : FoundNodes) {
                 if (found_node->Coordinates()[mGravityDirection] > height) {
-                    result = found_node;
-                    height = found_node->Coordinates()[mGravityDirection];
+                    p_result = found_node;
+                    height   = found_node->Coordinates()[mGravityDirection];
                 }
             }
         }
 
-        return result;
+        return p_result;
     }
 
     void FindTopBoundaryNodes(const Node &rNode,
@@ -348,25 +363,25 @@ private:
     }
 
     void FindLeftBoundaryNodes(const Node&               rNode,
-                               const std::vector<Node*>& BoundaryNodes,
-                               std::vector<Node*>&       LeftBoundaryNodes) const
+                               const std::vector<Node*>& rBoundaryNodes,
+                               std::vector<Node*>&       rLeftBoundaryNodes) const
     {
-        for (unsigned int i = 0; i < BoundaryNodes.size(); ++i) {
-            if (BoundaryNodes[i]->Coordinates()[mHorizontalDirection] <= rNode.Coordinates()[mHorizontalDirection]) {
+        for (unsigned int i = 0; i < rBoundaryNodes.size(); ++i) {
+            if (rBoundaryNodes[i]->Coordinates()[mHorizontalDirection] <= rNode.Coordinates()[mHorizontalDirection]) {
                 // node is on top boundary
-                LeftBoundaryNodes.push_back(BoundaryNodes[i]);
+                rLeftBoundaryNodes.push_back(rBoundaryNodes[i]);
             }
         }
     }
 
     void FindRightBoundaryNodes(const Node&               rNode,
-                                const std::vector<Node*>& BoundaryNodes,
-                                std::vector<Node*>&       RightBoundaryNodes) const
+                                const std::vector<Node*>& rBoundaryNodes,
+                                std::vector<Node*>&       rRightBoundaryNodes) const
     {
-        for (unsigned int i = 0; i < BoundaryNodes.size(); ++i) {
-            if (BoundaryNodes[i]->Coordinates()[mHorizontalDirection] >= rNode.Coordinates()[mHorizontalDirection]) {
+        for (unsigned int i = 0; i < rBoundaryNodes.size(); ++i) {
+            if (rBoundaryNodes[i]->Coordinates()[mHorizontalDirection] >= rNode.Coordinates()[mHorizontalDirection]) {
                 // node is on top boundary
-                RightBoundaryNodes.push_back(BoundaryNodes[i]);
+                rRightBoundaryNodes.push_back(rBoundaryNodes[i]);
             }
         }
     }
@@ -474,43 +489,43 @@ private:
 
     }
 
-    bool IsMoreThanOneElementWithThisEdgeFast(const std::vector<int>&              FaceID,
-                                              const std::vector<std::vector<int>>& ELementsOfNodes,
-                                              const std::vector<int>& ELementsOfNodesSize) const
+    bool IsMoreThanOneElementWithThisEdgeFast(const std::vector<int>&              rFaceIDs,
+                                              const std::vector<std::vector<int>>& rELementsOfNodes,
+                                              const std::vector<int>& rELementsOfNodesSize) const
 
     {
         const int ID_UNDEFINED = -1;
         int nMaxElements = 0;
-        for (unsigned int iPoint = 0; iPoint < FaceID.size(); ++iPoint) {
-            int NodeID = FaceID[iPoint];
+        for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
+            int NodeID = rFaceIDs[iPoint];
             int index = NodeID-1;
-            nMaxElements += ELementsOfNodesSize[index];
+            nMaxElements += rELementsOfNodesSize[index];
         }
 
         if (nMaxElements > 0) {
             std::vector<vector<int>> ElementIDs;
-            ElementIDs.resize(FaceID.size());
+            ElementIDs.resize(rFaceIDs.size());
             for (unsigned int i=0; i<ElementIDs.size(); ++i) {
                 ElementIDs[i].resize(nMaxElements);
                 std::fill(ElementIDs[i].begin(), ElementIDs[i].end(), ID_UNDEFINED);
             }
 
-            for (unsigned int iPoint = 0; iPoint < FaceID.size(); ++iPoint) {
-                int NodeID = FaceID[iPoint];
+            for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
+                int NodeID = rFaceIDs[iPoint];
                 int index = NodeID-1;
-                for (int i=0; i < ELementsOfNodesSize[index]; ++i) {
-                    int iElementID = ELementsOfNodes[index][i];
+                for (int i=0; i < rELementsOfNodesSize[index]; ++i) {
+                    int iElementID = rELementsOfNodes[index][i];
                     ElementIDs[iPoint][i] = iElementID;
                 }
             }
 
             std::vector<int> SharedElementIDs;
-            for (unsigned int iPoint = 0; iPoint < FaceID.size(); ++iPoint) {
+            for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
                 for (unsigned int i=0; i < ElementIDs[iPoint].size(); ++i) {
                     int iElementID = ElementIDs[iPoint][i];
                     bool found = false;
                     if (iElementID !=ID_UNDEFINED) {
-                        for (unsigned int iPointInner = 0; iPointInner < FaceID.size(); ++iPointInner) {
+                        for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
                             if (iPointInner != iPoint) {
                                 //std::any_of followed by breaking out of 2 for loops
                                 for (unsigned int j = 0; j < ElementIDs[iPointInner].size(); ++j) {
