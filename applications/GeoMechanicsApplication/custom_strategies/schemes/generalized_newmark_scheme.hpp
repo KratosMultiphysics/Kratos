@@ -158,6 +158,9 @@ protected:
     {
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
+            auto current_acceleration_x = rNode.FastGetSolutionStepValue(ACCELERATION_X, 0);
+            auto current_acceleration_y = rNode.FastGetSolutionStepValue(ACCELERATION_Y, 0);
+            auto current_acceleration_z = rNode.FastGetSolutionStepValue(ACCELERATION_Z, 0);
 
             noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0)) =
                 ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
@@ -167,6 +170,13 @@ protected:
                  (0.5 - GetBeta()) * this->GetDeltaTime() * this->GetDeltaTime() *
                      rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1)) /
                 (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
+
+            if (rNode.IsFixed(ACCELERATION_X))
+                rNode.FastGetSolutionStepValue(ACCELERATION_X, 0) = current_acceleration_x;
+            if (rNode.IsFixed(ACCELERATION_Y))
+                rNode.FastGetSolutionStepValue(ACCELERATION_Y, 0) = current_acceleration_y;
+            if (rNode.IsFixed(ACCELERATION_Z))
+                rNode.FastGetSolutionStepValue(ACCELERATION_Z, 0) = current_acceleration_z;
         }
     }
 
