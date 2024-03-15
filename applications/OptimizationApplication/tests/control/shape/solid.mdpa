@@ -189,6 +189,5 @@ Begin SubModelPart fixed
 		6
 		7
 		8
-		10
 	End SubModelPartNodes
 End SubModelPart // fixed
