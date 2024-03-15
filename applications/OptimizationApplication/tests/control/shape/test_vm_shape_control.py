@@ -64,28 +64,36 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
     @classmethod
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-                "controlled_model_part_names": ["test.design"],
+                "controlled_model_part_names": ["test"],
                 "filter_settings": {
-                    "type" : "surface_implicit",
-                    "radius": 0.2
-                },
-                "fixed_model_parts" : {
-                    "test.top_edge"    : [true,true,true],
-                    "test.edge_support": [true,true,true]
+                    "filter_type"                  : "implicit_filter",
+                    "filter_radius"                : 0.2,
+                    "filtering_boundary_conditions": {
+                        "test.top_edge"    : [true,true,true],
+                        "test.edge_support": [true,true,true]
+                    }
                 }
             }""")
 
     @classmethod
     def GetExplicitControlParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-                "controlled_model_part_names": ["test.design"],
+                "controlled_model_part_names": ["test"],
                 "filter_settings": {
-                    "type" : "surface_explicit",
-                    "radius": 0.2
-                },
-                "fixed_model_parts" : {
-                    "test.top_edge"    : [true,true,true],
-                    "test.edge_support": [true,true,true]
+                    "filter_type"               : "explicit_filter",
+                    "filter_function_type"      : "linear",
+                    "filter_radius_settings":{
+                        "filter_radius_type": "constant",
+                        "filter_radius"     : 0.2
+                    },
+                    "filtering_boundary_conditions": {
+                        "damping_type"              : "nearest_entity",
+                        "damping_function_type"     : "sigmoidal",
+                        "damped_model_part_settings": {
+                            "test.top_edge"    : [true,true,true],
+                            "test.edge_support": [true,true,true]
+                        }
+                    }
                 }
             }""")
 
@@ -94,10 +102,8 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         return "shell"
 
     def test_GetControlField(self):
-        implicit_control_field = self.implicit_shape_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_control_field), 22.4268730405143, 10)
-        explicit_control_field = self.explicit_shape_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 0.0000, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField() - self.implicit_shape_control.GetPhysicalField()), 0.0, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField() - self.explicit_shape_control.GetPhysicalField()), 0.0, 10)
 
     def test_GetPhysicalField(self):
         shape_field = self.implicit_shape_control.GetPhysicalField()
@@ -109,11 +115,11 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         physical_gradient = self.implicit_shape_control.GetEmptyField()
         constant_field_value = Kratos.Array3([1.0, 1.0, 1.0])
         Kratos.Expression.LiteralExpressionIO.SetData(physical_gradient, constant_field_value)
-        self.explicit_shape_control.filter.GetIntegrationWeights(physical_gradient)
+        self.explicit_shape_control.filter.filter_utils.GetIntegrationWeights(physical_gradient)
         implicit_mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_mapped_gradient), 27.84296340221239, 10)
         explicit_mapped_gradient = self.explicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_mapped_gradient), 28.102970155390018, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_mapped_gradient), 28.075348639115425, 10)
 
     def test_UpdateImplicit(self):
         update_field = self.implicit_shape_control.GetEmptyField()
@@ -123,7 +129,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         implicit_control_field = self.implicit_shape_control.GetControlField()
         implicit_shape_field = self.implicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_shape_field), 10.365298105786017, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_shape_field), 10.828597030440918, 10)
 
     def test_UpdateExplicit(self):
         update_field = self.explicit_shape_control.GetEmptyField()
@@ -133,7 +139,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         explicit_control_field = self.explicit_shape_control.GetControlField()
         explicit_shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 22.012908625095587, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 12.985588442031691, 10)
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestVMShapeControlSolid(TestVMShapeControlBase):
@@ -141,12 +147,14 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
                 "controlled_model_part_names": ["test.design"],
+                "mesh_motion_solver_type"    : "filter_based",
                 "filter_settings": {
-                    "type" : "bulk_surface_implicit",
-                    "radius": 0.5
-                },
-                "fixed_model_parts" : {
-                    "test.fixed" : [true,true,true]
+                    "filter_type"                  : "implicit_filter",
+                    "filter_radius"                : 0.5,
+                    //"linear_solver_settings": {"solver_type": "amgcl", "verbosity": 4},
+                    "filtering_boundary_conditions": {
+                        "test.fixed" : [true,true,true]
+                    }
                 }
             }""")
 
@@ -154,12 +162,43 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
     def GetExplicitControlParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
                 "controlled_model_part_names": ["test.design"],
+                "mesh_motion_solver_type"    : "mesh_moving_analysis",
                 "filter_settings": {
-                    "type" : "surface_explicit_with_mesh_motion",
-                    "radius": 0.5
+                    "filter_type"               : "explicit_filter",
+                    "filter_function_type"      : "linear",
+                    "filter_radius_settings":{
+                        "filter_radius_type": "constant",
+                        "filter_radius"     : 0.5
+                    },
+                    "filtering_boundary_conditions": {
+                        "damping_type"              : "nearest_entity",
+                        "damping_function_type"     : "sigmoidal",
+                        "damped_model_part_settings": {
+                        "test.fixed" : [true,true,true]
+                        }
+                    }
                 },
-                "fixed_model_parts" : {
-                    "test.fixed" : [true,true,true]
+                "mesh_motion_solver_settings": {
+                    "problem_data": {
+                        "echo_level"   : 0,
+                        "parallel_type": "OpenMP",
+                        "start_time"   : 0.0,
+                        "end_time"     : 1.0
+                    },
+                    "solver_settings" : {
+                        "domain_size"            : 3,
+                        "echo_level"             : 0,
+                        "solver_type"            : "structural_similarity",
+                        "model_part_name"        : "test",
+                        "compute_reactions"      : false,
+                        "calculate_mesh_velocity": false,
+                        "model_import_settings"              : {
+                            "input_type"     : "use_input_model_part"
+                        },
+                        "time_stepping" : {
+                            "time_step"       : 1.1
+                        }
+                    }
                 }
             }""")
 
@@ -168,17 +207,14 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         return "solid"
 
     def test_GetControlField(self):
-        solid_explicit_control_field = self.explicit_shape_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(solid_explicit_control_field), 0.0000, 4)
-        solid_implicit_bulk_surf_control_field = self.implicit_shape_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(solid_implicit_bulk_surf_control_field), 213.25533020516423, 4)
-
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField() - self.explicit_shape_control.GetPhysicalField()), 0.0000, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField() - self.explicit_shape_control.GetPhysicalField()), 0.0000, 4)
 
     def test_GetPhysicalField(self):
         shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.06201920231798, 10)
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.06201920231798, 10)
 
     def test_MapGradient(self):
         constant_field_value = Kratos.Array3([1.0, 1.0, 1.0])
@@ -191,9 +227,9 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         solid_physical_gradient = self.implicit_shape_control.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(solid_physical_gradient, constant_field_value)
         mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: solid_physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 21.490654208290955, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 20.25120361119044, 10)
 
-    def test_UpdateImplicit(self):
+    def test_UpdateExplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
 
         update_field = self.explicit_shape_control.GetEmptyField()
@@ -202,17 +238,17 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         control_field = self.explicit_shape_control.GetControlField()
         shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.355456348076514, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 2.8757607689096805, 10)
 
-    def test_UpdateExplicit(self):
+    def test_UpdateImplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
         update_field = self.implicit_shape_control.GetEmptyField()
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
         self.implicit_shape_control.Update(update_field)
         control_field = self.implicit_shape_control.GetControlField()
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.224702301431161, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.7797503983453757, 10)
 
 if __name__ == "__main__":
     kratos_unittest.main()
