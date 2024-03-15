@@ -18,21 +18,23 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                    NodesArrayType const& ThisNodes,
                                                                    PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainFICElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new UPwSmallStrainFICElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                    GeometryType::Pointer pGeom,
                                                                    PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwSmallStrainFICElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new UPwSmallStrainFICElement(NewId, pGeom, pProperties,
+                                                         this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -112,8 +114,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     KRATOS_TRY;
 
     // Defining necessary variables
-    const GeometryType& Geom  = this->GetGeometry();
-    const SizeType NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const GeometryType& Geom       = this->GetGeometry();
+    const SizeType      NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
@@ -168,8 +170,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
     KRATOS_TRY;
 
     // Defining necessary variables
-    const GeometryType& Geom  = this->GetGeometry();
-    const SizeType NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const GeometryType& Geom       = this->GetGeometry();
+    const SizeType      NumGPoints = Geom.IntegrationPointsNumber(mThisIntegrationMethod);
 
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -238,7 +240,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPConstitutiveTensor(array_1
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPDtStress(Matrix& rDtStressContainer,
+void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPDtStress(Matrix&       rDtStressContainer,
                                                                const Vector& StressVector,
                                                                const unsigned int& GPoint)
 {
@@ -412,8 +414,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const PropertiesType&                           Prop = this->GetProperties();
+    const GeometryType&                             Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         Geom.IntegrationPoints(mThisIntegrationMethod);
     const SizeType NumGPoints = IntegrationPoints.size();
@@ -500,11 +502,11 @@ double UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus(const Ma
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeFICElementVariables(
-    FICElementVariables& rFICVariables,
+    FICElementVariables&                             rFICVariables,
     const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-    const GeometryType& Geom,
-    const PropertiesType& Prop,
-    const ProcessInfo& CurrentProcessInfo)
+    const GeometryType&                              Geom,
+    const PropertiesType&                            Prop,
+    const ProcessInfo&                               CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -523,7 +525,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeFICElementVariables(
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<2, 3>::ExtrapolateShapeFunctionsGradients(
-    array_1d<array_1d<double, 6>, 3>& rNodalShapeFunctionsGradients,
+    array_1d<array_1d<double, 6>, 3>&                rNodalShapeFunctionsGradients,
     const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer)
 {
     // Triangle_2d_3 with GI_GAUSS_2
@@ -533,14 +535,14 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateShapeFunctionsGradients(
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
-    array_1d<array_1d<double, 8>, 4>& rNodalShapeFunctionsGradients,
+    array_1d<array_1d<double, 8>, 4>&                rNodalShapeFunctionsGradients,
     const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer)
 {
     // Quadrilateral_2d_4 with GI_GAUSS_2
     KRATOS_TRY
 
     BoundedMatrix<double, 4, 8> ShapeFunctionsGradientsContainer; // NumGPoints X TDim*TNumNodes
-    unsigned int index;
+    unsigned int                index;
 
     for (unsigned int i = 0; i < 4; ++i) // NumGPoints
     {
@@ -592,7 +594,7 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<3, 4>::ExtrapolateShapeFunctionsGradients(
-    array_1d<array_1d<double, 12>, 4>& rNodalShapeFunctionsGradients,
+    array_1d<array_1d<double, 12>, 4>&               rNodalShapeFunctionsGradients,
     const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer)
 {
     // Tetrahedra_3d_4 with GI_GAUSS_2
@@ -602,14 +604,14 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateShapeFunctionsGradients(
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<3, 8>::ExtrapolateShapeFunctionsGradients(
-    array_1d<array_1d<double, 24>, 8>& rNodalShapeFunctionsGradients,
+    array_1d<array_1d<double, 24>, 8>&               rNodalShapeFunctionsGradients,
     const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer)
 {
     // Hexahedra_3d_8 with GI_GAUSS_2
     KRATOS_TRY
 
     BoundedMatrix<double, 8, 24> ShapeFunctionsGradientsContainer; // NumGPoints X TDim*TNumNodes
-    unsigned int index;
+    unsigned int                 index;
 
     for (unsigned int i = 0; i < 8; ++i) // NumGPoints
     {

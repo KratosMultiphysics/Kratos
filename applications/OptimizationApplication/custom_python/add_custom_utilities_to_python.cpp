@@ -244,7 +244,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("__ipow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { rSelf = ContainerExpressionUtils::Pow(rSelf, rInput); return rSelf; })
         .def("__pow__", [](CollectiveExpression& rSelf, const double Value) { CollectiveExpression result; result = ContainerExpressionUtils::Pow(rSelf, Value); return result; })
         .def("__ipow__", [](CollectiveExpression& rSelf, const double Value) { rSelf = ContainerExpressionUtils::Pow(rSelf, Value); return rSelf; })
-        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf *= -1.0; })
+        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf * -1.0; })
         .def("__str__", &CollectiveExpression::Info)
         ;
 
@@ -341,22 +341,22 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     properties_variable_expression_io.def("Write", &PropertiesVariableExpressionIO::Write<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));
     properties_variable_expression_io.def("Write", &PropertiesVariableExpressionIO::Write<ModelPart::ElementsContainerType>, py::arg("element_container_expression"), py::arg("variable"));
 
-    py::class_<PropertiesVariableExpressionIO::PropertiesVariableExpressionInput, PropertiesVariableExpressionIO::PropertiesVariableExpressionInput::Pointer, ExpressionInput>(properties_variable_expression_io, "Input")
+    py::class_<PropertiesVariableExpressionIO::Input, PropertiesVariableExpressionIO::Input::Pointer, ExpressionInput>(properties_variable_expression_io, "Input")
         .def(py::init<const ModelPart&,
                       const PropertiesVariableExpressionIO::VariableType&,
-                      const ContainerType&>(),
+                      Globals::DataLocation>(),
              py::arg("model_part"),
              py::arg("variable"),
-             py::arg("container_type"))
+             py::arg("data_location"))
         ;
 
-    py::class_<PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput, PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput::Pointer, ExpressionOutput>(properties_variable_expression_io, "Output")
+    py::class_<PropertiesVariableExpressionIO::Output, PropertiesVariableExpressionIO::Output::Pointer, ExpressionOutput>(properties_variable_expression_io, "Output")
         .def(py::init<ModelPart&,
                       const PropertiesVariableExpressionIO::VariableType&,
-                      const ContainerType&>(),
+                      Globals::DataLocation>(),
              py::arg("model_part"),
              py::arg("variable"),
-             py::arg("container_type"))
+             py::arg("data_location"))
         ;
 }
 

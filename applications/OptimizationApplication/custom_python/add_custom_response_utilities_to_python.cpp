@@ -35,7 +35,7 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
     m.def_submodule("MassResponseUtils")
         .def("Check", &MassResponseUtils::Check)
         .def("CalculateValue", &MassResponseUtils::CalculateValue)
-        .def("CalculateGradient", &MassResponseUtils::CalculateGradient, py::arg("list_of_gradient_variables"), py::arg("list_of_gradient_required_model_parts"), py::arg("list_of_gradient_computed_model_parts"), py::arg("list_of_container_expressions"))
+        .def("CalculateGradient", &MassResponseUtils::CalculateGradient, py::arg("list_of_gradient_variables"), py::arg("list_of_gradient_required_model_parts"), py::arg("list_of_gradient_computed_model_parts"), py::arg("list_of_container_expressions"), py::arg("perturbation_size"))
         ;
 
     m.def_submodule("LinearStrainEnergyResponseUtils")
