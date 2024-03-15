@@ -26,7 +26,7 @@
 #include "includes/process_info.h"
 
 // Application includes
-#include "particle_mechanics_application_variables.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
