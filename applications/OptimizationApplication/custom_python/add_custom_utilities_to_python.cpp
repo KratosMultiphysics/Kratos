@@ -184,6 +184,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
+        .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
+            py::arg("model"),
+            py::arg("parameters"),
+            py::arg("number_of_components"),
+            py::return_value_policy::reference);
         ;
 
     // Add collective expression to python
