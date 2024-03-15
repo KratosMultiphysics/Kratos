@@ -19,11 +19,20 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer PwCondition<TDim,TNumNodes>::
-    Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                        NodesArrayType const&   ThisNodes,
+                                                        PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PwCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType NewId,
+                                                        Geometry<GeometricalObject::NodeType>::Pointer pGeom,
+                                                        Properties::Pointer pProperties) const
+{
+    return Condition::Pointer(new PwCondition(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
