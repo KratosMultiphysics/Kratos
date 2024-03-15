@@ -127,7 +127,7 @@ class ImplicitFilter(Filter):
         # were used before with different boundary conditions. Hence it is important to free all dofs
         # and apply the boundary conditions again when ever filter is used.
         # This is because, every implicit filter shares the same nodes
-        list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.model[self.filtering_model_part_name]), self.filter_variables))
+        list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.model[self.filtering_model_part_name].Nodes), self.filter_variables))
 
         # now re-apply the boundary conditions
         all_component_boundary_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], len(self.filter_variables))
