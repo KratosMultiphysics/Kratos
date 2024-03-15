@@ -17,6 +17,7 @@
 // Project includes
 
 // Application includes
+#include "custom_utilities/filtering/explicit_damping_utils.h"
 #include "custom_utilities/filtering/explicit_filter.h"
 #include "custom_utilities/filtering/explicit_filter_utils.h"
 
@@ -74,6 +75,28 @@ void AddExplicitFilterUtils(
 
 void AddCustomFiltersToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
+    auto explicit_damping_utils = m.def_submodule("ExplicitDampingUtils");
+    explicit_damping_utils.def("ComputeDampingCoefficientsBasedOnNearestEntity", &ExplicitDampingUtils::ComputeDampingCoefficientsBasedOnNearestEntity<ModelPart::NodesContainerType>,
+        py::arg("damping_radius_nodal_expression"),
+        py::arg("lists_of_model_parts_for_components"),
+        py::arg("shape_of_the_damping_variable"),
+        py::arg("damping_function_type"),
+        py::arg("bucket_size"));
+    explicit_damping_utils.def("ComputeDampingCoefficientsBasedOnNearestEntity", &ExplicitDampingUtils::ComputeDampingCoefficientsBasedOnNearestEntity<ModelPart::ConditionsContainerType>,
+        py::arg("damping_radius_condition_expression"),
+        py::arg("lists_of_model_parts_for_components"),
+        py::arg("shape_of_the_damping_variable"),
+        py::arg("damping_function_type"),
+        py::arg("bucket_size"));
+    explicit_damping_utils.def("ComputeDampingCoefficientsBasedOnNearestEntity", &ExplicitDampingUtils::ComputeDampingCoefficientsBasedOnNearestEntity<ModelPart::ElementsContainerType>,
+        py::arg("damping_radius_element_expression"),
+        py::arg("lists_of_model_parts_for_components"),
+        py::arg("shape_of_the_damping_variable"),
+        py::arg("damping_function_type"),
+        py::arg("bucket_size"));
+
     Detail::AddExplicitFilter<ModelPart::NodesContainerType>(m, "NodalExplicitFilter");
     Detail::AddExplicitFilter<ModelPart::ConditionsContainerType>(m, "ConditionExplicitFilter");
     Detail::AddExplicitFilter<ModelPart::ElementsContainerType>(m, "ElementExplicitFilter");
