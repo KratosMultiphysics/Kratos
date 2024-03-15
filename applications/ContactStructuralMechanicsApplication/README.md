@@ -47,7 +47,7 @@ The application includes tests to check the proper functioning of the applicatio
  
 - *The application includes search utilities in order to create the contact conditions*
 
-- *Frictional laws (**WIP**) in order to consider different types of frictional behaviour *
+- *Frictional laws (**WIP**) in order to consider different types of frictional behaviour*
 
 - *+115 Python unittest, including Validation tests, and +85 cpp tests*
 
@@ -57,4 +57,4 @@ Examples can be found [here](https://github.com/KratosMultiphysics/Examples/tree
 
 ## 🗎 Documentation:
 
-Further information regarding the formulation can be accessed in Chapter 4 of the *PhD thesis* authored by [Vicente Mataix Ferrándiz](mailto:vmataix@altair.com), available on [UPC Commons](https://upcommons.upc.edu/bitstream/2117/328952/1/TVMF1de1.pdf)."
+Further information regarding the formulation can be accessed in Chapter 4 of the *PhD thesis* authored by [Vicente Mataix Ferrándiz](mailto:vmataix@altair.com), available on [UPC Commons](https://upcommons.upc.edu/bitstream/2117/328952/1/TVMF1de1.pdf).
