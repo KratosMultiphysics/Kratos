@@ -72,7 +72,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
     def AdvanceInTime(self, current_time):
         with self.thread_manager:
-            new_time = self._analysis_stage._GetSolver().AdvanceInTime(current_time)
+            new_time = self._analysis_stage._AdvanceTime(current_time)
         self._analysis_stage.time = new_time # only needed to print the time correctly
         return new_time
 
@@ -126,7 +126,7 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
                             raise Exception(f'"{module_name}" does not have a "{analysis_stage_name}" class!')
                     else:
                         raise Exception(f'"{module_name}" does not have a "{analysis_stage_name}" class! Please provide a custom "analysis_stage_name" in your settings')
-                    
+
                 return analysis(self.model, self.project_parameters)
         else:
             return self._CreateAnalysisStage()
