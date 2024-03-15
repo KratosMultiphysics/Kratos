@@ -28,6 +28,11 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
         KM.VariableUtils().AddDof(KOA.HELMHOLTZ_SCALAR, self.GetOriginRootModelPart())
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: DOFs ADDED.")
 
+    def AssignSolutionToVariable(self, variable) -> None:
+        nodal_expression = KM.Expression.NodalExpression(self.GetComputingModelPart())
+        KM.Expression.VariableExpressionIO.Read(nodal_expression, KOA.HELMHOLTZ_SCALAR, True)
+        KM.Expression.VariableExpressionIO.Write(nodal_expression, variable, True)
+
     def InitializeModelPartConfiguration(self) -> None:
         number_of_conditions = self.GetOriginModelPart().NumberOfConditions()
         number_of_elements = self.GetOriginModelPart().NumberOfElements()

@@ -245,6 +245,7 @@ class HelmholtzSolverBase(PythonSolver):
         else:
             # the model part needs to be created.
             self.__helmholtz_model_part = self.model.CreateModelPart(self.GetComputingModelPartName())
+            KOA.OptimizationUtils.CopySolutionStepVariablesList(self.__helmholtz_model_part, self.GetOriginRootModelPart())
             self.__helmholtz_model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] = 1
 
             # create dummy properties
