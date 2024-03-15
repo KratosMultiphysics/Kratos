@@ -131,6 +131,8 @@ protected:
 
     void UpdateScalarTimeDerivative(Node& rNode, const Variable<double>& variable, const Variable<double>& dt_variable) const
     {
+        if (rNode.IsFixed(dt_variable)) return;
+
         const auto delta_variable =
             rNode.FastGetSolutionStepValue(variable, 0) - rNode.FastGetSolutionStepValue(variable, 1);
         const auto previous_dt_variable = rNode.FastGetSolutionStepValue(dt_variable, 1);
