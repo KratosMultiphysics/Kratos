@@ -239,12 +239,12 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_DoesNotUpdateFixedVaria
     Vector                   Dx;
     Vector                   b;
     tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_X);
+    tester.GetModelPart().Nodes()[0].Fix(ACCELERATION_Z);
 
     tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
 
-    // These expected numbers result from the calculations in UpdateVariablesDerivatives
-    const auto expected_acceleration = Kratos::array_1d<double, 3>{
-        4.0, -29.25, -31.5}; // first and last term should be the same as original, while the middle value is updated
+    // first and last term should be the same as original, while the middle value is updated
+    const auto expected_acceleration = Kratos::array_1d<double, 3>{4.0, -29.25, 6.0};
 
     const auto actual_acceleration =
         tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(ACCELERATION, 0);
