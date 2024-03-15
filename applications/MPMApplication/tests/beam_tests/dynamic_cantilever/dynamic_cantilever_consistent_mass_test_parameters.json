@@ -1,0 +1,91 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "dynamic_cantilever_consistent_mass_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "MPM_Material",
+        "domain_size"                        : 2,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test_Body"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "convergence_criterion"              : "residual_criterion",
+		"consistent_mass_matrix"             : true,
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_beam","Parts_grid"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_restraint"],
+        "grid_model_import_settings"         : {
+            "input_type"     : "mdpa",
+            "input_filename" : "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test_Grid"
+        },
+        "pressure_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.DISPLACEMENT_restraint",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [{
+            "python_module"   : "particle_from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
+            "help"                  : "",
+            "process_name"          : "ParticleFromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT","MP_VOLUME"],
+                "input_file_name"  : "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test_results.json",
+                "model_part_name"  : "MPM_Material",
+                "time_frequency"   : 0.1
+            }
+        }],
+        "gravity"                  : [{
+            "python_module" : "assign_gravity_to_particle_process",
+            "kratos_module" : "KratosMultiphysics.MPMApplication",
+            "process_name"  : "AssignGravityToParticleProcess",
+            "Parameters"    : {
+                "model_part_name" : "MPM_Material",
+                "variable_name"   : "MP_VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }]
+    },
+		"print_output_process" : [{
+        "python_module"   : "particle_json_output_process",
+        "kratos_module" : "KratosMultiphysics.MPMApplication",
+        "help"                  : "",
+        "process_name"          : "ParticleJsonOutputProcess",
+        "Parameters"            : {
+            "gauss_points_output_variables" : ["MP_VELOCITY","MP_DISPLACEMENT","MP_VOLUME"],
+            "output_file_name"              : "beam_tests/dynamic_cantilever/dynamic_cantilever_consistent_mass_test_results.json",
+            "model_part_name"               : "MPM_Material",
+            "time_frequency"                : 0.1
+        }
+    }]
+}

@@ -199,11 +199,11 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables,
                                                                                     NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PMatrix) = -rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
+    noalias(rFICVariables.PPMatrix) = -rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute boundary mass matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rFICVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix,rFICVariables.PPMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -222,14 +222,14 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables,
                                                                                     NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PMatrix) = rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
+    noalias(rFICVariables.PPMatrix) = rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
 
-    noalias(rVariables.PVector) = prod(rFICVariables.PMatrix,rFICVariables.DtPressureVector);
+    noalias(rVariables.PVector) = prod(rFICVariables.PPMatrix,rFICVariables.DtPressureVector);
 
     //Distribute boundary mass flow vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector< TDim, TNumNodes >(rRightHandSideVector,rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector,rVariables.PVector);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

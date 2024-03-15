@@ -33,8 +33,8 @@ GeoCrBeamElement2D2N::GeoCrBeamElement2D2N(IndexType NewId, GeometryType::Pointe
 }
 
 //----------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElement2D2N::Create(IndexType NewId,
-                                              NodesArrayType const& rThisNodes,
+Element::Pointer GeoCrBeamElement2D2N::Create(IndexType               NewId,
+                                              NodesArrayType const&   rThisNodes,
                                               PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
@@ -42,8 +42,8 @@ Element::Pointer GeoCrBeamElement2D2N::Create(IndexType NewId,
 }
 
 //----------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElement2D2N::Create(IndexType NewId,
-                                              GeometryType::Pointer pGeom,
+Element::Pointer GeoCrBeamElement2D2N::Create(IndexType               NewId,
+                                              GeometryType::Pointer   pGeom,
                                               PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoCrBeamElement2D2N>(NewId, pGeom, pProperties);
@@ -95,8 +95,8 @@ void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 }
 
 //----------------------------------------------------------------------------------------------------
-void GeoCrBeamElement2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
+void GeoCrBeamElement2D2N::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                VectorType&        rRightHandSideVector,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -156,7 +156,7 @@ void GeoCrBeamElement2D2N::CalculateOnIntegrationPoints(const Variable<array_1d<
 {
     KRATOS_TRY
     // Element with two nodes can only represent results at one node
-    const auto& r_geometry = GetGeometry();
+    const auto&                                     r_geometry = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
         r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();

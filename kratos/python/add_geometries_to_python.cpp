@@ -140,6 +140,10 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("PointsNumber", &GeometryType::PointsNumber)
     .def("PointsNumberInDirection", &GeometryType::PointsNumberInDirection)
     .def("PolynomialDegree", &GeometryType::PolynomialDegree)
+    // Geometry data
+    .def("GetDefaultIntegrationMethod", &GeometryType::GetDefaultIntegrationMethod)
+    .def("GetGeometryFamily", &GeometryType::GetGeometryFamily)
+    .def("GetGeometryType", &GeometryType::GetGeometryType)
     // Geometry Parts
     .def("GetGeometryPart", [](GeometryType& self, IndexType Index)
         { return(self.GetGeometryPart(Index)); })
