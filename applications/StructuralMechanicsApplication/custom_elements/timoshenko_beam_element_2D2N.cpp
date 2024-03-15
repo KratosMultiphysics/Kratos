@@ -35,7 +35,7 @@ void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInf
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
                 mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
             } else {
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             }
         }
 
