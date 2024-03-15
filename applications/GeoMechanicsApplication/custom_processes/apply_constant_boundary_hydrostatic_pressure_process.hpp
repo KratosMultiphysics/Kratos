@@ -46,8 +46,8 @@ public:
                 "table" : 1
             }  )" );
 
-        // Some values need to be mandatory prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values have to be input by the user since no meaningful default value exist. For
+        // this reason try accessing to them So that an error is thrown if they don't exist.
         rParameters["reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
