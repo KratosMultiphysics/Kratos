@@ -295,7 +295,7 @@ class VertexMorphingShapeControl(Control):
         if Kratos.Expression.Utils.NormL2(self.control_field - new_control_field) > 1e-15:
             # update the control SHAPE field
             control_update = new_control_field - self.control_field
-            self.control_field = new_control_field
+            self.control_field = new_control_field.Clone()
             # now update the physical field
             self._UpdateAndOutputFields(control_update)
             # update explicit filter
@@ -337,8 +337,9 @@ class VertexMorphingShapeControl(Control):
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
         else:
-            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GetPhysicalField(), Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GetPhysicalField(), Kratos.Configuration.Current)
+            physical_field = self.GetPhysicalField()
+            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + physical_field, Kratos.Configuration.Initial)
+            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + physical_field, Kratos.Configuration.Current)
 
     def _UpdateAndOutputFields(self, control_update) -> None:
         # compute the shape update
