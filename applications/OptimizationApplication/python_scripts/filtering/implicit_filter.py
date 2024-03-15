@@ -44,7 +44,10 @@ class ImplicitFilter(Filter):
             helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_scalar", self.parameters)
         elif isinstance(filtering_variable, Kratos.Array1DVariable3):
             self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_VECTOR_X, KratosOA.HELMHOLTZ_VECTOR_Y, KratosOA.HELMHOLTZ_VECTOR_Z]
-            helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_vector", self.parameters)
+            if filtering_variable == KratosOA.SHAPE:
+                helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "shape", self.parameters)
+            else:
+                helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_vector", self.parameters)
         else:
             raise RuntimeError(f"Unsupported variable = \"{filtering_variable.Name()}\". Only supports DoubleVariable and Array1DVariable3.")
 
