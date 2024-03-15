@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
