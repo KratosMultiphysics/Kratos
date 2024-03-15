@@ -41,15 +41,17 @@ class ImplicitFilter(Filter):
 
         if isinstance(filtering_variable, Kratos.DoubleVariable):
             self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_SCALAR]
-            helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_scalar", self.parameters)
+            self.filter_type = "general_scalar"
         elif isinstance(filtering_variable, Kratos.Array1DVariable3):
             self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_VECTOR_X, KratosOA.HELMHOLTZ_VECTOR_Y, KratosOA.HELMHOLTZ_VECTOR_Z]
             if filtering_variable == KratosOA.SHAPE:
-                helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "shape", self.parameters)
+                self.filter_type = "shape"
+                self.model[filtering_model_part_name.split(".")[0]].AddNodalSolutionStepVariable(Kratos.MESH_DISPLACEMENT)
             else:
-                helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, "general_vector", self.parameters)
+                self.filter_type = "general_vector"
         else:
             raise RuntimeError(f"Unsupported variable = \"{filtering_variable.Name()}\". Only supports DoubleVariable and Array1DVariable3.")
+        helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, self.parameters)
 
         self.filter_analysis = HelmholtzAnalysis(self.model, helmholtz_settings)
 
@@ -69,7 +71,10 @@ class ImplicitFilter(Filter):
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
             self.__ReInitializeFilteringModelPart()
-        return self.filter_analysis.FilterField(control_field)
+        field = self.filter_analysis.FilterField(control_field)
+        if self.filter_type == "shape":
+            self.filter_analysis._GetSolver().AssignSolutionToVariable(Kratos.MESH_DISPLACEMENT)
+        return field
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
@@ -86,7 +91,7 @@ class ImplicitFilter(Filter):
             self.__ReInitializeFilteringModelPart()
         return self.UnfilterField(physical_field)
 
-    def __GetImplicitFilterParameters(self, filter_model_part_name: str, filter_type: str, parameters: Kratos.Parameters):
+    def __GetImplicitFilterParameters(self, filter_model_part_name: str, parameters: Kratos.Parameters):
         implicit_vector_filter_parameters = Kratos.Parameters("""
         {
             "solver_settings" : {
@@ -109,7 +114,7 @@ class ImplicitFilter(Filter):
 
         implicit_vector_filter_parameters["solver_settings"]["echo_level"].SetInt(parameters["echo_level"].GetInt())
         implicit_vector_filter_parameters["solver_settings"]["filter_radius"].SetDouble(parameters["filter_radius"].GetDouble())
-        implicit_vector_filter_parameters["solver_settings"]["filter_type"].SetString(filter_type)
+        implicit_vector_filter_parameters["solver_settings"]["filter_type"].SetString(self.filter_type)
         implicit_vector_filter_parameters["solver_settings"]["model_part_name"].SetString(filter_model_part_name)
 
         linear_solver_settings = parameters["linear_solver_settings"]
