@@ -19,6 +19,7 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
         self.__element_name = ""
         self.__condition_name = ""
         self.__materials = KM.Parameters("""{}""")
+        self.__using_bulk_surface_shape_filtering = False
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: Construction finished")
 
     def AddVariables(self) -> None:
@@ -33,9 +34,10 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: DOFs ADDED.")
 
     def Initialize(self) -> None:
-        tmoc = KM.TetrahedralMeshOrientationCheck
-        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-        KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), False, flags).Execute()
+        if self.__using_bulk_surface_shape_filtering:
+            tmoc = KM.TetrahedralMeshOrientationCheck
+            flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), False, flags).Execute()
         super().Initialize()
 
     def __InitializeBulkSurfaceShapeModelPartConfiguration(self) -> None:
@@ -50,6 +52,7 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
                     "POISSON_RATIO": 0.3
                 }
         }""")
+        self.__using_bulk_surface_shape_filtering = True
 
     def InitializeModelPartConfiguration(self) -> None:
         filter_type = self.GetFilterType()
