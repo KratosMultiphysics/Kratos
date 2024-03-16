@@ -111,11 +111,7 @@ class HelmholtzAnalysis(AnalysisStage):
 
             KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__neighbour_entities[key])
 
-        filter_type = self._GetSolver().GetFilterType()
-        if filter_type == "bulk_surface_shape" or filter_type == "general_vector" or filter_type == "shape":
-            KM.Expression.VariableExpressionIO.Write(mapped_values, KOA.HELMHOLTZ_VECTOR_SOURCE, False)
-        else:
-            KM.Expression.VariableExpressionIO.Write(mapped_values, KOA.HELMHOLTZ_SCALAR_SOURCE, False)
+        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver()._GetSourceVariable(), False)
 
     def __AssignNodalSolutionToDataExpression(self) -> ContainerExpressionTypes:
         if self.__source_data is None:
@@ -129,11 +125,7 @@ class HelmholtzAnalysis(AnalysisStage):
         # data containers.
         nodal_solution_field = KM.Expression.NodalExpression(self.__source_data.GetModelPart())
 
-        filter_type = self._GetSolver().GetFilterType()
-        if filter_type == "bulk_surface_shape" or filter_type == "general_vector" or filter_type == "shape":
-            KM.Expression.VariableExpressionIO.Read(nodal_solution_field, KOA.HELMHOLTZ_VECTOR, True)
-        else:
-            KM.Expression.VariableExpressionIO.Read(nodal_solution_field, KOA.HELMHOLTZ_SCALAR, True)
+        KM.Expression.VariableExpressionIO.Read(nodal_solution_field, self._GetSolver()._GetSolvingVariable(), True)
 
         if isinstance(self.__source_data, KM.Expression.NodalExpression):
             return nodal_solution_field.Clone()
