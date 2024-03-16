@@ -123,8 +123,8 @@ public:
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
-        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
         ,mFrictionIsActive(rOther.mFrictionIsActive)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
     {
     }
 
