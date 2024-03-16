@@ -240,9 +240,11 @@ namespace Kratos::MaterialPointGeneratorUtility
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
+        const bool friction_active = rBackgroundGridModelPart.GetProcessInfo()[FRICTION_ACTIVE];
+
         // initialize NODAL_AREA for SLIP nodes on NonHistorialVariable
         // [ since NODAL_AREA may not be incl. as solution step variable for conforming conditions ]
-        VariableUtils().SetNonHistoricalVariable<double>(NODAL_AREA, 0.0, rBackgroundGridModelPart.Nodes(), SLIP);
+        if (friction_active) VariableUtils().SetNonHistoricalVariable<double>(NODAL_AREA, 0.0, rBackgroundGridModelPart.Nodes(), SLIP);
 
 
         // Loop over the submodelpart of rBackgroundGridModelPart
@@ -261,7 +263,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                         // Check 'apply_mpm_slip_boundary_process.py'
 
                         // Compute NODAL_AREA and perform checks for conforming friction
-                        if(rBackgroundGridModelPart.GetProcessInfo()[FRICTION_ACTIVE]) {
+                        if (friction_active) {
                             for (auto& r_cond : submodelpart.Conditions()) {
                                 const Geometry<Node>& r_geometry = r_cond.GetGeometry(); // current condition's geometry
 

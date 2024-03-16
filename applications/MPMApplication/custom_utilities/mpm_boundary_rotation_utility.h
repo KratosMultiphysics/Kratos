@@ -177,13 +177,10 @@ public:
                         array_1d<double,3> & r_stick_force = rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE);
 
                         // accumulate normal forces (RHS vector) for subsequent re-determination of friction state
-                        if (rGeometry[itNode].GetValue(FRICTION_COEFFICIENT) > 0){
-                            rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE)[0] -= rLocalVector[j];
-                        }
-
-                        // check if friction force has been computed for the current node
+                        // and check if friction force has been computed for the current node
                         rGeometry[itNode].SetLock();
-                        bool friction_assigned = rGeometry[itNode].GetValue(FRICTION_ASSIGNED);
+                        rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE)[0] -= rLocalVector[j];
+                        const bool friction_assigned = rGeometry[itNode].GetValue(FRICTION_ASSIGNED);
                         rGeometry[itNode].SetValue(FRICTION_ASSIGNED, true);
                         rGeometry[itNode].UnSetLock();
 
@@ -210,7 +207,7 @@ public:
                             } // else, sliding: nothing needed for LHS
 
                             // add friction to RHS
-                            array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(REACTION);
+                            const array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(REACTION);
 
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i)
                                 rLocalVector[j + i] += r_friction_force[i];

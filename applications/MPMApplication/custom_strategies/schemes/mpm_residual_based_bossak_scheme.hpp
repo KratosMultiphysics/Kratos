@@ -424,8 +424,11 @@ public:
 
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+                // for thread safety in case of unassigned friction coefficient
+                const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
+
                 // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (!mRotationTool.IsPenalty(rNode) && rNode.Is(SLIP) && rNode.GetValue(FRICTION_COEFFICIENT) > 0) {
+                if (!mRotationTool.IsPenalty(rNode) && rNode.Is(SLIP) && mu > 0) {
                     mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
                 }
             });
