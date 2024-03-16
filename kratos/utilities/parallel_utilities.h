@@ -280,8 +280,8 @@ public:
     template <class TThreadLocalStorage,
               class TFunction,
               class TThreadLocalReduction,
-              std::enable_if_t<std::is_same_v<std::invoke_result_t<TThreadLocalReduction,TThreadLocalStorage&,TThreadLocalStorage&>,void>,bool> = true>
-    void for_each(TThreadLocalStorage& rTls,
+              std::enable_if_t<std::is_same_v<std::invoke_result_t<TThreadLocalReduction,TThreadLocalStorage&>,void>,bool> = true>
+    void for_each(const TThreadLocalStorage& rTls,
                   TFunction&& rFunction,
                   TThreadLocalReduction&& rTLSReducer)
     {
@@ -298,14 +298,14 @@ public:
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
-                    f(*it, tls); // note that we pass the value to the function, not the iterator
+                    rFunction(*it, tls); // note that we pass the value to the function, not the iterator
                 } // for it in mBlockPartition[i]
                 KRATOS_CATCH_THREAD_EXCEPTION
             } // for i in range(mNchunks)
 
             #pragma omp critical
             {
-                rTLSReducer(tls, rTls);
+                rTLSReducer(tls);
             } // pragma omp critical
         } // pragma omp parallel
 
@@ -467,6 +467,29 @@ template <class TReducer,
 [[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
+}
+
+template <class TContainer,
+          class TThreadLocalStorage,
+          class TFunction,
+          class TThreadLocalReduction,
+          std::enable_if_t<std::is_same_v<std::invoke_result_t<TThreadLocalReduction,TThreadLocalStorage&>,void>,bool> = true>
+void block_for_each(TContainer&& rContainer,
+                    const TThreadLocalStorage& rTls,
+                    TFunction&& rFunction,
+                    TThreadLocalReduction&& rReduction)
+{
+    using ContainerType = std::remove_reference_t<TContainer>;
+    using iterator_type = std::conditional_t<
+        std::is_const_v<ContainerType>,
+        typename ContainerType::const_iterator,
+        typename ContainerType::iterator
+    >;
+    return BlockPartition<iterator_type>(rContainer.begin(), rContainer.end()).for_each(
+        rTls,
+        std::forward<TFunction>(rFunction),
+        std::forward<TThreadLocalReduction>(rReduction)
+    );
 }
 
 //***********************************************************************************
