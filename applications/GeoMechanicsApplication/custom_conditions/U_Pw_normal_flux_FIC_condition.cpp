@@ -15,6 +15,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -86,7 +87,9 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         //Contributions to the left hand side
         this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
@@ -150,7 +153,9 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);

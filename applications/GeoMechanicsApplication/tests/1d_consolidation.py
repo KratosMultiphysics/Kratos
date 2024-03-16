@@ -32,7 +32,7 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         :return:
         """
         from math import fabs
-        from analytical_solutions import calculate_pore_pressure_OneD_consolidation, calculate_degree_of_OneD_consolidation
+        from analytical_solutions import calculate_pore_pressure_1d_consolidation, calculate_degree_of_1d_consolidation
         
         # define number of stages
         n_stages = 11
@@ -71,7 +71,7 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         sample_height = 1
         rmse_stages = [None] * (n_stages - 1)
         for idx, t_v in enumerate(t_vs):
-            rel_p_stage  = [calculate_pore_pressure_OneD_consolidation(y_coord, sample_height, t_v) * -1 for y_coord in y_coords]
+            rel_p_stage  = [calculate_pore_pressure_1d_consolidation(y_coord, sample_height, t_v) * -1 for y_coord in y_coords]
             errors_stage = [stage_water_pressure[idx + 1][node_idx] - rel_p for node_idx, rel_p in
                             enumerate(rel_p_stage)]
             rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5
@@ -95,7 +95,7 @@ class KratosGeoMechanics1DConsolidation(KratosUnittest.TestCase):
         for idx, t_v in enumerate(t_vs):
             rel_displacement = [(stage_displacement[idx + 1][node_idx]-delta_h0)/(delta_h_infinity-delta_h0) for node_idx, y_coord in
                             enumerate(y_coords) if fabs(y_coord - sample_height) < 0.001]
-            analytical_degree_of_consolidation = [calculate_degree_of_OneD_consolidation(t_v) * -1 
+            analytical_degree_of_consolidation = [calculate_degree_of_1d_consolidation(t_v) * -1 
                             for y_coord in y_coords if fabs(y_coord - sample_height) < 0.001]
             errors_stage = [rel_displacement[node_idx] - degree for node_idx, degree in enumerate(analytical_degree_of_consolidation)]
             rmse_stages[idx] = (sum([error ** 2 for error in errors_stage]) / len(errors_stage)) ** 0.5

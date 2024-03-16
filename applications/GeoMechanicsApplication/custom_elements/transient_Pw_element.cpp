@@ -74,8 +74,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDa
 {
     KRATOS_TRY
 
-    // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
-
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Compute Damping Matrix
@@ -158,7 +156,6 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
 
     if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
     for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        // RetentionLawFactory::Pointer pRetentionFactory;
         mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
         mRetentionLawVector[i]->InitializeMaterial(
             Prop, Geom, row(Geom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
