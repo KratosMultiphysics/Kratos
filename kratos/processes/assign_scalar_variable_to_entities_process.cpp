@@ -106,6 +106,51 @@ const Parameters AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::Ge
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Nodes();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Nodes();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProcess<Condition>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Conditions();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<Element>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).MasterSlaveConstraints();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<class TEntity, bool THistorical>
 template<class TVarType>
 void AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::InternalAssignValue(
@@ -194,51 +239,6 @@ template void AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Inte
     Variable<double>& rVar,
     const double Value
     );
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
-{
-    return mrModelPart.GetMesh(mMeshId).Nodes();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
-{
-    return mrModelPart.GetMesh(mMeshId).Nodes();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProcess<Condition>::GetEntitiesContainer()
-{
-    return mrModelPart.GetMesh(mMeshId).Conditions();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<Element>::GetEntitiesContainer()
-{
-    return mrModelPart.GetMesh(mMeshId).Elements();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
-{
-    return mrModelPart.GetMesh(mMeshId).MasterSlaveConstraints();
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
