@@ -57,7 +57,7 @@ class VertexMorphingShapeControl(Control):
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), KratosOA.SHAPE, Kratos.Globals.DataLocation.NodeHistorical, self.parameters["filter_settings"])
 
         # now setup mesh motion
-        self._mesh_moving_analysis: 'Optional[MeshMovingAnalysis]' = None
+        self.__mesh_moving_analysis: 'Optional[MeshMovingAnalysis]' = None
 
         self.mesh_motion_solver_type = self.parameters["mesh_motion_solver_type"].GetString()
         supported_mesh_motion_solver_types = ["mesh_moving_analysis", "filter_based", "none"]
@@ -69,7 +69,7 @@ class VertexMorphingShapeControl(Control):
             # then it is not loaded, hence not even required to have MeshMovingApplication
             # compiled.
             from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
-            self._mesh_moving_analysis  = MeshMovingAnalysis(self.model, self.parameters["mesh_motion_solver_settings"])
+            self.__mesh_moving_analysis = MeshMovingAnalysis(self.model, self.parameters["mesh_motion_solver_settings"])
 
     @time_decorator(methodName="GetName")
     def Initialize(self) -> None:
@@ -86,8 +86,8 @@ class VertexMorphingShapeControl(Control):
         self.control_field = self.GetPhysicalField()
 
         # initialize_mesh_motion if defined.
-        if not self._mesh_moving_analysis is None:
-            self._mesh_moving_analysis.Initialize()
+        if not self.__mesh_moving_analysis is None:
+            self.__mesh_moving_analysis.Initialize()
             # since this is applied on the boundary surface
             # we can fix MESH_DISPLACEMENT on all skin model part nodes.
             Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_X, True, self.model_part.Nodes)
@@ -102,14 +102,14 @@ class VertexMorphingShapeControl(Control):
 
     def Finalize(self) -> None:
         self.filter.Finalize()
-        if not self._mesh_moving_analysis is None:
-            self._mesh_moving_analysis.Finalize()
+        if not self.__mesh_moving_analysis is None:
+            self.__mesh_moving_analysis.Finalize()
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.NodalExpression(self.model_part)
+        field = Kratos.Expression.NodalExpression(self.__GetPhysicalModelPart())
         Kratos.Expression.LiteralExpressionIO.SetData(field, [0,0,0])
         return field
 
@@ -117,7 +117,7 @@ class VertexMorphingShapeControl(Control):
         return self.control_field
 
     def GetPhysicalField(self) -> ContainerExpressionTypes:
-        physical_shape_field = Kratos.Expression.NodalExpression(self.model_part)
+        physical_shape_field = Kratos.Expression.NodalExpression(self.__GetPhysicalModelPart())
         Kratos.Expression.NodalPositionExpressionIO.Read(physical_shape_field, Kratos.Configuration.Initial)
         return physical_shape_field
 
@@ -133,9 +133,9 @@ class VertexMorphingShapeControl(Control):
         if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        filtered_gradient = self.filter.BackwardFilterIntegratedField(physical_gradient)
+        filtered_gradient = self.filter.BackwardFilterIntegratedField(KratosOA.ExpressionUtils.ExtractData(physical_gradient, self.model_part))
 
-        return filtered_gradient
+        return KratosOA.ExpressionUtils.ExtractData(filtered_gradient, self.__GetPhysicalModelPart())
 
     @time_decorator(methodName="GetName")
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
@@ -154,7 +154,7 @@ class VertexMorphingShapeControl(Control):
 
     def _UpdateAndOutputFields(self, control_update) -> None:
         # compute the shape update
-        shape_update = self.filter.ForwardFilterField(control_update)
+        shape_update = self.filter.ForwardFilterField(KratosOA.ExpressionUtils.ExtractData(control_update, self.model_part))
 
         # now update the shape
         self._UpdateMesh(shape_update)
@@ -167,8 +167,8 @@ class VertexMorphingShapeControl(Control):
             un_buffered_data.SetValue("shape_control_update", control_update.Clone(),overwrite=True)
 
     def _UpdateMesh(self, shape_update) -> None:
-        if not self._mesh_moving_analysis is None:
-            mm_computing_model_part: Kratos.ModelPart = self._mesh_moving_analysis._GetSolver().GetComputingModelPart()
+        if not self.__mesh_moving_analysis is None:
+            mm_computing_model_part: Kratos.ModelPart = self.__mesh_moving_analysis._GetSolver().GetComputingModelPart()
             time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.TIME)
             step_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.STEP)
             delta_time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
@@ -182,9 +182,9 @@ class VertexMorphingShapeControl(Control):
             Kratos.Expression.VariableExpressionIO.Write(shape_update, Kratos.MESH_DISPLACEMENT, True)
 
             # solve for the volume mesh displacements
-            if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
-                self._mesh_moving_analysis.end_time += 1
-            self._mesh_moving_analysis.RunSolutionLoop()
+            if not self.__mesh_moving_analysis.time < self.__mesh_moving_analysis.end_time:
+                self.__mesh_moving_analysis.end_time += 1
+            self.__mesh_moving_analysis.RunSolutionLoop()
 
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update)
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
@@ -206,6 +206,19 @@ class VertexMorphingShapeControl(Control):
             physical_field = self.GetPhysicalField()
             Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + physical_field, Kratos.Configuration.Initial)
             Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + physical_field, Kratos.Configuration.Current)
+
+    def __GetPhysicalModelPart(self) -> Kratos.ModelPart:
+        if self.mesh_motion_solver_type == "none":
+            # this control does not require mesh_motion, hence this does not
+            # have any influence on the volume domain. So the physical model part
+            # is the controlled model part
+            return self.model_part
+        else:
+            # this is the case where mesh motion is required, that means this control will control the
+            # whole domain by moving its internal nodes because, the controlled model part represents
+            # a surface of the volume domain. hence the physical field should be the whole
+            # model part
+            return self.model_part.GetRootModelPart()
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = SHAPE ]"
