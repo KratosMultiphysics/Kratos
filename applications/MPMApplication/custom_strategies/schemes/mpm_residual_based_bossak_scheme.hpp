@@ -424,11 +424,12 @@ public:
 
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
-                // for thread safety in case of unassigned friction coefficient
-                const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
+                const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+                const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
 
                 // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (!mRotationTool.IsPenalty(rNode) && rNode.Is(SLIP) && mu > 0) {
+                if (!mRotationTool.IsPenalty(rConstNode) && rConstNode.Is(SLIP) && mu > 0) {
                     mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
                 }
             });
@@ -602,7 +603,9 @@ protected:
     {
         block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
         {
-            if( mRotationTool.IsPenalty(rNode) )
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+            if( mRotationTool.IsPenalty(rConstNode) )
                 rNode.FastGetSolutionStepValue(REACTION).clear();
         });
     }

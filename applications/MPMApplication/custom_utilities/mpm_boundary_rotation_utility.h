@@ -530,16 +530,17 @@ public:
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
         {
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
 
             int& r_friction_state = rNode.FastGetSolutionStepValue(FRICTION_STATE, 0);
-            const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
+            const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
 
             array_1d<double, 3>& r_friction_force = rNode.FastGetSolutionStepValue(REACTION);
 
             // Limit tangential forces for friction
             if (mu > 0) {
                 // obtain normal and tangent forces assoc. with node at the desired timestep
-                double normal_force = rNode.FastGetSolutionStepValue(STICK_FORCE_X, 1);
+                const double normal_force = rNode.FastGetSolutionStepValue(STICK_FORCE_X, 1);
                 const double tangent_force1 = rNode.FastGetSolutionStepValue(STICK_FORCE_Y, 0);
                 const double tangent_force2 = rNode.FastGetSolutionStepValue(STICK_FORCE_Z, 0);
 
@@ -556,7 +557,7 @@ public:
 
                 // special treatment for initial loop
                 if (is_initial_loop) {
-                    if (rNode.GetValue(HAS_INITIAL_MOMENTUM)) {
+                    if (rConstNode.GetValue(HAS_INITIAL_MOMENTUM)) {
                         r_friction_state = SLIDING;
                     }
                     else {
