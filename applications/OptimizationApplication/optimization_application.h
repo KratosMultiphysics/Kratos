@@ -130,16 +130,18 @@ namespace Kratos
 		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;
 
 		// Helmholtz elements
-		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>> mHelmholtzSurfaceElement3D3N;
-		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1>> mHelmholtzSurfaceElement3D4N;
-		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3>> mHelmholtzVectorSurfaceElement3D3N;
-		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3>> mHelmholtzVectorSurfaceElement3D4N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1, HelmholtzGenericVariableData>> mHelmholtzScalarSurfaceElement3D3N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1, HelmholtzGenericVariableData>> mHelmholtzScalarSurfaceElement3D4N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3, HelmholtzGenericVariableData>> mHelmholtzVectorSurfaceElement3D3N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3, HelmholtzGenericVariableData>> mHelmholtzVectorSurfaceElement3D4N;
 
-		const HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>> mHelmholtzSolidElement3D4N;
-		const HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>> mHelmholtzSolidElement3D8N;
+		const HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>> mHelmholtzScalarSolidElement3D4N;
+		const HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>> mHelmholtzScalarSolidElement3D8N;
 		const HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>> mHelmholtzVectorSolidElement3D4N;
 		const HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>> mHelmholtzVectorSolidElement3D8N;
 
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3, HelmholtzShapeVariableData>> mHelmholtzSurfaceShapeElement3D3N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3, HelmholtzShapeVariableData>> mHelmholtzSurfaceShapeElement3D4N;
 		const HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 4>> mHelmholtzSolidShapeElement3D4N;
 		const HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 8>> mHelmholtzSolidShapeElement3D8N;
 

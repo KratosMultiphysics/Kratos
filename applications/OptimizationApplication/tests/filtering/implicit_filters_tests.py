@@ -87,16 +87,61 @@ class HelmholtzAnalysisTest(TestCase):
                                         "parallel_type" : "OpenMP"
                                     }
                                 }""")
-
+            shape_bulk_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "shape",
+                                        "filter_radius"     : 2.0,
+                                        "model_part_name" : "solid_bulk_surf.design",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "skyline_lu_factorization"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
+                                    }
+                                }""")
+            shape_shell_vector_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "shape",
+                                        "filter_radius"     : 500.0,
+                                        "model_part_name" : "shell",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "skyline_lu_factorization"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
+                                    }
+                                }""")
             cls.solid_scalar_filter = HelmholtzAnalysis(cls.model, solid_scalar_filter_parameters)
             cls.solid_vector_filter = HelmholtzAnalysis(cls.model, solid_vector_filter_parameters)
             cls.bulk_surface_filter = HelmholtzAnalysis(cls.model, bulk_surface_filter_parameters)
+            cls.shape_bulk_surface_filter = HelmholtzAnalysis(cls.model, shape_bulk_filter_parameters)
             ReadModelPart("solid",cls.solid_scalar_model_part)
             ReadModelPart("solid",cls.solid_vector_model_part)
             ReadModelPart("solid",cls.solid_bulk_surface_model_part)
 
             cls.shell_model_part = cls.model.CreateModelPart("shell")
             cls.shell_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+            cls.shape_shell_surface_filter = HelmholtzAnalysis(cls.model, shape_shell_vector_filter_parameters)
             shell_vector_filter_parameters = KM.Parameters("""
                                 {
                                     "solver_settings" : {
@@ -190,53 +235,6 @@ class HelmholtzAnalysisTest(TestCase):
             cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 4, [1,4,8,5], properties_1)
             cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 5, [3,2,6,7], properties_1)
             cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 6, [4,3,7,8], properties_1)
-
-            shape_bulk_filter_parameters = KM.Parameters("""
-                                {
-                                    "solver_settings" : {
-                                        "domain_size"     : 3,
-                                        "echo_level"      : 0,
-                                        "filter_type"     : "shape",
-                                        "filter_radius"     : 2.0,
-                                        "model_part_name" : "solid_bulk_surf.design",
-                                        "model_import_settings"              : {
-                                            "input_type"     : "use_input_model_part"
-                                        },
-                                        "linear_solver_settings": {
-                                            "solver_type": "skyline_lu_factorization"
-                                        }
-                                    },
-                                    "problem_data": {
-                                        "echo_level"    : 0,
-                                        "start_time"    : 0.0,
-                                        "end_time"      : 1.0,
-                                        "parallel_type" : "OpenMP"
-                                    }
-                                }""")
-            shape_shell_vector_filter_parameters = KM.Parameters("""
-                                {
-                                    "solver_settings" : {
-                                        "domain_size"     : 3,
-                                        "echo_level"      : 0,
-                                        "filter_type"     : "shape",
-                                        "filter_radius"     : 500.0,
-                                        "model_part_name" : "shell",
-                                        "model_import_settings"              : {
-                                            "input_type"     : "use_input_model_part"
-                                        },
-                                        "linear_solver_settings": {
-                                            "solver_type": "skyline_lu_factorization"
-                                        }
-                                    },
-                                    "problem_data": {
-                                        "echo_level"    : 0,
-                                        "start_time"    : 0.0,
-                                        "end_time"      : 1.0,
-                                        "parallel_type" : "OpenMP"
-                                    }
-                                }""")
-            cls.shape_bulk_surface_filter = HelmholtzAnalysis(cls.model, shape_bulk_filter_parameters)
-            cls.shape_shell_surface_filter = HelmholtzAnalysis(cls.model, shape_shell_vector_filter_parameters)
 
     def setUp(self) -> None:
         for model_part_name in self.model.GetModelPartNames():

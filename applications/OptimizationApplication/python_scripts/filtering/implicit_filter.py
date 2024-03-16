@@ -14,6 +14,7 @@ class ImplicitFilter(Filter):
         return Kratos.Parameters("""{
             "filter_type"                  : "implicit_filter",
             "filter_radius"                : 0.2,
+            "filter_variable_type"         : "auto",
             "linear_solver_settings"       : {},
             "echo_level"                   : 0,
             "filtering_boundary_conditions": {}
@@ -39,21 +40,42 @@ class ImplicitFilter(Filter):
         if data_location not in supported_data_locations:
             raise RuntimeError(f"Unsupported data location = \"{data_location.name}\" requested. Followings are supported:\n\t" + "\n\t".join([v.name for v in supported_data_locations]))
 
-        if isinstance(filtering_variable, Kratos.DoubleVariable):
-            self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_SCALAR]
-            self.filter_type = "general_scalar"
-        elif isinstance(filtering_variable, Kratos.Array1DVariable3):
-            self.filter_variables: 'list[SupportedSensitivityFieldVariableTypes]' = [KratosOA.HELMHOLTZ_VECTOR_X, KratosOA.HELMHOLTZ_VECTOR_Y, KratosOA.HELMHOLTZ_VECTOR_Z]
-            if filtering_variable == KratosOA.SHAPE:
-                self.filter_type = "shape"
-                self.model[filtering_model_part_name.split(".")[0]].AddNodalSolutionStepVariable(Kratos.MESH_DISPLACEMENT)
+        allowed_filter_variable_types = ["auto", "general_scalar", "general_vector", "shape"]
+        filter_variable_type = self.parameters["filter_variable_type"].GetString()
+        if not filter_variable_type in allowed_filter_variable_types:
+            raise RuntimeError(f"Unsupported filter_variable_type = \"{filter_variable_type}\". Followings are supported:\n\t" + "\n\t".join(allowed_filter_variable_types))
+
+        if filter_variable_type == "auto":
+            if isinstance(filtering_variable, Kratos.DoubleVariable):
+                self.filter_type = "general_scalar"
+            elif isinstance(filtering_variable, Kratos.Array1DVariable3):
+                if filtering_variable == KratosOA.SHAPE:
+                    self.filter_type = "shape"
+                else:
+                    self.filter_type = "general_vector"
             else:
-                self.filter_type = "general_vector"
+                raise RuntimeError(f"Unsupported varaible type [ variable name = {filtering_variable.Name()}]")
         else:
-            raise RuntimeError(f"Unsupported variable = \"{filtering_variable.Name()}\". Only supports DoubleVariable and Array1DVariable3.")
+            self.filter_type = filter_variable_type
+
+        if self.filter_type == "general_scalar" and not isinstance(filtering_variable, Kratos.DoubleVariable):
+            raise RuntimeError(f"\"general_scalar\" only supports scalar variables [ variable name = {filtering_variable.Name()} ].")
+        if self.filter_type == "general_vector" and not isinstance(filtering_variable, Kratos.Array1DVariable3):
+            raise RuntimeError(f"\"general_vector\" only supports array3 variables [ variable name = {filtering_variable.Name()} ].")
+        if self.filter_type == "shape" and filtering_variable != KratosOA.SHAPE:
+            raise RuntimeError(f"\"shape\" only supports SHAPE variable [ variable name = {filtering_variable.Name()} ].")
+
         helmholtz_settings = self.__GetImplicitFilterParameters(filtering_model_part_name, self.parameters)
 
         self.filter_analysis = HelmholtzAnalysis(self.model, helmholtz_settings)
+
+        solving_var = self.filter_analysis._GetSolver().GetSolvingVariable()
+        if isinstance(solving_var, Kratos.DoubleVariable):
+            self.filter_variables = [solving_var]
+        elif isinstance(solving_var, Kratos.Array1DVariable3):
+            self.filter_variables = list(map(lambda x: Kratos.KratosGlobals.GetVariable(x), [f"{solving_var.Name()}_{suffix}" for suffix in ["X", "Y", "Z"]]))
+        else:
+            raise RuntimeError(f"Unsupported solving variable [ solving variable name = {solving_var.Name()} ].")
 
     def Initialize(self) -> None:
         self.filter_analysis.Initialize()
@@ -71,10 +93,7 @@ class ImplicitFilter(Filter):
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
             self.__ReInitializeFilteringModelPart()
-        field = self.filter_analysis.FilterField(control_field)
-        if self.filter_type == "shape":
-            self.filter_analysis._GetSolver().AssignSolutionToVariable(Kratos.MESH_DISPLACEMENT)
-        return field
+        return self.filter_analysis.FilterField(control_field)
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
@@ -91,7 +110,7 @@ class ImplicitFilter(Filter):
             self.__ReInitializeFilteringModelPart()
         return self.UnfilterField(physical_field)
 
-    def __GetImplicitFilterParameters(self, filter_model_part_name: str, parameters: Kratos.Parameters):
+    def __GetImplicitFilterParameters(self, filter_variable_typel_part_name: str, parameters: Kratos.Parameters):
         implicit_vector_filter_parameters = Kratos.Parameters("""
         {
             "solver_settings" : {
@@ -115,7 +134,7 @@ class ImplicitFilter(Filter):
         implicit_vector_filter_parameters["solver_settings"]["echo_level"].SetInt(parameters["echo_level"].GetInt())
         implicit_vector_filter_parameters["solver_settings"]["filter_radius"].SetDouble(parameters["filter_radius"].GetDouble())
         implicit_vector_filter_parameters["solver_settings"]["filter_type"].SetString(self.filter_type)
-        implicit_vector_filter_parameters["solver_settings"]["model_part_name"].SetString(filter_model_part_name)
+        implicit_vector_filter_parameters["solver_settings"]["model_part_name"].SetString(filter_variable_typel_part_name)
 
         linear_solver_settings = parameters["linear_solver_settings"]
         if linear_solver_settings.Has("solver_type"):

@@ -20,6 +20,7 @@
 #include "custom_conditions/helmholtz_surface_shape_condition.h"
 #include "includes/variables.h"
 #include "includes/checks.h"
+#include "includes/mesh_moving_variables.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -167,11 +168,11 @@ void HelmholtzSurfaceShapeCondition::GetValuesVector(VectorType &rValues,
   SizeType index = 0;
   for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
     rValues[index++] =
-        rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VECTOR_X, Step);
+        rgeom[i_node].FastGetSolutionStepValue(MESH_DISPLACEMENT_X, Step);
     rValues[index++] =
-        rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VECTOR_Y, Step);
+        rgeom[i_node].FastGetSolutionStepValue(MESH_DISPLACEMENT_Y, Step);
     rValues[index++] =
-        rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_VECTOR_Z, Step);
+        rgeom[i_node].FastGetSolutionStepValue(MESH_DISPLACEMENT_Z, Step);
   }
 }
 //******************************************************************************
@@ -231,13 +232,13 @@ void HelmholtzSurfaceShapeCondition::EquationIdVector(EquationIdVectorType& rRes
     if (rResult.size() != dimension * number_of_nodes)
         rResult.resize(dimension * number_of_nodes,false);
 
-    const SizeType pos = this->GetGeometry()[0].GetDofPosition(HELMHOLTZ_VECTOR_X);
+    const SizeType pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const SizeType index = i * 3;
-        rResult[index] = GetGeometry()[i].GetDof(HELMHOLTZ_VECTOR_X,pos).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof(HELMHOLTZ_VECTOR_Y,pos+1).EquationId();
-        rResult[index + 2] = GetGeometry()[i].GetDof(HELMHOLTZ_VECTOR_Z,pos+2).EquationId();
+        rResult[index] = GetGeometry()[i].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+        rResult[index + 1] = GetGeometry()[i].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+        rResult[index + 2] = GetGeometry()[i].GetDof(MESH_DISPLACEMENT_Z,pos+2).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -257,9 +258,9 @@ void HelmholtzSurfaceShapeCondition::GetDofList(DofsVectorType& rElementalDofLis
     rElementalDofList.reserve(dimension*number_of_nodes);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rElementalDofList.push_back(GetGeometry()[i].pGetDof(HELMHOLTZ_VECTOR_X));
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof(HELMHOLTZ_VECTOR_Y));
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof(HELMHOLTZ_VECTOR_Z));
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(MESH_DISPLACEMENT_X));
+        rElementalDofList.push_back( GetGeometry()[i].pGetDof(MESH_DISPLACEMENT_Y));
+        rElementalDofList.push_back( GetGeometry()[i].pGetDof(MESH_DISPLACEMENT_Z));
     }
 
     KRATOS_CATCH("")
@@ -279,11 +280,11 @@ int HelmholtzSurfaceShapeCondition::Check(const ProcessInfo& rCurrentProcessInfo
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
         const NodeType &rnode = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HELMHOLTZ_VECTOR,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_DISPLACEMENT,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VECTOR_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VECTOR_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_VECTOR_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Z, rnode)
     }
 
     return check;

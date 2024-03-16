@@ -31,7 +31,7 @@
 
 namespace Kratos {
 
-template <unsigned int TDim, unsigned int TNumNodes, unsigned int TDataDimension>
+template <unsigned int TDim, unsigned int TNumNodes, unsigned int TDataDimension, template<unsigned int> class TVariableDataType>
 class HelmholtzSurfaceDataContainer
 {
 public:
@@ -46,9 +46,9 @@ public:
 
     static constexpr IndexType NumberOfVariables = (TDataDimension == 1) ? 1 : TDim;
 
-    static constexpr auto TargetVariablesList = HelmholtzVariableData<NumberOfVariables>::TargetVariablesList;
+    static constexpr auto TargetVariablesList = TVariableDataType<NumberOfVariables>::TargetVariablesList;
 
-    static constexpr auto SourceVariablesList = HelmholtzVariableData<NumberOfVariables>::SourceVariablesList;
+    static constexpr auto SourceVariablesList = TVariableDataType<NumberOfVariables>::SourceVariablesList;
 
     ///@}
     ///@name Public classes

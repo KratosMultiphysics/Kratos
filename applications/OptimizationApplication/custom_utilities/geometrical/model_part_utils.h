@@ -111,6 +111,18 @@ public:
         const ModelPart& rModelPart,
         const std::string& rStatus);
 
+    /**
+     * @brief Generate model part elements using the geometries of the conditions given in the origin container.
+     *
+     * @param rOriginContainer          Origin container with conditions.
+     * @param rDestinationModelPart     Destination model part.
+     * @param rReferenceElement         Reference element to be used for new element creation.
+     */
+    static void GenerateModelPart(
+        ModelPart::ConditionsContainerType& rOriginContainer,
+        ModelPart& rDestinationModelPart,
+        const Element& rReferenceElement);
+
     ///@}
 };
 
