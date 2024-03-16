@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+import KratosMultiphysics.OptimizationApplication as KOA
 
 # Import baseclass
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_solver_base import HelmholtzSolverBase
@@ -8,11 +9,15 @@ def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
     return HelmholtzShapeSolver(model, custom_settings)
 
 class HelmholtzShapeSolver(HelmholtzSolverBase):
-    def _GetSolvingVariable(self) -> KM.Array1DVariable3:
+    def GetSolvingVariable(self) -> KM.Array1DVariable3:
         return KM.MESH_DISPLACEMENT
 
     def _GetComputingModelPartName(self) -> str:
         return self.GetOriginModelPart().FullName().replace(".", "_") + "_helmholtz_shape"
+
+    def SetFilterRadius(self, filter_radius: float) -> None:
+        self.GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS, filter_radius)
+        KOA.ImplicitFilterUtils.SetBulkRadiusForShapeFiltering(self.GetComputingModelPart())
 
     def _FillComputingModelPart(self) -> None:
         if self.GetOriginModelPart().NumberOfElements() > 0:

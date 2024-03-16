@@ -87,17 +87,33 @@ class HelmholtzSolverBase(PythonSolver):
 
     #### Public user interface functions ####
 
+    @abc.abstractmethod
+    def _GetComputingModelPartName(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def _FillComputingModelPart(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    def GetSolvingVariable(self) -> SupportedSensitivityFieldVariableTypes:
+        pass
+
+    @abc.abstractmethod
+    def SetFilterRadius(self, filter_radius: float) -> None:
+        pass
+
     def AddVariables(self) -> None:
-        self.GetOriginRootModelPart().AddNodalSolutionStepVariable(self._GetSolvingVariable())
+        self.GetOriginRootModelPart().AddNodalSolutionStepVariable(self.GetSolvingVariable())
         KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Variables ADDED.")
 
     def AddDofs(self) -> None:
-        if isinstance(self._GetSolvingVariable(), KM.DoubleVariable):
-            KM.VariableUtils().AddDof(self._GetSolvingVariable(), self.GetOriginRootModelPart())
-        elif isinstance(self._GetSolvingVariable(), KM.Array1DVariable3):
-            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self._GetSolvingVariable().Name()}_X"), self.GetOriginRootModelPart())
-            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self._GetSolvingVariable().Name()}_Y"), self.GetOriginRootModelPart())
-            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self._GetSolvingVariable().Name()}_Z"), self.GetOriginRootModelPart())
+        if isinstance(self.GetSolvingVariable(), KM.DoubleVariable):
+            KM.VariableUtils().AddDof(self.GetSolvingVariable(), self.GetOriginRootModelPart())
+        elif isinstance(self.GetSolvingVariable(), KM.Array1DVariable3):
+            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_X"), self.GetOriginRootModelPart())
+            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Y"), self.GetOriginRootModelPart())
+            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Z"), self.GetOriginRootModelPart())
         else:
             raise RuntimeError("Unsupported solving variable type.")
         KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: DOFs ADDED.")
@@ -150,9 +166,6 @@ class HelmholtzSolverBase(PythonSolver):
 
     def GetOriginModelPart(self) -> KM.ModelPart:
         return self.model[self.__filtering_model_part_name]
-
-    def GetFilterType(self) -> str:
-        return self.filter_type
 
     def GetFilterRadius(self) -> str:
         return self.filter_radius
@@ -212,33 +225,10 @@ class HelmholtzSolverBase(PythonSolver):
     def _IsSurfaceContainer(self, container: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]') -> bool:
         return any(map(lambda x: x.GetGeometry().WorkingSpaceDimension() != x.GetGeometry().LocalSpaceDimension(), container))
 
-    def GetComputingModelPartName(self) -> str:
-        model_part_name = self.__filtering_model_part_name.replace(".", "_")
-        for container in self.GetContainers():
-            if isinstance(container, KM.ConditionsArray):
-                model_part_name += "_conditions"
-            elif isinstance(container, KM.ElementsArray):
-                model_part_name += "_elements"
-            else:
-                raise RuntimeError("Unsupported container type provided.")
-        return model_part_name + f"_{self.GetConditionName()}_{self.GetElementName()}"
-
-    @abc.abstractmethod
-    def _GetComputingModelPartName(self) -> str:
-        pass
-
-    @abc.abstractmethod
-    def _FillComputingModelPart(self) -> None:
-        pass
-
-    @abc.abstractmethod
-    def _GetSolvingVariable(self) -> SupportedSensitivityFieldVariableTypes:
-        pass
-
-    def _GetSourceVariable(self) -> SupportedSensitivityFieldVariableTypes:
-        if isinstance(self._GetSolvingVariable(), KM.DoubleVariable):
+    def GetSourceVariable(self) -> SupportedSensitivityFieldVariableTypes:
+        if isinstance(self.GetSolvingVariable(), KM.DoubleVariable):
             return KOA.HELMHOLTZ_SCALAR_SOURCE
-        elif isinstance(self._GetSolvingVariable(), KM.Array1DVariable3):
+        elif isinstance(self.GetSolvingVariable(), KM.Array1DVariable3):
             return KOA.HELMHOLTZ_VECTOR_SOURCE
         else:
             raise RuntimeError("Unsupported solving variable.")

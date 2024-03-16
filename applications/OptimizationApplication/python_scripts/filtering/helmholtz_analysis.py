@@ -39,20 +39,9 @@ class HelmholtzAnalysis(AnalysisStage):
     #### Public user interface functions ####
     def Initialize(self):
         super().Initialize()
-        self.InitializeFilterModelPart()
-
-    def InitializeFilterModelPart(self):
         self._SetSolverMode()
-        self.SetFilterRadius(self._GetSolver().GetFilterRadius())
-        self.SetBulkFilterRadius()
+        self._GetSolver().SetFilterRadius(self._GetSolver().GetFilterRadius())
         self._SetHelmHoltzSourceMode()
-
-    def SetFilterRadius(self, filter_radius: float):
-        self._GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS, filter_radius)
-
-    def SetBulkFilterRadius(self):
-        if self._GetSolver().GetFilterType() == "bulk_surface_shape" or self._GetSolver().GetFilterType() == "shape":
-            KOA.ImplicitFilterUtils.SetBulkRadiusForShapeFiltering(self._GetComputingModelPart())
 
     def RunSolver(self):
         self.InitializeSolutionStep()
@@ -111,7 +100,7 @@ class HelmholtzAnalysis(AnalysisStage):
 
             KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__neighbour_entities[key])
 
-        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver()._GetSourceVariable(), False)
+        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSourceVariable(), False)
 
     def __AssignNodalSolutionToDataExpression(self) -> ContainerExpressionTypes:
         if self.__source_data is None:
@@ -125,7 +114,7 @@ class HelmholtzAnalysis(AnalysisStage):
         # data containers.
         nodal_solution_field = KM.Expression.NodalExpression(self.__source_data.GetModelPart())
 
-        KM.Expression.VariableExpressionIO.Read(nodal_solution_field, self._GetSolver()._GetSolvingVariable(), True)
+        KM.Expression.VariableExpressionIO.Read(nodal_solution_field, self._GetSolver().GetSolvingVariable(), True)
 
         if isinstance(self.__source_data, KM.Expression.NodalExpression):
             return nodal_solution_field.Clone()

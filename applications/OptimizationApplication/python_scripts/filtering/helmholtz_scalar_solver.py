@@ -11,11 +11,14 @@ def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
     return HelmholtzScalarSolver(model, custom_settings)
 
 class HelmholtzScalarSolver(HelmholtzSolverBase):
-    def _GetSolvingVariable(self) -> KM.DoubleVariable:
+    def GetSolvingVariable(self) -> KM.DoubleVariable:
         return KOA.HELMHOLTZ_SCALAR
 
     def _GetComputingModelPartName(self) -> str:
         return self.GetOriginModelPart().FullName().replace(".", "_") + "_helmholtz_scalar"
+
+    def SetFilterRadius(self, filter_radius: float) -> None:
+        self.GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS, filter_radius)
 
     def _FillComputingModelPart(self) -> None:
         if self.GetOriginModelPart().NumberOfElements() > 0:
