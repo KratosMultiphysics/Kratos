@@ -115,6 +115,9 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
                                                                                     
     double BondedLocalElasticContactForce2 = 0.0; //normal forces
     // The [mBondedScalingFactor] is divided into two direction [0] and [1]. June, 2022
+    double OldBondedLocalElasticContactForce[2] = {0.0};
+    OldBondedLocalElasticContactForce[0] = mBondedScalingFactor[0] * OldLocalElasticContactForce[0];
+    OldBondedLocalElasticContactForce[1] = mBondedScalingFactor[1] * OldLocalElasticContactForce[1];
     double BondedLocalElasticContactForce[2] = {0.0}; 
     double current_tangential_force_module = 0.0;
 
@@ -126,213 +129,203 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     const double delta_at_undamaged_peak_normal = bond_sigma_max * calculation_area / kn_el;
     const double delta_at_failure_point_normal = (2.0 * fracture_energy_normal) / bond_sigma_max;
 
-    if (std::abs(delta_at_failure_point_normal) < std::abs(delta_at_undamaged_peak_normal) && fracture_energy_normal){
+    /*if (std::abs(delta_at_failure_point_normal) < std::abs(delta_at_undamaged_peak_normal) && fracture_energy_normal){
         double suggested_fracture_energy = delta_at_undamaged_peak_normal * bond_sigma_max / 2.0;
         KRATOS_INFO("DEM") << "The [Fracture_energy_normal] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
         KRATOS_ERROR<< "The [Fracture_energy_normal] is too small!" << std::endl;
-    }
+    }*/
     
   //**********************************************
-    
-    if (!failure_type){ //if the bond is not broken
-        
-        BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-        //const double OldAccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
-        mAccumulatedBondedTangentialLocalDisplacement[0] += LocalDeltDisp[0];
-        mAccumulatedBondedTangentialLocalDisplacement[1] += LocalDeltDisp[1];
-        const double AccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
-        
-        if (bonded_indentation <= 0.0){ // in tension-shear mode
-            
-            const double delta_at_undamaged_peak_tangential = bond_tau_zero * calculation_area / kt_el;
-            const double delta_at_failure_point_tangential = (2.0 * fracture_energy_tangential) / bond_tau_zero;
+    //normal
+    const double initial_limit_force = bond_sigma_max * calculation_area;
+    double DamageEnergyCoeffNormal = 0.0;
 
-            if (std::abs(delta_at_failure_point_tangential) < std::abs(delta_at_undamaged_peak_tangential)){
-                double suggested_fracture_energy = delta_at_undamaged_peak_tangential * bond_tau_zero / 2.0;
-                KRATOS_INFO("DEM") << "The [Fracture_energy_tangential] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
-                KRATOS_ERROR<< "The [Fracture_energy_tangential] is too small!" << std::endl;
+    if (bond_sigma_max) {
+        DamageEnergyCoeffNormal = 2.0 * fracture_energy_normal * kn_el / (calculation_area * bond_sigma_max * bond_sigma_max) - 1.0;
+    } else {
+        DamageEnergyCoeffNormal = 0.0;
+    }
+
+    KRATOS_ERROR_IF(DamageEnergyCoeffNormal > 30.0) << "Damage energy is too big!" << std::endl;
+
+    if (DamageEnergyCoeffNormal < 0.0) {
+        DamageEnergyCoeffNormal = 0.0;
+    }
+
+    double k_softening = 0.0;
+    double limit_force = 0.0;
+
+    if (DamageEnergyCoeffNormal) {
+        k_softening = kn_el / DamageEnergyCoeffNormal;
+    }
+
+    double kn_updated = (1.0 - mDamageNormal) * kn_el;
+    
+    double delta_accumulated = 0.0;
+
+    double returned_by_mapping_force = 0.0;
+
+    //double BondedLocalElasticContactForce2 = 0.0;
+    //const double bonded_indentation = indentation - mInitialIndentationForBondedPart;
+    double current_normal_force_module = 0.0;
+
+    if (bonded_indentation >= 0.0) { //COMPRESSION
+        if (!failure_type) {
+            BondedLocalElasticContactForce2 = kn_updated * bonded_indentation;
+            delta_accumulated = bonded_indentation;
+        } else {
+            BondedLocalElasticContactForce2 = 0.0;
+        }
+    } else { //tension
+
+        if (!failure_type) {
+            if (DamageEnergyCoeffNormal) {
+                limit_force = initial_limit_force * (1.0 + k_softening / kn_el) * kn_updated / (kn_updated + k_softening);
+            } else {
+                limit_force = initial_limit_force;
             }
 
-            double current_sigma = BondedLocalElasticContactForce2 / calculation_area;
-            double max_sigma = (1 - mDamageNormal) * bond_sigma_max;
+            current_normal_force_module = fabs(kn_updated * bonded_indentation);
+            
+            BondedLocalElasticContactForce2 = kn_updated * bonded_indentation;
 
-            BondedLocalElasticContactForce[0] = -1 * (1 - mDamageTangential) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[0]; // 0: first tangential
-            BondedLocalElasticContactForce[1] = -1 * (1 - mDamageTangential) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[1]; // 1: second tangential
-            current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
-                                                 + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
-            double current_tau = current_tangential_force_module / calculation_area;
-            //double max_tau = (1 - mDamageTangential) * bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0);
-            double max_tau = (1 - mDamageTangential) * bond_tau_zero;
+            delta_accumulated = current_normal_force_module / kn_updated;
 
-            //yield check
-            if (fracture_energy_normal && fracture_energy_tangential && !(*mpProperties)[IS_UNBREAKABLE]){  // the material can sustain further damage, not failure yet
-                
-                if (std::abs(current_sigma) > max_sigma) {
-                    mDamageNormal = (delta_at_failure_point_normal / std::abs(bonded_indentation)) * (std::abs(bonded_indentation) - delta_at_undamaged_peak_normal) / (delta_at_failure_point_normal - delta_at_undamaged_peak_normal);
-                }
+            returned_by_mapping_force = current_normal_force_module;
 
-                if (current_tau > max_tau) {
-                    mDamageTangential = (delta_at_failure_point_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * (AccumulatedBondedTangentialLocalDisplacementModulus - delta_at_undamaged_peak_tangential) / (delta_at_failure_point_tangential - delta_at_undamaged_peak_tangential);
-                }
+            if ((current_normal_force_module > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
 
-                //real damage calculation
-                //mDamageReal += std::sqrt((mDamageNormal - mDamageReal) * (mDamageNormal - mDamageReal) + (mDamageTangential - mDamageReal) * (mDamageTangential - mDamageReal));
-                if (mDamageNormal > mDamageReal){
-                    mDamageReal = mDamageNormal;
-                } 
+                if (DamageEnergyCoeffNormal) { // the material can sustain further damage, not failure yet
 
-                if (mDamageTangential > mDamageReal){
-                    mDamageReal = mDamageTangential;
-                } 
-                
-                if (mDamageReal > 1.0){
-                    mDamageReal = 1.0;
-                }
-                mDamageNormal = mDamageReal;
-                mDamageTangential = mDamageReal;
-                
-                // real force in current step
-                BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-                BondedLocalElasticContactForce[0] = -1 * (1 - mDamageTangential) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[0]; // 0: first tangential
-                BondedLocalElasticContactForce[1] = -1 * (1 - mDamageTangential) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[1]; // 1: second tangential
+                    const double delta_at_undamaged_peak = initial_limit_force / kn_el;
 
-                if (mDamageReal > mDamageThresholdTolerance) {
-                    failure_type = 3; // failure in normal and tangential
-                    BondedLocalElasticContactForce2 = 0.0;
-                    BondedLocalElasticContactForce[0] = 0.0; 
-                    BondedLocalElasticContactForce[1] = 0.0;
-                    mDamageReal = 1.0;
-                }
-                /*
-                if (mDamageNormal > mDamageThresholdTolerance) {
-                        failure_type = 4; // failure by tension
+                    returned_by_mapping_force = initial_limit_force - k_softening * (delta_accumulated - delta_at_undamaged_peak);
+
+                    if (returned_by_mapping_force < 0.0) {
+                        returned_by_mapping_force = 0.0;
+                    }
+
+                    BondedLocalElasticContactForce2 = -returned_by_mapping_force;
+
+                    mDamageNormal = 1.0 - (returned_by_mapping_force / delta_accumulated) / kn_el;
+
+                    if (mDamageNormal > mDamageThresholdTolerance) {
+                        failure_type = 4; // failure by traction
                         BondedLocalElasticContactForce2 = 0.0;
                         mDamageNormal = 1.0;
-                } else if (mDamageTangential > mDamageThresholdTolerance) {
-                        failure_type = 2; // failure by shear
-                        BondedLocalElasticContactForce[0] = 0.0; 
-                        BondedLocalElasticContactForce[1] = 0.0;
-                        mDamageTangential = 1.0;
                     }
-                */
-                
-            } 
+                } else { // Fully fragile behaviour
 
-            if (!(fracture_energy_normal && fracture_energy_tangential) && !(*mpProperties)[IS_UNBREAKABLE]){ // Fully fragile behaviour
-                
-                double current_sigma = BondedLocalElasticContactForce2 / calculation_area;
-                current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
-                                                 + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
-                double current_tau = current_tangential_force_module / calculation_area;
-
-                if (current_sigma > max_sigma) {
-                    failure_type = 4; // failure by tension
+                    failure_type = 4; // failure by traction
                     BondedLocalElasticContactForce2 = 0.0;
                     mDamageNormal = 1.0;
                 }
-                
-                if (current_tau > max_tau) {
-                    failure_type = 2; // failure by shear
-                    BondedLocalElasticContactForce[0] = 0.0; 
-                    BondedLocalElasticContactForce[1] = 0.0;
-                    mDamageTangential = 1.0;
-                }
-                
             }
-        } else if (bonded_indentation > 0.0) { // in compression-shear mode
-            
-            // See literature [Gao, 2021, https://link.springer.com/article/10.1007/s00603-021-02671-0]
-            
-            double current_sigma = BondedLocalElasticContactForce2 / calculation_area;
-
-            double delta_residual_tangential = current_sigma * tan(internal_friction * Globals::Pi * calculation_area / 180.0) / kt_el;
-            double delta_at_failure_point_tangential = (2.0 * fracture_energy_tangential) / bond_tau_zero + delta_residual_tangential;
-
-            double max_tau_peak = bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0);
-            double delta_at_undamaged_peak_tangential = max_tau_peak * calculation_area / kt_el;
-
-            if (std::abs(delta_at_failure_point_tangential) < std::abs(delta_at_undamaged_peak_tangential) && fracture_energy_tangential){
-                double suggested_fracture_energy = delta_at_undamaged_peak_tangential * bond_tau_zero / 2.0;
-                KRATOS_INFO("DEM") << "The [Fracture_energy_tangential] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
-                KRATOS_ERROR<< "The [Fracture_energy_tangential] is too small!" << std::endl;
-            }
-            
-            double DamageTangentialOnlyForCalculation = 0.0;
-            if (AccumulatedBondedTangentialLocalDisplacementModulus){
-                DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
-            } else {
-                DamageTangentialOnlyForCalculation = mDamageTangential;
-            }
-            BondedLocalElasticContactForce[0] = -1 * (1 - DamageTangentialOnlyForCalculation) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[0]; // 0: first tangential
-            BondedLocalElasticContactForce[1] = -1 * (1 - DamageTangentialOnlyForCalculation) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[1]; // 1: second tangential
-
-            current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
-                                                 + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
-
-            double current_tau = current_tangential_force_module / calculation_area;
-            double max_tau = (1 - DamageTangentialOnlyForCalculation) * (bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0));
-
-            //yield check
-            if (fracture_energy_normal && fracture_energy_tangential && !(*mpProperties)[IS_UNBREAKABLE]){  // the material can sustain further damage, not failure yet
-
-                if (current_tau > max_tau) {
-                    if ((AccumulatedBondedTangentialLocalDisplacementModulus - delta_residual_tangential) && (delta_at_failure_point_tangential - delta_at_undamaged_peak_tangential)){
-                        mDamageTangential = ((delta_at_failure_point_tangential - delta_residual_tangential) / (AccumulatedBondedTangentialLocalDisplacementModulus - delta_residual_tangential)) 
-                                            * (AccumulatedBondedTangentialLocalDisplacementModulus - delta_at_undamaged_peak_tangential) / (delta_at_failure_point_tangential - delta_at_undamaged_peak_tangential);
-                    }
-                }
-
-                //real damage calculation
-                if (mDamageTangential > mDamageReal){
-                    mDamageReal = mDamageTangential;
-                } 
-                if (mDamageReal > 1.0){
-                    mDamageReal = 1.0;
-                }
-                mDamageNormal = mDamageReal;
-                mDamageTangential = mDamageReal; 
-                
-                // real force in current step
-                BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-                if (AccumulatedBondedTangentialLocalDisplacementModulus){
-                    DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
-                } else {
-                    DamageTangentialOnlyForCalculation = mDamageTangential;
-                }
-                
-                BondedLocalElasticContactForce[0] = -1 * (1 - DamageTangentialOnlyForCalculation) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[0]; // 0: first tangential
-                BondedLocalElasticContactForce[1] = -1 * (1 - DamageTangentialOnlyForCalculation) * kt_el * mAccumulatedBondedTangentialLocalDisplacement[1]; // 1: second tangential
-
-                if (mDamageReal > mDamageThresholdTolerance) {
-                        failure_type = 3; // failure in normal and tangential
-                        BondedLocalElasticContactForce2 = 0.0;
-                        BondedLocalElasticContactForce[0] = 0.0; 
-                        BondedLocalElasticContactForce[1] = 0.0;
-                        mDamageReal = 1.0;
-                }
-                
-            } 
-
-            if (!(fracture_energy_normal && fracture_energy_tangential) && !(*mpProperties)[IS_UNBREAKABLE]){ // Fully fragile behaviour
-                
-                if (current_tau > max_tau) {
-                    failure_type = 2; // failure by shear
-                    BondedLocalElasticContactForce[0] = 0.0; 
-                    BondedLocalElasticContactForce[1] = 0.0;
-                    mDamageTangential = 1.0;
-                }
-                
-            }
+        } else {
+            BondedLocalElasticContactForce2 = 0.0;
         }
-
-    } else { //else the bond is broken
-        BondedLocalElasticContactForce2 = 0.0;
-        BondedLocalElasticContactForce[0] = 0.0; 
-        BondedLocalElasticContactForce[1] = 0.0;
     }
 
-    if (indentation > 0.0) {
-        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(indentation);
+    //tangential bond force
+    k_softening = 0.0;
+    double tau_strength = 0.0;
+
+    //double OldBondedLocalElasticContactForce[2] = {0.0};
+    //OldBondedLocalElasticContactForce[0] = mBondedScalingFactor * OldLocalElasticContactForce[0];
+    //OldBondedLocalElasticContactForce[1] = mBondedScalingFactor * OldLocalElasticContactForce[1];
+    double DamageEnergyCoeffTangential = 0.0;
+
+    if (bond_sigma_max) {
+        DamageEnergyCoeffTangential = 2.0 * fracture_energy_tangential * kt_el / (calculation_area * bond_tau_zero * bond_tau_zero) - 1.0;
+    } else {
+        DamageEnergyCoeffTangential = 0.0;
+    }
+
+    KRATOS_ERROR_IF(DamageEnergyCoeffTangential > 30.0) << "Damage energy is too big!" << std::endl;
+
+    if (DamageEnergyCoeffTangential < 0.0) {
+        DamageEnergyCoeffTangential = 0.0;
+    }
+
+    if (DamageEnergyCoeffTangential) {
+        k_softening = kt_el / DamageEnergyCoeffTangential;
+    }
+
+    //int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+    double kt_updated = (1.0 - mDamageTangential) * kt_el;
+
+    //double BondedLocalElasticContactForce[2] = {0.0};
+
+    if (!failure_type) {
+        BondedLocalElasticContactForce[0] = OldBondedLocalElasticContactForce[0] - kt_updated * LocalDeltDisp[0]; // 0: first tangential
+        BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_updated * LocalDeltDisp[1]; // 1: second tangential
+    } else {
+        BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
+        BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
+    }
+
+    delta_accumulated = 0.0;
+    //double current_tangential_force_module = 0.0;
+    returned_by_mapping_force = 0.0;
+
+    if (!failure_type) { // This means it has not broken yet
+
+        current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
+                                                + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
+
+        delta_accumulated = current_tangential_force_module / kt_updated;
+
+        returned_by_mapping_force = current_tangential_force_module;
+
+        contact_sigma = LocalElasticContactForce[2] / calculation_area;
+        contact_tau = current_tangential_force_module / calculation_area;
+
+        double updated_max_tau_strength = bond_tau_zero;
+
+        if (contact_sigma >= 0) {
+            updated_max_tau_strength += internal_friction * contact_sigma;
+        }
+        tau_strength = updated_max_tau_strength * (1.0 + k_softening / kt_el) * kt_updated / (kt_updated + k_softening);
+
+        if ((contact_tau > tau_strength) && !(*mpProperties)[IS_UNBREAKABLE]) { // damage
+
+            if (DamageEnergyCoeffTangential) { // the material can sustain further damage, not failure yet
+
+                const double delta_at_undamaged_peak = updated_max_tau_strength * calculation_area / kt_el;
+
+                delta_accumulated = current_tangential_force_module / kt_updated;
+
+                returned_by_mapping_force = updated_max_tau_strength * calculation_area - k_softening * (delta_accumulated - delta_at_undamaged_peak);
+
+                if (returned_by_mapping_force < 0.0) {
+                    returned_by_mapping_force = 0.0;
+                }
+
+                if (current_tangential_force_module) {
+                    BondedLocalElasticContactForce[0] = (returned_by_mapping_force / current_tangential_force_module) * BondedLocalElasticContactForce[0];
+                    BondedLocalElasticContactForce[1] = (returned_by_mapping_force / current_tangential_force_module) * BondedLocalElasticContactForce[1];
+                }
+
+                mDamageTangential = 1.0 - (returned_by_mapping_force / delta_accumulated) / kt_el; // This is 1 - quotient of K_damaged/K_intact
+
+                if (mDamageTangential > mDamageThresholdTolerance) {
+                    failure_type = 2; // failure by shear
+                    BondedLocalElasticContactForce[0] = 0.0;
+                    BondedLocalElasticContactForce[1] = 0.0;
+                    mDamageTangential = 1.0;
+                }
+            } else { // Fully fragile behaviour
+
+                failure_type = 2; // failure by shear
+                BondedLocalElasticContactForce[0] = 0.0;
+                BondedLocalElasticContactForce[1] = 0.0;
+                mDamageTangential = 1.0;
+            }
+        }
+    }
+
+    if (indentation_particle > 0.0) {
+        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(indentation_particle);
     } else {
         mUnbondedLocalElasticContactForce2 = 0.0;
     }
@@ -354,7 +347,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     }       
     
     //********************Calculate ViscoDampingCoeff***************************
-    if (mDamageNormal < 1.0 || mDamageTangential < 1.0){
+    if (mDamageReal < 1.0){
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
 
@@ -368,6 +361,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
 
         equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el_update);
         equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el_update);
+
     } else {
         equiv_visco_damp_coeff_normal     = 0.0;
         equiv_visco_damp_coeff_tangential = 0.0;
@@ -378,7 +372,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
 
     BaseClassType::CalculateViscoDamping(LocalRelVel,
                         ViscoDampingLocalContactForce,
-                        indentation,
+                        indentation_particle,
                         equiv_visco_damp_coeff_normal,
                         equiv_visco_damp_coeff_tangential,
                         sliding,
@@ -398,7 +392,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     double max_admissible_shear_force = 0.0;
     double fraction = 0.0;
 
-    if (indentation <= 0.0) {
+    if (indentation_particle <= 0.0) {
         UnbondedLocalElasticContactForce[0] = 0.0;
         UnbondedLocalElasticContactForce[1] = 0.0;
     } else {
@@ -486,11 +480,16 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
 
     // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
-    if (LocalElasticContactForce[0] && LocalElasticContactForce[1]) {
+    if (LocalElasticContactForce[0]) {
         mBondedScalingFactor[0] = BondedLocalElasticContactForce[0] / LocalElasticContactForce[0]; 
+    } else {
+        mBondedScalingFactor[0] = 0.0;
+    }
+
+    if (LocalElasticContactForce[1]) { 
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
-        mBondedScalingFactor[0] = mBondedScalingFactor[1] = 0.0;
+        mBondedScalingFactor[1] = 0.0;
     }
 
     //for debug
@@ -508,6 +507,12 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
             normal_forces_file.flush();
             normal_forces_file.close();
         }
+    }
+
+    if (mDamageNormal > mDamageTangential){
+        mDamageTangential = mDamageNormal;
+    } else {
+        mDamageNormal = mDamageTangential;
     }
 
     KRATOS_CATCH("") 
@@ -528,7 +533,7 @@ void DEM_parallel_bond_bilinear_damage::ComputeParticleRotationalMoments(Spheric
                                                 double ViscoLocalRotationalMoment[3],
                                                 double equiv_poisson,
                                                 double indentation,
-                                                double LocalElasticContactForce[3]) {
+                                                double LocalContactForce[3]) {
 
     KRATOS_TRY
 
@@ -586,7 +591,7 @@ void DEM_parallel_bond_bilinear_damage::ComputeParticleRotationalMoments(Spheric
 
     // Bond rotational 'friction' based on particle rolling fricton 
     //Not damping but simple implementation to help energy dissipation
-    
+    /*
     double LocalElement1AngularVelocity[3] = {0.0};
     array_1d<double, 3> GlobalElement1AngularVelocity;
     noalias(GlobalElement1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -626,6 +631,7 @@ void DEM_parallel_bond_bilinear_damage::ComputeParticleRotationalMoments(Spheric
         ViscoLocalRotationalMoment[1] = 0.0;
         ViscoLocalRotationalMoment[2] = 0.0;
     }
+    */
      
     KRATOS_CATCH("")
 }//ComputeParticleRotationalMoments

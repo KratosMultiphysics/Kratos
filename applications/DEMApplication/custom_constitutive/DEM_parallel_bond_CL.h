@@ -134,6 +134,7 @@ namespace Kratos{
                                             double LocalRelVel[3],
                                             const double kt_el,
                                             const double equiv_shear,
+                                            double& contact_sigma,
                                             double& contact_tau,
                                             double indentation_particle,
                                             double calculation_area,

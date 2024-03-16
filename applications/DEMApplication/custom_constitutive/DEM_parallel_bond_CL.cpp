@@ -391,6 +391,7 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                             LocalRelVel,
                             kt_el,
                             equiv_shear,
+                            contact_sigma,
                             contact_tau,
                             indentation_particle,
                             calculation_area,
@@ -463,9 +464,9 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         mUnbondedLocalElasticContactForce2 = 0.0;
     }
         
-    if(calculation_area){
-        contact_sigma = mBondedLocalElasticContactForce2 / calculation_area;
-    }
+    //if(calculation_area){
+    //    contact_sigma = mBondedLocalElasticContactForce2 / calculation_area;
+    //}
 
     LocalElasticContactForce[2] = mBondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
@@ -579,6 +580,7 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
                         double LocalRelVel[3],
                         const double kt_el,
                         const double equiv_shear,
+                        double& contact_sigma,
                         double& contact_tau,
                         double indentation_particle,
                         double calculation_area,
@@ -618,13 +620,14 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
     }
 
-    current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
-                                                 + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
+    //current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
+    //                                             + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
 
 
-    if (calculation_area){
-        contact_tau = current_tangential_force_module / calculation_area;
-    }
+    //if (calculation_area){
+    //    contact_tau = current_tangential_force_module / calculation_area;
+    //    contact_sigma = mBondedLocalContactForce / calculation_area;
+    //}
 
     //unbonded force
     double OldUnbondedLocalElasticContactForce[2] = {0.0};
@@ -636,8 +639,8 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
     if (indentation_particle <= 0.0) {
         UnbondedLocalElasticContactForce[0] = 0.0;
         UnbondedLocalElasticContactForce[1] = 0.0;
-        ViscoDampingLocalContactForce[0] = 0.0;
-        ViscoDampingLocalContactForce[1] = 0.0;
+        //ViscoDampingLocalContactForce[0] = 0.0;
+        //ViscoDampingLocalContactForce[1] = 0.0;
     } else {
         // Here, unBondedScalingFactor[] = 1 - mBondedScalingFactor[]
         OldUnbondedLocalElasticContactForce[0] = (1 - mBondedScalingFactor[0]) * OldLocalElasticContactForce[0];
@@ -734,6 +737,16 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
         mBondedScalingFactor[1] = 0.0;
+    }
+
+    current_tangential_force_module = sqrt((BondedLocalElasticContactForce[0] + mBondedViscoDampingLocalContactForce[0])
+                                            * (BondedLocalElasticContactForce[0] + mBondedViscoDampingLocalContactForce[0])
+                                            + (BondedLocalElasticContactForce[1] + mBondedViscoDampingLocalContactForce[1]) 
+                                            * (BondedLocalElasticContactForce[1] + mBondedViscoDampingLocalContactForce[1]));
+
+    if (calculation_area){
+        contact_tau = current_tangential_force_module / calculation_area;
+        contact_sigma = mBondedLocalContactForce[2] / calculation_area;
     }
 
     //for debug

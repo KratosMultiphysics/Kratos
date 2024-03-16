@@ -82,7 +82,7 @@ namespace Kratos{
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;
-        const double mDamageThresholdTolerance = 0.999;
+        const double mDamageThresholdTolerance = 1.0;
         double mDamageReal = 0.0;
         bool mDebugPrintingOption = false;
         double mInitialIndentationForBondedPart = 0.0;
