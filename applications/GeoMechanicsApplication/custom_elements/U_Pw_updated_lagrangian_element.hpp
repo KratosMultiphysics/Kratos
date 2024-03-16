@@ -21,7 +21,7 @@
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -86,25 +86,33 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    explicit UPwUpdatedLagrangianElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    UPwUpdatedLagrangianElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwUpdatedLagrangianElement(IndexType                          NewId,
+                                const NodesArrayType&              ThisNodes,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwUpdatedLagrangianElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwUpdatedLagrangianElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                PropertiesType::Pointer            pProperties,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -129,8 +137,8 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     /**
@@ -140,8 +148,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a Matrix Variable on the Element Constitutive Law
@@ -150,8 +158,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -211,11 +219,11 @@ protected:
      * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      const bool         CalculateStiffnessMatrixFlag,
+                      const bool         CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -273,18 +281,6 @@ private:
         typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianElement
 
 ///@}

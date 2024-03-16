@@ -13,9 +13,7 @@
 //                   Aron Noordam
 //
 
-
-#if !defined(KRATOS_GEO_PW_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_PW_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -59,12 +57,13 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties ) const override;
- 
-    void GetDofList(DofsVectorType& rConditionDofList,
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+
+    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,8 +77,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,6 +92,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
     
     // Serialization
     
@@ -109,8 +108,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class PwCondition.
+};
+
+// class PwCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_PW_CONDITION_H_INCLUDED defined 

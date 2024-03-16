@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //                   Vicente Mataix Ferrandiz
@@ -18,12 +18,8 @@
 #include "includes/model_part.h"
 #include "processes/skin_detection_process.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-
-typedef Node NodeType;
 
 void CreateSimpleGeometry(ModelPart& rModelPart)
 {
@@ -102,5 +98,4 @@ KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess2, KratosCoreFastSuite)
     skin_process.Execute();
     KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("SkinModelPart").NumberOfConditions(), 3);
 }
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing
