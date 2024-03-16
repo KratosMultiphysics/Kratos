@@ -52,13 +52,13 @@ struct HelmholtzGenericVariableData<3> {
 
 template<>
 struct HelmholtzShapeVariableData<2> {
-    static constexpr auto TargetVariablesList = std::array<const Variable<double>*, 2>{&HELMHOLTZ_VECTOR_X, &HELMHOLTZ_VECTOR_Y};
+    static constexpr auto TargetVariablesList = std::array<const Variable<double>*, 2>{&MESH_DISPLACEMENT_X, &MESH_DISPLACEMENT_Y};
     static constexpr auto SourceVariablesList = std::array<const Variable<double>*, 2>{&HELMHOLTZ_VECTOR_SOURCE_X, &HELMHOLTZ_VECTOR_SOURCE_Y};
 };
 
 template<>
 struct HelmholtzShapeVariableData<3> {
-    static constexpr auto TargetVariablesList = std::array<const Variable<double>*, 3>{&HELMHOLTZ_VECTOR_X, &HELMHOLTZ_VECTOR_Y, &HELMHOLTZ_VECTOR_Z};
+    static constexpr auto TargetVariablesList = std::array<const Variable<double>*, 3>{&MESH_DISPLACEMENT_X, &MESH_DISPLACEMENT_Y, &MESH_DISPLACEMENT_Z};
     static constexpr auto SourceVariablesList = std::array<const Variable<double>*, 3>{&HELMHOLTZ_VECTOR_SOURCE_X, &HELMHOLTZ_VECTOR_SOURCE_Y, &HELMHOLTZ_VECTOR_SOURCE_Z};
 };
 
