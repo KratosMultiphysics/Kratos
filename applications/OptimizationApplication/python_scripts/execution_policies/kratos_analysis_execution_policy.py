@@ -88,19 +88,19 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             for variable in self.nodal_solution_step_data_variables:
                 nodal_field = Kratos.Expression.NodalExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(nodal_field, variable, True)
-                unbuffered_data.SetValue(variable.Name(), nodal_field.Clone(), overwrite=True)
+                unbuffered_data.SetValue(f"{self.GetName()}_{variable.Name()}", nodal_field.Clone(), overwrite=True)
             for variable in self.nodal_data_value_variables:
                 nodal_field = Kratos.Expression.NodalExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(nodal_field, variable, False)
-                unbuffered_data.SetValue(variable.Name(), nodal_field.Clone(), overwrite=True)
+                unbuffered_data.SetValue(f"{self.GetName()}_{variable.Name()}", nodal_field.Clone(), overwrite=True)
             for variable in self.element_data_value_variables:
                 elem_field = Kratos.Expression.ElementExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(elem_field, variable)
-                unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+                unbuffered_data.SetValue(f"{self.GetName()}_{variable.Name()}", elem_field.Clone(), overwrite=True)
             for variable in self.condition_data_value_variables:
                 cond_field = Kratos.Expression.ConditionExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(cond_field, variable)
-                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+                unbuffered_data.SetValue(f"{self.GetName()}_{variable.Name()}", cond_field.Clone(), overwrite=True)
 
     @staticmethod
     def __GetVariablesList(variable_names_list: 'list[str]') -> 'list[Any]':
