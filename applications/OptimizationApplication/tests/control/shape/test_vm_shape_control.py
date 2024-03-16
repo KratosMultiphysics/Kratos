@@ -12,7 +12,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.controls.shape.vertex_morphing_shape_control import VertexMorphingShapeControl
 
-class TestVMShapeControlBase(kratos_unittest.TestCase):
+class TestVMShapeControlBase:
     @classmethod
     @abc.abstractmethod
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
@@ -56,11 +56,15 @@ class TestVMShapeControlBase(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.implicit_shape_control.Finalize()
+        cls.explicit_shape_control.Finalize()
+        del cls.explicit_shape_control
+        del cls.implicit_shape_control
         with kratos_unittest.WorkFolderScope(".", __file__):
             DeleteFileIfExisting(f"{cls.GetMdpaFileName()}.time")
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class TestVMShapeControlShell(TestVMShapeControlBase):
+class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
     @classmethod
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
@@ -142,7 +146,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 12.985588442031691, 10)
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class TestVMShapeControlSolid(TestVMShapeControlBase):
+class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
     @classmethod
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""{
@@ -212,9 +216,9 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
 
     def test_GetPhysicalField(self):
         shape_field = self.explicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.06201920231798, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.06201920231798, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
 
     def test_MapGradient(self):
         constant_field_value = Kratos.Array3([1.0, 1.0, 1.0])
@@ -237,8 +241,8 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         self.explicit_shape_control.Update(update_field)
         control_field = self.explicit_shape_control.GetControlField()
         shape_field = self.explicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 2.8757607689096805, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.1366271299066, 10)
 
     def test_UpdateImplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
@@ -247,8 +251,8 @@ class TestVMShapeControlSolid(TestVMShapeControlBase):
         self.implicit_shape_control.Update(update_field)
         control_field = self.implicit_shape_control.GetControlField()
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6244997998398398, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.7797503983453757, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.9164651686844936, 10)
 
 if __name__ == "__main__":
     kratos_unittest.main()
