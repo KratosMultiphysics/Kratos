@@ -36,7 +36,7 @@ class HelmholtzShapeSolver(HelmholtzSolverBase):
                 "properties" : [
                     {
                         "model_part_name": \"""" + self.GetComputingModelPart().FullName() + """\",
-                        "properties_id"  : 1,
+                        "properties_id"  : """ + str(self.GetComputingModelPart().NumberOfProperties() + 1) + """,
                         "Material": {
                             "constitutive_law": {
                                 "name": "HelmholtzJacobianStiffened3D"
