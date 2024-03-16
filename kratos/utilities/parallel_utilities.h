@@ -67,10 +67,6 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) ParallelUtilities
 {
 public:
-    ///@name Life Cycle
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
