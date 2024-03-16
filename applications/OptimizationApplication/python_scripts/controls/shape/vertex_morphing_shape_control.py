@@ -90,9 +90,16 @@ class VertexMorphingShapeControl(Control):
             self.__mesh_moving_analysis.Initialize()
             # since this is applied on the boundary surface
             # we can fix MESH_DISPLACEMENT on all skin model part nodes.
-            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_X, True, self.model_part.Nodes)
-            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_Y, True, self.model_part.Nodes)
-            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_Z, True, self.model_part.Nodes)
+            # TODO: Move this from ShapeOpt to OptApp
+            import KratosMultiphysics.ShapeOptimizationApplication as KSO
+            boundary_model_part_name = f"{self.GetName()}_boundary"
+            if not self.__GetPhysicalModelPart().HasSubModelPart(boundary_model_part_name):
+                self.__GetPhysicalModelPart().CreateSubModelPart(boundary_model_part_name)
+                KSO.GeometryUtilities(self.__GetPhysicalModelPart()).ExtractBoundaryNodes(boundary_model_part_name)
+            boundary_model_part = self.__GetPhysicalModelPart().GetSubModelPart(boundary_model_part_name)
+            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_X, True, boundary_model_part.Nodes)
+            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_Y, True, boundary_model_part.Nodes)
+            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_Z, True, boundary_model_part.Nodes)
 
         # now update
         self._UpdateAndOutputFields(self.GetEmptyField())
@@ -104,6 +111,7 @@ class VertexMorphingShapeControl(Control):
         self.filter.Finalize()
         if not self.__mesh_moving_analysis is None:
             self.__mesh_moving_analysis.Finalize()
+            del self.__mesh_moving_analysis
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
