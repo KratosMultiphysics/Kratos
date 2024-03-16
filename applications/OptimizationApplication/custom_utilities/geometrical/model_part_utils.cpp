@@ -662,4 +662,34 @@ bool ModelPartUtils::CheckModelPartStatus(
     }
 }
 
+void ModelPartUtils::GenerateModelPart(
+    ModelPart::ConditionsContainerType& rOriginContainer,
+    ModelPart& rDestinationModelPart,
+    const Element& rReferenceElement)
+{
+    KRATOS_TRY
+
+    // Generate the elements
+    ModelPart::NodesContainerType temp_nodes;
+    ModelPart::ElementsContainerType temp_elements;
+    temp_elements.reserve(rOriginContainer.size());
+    temp_nodes.reserve(rOriginContainer.size() * 4);
+    for (auto& r_condition : rOriginContainer) {
+        Properties::Pointer properties = r_condition.pGetProperties();
+
+        auto p_geometry = r_condition.pGetGeometry();
+
+        // Reuse the geometry of the old element (to save memory)
+        Element::Pointer p_element = rReferenceElement.Create(r_condition.Id(), p_geometry, properties);
+
+        temp_elements.push_back(p_element);
+        temp_nodes.insert(p_geometry->ptr_begin(), p_geometry->ptr_end());
+    }
+
+    rDestinationModelPart.AddElements(temp_elements.begin(), temp_elements.end());
+    rDestinationModelPart.AddNodes(temp_nodes.begin(), temp_nodes.end());
+
+    KRATOS_CATCH("");
+}
+
 } // namespace Kratos

@@ -166,6 +166,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             "echo_level"_a = 0)
         .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
             "model_parts_list"_a)
+        .def("GenerateModelPart",
+            [](ModelPart::ConditionsContainerType& rOriginConditions, ModelPart& rDestinationModelPart, const std::string& rElementName) {
+                ModelPartUtils::GenerateModelPart(rOriginConditions, rDestinationModelPart, KratosComponents<Element>::Get(rElementName));
+            },
+            "conditions_container"_a,
+            "destination_model_part"_a,
+            "element_name"_a)
         ;
 
     m.def_submodule("OptimizationUtils")
