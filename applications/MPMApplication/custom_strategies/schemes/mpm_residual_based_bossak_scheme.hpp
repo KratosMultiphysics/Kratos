@@ -346,6 +346,7 @@ public:
             if(mFrictionIsActive){
                 rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
                 rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
+                rNode.SetValue(FRICTION_ASSIGNED, false);
             }
 		});
 
@@ -385,8 +386,9 @@ public:
 
                 // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
                 // an initial friction state of SLIDING instead of STICK
-                if(mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon()){
-                    rNode.SetValue(HAS_INITIAL_MOMENTUM, true);
+                if(mFrictionIsActive){
+                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
+                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
                 }
             }
         });
@@ -423,7 +425,7 @@ public:
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
                 // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (!mRotationTool.IsPenalty(rNode) && rNode.GetValue(FRICTION_COEFFICIENT) > 0) {
+                if (!mRotationTool.IsPenalty(rNode) && rNode.Is(SLIP) && rNode.GetValue(FRICTION_COEFFICIENT) > 0) {
                     mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
                 }
             });

@@ -529,6 +529,8 @@ public:
 
     // Sets FRICTION_STATE for a SLIP node to indicate its stick/sliding state and stores the friction force in REACTION
     void ComputeFrictionAndResetFlags(ModelPart& rModelPart) const {
+        const bool is_initial_loop = !rModelPart.GetProcessInfo()[INITIAL_LOOP_COMPLETE];
+
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode)
         {
 
@@ -556,7 +558,7 @@ public:
                 const double max_tangent_force_norm = normal_force_norm * mu;
 
                 // special treatment for initial loop
-                if (!rModelPart.GetProcessInfo()[INITIAL_LOOP_COMPLETE]) {
+                if (is_initial_loop) {
                     if (rNode.GetValue(HAS_INITIAL_MOMENTUM)) {
                         r_friction_state = SLIDING;
                     }
