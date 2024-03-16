@@ -46,20 +46,19 @@ class HelmholtzSolverBase(PythonSolver):
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
-        self.filter_type = self.settings["filter_type"].GetString()
 
         KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls) -> KM.Parameters:
         this_defaults = KM.Parameters("""{
-            "solver_type"           : "helmholtz_solver_base",
-            "domain_size"           : -1,
-            "filter_type"     : "",
-            "filter_radius"     : 0.0,
-            "model_part_name"       : "",
-            "time_stepping" : {
-                "time_step"       : 1.0
+            "solver_type"    : "helmholtz_solver_base",
+            "domain_size"    : -1,
+            "filter_type"    : "",
+            "filter_radius"  : 0.0,
+            "model_part_name": "",
+            "time_stepping"  : {
+                "time_step": 1.0
             },
             "model_import_settings" : {
                 "input_type"     : "mdpa",
