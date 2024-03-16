@@ -50,9 +50,9 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
         num_nodes = self._GetContainerTypeNumNodes(self.__containers[0])
 
         if self._IsSurfaceContainer(self.__containers[0]):
-            self.__element_name = f"HelmholtzSurfaceElement3D{num_nodes}N"
+            self.__element_name = f"HelmholtzScalarSurfaceElement3D{num_nodes}N"
         else:
-            self.__element_name = f"HelmholtzSolidElement3D{num_nodes}N"
+            self.__element_name = f"HelmholtzScalarSolidElement3D{num_nodes}N"
 
     def GetElementName(self) -> str:
         return self.__element_name

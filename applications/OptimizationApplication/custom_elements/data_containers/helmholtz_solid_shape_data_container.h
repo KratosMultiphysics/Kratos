@@ -48,9 +48,9 @@ public:
 
     static constexpr IndexType NumberOfVariables = TDim;
 
-    static constexpr auto TargetVariablesList = HelmholtzVariableData<NumberOfVariables>::TargetVariablesList;
+    static constexpr auto TargetVariablesList = HelmholtzShapeVariableData<NumberOfVariables>::TargetVariablesList;
 
-    static constexpr auto SourceVariablesList = HelmholtzVariableData<NumberOfVariables>::SourceVariablesList;
+    static constexpr auto SourceVariablesList = HelmholtzShapeVariableData<NumberOfVariables>::SourceVariablesList;
 
     ///@}
     ///@name Public classes
