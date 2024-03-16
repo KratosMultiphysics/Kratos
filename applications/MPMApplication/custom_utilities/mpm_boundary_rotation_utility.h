@@ -315,7 +315,7 @@ public:
 	}
 
 
-    bool IsPenalty(NodeType& rNode) const
+    bool IsPenalty(const NodeType& rNode) const
     {
 
         if(this->IsSlip(rNode) )
@@ -330,7 +330,7 @@ public:
     }
 
 	// Checking whether it is normal element or penalty element
-	bool IsPenalty(GeometryType& rGeometry) const
+	bool IsPenalty(const GeometryType& rGeometry) const
 	{
 		for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 		{
