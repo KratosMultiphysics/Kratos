@@ -4,6 +4,9 @@
 // Date: Oct 2023
 /////////////////////////////////////////////////
 
+//TODO:
+//!!!!!!!!!!!!!!!!!!!!!!!!! This model hasn't been well validated! Be careful when you use it
+
 // System includes
 #include <string>
 #include <iostream>
@@ -284,8 +287,8 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
         BondedLocalElasticContactForce[1] = 0.0;
     }
 
-    if (indentation > 0.0) {
-        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(indentation);
+    if (indentation_particle > 0.0) {
+        mUnbondedLocalElasticContactForce2 = ComputeNormalUnbondedForce(indentation_particle);
     } else {
         mUnbondedLocalElasticContactForce2 = 0.0;
     }
@@ -331,7 +334,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
 
     DEM_parallel_bond::CalculateViscoDamping(LocalRelVel,
                         ViscoDampingLocalContactForce,
-                        indentation,
+                        indentation_particle,
                         equiv_visco_damp_coeff_normal,
                         equiv_visco_damp_coeff_tangential,
                         sliding,
@@ -351,7 +354,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
     double max_admissible_shear_force = 0.0;
     double fraction = 0.0;
 
-    if (indentation <= 0.0) {
+    if (indentation_particle <= 0.0) {
         UnbondedLocalElasticContactForce[0] = 0.0;
         UnbondedLocalElasticContactForce[1] = 0.0;
     } else {
@@ -439,11 +442,16 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
     LocalElasticContactForce[1] = BondedLocalElasticContactForce[1] + UnbondedLocalElasticContactForce[1];
 
     // Here, we only calculate the BondedScalingFactor and [unBondedScalingFactor = 1 - BondedScalingFactor].
-    if (LocalElasticContactForce[0] && LocalElasticContactForce[1]) {
+    if (LocalElasticContactForce[0]) {
         mBondedScalingFactor[0] = BondedLocalElasticContactForce[0] / LocalElasticContactForce[0]; 
+    } else {
+        mBondedScalingFactor[0] = 0.0;
+    }
+
+    if (LocalElasticContactForce[1]) { 
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
-        mBondedScalingFactor[0] = mBondedScalingFactor[1] = 0.0;
+        mBondedScalingFactor[1] = 0.0;
     }
 
     //for debug
