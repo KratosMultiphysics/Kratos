@@ -112,6 +112,9 @@ public:
         // For Rotation Utility
         mDomainSize = DomainSize;
         mBlockSize  = BlockSize;
+
+        // For friction-related info
+        mFrictionIsActive = mGridModelPart.GetProcessInfo()[FRICTION_ACTIVE];
     }
 
     /**
@@ -121,6 +124,7 @@ public:
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
         ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
+        ,mFrictionIsActive(rOther.mFrictionIsActive)
     {
     }
 
@@ -269,7 +273,9 @@ public:
         // modify reaction forces for material point particle slip conditions (Penalty)
         mRotationTool.CalculateReactionForces(mGridModelPart);
 
-        mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        if(mFrictionIsActive) {
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        }
     }
 
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
@@ -277,7 +283,9 @@ public:
 
         BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
-        mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        if(mFrictionIsActive) {
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        }
     }
 
     /**
@@ -335,7 +343,7 @@ public:
             }
 
             // friction-related
-            if(rModelPart.GetProcessInfo()[FRICTION_ACTIVE]){
+            if(mFrictionIsActive){
                 rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
                 rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
             }
@@ -412,13 +420,14 @@ public:
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
-        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
-        {
-            // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-            if( !mRotationTool.IsPenalty(rNode) && rNode.GetValue(FRICTION_COEFFICIENT) > 0 ){
-                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
-            }
-        });
+        if(mFrictionIsActive) {
+            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+                // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
+                if (!mRotationTool.IsPenalty(rNode) && rNode.GetValue(FRICTION_COEFFICIENT) > 0) {
+                    mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
+                }
+            });
+        }
     }
 
     /**
@@ -575,6 +584,9 @@ protected:
 
     // To distinguish quasi-static and dynamic
     bool mIsDynamic;
+
+    // Identifies cases where friction is active in at least 1 slip boundary
+    bool mFrictionIsActive;
 
     // For Rotation Utility
     unsigned int mDomainSize;
