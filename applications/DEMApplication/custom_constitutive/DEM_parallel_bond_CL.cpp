@@ -823,6 +823,14 @@ double DEM_parallel_bond::GetYoungModulusForComputingRotationalMoments(const dou
         return bond_equiv_young;
     }
 
+double DEM_parallel_bond::GetBondKn(double bond_equiv_young, double calculation_area, double distance){
+    KRATOS_TRY
+
+    return (bond_equiv_young * calculation_area / distance);
+
+    KRATOS_CATCH("")
+}
+
 void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                 SphericContinuumParticle* neighbor,
                                                 double equiv_young,
@@ -858,7 +866,8 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
 
     const double bond_equiv_young = GetYoungModulusForComputingRotationalMoments(equiv_young);
     
-    double kn_el = bond_equiv_young * calculation_area / distance;
+    //double kn_el = bond_equiv_young * calculation_area / distance;
+    double kn_el = GetBondKn(bond_equiv_young, calculation_area, distance);
     double kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
     const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
@@ -894,45 +903,6 @@ void DEM_parallel_bond::ComputeParticleRotationalMoments(SphericContinuumParticl
 
     //DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
     //DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
-    
-    /*
-    // Bond rotational 'friction' based on particle rolling fricton 
-    //Not damping but simple implementation to help energy dissipation
-    
-    double LocalElement1AngularVelocity[3] = {0.0};
-    array_1d<double, 3> GlobalElement1AngularVelocity;
-    noalias(GlobalElement1AngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElement1AngularVelocity, LocalElement1AngularVelocity);
-    double element1AngularVelocity_modulus = sqrt(LocalElement1AngularVelocity[0] * LocalElement1AngularVelocity[0] + 
-                                                LocalElement1AngularVelocity[1] * LocalElement1AngularVelocity[1] +
-                                                LocalElement1AngularVelocity[2] * LocalElement1AngularVelocity[2]);
-
-    if (element1AngularVelocity_modulus){
-        array_1d<double, 3> other_to_me_vect;
-        noalias(other_to_me_vect) = element->GetGeometry()[0].Coordinates() - neighbor->GetGeometry()[0].Coordinates();
-        double bond_center_point_to_element1_mass_center_distance = DEM_MODULUS_3(other_to_me_vect) / 2; //Here, this only works for sphere particles
-    
-        array_1d<double, 3> element1AngularVelocity_normalise;
-        element1AngularVelocity_normalise[0] = LocalElement1AngularVelocity[0] / element1AngularVelocity_modulus;
-        element1AngularVelocity_normalise[1] = LocalElement1AngularVelocity[1] / element1AngularVelocity_modulus;
-        element1AngularVelocity_normalise[2] = LocalElement1AngularVelocity[2] / element1AngularVelocity_modulus;
-
-        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbor->GetProperties().Id());
-
-        ViscoLocalRotationalMoment[0] = - element1AngularVelocity_normalise[0] * std::abs(mBondedLocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
-                                        * properties_of_this_contact[ROLLING_FRICTION]; 
-
-        ViscoLocalRotationalMoment[1] = - element1AngularVelocity_normalise[1] * std::abs(mBondedLocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
-                                        * properties_of_this_contact[ROLLING_FRICTION]; 
-
-        ViscoLocalRotationalMoment[2] = - element1AngularVelocity_normalise[2] * std::abs(mBondedLocalContactForce[2]) * bond_center_point_to_element1_mass_center_distance 
-                                        * properties_of_this_contact[ROLLING_FRICTION]; 
-
-    } else {
-        ViscoLocalRotationalMoment[0] = 0.0;
-        ViscoLocalRotationalMoment[1] = 0.0;
-        ViscoLocalRotationalMoment[2] = 0.0;
-    } */
      
     KRATOS_CATCH("")
 }//ComputeParticleRotationalMoments

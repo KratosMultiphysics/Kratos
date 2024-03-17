@@ -53,6 +53,7 @@ namespace Kratos{
         
         //TODO:CHECK
         virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
+        virtual double GetBondKn(double bond_equiv_young, double calculation_area, double distance);
 
         void CheckFailure(const int i_neighbour_count, 
                             SphericContinuumParticle* element1, 
@@ -204,8 +205,8 @@ namespace Kratos{
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
         double mInitialIndentationForBondedPart = 0.0;
         double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
-        double mBondedLocalContactNormalTorque[3] = {0.0};
-        double mBondedLocalContactTangentTorque[3] = {0.0};
+        //double mBondedLocalContactNormalTorque[3] = {0.0};
+        //double mBondedLocalContactTangentTorque[3] = {0.0};
         double mKn;
         double mKt;
         bool mDebugPrintingOption = false;
