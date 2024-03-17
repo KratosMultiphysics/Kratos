@@ -57,6 +57,8 @@ class ExplicitFilter(Filter):
         else:
             raise RuntimeError(f"Unsupported variable = \"{filtering_variable.Name()}\". Only supports DoubleVariable and Array1DVariable3.")
 
+        self.damped_model_parts: 'typing.Optional[list[list[Kratos.ModelPart]]]' = None
+
     def Initialize(self) -> None:
         # get the model part
         self.model_part = self.model.GetModelPart(self.filtering_model_part_name)
@@ -107,6 +109,9 @@ class ExplicitFilter(Filter):
     def UnfilterField(self, _: ContainerExpressionTypes) -> ContainerExpressionTypes:
         raise RuntimeError(f"Unfilter field cannot be used with the \"explicit_filter\".")
 
+    def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
+        return self.damped_model_parts
+
     def _GetFilterRadiusExpression(self, filter_radius_settings: Kratos.Parameters) -> ContainerExpressionTypes:
         if not filter_radius_settings.Has("filter_radius_type"):
             raise RuntimeError(f"\"filter_radius_type\" not specified in the following settings:\n{filter_radius_settings}")
@@ -139,8 +144,8 @@ class ExplicitFilter(Filter):
             filter_boundary_condition_settings.ValidateAndAssignDefaults(defaults)
 
             number_of_components = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
-            damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, filter_boundary_condition_settings["damped_model_part_settings"], number_of_components)
-            return KratosOA.ExplicitDampingUtils.ComputeDampingCoefficientsBasedOnNearestEntity(damping_radius, damped_model_parts, self.filter_variable_shape, filter_boundary_condition_settings["damping_function_type"].GetString(), filter_boundary_condition_settings["bucket_size"].GetInt())
+            self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, filter_boundary_condition_settings["damped_model_part_settings"], number_of_components)
+            return KratosOA.ExplicitDampingUtils.ComputeDampingCoefficientsBasedOnNearestEntity(damping_radius, self.damped_model_parts, self.filter_variable_shape, filter_boundary_condition_settings["damping_function_type"].GetString(), filter_boundary_condition_settings["bucket_size"].GetInt())
         else:
             raise RuntimeError(f"Unsupported damping_type = \"{damping_type}\".")
 

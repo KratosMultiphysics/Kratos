@@ -1,3 +1,5 @@
+import typing
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
@@ -77,6 +79,8 @@ class ImplicitFilter(Filter):
         else:
             raise RuntimeError(f"Unsupported solving variable [ solving variable name = {solving_var.Name()} ].")
 
+        self.damped_model_parts: 'typing.Optional[list[list[Kratos.ModelPart]]]' = None
+
     def Initialize(self) -> None:
         self.filter_analysis.Initialize()
         self.__ApplyBoundaryConditions()
@@ -109,6 +113,9 @@ class ImplicitFilter(Filter):
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.UnfilterField(physical_field)
+
+    def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
+        return self.damped_model_parts
 
     def __GetImplicitFilterParameters(self, filter_variable_typel_part_name: str, parameters: Kratos.Parameters):
         implicit_vector_filter_parameters = Kratos.Parameters("""
@@ -154,10 +161,10 @@ class ImplicitFilter(Filter):
         list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.filter_analysis._GetSolver().GetComputingModelPart().Nodes), self.filter_variables))
 
         # now re-apply the boundary conditions
-        all_component_boundary_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], len(self.filter_variables))
+        self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], len(self.filter_variables))
         list_of_boundary_model_parts: 'list[Kratos.ModelPart]' = []
 
-        for component_index, boundary_model_parts in enumerate(all_component_boundary_model_parts):
+        for component_index, boundary_model_parts in enumerate(self.damped_model_parts):
             for model_part in boundary_model_parts:
                 list_of_boundary_model_parts.append(model_part)
                 Kratos.VariableUtils().ApplyFixity(self.filter_variables[component_index], True, model_part.Nodes)

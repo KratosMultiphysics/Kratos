@@ -58,6 +58,7 @@ class VertexMorphingShapeControl(Control):
 
         # now setup mesh motion
         self.__mesh_moving_analysis: 'Optional[MeshMovingAnalysis]' = None
+        self.__boundary_model_part: 'Optional[Kratos.ModelPart]' = None
 
         self.mesh_motion_solver_type = self.parameters["mesh_motion_solver_type"].GetString()
         supported_mesh_motion_solver_types = ["mesh_moving_analysis", "filter_based", "none"]
@@ -88,18 +89,19 @@ class VertexMorphingShapeControl(Control):
         # initialize_mesh_motion if defined.
         if not self.__mesh_moving_analysis is None:
             self.__mesh_moving_analysis.Initialize()
-            # since this is applied on the boundary surface
-            # we can fix MESH_DISPLACEMENT on all skin model part nodes.
-            # TODO: Move this from ShapeOpt to OptApp
-            import KratosMultiphysics.ShapeOptimizationApplication as KSO
-            boundary_model_part_name = f"{self.GetName()}_boundary"
-            if not self.__GetPhysicalModelPart().HasSubModelPart(boundary_model_part_name):
-                self.__GetPhysicalModelPart().CreateSubModelPart(boundary_model_part_name)
-                KSO.GeometryUtilities(self.__GetPhysicalModelPart()).ExtractBoundaryNodes(boundary_model_part_name)
-            boundary_model_part = self.__GetPhysicalModelPart().GetSubModelPart(boundary_model_part_name)
-            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_X, True, boundary_model_part.Nodes)
-            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_Y, True, boundary_model_part.Nodes)
-            Kratos.VariableUtils().ApplyFixity(Kratos.MESH_DISPLACEMENT_Z, True, boundary_model_part.Nodes)
+
+            def recursively_increase_usage(model_part: Kratos.ModelPart) -> None:
+                if not model_part.Has(KratosOA.NUMBER_OF_SOLVERS_USING_NODES):
+                    model_part[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] = 0
+                model_part[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] += 1
+
+                for sub_model_part in model_part.SubModelParts:
+                    recursively_increase_usage(sub_model_part)
+
+            # we increase the usage of all the sub-model parts because, mesh moving works with
+            # root model parts, and all the sub model parts are suing the root model parts. Hence
+            # mesh moving will affect all the shared sub-model parts
+            recursively_increase_usage(self.__mesh_moving_analysis._GetSolver().GetComputingModelPart())
 
         # now update
         self._UpdateAndOutputFields(self.GetEmptyField())
@@ -186,8 +188,26 @@ class VertexMorphingShapeControl(Control):
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update-1)
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
 
-            # assign the boundary_displacements
+            # first reset the MESH_DISPLACEMENTS
+            Kratos.VariableUtils().SetHistoricalVariableToZero(Kratos.MESH_DISPLACEMENT, mm_computing_model_part.Nodes)
+
+            # assign the design surface MESH_DISPLACEMENTS
             Kratos.Expression.VariableExpressionIO.Write(shape_update, Kratos.MESH_DISPLACEMENT, True)
+
+            # since we know that the nodes in the shape_update model part needs to be fixed to correctly
+            # compute the MESH_DISPLACEMENT. We Only do that in here by first freeing all the MESH_DISPLACEMENT
+            # dofs, then followed by fixing the shape_update model part nodes' MESH_DISPLACEMENTs. If further
+            # boundaries needs fixing, then they need to be specified in the mesh_motion_solver settings
+            # using fix_vector_variable_process.
+            mesh_displacement_comps = [Kratos.MESH_DISPLACEMENT_X, Kratos.MESH_DISPLACEMENT_Y, Kratos.MESH_DISPLACEMENT_Z]
+            for i_comp, mesh_displacement_var in enumerate(mesh_displacement_comps):
+                # first free the mesh displacement component
+                Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, False, mm_computing_model_part.Nodes)
+                # now fix the design surface component
+                Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, shape_update.GetModelPart().Nodes)
+                # now fix boundary condition components
+                for model_part in self.filter.GetBoundaryConditions()[i_comp]:
+                    Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, model_part.Nodes)
 
             # solve for the volume mesh displacements
             if not self.__mesh_moving_analysis.time < self.__mesh_moving_analysis.end_time:
@@ -199,7 +219,7 @@ class VertexMorphingShapeControl(Control):
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
 
         if self.mesh_motion_solver_type != "none":
-            # a mesh motion is solved, and MESH_DISPLACEMENT variable is filled
+            # a mesh motion is solved (either by mesh motion solver or the filter), and MESH_DISPLACEMENT variable is filled
             # Hence, update the coords
             mesh_disp_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())
             physical_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())

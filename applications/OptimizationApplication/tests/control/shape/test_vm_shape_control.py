@@ -178,7 +178,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
                         "damping_type"              : "nearest_entity",
                         "damping_function_type"     : "sigmoidal",
                         "damped_model_part_settings": {
-                        "test.fixed" : [true,true,true]
+                            "test.fixed" : [true,true,true]
                         }
                     }
                 },
@@ -242,7 +242,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
         control_field = self.explicit_shape_control.GetControlField()
         shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.242640687119286, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.1256999216175565, 10)
 
     def test_UpdateImplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
