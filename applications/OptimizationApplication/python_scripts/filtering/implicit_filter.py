@@ -54,7 +54,7 @@ class ImplicitFilter(Filter):
                 else:
                     self.filter_type = "general_vector"
             else:
-                raise RuntimeError(f"Unsupported varaible type [ variable name = {filtering_variable.Name()}]")
+                raise RuntimeError(f"Unsupported variable type [ variable name = {filtering_variable.Name()}]")
         else:
             self.filter_type = filter_variable_type
 

@@ -216,7 +216,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
 
     def test_GetPhysicalField(self):
         shape_field = self.explicit_shape_control.GetPhysicalField()
-        # self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
         shape_field = self.implicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
 
