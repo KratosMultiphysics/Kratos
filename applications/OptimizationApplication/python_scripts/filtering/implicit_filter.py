@@ -169,4 +169,6 @@ class ImplicitFilter(Filter):
             for filter_variable in self.filter_variables:
                 Kratos.Expression.VariableExpressionIO.Write(zero_field, filter_variable, True)
 
+        Kratos.Logger.PrintInfo(self.__class__.__name__, f"Applied filter boundary conditions used in \"{self.GetComponentDataView().GetComponentName()}\".")
+
 
