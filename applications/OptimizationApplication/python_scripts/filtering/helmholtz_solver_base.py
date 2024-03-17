@@ -243,7 +243,6 @@ class HelmholtzSolverBase(PythonSolver):
             # the model part needs to be created.
             self.__helmholtz_model_part = self.model.CreateModelPart(computing_model_part_name)
             KOA.OptimizationUtils.CopySolutionStepVariablesList(self.__helmholtz_model_part, self.GetOriginRootModelPart())
-            self.GetOriginModelPart()[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] = 1
 
             # now fill with the appropriate elements and conditions
             self._FillComputingModelPart()
@@ -259,10 +258,9 @@ class HelmholtzSolverBase(PythonSolver):
         # in here, the origin model part and its parents are updated. This is because,
         # the computing model part shares nodes with the origin model part.
         def increase_counter(model_part: KM.ModelPart) -> None:
-            if model_part.Has(KOA.NUMBER_OF_HELMHOLTZ_FILTERS):
-                model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] += 1
-            else:
-                model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] = 1
+            if not model_part.Has(KOA.NUMBER_OF_SOLVERS_USING_NODES):
+                model_part[KOA.NUMBER_OF_SOLVERS_USING_NODES] = 0
+            model_part[KOA.NUMBER_OF_SOLVERS_USING_NODES] += 1
 
         current_model_part = self.GetOriginModelPart()
         increase_counter(current_model_part)
