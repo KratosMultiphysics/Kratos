@@ -239,18 +239,36 @@ class HelmholtzSolverBase(PythonSolver):
             # a same model part with same entities were already created by some other filter
             # hence reusing it
             self.__helmholtz_model_part = self.model[computing_model_part_name]
-
-            # we increase the number of filters using the model part
-            # this is required to know whether we need to apply boundary conditions
-            # every time filter is used so that we don't mix-up different BCs from
-            # different filters
-            self.__helmholtz_model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] += 1
         else:
             # the model part needs to be created.
             self.__helmholtz_model_part = self.model.CreateModelPart(computing_model_part_name)
             KOA.OptimizationUtils.CopySolutionStepVariablesList(self.__helmholtz_model_part, self.GetOriginRootModelPart())
-            self.__helmholtz_model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] = 1
+            self.GetOriginModelPart()[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] = 1
 
             # now fill with the appropriate elements and conditions
             self._FillComputingModelPart()
+
+        self.__IncrementModelPartUsageCounter()
+
+    def __IncrementModelPartUsageCounter(self) -> None:
+        # we increase the usage number of filters using the model part.
+        # this is required to know whether we need to apply boundary conditions
+        # every time filter is used so that we don't mix-up different BCs from
+        # different filters and mesh motion solvers
+
+        # in here, the origin model part and its parents are updated. This is because,
+        # the computing model part shares nodes with the origin model part.
+        def increase_counter(model_part: KM.ModelPart) -> None:
+            if model_part.Has(KOA.NUMBER_OF_HELMHOLTZ_FILTERS):
+                model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] += 1
+            else:
+                model_part[KOA.NUMBER_OF_HELMHOLTZ_FILTERS] = 1
+
+        current_model_part = self.GetOriginModelPart()
+        increase_counter(current_model_part)
+
+        # now increase the usage counter in all parent model parts.
+        while current_model_part != current_model_part.GetParentModelPart():
+            current_model_part = current_model_part.GetParentModelPart()
+            increase_counter(current_model_part)
 
