@@ -91,22 +91,22 @@ class ImplicitFilter(Filter):
         self.filter_analysis.Finalize()
 
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterField(control_field)
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterField(physical_mesh_independent_gradient_field)
 
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterIntegratedField(physical_mesh_dependent_gradient_field)
 
     def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.UnfilterField(physical_field)
 
