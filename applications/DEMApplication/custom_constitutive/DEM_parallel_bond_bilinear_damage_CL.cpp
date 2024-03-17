@@ -97,7 +97,12 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
         DamageEnergyCoeffNormal = 0.0;
     }
 
-    KRATOS_ERROR_IF(DamageEnergyCoeffNormal > 30.0) << "Normal damage energy is too big!" << std::endl;
+    if (DamageEnergyCoeffNormal > 30.0){
+        double suggested_fracture_energy = 31.0 * (calculation_area * bond_sigma_max * bond_sigma_max) / (2.0 * kn_el);
+        KRATOS_INFO("DEM") << "The normal damage energy is too big! It shouble be smaller than " << suggested_fracture_energy << std::endl;
+        KRATOS_ERROR<< "The [normal damage energy] is too small!" << std::endl;
+    }
+    //KRATOS_ERROR_IF(DamageEnergyCoeffNormal > 30.0) << "Normal damage energy is too big!" << std::endl;
 
     if (DamageEnergyCoeffNormal < 0.0) {
         DamageEnergyCoeffNormal = 0.0;
@@ -264,7 +269,12 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
         DamageEnergyCoeffTangential = 0.0;
     }
 
-    KRATOS_ERROR_IF(DamageEnergyCoeffTangential > 30.0) << "Tangential damage energy is too big!" << std::endl;
+    if (DamageEnergyCoeffTangential > 30.0){
+        double suggested_fracture_energy = 31.0 * (calculation_area * bond_tau_zero * bond_tau_zero) / (2.0 * kt_el);
+        KRATOS_INFO("DEM") << "The tangential damage energy is too big! It shouble be smaller than " << suggested_fracture_energy << std::endl;
+        KRATOS_ERROR<< "The [tangential damage energy] is too small!" << std::endl;
+    }
+    //KRATOS_ERROR_IF(DamageEnergyCoeffTangential > 30.0) << "Tangential damage energy is too big!" << std::endl;
 
     if (DamageEnergyCoeffTangential < 0.0) {
         DamageEnergyCoeffTangential = 0.0;
