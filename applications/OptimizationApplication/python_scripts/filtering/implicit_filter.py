@@ -91,22 +91,22 @@ class ImplicitFilter(Filter):
         self.filter_analysis.Finalize()
 
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterField(control_field)
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterField(physical_mesh_independent_gradient_field)
 
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.filter_analysis.FilterIntegratedField(physical_mesh_dependent_gradient_field)
 
     def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        if self.filter_analysis._GetComputingModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
+        if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_HELMHOLTZ_FILTERS] > 1:
             self.__ReInitializeFilteringModelPart()
         return self.UnfilterField(physical_field)
 
@@ -151,7 +151,7 @@ class ImplicitFilter(Filter):
         # were used before with different boundary conditions. Hence it is important to free all dofs
         # and apply the boundary conditions again when ever filter is used.
         # This is because, every implicit filter shares the same nodes
-        list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.model[self.filtering_model_part_name].Nodes), self.filter_variables))
+        list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.filter_analysis._GetSolver().GetComputingModelPart().Nodes), self.filter_variables))
 
         # now re-apply the boundary conditions
         all_component_boundary_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], len(self.filter_variables))
