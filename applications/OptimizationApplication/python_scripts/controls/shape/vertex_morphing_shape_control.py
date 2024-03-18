@@ -363,7 +363,7 @@ class VertexMorphingShapeControl(Control):
             else:
                 Kratos.Expression.NodalPositionExpressionIO.Read(field, Kratos.Configuration.Initial)
 
-            Kratos.Expression.VariableExpressionIO.Write(field, self.filter._GetSolver().GetSolvingVariable(),True)
+            Kratos.Expression.VariableExpressionIO.Write(field, KratosOA.HELMHOLTZ_VECTOR,True)
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.filter_model_part.FullName()}, control variable = {KratosOA.SHAPE.Name()}"
