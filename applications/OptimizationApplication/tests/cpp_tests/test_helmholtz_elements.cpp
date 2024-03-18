@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSolidElement, KratosOptimizationFastSuite)
 
     std::vector<ModelPart::IndexType> element_nodes{1, 2, 3, 4};
     auto p_element = r_model_part.CreateNewElement(
-        "HelmholtzScalarSolidElement3D4N", 1, element_nodes, p_elem_prop);
+        "HelmholtzSolidElement3D4N", 1, element_nodes, p_elem_prop);
 
     p_element->Initialize(r_model_part.GetProcessInfo());
 
@@ -218,7 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSurfaceElement, KratosOptimizationFastSuite)
 
     std::vector<ModelPart::IndexType> element_nodes{1, 2, 3, 4};
     auto p_element = r_model_part.CreateNewElement(
-        "HelmholtzScalarSurfaceElement3D4N", 1, element_nodes, p_elem_prop);
+        "HelmholtzSurfaceElement3D4N", 1, element_nodes, p_elem_prop);
 
     p_element->Initialize(r_model_part.GetProcessInfo());
 
