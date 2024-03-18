@@ -2,7 +2,7 @@ import abc
 import typing
 
 # Importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
@@ -16,7 +16,7 @@ class HelmholtzSolverBase(PythonSolver):
     This class defines the user interface to Helmholtz solvers.
 
     """
-    def __init__(self, model: KM.Model, custom_settings: KM.Parameters):
+    def __init__(self, model: KratosMultiphysics.Model, custom_settings: KratosMultiphysics.Parameters):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
 
@@ -37,21 +37,21 @@ class HelmholtzSolverBase(PythonSolver):
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
-        self.origin_root_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
+        self.origin_root_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         # we don't create the helmholtz model part here, because
         # we need to have unique model parts for different filtering variable types
         # hence, it cannot be determined at this point.
-        self.__helmholtz_model_part: 'typing.Optional[KM.ModelPart]' = None
+        self.__helmholtz_model_part: 'typing.Optional[KratosMultiphysics.ModelPart]' = None
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
 
-        KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls) -> KM.Parameters:
-        this_defaults = KM.Parameters("""{
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type"    : "helmholtz_solver_base",
             "domain_size"    : -1,
             "filter_type"    : "",
@@ -104,33 +104,33 @@ class HelmholtzSolverBase(PythonSolver):
 
     def AddVariables(self) -> None:
         self.GetOriginRootModelPart().AddNodalSolutionStepVariable(self.GetSolvingVariable())
-        KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Variables ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Variables ADDED.")
 
     def AddDofs(self) -> None:
-        if isinstance(self.GetSolvingVariable(), KM.DoubleVariable):
-            KM.VariableUtils().AddDof(self.GetSolvingVariable(), self.GetOriginRootModelPart())
-        elif isinstance(self.GetSolvingVariable(), KM.Array1DVariable3):
-            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_X"), self.GetOriginRootModelPart())
-            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Y"), self.GetOriginRootModelPart())
-            KM.VariableUtils().AddDof(KM.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Z"), self.GetOriginRootModelPart())
+        if isinstance(self.GetSolvingVariable(), KratosMultiphysics.DoubleVariable):
+            KratosMultiphysics.VariableUtils().AddDof(self.GetSolvingVariable(), self.GetOriginRootModelPart())
+        elif isinstance(self.GetSolvingVariable(), KratosMultiphysics.Array1DVariable3):
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_X"), self.GetOriginRootModelPart())
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Y"), self.GetOriginRootModelPart())
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Z"), self.GetOriginRootModelPart())
         else:
             raise RuntimeError("Unsupported solving variable type.")
-        KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: DOFs ADDED.")
+        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: DOFs ADDED.")
 
     def AdvanceInTime(self, current_time: float) -> float:
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
         new_time = current_time + dt
-        self.__helmholtz_model_part.ProcessInfo[KM.STEP] += 1
+        self.__helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.__helmholtz_model_part.CloneTimeStep(new_time)
 
         return new_time
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        neighbours_exp = KM.Expression.NodalExpression(self.__helmholtz_model_part)
+        neighbours_exp = KratosMultiphysics.Expression.NodalExpression(self.__helmholtz_model_part)
         KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
-        KM.Expression.VariableExpressionIO.Write(neighbours_exp, KM.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
-        KM.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
+        KratosMultiphysics.Expression.VariableExpressionIO.Write(neighbours_exp, KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
+        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self) -> None:
         self._GetSolutionStrategy().InitializeSolutionStep()
@@ -157,13 +157,13 @@ class HelmholtzSolverBase(PythonSolver):
     def ImportModelPart(self) -> None:
         self._ImportModelPart(self.origin_root_model_part, self.settings["model_import_settings"])
 
-    def GetComputingModelPart(self) -> KM.ModelPart:
+    def GetComputingModelPart(self) -> KratosMultiphysics.ModelPart:
         return self.__helmholtz_model_part
 
-    def GetOriginRootModelPart(self) -> KM.ModelPart:
+    def GetOriginRootModelPart(self) -> KratosMultiphysics.ModelPart:
         return self.origin_root_model_part
 
-    def GetOriginModelPart(self) -> KM.ModelPart:
+    def GetOriginModelPart(self) -> KratosMultiphysics.ModelPart:
         return self.model[self.__filtering_model_part_name]
 
     def GetFilterRadius(self) -> str:
@@ -195,19 +195,19 @@ class HelmholtzSolverBase(PythonSolver):
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()
-        return KM.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateLinearSolver(self):
         return ConstructSolver(self.settings["linear_solver_settings"])
 
     def _CreateScheme(self):
-        return KM.ResidualBasedIncrementalUpdateStaticScheme()
+        return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         scheme = self._GetScheme()
         builder_and_solver = self._GetBuilderAndSolver()
-        return KM.ResidualBasedLinearStrategy(computing_model_part,
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               scheme,
                                                               builder_and_solver,
                                                               False,
@@ -215,19 +215,19 @@ class HelmholtzSolverBase(PythonSolver):
                                                               False,
                                                               False)
 
-    def _GetContainerTypeNumNodes(self, container: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]') -> int:
+    def _GetContainerTypeNumNodes(self, container: 'typing.Union[KratosMultiphysics.ConditionsArray, KratosMultiphysics.ElementsArray]') -> int:
         num_nodes = None
         for cont_type in container:
             return len(cont_type.GetNodes())
         return num_nodes
 
-    def _IsSurfaceContainer(self, container: 'typing.Union[KM.ConditionsArray, KM.ElementsArray]') -> bool:
+    def _IsSurfaceContainer(self, container: 'typing.Union[KratosMultiphysics.ConditionsArray, KratosMultiphysics.ElementsArray]') -> bool:
         return any(map(lambda x: x.GetGeometry().WorkingSpaceDimension() != x.GetGeometry().LocalSpaceDimension(), container))
 
     def GetSourceVariable(self) -> SupportedSensitivityFieldVariableTypes:
-        if isinstance(self.GetSolvingVariable(), KM.DoubleVariable):
+        if isinstance(self.GetSolvingVariable(), KratosMultiphysics.DoubleVariable):
             return KOA.HELMHOLTZ_SCALAR_SOURCE
-        elif isinstance(self.GetSolvingVariable(), KM.Array1DVariable3):
+        elif isinstance(self.GetSolvingVariable(), KratosMultiphysics.Array1DVariable3):
             return KOA.HELMHOLTZ_VECTOR_SOURCE
         else:
             raise RuntimeError("Unsupported solving variable.")
@@ -257,7 +257,7 @@ class HelmholtzSolverBase(PythonSolver):
 
         # in here, the origin model part and its parents are updated. This is because,
         # the computing model part shares nodes with the origin model part.
-        def increase_counter(model_part: KM.ModelPart) -> None:
+        def increase_counter(model_part: KratosMultiphysics.ModelPart) -> None:
             if not model_part.Has(KOA.NUMBER_OF_SOLVERS_USING_NODES):
                 model_part[KOA.NUMBER_OF_SOLVERS_USING_NODES] = 0
             model_part[KOA.NUMBER_OF_SOLVERS_USING_NODES] += 1
