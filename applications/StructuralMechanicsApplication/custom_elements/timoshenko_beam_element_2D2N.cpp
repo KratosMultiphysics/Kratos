@@ -519,39 +519,24 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         GetNu0ShapeFunctionsValues(N_u, length, Phi, xi);
 
         // Axial contributions
-        global_size_N[0] = N_u_derivatives[0];
-        global_size_N[3] = N_u_derivatives[1];
+        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
         noalias(rRHS) -= global_size_N * N * jacobian_weight;
 
         // Bending contributions
-        global_size_N.clear();
-        global_size_N[1] = N_theta_derivatives[0];
-        global_size_N[2] = N_theta_derivatives[1];
-        global_size_N[4] = N_theta_derivatives[2];
-        global_size_N[5] = N_theta_derivatives[3];
+        GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
         noalias(rRHS) -= global_size_N * M * jacobian_weight;
 
         // Shear contributions
-        global_size_N.clear();
-        global_size_N[1] = N_derivatives[0] - N_theta[0];
-        global_size_N[2] = N_derivatives[1] - N_theta[1];
-        global_size_N[4] = N_derivatives[2] - N_theta[2];
-        global_size_N[5] = N_derivatives[3] - N_theta[3];
+        GlobalSizeVector(global_size_N, N_derivatives - N_theta);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
 
         // Now we add the body forces contributions
-        global_size_N.clear();
-        global_size_N[0] = N_u[0];
-        global_size_N[3] = N_u[1];
+        GlobalSizeAxialVector(global_size_N, N_u);
         noalias(rRHS) += global_size_N * local_body_forces[0] * jacobian_weight * area;
-        global_size_N.clear();
-        global_size_N[1] = N_shape[0];
-        global_size_N[2] = N_shape[1];
-        global_size_N[4] = N_shape[2];
-        global_size_N[5] = N_shape[3];
+        GlobalSizeVector(global_size_N, N_shape);
         noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * area;
     }
 
@@ -621,23 +606,15 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
         GetFirstDerivativesShapeFunctionsValues(N_derivatives, length, Phi, xi);
 
         // Axial contributions
-        global_size_N[0] = N_u_derivatives[0];
-        global_size_N[3] = N_u_derivatives[1];
+        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
 
         // Bending contributions
-        global_size_N.clear();
-        global_size_N[1] = N_theta_derivatives[0];
-        global_size_N[2] = N_theta_derivatives[1];
-        global_size_N[4] = N_theta_derivatives[2];
-        global_size_N[5] = N_theta_derivatives[3];
+        GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
 
         // Shear contributions
-        global_size_N[1] = N_derivatives[0] - N_theta[0];
-        global_size_N[2] = N_derivatives[1] - N_theta[1];
-        global_size_N[4] = N_derivatives[2] - N_theta[2];
-        global_size_N[5] = N_derivatives[3] - N_theta[3];
+        GlobalSizeVector(global_size_N, N_derivatives - N_theta);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
     }
 
@@ -711,36 +688,22 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
         GetNu0ShapeFunctionsValues(N_u, length, Phi, xi);
 
         // Axial contributions
-        global_size_N[0] = N_u_derivatives[0];
-        global_size_N[3] = N_u_derivatives[1];
+        GlobalSizeAxialVector(global_size_N, N_u_derivatives);
         noalias(rRHS) -= global_size_N * N * jacobian_weight;
 
         // Bending contributions
-        global_size_N.clear();
-        global_size_N[1] = N_theta_derivatives[0];
-        global_size_N[2] = N_theta_derivatives[1];
-        global_size_N[4] = N_theta_derivatives[2];
-        global_size_N[5] = N_theta_derivatives[3];
+        GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rRHS) -= global_size_N * M * jacobian_weight;
 
         // Shear contributions
-        global_size_N[1] = N_derivatives[0] - N_theta[0];
-        global_size_N[2] = N_derivatives[1] - N_theta[1];
-        global_size_N[4] = N_derivatives[2] - N_theta[2];
-        global_size_N[5] = N_derivatives[3] - N_theta[3];
+        GlobalSizeVector(global_size_N, N_derivatives - N_theta);
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
 
         // Now we add the body forces contributions
-        global_size_N.clear();
-        global_size_N[0] = N_u[0];
-        global_size_N[3] = N_u[1];
+        GlobalSizeAxialVector(global_size_N, N_u);
         const double J_area = jacobian_weight * area;
         noalias(rRHS) += global_size_N * local_body_forces[0] * J_area;
-        global_size_N.clear();
-        global_size_N[1] = N_shape[0];
-        global_size_N[2] = N_shape[1];
-        global_size_N[4] = N_shape[2];
-        global_size_N[5] = N_shape[3];
+        GlobalSizeVector(global_size_N, N_shape);
         noalias(rRHS) += global_size_N * local_body_forces[1] * J_area;
     }
 

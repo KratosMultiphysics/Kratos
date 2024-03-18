@@ -153,6 +153,32 @@ public:
     void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues);
 
     /**
+     * @brief Modifies a vector to include the components of a local size vector to the global size
+     * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
+     * @param rLocalSizeVector The 4 local components of v and theta
+     */
+    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    {
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[1] = rLocalSizeVector[0];
+        rGlobalSizeVector[2] = rLocalSizeVector[1];
+        rGlobalSizeVector[4] = rLocalSizeVector[2];
+        rGlobalSizeVector[5] = rLocalSizeVector[3];
+    }
+
+    /**
+     * @brief Modifies a vector to include the components of a local size vector to the global size
+     * @param rGlobalSizeVector The global size vector including only the axial u terms
+     * @param rLocalSizeVector The 2 local components of u
+     */
+    virtual void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    {
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[0] = rLocalSizeVector[0];
+        rGlobalSizeVector[3] = rLocalSizeVector[1];
+    }
+
+    /**
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
      */
