@@ -11,101 +11,89 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "containers/array_1d.h"
+#include "custom_retention/retention_law.h"
+#include "custom_retention/retention_law_factory.h"
+#include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "geometries/geometry.h"
 #include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-#include "custom_retention/retention_law.h"
-#include "custom_retention/retention_law_factory.h"
 
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwBaseElement : public Element
 {
-
 public:
-
-    /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwBaseElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwBaseElement);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Default Constructor
-    UPwBaseElement(IndexType NewId = 0) : Element( NewId ) {}
+    explicit UPwBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
+    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, ThisNodes), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    {
+    }
 
     /// Constructor using Geometry
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element( NewId, pGeometry ) {}
+    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, pGeometry), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    {
+    }
 
     /// Constructor using Properties
-    UPwBaseElement(IndexType NewId,
-                   GeometryType::Pointer pGeometry,
-                   PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties )
+    UPwBaseElement(IndexType                          NewId,
+                   GeometryType::Pointer              pGeometry,
+                   PropertiesType::Pointer            pProperties,
+                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, pGeometry, pProperties), mpStressStatePolicy{std::move(pStressStatePolicy)}
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~UPwBaseElement() {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    ~UPwBaseElement() override                           = default;
+    UPwBaseElement(const UPwBaseElement&)                = delete;
+    UPwBaseElement& operator=(const UPwBaseElement&)     = delete;
+    UPwBaseElement(UPwBaseElement&&) noexcept            = delete;
+    UPwBaseElement& operator=(UPwBaseElement&&) noexcept = delete;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, 
-                    const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
     void ResetConstitutiveLaw() override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-                               VectorType& rRightHandSideVector,
-                               const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
-                                const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector( EquationIdVectorType& rResult,
-                           const ProcessInfo& rCurrentProcessInfo ) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-    void CalculateMassMatrix( MatrixType& rMassMatrix,
-                              const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                                 const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -113,93 +101,77 @@ public:
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>&    rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<array_1d<double, 3>>&    rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
+    using Element::CalculateOnIntegrationPoints;
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVariable,
                                       const std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      const ProcessInfo&         rCurrentProcessInfo) override;
 
-    // Turn back information as a string.
+    using Element::SetValuesOnIntegrationPoints;
+
     std::string Info() const override
     {
-        std::stringstream buffer;
-        buffer << "U-Pw Base class Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-        return buffer.str();
+        return "U-Pw Base class Element #" + std::to_string(Id()) +
+               "\nConstitutive law: " + mConstitutiveLawVector[0]->Info();
     }
 
-    // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "U-Pw Base class Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-
     /// Member Variables
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
-    bool mIsInitialised = false;
+    bool                mIsInitialised = false;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
-    virtual void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
-                                                   const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
+                              const ProcessInfo& CurrentProcessInfo,
+                              bool               CalculateStiffnessMatrixFlag,
+                              bool               CalculateResidualVectorFlag);
 
-    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix,
-                               VectorType& rRightHandSideVector,
-                               const ProcessInfo& CurrentProcessInfo,
-                               const bool CalculateStiffnessMatrixFlag,
-                               const bool CalculateResidualVectorFlag);
+    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                                   unsigned int PointNumber,
+                                                   double       detJ);
 
-    virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                    unsigned int PointNumber,
-                                                    double detJ);
+    void CalculateDerivativesOnInitialConfiguration(
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
-    void CalculateDerivativesOnInitialConfiguration(double& detJ,
-                                                    Matrix& J0,
-                                                    Matrix& InvJ0,
-                                                    Matrix& DN_DX,
-                                                    unsigned int PointNumber) const;
-
-    void CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                 Matrix& rJ,
-                                                 Matrix& rInvJ,
-                                                 unsigned int GPoint) const;
+    void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -210,11 +182,8 @@ protected:
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the reference configuration
      */
-    void CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                 Matrix& J0,
-                                                 Matrix& InvJ0,
-                                                 Matrix& DN_DX,
-                                                 unsigned int PointNumber) const;
+    void CalculateJacobianOnCurrentConfiguration(
+        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame
@@ -225,41 +194,31 @@ protected:
      * @param ThisIntegrationMethod The integration method considered
      * @return The determinant of the jacobian in the current configuration
      */
-    double CalculateDerivativesOnCurrentConfiguration(Matrix& rJ,
-                                                      Matrix& rInvJ,
-                                                      Matrix& rDN_DX,
-                                                      const IndexType &PointNumber,
+    double CalculateDerivativesOnCurrentConfiguration(Matrix&          rJ,
+                                                      Matrix&          rInvJ,
+                                                      Matrix&          rDN_DX,
+                                                      const IndexType& PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
     virtual unsigned int GetNumberOfDOF() const;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    StressStatePolicy& GetStressStatePolicy() const;
 
 private:
-
-    /// Serialization
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-    }
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
-    /// Assignment operator.
-    UPwBaseElement & operator=(UPwBaseElement const& rOther);
+    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
+};
 
-    /// Copy constructor.
-    UPwBaseElement(UPwBaseElement const& rOther);
-
-
-}; // Class UPwBaseElement
+// Class UPwBaseElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_U_PW_ELEMENT_H_INCLUDED  defined

@@ -73,6 +73,7 @@
 #include "custom_elements/updated_lagrangian.h"
 #include "custom_elements/axisym_updated_lagrangian.h"
 #include "custom_elements/small_displacement_bbar.h"
+#include "custom_elements/small_displacement_shifted_boundary_element.h"
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
@@ -92,6 +93,9 @@
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
 #include "custom_conditions/moving_load_condition.h"
+
+/* Adding the displacement-based SBM condition */
+#include "custom_conditions/displacement_shifted_boundary_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -311,6 +315,9 @@ private:
     const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
     const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
 
+    const SmallDisplacementShiftedBoundaryElement<2> mSmallDisplacementShiftedBoundaryElement2D3N;
+    const SmallDisplacementShiftedBoundaryElement<3> mSmallDisplacementShiftedBoundaryElement3D4N;
+
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D3N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
@@ -460,6 +467,9 @@ private:
 
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;
+
+    // SBM displacement conditions
+    const DisplacementShiftedBoundaryCondition mDisplacementShiftedBoundaryCondition;
 
     // Moving load
     const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;

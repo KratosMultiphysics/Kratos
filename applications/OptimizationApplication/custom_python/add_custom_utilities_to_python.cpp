@@ -224,7 +224,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetContainerExpressions", pybind11::overload_cast<>(&CollectiveExpression::GetContainerExpressions))
         .def("IsCompatibleWith", &CollectiveExpression::IsCompatibleWith)
         .def("Clone", &CollectiveExpression::Clone)
-        .def("Scale", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther){auto copy = rSelf; copy.Scale(rOther); return copy;})
         .def("__add__", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther) { return rSelf + rOther; })
         .def("__iadd__", [](CollectiveExpression& rSelf, const CollectiveExpression& rOther) { rSelf = rSelf + rOther; return rSelf; })
         .def("__add__", [](const CollectiveExpression& rSelf, const double Value) { return rSelf + Value; })
@@ -241,30 +240,33 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("__itruediv__", [](CollectiveExpression& rSelf, const CollectiveExpression& rOther) { rSelf = rSelf / rOther; return rSelf; })
         .def("__truediv__", [](const CollectiveExpression& rSelf, const double Value) { return rSelf / Value; })
         .def("__itruediv__", [](CollectiveExpression& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
-        .def("__pow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { CollectiveExpression result; result = Power(rSelf, rInput); return result; })
-        .def("__ipow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { rSelf = Power(rSelf, rInput); return rSelf; })
-        .def("__pow__", [](CollectiveExpression& rSelf, const double Value) { CollectiveExpression result; result = Power(rSelf, Value); return result; })
-        .def("__ipow__", [](CollectiveExpression& rSelf, const double Value) { rSelf = Power(rSelf, Value); return rSelf; })
-        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf *= -1.0; })
+        .def("__pow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { CollectiveExpression result; result = ContainerExpressionUtils::Pow(rSelf, rInput); return result; })
+        .def("__ipow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { rSelf = ContainerExpressionUtils::Pow(rSelf, rInput); return rSelf; })
+        .def("__pow__", [](CollectiveExpression& rSelf, const double Value) { CollectiveExpression result; result = ContainerExpressionUtils::Pow(rSelf, Value); return result; })
+        .def("__ipow__", [](CollectiveExpression& rSelf, const double Value) { rSelf = ContainerExpressionUtils::Pow(rSelf, Value); return rSelf; })
+        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf * -1.0; })
         .def("__str__", &CollectiveExpression::Info)
         ;
 
+
+
     m.def_submodule("ExpressionUtils")
-        .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_expression"))
-        .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
-        .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_expression"))
-        .def("NormInf", [](const CollectiveExpression& rData){ return ContainerExpressionUtils::NormInf(rData); }, py::arg("collective_expressions"))
-        .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
-        .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
-        .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ElementsContainerType>, py::arg("container_expression"))
-        .def("NormL2", [](const CollectiveExpression& rData){ return ContainerExpressionUtils::NormL2(rData); }, py::arg("collective_expressions"))
+        .def("Collapse", &ContainerExpressionUtils::Collapse, py::arg("collective_expressions"))
+        .def("Abs", &ContainerExpressionUtils::Abs, py::arg("collective_expressions"))
+        .def("EntityMin", &ContainerExpressionUtils::EntityMin, py::arg("collective_expressions"))
+        .def("EntityMax", &ContainerExpressionUtils::EntityMax, py::arg("collective_expressions"))
+        .def("EntitySum", &ContainerExpressionUtils::EntitySum, py::arg("collective_expressions"))
+        .def("Sum", &ContainerExpressionUtils::Sum, py::arg("collective_expressions"))
+        .def("NormInf", &ContainerExpressionUtils::NormInf, py::arg("collective_expressions"))
+        .def("NormL2", &ContainerExpressionUtils::NormL2, py::arg("collective_expressions"))
+        .def("Pow", py::overload_cast<const CollectiveExpression&, const double>(&ContainerExpressionUtils::Pow), py::arg("collective_expression"), py::arg("power_coeff"))
+        .def("Pow", py::overload_cast<const CollectiveExpression&, const CollectiveExpression&>(&ContainerExpressionUtils::Pow), py::arg("collective_expression"), py::arg("power_coeff_collective_expression"))
+        .def("Scale", py::overload_cast<const CollectiveExpression&, const double>(&ContainerExpressionUtils::Scale), py::arg("collective_expression"), py::arg("scaling_coeff"))
+        .def("Scale", py::overload_cast<const CollectiveExpression&, const CollectiveExpression&>(&ContainerExpressionUtils::Scale), py::arg("collective_expression"), py::arg("scaling_coeff_collective_expression"))
+        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct, py::arg("collective_expressions_1"), py::arg("collective_expressions_2"))
         .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::ElementsContainerType>, py::arg("container_expression"))
-        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
-        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
-        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
-        .def("InnerProduct", [](const CollectiveExpression& rData1, const CollectiveExpression& rData2){ return ContainerExpressionUtils::InnerProduct(rData1, rData2); }, py::arg("collective_expressions_1"), py::arg("collective_expressions_2"))
         .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::NodesContainerType>&, const Matrix&, const ContainerExpression<ModelPart::NodesContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
         .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ConditionsContainerType>&, const Matrix&, const ContainerExpression<ModelPart::ConditionsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
         .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ElementsContainerType>&, const Matrix&, const ContainerExpression<ModelPart::ElementsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
@@ -339,22 +341,22 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     properties_variable_expression_io.def("Write", &PropertiesVariableExpressionIO::Write<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));
     properties_variable_expression_io.def("Write", &PropertiesVariableExpressionIO::Write<ModelPart::ElementsContainerType>, py::arg("element_container_expression"), py::arg("variable"));
 
-    py::class_<PropertiesVariableExpressionIO::PropertiesVariableExpressionInput, PropertiesVariableExpressionIO::PropertiesVariableExpressionInput::Pointer, ExpressionInput>(properties_variable_expression_io, "Input")
+    py::class_<PropertiesVariableExpressionIO::Input, PropertiesVariableExpressionIO::Input::Pointer, ExpressionInput>(properties_variable_expression_io, "Input")
         .def(py::init<const ModelPart&,
                       const PropertiesVariableExpressionIO::VariableType&,
-                      const ContainerType&>(),
+                      Globals::DataLocation>(),
              py::arg("model_part"),
              py::arg("variable"),
-             py::arg("container_type"))
+             py::arg("data_location"))
         ;
 
-    py::class_<PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput, PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput::Pointer, ExpressionOutput>(properties_variable_expression_io, "Output")
+    py::class_<PropertiesVariableExpressionIO::Output, PropertiesVariableExpressionIO::Output::Pointer, ExpressionOutput>(properties_variable_expression_io, "Output")
         .def(py::init<ModelPart&,
                       const PropertiesVariableExpressionIO::VariableType&,
-                      const ContainerType&>(),
+                      Globals::DataLocation>(),
              py::arg("model_part"),
              py::arg("variable"),
-             py::arg("container_type"))
+             py::arg("data_location"))
         ;
 }
 

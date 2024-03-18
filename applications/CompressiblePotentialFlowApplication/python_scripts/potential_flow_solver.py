@@ -93,7 +93,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -106,7 +106,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -119,7 +119,7 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+        self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
 
 def CreateSolver(model, custom_settings):
@@ -144,7 +144,7 @@ class PotentialFlowSolver(FluidSolver):
             "formulation": {
                 "element_type": "incompressible"
             },
-            "element_replace_settings": {       
+            "element_replace_settings": {
                 "condition_name":  "",
                 "element_name": ""
             },
@@ -185,7 +185,8 @@ class PotentialFlowSolver(FluidSolver):
     def __init__(self, model, custom_settings):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
-        super(PotentialFlowSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
+        self._enforce_element_and_condition_replacement = True #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])
@@ -202,6 +203,8 @@ class PotentialFlowSolver(FluidSolver):
         # Degrees of freedom
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.REACTION_AUXILIARY_VELOCITY_POTENTIAL)
 
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -212,8 +215,10 @@ class PotentialFlowSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Variables ADDED")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["VELOCITY_POTENTIAL", "REACTION_VELOCITY_POTENTIAL"])
+        dofs_and_reactions_to_add.append(["AUXILIARY_VELOCITY_POTENTIAL", "REACTION_AUXILIARY_VELOCITY_POTENTIAL"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
     def Initialize(self):
         self._ComputeNodalElementalNeighbours()
@@ -315,7 +320,7 @@ class PotentialFlowSolver(FluidSolver):
                 "second_alpha_value"         : 1.0,
                 "min_alpha"                  : 0.1,
                 "max_alpha"                  : 2.0,
-                "line_search_tolerance"      : 0.5                                    
+                "line_search_tolerance"      : 0.5
             }""")
         return default_line_search_parameters
 

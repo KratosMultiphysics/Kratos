@@ -30,6 +30,6 @@
 /applications/IgaApplication/                          @KratosMultiphysics/nurbs-breps
 /applications/HDF5Application/                         @KratosMultiphysics/hdf5-application
 /applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification
-/applications/ParticleMechanicsApplication/            @KratosMultiphysics/mpm
+/applications/MPMApplication/                          @KratosMultiphysics/mpm
 /applications/RomApplication/                          @KratosMultiphysics/rom
 /applications/GeoMechanicsApplication/.................@KratosMultiphysics/geomechanics

@@ -42,17 +42,6 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-// Helper template to extract ObjectType or default to void
-template <typename T, typename = void>
-struct GetObjectType {
-    using type = void;
-};
-
-template <typename T>
-struct GetObjectType<T, std::void_t<typename T::ObjectType>> {
-    using type = typename T::ObjectType;
-};
-
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -202,6 +191,17 @@ class Tree
 public:
     ///@name Type Definitions
     ///@{
+
+    // Helper template to extract ObjectType or default to void
+    template <typename T, typename = void>
+    struct GetObjectType {
+        using type = void;
+    };
+
+    template <typename T>
+    struct GetObjectType<T, std::void_t<typename T::ObjectType>> {
+        using type = typename T::ObjectType;
+    };
 
     /**
      * @class Partitions

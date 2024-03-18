@@ -28,6 +28,7 @@ namespace Kratos::Python
 {
 namespace py = pybind11;
 
+using SizeType = std::size_t;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 template<class TVariableType> bool ConstitutiveLawHas(ConstitutiveLaw& rThisConstitutiveLaw, TVariableType const& rThisVariable) { return rThisConstitutiveLaw.Has(rThisVariable); }
 
@@ -58,8 +59,8 @@ void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& rThisConstitutiveLaw
 {rThisConstitutiveLaw.CalculateMaterialResponse (rValues,rStressMeasure);}
 
 Flags GetFeaturesOptions(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetOptions();}
-double GetStrainSizeFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainSize();}
-double GetSpaceDimensionFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetSpaceDimension();}
+SizeType GetStrainSizeFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainSize();}
+SizeType GetSpaceDimensionFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetSpaceDimension();}
 std::vector<ConstitutiveLaw::StrainMeasure>& GetStrainMeasuresFeatures(ConstitutiveLaw::Features& rThisFeatures){ return rThisFeatures.GetStrainMeasures(); }
 
 Flags GetLawOptions(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetOptions();}
@@ -162,7 +163,6 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     .def("GetStressMeasure",&ConstitutiveLaw::GetStressMeasure)
     .def("IsIncremental",&ConstitutiveLaw::IsIncremental)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
-    .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
     .def("Has", &ConstitutiveLawHas< Variable<bool> >)
     .def("Has", &ConstitutiveLawHas< Variable<int> >)
     .def("Has", &ConstitutiveLawHas< Variable<double> >)
