@@ -10,7 +10,7 @@ def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
 
 class HelmholtzShapeSolver(HelmholtzSolverBase):
     def GetSolvingVariable(self) -> KM.Array1DVariable3:
-        return KM.MESH_DISPLACEMENT
+        return KOA.HELMHOLTZ_VECTOR
 
     def _GetComputingModelPartName(self) -> str:
         return self.GetOriginModelPart().FullName().replace(".", "_") + "_helmholtz_shape"
@@ -26,7 +26,7 @@ class HelmholtzShapeSolver(HelmholtzSolverBase):
             container = self.GetOriginModelPart().Elements
             num_nodes = self._GetContainerTypeNumNodes(container)
             if self._IsSurfaceContainer(container):
-                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzSurfaceShapeElement3D{num_nodes}N")
+                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzVectorSurfaceElement3D{num_nodes}N")
             else:
                 raise RuntimeError(f"Helmholtz shape solver found volume elements in {self.GetOriginModelPart().FullName()}. It can work with only either surface elements or surface conditions.")
         elif self.GetOriginModelPart().NumberOfConditions() > 0:
