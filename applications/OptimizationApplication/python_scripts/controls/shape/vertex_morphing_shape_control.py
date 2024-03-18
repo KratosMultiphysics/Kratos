@@ -51,11 +51,8 @@ def GetImplicitFilterParameters(filter_model_part_name: str, parameters: Kratos.
             }
      }""")
 
-    vec_name = "HELMHOLTZ_VECTOR"
     if filter_type == "bulk_surface_implicit":
         implicit_vector_filter_parameters["solver_settings"]["filter_type"].SetString("bulk_surface_shape")
-        vec_name = "MESH_DISPLACEMENT"
-
 
     implicit_vector_filter_parameters["solver_settings"].AddDouble("filter_radius",filter_radius)
     implicit_vector_filter_parameters["solver_settings"].AddString("model_part_name",filter_model_part_name)
@@ -72,7 +69,7 @@ def GetImplicitFilterParameters(filter_model_part_name: str, parameters: Kratos.
                 "process_name"  : "FixVectorVariableProcess",
                 "Parameters"    : {
                     "model_part_name" : \""""+model_part_name+"""\",
-                    "variable_name"   : \""""+vec_name+"""\",
+                    "variable_name"   : "HELMHOLTZ_VECTOR",
                     "constrained"          : [false,false,false]
                 }
             }
