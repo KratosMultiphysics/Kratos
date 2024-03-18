@@ -27,7 +27,7 @@ namespace Kratos
 {
 
 /// @brief Class collecting a set of free-floating utility functions for querying and mutating @ref ModelPart s.
-class ModelPartUtils
+class KRATOS_API(KRATOS_CORE) ModelPartUtils
 {
 public:
     /// @brief Templated interface for getting nodes, elements, conditions or @ref ProcessInfo from a @ref ModelPart.
