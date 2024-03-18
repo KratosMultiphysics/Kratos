@@ -69,6 +69,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
+#include "utilities/model_part_utils.h"
 
 namespace Kratos::Python {
 
@@ -826,6 +827,25 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     m.def_submodule("TestsUtilities", "Auxiliary utilities for tests.")
         .def("CreateSphereTriangularMesh", &CppTestsUtilities::CreateSphereTriangularMesh)
+    ;
+
+    m.def_submodule("ModelPartUtils", "Auxiliary utilities for model parts.")
+        .def("FromConnectivityGenerateElements", [](
+            const std::string& rEntityName,
+            const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
+            ModelPart::NodesContainerType& rThisNodes,
+            ModelPart::ElementsContainerType& rThisElements,
+            const Properties::Pointer pProperties) {
+                ModelPartUtils::FromConnectivityGenerateEntities<Element>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisElements, pProperties);
+            })
+        .def("FromConnectivityGenerateConditions", [](
+            const std::string& rEntityName,
+            const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
+            ModelPart::NodesContainerType& rThisNodes,
+            ModelPart::ConditionsContainerType& rThisConditions,
+            const Properties::Pointer pProperties) {
+                ModelPartUtils::FromConnectivityGenerateEntities<Condition>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisConditions, pProperties);
+            })
     ;
 
 }
