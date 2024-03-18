@@ -21,14 +21,14 @@ class HelmholtzSolverBase(PythonSolver):
         super().__init__(model, custom_settings)
 
         # Either retrieve the model part from the model or create a new one
-        self.__filtering_model_part_name = self.settings["model_part_name"].GetString()
+        self.filtering_model_part_name = self.settings["model_part_name"].GetString()
 
-        if self.__filtering_model_part_name == "":
+        if self.filtering_model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
-        # the __filtering_model_part_name can be a sub model part. Hence we need the main model part
+        # the filtering_model_part_name can be a sub model part. Hence we need the main model part
         # for variable and dof addition.
-        root_model_part_name = self.__filtering_model_part_name.split(".")[0]
+        root_model_part_name = self.filtering_model_part_name.split(".")[0]
         if self.model.HasModelPart(root_model_part_name):
             self.origin_root_model_part = self.model.GetModelPart(root_model_part_name)
         else:
@@ -164,7 +164,7 @@ class HelmholtzSolverBase(PythonSolver):
         return self.origin_root_model_part
 
     def GetOriginModelPart(self) -> KratosMultiphysics.ModelPart:
-        return self.model[self.__filtering_model_part_name]
+        return self.model[self.filtering_model_part_name]
 
     def GetFilterRadius(self) -> str:
         return self.filter_radius
