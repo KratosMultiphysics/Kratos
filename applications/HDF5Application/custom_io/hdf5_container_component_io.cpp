@@ -206,9 +206,9 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 {
     KRATOS_TRY
 
-    using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
+    using component_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::template ComponentType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentType<component_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -222,7 +222,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         if constexpr(value_type_traits::IsDynamic) {
             // retrieving dynamic shape
             if (!rLocalContainer.empty()) {
-                typename TContainerDataIO::template TLSType<component_data_type> tls;
+                typename TContainerDataIO::template TLSType<component_type> tls;
                 const auto& value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
                 value_type_traits::Shape(value_prototype, shape.data(), shape.data() + value_type_traits::Dimension);
             }
