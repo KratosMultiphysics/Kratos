@@ -11,6 +11,8 @@
 //
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geomechanics_time_integration_scheme.hpp"
 #include "includes/model_part.h"
 #include <optional>
@@ -147,32 +149,15 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            // Save old values
-            const std::vector<std::string> components = {"X", "Y", "Z"};
-            std::vector<double>            current_values;
-            for (const auto& component : components) {
-                const auto& component_variable = this->GetComponentFromVectorVariable(
-                    r_second_order_vector_variable.first_time_derivative, component);
-                current_values.push_back(rNode.FastGetSolutionStepValue(component_variable, 0));
-            }
-
-            noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 0)) =
+            const auto updated_first_derivative =
                 rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative, 1) +
                 (1.0 - GetGamma()) * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1) +
                 GetGamma() * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0);
 
-            // Restore values if component was fixed
-            int counter = 0;
-            for (const auto& component : components) {
-                const auto& component_variable = this->GetComponentFromVectorVariable(
-                    r_second_order_vector_variable.first_time_derivative, component);
-
-                if (rNode.IsFixed(component_variable))
-                    rNode.FastGetSolutionStepValue(component_variable, 0) = current_values[counter];
-                counter++;
-            }
+            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.first_time_derivative, updated_first_derivative);
         }
     }
 
@@ -181,16 +166,7 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            // Save old values
-            const std::vector<std::string> components = {"X", "Y", "Z"};
-            std::vector<double>            current_values;
-            for (const auto& component : components) {
-                const auto& component_variable = this->GetComponentFromVectorVariable(
-                    r_second_order_vector_variable.second_time_derivative, component);
-                current_values.push_back(rNode.FastGetSolutionStepValue(component_variable, 0));
-            }
-
-            noalias(rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0)) =
+            const auto updated_second_time_derivative =
                 ((rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 0) -
                   rNode.FastGetSolutionStepValue(r_second_order_vector_variable.instance, 1)) -
                  this->GetDeltaTime() * rNode.FastGetSolutionStepValue(
@@ -199,16 +175,8 @@ protected:
                      rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1)) /
                 (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
 
-            // Restore values if component was fixed
-            int counter = 0;
-            for (const auto& component : components) {
-                const auto& component_variable = this->GetComponentFromVectorVariable(
-                    r_second_order_vector_variable.second_time_derivative, component);
-
-                if (rNode.IsFixed(component_variable))
-                    rNode.FastGetSolutionStepValue(component_variable, 0) = current_values[counter];
-                counter++;
-            }
+            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
         }
     }
 
