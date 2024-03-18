@@ -154,9 +154,11 @@ jobs:
     - name: Running python tests
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_tests.py -v 2 -l nightly -c python3
 
     - name: Prepare Parallel Env
@@ -168,54 +170,66 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 3 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 4 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export OMP_NUM_THREADS=1
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export OMP_NUM_THREADS=1
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export OMP_NUM_THREADS=1
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
   windows:
@@ -357,60 +371,74 @@ jobs:
     - name: Running python tests
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
 
@@ -525,60 +553,74 @@ jobs:
     - name: Running python tests
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
 
@@ -619,61 +661,75 @@ jobs:
       shell: bash
       continue-on-error: true # TODO segfaults in cpp-tests
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export OMP_NUM_THREADS=1
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export OMP_NUM_THREADS=1
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export OMP_NUM_THREADS=1
-        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
