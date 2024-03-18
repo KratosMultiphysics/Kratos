@@ -40,7 +40,7 @@ namespace HDF5
 ///@{
 
 /// A class for IO of element data in HDF5.
-template <class TContainerType, class TContainerDataIO, class... TComponents>
+template <class TContainerType, class TContainerIO, class... TComponents>
 class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO
 {
 public:
@@ -69,21 +69,21 @@ public:
 
     void Write(
         const ModelPart& rModelPart,
-        const TContainerDataIO& rContainerDataIO,
+        const TContainerIO& rContainerDataIO,
         const Parameters Attributes);
 
     std::map<std::string, Parameters> Read(
         ModelPart& rModelPart,
-        const TContainerDataIO& rContainerDataIO);
+        const TContainerIO& rContainerDataIO);
 
     void Write(
         const TContainerType& rLocalContainer,
-        const TContainerDataIO& rContainerDataIO,
+        const TContainerIO& rContainerDataIO,
         const Parameters Attributes);
 
     std::map<std::string, Parameters> Read(
         TContainerType& rLocalContainer,
-        const TContainerDataIO& rContainerDataIO,
+        const TContainerIO& rContainerDataIO,
         Communicator& rCommunicator);
 
     std::map<std::string, Parameters> ReadAttributes();
@@ -109,7 +109,7 @@ private:
     template<class TComponentType>
     bool WriteComponentData(
         const std::string& rComponentName,
-        const TContainerDataIO& rContainerDataIO,
+        const TContainerIO& rContainerDataIO,
         const TContainerType& rLocalContainer,
         Parameters Attributes,
         WriteInfo& rInfo);
@@ -117,7 +117,7 @@ private:
     template<class TComponentType>
     bool ReadComponentData(
         const std::string& rComponentName,
-        const TContainerDataIO& rContainerDataIO,
+        const TContainerIO& rContainerDataIO,
         TContainerType& rLocalContainer,
         Communicator& rCommunicator,
         std::map<std::string, Parameters>& rAttributesMap,
