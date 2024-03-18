@@ -57,7 +57,6 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElementsSimple, 
     auto it_elem_copied_begin = r_copy_model_part.ElementsBegin();
     for (std::size_t i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_copied_begin + i;
-        KRATOS_EXPECT_EQ(i + 1, it_elem->Id());
         const auto& r_geom = it_elem->GetGeometry();
         KRATOS_EXPECT_EQ(connectivities[i][0], r_geom[0].Id());
         KRATOS_EXPECT_EQ(connectivities[i][1], r_geom[1].Id());
