@@ -17,13 +17,36 @@
 
 
 // Project includes
-
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "fluid_mesh_utilities.h"
 
 namespace Kratos
 {
+
+bool FluidMeshUtilities::AllElementsAreSimplex(const ModelPart& rModelPart)
+{
+    // Check that the provided model part is not empty
+    KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfElements() == 0) <<
+        "There are no elements in model part '" << rModelPart.FullName() << "'." << std::endl;
+
+    // Initialize the counter in case current partition is empty
+    SizeType n_simplex = 0;
+
+    // Compute the total number of simplex elements in the mesh
+    const auto& r_comm = rModelPart.GetCommunicator();
+    const auto& r_elems = r_comm.LocalMesh().Elements();
+    n_simplex = block_for_each<SumReduction<IndexType>>(r_elems, [](const Element& rElement){
+        const auto& r_geometry = rElement.GetGeometry();
+        return r_geometry.LocalSpaceDimension() + 1 == r_geometry.PointsNumber() ? 1 : 0;
+    });
+    n_simplex = r_comm.GetDataCommunicator().SumAll(n_simplex);
+
+    // Check if the total number of simplex matches the total number of elements
+    return n_simplex == rModelPart.GetCommunicator().GlobalNumberOfElements() ? true : false;
+}
 
 void FluidMeshUtilities::AssignNeighbourElementsToConditions(
     ModelPart& rModelPart,

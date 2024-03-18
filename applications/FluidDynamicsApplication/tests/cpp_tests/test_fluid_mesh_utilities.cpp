@@ -29,6 +29,56 @@
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(AllElementsAreSimplexTrue, FluidDynamicsApplicationFastSuite)
+{
+    // Set the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+
+    auto p_point_1 = Kratos::make_intrusive<Node>(1, -1.0, -1.0,  0.0);
+    auto p_point_2 = Kratos::make_intrusive<Node>(2, -1.0,  1.0,  0.0);
+    auto p_point_3 = Kratos::make_intrusive<Node>(3,  1.0,  1.0,  0.0);
+    auto p_point_4 = Kratos::make_intrusive<Node>(4,  1.0, -1.0,  0.0);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions": 2,
+        "element_name": "Element2D3N",
+        "condition_name" : "Condition",
+        "create_skin_sub_model_part": true
+    })");
+    StructuredMeshGeneratorProcess(geometry, r_test_model_part, mesher_parameters).Execute();
+
+    // Call the check simplex function and check results
+    KRATOS_CHECK(FluidMeshUtilities::AllElementsAreSimplex(r_test_model_part));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AllElementsAreSimplexFalse, FluidDynamicsApplicationFastSuite)
+{
+    // Set the test model part
+    Model test_model;
+    auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+
+    r_test_model_part.CreateNewNode(1, 0.0, 0.0,  0.0);
+    r_test_model_part.CreateNewNode(2, 1.0, 0.0,  0.0);
+    r_test_model_part.CreateNewNode(3, 2.0, 0.0,  0.0);
+    r_test_model_part.CreateNewNode(4, 0.0, 1.0,  0.0);
+    r_test_model_part.CreateNewNode(5, 1.0, 1.0,  0.0);
+    r_test_model_part.CreateNewNode(6, 2.0, 1.0,  0.0);
+    r_test_model_part.CreateNewNode(7, 0.0, 2.0,  0.0);
+    r_test_model_part.CreateNewNode(8, 1.0, 2.0,  0.0);
+    r_test_model_part.CreateNewNode(9, 2.0, 2.0,  0.0);
+    auto p_prop = r_test_model_part.CreateNewProperties(0);
+    r_test_model_part.CreateNewElement("Element2D4N", 1, {1, 2, 5, 4}, p_prop);
+    r_test_model_part.CreateNewElement("Element2D4N", 2, {2, 3, 6, 5}, p_prop);
+    r_test_model_part.CreateNewElement("Element2D4N", 3, {4, 5, 8, 7}, p_prop);
+    r_test_model_part.CreateNewElement("Element2D4N", 4, {5, 6, 9, 8}, p_prop);
+
+    // Call the check simplex function and check results
+    KRATOS_CHECK_IS_FALSE(FluidMeshUtilities::AllElementsAreSimplex(r_test_model_part));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AssignNeighbourElementsToConditions, FluidDynamicsApplicationFastSuite)
 {
     // Set the test model part
