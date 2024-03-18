@@ -45,9 +45,9 @@ public:
 
     static constexpr IndexType NumberOfVariables = (TDataDimension == 1) ? 1 : TDim;
 
-    static constexpr auto TargetVariablesList = HelmholtzGenericVariableData<NumberOfVariables>::TargetVariablesList;
+    static constexpr auto TargetVariablesList = HelmholtzVariableData<NumberOfVariables>::TargetVariablesList;
 
-    static constexpr auto SourceVariablesList = HelmholtzGenericVariableData<NumberOfVariables>::SourceVariablesList;
+    static constexpr auto SourceVariablesList = HelmholtzVariableData<NumberOfVariables>::SourceVariablesList;
 
     ///@}
     ///@name Public classes

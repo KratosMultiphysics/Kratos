@@ -447,20 +447,17 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
 }
 
 // template instantiations
-template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1, HelmholtzGenericVariableData>>;
-template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1, HelmholtzGenericVariableData>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1>>;
 
-template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3, HelmholtzGenericVariableData>>;
-template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3, HelmholtzGenericVariableData>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3>>;
+template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3>>;
 
 template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>>;
 template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>>;
 
 template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>>;
 template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>>;
-
-template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3, HelmholtzShapeVariableData>>;
-template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3, HelmholtzShapeVariableData>>;
 
 template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 4>>;
 template class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 8>>;
