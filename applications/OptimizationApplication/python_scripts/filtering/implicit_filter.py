@@ -113,10 +113,10 @@ class ImplicitFilter(Filter):
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
         # now we get the current values
-        current_values = physical_field.Clone()
+        current_values = Kratos.Expression.NodalExpression(self.filter_analysis._GetComputingModelPart())
         Kratos.Expression.VariableExpressionIO.Read(current_values, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
         # now apply the physical field
-        Kratos.Expression.VariableExpressionIO.Write(physical_field, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
+        self.filter_analysis.AssignExpressionDataToNodalSolution(physical_field)
         unfiltered_field = self.filter_analysis.UnFilterField(physical_field)
         # now apply back the original BCs
         Kratos.Expression.VariableExpressionIO.Write(current_values, self.filter_analysis._GetSolver().GetSolvingVariable(), True)

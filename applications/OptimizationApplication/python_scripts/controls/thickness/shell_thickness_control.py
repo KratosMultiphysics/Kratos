@@ -56,13 +56,9 @@ class ShellThicknessControl(Control):
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), Kratos.THICKNESS, Kratos.Globals.DataLocation.Element, self.parameters["filter_settings"])
 
         self.penalty_power = self.parameters["penalty_power"].GetInt()
+        self.beta = self.parameters["beta_value"].GetDouble()
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
-
-        # beta settings
-        self.penalty_power = self.parameters["penalty_power"].GetInt()
-        self.beta = self.parameters["beta_value"].GetDouble()
-
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
             raise RuntimeError("The physical_thicknesses can not be empty, at least min and max should be provided.")
@@ -83,7 +79,7 @@ class ShellThicknessControl(Control):
         KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, Kratos.THICKNESS)
 
         # project backward the uniform physical control field and assign it to the control field
-        self.control_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
+        self.physical_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
                                                 physical_thickness_field,
                                                 self.filtered_thicknesses,
                                                 self.physical_thicknesses,
@@ -91,7 +87,7 @@ class ShellThicknessControl(Control):
                                                 self.penalty_power)
 
         # take the physical and control field the same
-        self.physical_phi_field = self.control_phi_field.Clone()
+        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
         # now update the physical thickness field
         self._UpdateAndOutputFields(self.GetEmptyField())
