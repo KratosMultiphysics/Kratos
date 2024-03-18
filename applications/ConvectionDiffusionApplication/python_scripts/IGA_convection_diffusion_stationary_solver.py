@@ -63,9 +63,9 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z)
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y)
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
 
     def AddDofs(self):
