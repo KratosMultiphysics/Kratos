@@ -485,9 +485,9 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    VectorType nodal_values(6);
+    VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4), N_u(2), N_shape(4);
+    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_u(mat_size-4), N_shape(mat_size-2);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -581,9 +581,9 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    VectorType nodal_values(6);
+    VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4);
+    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -659,9 +659,9 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    VectorType nodal_values(6);
+    VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(6), N_u_derivatives(2), N_theta_derivatives(4), N_theta(4), N_derivatives(4), N_u(2), N_shape(4);
+    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_u(mat_size-4), N_shape(mat_size-2);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
