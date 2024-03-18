@@ -208,7 +208,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 
     using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -290,7 +290,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 {
     KRATOS_TRY
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::template ComponentType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 

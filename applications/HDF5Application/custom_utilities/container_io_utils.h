@@ -43,7 +43,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = char;
+    using ComponentType = char;
 
     ///@}
     ///@name Public operations
@@ -80,7 +80,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Life cycle
@@ -131,7 +131,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Public operations
@@ -168,7 +168,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Life cycle
@@ -223,7 +223,7 @@ public:
     using TLSType = char;
 
     template<class TDataType>
-    using ComponentDataType = TDataType;
+    using ComponentType = TDataType;
 
     ///@}
     ///@name Public operations
@@ -271,7 +271,7 @@ public:
     using TLSType = TLSStruct<TDataType>;
 
     template<class TDataType>
-    using ComponentDataType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+    using ComponentType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
 
     ///@}
     ///@name Life cycle
@@ -284,7 +284,7 @@ public:
     ///@{
 
     template<class TEntityType, class TDataType>
-    inline const ComponentDataType<TDataType>& GetValue(
+    inline const ComponentType<TDataType>& GetValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         TLSType<TDataType>& rTLS) const
@@ -317,7 +317,7 @@ public:
     inline void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
-        const ComponentDataType<TDataType>& rValue) const
+        const ComponentType<TDataType>& rValue) const
     {
         KRATOS_ERROR << "GaussPointValueIO does not support setting values from vertices";
     }
@@ -408,7 +408,7 @@ void CopyToContiguousDataArray(
 
     using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -446,7 +446,7 @@ void CopyFromContiguousDataArray(
 {
     KRATOS_TRY
 
-    using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::template ComponentType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
