@@ -155,9 +155,8 @@ double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rVal
     const auto &r_material_properties = rValues.GetMaterialProperties();
     const double E   = r_material_properties[YOUNG_MODULUS];
     const double A   = r_material_properties[CROSS_AREA];
-    const double I   = r_material_properties[IZ];
-    const double k_s = r_material_properties.Has(SHEAR_CORRECTION_XY) ? r_material_properties[SHEAR_CORRECTION_XY] : 5.0 / 6.0; // We assume rectangular shape
-    const double A_s = k_s * A;
+    const double I   = r_material_properties[I33];
+    const double A_s = r_material_properties.Has(AREA_EFFECTIVE_Y) ? r_material_properties[AREA_EFFECTIVE_Y] : 5.0 / 6.0 * A; // We assume rectangular 
     const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
     const double L   = CalculateLength();
     return 12.0 * E * I / (G * A_s * std::pow(L, 2));

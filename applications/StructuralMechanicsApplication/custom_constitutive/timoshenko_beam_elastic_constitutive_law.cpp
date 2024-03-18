@@ -66,7 +66,7 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "POISSON_RATIO is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))    << "CROSS_AREA is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))       << "DENSITY is not defined in the properties"       << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(IZ))            << "IZ is not defined in the properties"            << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))            << "I33 is not defined in the properties"            << std::endl;
     return 0;
 }
 
@@ -111,11 +111,10 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
     const double E    = r_material_properties[YOUNG_MODULUS];
     const double nu   = r_material_properties[POISSON_RATIO];
     const double A    = r_material_properties[CROSS_AREA];
-    const double I    = r_material_properties[IZ];
-    const double k_s  = r_material_properties.Has(SHEAR_CORRECTION_XY) ? r_material_properties[SHEAR_CORRECTION_XY] : 5.0 / 6.0; // We assume rectangular shape
+    const double I    = r_material_properties[I33];
 
     const double G    = E / (2.0 * (1.0 + nu));
-    const double A_s  = k_s * A;
+    const double A_s  = r_material_properties.Has(AREA_EFFECTIVE_Y) ? r_material_properties[AREA_EFFECTIVE_Y] : 5.0 / 6.0 * A; // We assume rectangular 
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
