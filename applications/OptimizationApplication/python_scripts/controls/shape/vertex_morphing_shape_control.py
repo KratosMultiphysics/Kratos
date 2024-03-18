@@ -153,7 +153,7 @@ class VertexMorphingShapeControl(Control):
             self.control_field = new_control_field
             # now update the physical field
             self._UpdateAndOutputFields(control_update)
-            # update explicit filter
+
             self.filter.Update()
             return True
         return False

@@ -146,7 +146,6 @@ class ShellThicknessControl(Control):
                 self._UpdateAndOutputFields(update)
 
                 self.filter.Update()
-
                 return True
         return False
 
