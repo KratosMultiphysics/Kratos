@@ -129,24 +129,17 @@ namespace Kratos
 
             if (CalculateResidualVectorFlag) {
                 
-                // const double& temperature = Has(TEMPERATURE)
-                //     ? this->GetValue(TEMPERATURE)
-                //     : 0.0;
+                // double& temperature = this->GetValue(TEMPERATURE) ;
 
                 // double temperature = GP_parameter_coord[0]-GP_parameter_coord[1];
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]+GP_parameter_coord[1]*GP_parameter_coord[1];
-                double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]);
+                double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]); // CAMBIA!!!!
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0] + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] ;
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0]  + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] *GP_parameter_coord[1] ;
                 
                 Vector u_D(number_of_nodes);
                 for (IndexType i = 0; i < number_of_nodes; ++i)
                 {
-                    const double temper = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE);
-                    // KRATOS_WATCH(r_geometry[i].X())
-                    // KRATOS_WATCH(r_geometry[i].Y())
-                    // KRATOS_WATCH(temper) // What is? Is it u_old? 
-                    // When "analysis_type" is "linear" temper = 0
                     
                     u_D[i] = - temperature;
                 }
@@ -166,6 +159,12 @@ namespace Kratos
 
             }
         }
+        // for (unsigned int i = 0; i < number_of_nodes; i++) {
+        //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+        //     outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
+        //     outputFile.close();
+        //     // KRATOS_WATCH(r_geometry[i].GetDof(TEMPERATURE).EquationId() )
+        // }
         KRATOS_CATCH("")
     }
 
@@ -183,9 +182,6 @@ namespace Kratos
     {
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
-
-        // KRATOS_WATCH('Passa da EquationIdVector')
-        // exit(0);
 
         if (rResult.size() !=  number_of_nodes)
             rResult.resize(number_of_nodes, false);

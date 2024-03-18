@@ -202,6 +202,10 @@ namespace Kratos
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+        unsigned long long factorial(int n); 
+
+        double computeTaylorTerm(double derivative, double dx, int k, double dy, int n_k);
+
         ///@}
         ///@name Input and output
         ///@{

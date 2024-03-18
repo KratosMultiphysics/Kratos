@@ -137,10 +137,6 @@ namespace Kratos
 
         
         // MODIFIED SBM
-
-        ModelPart& skin_model_part = mpModel->HasModelPart("skin_model_part")
-            ? mpModel->GetModelPart("skin_model_part")
-            : mpModel->CreateModelPart("skin_model_part");
         using PointType = Node;
         using PointTypePointer = Node::Pointer;
         using PointVector = std::vector<PointType::Pointer>;
@@ -149,23 +145,42 @@ namespace Kratos
         using DistanceIterator = std::vector<double>::iterator;
         using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using PointerType = DynamicBins::PointerType;
+        
 
         PointVector points;
-        for (auto &i_cond : skin_model_part.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+        // ModelPart& skin_model_part;
+        ModelPart& skin_model_part_in = mpModel->HasModelPart("skin_model_part_in")
+                ? mpModel->GetModelPart("skin_model_part_in")
+                : mpModel->CreateModelPart("skin_model_part_in");
+        ModelPart& skin_model_part_out = mpModel->HasModelPart("skin_model_part_out")
+                ? mpModel->GetModelPart("skin_model_part_out")
+                : mpModel->CreateModelPart("skin_model_part_out");
+
+        bool is_inner;     
+        if (name == "SBMLaplacianCondition") { 
+            is_inner = rParameters["is_inner"].GetBool();
+            if (is_inner) { // INNER
+                for (auto &i_cond : skin_model_part_in.Conditions()) {
+                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+                }
+            } 
+            else { // OUTER
+                for (auto &i_cond : skin_model_part_out.Conditions()) {
+                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+                }
+            }
         }
         DynamicBins testBins(points.begin(), points.end());
-    
-        Vector meshSizes_uv = mpModel->GetModelPart("surrogate_model_part").GetProcessInfo().GetValue(MARKER_MESHES);
-
+        
+        Vector meshSizes_uv = mpModel->GetModelPart("surrogate_model_part_inner").GetProcessInfo().GetValue(MARKER_MESHES);
+        Vector parameterExternalCoordinates = mpModel->GetModelPart("surrogate_model_part_inner").GetProcessInfo().GetValue(LOAD_MESHES);
+        
         double meshSize = meshSizes_uv[0];
         if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
-        
         const double radius = sqrt(2)*(meshSize); 
-        // const double radius = 5*(meshSize);
+        // const double radius = 30*(meshSize);
         const int numberOfResults = 1e6; 
         ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
-
         std::vector<double> list_of_distances(numberOfResults);
             
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
@@ -219,9 +234,11 @@ namespace Kratos
                 SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-                
                 std::vector<int> listIdClosestCondition(geometries.size());
-                if (name == "SBMLaplacianCondition") { 
+
+                Point gaussPoint = geometries[0].Center(); 
+                bool isOnExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates);
+                if (name == "SBMLaplacianCondition"  && !isOnExternalParameterSpace) { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
 
                         Point gaussPoint = geometries[j].Center(); 
@@ -244,16 +261,31 @@ namespace Kratos
                                 }
                         }
 
-                        if (obtainedResults == 0) { KRATOS_WATCH('0 POINTS FOUND: EXIT');  exit(0);}
+                        if (obtainedResults == 0) {
+                             KRATOS_WATCH('0 POINTS FOUND: EXIT')
+                             KRATOS_WATCH(pointToSearch)
+                             exit(0);}
 
                         
                         listIdClosestCondition[j] = Results[nearestNodeId]->Id();
                     }
-
+                    if (is_inner) {
+                        this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, skin_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType());
+                    }
+                    else{
+                        this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType());
+                    }
+                } else if (isOnExternalParameterSpace){
+                    std::string nameBodyFittedCondition = "SupportPenaltyLaplacianCondition";
                     this->CreateConditions(
-                    geometries.ptr_begin(), geometries.ptr_end(),
-                    rModelPart, skin_model_part, listIdClosestCondition, name, id, PropertiesPointerType());
-                } else {
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, nameBodyFittedCondition, id, PropertiesPointerType());
+                }
+                else {
                     this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
                         rModelPart, name, id, PropertiesPointerType());
@@ -275,6 +307,9 @@ namespace Kratos
         ModelPart& rModelPart,
         const Parameters rParameters) const
     {
+
+        static int starting_brep_ids;
+
         if (rParameters.Has("brep_id")) {
             rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_id"].GetInt()));
         }
@@ -282,17 +317,37 @@ namespace Kratos
             for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i) {
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_ids"][i].GetInt()));
             }
-            KRATOS_WATCH(rParameters["iga_model_part"].GetString())
-
-            /// MODIFIED
+            // int lastIndex
+            starting_brep_ids = rParameters["brep_ids"][rParameters["brep_ids"].size()-1].GetInt() + 1;
+            /// MODIFIED________________
             std::string conditionName = rParameters["iga_model_part"].GetString();
             if (conditionName.rfind("SBM", 0) == 0) { 
-                ModelPart& surrogateModelPart = mpModel->GetModelPart("surrogate_model_part");
-                uint sizeSurrogateLoop = surrogateModelPart.Nodes().size();
-                int starting_brep_ids = 8;
-                for (SizeType j = 0; j < sizeSurrogateLoop-1; ++j) {
+                // OUTER
+                ModelPart& surrogateModelPart_outer = mpModel->GetModelPart("surrogate_model_part_outer");
+                uint sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
+                for (SizeType j = 0; j < sizeSurrogateLoop_outer-1; ++j) {
                     // Add the brep_ids of the internal boundary for SBMLaplacianCondition
-                    rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids+j));
+                    rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                    starting_brep_ids++;
+                }
+            }
+        }
+        else {
+            // INNER
+            ModelPart& surrogateModelPart_inner = mpModel->GetModelPart("surrogate_model_part_inner");
+            uint sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
+
+            for (uint iel = 1; iel < surrogateModelPart_inner.Elements().size()+1; iel++) {
+                // Each element in the surrogate_model_part represents a surrogate boundary loop. First "node" is the initial ID of the first surrogate node and
+                // the second "node" is the last surrogate node of that loop. (We have done this in the case we have multiple surrogate boundaries and 1 model part)
+                Node& firstSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
+                Node& lastSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
+                uint sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+
+                for (SizeType j = 0; j < sizeSurrogateLoop; ++j) {
+                    // Add the brep_ids of the internal boundary for SBMLaplacianCondition
+                    rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                    starting_brep_ids++;
                 }
             }
         }
@@ -304,7 +359,6 @@ namespace Kratos
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_names"][i].GetString()));
             }
         }
-
         KRATOS_ERROR_IF(rGeometryList.size() == 0)
             << "Empty geometry list. Either \"brep_id\", \"brep_ids\", \"brep_name\" or \"brep_names\" are the possible options." << std::endl;
     }
@@ -551,6 +605,25 @@ namespace Kratos
                 }
             }
         }
+    }
+
+    bool IgaModeler::CheckIsOnExternalParameterSpace(Point point, Vector parameters_external_coordinates) const 
+    {
+        double tolerance = 1e-14;
+        double u_initial = parameters_external_coordinates[0];
+        double v_initial = parameters_external_coordinates[1];
+        double u_final   = parameters_external_coordinates[2];
+        double v_final   = parameters_external_coordinates[3];
+        
+        if (std::abs(point[0]-u_initial) < tolerance || std::abs(point[1]-v_initial) < tolerance || 
+            std::abs(point[0]-u_final  ) < tolerance || std::abs(point[1]-v_final  ) < tolerance) 
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
+    
     }
 
     ///@}

@@ -107,7 +107,6 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-        
     // Initialize DN_DX
     Matrix DN_DX(number_of_points,2);
     Matrix InvJ0(2,2);
@@ -116,42 +115,29 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-    Vector GP_parameter_coord(2); 
-    GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
 
-    // KRATOS_WATCH(GP_parameter_coord)
 
     Vector heat_flux_local(number_of_points);
     Vector nodal_conductivity(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
-        // heat_flux_local[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_volume_source_var);
+        heat_flux_local[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_volume_source_var);
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
-        // heat_flux_local[node_element] = -2.0*GP_parameter_coord[0]*(GP_parameter_coord[0]-2.0) - 2.0*GP_parameter_coord[1]*(GP_parameter_coord[1]-2.0) ;
-        // heat_flux_local[node_element] = -6.0*GP_parameter_coord[0]-6.0*GP_parameter_coord[1] ;
-        // heat_flux_local[node_element] = -12.0*GP_parameter_coord[0]*GP_parameter_coord[0]-12.0*GP_parameter_coord[1]*GP_parameter_coord[1] ;
-        heat_flux_local[node_element] = -0.0 ; 
-
-        // NON FUNZIONA-> heat_flux_local[node_element] = r_geometry.Center().FastGetSolutionStepValue(r_volume_source_var);
-        // error: no member named 'FastGetSolutionStepValue' in 'Kratos::Point'
+        // heat_flux_local[node_element] = -0.0 ; 
     }
 
 
+    double DetJ0;
+    Matrix Jacobian = ZeroMatrix(2,2);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
     for(std::size_t i_point = 0; i_point < integration_points.size(); ++i_point)
     {
-        const IndexType IntegrationPointIndex = i_point ;
-        // r_geometry.Jacobian(J0, IntegrationPointIndex, this->GetIntegrationMethod());
-        
-        double DetJ0;
-        Matrix Jacobian = ZeroMatrix(2,2);
-        Jacobian(0,0) = J0[i_point](0,0);
-        Jacobian(0,1) = J0[i_point](0,1);
-        Jacobian(1,0) = J0[i_point](1,0);
-        Jacobian(1,1) = J0[i_point](1,1);
-
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
         // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
 
@@ -170,7 +156,6 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     // RHS = ExtForces - K*temp;
     for (unsigned int i = 0; i < number_of_points; i++) {
-        // KRATOS_WATCH(r_geometry[i].GetId())
         temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
 
         // std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
@@ -291,32 +276,22 @@ void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProces
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
 
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
-    // Get the parameter coordinates
-    Vector GP_parameter_coord(2); 
-    GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // Only one Integration Points 
 
-    double x_coord_gauss_point = 0;
-    double y_coord_gauss_point = 0;
     double rOutput = 0;
-
     for (IndexType i = 0; i < nb_nodes; ++i)
     {
-        // KRATOS_WATCH(r_geometry[i])
         double output_solution_step_value = r_geometry[i].GetSolutionStepValue(r_unknown_var);
         rOutput += r_N(0, i) * output_solution_step_value;
-        x_coord_gauss_point += r_N(0, i) * r_geometry[i].X();
-        y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y();
     }        
-    // exit(0);
 
     std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
     if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        output_file << rOutput << " " << GP_parameter_coord[0] << " " << GP_parameter_coord[1] << " " <<integration_points[0].Weight() << std::endl;
+        output_file << rOutput << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << integration_points[0].Weight() << std::endl;
         output_file.close();
     }
 }

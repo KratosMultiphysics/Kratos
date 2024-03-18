@@ -202,6 +202,8 @@ private:
     Parameters ReadParamatersFile(
         const std::string& rDataFileName) const;
 
+    bool CheckIsOnExternalParameterSpace(Point point, Vector parameterExternalCoordinates) const;
+
     ///@}
     ///@name Serializer
     ///@{

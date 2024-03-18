@@ -1,206 +1,152 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:  Riccardo Rossi
 //
 
-#if !defined(KRATOS_CONV_DIFF_IGA_ELEMENT_H_INCLUDED )
-#define  KRATOS_CONV_DIFF_IGA_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_CONV_DIFF_IGA_ELEMENT_INCLUDED )
+#define  KRATOS_CONV_DIFF_IGA_ELEMENT_ELEMENT_INCLUDED
+
 
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
+#include "includes/serializer.h"
+#include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
+
 
 
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
+///formulation described in https://docs.google.com/document/d/13a_zGLj6xORDuLgoOG5LwHI6BwShvfO166opZ815zLY/edit?usp=sharing
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-template<std::size_t TDim>
-class ConvDiffIGAElement : public Element
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ConvDiffIGAElement
+    : public Element
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Counted pointer of ConvDiffIGAElement
+    /// Counted pointer of
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConvDiffIGAElement);
 
-    typedef Element BaseType;
-
-    static constexpr std::size_t NumNodes = TDim + 1;
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default constructor.
-    ConvDiffIGAElement(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry);
-
-    ConvDiffIGAElement(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties);
-
-    /// Destructor.
-    virtual ~ConvDiffIGAElement();
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const override;
-
-
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ConvDiffIGAElement() : Element()
     {
     }
 
+    ConvDiffIGAElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
+    {}
 
-    ///@}
-    ///@name Access
-    ///@{
+    ConvDiffIGAElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
+    {}
 
+    /// Destructor.
+    virtual ~ConvDiffIGAElement() {};
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    Element::Pointer Create(
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes, 
+        PropertiesType::Pointer pProperties
+        ) const override
+    {
+        return Kratos::make_intrusive<ConvDiffIGAElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
     
-    IntegrationMethod GetIntegrationMethod() const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override
+    {
+        return Kratos::make_intrusive<ConvDiffIGAElement>(NewId, pGeom, pProperties);
+    }
 
-    ///@}
-    ///@name Input and output
-    ///@{
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    ///@}
-    ///@name Friends
-    ///@{
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    std::string Info() const override
+    {
+        return "ConvDiffIGAElement #";
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info() << Id();
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
+
+    struct ElementVariables
+    {
+        double theta;
+        double dyn_st_beta;
+        double dt_inv;
+        double lumping_factor;
+        double conductivity;
+        double specific_heat;
+        double density;
+        double beta;
+        double div_v;
+
+        array_1d<double,1> phi;
+        array_1d<double,1> phi_old;
+        array_1d<double,1> volumetric_source;
+        array_1d< array_1d<double,3 >, 1> v;
+        array_1d< array_1d<double,3 >, 1> vold;
+    };
+
+    void InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateGeometry(Matrix& rDN_DX, double& rVolume);
+
+    // double ComputeH(Matrix& rDN_DX);
+
+    void GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) const;
+
+    double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
+
+    // Member Variables
 
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    // Protected default constructor necessary for serialization
-
-    ///@}
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    
-    // /// Calculates LHS and RHS dependent on flags
-    // void CalculateAll(
-    //     MatrixType& rLeftHandSideMatrix,
-    //     VectorType& rRightHandSideVector,
-    //     const ProcessInfo& rCurrentProcessInfo,
-    //     const bool CalculateStiffnessMatrixFlag,
-    //     const bool CalculateResidualVectorFlag
-    // ) const;
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Serialization
-    ///@{
+        // Serialization
 
     friend class Serializer;
 
@@ -214,67 +160,11 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+    Parameters ReadParamatersFile(const std::string& rDataFileName) const;
 
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    // std::vector<std::size_t> GetSurrogateFacesIds();
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    //ConvDiffIGAElement& operator=(const ConvDiffIGAElement& rOther);
-
-    /// Copy constructor.
-    //ConvDiffIGAElement(const ConvDiffIGAElement& rOther);
-
-    ///@}
 
 }; // Class ConvDiffIGAElement
 
-///@}
+} // namespace Kratos.
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    ConvDiffIGAElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const ConvDiffIGAElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_LAPLACIAN_SHIFTED_BOUNDARY_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined

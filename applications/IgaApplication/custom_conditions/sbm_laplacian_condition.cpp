@@ -30,9 +30,8 @@ namespace Kratos
     )
     {
         Condition candidateClosestSkinSegment1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-        Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
+        // Condition candidateClosestSkinSegment2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1];
 
-        
         KRATOS_TRY
         const auto& r_geometry = this->GetGeometry();
         const SizeType number_of_nodes = r_geometry.PointsNumber();
@@ -52,6 +51,8 @@ namespace Kratos
         const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
         int insertions = refinements_parameters["refinements"][0]["parameters"]["insert_nb_per_span_u"].GetInt();
         double h = 2.0/(insertions+1) ;
+
+        int basisFunctionsOrder = refinements_parameters["refinements"][0]["parameters"]["increase_degree_u"].GetInt()+1;
 
         // Modify the penalty factor: penalty/h
         penalty = penalty/(h);
@@ -77,34 +78,8 @@ namespace Kratos
 
         for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
-            // Note that integration_points.size() = 1   &   number_of_nodes = 9
             // Differential area
             double penalty_integration = penalty * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
-
-            // Get the parameter coordinates
-            Vector GP_parameter_coord(2); 
-            GP_parameter_coord = prod(r_geometry.Center(),J0[point_number]);
-
-
-            // std::ifstream file("txt_files/true_points.txt");    // Read the true points from the mdpa
-            // std::vector<double> x_true_boundary;
-            // std::vector<double> y_true_boundary;
-            // double x, y;
-            // while (file >> x >> y) { x_true_boundary.push_back(x); y_true_boundary.push_back(y); }
-            // file.close();
-            // int index_min_distance = 0; // Initialization of the index of the true node closest to the Gauss point.
-            // double min_distance_squared = 1e14;
-            // for (int i = 1; i < x_true_boundary.size(); i++) {
-            //     double current_distance_squared = (GP_parameter_coord[0]-x_true_boundary[i])*(GP_parameter_coord[0]-x_true_boundary[i]) +  
-            //           (GP_parameter_coord[1]-y_true_boundary[i])*(GP_parameter_coord[1]-y_true_boundary[i]) ;
-            //     if ( current_distance_squared  <  min_distance_squared ) {
-            //             min_distance_squared = current_distance_squared;
-            //             index_min_distance = i ;
-            //           }
-            // }
-            // Vector projection(2);
-            // projection[0] = x_true_boundary[index_min_distance] ;
-            // projection[1] = y_true_boundary[index_min_distance] ;
             
             // Obtaining the projection from the closest skin segment
             Vector projection(2);
@@ -113,12 +88,12 @@ namespace Kratos
 
             // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
             std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-            outputFile << projection[0] << " " << projection[1] << " "  << GP_parameter_coord[0] << " " << GP_parameter_coord[1] <<"\n";
+            outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
             outputFile.close();
 
             Vector d(2);
-            d[0] = projection[0] - GP_parameter_coord[0];
-            d[1] = projection[1] - GP_parameter_coord[1];
+            d[0] = projection[0] - r_geometry.Center().X();
+            d[1] = projection[1] - r_geometry.Center().Y();
             // d[0] = 0;
             // d[1] = 0;
 
@@ -136,11 +111,6 @@ namespace Kratos
             // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
             noalias(DN_DX) = prod(DN_De[point_number],InvJ0);
 
-            const Matrix& DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, point_number, this->GetIntegrationMethod());
-            const Matrix& DDDN_DDDe = r_geometry.ShapeFunctionDerivatives(3, point_number, this->GetIntegrationMethod());
-            const Matrix& DDDDN_DDDDe = r_geometry.ShapeFunctionDerivatives(4, point_number, this->GetIntegrationMethod());
-            const Matrix& DDDDDN_DDDDDe = r_geometry.ShapeFunctionDerivatives(5, point_number, this->GetIntegrationMethod());
-
             // Calculating the PARAMETER SPACE derivatives
             Matrix Identity_Matrix = ZeroMatrix(2,2);
             Identity_Matrix(0,0) = 1.0;
@@ -157,7 +127,7 @@ namespace Kratos
             
             // NEW FOR GENERAL JACOBIAN
             normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-            normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+            normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude; 
 
             normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
             
@@ -172,66 +142,55 @@ namespace Kratos
             Matrix H = ZeroMatrix(1, number_of_nodes);
             Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
             Matrix DN_dot_n_parameter = ZeroMatrix(1, number_of_nodes);
-            // Need to modify H so that we introduce the Taylor expansion
-            Matrix H_gradient_term = ZeroMatrix(1, number_of_nodes);
-            Matrix H_hessian_term = ZeroMatrix(1, number_of_nodes);
-            Matrix H_3rdTayor_term = ZeroMatrix(1, number_of_nodes);
-            Matrix H_4thTayor_term = ZeroMatrix(1, number_of_nodes);
-            Matrix H_5thTayor_term = ZeroMatrix(1, number_of_nodes);
+
+            Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+
+            // Compute all the derivatives of the basis functions involved
+            std::vector<Matrix> nShapeFunctionDerivatives;
+            for (int n = 1; n <= basisFunctionsOrder; n++) {
+                nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, point_number, this->GetIntegrationMethod()));
+            }
 
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 H(0, i)               = N(point_number, i);
                 DN_dot_n(0, i)        = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
-                // Taylor expansion in the parameter space
-                H_gradient_term(0, i) = DN_DPSI(i, 0) * d[0] + DN_DPSI(i, 1) * d[1] ; 
-                H_hessian_term(0, i) = 1.0/2.0 *  d[0]*d[0]*DDN_DDe(i,0) + 1.0 * d[0]*d[1]*DDN_DDe(i,1) + 1.0/2.0 * d[1]*d[1]*DDN_DDe(i,2)  ;
-                H_3rdTayor_term(0, i) = 1.0/6.0 * DDDN_DDDe(i,0) * d[0]*d[0]*d[0] + 1.0/2.0 * DDDN_DDDe(i,1)*d[0]*d[0]*d[1] + 1.0/2.0* DDDN_DDDe(i,2)*d[0]*d[1]*d[1] + 1.0/6.0 *DDDN_DDDe(i,3)*d[1]*d[1]*d[1] ;
-                H_4thTayor_term(0, i) = 1.0/24.0 * DDDDN_DDDDe(i,0) * d[0]*d[0]*d[0]*d[0] + 1.0/6.0 * DDDDN_DDDDe(i,1) * d[0]*d[0]*d[0]*d[1] + 1.0/4.0 * DDDDN_DDDDe(i,2) * d[0]*d[0]*d[1]*d[1] + 1.0/6.0 * DDDDN_DDDDe(i,3) * d[0]*d[1]*d[1]*d[1] + 1.0/24.0 * DDDDN_DDDDe(i,4) * d[1]*d[1]*d[1]*d[1];
-                H_5thTayor_term(0, i) = 1.0/120.0 * DDDDDN_DDDDDe(i,0) * d[0]*d[0]*d[0]*d[0]*d[0] + 1.0/24.0 * DDDDDN_DDDDDe(i,1) * d[0]*d[0]*d[0]*d[0]*d[1] + 1.0/12.0 * DDDDDN_DDDDDe(i,2) * d[0]*d[0]*d[0]*d[1]*d[1] + 1.0/12.0 * DDDDDN_DDDDDe(i,3) * d[0]*d[0]*d[1]*d[1]*d[1] + 1.0/24.0 * DDDDDN_DDDDDe(i,4) * d[0]*d[1]*d[1]*d[1]*d[1] + 1.0/120.0 * DDDDDN_DDDDDe(i,5) * d[1]*d[1]*d[1]*d[1]*d[1];
-                // H_hessian_term(0, i) = 0;
-                // H_3rdTayor_term(0, i) = 0;
-                H_4thTayor_term(0, i) = 0;
-                H_5thTayor_term(0, i) = 0;
-
+                double H_taylor_term = 0.0; // Reset for each node
+                for (int n = 1; n <= basisFunctionsOrder; n++) {
+                    // Retrieve the appropriate derivative for the term
+                    Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
+                    for (int k = 0; k <= n; k++) {
+                        int n_k = n - k;
+                        double derivative = shapeFunctionDerivatives(i,k); 
+                        // Compute the Taylor term for this derivative
+                        H_taylor_term += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                    }
+                }
+                H_sum(0,i) = H_taylor_term + H(0,i);
             }
+
             // Assembly
-
             // Termine -(GRAD_w * n, u + GRAD_u * d + ...)
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H)                * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_gradient_term)  * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_hessian_term)   * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_3rdTayor_term)  * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_4thTayor_term)  * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_5thTayor_term)  * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H_sum)  * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
             // Termine -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                                      * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                             * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
             // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
-            noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H              ) * penalty_integration ;
-            noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H_gradient_term) * penalty_integration ;
-            noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H_hessian_term ) * penalty_integration ;
-            noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H_3rdTayor_term) * penalty_integration ;
-            noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H_4thTayor_term) * penalty_integration ;
-            noalias(rLeftHandSideMatrix) += prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H_5thTayor_term) * penalty_integration ;
+            noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration ;
 
 
             if (CalculateResidualVectorFlag) {
                 
-                // const double& temperature1 = Has(TEMPERATURE)
-                //     ? this->GetValue(TEMPERATURE)
-                //     : 0.0;
-                // KRATOS_WATCH(temperature1)
-                
-                // const double temperature =  projection[0]*(projection[0]-2.0) * projection[1]*(projection[1]-2.0) ;// 1.0 ; // 1.0*(1.0-2.0)*1.0*(1.0-2.0) ;
-                // const double temperature = projection[0]-projection[1];
                 // double temperature = GP_parameter_coord[0]-GP_parameter_coord[1];
-                // const double temperature = projection[0]*projection[0] + projection[1]*projection[1];
-                // const double temperature = projection[0] * projection[1];
-                const double temperature = sin(projection[0]) * sinh(projection[1]) ;
-                // const double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]) ;
+                // const double temperature = sin(projection[0]) * sinh(projection[1]) ;
+
+                
+
+                // const double temperature = sin(r_geometry.Center().X()) * sinh(r_geometry.Center().Y()) ;
                 // const double temperature = projection[0]*projection[0]*projection[0] + projection[1]*projection[1]*projection[1] ;
                 // const double temperature = projection[0]*projection[0]*projection[0]*projection[0] + projection[1]*projection[1]*projection[1]*projection[1] ;
+                
+                // FINAL ONE:
+                const double temperature = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(TEMPERATURE);
                 
                 Vector u_D(number_of_nodes);
 
@@ -241,7 +200,7 @@ namespace Kratos
                     // u_D[i] = (temper - temperature);
                     u_D[i] = -temperature ;
                 }
-                noalias(rRightHandSideVector) -= prod(prod(trans(H + H_gradient_term + H_hessian_term + H_3rdTayor_term + H_4thTayor_term + H_5thTayor_term), H), u_D) * penalty_integration;
+                noalias(rRightHandSideVector) -= prod(prod(trans(H_sum), H), u_D) * penalty_integration;
                 // Dirichlet BCs
                 noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
 
@@ -269,13 +228,19 @@ namespace Kratos
 
 
 
+    unsigned long long SBMLaplacianCondition::factorial(int n) 
+    {
+        if (n == 0) return 1;
+        unsigned long long result = 1;
+        for (int i = 2; i <= n; ++i) result *= i;
+        return result;
+    }
 
-
-
-
-
-
-
+    // Function to compute a single term in the Taylor expansion
+    double SBMLaplacianCondition::computeTaylorTerm(double derivative, double dx, int n_k, double dy, int k)
+    {
+        return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (factorial(k) * factorial(n_k));    
+    }
 
 
 

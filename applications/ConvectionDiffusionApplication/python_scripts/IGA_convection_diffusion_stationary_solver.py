@@ -15,9 +15,12 @@ def CreateSolver(main_model_part, custom_settings):
 
 class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
 
-    with open('txt_files/input_data.txt', 'r') as file:
-        line = file.readline().strip()
-    name_mdpa_true_boundary = line
+    # Write all the points of the skin boundary in an external file
+    directory = "txt_files"
+    file_name = os.path.join(directory, "true_points.txt")
+    if os.path.exists(file_name):
+        os.remove(file_name)
+    name_mdpa_true_boundary = "mdpa_files/Weird_shape1"
     # name_mdpa_true_boundary = "mdpa_files/Weird_shape3" 
     file_mdpa_exists = os.path.isfile(os.path.join(name_mdpa_true_boundary + ".mdpa"))
     
@@ -27,35 +30,31 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         skin_model_part2 = current_model.CreateModelPart("skin_model_part2")
         skin_model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         KratosMultiphysics.ModelPartIO(name_mdpa_true_boundary).ReadModelPart(skin_model_part2)
-        
-        # Write all the points of the skin boundary in an external file
-        directory = "txt_files"
-        file_name = os.path.join(directory, "true_points.txt")
-        if os.path.exists(file_name):
-            os.remove(file_name)
+
         with open(file_name, 'w') as file:
             for condition in skin_model_part2.Conditions :
                 file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
                 file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
-    # else :
-    #     if os.path.exists("txt_file/true_points.txt") :
-    #         os.remove("txt_file/true_points.txt")
-    #         print('true_points file has been deleted')
+    
 
-    #     current_model = KratosMultiphysics.Model()
-    #     skin_model_part = current_model.CreateModelPart("skin_model_part")
-    #     skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-    #     KratosMultiphysics.ModelPartIO("mdpa_files/Weird_shape5" ).ReadModelPart(skin_model_part)
+    # Write all the points of the skin boundary in an external file
+    directory = "txt_files"
+    file_name = os.path.join(directory, "true_points_outer.txt")
+    if os.path.exists(file_name):
+        os.remove(file_name)
+    name_mdpa_true_boundary = "mdpa_files/external_bunny.."
+    file_mdpa_exists = os.path.isfile(os.path.join(name_mdpa_true_boundary + ".mdpa"))
+    if (file_mdpa_exists) :
+        current_model = KratosMultiphysics.Model()
+        skin_model_part2_outer = current_model.CreateModelPart("skin_model_part2_outer")
+        skin_model_part2_outer.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        KratosMultiphysics.ModelPartIO(name_mdpa_true_boundary).ReadModelPart(skin_model_part2_outer)
         
-    #     # Write all the points of the skin boundary in an external file
-    #     directory = "txt_files"
-    #     file_name = os.path.join(directory, "true_points_for_trimming.txt")
-    #     if os.path.exists(file_name):
-    #         os.remove(file_name)
-    #     with open(file_name, 'w') as file:
-    #         for condition in skin_model_part.Conditions :
-    #             file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
-    #             file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
+        with open(file_name, 'w') as file:
+            for condition in skin_model_part2_outer.Conditions :
+                file.write(f"{condition.GetNodes()[0].X} {condition.GetNodes()[0].Y}\n")
+                file.write(f"{condition.GetNodes()[1].X} {condition.GetNodes()[1].Y}\n")
+
 
     
     def __init__(self, main_model_part, custom_settings):
@@ -64,6 +63,9 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
     def AddVariables(self):
         super().AddVariables()
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Z)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_Y)
         # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
 
     def AddDofs(self):
@@ -114,29 +116,31 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         fixed_node_y = []
         dof = []
         # Set Free the active ones
-        with open('txt_files/Id_active_control_points.txt', 'r') as file:
-            lines = file.readlines()
-        for line in lines:
-            numbers = line.split()
-            node = self.main_model_part.GetNode(int(numbers[0]))
-            node.Free(KratosMultiphysics.TEMPERATURE)
-            node.Set(KratosMultiphysics.VISITED, False)
-            free_node_x.append(node.X)
-            free_node_y.append(node.Y)
-            dof.append(numbers[1])
+        if os.path.exists("txt_files/Id_active_control_points.txt"):
+            with open('txt_files/Id_active_control_points.txt', 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+                node.Free(KratosMultiphysics.TEMPERATURE)
+                node.Set(KratosMultiphysics.VISITED, False)
+                free_node_x.append(node.X)
+                free_node_y.append(node.Y)
+                dof.append(numbers[1])
         
         dof2 = []
         free_node_x2 = []
         free_node_y2= []
         # Set Free the active ones
-        with open('txt_files/Id_active_control_points_condition.txt', 'r') as file:
-            lines = file.readlines()
-        for line in lines:
-            numbers = line.split()
-            node = self.main_model_part.GetNode(int(numbers[0]))
-            free_node_x2.append(node.X)
-            free_node_y2.append(node.Y)
-            dof2.append(numbers[1])
+        if os.path.exists("txt_files/Id_active_control_points_condition.txt"):
+            with open('txt_files/Id_active_control_points_condition.txt', 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+                free_node_x2.append(node.X)
+                free_node_y2.append(node.Y)
+                dof2.append(numbers[1])
         
         for node in self.main_model_part.GetNodes() :
             fixed_node_x.append(node.X)
