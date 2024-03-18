@@ -421,8 +421,8 @@ void CopyToContiguousArray(
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
         const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
         TDataType const* p_value_begin = value_type_traits::GetContiguousData(value);
-        auto p_array_start = pBegin + Index * stride;
-        std::copy(p_value_begin, p_value_begin + stride, p_array_start);
+        auto p_subrange_begin = pBegin + Index * stride;
+        std::copy(p_value_begin, p_value_begin + stride, p_subrange_begin);
     });
 
     KRATOS_CATCH("");
@@ -456,8 +456,8 @@ void CopyFromContiguousDataArray(
 
     IndexPartition<unsigned int>(rContainer.size()).for_each(tls_prototype, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
         TDataType * p_value_begin = value_type_traits::GetContiguousData(rTLS);
-        TDataType const * p_array_start = pBegin + Index * stride;
-        std::copy(p_array_start, p_array_start + stride, p_value_begin);
+        TDataType const * p_subrange_begin = pBegin + Index * stride;
+        std::copy(p_subrange_begin, p_subrange_begin + stride, p_value_begin);
         rContainerDataIO.SetValue(*(rContainer.begin() + Index), rComponent, rTLS);
     });
 
