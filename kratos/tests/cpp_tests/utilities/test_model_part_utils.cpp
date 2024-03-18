@@ -51,9 +51,14 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElementsSimple, 
         nullptr
     );
 
+    // Sort
+    r_copy_model_part.Elements().Sort();
+
+    // Initial checks
     KRATOS_EXPECT_EQ(0, r_copy_model_part.NumberOfNodes());
     KRATOS_EXPECT_EQ(number_of_elements, r_copy_model_part.NumberOfElements());
 
+    // Connectivity checks
     auto it_elem_copied_begin = r_copy_model_part.ElementsBegin();
     for (std::size_t i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_copied_begin + i;
@@ -97,9 +102,14 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElements, Kratos
         r_copy_model_part.Elements()
     );
 
+    // Sort
+    r_copy_model_part.Elements().Sort();
+
+    // Initial checks
     KRATOS_EXPECT_EQ(0, r_copy_model_part.NumberOfNodes());
     KRATOS_EXPECT_EQ(number_of_elements, r_copy_model_part.NumberOfElements());
 
+    // Connectivity checks
     auto it_elem_copied_begin = r_copy_model_part.ElementsBegin();
     for (std::size_t i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_copied_begin + i;
