@@ -250,7 +250,7 @@ public:
     ///@}
 };
 
-class GaussPointValueIO
+class GaussPointIO
 {
 public:
     ///@name Calss definitions
@@ -277,7 +277,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    GaussPointValueIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
+    GaussPointIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
 
     ///@}
     ///@name Public operations
@@ -319,7 +319,7 @@ public:
         const Variable<TDataType>& rVariable,
         const ComponentType<TDataType>& rValue) const
     {
-        KRATOS_ERROR << "GaussPointValueIO does not support setting values from vertices";
+        KRATOS_ERROR << "GaussPointIO does not support setting values from vertices";
     }
 
     ///@}
@@ -346,7 +346,7 @@ std::string GetContainerIOType()
         return "HISTORICAL_BOSSAK";
     } else if constexpr(std::is_same_v<TContainerIOType, VertexValueIO>) {
         return "INTERPOLATED";
-    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointValueIO>) {
+    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointIO>) {
         return "GAUSS_POINT";
     } else {
         static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
