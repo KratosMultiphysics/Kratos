@@ -27,13 +27,13 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
             container = self.GetOriginModelPart().Elements
             num_nodes = self._GetContainerTypeNumNodes(container)
             if self._IsSurfaceContainer(container):
-                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzScalarSurfaceElement3D{num_nodes}N")
+                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzSurfaceElement3D{num_nodes}N")
             else:
-                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzScalarSolidElement3D{num_nodes}N")
+                KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), f"HelmholtzSolidElement3D{num_nodes}N")
         elif self.GetOriginModelPart().NumberOfConditions() > 0:
             # here we have conditions in the origin model part. Now we have to create elements using
             # the geometries of the conditions. There cannot be volume conditions in Kratos, therefore,
             # there can be only surface conditions, hence only required to create surface elements.
-            KOA.ModelPartUtils.GenerateModelPart(self.GetOriginModelPart().Conditions, self.GetComputingModelPart(), f"HelmholtzScalarSurfaceElement3D{self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)}N")
+            KOA.ModelPartUtils.GenerateModelPart(self.GetOriginModelPart().Conditions, self.GetComputingModelPart(), f"HelmholtzSurfaceElement3D{self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)}N")
         else:
             raise RuntimeError(f"No elements or conditions found in {self.GetOriginModelPart()}.")
