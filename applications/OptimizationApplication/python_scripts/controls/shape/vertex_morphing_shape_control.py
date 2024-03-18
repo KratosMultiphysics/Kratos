@@ -162,9 +162,12 @@ class VertexMorphingShapeControl(Control):
             return True
         return False
 
-    def _UpdateAndOutputFields(self, control_update) -> None:
+    def _UpdateAndOutputFields(self, control_update: ContainerExpressionTypes) -> None:
         # compute the shape update
-        shape_update = self.filter.ForwardFilterField(KratosOA.ExpressionUtils.ExtractData(control_update, self.model_part))
+        if self.mesh_motion_solver_type == "filter_based":
+            shape_update = self.filter.ForwardFilterField(control_update)
+        else:
+            shape_update = self.filter.ForwardFilterField(KratosOA.ExpressionUtils.ExtractData(control_update, self.model_part))
 
         # now update the shape
         self._UpdateMesh(shape_update)
@@ -176,58 +179,64 @@ class VertexMorphingShapeControl(Control):
             un_buffered_data.SetValue("shape_control", self.control_field.Clone(),overwrite=True)
             un_buffered_data.SetValue("shape_control_update", control_update.Clone(),overwrite=True)
 
-    def _UpdateMesh(self, shape_update) -> None:
-        if not self.__mesh_moving_analysis is None:
-            mm_computing_model_part: Kratos.ModelPart = self.__mesh_moving_analysis._GetSolver().GetComputingModelPart()
-            time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.TIME)
-            step_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.STEP)
-            delta_time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
-
-            # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
-            mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update-1)
-            mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update-1)
-            mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
-
-            # first reset the MESH_DISPLACEMENTS
-            Kratos.VariableUtils().SetHistoricalVariableToZero(Kratos.MESH_DISPLACEMENT, mm_computing_model_part.Nodes)
-
-            # assign the design surface MESH_DISPLACEMENTS
-            Kratos.Expression.VariableExpressionIO.Write(shape_update, Kratos.MESH_DISPLACEMENT, True)
-
-            # since we know that the nodes in the shape_update model part needs to be fixed to correctly
-            # compute the MESH_DISPLACEMENT. We Only do that in here by first freeing all the MESH_DISPLACEMENT
-            # dofs, then followed by fixing the shape_update model part nodes' MESH_DISPLACEMENTs. If further
-            # boundaries needs fixing, then they need to be specified in the mesh_motion_solver settings
-            # using fix_vector_variable_process.
-            mesh_displacement_comps = [Kratos.MESH_DISPLACEMENT_X, Kratos.MESH_DISPLACEMENT_Y, Kratos.MESH_DISPLACEMENT_Z]
-            for i_comp, mesh_displacement_var in enumerate(mesh_displacement_comps):
-                # first free the mesh displacement component
-                Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, False, mm_computing_model_part.Nodes)
-                # now fix the design surface component
-                Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, shape_update.GetModelPart().Nodes)
-                # now fix boundary condition components
-                for model_part in self.filter.GetBoundaryConditions()[i_comp]:
-                    Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, model_part.Nodes)
-
-            # solve for the volume mesh displacements
-            if not self.__mesh_moving_analysis.time < self.__mesh_moving_analysis.end_time:
-                self.__mesh_moving_analysis.end_time += 1
-            self.__mesh_moving_analysis.RunSolutionLoop()
-
-            mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update)
-            mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
-            mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
-
+    def _UpdateMesh(self, shape_update: ContainerExpressionTypes) -> None:
         if self.mesh_motion_solver_type != "none":
+            mesh_displacement_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())
+
+            if not self.__mesh_moving_analysis is None:
+                mm_computing_model_part: Kratos.ModelPart = self.__mesh_moving_analysis._GetSolver().GetComputingModelPart()
+                time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.TIME)
+                step_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.STEP)
+                delta_time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
+
+                # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
+                mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update-1)
+                mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update-1)
+                mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
+
+                # first reset the MESH_DISPLACEMENTS
+                Kratos.VariableUtils().SetHistoricalVariableToZero(Kratos.MESH_DISPLACEMENT, mm_computing_model_part.Nodes)
+
+                # assign the design surface MESH_DISPLACEMENTS
+                Kratos.Expression.VariableExpressionIO.Write(shape_update, Kratos.MESH_DISPLACEMENT, True)
+
+                # since we know that the nodes in the shape_update model part needs to be fixed to correctly
+                # compute the MESH_DISPLACEMENT. We Only do that in here by first freeing all the MESH_DISPLACEMENT
+                # dofs, then followed by fixing the shape_update model part nodes' MESH_DISPLACEMENTs. If further
+                # boundaries needs fixing, then they need to be specified in the mesh_motion_solver settings
+                # using fix_vector_variable_process.
+                mesh_displacement_comps = [Kratos.MESH_DISPLACEMENT_X, Kratos.MESH_DISPLACEMENT_Y, Kratos.MESH_DISPLACEMENT_Z]
+                for i_comp, mesh_displacement_var in enumerate(mesh_displacement_comps):
+                    # first free the mesh displacement component
+                    Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, False, mm_computing_model_part.Nodes)
+                    # now fix the design surface component
+                    Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, shape_update.GetModelPart().Nodes)
+                    # now fix boundary condition components
+                    for model_part in self.filter.GetBoundaryConditions()[i_comp]:
+                        Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, model_part.Nodes)
+
+                # solve for the volume mesh displacements
+                if not self.__mesh_moving_analysis.time < self.__mesh_moving_analysis.end_time:
+                    self.__mesh_moving_analysis.end_time += 1
+                self.__mesh_moving_analysis.RunSolutionLoop()
+
+                Kratos.Expression.VariableExpressionIO.Read(mesh_displacement_field, Kratos.MESH_DISPLACEMENT, True)
+
+                mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update)
+                mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
+                mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
+            else:
+                # filter based mesh motion is used. Hence read the value from the filter. then the shape update is the mesh displacement
+                mesh_displacement_field = shape_update.Clone()
+
             # a mesh motion is solved (either by mesh motion solver or the filter), and MESH_DISPLACEMENT variable is filled
             # Hence, update the coords
-            mesh_disp_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())
             physical_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())
-            Kratos.Expression.VariableExpressionIO.Read(mesh_disp_field, Kratos.MESH_DISPLACEMENT, True)
+
             Kratos.Expression.NodalPositionExpressionIO.Read(physical_field, Kratos.Configuration.Initial)
 
-            Kratos.Expression.NodalPositionExpressionIO.Write(mesh_disp_field + physical_field, Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(mesh_disp_field + physical_field, Kratos.Configuration.Current)
+            Kratos.Expression.NodalPositionExpressionIO.Write(mesh_displacement_field + physical_field, Kratos.Configuration.Initial)
+            Kratos.Expression.NodalPositionExpressionIO.Write(mesh_displacement_field + physical_field, Kratos.Configuration.Current)
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Applied MESH_DISPLACEMENT to the mesh.")
         else:
             # no mesh motion is preferred, hence only updating the design field
