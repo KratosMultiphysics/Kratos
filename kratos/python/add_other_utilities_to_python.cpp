@@ -836,7 +836,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             ModelPart::NodesContainerType& rThisNodes,
             ModelPart::ElementsContainerType& rThisElements,
             const Properties::Pointer pProperties) {
-                ModelPartUtils::FromConnectivityGenerateEntities<Element>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisElements, pProperties);
+                ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisElements, pProperties);
             }, 
             py::arg("entity_name"), 
             py::arg("entities_connectivities"), 
@@ -850,7 +850,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             ModelPart::NodesContainerType& rThisNodes,
             ModelPart::ConditionsContainerType& rThisConditions,
             const Properties::Pointer pProperties) {
-                ModelPartUtils::FromConnectivityGenerateEntities<Condition>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisConditions, pProperties);
+                ModelPartUtils::GenerateEntitiesFromConnectivities<Condition>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisConditions, pProperties);
             }, 
             py::arg("entity_name"), 
             py::arg("entities_connectivities"), 

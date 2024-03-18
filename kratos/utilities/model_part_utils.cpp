@@ -50,7 +50,7 @@ template const Condition& CheckEntity<Condition>(const std::string& rEntityName)
 /***********************************************************************************/
 
 template<class TEntity>
-void ModelPartUtils::FromConnectivityGenerateEntities(
+void ModelPartUtils::GenerateEntitiesFromConnectivities(
     const std::string& rEntityName,
     const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
     ModelPart::NodesContainerType& rThisNodes,
@@ -86,7 +86,7 @@ void ModelPartUtils::FromConnectivityGenerateEntities(
     rThisEntities.insert(entities_vector.begin(), entities_vector.end());
 }
 
-template void ModelPartUtils::FromConnectivityGenerateEntities<Element>(
+template void ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(
     const std::string& rEntityName,
     const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
     ModelPart::NodesContainerType& rThisNodes,
@@ -94,7 +94,7 @@ template void ModelPartUtils::FromConnectivityGenerateEntities<Element>(
     const Properties::Pointer pProperties
     );
 
-template void ModelPartUtils::FromConnectivityGenerateEntities<Condition>(
+template void ModelPartUtils::GenerateEntitiesFromConnectivities<Condition>(
     const std::string& rEntityName,
     const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
     ModelPart::NodesContainerType& rThisNodes,
@@ -106,7 +106,7 @@ template void ModelPartUtils::FromConnectivityGenerateEntities<Condition>(
 /***********************************************************************************/
 
 template<class TEntity>
-void ModelPartUtils::FromConnectivityGenerateEntities(
+void ModelPartUtils::GenerateEntitiesFromConnectivities(
     const std::string& rEntityName,
     const std::vector<std::size_t>& rEntitiesIds,
     const std::vector<std::size_t>& rPropertiesIds,
@@ -149,7 +149,7 @@ void ModelPartUtils::FromConnectivityGenerateEntities(
     rThisEntities.insert(entities_vector.begin(), entities_vector.end());
 }
 
-template void ModelPartUtils::FromConnectivityGenerateEntities<Element>(
+template void ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(
     const std::string& rEntityName,
     const std::vector<std::size_t>& rEntitiesIds,
     const std::vector<std::size_t>& rPropertiesIds,
@@ -159,7 +159,7 @@ template void ModelPartUtils::FromConnectivityGenerateEntities<Element>(
     ModelPart::ElementsContainerType& rThisElements
     );
 
-template void ModelPartUtils::FromConnectivityGenerateEntities<Condition>(
+template void ModelPartUtils::GenerateEntitiesFromConnectivities<Condition>(
     const std::string& rEntityName,
     const std::vector<std::size_t>& rEntitiesIds,
     const std::vector<std::size_t>& rPropertiesIds,

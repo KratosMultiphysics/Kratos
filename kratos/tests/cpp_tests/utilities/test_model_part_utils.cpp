@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElementsSimple, 
         connectivities[i][2] = r_geom[2].Id();
     }
 
-    ModelPartUtils::FromConnectivityGenerateEntities<Element>(
+    ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(
         "Element2D3N",
         connectivities,
         r_model_part.Nodes(),
@@ -86,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartUtilsFromConnectivityGenerateElements, Kratos
         connectivities[i][2] = r_geom[2].Id();
     }
 
-    ModelPartUtils::FromConnectivityGenerateEntities<Element>(
+    ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(
         "Element2D3N",
         elements_ids,
         properties_ids,

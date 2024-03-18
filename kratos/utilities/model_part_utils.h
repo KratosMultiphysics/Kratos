@@ -108,7 +108,7 @@ public:
     * @throws std::runtime_error If the specified entity type is not registered in Kratos, or if any of the specified nodes do not exist.
     */
     template<class TEntity>
-    static void FromConnectivityGenerateEntities(
+    static void GenerateEntitiesFromConnectivities(
         const std::string& rEntityName,
         const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
         ModelPart::NodesContainerType& rThisNodes,
@@ -131,7 +131,7 @@ public:
      * @throws std::runtime_error If the specified entity type is not registered in Kratos, if any of the specified nodes do not exist,  or if any of the specified properties do not exist.
      */
     template<class TEntity>
-    static void FromConnectivityGenerateEntities(
+    static void GenerateEntitiesFromConnectivities(
         const std::string& rEntityName,
         const std::vector<std::size_t>& rEntitiesIds,
         const std::vector<std::size_t>& rPropertiesIds,
