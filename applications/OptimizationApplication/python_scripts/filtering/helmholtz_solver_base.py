@@ -42,7 +42,7 @@ class HelmholtzSolverBase(PythonSolver):
         # we don't create the helmholtz model part here, because
         # we need to have unique model parts for different filtering variable types
         # hence, it cannot be determined at this point.
-        self.__helmholtz_model_part: 'typing.Optional[KratosMultiphysics.ModelPart]' = None
+        self.helmholtz_model_part: 'typing.Optional[KratosMultiphysics.ModelPart]' = None
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
@@ -120,14 +120,14 @@ class HelmholtzSolverBase(PythonSolver):
     def AdvanceInTime(self, current_time: float) -> float:
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
         new_time = current_time + dt
-        self.__helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.__helmholtz_model_part.CloneTimeStep(new_time)
+        self.helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.helmholtz_model_part.CloneTimeStep(new_time)
 
         return new_time
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        neighbours_exp = KratosMultiphysics.Expression.NodalExpression(self.__helmholtz_model_part)
+        neighbours_exp = KratosMultiphysics.Expression.NodalExpression(self.helmholtz_model_part)
         KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
         KratosMultiphysics.Expression.VariableExpressionIO.Write(neighbours_exp, KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
@@ -158,7 +158,7 @@ class HelmholtzSolverBase(PythonSolver):
         self._ImportModelPart(self.origin_root_model_part, self.settings["model_import_settings"])
 
     def GetComputingModelPart(self) -> KratosMultiphysics.ModelPart:
-        return self.__helmholtz_model_part
+        return self.helmholtz_model_part
 
     def GetOriginRootModelPart(self) -> KratosMultiphysics.ModelPart:
         return self.origin_root_model_part
@@ -238,11 +238,11 @@ class HelmholtzSolverBase(PythonSolver):
         if self.model.HasModelPart(computing_model_part_name):
             # a same model part with same entities were already created by some other filter
             # hence reusing it
-            self.__helmholtz_model_part = self.model[computing_model_part_name]
+            self.helmholtz_model_part = self.model[computing_model_part_name]
         else:
             # the model part needs to be created.
-            self.__helmholtz_model_part = self.model.CreateModelPart(computing_model_part_name)
-            KOA.OptimizationUtils.CopySolutionStepVariablesList(self.__helmholtz_model_part, self.GetOriginRootModelPart())
+            self.helmholtz_model_part = self.model.CreateModelPart(computing_model_part_name)
+            KOA.OptimizationUtils.CopySolutionStepVariablesList(self.helmholtz_model_part, self.GetOriginRootModelPart())
 
             # now fill with the appropriate elements and conditions
             self._FillComputingModelPart()
