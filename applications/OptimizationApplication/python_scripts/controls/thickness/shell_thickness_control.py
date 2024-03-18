@@ -160,8 +160,8 @@ class ShellThicknessControl(Control):
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
+                self.filter.Update()
                 self.__UpdateBeta()
-
                 return True
         return False
 
