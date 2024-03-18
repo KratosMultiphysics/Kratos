@@ -346,7 +346,7 @@ std::string GetContainerIOName()
 }
 
 template<class TContainerType>
-std::string GetContainerType()
+std::string GetContainerName()
 {
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         return "NODES";

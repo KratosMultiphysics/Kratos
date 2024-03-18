@@ -256,7 +256,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 
         KRATOS_ERROR_IF(Attributes.Has("__container_type"))
             << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
-        Attributes.AddString("__container_type", Internals::GetContainerType<TContainerType>());
+        Attributes.AddString("__container_type", Internals::GetContainerName<TContainerType>());
 
         KRATOS_ERROR_IF(Attributes.Has("__data_location"))
             << "The reserved keyword \"__data_location\" is found. Please remove it from attributes.";
