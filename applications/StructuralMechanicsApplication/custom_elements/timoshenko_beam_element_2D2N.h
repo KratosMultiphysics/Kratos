@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/element.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -151,6 +152,14 @@ public:
      * @param rNodalValues The vector containing the nodal values in local axes
      */
     void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues);
+
+    /**
+     * @brief Computes the length of the FE and returns it
+     */
+    virtual double CalculateLength()
+    {
+        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    }
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
