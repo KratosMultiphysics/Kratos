@@ -289,28 +289,20 @@ public:
         const Variable<TDataType>& rVariable,
         TLSType<TDataType>& rTLS) const
     {
-        // Since the array_1d<double, 4> and array_1d<double 9> interfaces are not present in
-        // elements and conditions.
-        if constexpr(!std::is_same_v<TDataType, array_1d<double, 4>> && !std::is_same_v<TDataType, array_1d<double, 9>>) {
+        using list_traits = DataTypeTraits<std::vector<TDataType>>;
 
-            using list_traits = DataTypeTraits<std::vector<TDataType>>;
+        using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
 
-            using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
+        const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
 
-            const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
-
-            const auto size = list_traits::Size(rTLS.mList);
-            if (rTLS.mVector.size() != size) {
-                rTLS.mVector.resize(size, false);
-            }
-
-            list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
-
-            return rTLS.mVector;
-        } else {
-            KRATOS_ERROR << "The gauss point interface in elements/conditions for Variable<array_1d<double, 4>> and Variable<array_1d<double, 9>> are not defined.";
-            return rTLS.mVector;
+        const auto size = list_traits::Size(rTLS.mList);
+        if (rTLS.mVector.size() != size) {
+            rTLS.mVector.resize(size, false);
         }
+
+        list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
+
+        return rTLS.mVector;
     }
 
     template<class TEntityType, class TDataType>
