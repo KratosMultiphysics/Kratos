@@ -22,6 +22,13 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
             "filter_settings": {
                 "filter_type"  : "implicit_filter",
                 "filter_radius": 0.2
+            },
+            "beta_settings": {
+                "initial_value": 25,
+                "max_value"    : 30,
+                "adaptive"     : false,
+                "increase_fac" : 1.05,
+                "update_period": 50
             }
         }""")
 
