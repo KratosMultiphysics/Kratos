@@ -326,7 +326,7 @@ private:
 };
 
 template<class TContainerIOType>
-std::string GetContainerIOType()
+std::string GetContainerIOName()
 {
     if constexpr(std::is_same_v<TContainerIOType, HistoricalIO>) {
         return "HISTORICAL";
