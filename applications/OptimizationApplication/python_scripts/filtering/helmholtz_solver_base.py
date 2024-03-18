@@ -52,13 +52,13 @@ class HelmholtzSolverBase(PythonSolver):
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         this_defaults = KratosMultiphysics.Parameters("""{
-            "solver_type"    : "helmholtz_solver_base",
-            "domain_size"    : -1,
-            "filter_type"    : "",
-            "filter_radius"  : 0.0,
-            "model_part_name": "",
-            "time_stepping"  : {
-                "time_step": 1.0
+            "solver_type"           : "helmholtz_solver_base",
+            "domain_size"           : -1,
+            "filter_type"     : "",
+            "filter_radius"     : 0.0,
+            "model_part_name"       : "",
+            "time_stepping" : {
+                "time_step"       : 1.0
             },
             "model_import_settings" : {
                 "input_type"     : "mdpa",
