@@ -230,13 +230,13 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 
             Matrix<value_primitive_type> values;
             values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
-            Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         } else {
             value_type_traits::Shape(value_type{}, shape.data(), shape.data() + value_type_traits::Dimension);
             Vector<value_type> values;
             values.resize(rLocalContainer.size());
-            Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values));
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         }
 

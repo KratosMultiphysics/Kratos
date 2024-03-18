@@ -390,7 +390,7 @@ const auto& GetLocalContainer(const ModelPart& rModelPart)
 }
 
 template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
-void CopyToContiguousDataArray(
+void CopyToContiguousArray(
     const TContainerType& rContainer,
     const TComponentType& rComponent,
     const TContainerDataIO& rContainerDataIO,
