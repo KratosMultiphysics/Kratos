@@ -126,26 +126,6 @@ void ModelPartUtils::FromConnectivityGenerateEntities(
     const std::size_t number_of_nodes_per_entity = r_clone_entity.GetGeometry().size();
 
     // From connectivities generate entities
-    // for(std::size_t i = 0; i < number_of_entities; ++i) {
-    //     typename TEntity::NodesArrayType temp_entity_nodes;
-    //     temp_entity_nodes.resize(number_of_nodes_per_entity);
-    //     for(std::size_t j = 0 ; j < number_of_nodes_per_entity ; ++j){
-    //         const std::size_t node_id = rEntitiesConnectivities[i][j];
-    //         auto it_node = rThisNodes.find(node_id);
-    //         KRATOS_ERROR_IF(it_node == rThisNodes.end()) << "Node with Id " << node_id << " does not exist in the nodes array." << std::endl;
-    //         temp_entity_nodes.push_back(*(it_node.base()));
-    //     }
-
-    //     // Properties iterator
-    //     auto it_properties = rThisProperties.find(rPropertiesIds[i]);
-    //     KRATOS_ERROR_IF(it_properties == rThisProperties.end()) << "Properties with Id " << rPropertiesIds[i] << " does not exist in the properties array." << std::endl;
-    //     Properties::Pointer p_properties = *(it_properties.base());
-
-    //     // Add the entity to the list
-    //     rThisEntities.push_back(r_clone_entity.Create(rEntitiesIds[i], temp_entity_nodes, p_properties));
-    // }
-
-    // From connectivities generate entities
     const auto entities_vector = IndexPartition<IndexType>(number_of_entities).for_each<AccumReduction<typename TEntity::Pointer>>([&](const IndexType i) {
         typename TEntity::NodesArrayType temp_entity_nodes;
         temp_entity_nodes.reserve(number_of_nodes_per_entity);
