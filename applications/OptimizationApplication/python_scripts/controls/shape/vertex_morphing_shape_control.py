@@ -80,11 +80,7 @@ class VertexMorphingShapeControl(Control):
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
 
-        # getting UnfilteredField of the PhysicalField is not possible with
-        # explicit solvers, and is not useful for this control hence, this
-        # will only update the shape changes to the existing shape. Hence,
-        # taking the actual physical field as the control field initially.
-        self.control_field = self.GetPhysicalField()
+        self.control_field = self.filter.UnfilterField(self.GetPhysicalField())
 
         # initialize_mesh_motion if defined.
         if not self.__mesh_moving_analysis is None:

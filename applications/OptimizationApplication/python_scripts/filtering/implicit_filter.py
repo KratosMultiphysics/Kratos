@@ -112,7 +112,15 @@ class ImplicitFilter(Filter):
     def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         if self.filter_analysis._GetSolver().GetOriginModelPart()[KratosOA.NUMBER_OF_SOLVERS_USING_NODES] > 1:
             self.__ReInitializeFilteringModelPart()
-        return self.UnfilterField(physical_field)
+        # now we get the current values
+        current_values = physical_field.Clone()
+        Kratos.Expression.VariableExpressionIO.Read(current_values, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
+        # now apply the physical field
+        Kratos.Expression.VariableExpressionIO.Write(physical_field, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
+        unfiltered_field = self.filter_analysis.UnFilterField(physical_field)
+        # now apply back the original BCs
+        Kratos.Expression.VariableExpressionIO.Write(current_values, self.filter_analysis._GetSolver().GetSolvingVariable(), True)
+        return unfiltered_field
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
         return self.damped_model_parts

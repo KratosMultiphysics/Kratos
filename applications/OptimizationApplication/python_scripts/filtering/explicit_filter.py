@@ -106,8 +106,8 @@ class ExplicitFilter(Filter):
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
         return self.filter_utils.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
 
-    def UnfilterField(self, _: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        raise RuntimeError(f"Unfilter field cannot be used with the \"explicit_filter\".")
+    def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        return Kratos.Expression.Utils.Collapse(filtered_field * 0.0)
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
         return self.damped_model_parts

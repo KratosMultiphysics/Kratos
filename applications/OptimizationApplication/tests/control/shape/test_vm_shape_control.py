@@ -106,8 +106,8 @@ class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
         return "shell"
 
     def test_GetControlField(self):
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField() - self.implicit_shape_control.GetPhysicalField()), 0.0, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField() - self.explicit_shape_control.GetPhysicalField()), 0.0, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField()), 22.4268730405143, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField()), 0.0, 10)
 
     def test_GetPhysicalField(self):
         shape_field = self.implicit_shape_control.GetPhysicalField()
@@ -133,7 +133,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
         implicit_control_field = self.implicit_shape_control.GetControlField()
         implicit_shape_field = self.implicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_shape_field), 10.828597030440918, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_shape_field), 10.365298105786017, 10)
 
     def test_UpdateExplicit(self):
         update_field = self.explicit_shape_control.GetEmptyField()
@@ -143,7 +143,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
         explicit_control_field = self.explicit_shape_control.GetControlField()
         explicit_shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 12.985588442031691, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 22.013379276492945, 10)
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
@@ -211,8 +211,8 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
         return "solid"
 
     def test_GetControlField(self):
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField() - self.explicit_shape_control.GetPhysicalField()), 0.0000, 4)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField() - self.implicit_shape_control.GetPhysicalField()), 0.0000, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField()), 213.27526425126743, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField()), 0.0000, 4)
 
     def test_GetPhysicalField(self):
         shape_field = self.explicit_shape_control.GetPhysicalField()
@@ -242,7 +242,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
         control_field = self.explicit_shape_control.GetControlField()
         shape_field = self.explicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.1256999216175565, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.524378410345448, 10)
 
     def test_UpdateImplicit(self):
         constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
@@ -252,7 +252,7 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
         control_field = self.implicit_shape_control.GetControlField()
         shape_field = self.implicit_shape_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 3.956700551564431, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.370590586296503, 10)
 
 if __name__ == "__main__":
     kratos_unittest.main()
