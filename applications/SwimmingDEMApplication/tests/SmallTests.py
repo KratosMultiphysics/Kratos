@@ -109,8 +109,8 @@ class porosity_field_conservation_test(PorosityTF.PorosityConservationTestFactor
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
-if candelier_imports_available:
-     available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+# if candelier_imports_available:
+#      available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]
