@@ -52,13 +52,11 @@ protected:
         KRATOS_TRY
 
         block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
-            // For the Backward Euler schemes the first derivatives should be
-            // updated before calculating the second derivatives
             UpdateVectorTimeDerivatives(rNode);
 
             for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
-                SetDerivative(r_first_order_scalar_variable.first_time_derivative,
-                              r_first_order_scalar_variable.instance, rNode);
+                rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
+                    CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
             }
         });
 
@@ -70,23 +68,22 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            SetDerivative(r_second_order_vector_variable.first_time_derivative,
-                          r_second_order_vector_variable.instance, rNode);
+            rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative) =
+                CalculateDerivative(r_second_order_vector_variable.instance, rNode);
 
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.
-            SetDerivative(r_second_order_vector_variable.second_time_derivative,
-                          r_second_order_vector_variable.first_time_derivative, rNode);
+            rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative) =
+                CalculateDerivative(r_second_order_vector_variable.first_time_derivative, rNode);
         }
     }
 
     template <class T>
-    void SetDerivative(const Variable<T>& derivative_variable, const Variable<T>& instance_variable, Node& rNode) const
+    T CalculateDerivative(const Variable<T>& instance_variable, Node& rNode) const
     {
-        rNode.FastGetSolutionStepValue(derivative_variable) =
-            (rNode.FastGetSolutionStepValue(instance_variable, 0) -
-             rNode.FastGetSolutionStepValue(instance_variable, 1)) /
-            this->GetDeltaTime();
+        return (rNode.FastGetSolutionStepValue(instance_variable, 0) -
+                rNode.FastGetSolutionStepValue(instance_variable, 1)) /
+               this->GetDeltaTime();
     }
 };
 
