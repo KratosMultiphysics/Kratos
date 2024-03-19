@@ -269,8 +269,8 @@ KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_DoesNotUpdateFixedFirst
     // first and last term should be updated, while the middle value is fixed
     const auto expected_velocity = Kratos::array_1d<double, 3>{-18, 2, -21};
 
-    const auto actual_acceleration = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
-    KRATOS_EXPECT_VECTOR_NEAR(actual_acceleration, expected_velocity, 1e-6)
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NewmarkDynamicUPwSchemePredict_DoesNotUpdateFixedScalarVariable, KratosGeoMechanicsFastSuite)
