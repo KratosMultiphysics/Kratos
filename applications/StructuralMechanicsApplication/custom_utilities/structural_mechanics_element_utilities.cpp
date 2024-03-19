@@ -249,6 +249,23 @@ double CalculateReferenceLength2D2N(const Element& rElement)
 /***********************************************************************************/
 /***********************************************************************************/
 
+double CalculateReferenceLength2D3N(const Element& rElement)
+{
+    KRATOS_TRY;
+
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[2].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
+
+    return std::sqrt((delta_pos[0] * delta_pos[0]) +
+                     (delta_pos[1] * delta_pos[1]));
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double CalculateCurrentLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
