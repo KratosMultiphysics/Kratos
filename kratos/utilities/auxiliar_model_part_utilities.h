@@ -747,6 +747,7 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -964,14 +965,12 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
 
     ///@}
-
     ///@name Private Inquiry
     ///@{
-    ///@}
 
+    ///@}
     ///@name Unaccessible methods
     ///@{
     ///@}
@@ -980,7 +979,6 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
