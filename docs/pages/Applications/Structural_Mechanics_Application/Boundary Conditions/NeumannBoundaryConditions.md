@@ -14,7 +14,7 @@ The set of different Neumann boundary conditions are explained in this document.
 
 ![StructuralMechanicsApplication](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/StructuralMechanicsApplication/point_load.png)
 
-#### Example:
+### Example:
 ```json
 "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
@@ -37,7 +37,7 @@ The set of different Neumann boundary conditions are explained in this document.
 
 ![StructuralMechanicsApplication](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/StructuralMechanicsApplication/point_moment.png)
 
-#### Example:
+### Example:
 ```json
 "loads_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -59,7 +59,7 @@ The set of different Neumann boundary conditions are explained in this document.
 
 ![StructuralMechanicsApplication](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/StructuralMechanicsApplication/line_load.png)
 
-#### Example:
+### Example:
 ```json
 "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
@@ -84,7 +84,7 @@ The set of different Neumann boundary conditions are explained in this document.
 
 ![StructuralMechanicsApplication](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/StructuralMechanicsApplication/surface_load.png)
 
-#### Example:
+### Example:
 ```json
 "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
@@ -112,9 +112,9 @@ The set of different Neumann boundary conditions are explained in this document.
     - Variable name: `NEGATIVE_FACE_PRESSURE`
     - This refers to applying pressure on the side of the surface that points inward. When applying negative face pressure, the direction of the pressure force aligns with the surface normal. It is represented by the vector (-1, 1), indicating a force acting in the same direction as the surface normal, effectively pushing into the surface.
 
-![StructuralMechanicsApplication](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/StructuralMechanicsApplication/surface_load.png)
+![StructuralMechanicsApplication](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/StructuralMechanicsApplication/pressure_negative_positive.png)
 
-#### Example:
+### Example:
 ```json
 "loads_process_list"       : [{
         "python_module" : "assign_scalar_variable_to_conditions_process",
