@@ -297,10 +297,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
-
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-
     ///@}
     ///@name Protected Operators
     ///@{

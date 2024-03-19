@@ -337,7 +337,7 @@ double TimoshenkoBeamElement2D3N::CalculateAxialStrain(
 {
     VectorType N_u0_derivatives(3);
     GetFirstDerivativesNu0ShapeFunctionsValues(N_u0_derivatives, Length, Phi, xi);
-    return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[3] * rNodalValues[3] + N_u0_derivatives[6] * rNodalValues[6];
+    return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3] + N_u0_derivatives[2] * rNodalValues[6];
 }
 
 /***********************************************************************************/
