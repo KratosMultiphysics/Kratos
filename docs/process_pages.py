@@ -249,7 +249,7 @@ def AddPythonSnippetOutputs(file_path: Path) -> None:
                     with open(temp_file_path, "w") as temp_file_output:
                         temp_file_output.writelines(snippet_lines)
 
-                    subprocess_run = subprocess.run([GetPython3Command(), "-u", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
+                    subprocess_run = subprocess.run(["python3", "-u", temp_file_path], stdout=subprocess.PIPE, universal_newlines=True, check=True)
                     output_lines.append("\n")
                     output_lines.append("Expected output:\n")
                     output_lines.append("```console\n")
@@ -307,7 +307,7 @@ if __name__ == "__main__":
                         file_output.writelines(list_of_strings)
 
     if is_locally_built:
-        from KratosMultiphysics.testing.utilities import GetPython3Command
+        #from KratosMultiphysics.testing.utilities import GetPython3Command
         for file_path in Path("pages").rglob("*.md"):
             AddPythonSnippetOutputs(file_path)
 

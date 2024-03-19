@@ -3,7 +3,7 @@ title: Set-up Example
 keywords: json
 tags: [JSON_Structure.md]
 sidebar: structural_mechanics_application
-summary:
+summary: 
 ---
 # Overview
 This page will guide the users how to configure the json for the Structural Mechanics Application.

@@ -1,9 +1,9 @@
 ---
 title: Visualization
-keywords:
+keywords: 
 tags: [visualization expression vtu vtk]
 sidebar: kratos_expressions
-summary:
+summary: 
 ---
 
 ## Introduction
