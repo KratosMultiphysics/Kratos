@@ -278,7 +278,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double Denominator
         )
     {
-        rTangent = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
+        noalias(rTangent) = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
     }
 
 
