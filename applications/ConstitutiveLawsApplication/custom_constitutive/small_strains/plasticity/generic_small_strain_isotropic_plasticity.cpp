@@ -114,8 +114,8 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
         // We compute the stress or the constitutive matrix
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
 
             // We get some variables
             double threshold = this->GetThreshold();
@@ -168,8 +168,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                     this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                } else {
-                    BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 }
             }
         }
