@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-void AuxiliarModelPartUtilities::AddElementWithNodesToSubModelParts(Element::Pointer pNewElement)
+void AuxiliarModelPartUtilities::AddElementWithNodes(Element::Pointer pNewElement)
 {
     const auto& r_geom = pNewElement->GetGeometry();
     std::vector<IndexType> list_of_nodes;
@@ -44,7 +44,7 @@ void AuxiliarModelPartUtilities::AddElementWithNodesToSubModelParts(Element::Poi
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddElementsWithNodesToSubModelParts(const std::vector<IndexType>& rElementIds)
+void AuxiliarModelPartUtilities::AddElementsWithNodes(const std::vector<IndexType>& rElementIds)
 {
     KRATOS_TRY
     mrModelPart.AddElements(rElementIds);
@@ -62,7 +62,7 @@ void AuxiliarModelPartUtilities::AddElementsWithNodesToSubModelParts(const std::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddConditionWithNodesToSubModelParts(Condition::Pointer pNewCondition)
+void AuxiliarModelPartUtilities::AddConditionWithNodes(Condition::Pointer pNewCondition)
 {
     const auto& r_geom = pNewCondition->GetGeometry();
     std::vector<IndexType> list_of_nodes;
@@ -82,7 +82,7 @@ void AuxiliarModelPartUtilities::AddConditionWithNodesToSubModelParts(Condition:
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddConditionsWithNodesToSubModelParts(const std::vector<IndexType>& rConditionIds)
+void AuxiliarModelPartUtilities::AddConditionsWithNodes(const std::vector<IndexType>& rConditionIds)
 {
     KRATOS_TRY
     mrModelPart.AddConditions(rConditionIds);

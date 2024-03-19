@@ -86,13 +86,13 @@ public:
      * @brief This method adds the given element and the belonging nodes
      * @param pNewElement The new element added
      */
-    void AddElementWithNodesToSubModelParts(Element::Pointer pNewElement);
+    void AddElementWithNodes(Element::Pointer pNewElement);
 
     /**
      * @brief Inserts a list of elements and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
      * @param rElementIds The ids of the elements
      */
-    void AddElementsWithNodesToSubModelParts(const std::vector<IndexType>& rElementIds);
+    void AddElementsWithNodes(const std::vector<IndexType>& rElementIds);
 
     /**
      * @brief Inserts a list of pointers to elements and the belonging nodes
@@ -101,7 +101,7 @@ public:
      * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
-    void AddElementsWithNodesToSubModelParts(
+    void AddElementsWithNodes(
         TIteratorType ItElementsBegin,
         TIteratorType ItElementsEnd
         )
@@ -133,13 +133,13 @@ public:
      * @brief This method adds the given condition and the belonging nodes
      * @param pNewCondition The new condition added
      */
-    void AddConditionWithNodesToSubModelParts(Condition::Pointer pNewCondition);
+    void AddConditionWithNodes(Condition::Pointer pNewCondition);
 
     /**
      * @brief Inserts a list of conditions and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
      * @param rConditionIds The ids of the conditions
      */
-    void AddConditionsWithNodesToSubModelParts(const std::vector<IndexType>& rConditionIds);
+    void AddConditionsWithNodes(const std::vector<IndexType>& rConditionIds);
 
     /**
      * @brief Inserts a list of pointers to conditions and the belonging nodes
@@ -148,7 +148,7 @@ public:
      * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
-    void AddConditionsWithNodesToSubModelParts(
+    void AddConditionsWithNodes(
         TIteratorType ItConditionsBegin,
         TIteratorType ItConditionsEnd
         )
