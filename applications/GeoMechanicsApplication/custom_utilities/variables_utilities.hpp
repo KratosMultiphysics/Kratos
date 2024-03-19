@@ -16,12 +16,11 @@
 #include <algorithm>
 
 #include "containers/variable.h"
-#include "includes/kratos_components.h"
 
 namespace Kratos
 {
 
-class VariablesUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) VariablesUtilities
 {
 public:
     template <typename GeometryType, typename OutputIt>
@@ -33,10 +32,7 @@ public:
     }
 
     static const Variable<double>& GetComponentFromVectorVariable(const Variable<array_1d<double, 3>>& rSource,
-                                                                  const std::string& rComponent)
-    {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
-    }
+                                                                  const std::string& rComponent);
 };
 
 } // namespace Kratos

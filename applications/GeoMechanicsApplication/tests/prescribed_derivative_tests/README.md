@@ -1,7 +1,9 @@
 # Prescribed derivatives
 
-The tests in this folder assert that prescribed derivatives are applied correctly to the models and not overwritten. The
-three derivatives that are prescribed are acceleration, velocity and dt_water_pressure (the time derivative of the water
+The tests in this folder assert that prescribed derivatives are applied correctly to the models and are not overwritten.
+The
+three derivatives that are prescribed in these tests are acceleration, velocity and dt_water_pressure (the time
+derivative of the water
 pressure). After running the simulation, it is checked that on the nodes to which the prescribed derivatives are
 applied, the actual derivatives match the prescribed ones.
 
@@ -33,7 +35,8 @@ No conditions or loads are applied.
 
 ## Assertions
 
-The tests assert that the actual derivatives of the nodes at the time steps match the prescribed ones in node 1,2 and 3.
+The tests assert that the actual derivatives of the nodes at the time steps match the prescribed ones in node 1, 2 and
+3.
 The prescribed values (for all three test cases) are prescribed using the following table:
 
 

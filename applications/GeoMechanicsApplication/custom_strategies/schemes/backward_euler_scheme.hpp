@@ -88,10 +88,10 @@ protected:
     }
 
     template <class T>
-    T CalculateDerivative(const Variable<T>& instance_variable, Node& rNode) const
+    T CalculateDerivative(const Variable<T>& rInstanceVariable, Node& rNode) const
     {
-        return (rNode.FastGetSolutionStepValue(instance_variable, 0) -
-                rNode.FastGetSolutionStepValue(instance_variable, 1)) /
+        return (rNode.FastGetSolutionStepValue(rInstanceVariable, 0) -
+                rNode.FastGetSolutionStepValue(rInstanceVariable, 1)) /
                this->GetDeltaTime();
     }
 };
