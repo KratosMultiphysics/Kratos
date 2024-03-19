@@ -31,11 +31,11 @@ namespace Kratos
 {
 
 void SplitNodesIntoLocalAndGhost(ModelPart::NodesContainerType const& rNodes,
-                                 std::vector<ModelPart::NodeType*>& rLocalNodes,
-                                 std::vector<ModelPart::NodeType*>& rGhostNodes);
+                                 std::vector<Node*>& rLocalNodes,
+                                 std::vector<Node*>& rGhostNodes);
 
 void GetLocalNodes(ModelPart::NodesContainerType const& rNodes,
-                   std::vector<ModelPart::NodeType*>& rLocalNodes);
+                   std::vector<Node*>& rLocalNodes);
 
 } // namespace Kratos.
 

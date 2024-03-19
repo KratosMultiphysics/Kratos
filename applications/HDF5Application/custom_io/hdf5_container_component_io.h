@@ -107,7 +107,7 @@ private:
     ///@{
 
     template<class TComponentType>
-    bool WriteComponentData(
+    bool WriteComponents(
         const std::string& rComponentName,
         const TContainerIO& rContainerDataIO,
         const TContainerType& rLocalContainer,
@@ -115,7 +115,7 @@ private:
         WriteInfo& rInfo);
 
     template<class TComponentType>
-    bool ReadComponentData(
+    bool ReadComponents(
         const std::string& rComponentName,
         const TContainerIO& rContainerDataIO,
         TContainerType& rLocalContainer,

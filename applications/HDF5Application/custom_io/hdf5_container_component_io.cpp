@@ -84,7 +84,7 @@ ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Containe
     mComponentNames = Settings["list_of_variables"].GetStringArray();
 
     KRATOS_ERROR_IF(mComponentPrefix == "" || mComponentPrefix == "/")
-        << "The prefix should not be blank or \"/\" [ prefix = " << mComponentPrefix << " ].\n";
+        << "The prefix must not be empty or \"/\" [ prefix = " << mComponentPrefix << " ].\n";
 
     // Sort component names to make sure they're in the same order on each rank.
     // The basic assumption is that the set of components is identical on every
@@ -130,7 +130,7 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
         return Read(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, rModelPart.GetCommunicator());
     } else {
         KRATOS_ERROR << "Unsupported container type.";
-        return std::map<std::string, Parameters>{};
+        return {};
     }
 
     KRATOS_CATCH("");
@@ -152,7 +152,7 @@ void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 
     // Write each variable.
     for (const auto& r_component_name : mComponentNames) {
-        const bool is_component_written = (... || (WriteComponentData<TComponents>(
+        const bool is_component_written = (... || (WriteComponents<TComponents>(
                         r_component_name, rContainerDataIO, rLocalContainer, Attributes.Clone(), info)));
         KRATOS_ERROR_IF_NOT(is_component_written)
             << "Component \"" << r_component_name << "\" is not found in registered components.";
@@ -184,7 +184,7 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
     // Write each variable.
     for (const auto& r_component_name : mComponentNames) {
         const bool is_component_written =
-            (... || (ReadComponentData<TComponents>(
+            (... || (ReadComponents<TComponents>(
                         r_component_name, rContainerDataIO, rLocalContainer, rCommunicator, attributes, start_index, block_size)));
         KRATOS_ERROR_IF_NOT(is_component_written)
             << "Component \"" << r_component_name << "\" is not found in registered components.";
@@ -197,7 +197,7 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 template <class TComponentType>
-bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::WriteComponentData(
+bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::WriteComponents(
     const std::string& rComponentName,
     const TContainerDataIO& rContainerDataIO,
     const TContainerType& rLocalContainer,
@@ -242,7 +242,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 
         // add the shape to attributes.
         KRATOS_ERROR_IF(Attributes.Has("__data_shape"))
-            << "The reserved keyword \"__data_shape\" is found. Please remove it from attributes.";
+            << "Reserved keyword \"__data_shape\" is found. Please remove it from attributes.";
         if (shape.size() > 0) {
             Attributes.AddEmptyArray("__data_shape");
             for (const auto v : shape) {
@@ -279,7 +279,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 template <class TComponentType>
-bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadComponentData(
+bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadComponents(
     const std::string& rComponentName,
     const TContainerDataIO& rContainerDataIO,
     TContainerType& rLocalContainer,

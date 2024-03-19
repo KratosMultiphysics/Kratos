@@ -94,7 +94,7 @@ public:
 
     template<class TDataType>
     inline const TDataType& GetValue(
-        const ModelPart::NodeType& rNode,
+        const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
@@ -103,7 +103,7 @@ public:
 
     template<class TDataType>
     inline void SetValue(
-        ModelPart::NodeType& rNode,
+        Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
@@ -182,7 +182,7 @@ public:
 
     template<class TDataType>
     inline TDataType GetValue(
-        const ModelPart::NodeType& rNode,
+        const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
@@ -195,7 +195,7 @@ public:
 
     template<class TDataType>
     inline void SetValue(
-        ModelPart::NodeType& rNode,
+        Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
