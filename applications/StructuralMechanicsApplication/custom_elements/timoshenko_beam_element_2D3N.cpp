@@ -218,13 +218,13 @@ void TimoshenkoBeamElement2D3N::GetNThetaShapeFunctionsValues(
     const double xi
     )
 {
-    // const double one_plus_phi = 1.0 + Phi;
-    // if (rN.size() != 4)
-    //     rN.resize(4, false);
-    // rN[0] = (3.0 * xi * xi - 3.0) / (2.0 * one_plus_phi * Length);
-    // rN[1] = (xi - 1.0) * (1.0 + 3.0 * xi - 2.0 * Phi) / (4.0 * one_plus_phi);
-    // rN[2] = (3.0 - 3.0 * xi * xi) / (2 * one_plus_phi * Length);
-    // rN[3] = (1.0 + xi) * (3.0 * xi - 1.0 + 2.0 * Phi) / (4.0 * one_plus_phi);
+    if (rN.size() != 6)
+        rN.resize(6, false);
+    VectorType N_derivative(6), N_third_derivative(6);
+    GetFirstDerivativesShapeFunctionsValues(N_derivative, Length, Phi, xi);
+    GetThirdDerivativesShapeFunctionsValues(N_third_derivative, Length, Phi, xi);
+    // v' + (Phi * L^2 / 12) * v'''
+    noalias(rN) = N_derivative + Phi * std::pow(Length, 2) / 12.0 * N_third_derivative;
 }
 
 /***********************************************************************************/
@@ -237,14 +237,13 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNThetaShapeFunctionsValues(
     const double xi
     )
 {
-    // const double one_plus_phi = 1.0 + Phi;
-    // if (rN.size() != 4)
-    //     rN.resize(4, false);
-    // rN[0] = 3.0 * xi / (one_plus_phi * Length);
-    // rN[1] = (-0.5 * Phi + 1.5 * xi - 0.5) / (one_plus_phi);
-    // rN[2] = (-3.0 * xi) / (Length * Phi + Length);
-    // rN[3] = (0.5 * Phi + 1.5 * xi + 0.5) / (one_plus_phi);
-    // rN *= (2.0 / Length);
+    if (rN.size() != 6)
+        rN.resize(6, false);
+    VectorType N_second_derivative(6), N_fourth_derivative(6);
+    GetSecondDerivativesShapeFunctionsValues(N_second_derivative, Length, Phi, xi);
+    GetFourthDerivativesShapeFunctionsValues(N_fourth_derivative, Length, Phi, xi);
+    // v' + (Phi * L^2 / 12) * v'''
+    noalias(rN) = N_second_derivative + Phi * std::pow(Length, 2) / 12.0 * N_fourth_derivative;
 }
 
 /***********************************************************************************/
