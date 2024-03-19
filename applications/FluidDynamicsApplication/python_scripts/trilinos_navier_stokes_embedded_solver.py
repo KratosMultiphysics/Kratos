@@ -104,10 +104,17 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 trilinos_linear_solver,
                 KratosFluid.PATCH_INDEX)
         else:
-            builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(
-                epetra_communicator,
-                guess_row_size,
-                trilinos_linear_solver)
+            if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
+                bs_params = self.settings["builder_and_solver_settings"]["advanced_settings"]
+                bs_params.AddEmptyValue("guess_row_size")
+                bs_params["guess_row_size"].SetInt(guess_row_size)
+                builder_and_solver = KratosTrilinos.TrilinosBlockBuilderAndSolver(epetra_communicator, trilinos_linear_solver, bs_params)
+            else:
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    raise Exception("MPCs not yet implemented in MPI")
+                if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0:
+                    KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
+                builder_and_solver = KratosTrilinos.TrilinosEliminationBuilderAndSolver(epetra_communicator, guess_row_size, trilinos_linear_solver)
         return builder_and_solver
 
     def _CreateSolutionStrategy(self):
