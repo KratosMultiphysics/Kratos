@@ -154,9 +154,9 @@ jobs:
     - name: Running python tests
       shell: bash
       run: |
-        export PYTHONPATH=
-        export LD_LIBRARY_PATH=
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_tests.py -v 2 -l nightly -c python3
