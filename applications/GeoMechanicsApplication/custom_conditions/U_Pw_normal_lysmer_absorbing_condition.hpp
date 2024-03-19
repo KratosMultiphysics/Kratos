@@ -131,9 +131,9 @@ protected:
     /**
     * @brief Adds the condition matrix to the global left hand side
     * @param rLeftHandSideMatrix Global Left hand side
-    * @param rUMatrix LHS displacement matrix of the current condition
+    * @param rUUMatrix LHS displacement matrix of the current condition
     */
-    void AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix);
+    void AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUUMatrix);
 
     /**
     * @brief Calculates and adds terms to the RHS

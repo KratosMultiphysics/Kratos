@@ -40,7 +40,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # add_app ${KRATOS_APP_DIR}/HDF5Application;
 # add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 # add_app ${KRATOS_APP_DIR}/IgaApplication;
-# add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+# add_app ${KRATOS_APP_DIR}/MPMApplication;
 # add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 # add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 # add_app ${KRATOS_APP_DIR}/StatisticsApplication;
