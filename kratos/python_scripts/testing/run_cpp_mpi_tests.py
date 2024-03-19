@@ -1,5 +1,6 @@
 import argparse
 import sys
+import importlib
 
 from KratosMultiphysics import mpi, Tester
 
@@ -14,8 +15,20 @@ def main():
         metavar='MATCH-STRING',
         nargs='?',
         help="run cases with names matching MATCH-STRING")
-
+    parser.add_argument(
+        '--run-all-apps',
+        default=False,
+        action='store_true',
+        help="If all applicaions tests are run, not only core")
+    
     args = parser.parse_args()
+
+    # Imporing all available applications to make sure that the tests are registered
+    if args.run_all_apps:
+        from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
+        available_apps = GetListOfAvailableApplications()
+        for app in available_apps:
+            importlib.import_module("KratosMultiphysics." + app)
 
     if args.match_string:
         Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
