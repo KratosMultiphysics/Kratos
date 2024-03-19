@@ -31,23 +31,14 @@ public:
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void CalculatePermeabilityMatrixH(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                                    BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
+    static inline void CalculatePermeabilityMatrixH(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                                     const Matrix& GradNpT,
                                                     double        DynamicViscosityInverse,
                                                     const BoundedMatrix<double, TDim, TDim>& PermeabilityMatrix,
                                                     double IntegrationCoefficient)
     {
-        noalias(rPDimMatrix) = prod(GradNpT, PermeabilityMatrix);
-        noalias(rPMatrix) = DynamicViscosityInverse * prod(rPDimMatrix, trans(GradNpT)) * IntegrationCoefficient;
-    }
-
-    template <unsigned int TNumNodes>
-    static inline void PreparePermeabilityMatrixHForIntegration(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                                                double RelativePermeability,
-                                                                double PermeabilityUpdateFactor)
-    {
-        rPMatrix *= (-PORE_PRESSURE_SIGN_FACTOR * RelativePermeability * PermeabilityUpdateFactor);
+        noalias(rPMatrix) = DynamicViscosityInverse *
+                            prod(Matrix(prod(GradNpT, PermeabilityMatrix)), trans(GradNpT)) * IntegrationCoefficient;
     }
 
     static inline Matrix CalculatePermeabilityMatrixH(const Matrix& GradNpT,
@@ -57,6 +48,14 @@ public:
     {
         return DynamicViscosityInverse *
                prod(GradNpT, Matrix(prod(PermeabilityMatrix, trans(GradNpT)))) * IntegrationCoefficient;
+    }
+
+    template <unsigned int TNumNodes>
+    static inline void PreparePermeabilityMatrixHForIntegration(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
+                                                                double RelativePermeability,
+                                                                double PermeabilityUpdateFactor)
+    {
+        rPMatrix *= (-PORE_PRESSURE_SIGN_FACTOR * RelativePermeability * PermeabilityUpdateFactor);
     }
 
     static inline void PreparePermeabilityMatrixHForIntegration(Matrix& rPMatrix,
