@@ -129,21 +129,43 @@ public:
     }
 
 protected:
-    /// Member Variables
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsFixedProvided;
+    [[nodiscard]] const ModelPart& GetModelPart() const { return mrModelPart; }
+
+    [[nodiscard]] ModelPart& GetModelPart() { return mrModelPart; }
+
+    [[nodiscard]] const std::string& GetVariableName() const { return mVariableName; }
+
+    [[nodiscard]] unsigned int GetGravityDirection() const { return mGravityDirection; }
+
+    [[nodiscard]] unsigned int GetHorizontalDirection() const { return mHorizontalDirection; }
+
+    [[nodiscard]] double GetSpecificWeight() const { return mSpecificWeight; }
+
+    [[nodiscard]] const Vector3& GetFirstReferenceCoordinate() const
+    {
+        return mFirstReferenceCoordinate;
+    }
+
+    [[nodiscard]] double GetSlope() const { return mSlope; }
+
+    [[nodiscard]] double GetMinHorizontalCoordinate() const { return mMinHorizontalCoordinate; }
+
+    [[nodiscard]] double GetMaxHorizontalCoordinate() const { return mMaxHorizontalCoordinate; }
+
+private:
+    ModelPart&   mrModelPart;
+    std::string  mVariableName;
+    bool         mIsFixed;
+    bool         mIsFixedProvided;
     unsigned int mGravityDirection;
     unsigned int mHorizontalDirection;
-    double mSpecificWeight;
+    double       mSpecificWeight;
     unsigned int mOutOfPlaneDirection;
-    Vector3 mFirstReferenceCoordinate;
-    Vector3 mSecondReferenceCoordinate;
-    double mSlope;
-    double mMinHorizontalCoordinate;
-    double mMaxHorizontalCoordinate;
-
+    Vector3      mFirstReferenceCoordinate;
+    Vector3      mSecondReferenceCoordinate;
+    double       mSlope;
+    double       mMinHorizontalCoordinate;
+    double       mMaxHorizontalCoordinate;
 };
 
 }
