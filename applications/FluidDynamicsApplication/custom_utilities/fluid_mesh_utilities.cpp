@@ -45,7 +45,7 @@ bool FluidMeshUtilities::AllElementsAreSimplex(const ModelPart& rModelPart)
     n_simplex = r_comm.GetDataCommunicator().SumAll(n_simplex);
 
     // Check if the total number of simplex matches the total number of elements
-    return n_simplex == rModelPart.GetCommunicator().GlobalNumberOfElements() ? true : false;
+    return n_simplex == rModelPart.GetCommunicator().GlobalNumberOfElements();
 }
 
 void FluidMeshUtilities::AssignNeighbourElementsToConditions(
