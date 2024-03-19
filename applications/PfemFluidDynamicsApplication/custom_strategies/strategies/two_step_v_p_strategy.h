@@ -307,6 +307,15 @@ namespace Kratos
 
     void InitializeSolutionStep() override
     {
+        auto& r_model_part = BaseType::GetModelPart();
+
+        // InitializeSolutionStep of momentum strategy
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
+        mpMomentumStrategy->InitializeSolutionStep();
+
+        // InitializeSolutionStep of continuity strategy
+        r_model_part.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
+        mpPressureStrategy->InitializeSolutionStep();
     }
 
     void UpdateStressStrain() override
@@ -321,8 +330,7 @@ namespace Kratos
         OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
         {
-          /* itElem-> InitializeElementStrainStressState(); */
-          itElem->InitializeSolutionStep(rCurrentProcessInfo);
+          itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
         }
       }
 
@@ -416,10 +424,10 @@ namespace Kratos
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
 
-      if (it == 0)
-      {
-        mpMomentumStrategy->InitializeSolutionStep();
-      }
+      // if (it == 0)
+      // {
+      //   mpMomentumStrategy->InitializeSolutionStep();
+      // }
 
       NormDv = mpMomentumStrategy->Solve();
 
@@ -466,10 +474,10 @@ namespace Kratos
       // 2. Pressure solution
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
 
-      if (it == 0)
-      {
-        mpPressureStrategy->InitializeSolutionStep();
-      }
+    //   if (it == 0)
+    //   {
+    //     mpPressureStrategy->InitializeSolutionStep();
+    //   }
       NormDp = mpPressureStrategy->Solve();
 
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)

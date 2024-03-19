@@ -11,9 +11,8 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED )
-#define  KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED
+#if !defined(KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED)
+#define KRATOS_GEO_TRUSS_ELEMENT_LINEAR_BASE_H_INCLUDED
 
 // System includes
 
@@ -24,7 +23,8 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 
-namespace Kratos {
+namespace Kratos
+{
 /**
  * @class GeoTrussElementLinearBase
  *
@@ -33,33 +33,29 @@ namespace Kratos {
  * @author Klaus B Sautter, Vahid Galavi
  */
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoTrussElementLinearBase
-    : public GeoTrussElementBase<TDim,TNumNodes>
+    : public GeoTrussElementBase<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElementLinearBase);
 
-    using BaseType = GeoTrussElementBase<TDim, TNumNodes>;
-    using GeometryType = Element::GeometryType;
-    using NodesArrayType = Element::NodesArrayType;
-    using PropertiesType = Element::PropertiesType;
-    using IndexType = Element::IndexType;
-    using SizeType = Element::SizeType;
-    using MatrixType = Element::MatrixType;
-    using VectorType = Element::VectorType;
+    using BaseType          = GeoTrussElementBase<TDim, TNumNodes>;
+    using GeometryType      = Element::GeometryType;
+    using NodesArrayType    = Element::NodesArrayType;
+    using PropertiesType    = Element::PropertiesType;
+    using IndexType         = Element::IndexType;
+    using SizeType          = Element::SizeType;
+    using MatrixType        = Element::MatrixType;
+    using VectorType        = Element::VectorType;
     using FullDofMatrixType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofMatrixType;
     using FullDofVectorType = typename GeoTrussElementBase<TDim, TNumNodes>::FullDofVectorType;
 
-    using GeoTrussElementBase<TDim,TNumNodes>::mpConstitutiveLaw;
+    using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoTrussElementLinearBase() {};
-    GeoTrussElementLinearBase(IndexType NewId,
-                           GeometryType::Pointer pGeometry);
-    GeoTrussElementLinearBase(IndexType NewId,
-                           GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties);
-
+    GeoTrussElementLinearBase(){};
+    GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry);
+    GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~GeoTrussElementLinearBase() override;
 
@@ -70,9 +66,7 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -81,15 +75,13 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function adds forces from prestressing to the force vector
@@ -97,18 +89,18 @@ public:
      */
     void AddPrestressLinear(VectorType& rRightHandSideVector);
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                      std::vector< array_1d<double, 3 > >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     /**
      * @brief This function calculates the total stiffness matrix for the element
      */
-    void CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
+    void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -127,14 +119,13 @@ public:
      * @param rinternalForces The internal forces
      */
 
-    void UpdateInternalForces(FullDofVectorType& rInternalForces,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-
     friend class Serializer;
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
@@ -146,8 +137,6 @@ private:
     }
 };
 
-
-}
-
+} // namespace Kratos
 
 #endif

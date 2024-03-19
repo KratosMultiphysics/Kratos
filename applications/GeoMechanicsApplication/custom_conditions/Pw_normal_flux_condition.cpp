@@ -16,6 +16,7 @@
 
 // Application includes
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -66,7 +67,9 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
                 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
                 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -83,71 +86,14 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
 {
     noalias(rVariables.PVector) = - rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
 
-    GeoElementUtilities::
-        AssemblePBlockVector< 0, TNumNodes >(rRightHandSideVector,
-                                                rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 }
 
-
-//----------------------------------------------------------------------------------------
-template< >
-double PwNormalFluxCondition<2, 2>::
-CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    double dx_dxi = Jacobian(0, 0);
-    double dy_dxi = Jacobian(1, 0);
-
-    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    return ds * Weight;
-}
-
-
-//----------------------------------------------------------------------------------------
-template< >
-double PwNormalFluxCondition<3, 3>::
-CalculateIntegrationCoefficient(const Matrix& Jacobian,
-    const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-
-    NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-
-    NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-
-    double dA = sqrt(NormalVector[0] * NormalVector[0]
-        + NormalVector[1] * NormalVector[1]
-        + NormalVector[2] * NormalVector[2]);
-
-    return dA * Weight;
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-double PwNormalFluxCondition<3, 4>::
-CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-
-    NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-
-    NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-
-    double dA = sqrt(NormalVector[0] * NormalVector[0]
-        + NormalVector[1] * NormalVector[1]
-        + NormalVector[2] * NormalVector[2]);
-
-    return dA * Weight;
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class PwNormalFluxCondition<2,2>;
+template class PwNormalFluxCondition<2,3>;
+template class PwNormalFluxCondition<2,4>;
+template class PwNormalFluxCondition<2,5>;
 template class PwNormalFluxCondition<3,3>;
 template class PwNormalFluxCondition<3,4>;
 

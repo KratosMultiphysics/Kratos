@@ -456,6 +456,7 @@ namespace
             calculate_norm_dx);
 
         p_solving_strategy->Check();
+        p_solving_strategy->SetEchoLevel(0);
 
         // Fix the boundary nodes
         p_node_1->Fix(DISPLACEMENT_X);
