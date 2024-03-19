@@ -65,6 +65,32 @@ struct SynchronizeComponent<ModelPart::NodesContainerType>
 } // namespace NewContainerComponentIOUtilities
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::CheckReservedAttributes(const Parameters Attributes)
+{
+    KRATOS_TRY
+
+    for (const auto& r_attribute_key : ReservedAttributeKeys) {
+        KRATOS_ERROR_IF(Attributes.Has(r_attribute_key))
+            << "The reserved keyword \"" << r_attribute_key << "\" is found. Please remove it from attributes."
+            << "Followings are the given attributes:\n" << Attributes << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::RemoveReservedAttributes(Parameters Attributes)
+{
+    KRATOS_TRY
+
+    for (const auto& r_attribute_key : ReservedAttributeKeys) {
+        if (Attributes.Has(r_attribute_key)) Attributes.RemoveValue(r_attribute_key);
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
 ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ContainerComponentIO(
     Parameters Settings,
     File::Pointer pFile,
@@ -242,29 +268,17 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         }
 
         // add the shape to attributes.
-        KRATOS_ERROR_IF(Attributes.Has("__data_shape"))
-            << "Reserved keyword \"__data_shape\" is found. Please remove it from attributes.";
+        CheckReservedAttributes(Attributes);
+
         if (shape.size() > 0) {
             Attributes.AddEmptyArray("__data_shape");
             for (const auto v : shape) {
                 Attributes["__data_shape"].Append(v);
             }
         }
-
-        KRATOS_ERROR_IF(Attributes.Has("__data_dimension"))
-            << "The reserved keyword \"__data_dimension\" is found. Please remove it from attributes.";
         Attributes.AddInt("__data_dimension", value_type_traits::Dimension);
-
-        KRATOS_ERROR_IF(Attributes.Has("__container_type"))
-            << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
         Attributes.AddString("__container_type", Internals::GetContainerName<TContainerType>());
-
-        KRATOS_ERROR_IF(Attributes.Has("__data_location"))
-            << "The reserved keyword \"__data_location\" is found. Please remove it from attributes.";
         Attributes.AddString("__data_location", Internals::GetContainerIOName<TContainerDataIO>());
-
-        KRATOS_ERROR_IF(Attributes.Has("__data_name"))
-            << "The reserved keyword \"__data_name\" is found. Please remove it from attributes.";
         Attributes.AddString("__data_name", rComponentName);
 
         // now write the attributes
@@ -331,13 +345,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 
         NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
 
-        if (attributes.Has("__data_dimension")) attributes.RemoveValue("__data_dimension");
-        if (attributes.Has("__data_shape")) attributes.RemoveValue("__data_shape");
-        if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
-        if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
-        if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
-        if (attributes.Has("__mesh_location")) attributes.RemoveValue("__mesh_location");
-
+        RemoveReservedAttributes(attributes);
         rAttributesMap[rComponentName] = attributes;
 
         return true;
@@ -362,13 +370,7 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
 
         const auto& r_data_set_path = mComponentPrefix + r_component_name;
         auto attributes = mpFile->ReadAttribute(r_data_set_path);
-        if (attributes.Has("__data_dimension")) attributes.RemoveValue("__data_dimension");
-        if (attributes.Has("__data_shape")) attributes.RemoveValue("__data_shape");
-        if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
-        if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
-        if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
-        if (attributes.Has("__mesh_location")) attributes.RemoveValue("__mesh_location");
-
+        RemoveReservedAttributes(attributes);
         attributes_map[r_component_name] = attributes;
     }
 

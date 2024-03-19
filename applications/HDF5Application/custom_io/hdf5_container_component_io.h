@@ -107,7 +107,7 @@ public:
     ///@{
 
     /**
-     * @brief Write data from the local container having the type TContainerType to the HDF5 file.
+     * @brief Write data from the local container having the type TContainerType to the HDF5 file for the components specified in Settings.
      * @details This method can be used in either shared memory/distributed memory parallelized architectures.
      *
      * @param rModelPart            Model part to get the local container of type TContainerType to get the data.
@@ -120,7 +120,7 @@ public:
         const Parameters Attributes);
 
     /**
-     * @brief Read an hdf5 dataset and populate data to the container with type TContainerType.
+     * @brief Read an hdf5 dataset and populate data to the container with type TContainerType for the components specified in Settings.
      * @details This method can be used in either shared memory/distributed memory parallelized architectures.
      *          It will synchronize the written data to populate the ghost meshes correctly.
      *          The returning map will have the component name as the key, and its attributes as values.
@@ -134,7 +134,7 @@ public:
         const TContainerIO& rContainerDataIO);
 
     /**
-     * @brief Write data from the passed local data container to the HDF5 dataset.
+     * @brief Write data from the passed local data container to the HDF5 dataset for the components specified in Settings.
      *
      * @param rLocalContainer       Local container with the data.
      * @param rContainerDataIO      Reading mechanism specifying where to read the data from the local container.
@@ -146,7 +146,7 @@ public:
         const Parameters Attributes);
 
     /**
-     * @brief Read an hdf5 dataset and populate data to the provided local container.
+     * @brief Read an hdf5 dataset and populate data to the provided local container for the components specified in Settings.
      * @details This method can be used in either shared memory/distributed memory parallelized architectures.
      *          It will synchronize the written data to populate the ghost meshes correctly.
      *          The returning map will have the component name as the key, and its attributes as values.
@@ -162,7 +162,7 @@ public:
         Communicator& rCommunicator);
 
     /**
-     * @brief Reads only the attributes for components specified.
+     * @brief Reads only the attributes for components specified in the Settings.
      * @details This method only reads the attributes for the specified components. Does not read the dataset.
      *
      * @return std::map<std::string, Parameters>    A map containing component name as the key and each components' attributes as values.
@@ -184,6 +184,27 @@ protected:
     ///@}
 
 private:
+    ///@name Private static member variables
+    ///@{
+
+    const static inline std::vector<std::string> ReservedAttributeKeys = {
+                                            "__data_dimension",
+                                            "__data_shape",
+                                            "__container_type",
+                                            "__data_name",
+                                            "__data_location",
+                                            "__mesh_location"
+                                        };
+
+    ///}
+    ///@name Private static operations
+    ///@{
+
+    static void CheckReservedAttributes(const Parameters Attributes);
+
+    static void RemoveReservedAttributes(Parameters Attributes);
+
+    ///@}
     ///@name Private Operations
     ///@{
 
@@ -208,7 +229,6 @@ private:
     ///@}
 
 }; // class ContainerComponentIO.
-
 
 ///@} // Kratos Classes
 ///@} addtogroup
