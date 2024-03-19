@@ -62,9 +62,6 @@ public:
     /// The base element type
     using BaseType = Element;
 
-    /// used for creating submatrices
-    using RangeMatrixType = boost::numeric::ublas::matrix_range<MatrixType>;
-
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
 
@@ -131,7 +128,7 @@ public:
      * @brief Returns a 6 component vector including the values of the DoFs
      * in LOCAL axes
      */
-    void GetNodalValuesVector(VectorType& rNodalValue);
+    virtual void GetNodalValuesVector(VectorType& rNodalValue);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -140,9 +137,9 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    virtual double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    virtual double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    virtual double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
@@ -423,7 +420,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Timoshenko Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Timoshenko 2N Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
