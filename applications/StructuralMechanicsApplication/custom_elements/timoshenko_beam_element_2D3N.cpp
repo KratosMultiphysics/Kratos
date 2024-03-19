@@ -43,11 +43,10 @@ void TimoshenkoBeamElement2D3N::Initialize(const ProcessInfo& rCurrentProcessInf
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
             mConstitutiveLawVector.resize(r_integration_points.size());
-        InitializeMaterial();
+        BaseType::InitializeMaterial();
     }
     KRATOS_CATCH("")
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -280,6 +279,7 @@ double TimoshenkoBeamElement2D3N::CalculateAxialStrain(
     // VectorType N_u0_derivatives(2);
     // GetFirstDerivativesNu0ShapeFunctionsValues(N_u0_derivatives, Length, Phi, xi);
     // return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3];
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -298,6 +298,7 @@ double TimoshenkoBeamElement2D3N::CalculateShearStrain(
     // const VectorType N_s = N_derivatives - N_theta;
     // return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] + 
     //        N_s[3] * rNodalValues[5];
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -314,6 +315,7 @@ double TimoshenkoBeamElement2D3N::CalculateBendingCurvature(
     // GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
     // return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
     //        N_theta_derivatives[2] * rNodalValues[4] + N_theta_derivatives[3] * rNodalValues[5];
+    return 0.0;
 }
 
 /***********************************************************************************/

@@ -74,14 +74,14 @@ public:
     }
 
     // Constructor using an array of nodes
-    TimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    TimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
     }
 
     // Constructor using an array of nodes with properties
     TimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId,pGeometry,pProperties)
+        : BaseType(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
@@ -164,7 +164,7 @@ public:
      * @param rLocalSizeVector The 2 local components of u
      */
     void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
-    // {
+    {
     //     rGlobalSizeVector.clear();
     //     rGlobalSizeVector[0] = rLocalSizeVector[0];
     //     rGlobalSizeVector[3] = rLocalSizeVector[1];
