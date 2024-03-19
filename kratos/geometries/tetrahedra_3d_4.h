@@ -1613,6 +1613,12 @@ public:
     ///@name Input and output
     ///@{
 
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Tetrahedra3D4N";
+    }
+
     /**
      * Turn back information as a string.
      *

@@ -127,6 +127,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def(py::init< std::string, GeometryType::PointsArrayType& >())
     // Id functions
     .def_property("Id", &GeometryType::Id, SetId1)
+    .def_property_readonly("Name", &GeometryType::Name)
     .def("SetId", SetId1)
     .def("SetId", SetId2)
     .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
