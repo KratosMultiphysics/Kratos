@@ -415,7 +415,6 @@ public:
         const auto &r_stress = rValues.GetStressVector();
         const SizeType strain_size = r_strain.size();
         auto &r_D = rValues.GetConstitutiveMatrix();
-        noalias(r_D) = ZeroMatrix(strain_size, strain_size);
 
         for (IndexType i = 0; i < strain_size; i++)
             for (IndexType j = 0; j < strain_size; j++)
@@ -432,7 +431,6 @@ public:
         const auto &r_stress = rValues.GetStressVector();
         const SizeType strain_size = r_strain.size();
         auto &r_D = rValues.GetConstitutiveMatrix();
-        noalias(r_D) = ZeroMatrix(strain_size, strain_size);
 
         for (IndexType i = 0; i < strain_size; i++)
             for (IndexType j = 0; j < strain_size; j++)
