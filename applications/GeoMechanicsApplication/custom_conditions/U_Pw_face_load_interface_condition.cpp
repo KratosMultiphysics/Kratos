@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -119,7 +120,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * integration_coefficient;
-        ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,UVector);
+        GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
     }
 }
 
@@ -298,21 +299,14 @@ double UPwFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(const
 //----------------------------------------------------------------------------------------
 
 template< >
-double UPwFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth)
+double UPwFaceLoadInterfaceCondition<3, 4>::CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth)
 {
     KRATOS_TRY
-    
-    double dx_dxi = Jacobian(0,0);
-    
-    double dy_dxi = Jacobian(1,0);
-    
-    double dz_dxi = Jacobian(2,0);
-    
-    double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi + dz_dxi*dz_dxi);
-    
+
+    double ds = MathUtils<double>::Norm(column(Jacobian, 0));
     return Weight * ds * JointWidth;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

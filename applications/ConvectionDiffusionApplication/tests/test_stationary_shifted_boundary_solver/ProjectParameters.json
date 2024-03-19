@@ -1,0 +1,53 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "TO_BE_SET",
+        "parallel_type" : "OpenMP",
+        "time_step"     : 1.0,
+        "start_time"    : 0.0,
+        "end_time"      : 0.99,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "stationary_shifted_boundary",
+        "analysis_type"                      : "linear",
+        "model_part_name"                    : "ThermalModelPart",
+        "domain_size"                        : 2,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "annulus_3_unstr_ref_0"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "ConvectionDiffusionMaterials.json"
+        },
+        "line_search"                        : false,
+        "echo_level"                         : 0,
+        "compute_reactions"                  : false,
+        "reform_dofs_at_each_step"           : false,
+        "problem_domain_sub_model_part_list" : ["CNVDFFParts_Domain"],
+        "processes_sub_model_part_list"      : ["ImposedTemperature2D_OuterWall"],
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "element_replace_settings" : {
+            "element_name" : "LaplacianShiftedBoundaryElement",
+            "condition_name" : ""
+        },
+        "conforming_basis" : true,
+        "extension_operator_type" : "TO_BE_SET",
+        "linear_solver_settings" : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        }
+    },
+    "processes"        : {
+        "json_check_process_list" : []
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "restart_options"  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    }
+}
