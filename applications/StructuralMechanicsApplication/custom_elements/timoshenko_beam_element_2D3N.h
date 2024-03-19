@@ -141,33 +141,36 @@ public:
      */
     double CalculateLength() override
     {
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D3N(*this);
     }
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
      * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
-     * @param rLocalSizeVector The 4 local components of v and theta
+     * @param rLocalSizeVector The 6 local components of v and theta
      */
     void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
     {
-        // rGlobalSizeVector.clear();
-        // rGlobalSizeVector[1] = rLocalSizeVector[0];
-        // rGlobalSizeVector[2] = rLocalSizeVector[1];
-        // rGlobalSizeVector[4] = rLocalSizeVector[2];
-        // rGlobalSizeVector[5] = rLocalSizeVector[3];
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[1] = rLocalSizeVector[0];
+        rGlobalSizeVector[2] = rLocalSizeVector[1];
+        rGlobalSizeVector[4] = rLocalSizeVector[2];
+        rGlobalSizeVector[5] = rLocalSizeVector[3];
+        rGlobalSizeVector[7] = rLocalSizeVector[4];
+        rGlobalSizeVector[8] = rLocalSizeVector[5];
     }
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
      * @param rGlobalSizeVector The global size vector including only the axial u terms
-     * @param rLocalSizeVector The 2 local components of u
+     * @param rLocalSizeVector The 3 local components of u
      */
     void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
     {
-    //     rGlobalSizeVector.clear();
-    //     rGlobalSizeVector[0] = rLocalSizeVector[0];
-    //     rGlobalSizeVector[3] = rLocalSizeVector[1];
+        rGlobalSizeVector.clear();
+        rGlobalSizeVector[0] = rLocalSizeVector[0];
+        rGlobalSizeVector[3] = rLocalSizeVector[1];
+        rGlobalSizeVector[6] = rLocalSizeVector[2];
     }
 
     /**
