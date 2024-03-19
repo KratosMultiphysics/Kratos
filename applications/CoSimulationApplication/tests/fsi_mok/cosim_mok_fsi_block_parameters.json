@@ -1,0 +1,132 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 15.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.block_strong",
+        "echo_level" : 0,
+        "num_coupling_iterations" : 12,
+        "predictors" : [
+            {
+                "type"                 : "linear",
+                "solver"               : "structure",
+                "data_name"            : "load"
+            }
+        ],
+        "convergence_accelerators" : [
+            {
+                "type"      : "block_mvqn",
+                "solver_sequence" :
+                [
+                    {
+                        "solver": "fluid",
+                        "data_name"  : "disp",
+                        "coupled_data_name" : "load"
+                    },
+                    {
+                        "solver": "structure",
+                        "data_name"  : "load",
+                        "coupled_data_name" : "disp"
+                    }
+                ]
+                    }
+        ],
+        "convergence_criteria" : [
+            {
+                "type"          : "relative_norm_previous_residual",
+                "solver"        : "structure",
+                "data_name"     : "load",
+                "abs_tolerance" : 1e-5,
+                "rel_tolerance" : 1e-5
+            }
+        ],
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "structure",
+                "input_data_list": [],
+                "output_data_list": [
+                    {
+                        "data"           : "disp",
+                        "to_solver"      : "fluid",
+                        "to_solver_data" : "disp",
+                        "data_transfer_operator" : "mapper"
+                    }
+                ]
+            },
+            {
+                "name": "fluid",
+                "input_data_list"  : [],
+                "output_data_list" : [
+                    {
+                        "data"           : "load",
+                        "to_solver"      : "structure",
+                        "to_solver_data" : "load",
+                        "data_transfer_operator" : "mapper",
+                        "data_transfer_operator_options" : ["swap_sign"]
+                    }
+                ]
+            }
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_mok/ProjectParametersCFD"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "MESH_DISPLACEMENT"
+                    },
+                    "load" : {
+                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "REACTION"
+                    },
+                    "velocity" : {
+                        "model_part_name"   : "FluidModelPart.NoSlip2D_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "VELOCITY"
+                    }
+                }
+            },
+            "structure" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_mok/ProjectParametersCSM"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "load" : {
+                        "model_part_name"   : "Structure.GENERIC_FSI",
+                        "dimension" : 2,
+                        "variable_name" : "POINT_LOAD"
+                    }
+                }
+            }
+        }
+    }
+}

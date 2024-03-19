@@ -16,6 +16,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
     cfd_tes_file_name = "fsi_mok/ProjectParametersCFD_for_test.json"
 
     def setUp(self):
+        self.err_tol = "1e-6"
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
@@ -37,6 +38,32 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateCFDSettings()
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+    def test_mok_fsi_block_mvqn(self):
+        self.accelerator_type = "block_mvqn"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi_block")
+            self.__ManipulateCFDSettings()
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+
+    def test_mok_fsi_block_ibqnls(self):
+        self.accelerator_type = "block_ibqnls"
+        self.err_tol = "6e-5"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi_block")
+            self.__ManipulateCFDSettings()
+            additional_accel_settings = KM.Parameters("""2""")
+            self.cosim_parameters["solver_settings"]["convergence_accelerators"][0].AddValue("timestep_horizon", additional_accel_settings)
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
@@ -141,7 +168,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_disp.dat",
                 "reference_file_name" : \""""+disp_ref_file_name.replace("\\", "\\\\")+"""\",
                 "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"      : 1e-6
+                "tolerance"      : """+self.err_tol+"""
                 }
             },{
             "kratos_module"   : "KratosMultiphysics",
@@ -171,7 +198,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_fluid.dat",
                 "reference_file_name" : \""""+fluid_ref_file_name.replace("\\", "\\\\")+"""\",
                 "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"      : 1e-6
+                "tolerance"      : """+self.err_tol+"""
                 }
             }]"""))
 
