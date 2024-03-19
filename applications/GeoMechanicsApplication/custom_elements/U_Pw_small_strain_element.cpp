@@ -1482,11 +1482,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
 {
     KRATOS_TRY
 
-    noalias(rPDimMatrix) = prod(rVariables.GradNpT, rVariables.PermeabilityMatrix);
+    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
+        rPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
+        rVariables.PermeabilityMatrix, rVariables.IntegrationCoefficient);
 
-    noalias(rPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-                        rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor *
-                        prod(rPDimMatrix, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
+    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
+        rPMatrix, rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor);
 
     noalias(rPVector) = -prod(rPMatrix, rVariables.PressureVector);
 
