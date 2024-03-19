@@ -829,8 +829,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("CreateSphereTriangularMesh", &CppTestsUtilities::CreateSphereTriangularMesh)
     ;
 
-    m.def_submodule("ModelPartUtils", "Auxiliary utilities for model parts.")
-        .def("FromConnectivityGenerateElements", [](
+    py::class_<ModelPartUtils>(m, "ModelPartUtils", "Auxiliary utilities for model parts.")
+        .def_static("FromConnectivityGenerateElements", [](
             const std::string& rEntityName,
             const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
             ModelPart::NodesContainerType& rThisNodes,
@@ -844,7 +844,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
             py::arg("elements"),
             py::arg("properties")
         )
-        .def("FromConnectivityGenerateConditions", [](
+        .def_static("FromConnectivityGenerateConditions", [](
             const std::string& rEntityName,
             const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
             ModelPart::NodesContainerType& rThisNodes,
