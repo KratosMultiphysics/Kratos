@@ -30,7 +30,7 @@ void NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(Node& rNode,
             !rNode.IsFixed(component_variable)) {
             rNode.FastGetSolutionStepValue(component_variable, 0) = rSourceVector[counter];
         }
-        
+
         counter++;
     }
 }
