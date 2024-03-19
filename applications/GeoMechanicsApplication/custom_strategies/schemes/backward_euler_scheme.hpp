@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geomechanics_time_integration_scheme.hpp"
 
@@ -75,8 +76,11 @@ protected:
 
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.
-            rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative) =
+            const auto updated_second_time_derivative =
                 CalculateDerivative(r_second_order_vector_variable.first_time_derivative, rNode);
+
+            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
         }
     }
 
