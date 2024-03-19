@@ -14,7 +14,7 @@ import test_helper
 
 class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
     """
-    This class contains benchmark tests which are checked with the analytical solution
+    This class contains tests which check if prescribed derivatives are correctly applied to the model and not overwritten
     """
 
     def setUp(self):
@@ -27,7 +27,7 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
 
     def test_prescribed_acceleration(self):
         """
-        To be added
+        This test checks if the prescribed acceleration in the x-direction is correctly applied to the model
         :return:
         """
 
@@ -51,7 +51,7 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
 
     def test_prescribed_velocity(self):
         """
-        To be added
+        This test checks if the prescribed velocity in the x-direction is correctly applied to the model
         :return:
         """
 
@@ -67,7 +67,7 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
         expected_velocities = [-0.01, -0.005, -0.003, 0.01]
         for idx, time in enumerate(times):
             velocities = test_helper.GiDOutputFileReader.nodal_values_at_time("VELOCITY", time, output_data,
-                                                                                 node_ids=[1, 2, 3])
+                                                                              node_ids=[1, 2, 3])
             for velocity in velocities:
                 self.assertAlmostEqual(expected_velocities[idx], velocity[0], 6)
                 self.assertAlmostEqual(0.0, velocity[1], 6)
@@ -75,7 +75,7 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
 
     def test_prescribed_dt_water_pressure(self):
         """
-        To be added
+        This test checks if the prescribed dt_water_pressure is correctly applied to the model
         :return:
         """
 
