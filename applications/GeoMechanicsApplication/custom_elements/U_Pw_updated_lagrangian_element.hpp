@@ -86,7 +86,8 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    explicit UPwUpdatedLagrangianElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
 
@@ -280,18 +281,6 @@ private:
         typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianElement
 
 ///@}

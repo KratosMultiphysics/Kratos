@@ -728,13 +728,6 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const V
         // calculating the local gradients
         const ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
-        // GiD accepts equally distributed points
-        // Matrix NContainer;
-        // GeoElementUtilities::CalculateEquallyDistributedPointsLineShapeFunctions3N(NContainer);
-
-        // ShapeFunctionsGradientsType DN_De;
-        // GeoElementUtilities::CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(DN_De);
-
         // Constitutive Law parameters
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
