@@ -45,6 +45,15 @@ KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
         "Error: The ModelPart named : \"Maiiiiin\" was not found as root-ModelPart. The total input string was \"Maiiiiin\"");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ModelDataValueContainer, KratosCoreFastSuite)
+{
+    Model model;
+    model.SetValue(DENSITY,1.0);
+    KRATOS_EXPECT_TRUE(model.Has(DENSITY));
+    KRATOS_EXPECT_FALSE(model.Has(TEMPERATURE));
+    KRATOS_EXPECT_DOUBLE_EQ(model.GetValue(DENSITY),1.0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ModelHasModelPart, KratosCoreFastSuite)
 {
     Model model;
