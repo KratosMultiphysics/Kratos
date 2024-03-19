@@ -361,7 +361,7 @@ void BuildRotationMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BuildRotationMatrixFor2D2NBeam(
+void BuildRotationMatrixForBeam(
     BoundedMatrix<double, 3, 3>& rRotationMatrix,
     const double AlphaAngle
 )

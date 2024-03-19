@@ -270,7 +270,7 @@ void BuildRotationMatrix(
  * @param rRotationMatrix The rotation matrix from local to global axes
  * It assumes 3 dofs per node: u,v,theta
  */
-void BuildRotationMatrixFor2D2NBeam(
+void BuildRotationMatrixForBeam(
     BoundedMatrix<double, 3, 3>& rRotationMatrix,
     const double AlphaAngle);
 

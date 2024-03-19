@@ -331,7 +331,7 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         BoundedMatrix<double, 3, 3> T;
         BoundedVector<double, 6> global_values;
         BoundedMatrix<double, 6, 6> global_size_T;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
         global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -798,7 +798,7 @@ void TimoshenkoBeamElement2D2N::RotateLHS(
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T, Tt;
         BoundedMatrix<double, 6, 6> global_size_T, aux_product;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
         noalias(aux_product) = prod(rLHS, trans(global_size_T));
         noalias(rLHS) = prod(global_size_T, aux_product);
@@ -820,7 +820,7 @@ void TimoshenkoBeamElement2D2N::RotateRHS(
         BoundedMatrix<double, 6, 6> global_size_T;
         BoundedVector<double, 6> local_rhs;
         noalias(local_rhs) = rRHS;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
         noalias(rRHS) = prod(global_size_T, local_rhs);
@@ -842,7 +842,7 @@ void TimoshenkoBeamElement2D2N::RotateAll(
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 6, 6> global_size_T, aux_product;
         BoundedVector<double, 6> local_rhs;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
         noalias(local_rhs) = rRHS;
