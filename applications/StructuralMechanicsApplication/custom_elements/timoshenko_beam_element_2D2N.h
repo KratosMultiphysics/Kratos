@@ -273,10 +273,10 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
@@ -286,8 +286,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
@@ -297,15 +297,15 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
      * @param rLHS the left hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateLHS(
+    virtual void RotateLHS(
         MatrixType &rLHS,
         const GeometryType &rGeometry);
 
@@ -314,7 +314,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateRHS(
+    virtual void RotateRHS(
         VectorType &rRHS,
         const GeometryType &rGeometry);
 
@@ -324,7 +324,7 @@ public:
      * @param rRHS the right hand side
      * @param rGeometry the geometry of the FE
     */
-    void RotateAll(
+    virtual void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS,
         const GeometryType &rGeometry);
