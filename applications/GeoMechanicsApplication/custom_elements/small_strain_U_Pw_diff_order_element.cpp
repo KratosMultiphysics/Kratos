@@ -1808,19 +1808,13 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix(MatrixTyp
 {
     KRATOS_TRY
 
-    /*Matrix PermeabilityMatrix =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-        rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor *
-        prod(rVariables.DNp_DX, Matrix(prod(rVariables.IntrinsicPermeability,
-       trans(rVariables.DNp_DX)))) * rVariables.IntegrationCoefficient;*/
-
     Matrix PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrixH(
         rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
         rVariables.IntegrationCoefficient);
 
     GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration(
         PermeabilityMatrix, rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor);
-    
+
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, PermeabilityMatrix);
 

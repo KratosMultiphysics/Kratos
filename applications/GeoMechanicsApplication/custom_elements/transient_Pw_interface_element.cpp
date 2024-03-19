@@ -597,12 +597,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    /*noalias(rVariables.PDimMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
-
-    noalias(rVariables.PPMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
-                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;*/
     GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
         rVariables.PDimMatrix, rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
         rVariables.LocalPermeabilityMatrix, rVariables.IntegrationCoefficient);
