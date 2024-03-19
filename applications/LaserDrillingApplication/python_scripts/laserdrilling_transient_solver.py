@@ -24,6 +24,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         super().__init__(model, custom_settings)
         self.jump_between_pulses_counter = 0
         self.starting_time = timer.time()
+        self.number_of_decomposed_elements = 1
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
@@ -43,10 +44,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.jump_between_pulses_counter = 0
             self.pulse_number += 1
             print("\nPulse_number:", self.pulse_number)
-            if self.ablation_energy_fraction:
-                self.RemoveElementsByAblation()
-            if self.residual_heat_fraction:
-                self.ImposeTemperatureDistributionDueToLaser1D()
+            self.RemoveElementsByAblation()
+            self.ResidualHeatStage()
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -105,6 +104,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.time_jump_between_pulses = 1e6
         else:
             self.time_jump_between_pulses = project_parameters["problem_data"]["time_jump_between_pulses"].GetDouble()
+        if not project_parameters["problem_data"].Has("compute_vaporisation"):
+            self.compute_vaporisation = False
+        else:
+            self.compute_vaporisation = project_parameters["problem_data"]["compute_vaporisation"].GetBool()
 
         self.R_far = mask_aperture_diameter * 0.5
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
@@ -133,18 +136,29 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             # This gives a F_th_fraction of 0.313, a little too flat (maximum not captured)
             # F_th_fraction = self.C * np.exp(-self.K * self.R_far**2) / (self.ablation_energy_fraction * self.Q / A)
 
-            F_th_fraction = 0.333
+            ####################################
+            # Calibrated for:                  #
+            # residual heat fraction   = 0.05  #
+            # Vaporisation temperature = 1000K #
+            ####################################
+            if not self.compute_vaporisation:
+                F_th_fraction = 0.333 # 5 pulses, no evaporation
+            else:
+                F_th_fraction = 0.41  # 5 pulses, with evaporation
 
             self.F_th = F_th_fraction * self.ablation_energy_fraction * self.Q / A
             F_th_in_cm_units = 100 * self.F_th
             print("\nF_th in J/cm2:", F_th_in_cm_units)
             self.radius_th = np.sqrt(np.log(self.C / self.F_th) / self.K)
-            self.l_s = self.PenetrationDepth() # In mm
+            
+            if not self.compute_vaporisation:
+                self.l_s = self.PenetrationDepth() # It gives self.l_s = 0.002mm # 5 pulses, no evaporation
+            else:
+                self.l_s = 0.00215                  # 5 pulses, with evaporation
+
             print("\nl_s in mm:", self.l_s)
             l_s_in_nm = 1e6 * self.l_s  # In nm
             print("\nl_s in nm:", l_s_in_nm)
-
-            # self.l_s = 0.002
 
         if os.path.exists("temperature_alpha.txt"):
             os.remove("temperature_alpha.txt")
@@ -162,24 +176,31 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
 
         initial_system_energy = self.MonitorEnergy()
-        #print("\nInitial system energy:", initial_system_energy)
 
         self.pulse_number += 1
         print("\nPulse_number:", self.pulse_number)
-        if self.ablation_energy_fraction:
-            self.RemoveElementsByAblation()
+        self.RemoveElementsByAblation()
 
         computed_energy_after_laser = self.MonitorEnergy()
-        #print("\nComputed energy after laser:", computed_energy_after_laser)
 
         residual_heat = self.residual_heat_fraction * self.Q
+
+        if not self.main_model_part.HasSubModelPart("BoundaryPart"):
+            self.main_model_part.CreateSubModelPart('BoundaryPart')
+            self.boundary_part = self.main_model_part.GetSubModelPart('BoundaryPart')
+
+        if not self.ablation_energy_fraction:
+            self.ComputeBoundaryElementsForPureEvaporation()
+
+        self.ResidualHeatStage()
+
+        system_energy_after_residual_heat = self.MonitorEnergy()
+
+        print("Initial system energy:", initial_system_energy)
+        print("\nComputed energy after laser:", computed_energy_after_laser)
         print("\nResidual_heat:", residual_heat)
 
-        if self.residual_heat_fraction:
-            self.ImposeTemperatureDistributionDueToLaser1D()
-        
-        system_energy_after_residual_heat = self.MonitorEnergy()
-        #print("System energy after residual heat:", system_energy_after_residual_heat)
+        print("System energy after residual heat:", system_energy_after_residual_heat)
 
         difference_after_and_before_residual_heat = system_energy_after_residual_heat - computed_energy_after_laser
         print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
@@ -192,9 +213,111 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
         self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
+    def ComputeBoundaryElementsForPureEvaporation(self):
+        self.list_of_decomposed_nodes_ids = []
+        self.list_of_decomposed_elements_ids = []            
+
+        for elem in self.main_model_part.Elements:
+            for node in elem.GetNodes():
+                if not node.X and node.Y <= self.R_far:
+                    node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+                    self.list_of_decomposed_nodes_ids.append(node.Id)
+                    self.list_of_decomposed_elements_ids.append(elem.Id)
+        self.list_of_decomposed_nodes_ids = list(set(self.list_of_decomposed_nodes_ids))
+        self.list_of_decomposed_elements_ids = list(set(self.list_of_decomposed_elements_ids))
+        print("\nlen(self.list_of_decomposed_elements_ids):", len(self.list_of_decomposed_elements_ids))
+        print("\nlen(self.list_of_decomposed_nodes_ids):", len(self.list_of_decomposed_nodes_ids))
+
+        if not self.main_model_part.HasSubModelPart("BoundaryPart"):
+            self.main_model_part.CreateSubModelPart('BoundaryPart')
+            self.boundary_part = self.main_model_part.GetSubModelPart('BoundaryPart')
+        else:
+            self.main_model_part.RemoveSubModelPart(self.boundary_part)
+            self.main_model_part.CreateSubModelPart('BoundaryPart')
+            self.boundary_part = self.main_model_part.GetSubModelPart('BoundaryPart')
+        self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
+        self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)
+        print(self.boundary_part)
+
+    def ResidualHeatStage(self):
+        if self.residual_heat_fraction:
+            if self.compute_vaporisation:
+                self.original_Q_value = self.Q
+                self.total_removed_energy = 0.0
+                self.first_evaporation_stage_done = False
+                max_iterations = 20
+                iterations = 0
+                while self.number_of_decomposed_elements:
+                    self.ResetDomainTemperature()
+                    self.ImposeTemperatureDistributionDueToLaser1D()
+                    self.RemoveElementsByEvaporation()
+                    iterations += 1
+                    print("Pulse number:", self.pulse_number)
+                    print("Iterations:", iterations)
+                    if iterations > max_iterations:
+                        break
+                print("Number_of_evaporation_stages:", iterations)
+                self.Q = self.original_Q_value
+                self.number_of_decomposed_elements = 1
+            else:
+                self.ImposeTemperatureDistributionDueToLaser1D()
+
+    def RemoveElementsByEvaporation(self):
+        print("len(self.list_of_decomposed_nodes_coords_X):", len(self.list_of_decomposed_nodes_coords_X))
+        self.number_of_decomposed_elements = 0
+        number_of_boundary_elements = 0
+
+        for elem in self.boundary_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                temp = elem.CalculateOnIntegrationPoints(KratosMultiphysics.TEMPERATURE, self.main_model_part.ProcessInfo)
+                element_temperature = temp[0]
+                if element_temperature > self.T_e:
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+                    element_old_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
+                    elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
+                    element_new_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
+                    deleted_element_energy = element_new_energy #- element_old_energy
+                    self.total_removed_energy += deleted_element_energy
+                    self.number_of_decomposed_elements += 1
+                    for node in elem.GetNodes():
+                        node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+        print("Number_of_boundary_elements:", number_of_boundary_elements)
+        number_of_problematic_elements = 0
+        for elem in self.main_model_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                number_of_decomposed_nodes = 0
+                for node in elem.GetNodes():
+                    if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                        number_of_decomposed_nodes +=1
+                if number_of_decomposed_nodes == 3:
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+                    element_old_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
+                    elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
+                    element_new_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
+                    deleted_element_energy = element_new_energy #- element_old_energy
+                    self.total_removed_energy += deleted_element_energy
+                    #self.number_of_decomposed_elements += 1
+                    number_of_problematic_elements += 1
+
+        self.Q = ((1.0 - self.ablation_energy_fraction) * self.original_Q_value - self.total_removed_energy) / (1.0 - self.ablation_energy_fraction)
+        print("self.Q:", self.Q)
+        self.AddDecomposedNodesToSurfaceList()
+        print("Number of decomposed elements:", self.number_of_decomposed_elements)
+        print("Number of problematic elements:", number_of_problematic_elements)
+        self.first_evaporation_stage_done = True
+
+    def ResetDomainTemperature(self):
+        if self.first_evaporation_stage_done:
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+            for elem in self.main_model_part.Elements:
+                elem.SetValue(KratosMultiphysics.TEMPERATURE, self.T0)
+
     def ImposeTemperatureDistributionDueToLaser1D(self):
         X = self.list_of_decomposed_nodes_coords_X
         Y = self.list_of_decomposed_nodes_coords_Y
+        print("len(X):", len(X))
         self.minimum_characteristic_Z =  1e6
         self.maximum_characteristic_Z = -1e6
         for node in self.main_model_part.Nodes:
@@ -305,48 +428,71 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         return energy
 
     def RemoveElementsByAblation(self):
-        X = self.list_of_decomposed_nodes_coords_X
-        Y = self.list_of_decomposed_nodes_coords_Y
-        for elem in self.main_model_part.Elements:
-            X_centroid = elem.GetGeometry().Center().X
-            Y_centroid = elem.GetGeometry().Center().Y
-            if self.pulse_number == 1:
-                X_interp = 0
-            else:
-                F = interp1d(Y, X, bounds_error=False)
-                X_interp = F(Y_centroid)
-            DeltaX = X_centroid - X_interp
-            d_ev = self.EvaporationDepth(Y_centroid)
-            if DeltaX <= d_ev and Y_centroid <= self.radius_th:
-                elem.Set(KratosMultiphysics.ACTIVE, False)
-                for node in elem.GetNodes():
-                    node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
-        for elem in self.main_model_part.Elements:
-            number_of_decomposed_nodes = 0
-            for node in elem.GetNodes():
-                if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
-                    number_of_decomposed_nodes +=1
-            if number_of_decomposed_nodes == 3:
-                elem.Set(KratosMultiphysics.ACTIVE, False)
-        self.AddDecomposedNodesToSurfaceList()
-        print('\nR_far:', self.R_far)
-        print('\nRadius_th:', self.radius_th)
-        print("\nDecomposed volume:", self.MonitorDecomposedVolume())
+        if self.ablation_energy_fraction:
+            X = self.list_of_decomposed_nodes_coords_X
+            Y = self.list_of_decomposed_nodes_coords_Y
+            for elem in self.main_model_part.Elements:
+                X_centroid = elem.GetGeometry().Center().X
+                Y_centroid = elem.GetGeometry().Center().Y
+                if self.pulse_number == 1:
+                    X_interp = 0
+                else:
+                    F = interp1d(Y, X, bounds_error=False)
+                    X_interp = F(Y_centroid)
+                DeltaX = X_centroid - X_interp
+                d_ev = self.EvaporationDepth(Y_centroid)
+                if DeltaX <= d_ev: # and Y_centroid <= self.radius_th:
+                    elem.Set(KratosMultiphysics.ACTIVE, False)
+                    for node in elem.GetNodes():
+                        node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
+            for elem in self.main_model_part.Elements:
+                if elem.Is(KratosMultiphysics.ACTIVE):
+                    number_of_decomposed_nodes = 0
+                    for node in elem.GetNodes():
+                        if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
+                            number_of_decomposed_nodes += 1
+                    if number_of_decomposed_nodes == 3:
+                        elem.Set(KratosMultiphysics.ACTIVE, False)
+            self.AddDecomposedNodesToSurfaceList()
+            print('\nR_far:', self.R_far)
+            print('\nRadius_th:', self.radius_th)
+            print("\nDecomposed volume:", self.MonitorDecomposedVolume())
 
     def sortSecond(self, val):
         return val[1]
 
     def AddDecomposedNodesToSurfaceList(self):
         self.list_of_decomposed_nodes_ids = []
+        self.list_of_decomposed_elements_ids = []
         self.list_of_decomposed_nodes_coords = []
         self.list_of_decomposed_nodes_coords_X = []
         self.list_of_decomposed_nodes_coords_Y = []
+        number_of_boundary_elements = 0
         for elem in self.main_model_part.Elements:
+            first_decomposed_node_found = False
             if elem.Is(KratosMultiphysics.ACTIVE):
                 for node in elem.GetNodes():
                     if node.GetValue(LaserDrillingApplication.DECOMPOSED_NODE):
                         self.list_of_decomposed_nodes_ids.append(node.Id)
+                        if not first_decomposed_node_found:
+                            number_of_boundary_elements += 1
+                            self.list_of_decomposed_elements_ids.append(elem.Id)
+                            first_decomposed_node_found = True
         self.list_of_decomposed_nodes_ids = list(set(self.list_of_decomposed_nodes_ids))
+        print("\nlen(self.list_of_decomposed_elements_ids):", len(self.list_of_decomposed_elements_ids))
+        print("\nlen(self.list_of_decomposed_nodes_ids):", len(self.list_of_decomposed_nodes_ids))
+        print("\nNumber_of_boundary_elements:", number_of_boundary_elements)
+
+        if not self.main_model_part.HasSubModelPart("BoundaryPart"):
+            self.main_model_part.CreateSubModelPart('BoundaryPart')
+            self.boundary_part = self.main_model_part.GetSubModelPart('BoundaryPart')
+        else:
+            self.main_model_part.RemoveSubModelPart(self.boundary_part)
+            self.main_model_part.CreateSubModelPart('BoundaryPart')
+            self.boundary_part = self.main_model_part.GetSubModelPart('BoundaryPart')
+        self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
+        self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)
+        print(self.boundary_part)
 
         for node in self.main_model_part.Nodes:
             if node.Id in self.list_of_decomposed_nodes_ids:

@@ -89,6 +89,8 @@ void LaserAxisymmetricEulerianConvectionDiffusionElement<TDim, TNumNodes>::Calcu
             thermal_energy += T * Variables.specific_heat * Variables.density * w_g;
         }
 
+        this->SetValue(THERMAL_ENERGY, thermal_energy);
+
         // Set elemental thermal_energy 
         for (IndexType g = 0; g < n_gauss; ++g) {
 
