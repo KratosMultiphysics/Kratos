@@ -167,18 +167,21 @@ class PetrovGalerkinTrainingUtility(object):
         return pretty_number
 
     def __GetGalerkinBasis(self):
-        with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix(".json"), 'r') as f:
-            galerkin_rom_parameters = json.load(f)
-            N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
-            N_nodes = len(galerkin_rom_parameters["nodal_modes"])
-            N_Dofs = int(N_Dof_per_node*N_nodes)
-            N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
-            u = np.zeros((N_Dofs,N_Dofs_rom))
-            counter_in = 0
-            for key in galerkin_rom_parameters["nodal_modes"].keys():
-                counter_fin = counter_in + N_Dof_per_node
-                u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
-                counter_in = counter_fin
+        if self.rom_format == "json":
+            with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix(".json"), 'r') as f:
+                galerkin_rom_parameters = json.load(f)
+                N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
+                N_nodes = len(galerkin_rom_parameters["nodal_modes"])
+                N_Dofs = int(N_Dof_per_node*N_nodes)
+                N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
+                u = np.zeros((N_Dofs,N_Dofs_rom))
+                counter_in = 0
+                for key in galerkin_rom_parameters["nodal_modes"].keys():
+                    counter_fin = counter_in + N_Dof_per_node
+                    u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
+                    counter_in = counter_fin
+        elif self.rom_format == "numpy":
+            u = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
 
         return u
 

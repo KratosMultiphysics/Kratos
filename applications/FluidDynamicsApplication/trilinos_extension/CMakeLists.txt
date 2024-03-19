@@ -15,6 +15,7 @@ file(
 ## Python module
 pybind11_add_module( KratosFluidDynamicsTrilinosExtension MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
+target_include_directories(KratosFluidDynamicsTrilinosExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
 target_link_libraries( KratosFluidDynamicsTrilinosExtension PRIVATE KratosFluidDynamicsCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosFluidDynamicsTrilinosExtension PROPERTIES PREFIX "")
 
