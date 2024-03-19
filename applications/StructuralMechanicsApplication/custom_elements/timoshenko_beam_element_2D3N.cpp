@@ -204,10 +204,11 @@ void TimoshenkoBeamElement2D3N::GetNu0ShapeFunctionsValues(
     const double xi
     )
 {
-    // if (rN.size() != 2)
-    //     rN.resize(2, false);
-    // rN[0] = 0.5 * (1.0 - xi);
-    // rN[1] = 0.5 * (1.0 + xi);
+    if (rN.size() != 3)
+        rN.resize(3, false);
+    rN[0] = 0.5 * xi * (xi - 1.0);
+    rN[1] = (1.0 - std::pow(xi, 2));
+    rN[2] = 0.5 * xi * (xi + 1.0);
 }
 
 /***********************************************************************************/
@@ -220,11 +221,12 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctionsValues(
     const double xi
     )
 {
-    // if (rN.size() != 2)
-    //     rN.resize(2, false);
-    // const double inverse_l = 1.0 / Length;
-    // rN[0] = -inverse_l;
-    // rN[1] =  inverse_l;
+    if (rN.size() != 3)
+        rN.resize(3, false);
+    const double inverse_l = 1.0 / Length;
+    rN[0] = xi - 0.5;
+    rN[1] = xi - 2.0;
+    rN[2] = xi + 0.5;
 }
 
 /***********************************************************************************/
