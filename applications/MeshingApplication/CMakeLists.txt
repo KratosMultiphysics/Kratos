@@ -152,7 +152,7 @@ if(${INCLUDE_PMMG} MATCHES ON)
     ENDIF (PMMG_ROOT)
 
     include_directories(${PMMG_INCLUDE_DIR})
-    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${PMMG_LIBRARY})
+    set(KRATOS_MESHING_APPLICATION_EXTRA_LIBS ${KRATOS_MESHING_APPLICATION_EXTRA_LIBS} KratosMPICore ${MPI_LIBRARIES} ${PMMG_LIBRARY})
     set(ALL_PMMG_LIBRARIES ${PMMG_LIBRARY})
     FOREACH (FILE ${ALL_PMMG_LIBRARIES})
         GET_FILENAME_COMPONENT(RESOLVED_FILE_LIB "${FILE}" REALPATH)
@@ -219,6 +219,7 @@ endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MeshingApplication.py KratosMultiphysics/MeshingApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_registry_lists.py KratosMultiphysics/MeshingApplication/python_registry_lists.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

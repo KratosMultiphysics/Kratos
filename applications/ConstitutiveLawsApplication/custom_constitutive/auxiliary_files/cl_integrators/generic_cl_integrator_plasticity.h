@@ -243,8 +243,8 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Vector& rPlasticStrain
         )
     {
-        array_1d<double, VoigtSize> deviator = ZeroVector(6);
-        array_1d<double, VoigtSize> h_capa = ZeroVector(6);
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> h_capa = ZeroVector(VoigtSize);
         double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
 
         YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);

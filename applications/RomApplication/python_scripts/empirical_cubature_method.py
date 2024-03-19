@@ -17,7 +17,7 @@ class EmpiricalCubatureMethod():
     def __init__(
         self,
         ECM_tolerance = 0,
-        Filter_tolerance = 1e-16,
+        Filter_tolerance = 0,
         Plotting = False,
         MaximumNumberUnsuccesfulIterations = 100
     ):
@@ -147,7 +147,7 @@ class EmpiricalCubatureMethod():
         self.success = True
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and np.size(self.y) != 0:
 
-            if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag:
+            if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag and hasattr(self, 'y_complement'):
                 ExpandedSetFlag = self.expand_candidates_with_complement()
 
             #Step 1. Compute new point
@@ -157,7 +157,7 @@ class EmpiricalCubatureMethod():
                 i = int(self.y)
             else:
                 ObjFun = self.G[:,self.y].T @ self.r.T
-                ObjFun = ObjFun.T / self.GnormNOONE[self.y]
+                ObjFun = ObjFun.T #/ self.GnormNOONE[self.y]
                 indSORT = np.argmax(ObjFun)
                 i = self.y[indSORT]
             if k==1:
@@ -174,8 +174,12 @@ class EmpiricalCubatureMethod():
 
             #self.y = np.delete(self.y,indSORT)
             if np.size(self.y)==1:
-                self.expand_candidates_with_complement()
-                self.y = np.delete(self.y,indSORT)
+                if hasattr(self, 'y_complement'):
+                    self.expand_candidates_with_complement()
+                    self.y = np.delete(self.y,indSORT)
+                else:
+                    self.success = False
+                    break
             else:
                 self.y = np.delete(self.y,indSORT)
 
@@ -218,7 +222,7 @@ class EmpiricalCubatureMethod():
             MaximumLengthZ = max(MaximumLengthZ, np.size(self.z))
             k = k+1
 
-            if k-MaximumLengthZ>1000:
+            if k-MaximumLengthZ>1000 and ExpandedSetFlag:
                 """
                 this means using the initial candidate set, it was impossible to obtain a set of positive weights.
                 Try again without constraints!!!

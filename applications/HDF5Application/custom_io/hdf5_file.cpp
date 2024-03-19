@@ -795,9 +795,9 @@ bool File::HasDataType(const std::string& rPath) const
     if constexpr(std::is_same_v<TDataType, int>) {
         return type == H5T_INTEGER;
     } else if constexpr(std::is_same_v<TDataType, double>) {
-        return (type == H5T_FLOAT);
+        return type == H5T_FLOAT;
     } else if constexpr(std::is_same_v<TDataType, char>) {
-        return (type == H5T_INTEGER);
+        return type == H5T_INTEGER;
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }

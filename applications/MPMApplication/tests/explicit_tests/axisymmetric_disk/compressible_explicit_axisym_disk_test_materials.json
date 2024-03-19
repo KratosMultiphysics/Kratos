@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "Initial_MPM_Material.Parts_disk",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticIsotropicAxisym2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"             : 1.0,
+                "MATERIAL_POINTS_PER_ELEMENT" : 1,
+                "DENSITY"               : 10.0,
+                "YOUNG_MODULUS"         : 4000.0,
+                "POISSON_RATIO"         : 0.29
+            },
+            "Tables"           : {}
+        }
+    }]
+}

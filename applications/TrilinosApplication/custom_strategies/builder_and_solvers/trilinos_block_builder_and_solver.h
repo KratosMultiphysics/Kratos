@@ -322,11 +322,93 @@ public:
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void SystemSolve(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+        double norm_b;
+        if (TSparseSpace::Size(rb) != 0) {
+            norm_b = TSparseSpace::TwoNorm(rb);
+        } else {
+            norm_b = 0.0;
+        }
+
+        if (norm_b != 0.0) {
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        // Reference to T
+        const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
+
+        // If there are master-slave constraints
+        if(TSparseSpace::Size1(r_T) != 0) {
+            // Recover solution of the original problem
+            TSystemVectorType Dxmodified(rDx);
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+        }
+
+        // Prints information about the current time
+        KRATOS_INFO_IF("TrilinosResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
      */
     void SystemSolveWithPhysics(TSystemMatrixType& rA,
+                                TSystemVectorType& rDx,
+                                TSystemVectorType& rb,
+                                ModelPart& rModelPart
+                                )
+    {
+        KRATOS_TRY
+
+        // If considering MPC
+        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
+            TSystemVectorType Dxmodified(rb);
+
+            // Initialize the vector
+            TSparseSpace::SetToZero(Dxmodified);
+
+            InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
+
+            // Reference to T
+            const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
+
+            // Recover solution of the original problem
+            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+        } else {
+            InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    void InternalSystemSolveWithPhysics(TSystemMatrixType& rA,
                                 TSystemVectorType& rDx,
                                 TSystemVectorType& rb,
                                 ModelPart& rModelPart)
@@ -591,7 +673,7 @@ public:
     }
 
     /**
-     * @brief Organises the dofset in order to speed up the building phase
+     * @brief Organizes the DoF set in order to speed up the building phase
      *          Sets equation id for degrees of freedom
      * @param rModelPart The model part of the problem to solve
      */
@@ -604,28 +686,32 @@ public:
         const int world_size = r_data_comm.Size();
 
         // Calculating number of fixed and free dofs
-        for (const auto& r_dof : BaseType::mDofSet)
-            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
+        for (const auto& r_dof : BaseType::mDofSet) {
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
                 free_size++;
+            }
+        }
 
         // Calculating the total size and required offset
         int free_offset;
         int global_size;
 
-        // The correspounding offset by the sum of the sizes in thread with
+        // The corresponding offset by the sum of the sizes in thread with
         // inferior current_rank
         free_offset = r_data_comm.ScanSum(free_size);
 
         // The total size by the sum of all size in all threads
         global_size = r_data_comm.SumAll(free_size);
 
-        // Finding the offset for the begining of the partition
+        // Finding the offset for the beginning of the partition
         free_offset -= free_size;
 
         // Now setting the equation id with .
-        for (auto& r_dof : BaseType::mDofSet)
-            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank)
+        for (auto& r_dof : BaseType::mDofSet) {
+            if (r_dof.GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
                 r_dof.SetEquationId(free_offset++);
+            }
+        }
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
@@ -651,7 +737,7 @@ public:
     /**
      * @brief Resizes the system matrix and the vector according to the number
      * of dos in the current rModelPart. This function also decides on the
-     * sparsity pattern and the graph of the trilinos csr matrix
+     * sparsity pattern and the graph of the Trilinos csr matrix
      * @param pScheme The integration scheme considered
      * @param rpA The LHS matrix
      * @param rpDx The Unknowns vector
@@ -692,7 +778,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     void CalculateReactions(
@@ -916,7 +1002,7 @@ public:
 
             // Compute T' A T
             const TSystemMatrixType copy_A(rA);
-            TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, false, true);
+            TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
 
             // Compute T' b
             const TSystemVectorType copy_b(rb);
@@ -1143,14 +1229,14 @@ protected:
 
             // Adding diagonal values
             int ierr;
-            std::vector<int> index_diagonal(1, 0);
+            int index_diagonal[1] = {0};
             for (IndexType i = 0; i < number_of_local_rows; ++i) {
                 index_diagonal[0] = mFirstMyId + i;
-                ierr = Tgraph.InsertGlobalIndices(1, index_diagonal.data(), 1, index_diagonal.data());
+                ierr = Tgraph.InsertGlobalIndices(1, index_diagonal, 1, index_diagonal);
                 KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
             }
 
-            // Vector containing indices belonging to slave DoFs, not used for graph, but for master/slave index identifiaction
+            // Vector containing indices belonging to slave DoFs, not used for graph, but for master/slave index identification
             std::unordered_set<std::size_t> indices;
 
             // TODO: Check if these should be local constraints
@@ -1175,17 +1261,35 @@ protected:
 
                 // Adding cross master-slave dofs
                 if (num_active_slave_indices > 0 && num_active_master_indices > 0) {
-                    std::vector<int> slave_index(1, 0);
+                    int slave_index[1] = {0};
                     for (IndexType i = 0; i < num_active_slave_indices; ++i) {
                         slave_index[0] = temp_primary[i];
                         indices.insert(temp_primary[i]);
-                        ierr = Tgraph.InsertGlobalIndices(1, slave_index.data(), num_active_master_indices, temp_secondary.data());
+                        ierr = Tgraph.InsertGlobalIndices(1, slave_index, num_active_master_indices, temp_secondary.data());
                         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                     }
                 }
                 std::fill(temp_primary.begin(), temp_primary.begin() + num_active_slave_indices, 0);
                 std::fill(temp_secondary.begin(), temp_secondary.begin() + num_active_master_indices, 0);
             }
+
+            // Finalizing graph construction
+            ierr = Tgraph.GlobalAssemble();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
+            ierr = Tgraph.FillComplete();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
+            ierr = Tgraph.OptimizeStorage();
+            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.OptimizeStorage. Error code: " << ierr << std::endl;
+
+            // Generate a new matrix pointer according to this non-zero values
+            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
+
+            // Swap matrix
+            mpT.swap(p_new_T);
+
+            // Generate the constant vector equivalent
+            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(r_map));
+            mpConstantVector.swap(p_new_constant_vector);
 
             /* Fill ids for master/slave */
 
@@ -1228,26 +1332,14 @@ protected:
             for (IndexType i = 0; i < number_of_local_rows; ++i) {
                 temp_master_ids.insert(mFirstMyId + i);
             }
-            for (auto id_slave : mSlaveIds) {
-                temp_master_ids.erase(id_slave);
+
+            // Remove ids
+            for (auto id_slave_vector : auxiliary_slave_ids) {
+                for (auto id_slave : id_slave_vector) {
+                    temp_master_ids.erase(id_slave);
+                }
             }
             mMasterIds = std::vector<IndexType>(temp_master_ids.begin(), temp_master_ids.end());
-
-            // Finalizing graph construction
-            ierr = Tgraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
-            ierr = Tgraph.FillComplete();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
-
-            // Generate a new matrix pointer according to this non-zero values
-            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
-
-            // Swap matrix
-            mpT.swap(p_new_T);
-
-            // Generate the constant vector equivalent
-            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(r_map));
-            mpConstantVector.swap(p_new_constant_vector);
 
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
@@ -1261,7 +1353,7 @@ protected:
     {
         KRATOS_TRY
 
-        // Reference of the matrix and vectpr
+        // Reference of the matrix and vector
         auto& r_T = GetConstraintRelationMatrix();
         auto& r_constant_vector = GetConstraintConstantVector();
 
@@ -1289,6 +1381,7 @@ protected:
 
         // We clear the set
         mInactiveSlaveDofs.clear();
+        std::size_t num_inactive_slave_dofs_other_partitions = 0;
 
         // Iterate over the constraints
         for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
@@ -1307,24 +1400,30 @@ protected:
                         mInactiveSlaveDofs.insert(slave_id);
                     } else {
                         auxiliary_inactive_slave_ids[index_rank].insert(slave_id);
+                        ++num_inactive_slave_dofs_other_partitions;
                     }
                 }
             }
         }
 
+        // Compute total number of inactive slave dofs in other partitions
+        num_inactive_slave_dofs_other_partitions = r_data_comm.SumAll(num_inactive_slave_dofs_other_partitions);
+
         // Now we pass the info between partitions
-        const int tag_sync_inactive_slave_id = 0;
-        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-            if (i_rank != current_rank) {
-                std::vector<IndexType> receive_inactive_slave_ids_vector;
-                r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
-                mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
-            } else {
-                for (int j_rank = 0; j_rank < world_size; ++j_rank) {
-                    if (j_rank != current_rank) {
-                        const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
-                        std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
-                        r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
+        if (num_inactive_slave_dofs_other_partitions > 0) {
+            const int tag_sync_inactive_slave_id = 0;
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                if (i_rank != current_rank) {
+                    std::vector<IndexType> receive_inactive_slave_ids_vector;
+                    r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
+                    mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
+                } else {
+                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
+                        if (j_rank != current_rank) {
+                            const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
+                            std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
+                            r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
+                        }
                     }
                 }
             }
@@ -1451,10 +1550,10 @@ protected:
 
             // First adding the pure slave dofs
             if (num_active_slave_indices > 0) {
-                std::vector<int> index(1, 0);
+                int index[1] = {0};
                 for (IndexType i = 0; i < num_active_slave_indices; ++i) {
                     index[0] = temp_primary[i];
-                    ierr = Agraph.InsertGlobalIndices(1, index.data(), 1, index.data());
+                    ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
                     KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
                 // Now adding cross master-slave dofs
@@ -1465,10 +1564,10 @@ protected:
             }
             // Second adding pure master dofs
             if (num_active_master_indices > 0) {
-                std::vector<int> index(1, 0);
+                int index[1] = {0};
                 for (IndexType i = 0; i < num_active_master_indices; ++i) {
                     index[0] = temp_secondary[i];
-                    ierr = Agraph.InsertGlobalIndices(1, index.data(), 1, index.data());
+                    ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
                     KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
             }
@@ -1481,6 +1580,8 @@ protected:
         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
         ierr = Agraph.FillComplete();
         KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
+        ierr = Agraph.OptimizeStorage();
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.OptimizeStorage. Error code: " << ierr << std::endl;
 
         // Generate a new matrix pointer according to this graph
         TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));

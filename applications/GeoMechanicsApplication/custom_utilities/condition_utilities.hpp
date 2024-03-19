@@ -124,78 +124,21 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
-                                            const array_1d<double, TDim*TNumNodes>& UBlockVector)
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static double CalculateIntegrationCoefficient(const Matrix& rJacobian, double Weight)
     {
-        unsigned int Global_i, Local_i;
+        auto normal_vector = Vector{TDim, 0.0};
 
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
-            for (unsigned int idim = 0; idim < TDim; ++idim) {
-              rRightHandSideVector[Global_i + idim] += UBlockVector[Local_i + idim];
-            }
+        if constexpr (TDim == 2)
+        {
+            normal_vector = column(rJacobian, 0);
         }
-    }
-
-    //----------------------------------------------------------------------------------------
-    template< class TVectorType >
-    static inline void AssemblePBlockVector(Vector& rRightHandSideVector,
-                                            const TVectorType& PBlockVector,
-                                            const unsigned int& Dim,
-                                            const unsigned int& NumNodes)
-    {
-        unsigned int Global_i;
-
-        for (unsigned int i = 0; i < NumNodes; ++i) {
-            Global_i = i * (Dim + 1) + Dim;
-
-            rRightHandSideVector[Global_i] += PBlockVector[i];
+        else if constexpr (TDim == 3)
+        {
+            MathUtils<>::CrossProduct(normal_vector, column(rJacobian, 0),
+                                      column(rJacobian, 1));
         }
-    }
-
-    //----------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssembleUPMatrix(Matrix& rLeftHandSideMatrix,
-                                        const BoundedMatrix<double,TDim*TNumNodes,TNumNodes>& UPBlockMatrix)
-    {
-        //Quadrilateral_3d_4
-        unsigned int Global_i, Global_j, Local_i;
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Global_i = i * (TDim + 1);
-            Local_i = i * TDim;
-
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                Global_j = j * (TDim + 1) + TDim;
-                for (unsigned int idim = 0; idim < TDim; ++idim) {
-                   rLeftHandSideMatrix(Global_i+idim, Global_j) += UPBlockMatrix(Local_i+idim, j);
-                }
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------
-    template< unsigned int TDim, unsigned int TNumNodes >
-    static inline void AssemblePUMatrix(Matrix& rLeftHandSideMatrix,
-                                        const BoundedMatrix<double,TNumNodes,TDim*TNumNodes>& PUBlockMatrix)
-    {
-        //Quadrilateral_3d_4
-        unsigned int Global_i, Global_j, Local_j;
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Global_i = i * (TDim + 1) + TDim;
-
-            for (unsigned int j = 0; j < TNumNodes; ++j) {
-                Global_j = j * (TDim + 1);
-                Local_j = j * TDim;
-                for (unsigned int idim = 0; idim < TDim; ++idim) {
-                    rLeftHandSideMatrix(Global_i, Global_j+idim) += PUBlockMatrix(i, Local_j+idim);
-                }
-            }
-        }
+        return Weight * MathUtils<>::Norm(normal_vector);
     }
 
 }; /* Class ConditionUtilities*/
