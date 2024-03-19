@@ -38,7 +38,7 @@ bool FluidMeshUtilities::AllElementsAreSimplex(const ModelPart& rModelPart)
     // Compute the total number of simplex elements in the mesh
     const auto& r_comm = rModelPart.GetCommunicator();
     const auto& r_elems = r_comm.LocalMesh().Elements();
-    n_simplex = block_for_each<SumReduction<IndexType>>(r_elems, [](const Element& rElement){
+    n_simplex = block_for_each<SumReduction<IndexType>>(r_elems, [](const auto& rElement){
         const auto& r_geometry = rElement.GetGeometry();
         return r_geometry.LocalSpaceDimension() + 1 == r_geometry.PointsNumber() ? 1 : 0;
     });
