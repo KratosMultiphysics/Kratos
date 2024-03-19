@@ -55,6 +55,8 @@ protected:
             UpdateVectorTimeDerivatives(rNode);
 
             for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                if (rNode.IsFixed(r_first_order_scalar_variable.first_time_derivative)) continue;
+
                 rNode.FastGetSolutionStepValue(r_first_order_scalar_variable.first_time_derivative) =
                     CalculateDerivative(r_first_order_scalar_variable.instance, rNode);
             }
