@@ -207,8 +207,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
+    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
@@ -218,8 +218,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
+    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
@@ -228,7 +228,7 @@ public:
     */
     void RotateLHS(
         MatrixType &rLHS,
-        const GeometryType &rGeometry);
+        const GeometryType &rGeometry) override;
 
     /**
      * @brief This function rotates the RHS from local to global coordinates
@@ -237,7 +237,7 @@ public:
     */
     void RotateRHS(
         VectorType &rRHS,
-        const GeometryType &rGeometry);
+        const GeometryType &rGeometry) override;
 
     /**
      * @brief This function rotates the LHS and RHS from local to global coordinates
@@ -248,7 +248,7 @@ public:
     void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS,
-        const GeometryType &rGeometry);
+        const GeometryType &rGeometry) override;
 
     ///@}
     ///@name Access

@@ -383,17 +383,17 @@ void TimoshenkoBeamElement2D3N::RotateLHS(
     const GeometryType& rGeometry
 )
 {
-    // const double angle = StructuralMechanicsElementUtilities::
-    //     GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
 
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T, Tt;
-    //     BoundedMatrix<double, 6, 6> global_size_T, aux_product;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
-    //     noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    //     noalias(rLHS) = prod(global_size_T, aux_product);
-    // }
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T, Tt;
+        BoundedMatrix<double, 9, 9> global_size_T, aux_product;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
+    }
 }
 
 /***********************************************************************************/
@@ -404,18 +404,18 @@ void TimoshenkoBeamElement2D3N::RotateRHS(
     const GeometryType& rGeometry
 )
 {
-    // const double angle = StructuralMechanicsElementUtilities::
-    //     GetReferenceRotationAngle2D2NBeam(GetGeometry());
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T;
-    //     BoundedMatrix<double, 6, 6> global_size_T;
-    //     BoundedVector<double, 6> local_rhs;
-    //     noalias(local_rhs) = rRHS;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T;
+        BoundedMatrix<double, 9, 9> global_size_T;
+        BoundedVector<double, 9> local_rhs;
+        noalias(local_rhs) = rRHS;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
-    //     noalias(rRHS) = prod(global_size_T, local_rhs);
-    // }
+        noalias(rRHS) = prod(global_size_T, local_rhs);
+    }
 }
 
 /***********************************************************************************/
@@ -427,21 +427,21 @@ void TimoshenkoBeamElement2D3N::RotateAll(
     const GeometryType& rGeometry
 )
 {
-    // const double angle = StructuralMechanicsElementUtilities::
-    //     GetReferenceRotationAngle2D2NBeam(GetGeometry());
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T;
-    //     BoundedMatrix<double, 6, 6> global_size_T, aux_product;
-    //     BoundedVector<double, 6> local_rhs;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T;
+        BoundedMatrix<double, 9, 9> global_size_T, aux_product;
+        BoundedVector<double, 9> local_rhs;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
-    //     noalias(local_rhs) = rRHS;
-    //     noalias(rRHS) = prod(global_size_T, local_rhs);
+        noalias(local_rhs) = rRHS;
+        noalias(rRHS) = prod(global_size_T, local_rhs);
 
-    //     noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    //     noalias(rLHS) = prod(global_size_T, aux_product);
-    // }
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
+    }
 }
 
 /***********************************************************************************/
