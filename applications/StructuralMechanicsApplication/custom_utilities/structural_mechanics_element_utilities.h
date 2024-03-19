@@ -299,5 +299,12 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
  */
 double GetReferenceRotationAngle2D2NBeam(GeometryType &rGeometry);
 
+/**
+ * @brief This function computes the inclination angle of a 3 noded beam
+ * @param rGeometry The geometry of the beam
+ * It assumes 3 dofs per node: u,v,theta
+ */
+double GetReferenceRotationAngle2D3NBeam(GeometryType &rGeometry);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

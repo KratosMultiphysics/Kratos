@@ -125,6 +125,14 @@ public:
     }
 
     /**
+     * @brief This method returns the length of the FE
+     */
+    virtual double GetAngle()
+    {
+        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    }
+
+    /**
      * @brief Returns a 6 component vector including the values of the DoFs
      * in LOCAL axes
      */

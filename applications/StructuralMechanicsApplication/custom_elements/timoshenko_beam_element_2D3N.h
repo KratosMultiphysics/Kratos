@@ -126,6 +126,14 @@ public:
     void GetNodalValuesVector(VectorType& rNodalValue) override;
 
     /**
+     * @brief This method returns the length of the FE
+     */
+    double GetAngle() override
+    {
+        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D3NBeam(GetGeometry());
+    }
+
+    /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter

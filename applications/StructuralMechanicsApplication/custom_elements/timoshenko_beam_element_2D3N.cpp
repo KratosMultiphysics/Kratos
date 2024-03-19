@@ -290,8 +290,7 @@ void TimoshenkoBeamElement2D3N::GetNodalValuesVector(VectorType& rNodalValues)
         rNodalValues.resize(9, false);
     const auto &r_geom = GetGeometry();
 
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
@@ -383,8 +382,7 @@ void TimoshenkoBeamElement2D3N::RotateLHS(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T, Tt;
@@ -404,8 +402,7 @@ void TimoshenkoBeamElement2D3N::RotateRHS(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 9, 9> global_size_T;
@@ -427,8 +424,7 @@ void TimoshenkoBeamElement2D3N::RotateAll(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 9, 9> global_size_T, aux_product;

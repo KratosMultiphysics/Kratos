@@ -324,8 +324,7 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         rNodalValues.resize(6, false);
     const auto &r_geom = GetGeometry();
 
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
@@ -425,7 +424,7 @@ array_1d<double, 3> TimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
     const IndexType PointNumber
     )
 {
-    const double angle = StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
@@ -792,8 +791,7 @@ void TimoshenkoBeamElement2D2N::RotateLHS(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
 
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T, Tt;
@@ -813,8 +811,7 @@ void TimoshenkoBeamElement2D2N::RotateRHS(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 6, 6> global_size_T;
@@ -836,8 +833,7 @@ void TimoshenkoBeamElement2D2N::RotateAll(
     const GeometryType& rGeometry
 )
 {
-    const double angle = StructuralMechanicsElementUtilities::
-        GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = GetAngle();
     if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
         BoundedMatrix<double, 3, 3> T;
         BoundedMatrix<double, 6, 6> global_size_T, aux_product;
