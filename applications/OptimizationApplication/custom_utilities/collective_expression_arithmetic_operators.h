@@ -47,14 +47,6 @@ KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveExpression operator/(const double
 
 KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveExpression operator/(const CollectiveExpression& rLeft, const CollectiveExpression& rRight);
 
-KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveExpression Power(const double Base, const CollectiveExpression& rExponent);
-
-KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveExpression Power(const CollectiveExpression& rBase, const double Exponent);
-
-KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveExpression Power(const CollectiveExpression& rBase, const CollectiveExpression& Exponent);
-
-KRATOS_API(OPTIMIZATION_APPLICATION) CollectiveExpression Scale(const CollectiveExpression& rLeft, const CollectiveExpression& rRight);
-
 /// @}
 
 

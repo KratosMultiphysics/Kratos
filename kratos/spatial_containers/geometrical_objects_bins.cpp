@@ -71,7 +71,7 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    std::unordered_set<GeometricalObject*> results;
+    std::unordered_map<GeometricalObject*, double> results;
 
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
@@ -90,8 +90,10 @@ void GeometricalObjectsBins::SearchInRadius(
     }
 
     rResults.clear();
-    for(auto p_object : results){
-        rResults.push_back(ResultType(p_object));
+    rResults.reserve(results.size());
+    for(auto& object : results){
+        rResults.push_back(ResultType(object.first));
+        rResults.back().SetDistance(object.second);
     }
 }
 
@@ -220,28 +222,34 @@ bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
 
 void GeometricalObjectsBins::CalculateCellSize(const std::size_t NumberOfCells)
 {
-    const std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
+    const std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
     std::array<double, Dimension> lengths;
-    double avarage_length = 0.0;
+    double average_length = 0.0;
     for (unsigned int i = 0; i < Dimension; i++) {
         lengths[i] = mBoundingBox.GetMaxPoint()[i] - mBoundingBox.GetMinPoint()[i];
-        avarage_length += lengths[i];
+        average_length += lengths[i];
     }
-    avarage_length *= 0.33333333333333333333333333333333;
+    average_length *= 0.33333333333333333333333333333333;
 
-    if (avarage_length < std::numeric_limits<double>::epsilon()) {
+    if (average_length < std::numeric_limits<double>::epsilon()) {
         mNumberOfCells = ScalarVector(3, 1);
+        for (unsigned int i = 0; i < Dimension; i++) {
+            mNumberOfCells[i] = 0;
+            mCellSizes[i] = 0.0;
+            mInverseOfCellSize[i] = std::numeric_limits<double>::max();
+        }
         return;
     }
 
     for (unsigned int i = 0; i < Dimension; i++) {
-        mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / avarage_length * avarage_number_of_cells) + 1;
-        if (mNumberOfCells[i] > 1)
+        mNumberOfCells[i] = static_cast<std::size_t>(lengths[i] / average_length * average_number_of_cells) + 1;
+        if (mNumberOfCells[i] > 1) {
             mCellSizes[i] = lengths[i] / mNumberOfCells[i];
-        else
-            mCellSizes[i] = avarage_length;
+        } else {
+            mCellSizes[i] = average_length;
+        }
 
-        mInverseOfCellSize[i] = 1.00 / mCellSizes[i];
+        mInverseOfCellSize[i] = 1.0 / mCellSizes[i];
     }
 
 }
@@ -270,7 +278,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
     const CellType& rCell,
     const PointType& rPoint,
     const double Radius,
-    std::unordered_set<GeometricalObject*>& rResults
+    std::unordered_map<GeometricalObject*, double>& rResults
     )
 {
     double distance = 0.0;
@@ -278,7 +286,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
         auto& r_geometry = p_geometrical_object->GetGeometry();
         distance = r_geometry.CalculateDistance(rPoint, mTolerance);
         if((Radius + mTolerance) > distance){
-            rResults.insert(p_geometrical_object);
+            rResults.insert({p_geometrical_object, distance});
         }
     }
 }

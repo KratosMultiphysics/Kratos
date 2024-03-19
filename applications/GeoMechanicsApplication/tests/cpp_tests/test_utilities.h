@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 namespace Kratos::Testing
 {
@@ -20,7 +21,8 @@ namespace Kratos::Testing
 class TestUtilities
 {
 public:
-    static bool CompareFiles(const std::string& p1, const std::string& p2);
+    static bool CompareFiles(const std::filesystem::path& rPath1,
+                             const std::filesystem::path& rPath2);
 };
 
 }

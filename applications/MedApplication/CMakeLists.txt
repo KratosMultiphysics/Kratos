@@ -79,6 +79,33 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosMedCore DESTINATION libs )
 install(TARGETS KratosMedApplication DESTINATION libs )
 
+file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP)
+file(TO_CMAKE_PATH "${MED_ROOT}/lib" MED_ROOT_DEP)
+
+# Track down DLL and install them along with Kratos libs.
+# This is disabled until I can make it work in linux. Please do not delete it.
+# install(CODE "set(HDF5_ROOT_DEP \"${HDF5_ROOT_DEP}\")")
+# install(CODE "set(MED_ROOT_DEP \"${MED_ROOT_DEP}\")")
+# install(CODE [[
+#   file(GET_RUNTIME_DEPENDENCIES
+#     RESOLVED_DEPENDENCIES_VAR RES
+#     UNRESOLVED_DEPENDENCIES_VAR UNRES
+#     CONFLICTING_DEPENDENCIES_PREFIX CONFLICTING_DEPENDENCIES
+#     DIRECTORIES ${HDF5_ROOT_DEP} ${MED_ROOT_DEP}
+#     LIBRARIES $<TARGET_FILE:KratosMedCore>
+#     PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+#     POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+#   )
+
+#   foreach(_file ${RES})
+#     file(INSTALL
+#       DESTINATION "${CMAKE_INSTALL_PREFIX}/libs"
+#       TYPE SHARED_LIBRARY
+#       FILES "${_file}"
+#     )
+#   endforeach()
+# ]])
+
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMedCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMedApplication" PARENT_SCOPE)

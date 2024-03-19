@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "testing/testing.h"
 
 namespace Kratos
 {
@@ -47,8 +48,8 @@ class Model;
  * @ingroup KratosCore
  * @brief This namespace includes utilities for simplifying the deploy of C++ tests
  * @details The following method are implemented :
- * - Create2DGeometry: Creates a simple mesh of triangles 
- * - Create3DGeometry: Creates a simple mesh of tetrahedra 
+ * - Create2DGeometry: Creates a simple mesh of triangles
+ * - Create3DGeometry: Creates a simple mesh of tetrahedra
  * @author Vicente Mataix Ferrandiz
  */
 namespace CppTestsUtilities
@@ -124,9 +125,23 @@ namespace CppTestsUtilities
      * @param Initialize If initialize the elements
      */
     void KRATOS_API(KRATOS_CORE) Create3DQuadraticGeometry(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         const std::string& rElementName = "Element3D10N",
         const bool Initialize = true
+        );
+
+    /**
+     * @brief This method creates a simple geometry sphere of triangles
+     * @param rModelPart Reference to the ModelPart containing the problem
+     * @param rConditionName The condition name considered
+     * @param Radius The radius of the sphere
+     * @param rCenter The center of the sphere
+     */
+    void KRATOS_API(KRATOS_CORE) CreateSphereTriangularMesh(
+        ModelPart& rModelPart,
+        const std::string& rConditionName = "SurfaceCondition3D3N",
+        const double Radius = 0.25,
+        const std::array<double, 3>& rCenter = {0.0, 0.0, 0.0}
         );
 
     /**
@@ -143,7 +158,7 @@ namespace CppTestsUtilities
         const double HalfX = 0.6,
         const double HalfY = 0.9,
         const double HalfZ = 0.3,
-        const DataCommunicator& rDataCommunicator = DataCommunicator::GetDefault()
+        const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
         );
 
     /**
@@ -154,7 +169,7 @@ namespace CppTestsUtilities
      */
     KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeModelPart(
         Model& rCurrentModel,
-        const DataCommunicator& rDataCommunicator = DataCommunicator::GetDefault()
+        const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
         );
 
 }; // namespace CppTestsUtilities
