@@ -79,19 +79,29 @@ Element::Pointer TimoshenkoBeamElement2D3N::Clone(
 
 void TimoshenkoBeamElement2D3N::GetShapeFunctionsValues(
     VectorType& rN,
-    const double Length,
+    const double L,
     const double Phi,
     const double xi
     )
 {
-    // if (rN.size() != 4)
-    //     rN.resize(4, false);
-    // const double one_plus_phi = 1.0 + Phi;
-    // const double xi_square = xi * xi;
-    // rN[0] = (xi - 1.0) * (xi + xi_square - 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
-    // rN[1] = (1.0 - xi_square) * (1.0 - xi + Phi) * Length / (8.0 * one_plus_phi);
-    // rN[2] = (1.0 + xi) * (xi - xi_square + 2.0 * one_plus_phi) / (4.0 * one_plus_phi);
-    // rN[3] = (xi_square - 1.0) * (1.0 + xi + Phi) * Length / (8.0 * one_plus_phi);
+    if (rN.size() != 6)
+        rN.resize(6, false);
+    const double xi_square = std::pow(xi, 2);
+    const double xi_cube   = std::pow(xi, 3);
+    const double xi_quad   = std::pow(xi, 4);
+    const double xi_quint  = std::pow(xi, 5);
+    const double Phi_square = std::pow(Phi, 2);
+
+    const double denom1 = 80.0 * Phi_square - 20.0 * Phi - 4.0;
+    const double denom2 = 32.0 * Phi + 8.0;
+    const double denom3 = 160.0 * Phi_square - 40.0 * Phi - 8.0;
+
+    rN[0] = (-40.0 * std::pow(Phi, 2) - 10.0 * Phi) / denom1 * xi + (16.0 * Phi + 8.0) / denom2 * xi_square + (40.0 * Phi + 10.0) / denom3 * xi_cube + (-4.0) / denom2 * xi_quad + (-6.0) / denom3 * xi_quint;
+    rN[1] = (-L * Phi) / denom1 * xi + L / denom2 * xi_square + L / denom3 * xi_cube + (-L) / denom2 * xi_quad + (2.0 * L * Phi - L) / denom3 * xi_quint;
+    rN[2] = 1.0 + (-32.0 * Phi - 16.0) / denom2 * xi_square + 8.0 / denom2 * xi_quad;
+    rN[3] = (-18.0 * L * Phi - 2.0 * L) / denom1 * xi + (40.0 * L * Phi + 8.0 * L) / denom3 * xi_cube + (-4.0 * L * Phi - 4.0 * L) / denom3 * xi_quint;
+    rN[4] = (40.0 * std::pow(Phi, 2) + 10.0 * Phi) / denom1 * xi + (16.0 * Phi + 8.0) / denom2 * xi_square + (-40.0 * Phi - 10.0) / denom3 * xi_cube + (-4.0) / denom2 * xi_quad + 6.0 / denom3 * xi_quint;
+    rN[5] = (-L * Phi) / denom1 * xi + (-L) / denom2 * xi_square + L / denom3 * xi_cube + L / denom2 * xi_quad + (2.0 * L * Phi - L) / denom3 * xi_quint;
 }
 
 /***********************************************************************************/
@@ -99,19 +109,25 @@ void TimoshenkoBeamElement2D3N::GetShapeFunctionsValues(
 
 void TimoshenkoBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
     VectorType& rN,
-    const double Length,
+    const double L,
     const double Phi,
     const double xi
     )
 {
-    // if (rN.size() != 4)
-    //     rN.resize(4, false);
-    // const double one_plus_phi = 1.0 + Phi;
-    // const double xi_square = xi * xi;
-    // rN[0] = (-6.0 + 6.0 * xi_square - 4.0 * Phi) / (4.0 * one_plus_phi * Length);
-    // rN[1] = (-1.0 + 3.0 * xi_square - 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
-    // rN[2] = (6.0 - 6.0 * xi_square + 4.0 * Phi) / (4.0 * one_plus_phi * Length);
-    // rN[3] = (-1.0 + 3.0 * xi_square + 2.0 * xi * one_plus_phi) / (4.0 * one_plus_phi);
+    if (rN.size() != 6)
+        rN.resize(6, false);
+
+    const double xi_square = std::pow(xi, 2);
+    const double xi_cube   = std::pow(xi, 3);
+    const double xi_quad   = std::pow(xi, 4);
+    const double Phi_square = std::pow(Phi, 2);
+
+    rN[0] = -30.0 * xi_quad / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 16.0 * xi_cube / (32.0 * Phi + 8.0) + 3.0 * xi_square * (40.0 * Phi + 10.0) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 2.0 * xi * (16.0 * Phi + 8.0) / (32.0 * Phi + 8.0) + (-40.0 * Phi_square - 10.0 * Phi) / (80.0 * Phi_square - 20.0 * Phi - 4.0);
+    rN[1] = -L * Phi / (80.0 * Phi_square - 20.0 * Phi - 4.0) - 4.0 * L * xi_cube / (32.0 * Phi + 8.0) + 3.0 * L * xi_square / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 2.0 * L * xi / (32.0 * Phi + 8.0) + 5 * xi_quad * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
+    rN[2] = 32.0 * xi_cube / (32.0 * Phi + 8.0) + 2.0 * xi * (-32.0 * Phi - 16.0) / (32.0 * Phi + 8.0);
+    rN[3] = 5.0 * xi_quad * (-4.0 * L * Phi - 4.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 3.0 * xi_square * (40.0 * L * Phi + 8.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + (-18.0 * L * Phi - 2.0 * L) / (80.0 * Phi_square - 20.0 * Phi - 4.0);
+    rN[4] = 30.0 * xi_quad / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 16.0 * xi_cube / (32.0 * Phi + 8.0) + 3.0 * xi_square * (-40.0 * Phi - 10.0) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 2.0 * xi * (16.0 * Phi + 8.0) / (32.0 * Phi + 8.0) + (40.0 * Phi_square + 10.0 * Phi) / (80.0 * Phi_square - 20.0 * Phi - 4.0);
+    rN[5] = -L * Phi / (80.0 * Phi_square - 20.0 * Phi - 4.0) + 4 * L * xi_cube / (32.0 * Phi + 8.0) + 3.0 * L * xi_square / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 2.0 * L * xi / (32.0 * Phi + 8.0) + 5.0 * xi_quad * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
 }
 
 /***********************************************************************************/
