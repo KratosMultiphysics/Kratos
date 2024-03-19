@@ -25,12 +25,12 @@ void NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(Node& rNode,
     const std::vector<std::string> components = {"X", "Y", "Z"};
     int                            counter    = 0;
     for (const auto& component : components) {
-        const auto& component_variable =
-            VariablesUtilities::GetComponentFromVectorVariable(rDestinationVariable, component);
-
-        if (!rNode.IsFixed(component_variable)) {
+        if (const auto& component_variable =
+                VariablesUtilities::GetComponentFromVectorVariable(rDestinationVariable, component);
+            !rNode.IsFixed(component_variable)) {
             rNode.FastGetSolutionStepValue(component_variable, 0) = rSourceVector[counter];
         }
+        
         counter++;
     }
 }
