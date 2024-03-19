@@ -31,6 +31,7 @@ namespace Kratos
 namespace HDF5
 {
 
+// TODO: rename this namespace once HDF5 refactoring is complete
 namespace NewContainerComponentIOUtilities
 {
 template<class TContainerType>
