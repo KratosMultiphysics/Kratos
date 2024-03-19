@@ -264,7 +264,7 @@ void UpdatedLagrangian::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure(), is_rotated);
 
         // Calculating weights for integration on the reference configuration
