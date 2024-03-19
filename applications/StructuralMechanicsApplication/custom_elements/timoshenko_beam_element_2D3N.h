@@ -105,6 +105,12 @@ public:
         return Kratos::make_intrusive<TimoshenkoBeamElement2D3N>(NewId, pGeom, pProperties);
     }
 
+    /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Operators
     ///@{
