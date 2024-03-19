@@ -232,38 +232,44 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctionsValues(
 
 void TimoshenkoBeamElement2D3N::GetNodalValuesVector(VectorType& rNodalValues)
 {
-    // if (rNodalValues.size() != 6)
-    //     rNodalValues.resize(6, false);
-    // const auto &r_geom = GetGeometry();
+    if (rNodalValues.size() != 9)
+        rNodalValues.resize(9, false);
+    const auto &r_geom = GetGeometry();
 
-    // const double angle = StructuralMechanicsElementUtilities::
-    //     GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    const double angle = StructuralMechanicsElementUtilities::
+        GetReferenceRotationAngle2D2NBeam(GetGeometry());
 
-    // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-    //     BoundedMatrix<double, 3, 3> T;
-    //     BoundedVector<double, 6> global_values;
-    //     BoundedMatrix<double, 6, 6> global_size_T;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T;
+        BoundedVector<double, 9> global_values;
+        BoundedMatrix<double, 9, 9> global_size_T;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
-    //     global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    //     global_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    //     global_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-    //     global_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-    //     global_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    //     global_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+        global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        global_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        global_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+        global_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+        global_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        global_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+        global_values[6] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_X);
+        global_values[7] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        global_values[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
 
-    //     // We rotate to local axes
-    //     noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+        // We rotate to local axes
+        noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 
-    // } else {
-    //     rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    //     rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    //     rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-    //     rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-    //     rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    //     rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
-    // }
+    } else {
+        rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+        rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+        rNodalValues[6] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rNodalValues[7] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
+    }
 }
 
 /***********************************************************************************/
@@ -332,7 +338,7 @@ void TimoshenkoBeamElement2D3N::RotateLHS(
     // if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
     //     BoundedMatrix<double, 3, 3> T, Tt;
     //     BoundedMatrix<double, 6, 6> global_size_T, aux_product;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
     //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
     //     noalias(aux_product) = prod(rLHS, trans(global_size_T));
     //     noalias(rLHS) = prod(global_size_T, aux_product);
@@ -354,7 +360,7 @@ void TimoshenkoBeamElement2D3N::RotateRHS(
     //     BoundedMatrix<double, 6, 6> global_size_T;
     //     BoundedVector<double, 6> local_rhs;
     //     noalias(local_rhs) = rRHS;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
     //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
     //     noalias(rRHS) = prod(global_size_T, local_rhs);
@@ -376,7 +382,7 @@ void TimoshenkoBeamElement2D3N::RotateAll(
     //     BoundedMatrix<double, 3, 3> T;
     //     BoundedMatrix<double, 6, 6> global_size_T, aux_product;
     //     BoundedVector<double, 6> local_rhs;
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
     //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
     //     noalias(local_rhs) = rRHS;
