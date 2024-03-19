@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -555,8 +556,14 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(Matr
 {
     KRATOS_TRY;
 
-    this->CalculatePermeabilityMatrix(rVariables.PDimMatrix, rVariables.PPMatrix, rVariables);
+    // this->CalculatePermeabilityMatrix(rVariables.PDimMatrix, rVariables.PPMatrix, rVariables);
 
+    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
+        rVariables.PDimMatrix, rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
+        rVariables.PermeabilityMatrix, rVariables.IntegrationCoefficient);
+
+    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
+        rVariables.PPMatrix, rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor);
     // Distribute permeability block matrix into the elemental matrix
     rLeftHandSideMatrix += rVariables.PPMatrix;
 

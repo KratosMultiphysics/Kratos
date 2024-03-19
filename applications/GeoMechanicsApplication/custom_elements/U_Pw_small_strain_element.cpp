@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -960,8 +961,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
     // Defining shape functions at all integration points
     // Defining necessary variables
     BoundedMatrix<double, TDim, TNumNodes * TDim> Nut = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TNumNodes * TDim> AuxDensityMatrix =
-        ZeroMatrix(TDim, TNumNodes * TDim);
+    BoundedMatrix<double, TDim, TNumNodes * TDim> AuxDensityMatrix = ZeroMatrix(TDim, TNumNodes * TDim);
     BoundedMatrix<double, TDim, TDim> DensityMatrix = ZeroMatrix(TDim, TDim);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -1321,7 +1321,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(M
 {
     KRATOS_TRY
 
-    this->CalculatePermeabilityMatrix(rVariables.PDimMatrix, rVariables.PPMatrix, rVariables);
+    // this->CalculatePermeabilityMatrix(rVariables.PDimMatrix, rVariables.PPMatrix, rVariables);
+
+    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
+        rVariables.PDimMatrix, rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
+        rVariables.PermeabilityMatrix, rVariables.IntegrationCoefficient);
+
+    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
+        rVariables.PPMatrix, rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor);
 
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix);

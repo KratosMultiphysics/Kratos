@@ -14,6 +14,7 @@
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -596,12 +597,18 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) =
+    /*noalias(rVariables.PDimMatrix) =
         -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
     noalias(rVariables.PPMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
                                    prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
+                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;*/
+    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
+        rVariables.PDimMatrix, rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
+        rVariables.LocalPermeabilityMatrix, rVariables.IntegrationCoefficient);
+
+    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
+        rVariables.PPMatrix, rVariables.RelativePermeability, rVariables.JointWidth);
 
     // Distribute permeability block matrix into the elemental matrix
     rLeftHandSideMatrix += rVariables.PPMatrix;

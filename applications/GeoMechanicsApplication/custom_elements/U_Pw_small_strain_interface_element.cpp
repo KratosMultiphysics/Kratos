@@ -13,7 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include <custom_utilities/stress_strain_utilities.h>
 
 namespace Kratos
@@ -1921,12 +1921,19 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
 {
     KRATOS_TRY
 
-    noalias(rVariables.PDimMatrix) =
+    /*noalias(rVariables.PDimMatrix) =
         -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
     noalias(rVariables.PPMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
                                    prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
+                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;*/
+
+    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
+        rVariables.PDimMatrix, rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
+        rVariables.LocalPermeabilityMatrix, rVariables.IntegrationCoefficient);
+
+    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
+        rVariables.PPMatrix, rVariables.RelativePermeability, rVariables.JointWidth);
 
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix);
@@ -2483,12 +2490,18 @@ template class UPwSmallStrainInterfaceElement<2, 4>;
 template class UPwSmallStrainInterfaceElement<3, 6>;
 template class UPwSmallStrainInterfaceElement<3, 8>;
 
-template void UPwSmallStrainInterfaceElement<2, 4>::InterpolateOutputValues<array_1d<double, 3>>(std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
-template void UPwSmallStrainInterfaceElement<3, 6>::InterpolateOutputValues<array_1d<double, 3>>(std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
-template void UPwSmallStrainInterfaceElement<3, 8>::InterpolateOutputValues<array_1d<double, 3>>(std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
+template void UPwSmallStrainInterfaceElement<2, 4>::InterpolateOutputValues<array_1d<double, 3>>(
+    std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 6>::InterpolateOutputValues<array_1d<double, 3>>(
+    std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 8>::InterpolateOutputValues<array_1d<double, 3>>(
+    std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
 
-template void UPwSmallStrainInterfaceElement<2, 4>::InterpolateOutputValues<Matrix>(std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
-template void UPwSmallStrainInterfaceElement<3, 6>::InterpolateOutputValues<Matrix>(std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
-template void UPwSmallStrainInterfaceElement<3, 8>::InterpolateOutputValues<Matrix>(std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
+template void UPwSmallStrainInterfaceElement<2, 4>::InterpolateOutputValues<Matrix>(
+    std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 6>::InterpolateOutputValues<Matrix>(
+    std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 8>::InterpolateOutputValues<Matrix>(
+    std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
 
 } // namespace Kratos
