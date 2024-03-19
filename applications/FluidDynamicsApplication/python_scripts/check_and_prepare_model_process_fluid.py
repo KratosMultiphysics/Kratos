@@ -5,7 +5,7 @@ from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return CheckAndPrepareModelProcess(Model, settings["Parameters"])
+    return CheckAndPrepareModelProcessFluid(Model, settings["Parameters"])
 
 class CheckAndPrepareModelProcessFluid(KratosMultiphysics.Process):
     def __init__(self, model, parameters):
