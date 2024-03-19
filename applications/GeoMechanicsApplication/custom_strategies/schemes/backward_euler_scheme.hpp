@@ -71,8 +71,11 @@ protected:
         for (const auto& r_second_order_vector_variable : this->GetSecondOrderVectorVariables()) {
             if (!rNode.SolutionStepsDataHas(r_second_order_vector_variable.instance)) continue;
 
-            rNode.FastGetSolutionStepValue(r_second_order_vector_variable.first_time_derivative) =
+            const auto updated_first_time_derivative =
                 CalculateDerivative(r_second_order_vector_variable.instance, rNode);
+
+            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+                rNode, r_second_order_vector_variable.first_time_derivative, updated_first_time_derivative);
 
             // Make sure that setting the second_time_derivative is done
             // after setting the first_time_derivative.

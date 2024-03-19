@@ -159,4 +159,25 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedSecondD
     KRATOS_EXPECT_VECTOR_NEAR(actual_acceleration, expected_acceleration, 1e-6)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedFirstDerivativeVectorVariable,
+                          KratosGeoMechanicsFastSuite)
+{
+    BackwardEulerUPwSchemeTester tester;
+
+    tester.mScheme.Initialize(tester.GetModelPart()); // This is needed to set the time factors
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+    tester.GetModelPart().Nodes()[0].Fix(VELOCITY_Y);
+
+    tester.mScheme.Update(tester.GetModelPart(), dof_set, A, Dx, b);
+
+    // first and last term should be updated, while the middle value is fixed
+    const auto expected_velocity = Kratos::array_1d<double, 3>{-1.75, 0.0, -2.25};
+
+    const auto actual_velocity = tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(VELOCITY, 0);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_velocity, expected_velocity, 1e-6)
+}
+
 } // namespace Kratos::Testing
