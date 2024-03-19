@@ -295,7 +295,7 @@ namespace Kratos::Testing {
         // Call method
         auto aux_util = AuxiliarModelPartUtilities(r_sub_model_part);
         std::vector<std::size_t> list_elements {{1, 2}};
-        aux_util.AddElementsWithNodesToSubModelParts(list_elements);
+        aux_util.AddElementsWithNodes(list_elements);
 
         // Check results
         KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfNodes() == 4);
@@ -316,7 +316,7 @@ namespace Kratos::Testing {
         // Call method
         auto aux_util = AuxiliarModelPartUtilities(r_sub_model_part);
         std::vector<std::size_t> list_conditions {{1, 2}};
-        aux_util.AddConditionsWithNodesToSubModelParts(list_conditions);
+        aux_util.AddConditionsWithNodes(list_conditions);
 
         // Check results
         KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfNodes() == 3);
