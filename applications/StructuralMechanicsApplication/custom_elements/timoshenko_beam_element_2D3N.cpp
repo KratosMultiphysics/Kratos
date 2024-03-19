@@ -183,6 +183,31 @@ void TimoshenkoBeamElement2D3N::GetThirdDerivativesShapeFunctionsValues(
     rN *= std::pow(2.0 / L, 3);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TimoshenkoBeamElement2D3N::GetFourthDerivativesShapeFunctionsValues(
+    VectorType& rN,
+    const double L,
+    const double Phi,
+    const double xi
+    )
+{
+    if (rN.size() != 6)
+        rN.resize(6, false);
+
+    const double Phi_square = std::pow(Phi, 2);
+
+    rN[0] = -720.0 * xi / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 96.0 / (32.0 * Phi + 8.0);
+    rN[1] = -24.0 * L / (32.0 * Phi + 8.0) + 120.0 * xi * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
+    rN[2] = 192.0 / (32.0 * Phi + 8.0);
+    rN[3] = 120.0 * xi * (-4.0 * L * Phi - 4.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
+    rN[4] = 720.0 * xi / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 96.0 / (32.0 * Phi + 8.0);
+    rN[5] = 24.0 * L / (32.0 * Phi + 8.0) + 120.0 * xi * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
+
+    rN *= std::pow(2.0 / L, 4);
+}
+
 // /***********************************************************************************/
 // /***********************************************************************************/
 

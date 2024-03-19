@@ -197,6 +197,7 @@ public:
     void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
     void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
     void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
+    void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
