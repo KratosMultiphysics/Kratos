@@ -2483,4 +2483,12 @@ template class UPwSmallStrainInterfaceElement<2, 4>;
 template class UPwSmallStrainInterfaceElement<3, 6>;
 template class UPwSmallStrainInterfaceElement<3, 8>;
 
+template void UPwSmallStrainInterfaceElement<2, 4>::InterpolateOutputValues<array_1d<double, 3>>(std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 6>::InterpolateOutputValues<array_1d<double, 3>>(std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 8>::InterpolateOutputValues<array_1d<double, 3>>(std::vector<array_1d<double, 3>>& rOutput, const std::vector<array_1d<double, 3>>& GPValues);
+
+template void UPwSmallStrainInterfaceElement<2, 4>::InterpolateOutputValues<Matrix>(std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 6>::InterpolateOutputValues<Matrix>(std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
+template void UPwSmallStrainInterfaceElement<3, 8>::InterpolateOutputValues<Matrix>(std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues);
+
 } // namespace Kratos

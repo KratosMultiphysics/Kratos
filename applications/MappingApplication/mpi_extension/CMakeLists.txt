@@ -15,6 +15,7 @@ file(
 ## Python module
 pybind11_add_module( KratosMappingMPIExtension MODULE THIN_LTO ${KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
+target_include_directories(KratosMappingMPIExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
 target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosMappingMPIExtension PROPERTIES PREFIX "")
 
