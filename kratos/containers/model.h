@@ -114,14 +114,6 @@ public:
     void DeleteModelPart( const std::string& ModelPartName );
 
     /**
-     * @brief This method renames a modelpart with a given name
-     * @details Raises an error in case the model part does not exists as root model part
-     * @param OldName The name of the model part to be renamed
-     * @param NewName The new name for the model part to be renamed
-     */
-    void RenameModelPart( const std::string& OldName, const std::string& NewName );
-
-    /**
      * @brief This method returns a model part given a certain name
      * @details Iterates over the list of submodelparts of the root model part
      * @param rFullModelPartName The name of the model part to be returned

@@ -103,29 +103,6 @@ KRATOS_TEST_CASE_IN_SUITE(ModelDeleteSubModelPart, KratosCoreFastSuite)
     KRATOS_EXPECT_FALSE(model.HasModelPart("Main.Inlet1"));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ModelRenameModelPart, KratosCoreFastSuite)
-{
-    Model model;
-
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.CreateSubModelPart("Inlet1");
-    model_part.GetSubModelPart("Inlet1").CreateSubModelPart("SubSub");
-
-    KRATOS_EXPECT_TRUE(model.HasModelPart("Main"));
-    KRATOS_EXPECT_TRUE(model.HasModelPart("Main.Inlet1"));
-    KRATOS_EXPECT_TRUE(model.HasModelPart("Main.Inlet1.SubSub"));
-
-    model.RenameModelPart("Main", "Renamed");
-
-    KRATOS_EXPECT_FALSE(model.HasModelPart("Main"));
-    KRATOS_EXPECT_FALSE(model.HasModelPart("Main.Inlet1"));
-    KRATOS_EXPECT_FALSE(model.HasModelPart("Main.Inlet1.SubSub"));
-
-    KRATOS_EXPECT_TRUE(model.HasModelPart("Renamed"));
-    KRATOS_EXPECT_TRUE(model.HasModelPart("Renamed.Inlet1"));
-    KRATOS_EXPECT_TRUE(model.HasModelPart("Renamed.Inlet1.SubSub"));
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ModelGetModel, KratosCoreFastSuite)
 {
     Model model;
