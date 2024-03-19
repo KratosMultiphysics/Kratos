@@ -19,11 +19,20 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer PwCondition<TDim,TNumNodes>::
-    Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                        NodesArrayType const&   ThisNodes,
+                                                        PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PwCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType NewId,
+                                                        Geometry<GeometricalObject::NodeType>::Pointer pGeom,
+                                                        Properties::Pointer pProperties) const
+{
+    return Condition::Pointer(new PwCondition(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
@@ -132,10 +141,11 @@ Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template class PwCondition<2,1>;
 template class PwCondition<2,2>;
+template class PwCondition<2,3>;
+template class PwCondition<2,4>;
+template class PwCondition<2,5>;
 template class PwCondition<3,1>;
 template class PwCondition<3,3>;
 template class PwCondition<3,4>;
-
-template class PwCondition<2,3>;
 
 } // Namespace Kratos.

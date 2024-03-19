@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -85,8 +86,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        double integration_coefficient = this->CalculateIntegrationCoefficient(jacobians[g_point],
-                                                                                           r_integration_points[g_point].Weight());
+        double integration_coefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
         aux_abs_k_matrix = prod(absorbing_variables.KAbsMatrix, nu_matrix);
@@ -160,8 +162,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        double integration_coefficient = this->CalculateIntegrationCoefficient(jacobians[g_point], 
-                                                                                           r_integration_points[g_point].Weight());
+        double integration_coefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
         aux_abs_matrix = prod(absorbing_variables.CAbsMatrix, nu_matrix);
