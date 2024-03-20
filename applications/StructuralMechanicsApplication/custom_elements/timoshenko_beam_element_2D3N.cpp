@@ -275,10 +275,10 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctionsValues(
 {
     if (rN.size() != 3)
         rN.resize(3, false);
-    const double inverse_l = 1.0 / Length;
     rN[0] = xi - 0.5;
     rN[1] = xi - 2.0;
     rN[2] = xi + 0.5;
+    rN *= 2.0 / Length;
 }
 
 /***********************************************************************************/

@@ -487,7 +487,9 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes), N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
+    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes),
+        N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes),
+        N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
