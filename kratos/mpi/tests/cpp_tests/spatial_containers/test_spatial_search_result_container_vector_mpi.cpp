@@ -246,7 +246,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // GetResultIsLocal
     auto r_result_is_local = container_vector.GetResultIsLocal();
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_result_is_local.size());
-    for (std::size_t i = 0; i < r_result_is_local.size(); ++i) {
+    for (int i = 0; i < r_result_is_local.size(); ++i) {
         auto& r_partial_result_is_local = r_result_is_local[i];
         KRATOS_EXPECT_EQ(r_partial_result_is_local.size(), 1);
         KRATOS_EXPECT_EQ(r_partial_result_is_local[0], i == rank);
@@ -291,7 +291,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // GetResultRank
     auto r_result_rank = container_vector.GetResultRank();
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_result_rank.size());
-    for (std::size_t i = 0; i < r_result_rank.size(); ++i) {
+    for (int i = 0; i < r_result_rank.size(); ++i) {
         auto& r_partial_result_rank = r_result_rank[i];
         KRATOS_EXPECT_EQ(r_partial_result_rank.size(), 1);
         KRATOS_EXPECT_EQ(r_partial_result_rank[0], i);
