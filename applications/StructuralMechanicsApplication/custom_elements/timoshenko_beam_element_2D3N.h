@@ -131,15 +131,6 @@ public:
     void GetNodalValuesVector(VectorType& rNodalValue) override;
 
     /**
-     * @brief This method returns the length of the FE
-     */
-    double GetAngle() override
-    {
-        // We use the one from the 2D2N since our ordering agrees with it
-        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
-    }
-
-    /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
      * @param Length The size of the beam element
      * @param Phi The shear slenderness parameter
@@ -149,15 +140,6 @@ public:
     double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) override;
     double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) override;
     double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) override;
-
-    /**
-     * @brief Computes the length of the FE and returns it
-     */
-    double CalculateLength() override
-    {
-        // We use the one from the 2D2N since our ordering agrees with it
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-    }
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size

@@ -127,7 +127,7 @@ public:
     /**
      * @brief This method returns the length of the FE
      */
-    virtual double GetAngle()
+    double GetAngle()
     {
         return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     }
@@ -161,7 +161,7 @@ public:
     /**
      * @brief Computes the length of the FE and returns it
      */
-    virtual double CalculateLength()
+    double CalculateLength()
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
