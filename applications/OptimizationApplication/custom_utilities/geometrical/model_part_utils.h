@@ -30,7 +30,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) ModelPartUtils
+class KRATOS_API(OPTIMIZATION_APPLICATION) OptAppModelPartUtils
 {
 public:
     ///@name Type definitions
