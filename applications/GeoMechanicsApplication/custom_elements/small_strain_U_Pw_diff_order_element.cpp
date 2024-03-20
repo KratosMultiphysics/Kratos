@@ -1804,7 +1804,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(Matrix
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                       ElementVariables& rVariables) const
+                                                                       const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
