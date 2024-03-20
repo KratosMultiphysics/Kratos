@@ -21,7 +21,6 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
     def test_prescribed_acceleration(self):
         """
         This test checks if the prescribed acceleration in the x-direction is correctly applied to the model
-        :return:
         """
 
         test_name = 'prescribed_acceleration'
@@ -47,7 +46,6 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
     def test_prescribed_velocity(self):
         """
         This test checks if the prescribed velocity in the x-direction is correctly applied to the model
-        :return:
         """
 
         test_name = 'prescribed_velocity'
@@ -73,7 +71,6 @@ class KratosGeoMechanicsPrescribedDerivatives(KratosUnittest.TestCase):
     def test_prescribed_dt_water_pressure(self):
         """
         This test checks if the prescribed dt_water_pressure is correctly applied to the model
-        :return:
         """
 
         test_name = 'prescribed_dt_water_pressure'
