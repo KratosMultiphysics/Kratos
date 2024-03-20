@@ -36,7 +36,11 @@ class CheckAndPrepareModelProcessFluid(KratosMultiphysics.Process):
             msg = f'Partial model part name \'{self.volume_model_part_name}\' found in \'volume_model_part_name\'. Please provide full model part names.'
             if __model_part_input:
                 IssueDeprecationWarning('CheckAndPrepareModelProcessFluid', msg)
+                # We assume that the volume model part is a submodelpart of the root
+                # If not so, something that we allowed in the past, we take the root as volume model part
                 self.volume_model_part_name = f"{root_model_part_name}.{self.volume_model_part_name}"
+                if not self.model.HasModelPart(self.volume_model_part_name):
+                    self.volume_model_part_name = f"{root_model_part_name}"
             else:
                 raise Exception(msg)
 
@@ -61,6 +65,9 @@ class CheckAndPrepareModelProcessFluid(KratosMultiphysics.Process):
 
     def Execute(self):
         # Get the model parts conforming the fluid mesh (skin and volume)
+
+        print(self.volume_model_part_name)
+
         volume_model_part = self.model.GetModelPart(self.volume_model_part_name)
         skin_parts = [self.model.GetModelPart(name) for name in self.skin_name_list]
 
