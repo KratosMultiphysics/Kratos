@@ -111,7 +111,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorSynchron
     const int size = r_data_comm.Size();
 
     // Create a test object
-    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+    SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS> container_vector;
 
     // Initialize result
     std::vector<std::size_t> indexes(rank + 1);
