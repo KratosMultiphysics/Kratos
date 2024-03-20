@@ -290,7 +290,7 @@ std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommuni
 {
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<int> ranks(number_of_gp, false);
+    std::vector<int> ranks(number_of_gp, 0);
 
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
