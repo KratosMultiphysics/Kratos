@@ -120,7 +120,7 @@ public:
     ///@{
 
     /**
-     * @brief Returns a 6 component vector including the values of the DoFs
+     * @brief Returns a 9 component vector including the values of the DoFs
      * in LOCAL axes
      */
     void GetNodalValuesVector(VectorType& rNodalValue) override;
@@ -304,29 +304,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief Sets the used integration method
-     * @param ThisIntegrationMethod Integration method used
-     */
-    void SetIntegrationMethod(const IntegrationMethod& rThisIntegrationMethod)
-    {
-        mThisIntegrationMethod = rThisIntegrationMethod;
-    }
-
-    /**
-     * @brief Sets the used constitutive laws
-     * @param ThisConstitutiveLawVector Constitutive laws used
-     */
-    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& rThisConstitutiveLawVector)
-    {
-        mConstitutiveLawVector = rThisConstitutiveLawVector;
-    }
-
-    /**
-     * @brief It initializes the material
-     */
-    void InitializeMaterial();
 
 
     ///@}

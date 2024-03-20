@@ -128,6 +128,7 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
     rN[3] = 5.0 * xi_quad * (-4.0 * L * Phi - 4.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 3.0 * xi_square * (40.0 * L * Phi + 8.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + (-18.0 * L * Phi - 2.0 * L) / (80.0 * Phi_square - 20.0 * Phi - 4.0);
     rN[4] = 30.0 * xi_quad / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 16.0 * xi_cube / (32.0 * Phi + 8.0) + 3.0 * xi_square * (-40.0 * Phi - 10.0) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 2.0 * xi * (16.0 * Phi + 8.0) / (32.0 * Phi + 8.0) + (40.0 * Phi_square + 10.0 * Phi) / (80.0 * Phi_square - 20.0 * Phi - 4.0);
     rN[5] = -L * Phi / (80.0 * Phi_square - 20.0 * Phi - 4.0) + 4.0 * L * xi_cube / (32.0 * Phi + 8.0) + 3.0 * L * xi_square / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 2.0 * L * xi / (32.0 * Phi + 8.0) + 5.0 * xi_quad * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
+    
     rN *= 2.0 / L;
 }
 
@@ -154,6 +155,7 @@ void TimoshenkoBeamElement2D3N::GetSecondDerivativesShapeFunctionsValues(
     rN[3] = 20.0 * xi_cube * (-4.0 * L * Phi - 4.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 6.0 * xi * (40.0 * L * Phi + 8.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
     rN[4] = 120.0 * xi_cube / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 48.0 * xi_square / (32.0 * Phi + 8.0) + 6.0 * xi * (-40.0 * Phi - 10.0) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 2.0 * (16.0 * Phi + 8.0) / (32.0 * Phi + 8.0);
     rN[5] = 12.0 * L * xi_square / (32.0 * Phi + 8.0) + 6.0 * L * xi / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 2.0 * L / (32.0 * Phi + 8.0) + 20.0 * xi_cube * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
+
     rN *= std::pow(2.0 / L, 2);
 }
 
@@ -179,7 +181,6 @@ void TimoshenkoBeamElement2D3N::GetThirdDerivativesShapeFunctionsValues(
     rN[3] = 60.0 * xi_square * (-4.0 * L * Phi - 4.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 6.0 * (40.0 * L * Phi + 8.0 * L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
     rN[4] = 360.0 * xi_square / (160.0 * Phi_square - 40.0 * Phi - 8.0) - 96.0 * xi / (32.0 * Phi + 8.0) + 6.0 * (-40.0 * Phi - 10.0) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
     rN[5] = 24.0 * L * xi / (32.0 * Phi + 8.0) + 6.0 * L / (160.0 * Phi_square - 40.0 * Phi - 8.0) + 60.0 * xi_square * (2.0 * L * Phi - L) / (160.0 * Phi_square - 40.0 * Phi - 8.0);
-
     rN *= std::pow(2.0 / L, 3);
 }
 
