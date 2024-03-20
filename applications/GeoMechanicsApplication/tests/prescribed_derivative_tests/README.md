@@ -35,9 +35,6 @@ No conditions or loads are applied.
 
 ## Assertions
 
-The tests assert that the actual derivatives of the nodes at the time steps match the prescribed ones in node 1, 2 and
-3.
-The prescribed values (for all three test cases) are prescribed using the following table:
-
+The tests assert that the actual derivatives of the nodes at the time steps match the prescribed ones in node 1, 2 and 3 (for the prescribed values, see the table in the setup description). 
 
 

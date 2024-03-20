@@ -23,9 +23,9 @@ class Node;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NodeUtilities
 {
 public:
-    static void ApplyUpdatedVectorVariableToNonFixedComponents(Node& rNode,
-                                                               const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                                               const array_1d<double, 3>& rSourceVector);
+    static void AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
+                                                                const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                                                const array_1d<double, 3>& rNewValues);
 };
 
 } // namespace Kratos

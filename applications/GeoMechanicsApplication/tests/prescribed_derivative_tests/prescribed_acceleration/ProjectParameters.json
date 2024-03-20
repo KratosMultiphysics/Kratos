@@ -71,7 +71,6 @@
       "Soil_two_phase"
     ],
     "processes_sub_model_part_list": [
-      "BottomCorners",
       "Bottom",
       "Side",
       "Line_acceleration"
@@ -117,35 +116,6 @@
   },
   "processes": {
     "constraints_process_list": [
-      {
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name": "ApplyVectorConstraintTableProcess",
-        "Parameters": {
-          "model_part_name": "PorousDomain.BottomCorners",
-          "variable_name": "DISPLACEMENT",
-          "active": [
-            false,
-            true,
-            false
-          ],
-          "is_fixed": [
-            false,
-            true,
-            false
-          ],
-          "value": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
-        }
-      },
       {
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

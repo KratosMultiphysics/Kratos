@@ -19,10 +19,10 @@
 namespace Kratos
 {
 
-const Variable<double>& VariablesUtilities::GetComponentFromVectorVariable(const Variable<array_1d<double, 3>>& rSource,
+const Variable<double>& VariablesUtilities::GetComponentFromVectorVariable(const std::string& rSourceVariableName,
                                                                            const std::string& rComponent)
 {
-    return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
+    return KratosComponents<Variable<double>>::Get(rSourceVariableName + "_" + rComponent);
 }
 
 } // namespace Kratos

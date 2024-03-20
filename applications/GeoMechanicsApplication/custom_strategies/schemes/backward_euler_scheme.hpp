@@ -74,7 +74,7 @@ protected:
             const auto updated_first_time_derivative =
                 CalculateDerivative(r_second_order_vector_variable.instance, rNode);
 
-            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
                 rNode, r_second_order_vector_variable.first_time_derivative, updated_first_time_derivative);
 
             // Make sure that setting the second_time_derivative is done
@@ -82,7 +82,7 @@ protected:
             const auto updated_second_time_derivative =
                 CalculateDerivative(r_second_order_vector_variable.first_time_derivative, rNode);
 
-            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
                 rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
         }
     }

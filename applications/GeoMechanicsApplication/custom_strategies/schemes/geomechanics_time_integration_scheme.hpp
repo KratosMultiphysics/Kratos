@@ -359,7 +359,7 @@ private:
                 std::vector<std::string> components{"X", "Y"};
                 for (const auto& component : components) {
                     const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
-                        r_second_order_vector_variable.instance, component);
+                        r_second_order_vector_variable.instance.Name(), component);
                     this->CheckDof(r_node, variable_component);
                 }
             }

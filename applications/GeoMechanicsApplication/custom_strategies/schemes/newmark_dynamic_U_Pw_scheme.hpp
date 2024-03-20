@@ -82,14 +82,14 @@ public:
 
         for (const auto& component : components) {
             const auto& instance_component = VariablesUtilities::GetComponentFromVectorVariable(
-                rSecondOrderVariables.instance, component);
+                rSecondOrderVariables.instance.Name(), component);
 
             if (!rNode.HasDofFor(instance_component)) continue;
 
             const auto& first_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
-                rSecondOrderVariables.first_time_derivative, component);
+                rSecondOrderVariables.first_time_derivative.Name(), component);
             const auto& second_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
-                rSecondOrderVariables.second_time_derivative, component);
+                rSecondOrderVariables.second_time_derivative.Name(), component);
 
             const double previous_variable = rNode.FastGetSolutionStepValue(instance_component, 1);
             const double current_first_time_derivative =

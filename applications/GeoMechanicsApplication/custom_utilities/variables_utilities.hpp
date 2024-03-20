@@ -31,7 +31,7 @@ public:
         });
     }
 
-    static const Variable<double>& GetComponentFromVectorVariable(const Variable<array_1d<double, 3>>& rSource,
+    static const Variable<double>& GetComponentFromVectorVariable(const std::string& rSourceVariableName,
                                                                   const std::string& rComponent);
 };
 

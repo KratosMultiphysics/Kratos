@@ -156,7 +156,7 @@ protected:
                 GetGamma() * this->GetDeltaTime() *
                     rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 0);
 
-            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
                 rNode, r_second_order_vector_variable.first_time_derivative, updated_first_derivative);
         }
     }
@@ -175,7 +175,7 @@ protected:
                      rNode.FastGetSolutionStepValue(r_second_order_vector_variable.second_time_derivative, 1)) /
                 (GetBeta() * this->GetDeltaTime() * this->GetDeltaTime());
 
-            NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(
+            NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(
                 rNode, r_second_order_vector_variable.second_time_derivative, updated_second_time_derivative);
         }
     }

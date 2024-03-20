@@ -42,8 +42,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMe
     node.Fix(ACCELERATION_X);
     node.Fix(ACCELERATION_Y);
 
-    const array_1d<double, 3> source_vector{1.0, 2.0, 3.0};
-    NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
+    const array_1d<double, 3> new_values{1.0, 2.0, 3.0};
+    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, new_values);
 
     const array_1d<double, 3>  expected_vector{0.0, 0.0, 3.0};
     const array_1d<double, 3>& result_vector = node.FastGetSolutionStepValue(ACCELERATION, 0);
@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAr
     node.Fix(ACCELERATION_Z);
 
     const array_1d<double, 3> source_vector{1.0, 2.0, 3.0};
-    NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
+    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
 
     const array_1d<double, 3>  expected_vector{0.0, 0.0, 0.0};
     const array_1d<double, 3>& result_vector = node.FastGetSolutionStepValue(ACCELERATION, 0);
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed,
     AddAcceleration(node);
 
     const array_1d<double, 3> source_vector{1.0, 2.0, 3.0};
-    NodeUtilities::ApplyUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
+    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
 
     const array_1d<double, 3>  expected_vector{1.0, 2.0, 3.0};
     const array_1d<double, 3>& result_vector = node.FastGetSolutionStepValue(ACCELERATION, 0);

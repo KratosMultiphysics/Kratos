@@ -157,19 +157,8 @@ Begin SubModelPart Bottom
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
-    2
-  End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
-End SubModelPart
-
-Begin SubModelPart BottomCorners
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
     1
+    2
     3
   End SubModelPartNodes
   Begin SubModelPartElements
