@@ -40,7 +40,7 @@ class RomManager(object):
                 # necesary steps: Modify RomBasisOuptupProcess to fetch snapshots, not only run after simulations
                 self.StoreFomSnapshotsAndBasis(mu_train=mu_train)
                 self.StoreFomValidationSnapshots(mu_validation=mu_validation)
-                self.TrainAnnEnhacedNeuralNetwork()
+                self.TrainAnnEnhancedROM()
                 #TODO implement online stage for ann_enhanced
                 #self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN?")
                 #rom_snapshots = self.__LaunchROM(mu_train)
@@ -136,7 +136,7 @@ class RomManager(object):
     def StoreFomValidationSnapshots(self, mu_validation=[None]):
         self.RunFOM(mu_run=mu_validation, snapshots_matrix_name='fom_snapshots_val')
 
-    def TrainAnnEnhacedNeuralNetwork(self):
+    def TrainAnnEnhancedROM(self):
         self.__LaunchTrainNeuralNetwork()
 
     def TestNeuralNetworkReconstruction(self):
@@ -199,8 +199,9 @@ class RomManager(object):
 
 
     def RunFOM(self, mu_run=[None], snapshots_matrix_name=None):
-        fom_snapshots = self.__LaunchRunFOM(mu_run)
-        if snapshots_matrix_name is not None:
+        store_snapshots = snapshots_matrix_name is not None
+        fom_snapshots = self.__LaunchRunFOM(mu_run, store_snapshots=store_snapshots)
+        if store_snapshots:
             self._StoreSnapshotsMatrix(snapshots_matrix_name, fom_snapshots)
 
     def RunROM(self, mu_run=[None]):
@@ -483,7 +484,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def __LaunchRunFOM(self, mu_run):
+    def __LaunchRunFOM(self, mu_run, store_snapshots=False):
         """
         This method should be parallel capable
         """
@@ -492,7 +493,8 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+            if store_snapshots:
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -501,10 +503,11 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix())
+            if store_snapshots:
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix())
         SnapshotsMatrix = np.block(SnapshotsMatrix)
 
         return SnapshotsMatrix
@@ -556,7 +559,7 @@ class RomManager(object):
 
     def __LaunchTestNeuralNetworkReconstruction(self):
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
-        model_name=self.general_rom_manager_parameters["neural_network"]["online"]["model_name"].GetString()
+        model_name=self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_name"].GetString()
         rom_nn_trainer.EvaluateNetwork(model_name)
 
     def _AddHromParametersToRomParameters(self,f):

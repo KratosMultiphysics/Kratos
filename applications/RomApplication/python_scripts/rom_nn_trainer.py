@@ -81,6 +81,7 @@ class RomNeuralNetworkTrainer(object):
 
         rescaling_factor = np.mean(np.square((phisig_inf@Q_inf_train.T)-S_train))
         rescaling_factor *= S_train.shape[0]/Q_sup_train.shape[1]
+        # rescaling_factor = S_train.shape[0]/Q_sup_train.shape[1]
 
         return Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor
 
@@ -239,6 +240,11 @@ class RomNeuralNetworkTrainer(object):
         S_recons_val = phisig_sup@network(Q_inf_val).numpy().T+phisig_inf@Q_inf_val.T
         err_rel_recons = np.linalg.norm(S_recons_val-S_val)/np.linalg.norm(S_val)
         print('ANN-PROM Validation Reconstruction error (Rel. Frob): ', err_rel_recons)
+
+        sample_l2_err_list=[]
+        for i in range(S_recons_val.shape[1]):
+            sample_l2_err_list.append(np.linalg.norm(S_recons_val[:,i]-S_val[:,i])/np.linalg.norm(S_val[:,i]))
+        print('ANN-PROM Validation Reconstruction error (Geometric Rel. L2): ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list)))))
 
         S_pod_sup_recons_val = phisig_sup@Q_sup_val.T+phisig_inf@Q_inf_val.T
         print('POD Sup Validation Reconstruction error (Rel. Frob): ', np.linalg.norm(S_pod_sup_recons_val-S_val)/np.linalg.norm(S_val))

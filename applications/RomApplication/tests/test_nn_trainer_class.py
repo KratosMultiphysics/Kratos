@@ -129,10 +129,10 @@ class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
             rom_data_path = 'rom_data/'
             neural_network_models_path = rom_data_path+'saved_nn_models/test_neural_network/'
             kratos_utilities.DeleteDirectoryIfExisting(neural_network_models_path)
-            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'RightBasisMatrix.npy')
-            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'SingularValuesVector.npy')
-            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'NodeIds.npy')
-            # kratos_utilities.DeleteFileIfExisting(rom_data_path+'RomParameters.json')
+            kratos_utilities.DeleteFileIfExisting(rom_data_path+'RightBasisMatrix.npy')
+            kratos_utilities.DeleteFileIfExisting(rom_data_path+'SingularValuesVector.npy')
+            kratos_utilities.DeleteFileIfExisting(rom_data_path+'NodeIds.npy')
+            kratos_utilities.DeleteFileIfExisting(rom_data_path+'RomParameters.json')
 
 ##########################################################################################
 
