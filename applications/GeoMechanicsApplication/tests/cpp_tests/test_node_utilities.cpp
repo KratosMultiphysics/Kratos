@@ -45,9 +45,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateFixedComponent, KratosGeoMe
     const array_1d<double, 3> new_values{1.0, 2.0, 3.0};
     NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, new_values);
 
-    const array_1d<double, 3>  expected_vector{0.0, 0.0, 3.0};
-    const array_1d<double, 3>& result_vector = node.FastGetSolutionStepValue(ACCELERATION, 0);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, result_vector, 1e-12)
+    const array_1d<double, 3> expected_vector{0.0, 0.0, 3.0};
+    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAreFixed, KratosGeoMechanicsFastSuite)
@@ -59,12 +58,11 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_DoesNotUpdateAnythingWhenAllComponentsAr
     node.Fix(ACCELERATION_Y);
     node.Fix(ACCELERATION_Z);
 
-    const array_1d<double, 3> source_vector{1.0, 2.0, 3.0};
-    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
+    const array_1d<double, 3> new_values{1.0, 2.0, 3.0};
+    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, new_values);
 
-    const array_1d<double, 3>  expected_vector{0.0, 0.0, 0.0};
-    const array_1d<double, 3>& result_vector = node.FastGetSolutionStepValue(ACCELERATION, 0);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, result_vector, 1e-12)
+    const array_1d<double, 3> expected_vector{0.0, 0.0, 0.0};
+    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed, KratosGeoMechanicsFastSuite)
@@ -72,12 +70,11 @@ KRATOS_TEST_CASE_IN_SUITE(NodeUtilities_UpdatesEverythingWhenNoComponentIsFixed,
     Node node(1, 0.0, 0.0, 0.0);
     AddAcceleration(node);
 
-    const array_1d<double, 3> source_vector{1.0, 2.0, 3.0};
-    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, source_vector);
+    const array_1d<double, 3> new_values{1.0, 2.0, 3.0};
+    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(node, ACCELERATION, new_values);
 
-    const array_1d<double, 3>  expected_vector{1.0, 2.0, 3.0};
-    const array_1d<double, 3>& result_vector = node.FastGetSolutionStepValue(ACCELERATION, 0);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, result_vector, 1e-12)
+    const array_1d<double, 3> expected_vector{1.0, 2.0, 3.0};
+    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
 } // namespace Kratos::Testing
