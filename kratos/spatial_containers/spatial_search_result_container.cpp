@@ -247,7 +247,7 @@ std::vector<double> SpatialSearchResultContainer<TObjectType, TSpatialSearchComm
         return rGP->GetDistance();
     });
 
-    // Get the coordinates
+    // Get the distances
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
         distances[i] = proxy.Get(r_gp);
@@ -271,7 +271,7 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommun
         return rGP->Get().GetRank();
     });
 
-    // Get the is inside
+    // Get the is local
     const int rank = mrDataCommunicator.Rank();
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
@@ -297,7 +297,7 @@ std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommuni
         return rGP->Get().GetRank();
     });
 
-    // Get the is inside
+    // Get the rank
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
         ranks[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
@@ -327,7 +327,7 @@ std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommun
         }
     });
 
-    // Get the is inside
+    // Get the is active
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
         is_active[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
@@ -469,7 +469,7 @@ std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType, TS
         }
     });
 
-    // Get the coordinates
+    // Get the indices
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
         indices[i] = proxy.Get(r_gp);
@@ -508,7 +508,7 @@ std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatial
         }
     });
 
-    // Get the coordinates
+    // Get the indices
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
         indices[i] = proxy.Get(r_gp);
