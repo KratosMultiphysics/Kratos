@@ -24,7 +24,7 @@
 #include "custom_utilities/collective_expression.h"
 #include "custom_utilities/collective_expression_io.h"
 #include "custom_utilities/container_expression_utils.h"
-#include "custom_utilities/geometrical/model_part_utils.h"
+#include "custom_utilities/geometrical/opt_app_model_part_utils.h"
 #include "custom_utilities/geometrical/symmetry_utility.h"
 #include "custom_utilities/implicit_filter_utils.h"
 #include "custom_utilities/optimization_utils.h"

@@ -24,7 +24,7 @@
 #include "utilities/openmp_utils.h"
 
 // Application includes
-#include "custom_utilities/geometrical/model_part_utils.h"
+#include "custom_utilities/geometrical/opt_app_model_part_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h

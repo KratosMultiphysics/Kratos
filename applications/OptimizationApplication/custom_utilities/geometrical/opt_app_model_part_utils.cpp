@@ -27,7 +27,7 @@
 #include "optimization_application_variables.h"
 
 // Include base h
-#include "model_part_utils.h"
+#include "opt_app_model_part_utils.h"
 
 namespace Kratos {
 
