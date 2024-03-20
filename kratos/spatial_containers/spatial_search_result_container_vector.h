@@ -54,8 +54,20 @@ public:
     /// The spatial search result container type
     using SpatialSearchResultContainerType = SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>;
 
+    /// Spatial search result type
+    using SpatialSearchResultType = typename SpatialSearchResultContainerType::SpatialSearchResultType;
+
     /// The global pointer result type
     using GlobalPointerResultType = typename SpatialSearchResultContainerType::GlobalPointerResultType;
+
+    /// The global results vector
+    using GlobalResultsVector = typename SpatialSearchResultContainerType::GlobalResultsVector;
+
+    /// The global pointer communicator type
+    using GlobalPointerCommunicatorType = typename SpatialSearchResultContainerType::GlobalPointerCommunicatorType;
+
+    /// The global pointer communicator pointer type
+    using GlobalPointerCommunicatorPointerType = typename SpatialSearchResultContainerType::GlobalPointerCommunicatorPointerType;
 
     /// The spatial search result container reference type
     using SpatialSearchResultContainerReferenceType = SpatialSearchResultContainerType&;
@@ -322,7 +334,7 @@ public:
 
     /**
      * @brief Initialize the container
-     * @param rDataCommunicator The data communicator
+     * @param rDataCommunicator The data communicator considered
      * @return The result container
      */
     SpatialSearchResultContainerReferenceType InitializeResult(const DataCommunicator& rDataCommunicator);
@@ -347,11 +359,102 @@ public:
     void Clear();
 
     /**
+     * @brief Generate the global pointer communicator
+     * @param rDataCommunicator The data communicator considered
+     */
+    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
+
+    /**
      * @brief Synchronize all container between partitions
      * @details This method synchronizes all the container between partitions
-     * @param rDataCommunicator The data communicator
+     * @param rDataCommunicator The data communicator considered
      */
     void SynchronizeAll(const DataCommunicator& rDataCommunicator);
+
+    /**
+     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
+     * @tparam TFunctorType Functor type.
+     * @param UserFunctor The user-provided function.
+     * @return A proxy to the results.
+     */
+    template<class TFunctorType>
+    ResultsProxy<
+    SpatialSearchResultType,
+    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
+    > Apply(TFunctorType&& UserFunctor)
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+        // Apply the user-provided function
+        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
+    }
+
+    /**
+     * @brief Retrieves the global distances
+     * @return A vector containing all the distances
+     */
+    std::vector<std::vector<double>> GetDistances();
+
+    /**
+     * @brief Retrieves if is local the entity
+     * @return A vector containing all the booleans showing is local the entity
+     */
+    std::vector<std::vector<bool>> GetResultIsLocal();
+
+    /**
+     * @brief Retrieves the rank of the entity
+     * @return A vector containing all the ranks of the entity
+     */
+    std::vector<std::vector<int>> GetResultRank();
+
+    /**
+     * @brief Retrieves if is active the entity
+     * @return A vector containing all the booleans showing is active the entity
+     */
+    std::vector<std::vector<bool>> GetResultIsActive();
+
+    /**
+     * @brief Retrieves if inside the geometry
+     * @param rPoint The point coordinates
+     * @param Tolerance The tolerance considered
+     * @return A vector containing all the booleans showing is inside the geometry
+     */
+    std::vector<std::vector<bool>> GetResultIsInside(
+        const array_1d<double, 3>& rPoint,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        );
+
+    /**
+     * @brief Considers the global pointer communicator to get the shape functions of the resulting object
+     * @param rPoint The point coordinates
+     * @return A vector containing all the shape functions
+     */
+    std::vector<std::vector<Vector>> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<IndexType>> GetResultIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<std::vector<IndexType>>> GetResultNodeIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<std::vector<int>>> GetResultPartitionIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the coordinates of the resulting object
+     * @return A vector containing all the coordinates
+     */
+    std::vector<std::vector<std::vector<array_1d<double, 3>>>> GetResultCoordinates();
 
     ///@}
     ///@name Access
@@ -364,6 +467,16 @@ public:
     ContainerType& GetContainer()
     {
         return mPointResults;
+    }
+
+    /**
+     * @brief Accessor for mpGlobalPointerCommunicator.
+     * @details This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     */
+    GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator()
+    {
+        return mpGlobalPointerCommunicator;
     }
 
     ///@}
@@ -384,7 +497,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ContainerType mPointResults; /// The results of each point
+    ContainerType mPointResults;                                                /// The results of each point
+
+    GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
 
     ///@}
     ///@name Private Operations
