@@ -47,6 +47,10 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Timoshenko beam element of 3 nodes. 5th order degree Hermitic polynomials
  * for deflection and 3rd degree for axial displacements
+ * 
+ *                           ^ y, v
+ *                           |
+ * Ordering of the nodes:    0 ------ 1 ------- 2 --> x, u   and rotation theta node-wise
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TimoshenkoBeamElement2D3N
