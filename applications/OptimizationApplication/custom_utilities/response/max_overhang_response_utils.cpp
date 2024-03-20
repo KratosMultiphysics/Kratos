@@ -99,7 +99,7 @@ void MaxOverhangAngleResponseUtils::CalculateSensitivity(
     // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
     for (const auto& it : rSensitivityVariableModelPartInfo) {
         std::visit([&](auto&& r_variable) {
-            const auto& r_sensitivity_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+            const auto& r_sensitivity_model_parts = OptAppModelPartUtils::GetModelPartsWithCommonReferenceEntities(
                 it.second, rEvaluatedModelParts, false, true, false, false, 0);
 
             // reset nodal common interface values

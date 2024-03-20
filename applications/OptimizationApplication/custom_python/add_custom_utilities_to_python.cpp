@@ -129,10 +129,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ApplyOnScalarField", &SymmetryUtility::ApplyOnScalarField)
         ;
 
-    m.def_submodule("ModelPartUtils")
-        .def("LogModelPartStatus", &ModelPartUtils::LogModelPartStatus, py::arg("model_part"), py::arg("status_to_log"))
-        .def("GetModelPartStatusLog", &ModelPartUtils::GetModelPartStatusLog, py::arg("model_part"))
-        .def("CheckModelPartStatus", &ModelPartUtils::CheckModelPartStatus, py::arg("model_part"), py::arg("status_to_check"))
+    m.def_submodule("OptAppModelPartUtils")
+        .def("LogModelPartStatus", &OptAppModelPartUtils::LogModelPartStatus, py::arg("model_part"), py::arg("status_to_log"))
+        .def("GetModelPartStatusLog", &OptAppModelPartUtils::GetModelPartStatusLog, py::arg("model_part"))
+        .def("CheckModelPartStatus", &OptAppModelPartUtils::CheckModelPartStatus, py::arg("model_part"), py::arg("status_to_check"))
         .def("GetModelPartsWithCommonReferenceEntities", [](
             const std::vector<ModelPart*>& rEvaluatedModelPartsList,
             const std::vector<ModelPart*>& rReferenceModelPartsList,
@@ -141,7 +141,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             const bool AreElementsConsidered,
             const bool AreParentsConsidered,
             const IndexType EchoLevel){
-                const auto& r_model_parts = ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+                const auto& r_model_parts = OptAppModelPartUtils::GetModelPartsWithCommonReferenceEntities(
                     rEvaluatedModelPartsList,
                     rReferenceModelPartsList,
                     AreNodesConsidered,
@@ -164,11 +164,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             "are_elements_considered"_a,
             "are_parents_considered"_a,
             "echo_level"_a = 0)
-        .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
+        .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &OptAppModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
             "model_parts_list"_a)
         .def("GenerateModelPart",
             [](ModelPart::ConditionsContainerType& rOriginConditions, ModelPart& rDestinationModelPart, const std::string& rElementName) {
-                ModelPartUtils::GenerateModelPart(rOriginConditions, rDestinationModelPart, KratosComponents<Element>::Get(rElementName));
+                OptAppModelPartUtils::GenerateModelPart(rOriginConditions, rDestinationModelPart, KratosComponents<Element>::Get(rElementName));
             },
             "conditions_container"_a,
             "destination_model_part"_a,

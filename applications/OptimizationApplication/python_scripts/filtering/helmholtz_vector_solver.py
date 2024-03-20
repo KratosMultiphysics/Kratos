@@ -34,6 +34,6 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             # here we have conditions in the origin model part. Now we have to create elements using
             # the geometries of the conditions. There cannot be volume conditions in Kratos, therefore,
             # there can be only surface conditions, hence only required to create surface elements.
-            KOA.ModelPartUtils.GenerateModelPart(self.GetOriginModelPart().Conditions, self.GetComputingModelPart(), f"HelmholtzVectorSurfaceElement3D{self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)}N")
+            KOA.OptAppModelPartUtils.GenerateModelPart(self.GetOriginModelPart().Conditions, self.GetComputingModelPart(), f"HelmholtzVectorSurfaceElement3D{self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)}N")
         else:
             raise RuntimeError(f"No elements or conditions found in {self.GetOriginModelPart()}.")
