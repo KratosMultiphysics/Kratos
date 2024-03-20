@@ -97,7 +97,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         else:
             mask_aperture_diameter = project_parameters["problem_data"]["mask_aperture_diameter"].GetDouble()
         if not project_parameters["problem_data"].Has("vaporisation_temperature"):
-            self.T_e = 693.0
+            self.T_e = 1000.0
         else:
             self.T_e = project_parameters["problem_data"]["vaporisation_temperature"].GetDouble()
         if not project_parameters["problem_data"].Has("time_jump_between_pulses"):
@@ -108,6 +108,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.compute_vaporisation = False
         else:
             self.compute_vaporisation = project_parameters["problem_data"]["compute_vaporisation"].GetBool()
+        if not material_settings["Variables"].Has("ENTHALPY"):
+            self.evaporation_enthalpy = 4e5 # J/Kg. Value found on the internet for a given epoxy resin.
+        else:
+            self.evaporation_enthalpy = material_settings['Variables']['ENTHALPY'].GetDouble()
+        if self.compute_vaporisation:
+            self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_with_evap.txt"
+        else:
+            self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_no_evap.txt"
 
         self.R_far = mask_aperture_diameter * 0.5
         self.cp = material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
@@ -154,7 +162,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             if not self.compute_vaporisation:
                 self.l_s = self.PenetrationDepth() # It gives self.l_s = 0.002mm # 5 pulses, no evaporation
             else:
-                self.l_s = 0.00215                  # 5 pulses, with evaporation
+                self.l_s = 0.00215 # 5 pulses, with evaporation
 
             print("\nl_s in mm:", self.l_s)
             l_s_in_nm = 1e6 * self.l_s  # In nm
@@ -273,11 +281,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                 element_temperature = temp[0]
                 if element_temperature > self.T_e:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
-                    element_old_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
-                    elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
-                    element_new_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
-                    deleted_element_energy = element_new_energy #- element_old_energy
-                    self.total_removed_energy += deleted_element_energy
+                    elem.CalculateOnIntegrationPoints(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo)
+                    element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
+                    self.total_removed_energy += self.rho * element_volume * self.evaporation_enthalpy
                     self.number_of_decomposed_elements += 1
                     for node in elem.GetNodes():
                         node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 1.0)
@@ -291,11 +297,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                         number_of_decomposed_nodes +=1
                 if number_of_decomposed_nodes == 3:
                     elem.Set(KratosMultiphysics.ACTIVE, False)
-                    element_old_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
-                    elem.CalculateOnIntegrationPoints(LaserDrillingApplication.THERMAL_ENERGY, self.main_model_part.ProcessInfo)
-                    element_new_energy = elem.GetValue(LaserDrillingApplication.THERMAL_ENERGY)
-                    deleted_element_energy = element_new_energy #- element_old_energy
-                    self.total_removed_energy += deleted_element_energy
+                    elem.CalculateOnIntegrationPoints(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, self.main_model_part.ProcessInfo)
+                    element_volume = elem.GetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME)
+                    self.total_removed_energy += self.rho * element_volume * self.evaporation_enthalpy
                     #self.number_of_decomposed_elements += 1
                     number_of_problematic_elements += 1
 
@@ -503,9 +507,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.list_of_decomposed_nodes_coords.sort(key=self.sortSecond)
         self.list_of_decomposed_nodes_coords_X = [coord[0] for coord in self.list_of_decomposed_nodes_coords]
         self.list_of_decomposed_nodes_coords_Y = [coord[1] for coord in self.list_of_decomposed_nodes_coords]
-        if os.path.exists("list_of_decomposed_nodes_coords.txt"):
-            os.remove("list_of_decomposed_nodes_coords.txt")
-        self.decomposed_nodes_coords_file = open("list_of_decomposed_nodes_coords.txt", "a")
+        if os.path.exists(self.decomposed_nodes_coords_filename):
+            os.remove(self.decomposed_nodes_coords_filename)
+        self.decomposed_nodes_coords_file = open(self.decomposed_nodes_coords_filename, "a")
         for coord in self.list_of_decomposed_nodes_coords:
             self.decomposed_nodes_coords_file.write(str(coord[0]) + " " + str(coord[1]) + "\n")
         self.decomposed_nodes_coords_file.close()

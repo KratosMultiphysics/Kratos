@@ -6,7 +6,8 @@
             "Variables" : {
                 "DENSITY"       : 1.72E-06,
                 "CONDUCTIVITY"  : 3.00E-04,
-                "SPECIFIC_HEAT" : 1500.0
+                "SPECIFIC_HEAT" : 1500.0,
+                "ENTHALPY": 4e5
             },
             "Tables"    : null
         }
