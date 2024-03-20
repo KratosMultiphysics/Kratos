@@ -9,13 +9,12 @@
 //
 //  Main authors:    Ignasi de Pouplana,
 //                   Vahid Galavi
+//                   Gennady Markelov
 //
 
 #pragma once
 
 // Project includes
-#include "includes/element.h"
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
