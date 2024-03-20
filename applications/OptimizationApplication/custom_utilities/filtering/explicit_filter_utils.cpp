@@ -19,7 +19,6 @@
 
 // Project includes
 #include "expression/literal_flat_expression.h"
-#include "expression/literal_expression.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/model_part_utils.h"
@@ -219,8 +218,8 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
         } else if (number_of_conditions > 0) {
             mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
         } else {
-            // This model part consist a point cloud, hence the area weights are 1.0
-            mpNodalDomainSizeExpression = LiteralExpression<double>::Create(1.0, mrModelPart.GetCommunicator().LocalMesh().Nodes().size());
+            KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
+                         << mrModelPart.FullName() << ".\n";
         }
     }
 
