@@ -269,5 +269,23 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
+        # In SetupModelPart, the destination model part can be created if it does not exist
+        self.assertFalse(current_model.HasModelPart("CreatedModelPart"))
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler().Create(
+            current_model,
+            KratosMultiphysics.Parameters('''{
+                "origin_model_part_name": "Main",
+                "destination_model_part_name": "CreatedModelPart",
+                "reference_element": "Element2D3N",
+                "reference_condition": "LineCondition2D2N"
+            }''')
+        )
+        modeler.SetupModelPart()
+
+        created_model_part = current_model.GetModelPart("CreatedModelPart")
+        self.assertEqual(len(model_part1.Nodes) , len(created_model_part.Nodes))
+        self.assertEqual(len(model_part1.Conditions) , len(created_model_part.Conditions))
+        self.assertEqual(len(model_part1.Elements) , len(created_model_part.Elements))
+
 if __name__ == '__main__':
     KratosUnittest.main()

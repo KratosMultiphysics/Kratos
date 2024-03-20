@@ -111,7 +111,13 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 void ConnectivityPreserveModeler::SetupModelPart()
 {
     ModelPart& r_origin_model_part = mpModel->GetModelPart(mParameters["origin_model_part_name"].GetString());
-    ModelPart& r_destination_model_part = mpModel->GetModelPart(mParameters["destination_model_part_name"].GetString());
+
+    const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
+    if (!mpModel->HasModelPart(destination_model_part_name)) {
+        mpModel->CreateModelPart(destination_model_part_name, r_origin_model_part.GetBufferSize());
+    }
+    ModelPart& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
+
     const std::string element_name = mParameters["reference_element"].GetString();
     const std::string condition_name = mParameters["reference_condition"].GetString();
 
