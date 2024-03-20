@@ -338,7 +338,7 @@ double TimoshenkoBeamElement2D3N::CalculateAxialStrain(
 {
     VectorType N_u0_derivatives(3);
     GetFirstDerivativesNu0ShapeFunctionsValues(N_u0_derivatives, Length, Phi, xi);
-    return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[1] * rNodalValues[3] + N_u0_derivatives[2] * rNodalValues[6];
+    return N_u0_derivatives[0] * rNodalValues[0] + N_u0_derivatives[2] * rNodalValues[3] + N_u0_derivatives[1] * rNodalValues[6];
 }
 
 /***********************************************************************************/
@@ -355,8 +355,8 @@ double TimoshenkoBeamElement2D3N::CalculateShearStrain(
     GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
     GetNThetaShapeFunctionsValues(N_theta, Length, Phi, xi);
     const VectorType N_s = N_derivatives - N_theta;
-    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[2] * rNodalValues[4] +
-           N_s[3] * rNodalValues[5] + N_s[4] * rNodalValues[7] + N_s[5] * rNodalValues[8];
+    return N_s[0] * rNodalValues[1] + N_s[1] * rNodalValues[2] + N_s[4] * rNodalValues[4] +
+           N_s[5] * rNodalValues[5] + N_s[2] * rNodalValues[7] + N_s[3] * rNodalValues[8];
 }
 
 /***********************************************************************************/
@@ -371,8 +371,8 @@ double TimoshenkoBeamElement2D3N::CalculateBendingCurvature(
 {
     VectorType N_theta_derivatives(6);
     GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
-    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] + N_theta_derivatives[2] * rNodalValues[4] +
-           N_theta_derivatives[3] * rNodalValues[5] + N_theta_derivatives[4] * rNodalValues[7] + N_theta_derivatives[5] * rNodalValues[8];
+    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] + N_theta_derivatives[4] * rNodalValues[4] +
+           N_theta_derivatives[5] * rNodalValues[5] + N_theta_derivatives[2] * rNodalValues[7] + N_theta_derivatives[3] * rNodalValues[8];
 }
 
 /***********************************************************************************/

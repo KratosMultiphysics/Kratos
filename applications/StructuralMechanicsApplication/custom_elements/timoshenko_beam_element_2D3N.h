@@ -46,11 +46,12 @@ namespace Kratos
  * @class TimoshenkoBeamElement2D3N
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Timoshenko beam element of 3 nodes. 5th order degree Hermitic polynomials
- * for deflection and 3rd degree for axial displacements
+ * for deflection and 3rd degree for axial displacements. The ordering of the local shape functions
+ * assume a " 0--1--2 " ordering and then we swap the components when moving to global coordinates
  * 
- *                           ^ y, v
- *                           |
- * Ordering of the nodes:    0 ------ 1 ------- 2 --> x, u   and rotation theta node-wise
+ *                                    ^ y, v
+ *                                    |
+ * Global Ordering of the nodes:      0 ------ 2 ------- 1 --> x, u      and rotation theta node-wise
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TimoshenkoBeamElement2D3N
@@ -134,7 +135,8 @@ public:
      */
     double GetAngle() override
     {
-        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D3NBeam(GetGeometry());
+        // We use the one from the 2D2N since our ordering agrees with it
+        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     }
 
     /**
@@ -153,7 +155,8 @@ public:
      */
     double CalculateLength() override
     {
-        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D3N(*this);
+        // We use the one from the 2D2N since our ordering agrees with it
+        return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
 
     /**
@@ -163,13 +166,15 @@ public:
      */
     void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
     {
+        // The ordering of the local vector nodes is different from global
         rGlobalSizeVector.clear();
         rGlobalSizeVector[1] = rLocalSizeVector[0];
         rGlobalSizeVector[2] = rLocalSizeVector[1];
-        rGlobalSizeVector[4] = rLocalSizeVector[2];
-        rGlobalSizeVector[5] = rLocalSizeVector[3];
-        rGlobalSizeVector[7] = rLocalSizeVector[4];
-        rGlobalSizeVector[8] = rLocalSizeVector[5];
+
+        rGlobalSizeVector[7] = rLocalSizeVector[2];
+        rGlobalSizeVector[8] = rLocalSizeVector[3];
+        rGlobalSizeVector[4] = rLocalSizeVector[4];
+        rGlobalSizeVector[5] = rLocalSizeVector[5];
     }
 
     /**
@@ -179,10 +184,11 @@ public:
      */
     void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
     {
+        // The ordering of the local vector nodes is different from global
         rGlobalSizeVector.clear();
         rGlobalSizeVector[0] = rLocalSizeVector[0];
-        rGlobalSizeVector[3] = rLocalSizeVector[1];
-        rGlobalSizeVector[6] = rLocalSizeVector[2];
+        rGlobalSizeVector[6] = rLocalSizeVector[1];
+        rGlobalSizeVector[3] = rLocalSizeVector[2];
     }
 
     /**
