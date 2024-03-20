@@ -442,6 +442,55 @@ std::string ExplicitFilterUtils<TContainerType>::Info() const
     return msg.str();
 }
 
+template<class TContainerType>
+void ExplicitFilterUtils<TContainerType>::CalculateFilteringMatrix(Matrix& rOutput) const
+{
+    KRATOS_TRY
+
+    using tls = ExplicitFilterUtilsHelperUtilities::TLS<TContainerType>;
+
+    const auto number_of_entities = mEntityPointVector.size();
+
+    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
+
+    if (rOutput.size1 () != number_of_entities || rOutput.size2() != number_of_entities) {
+        rOutput.resize(number_of_entities, number_of_entities, false);
+    }
+
+    noalias(rOutput) = ZeroMatrix(number_of_entities, number_of_entities);
+
+    IndexPartition<IndexType>(number_of_entities).for_each(tls(mMaxNumberOfNeighbors), [&](const auto Index, auto& rTLS) {
+        const double radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
+
+        const auto number_of_neighbors = mpSearchTree->SearchInRadius(
+                                            *mEntityPointVector[Index],
+                                            radius,
+                                            rTLS.mNeighbourEntityPoints.begin(),
+                                            rTLS.mResultingSquaredDistances.begin(),
+                                            mMaxNumberOfNeighbors);
+
+        KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
+            << "Maximum number of allowed neighbours reached when searching for neighbours in "
+            << mrModelPart.FullName() << " with radii = " << radius << " [ max number of allowed neighbours = "
+            << mMaxNumberOfNeighbors << " ].\n";
+
+        std::vector<double> list_of_weights(number_of_neighbors, 0.0);
+        double sum_of_weights = 0.0;
+        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
+            sum_of_weights, list_of_weights, *mpKernelFunction, radius,
+            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+
+        double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
+
+        for (IndexType neighbour_index = 0; neighbour_index < number_of_neighbors; ++neighbour_index) {
+            const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
+            *(data_begin + neighbour_id) = list_of_weights[neighbour_index] / sum_of_weights;
+        }
+    });
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #define KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(CONTAINER_TYPE)                                                                                                                                                      \
     template class ExplicitFilterUtils<CONTAINER_TYPE>;                                                                                                                                                                        \

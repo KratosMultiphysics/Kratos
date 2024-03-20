@@ -46,6 +46,7 @@ void AddExplicitFilterUtils(
         .def("GetFilterRadius", &ExplicitFilterUtils<TContainerType>::GetFilterRadius)
         .def("GetDampingCoefficients", &ExplicitFilterUtils<TContainerType>::GetDampingCoefficients)
         .def("GetIntegrationWeights", &ExplicitFilterUtils<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
+        .def("CalculateFilteringMatrix", &ExplicitFilterUtils<TContainerType>::CalculateFilteringMatrix, py::arg("output_filtering_matrix"))
         .def("Update", &ExplicitFilterUtils<TContainerType>::Update)
         .def("__str__", &ExplicitFilterUtils<TContainerType>::Info)
         ;
