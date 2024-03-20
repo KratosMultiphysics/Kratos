@@ -387,17 +387,7 @@ double GetReferenceRotationAngle2D2NBeam(GeometryType& rGeometry)
     const double delta_x = r_node_2.X0() - r_node_1.X0();
     const double delta_y = r_node_2.Y0() - r_node_1.Y0();
 
-    if (std::abs(delta_x) > 0.0) {
-        return std::atan(delta_y / delta_x);
-    } else {
-        if (delta_y > 0.0) {
-            return 0.5 * Globals::Pi;
-        } else if (delta_y < 0.0) {
-            return -0.5 * Globals::Pi;
-        } else {
-            KRATOS_ERROR << "The beam angle cannot be computed, check nodes coordinates..." << std::endl;
-        }
-    }
+    return std::atan2(delta_y, delta_x);
 }
 
 /***********************************************************************************/
@@ -411,17 +401,7 @@ double GetReferenceRotationAngle2D3NBeam(GeometryType& rGeometry)
     const double delta_x = r_node_2.X0() - r_node_1.X0();
     const double delta_y = r_node_2.Y0() - r_node_1.Y0();
 
-    if (std::abs(delta_x) > 0.0) {
-        return std::atan(delta_y / delta_x);
-    } else {
-        if (delta_y > 0.0) {
-            return 0.5 * Globals::Pi;
-        } else if (delta_y < 0.0) {
-            return -0.5 * Globals::Pi;
-        } else {
-            KRATOS_ERROR << "The beam angle cannot be computed, check nodes coordinates..." << std::endl;
-        }
-    }
+    return std::atan2(delta_y, delta_x);
 }
 
 /***********************************************************************************/
