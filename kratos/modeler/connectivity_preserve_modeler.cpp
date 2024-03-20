@@ -142,10 +142,10 @@ void ConnectivityPreserveModeler::SetupModelPart()
 const Parameters ConnectivityPreserveModeler::GetDefaultParameters() const
 {
     return Parameters(R"({
-        "origin_model_part_name": "undefined_origin_model_part_name",
-        "destination_model_part_name": "undefined_destination_model_part_name",
-        "reference_element": "",
-        "reference_condition": ""
+        "origin_model_part_name"        : "undefined_origin_model_part_name",
+        "destination_model_part_name"   : "undefined_destination_model_part_name",
+        "reference_element"             : "",
+        "reference_condition"           : ""
     })");
 }
 
