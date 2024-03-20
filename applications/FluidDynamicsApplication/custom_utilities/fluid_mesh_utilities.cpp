@@ -29,11 +29,11 @@ namespace Kratos
 bool FluidMeshUtilities::AllElementsAreSimplex(const ModelPart& rModelPart)
 {
     // Check that the provided model part is not empty
-    const SizeType gl_n_elems = rModelPart.GetCommunicator().GlobalNumberOfElements();
+    const unsigned int gl_n_elems = rModelPart.GetCommunicator().GlobalNumberOfElements();
     KRATOS_ERROR_IF(gl_n_elems == 0) << "There are no elements in model part '" << rModelPart.FullName() << "'." << std::endl;
 
     // Initialize the counter in case current partition is empty
-    SizeType n_simplex = 0;
+    unsigned int n_simplex = 0;
 
     // Compute the total number of simplex elements in the mesh
     const auto& r_comm = rModelPart.GetCommunicator();
