@@ -82,3 +82,4 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) DampingFunction
 ///@}
 
 } // namespace Kratos.
+
