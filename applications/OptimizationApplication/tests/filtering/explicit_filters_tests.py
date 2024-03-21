@@ -21,6 +21,7 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
         with kratos_unittest.WorkFolderScope(".", __file__):
             ReadModelPart("solid", cls.model_part)
 
@@ -94,6 +95,65 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
 
         temp = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(temp - control_sensitivity_field), 0.0, 9)
+
+    def test_FilteringMatrix(self):
+        model_part = self.model_part
+        vm_filter = KratosOA.NodalExplicitFilterUtils(model_part, "linear", 1000, 0)
+
+        temp_exp = Kratos.Expression.NodalExpression(model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(temp_exp, 1.2)
+        vm_filter.SetFilterRadius(temp_exp.Clone())
+        vm_filter.Update()
+
+        damping_coeffs_numpy_array = []
+        physical_sensitivity_numpy_array = []
+        for entity in model_part.Nodes:
+            physical_sensitivity_numpy_array.append(entity.Id)
+            damping_coeffs_numpy_array.append(entity.Id % 5)
+        physical_sensitivity_numpy_array = numpy.array(physical_sensitivity_numpy_array, dtype=numpy.float64)
+        damping_coeffs_numpy_array = numpy.array(damping_coeffs_numpy_array, dtype=numpy.float64)
+
+        physical_sensitivity_field = Kratos.Expression.NodalExpression(model_part)
+        damping_coeffs = Kratos.Expression.NodalExpression(model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(damping_coeffs, damping_coeffs_numpy_array)
+        Kratos.Expression.CArrayExpressionIO.Read(physical_sensitivity_field, physical_sensitivity_numpy_array)
+        vm_filter.SetDampingCoefficients(damping_coeffs)
+        control_update = physical_sensitivity_field * -1.0
+
+        # compute nodal area
+        Kratos.CalculateNonHistoricalNodalAreaProcess(model_part).Execute()
+        nodal_area_exp = Kratos.Expression.NodalExpression(model_part)
+        Kratos.Expression.VariableExpressionIO.Read(nodal_area_exp, Kratos.NODAL_AREA, False)
+        nodal_area = nodal_area_exp.Evaluate()
+
+        integrated_physical_sensitivity_field = Kratos.Expression.Utils.Scale(physical_sensitivity_field, nodal_area_exp)
+
+        A = Kratos.Matrix()
+        vm_filter.CalculateFilteringMatrix(A)
+        A = numpy.array(A)
+
+        p =  control_update.Evaluate()
+        df_dx = physical_sensitivity_field.Evaluate()
+        D = numpy.diag(vm_filter.GetDampingCoefficients().Evaluate())
+
+        # test forward filtering
+        x = D @ A @ p
+        x_vm = vm_filter.ForwardFilterField(control_update).Evaluate()
+        self.assertVectorAlmostEqual(x, x_vm)
+
+        # now test the backward filtering
+        df_dp = A.T @ D @ df_dx
+        df_dp_vm = vm_filter.BackwardFilterField(physical_sensitivity_field).Evaluate()
+        self.assertVectorAlmostEqual(df_dp, df_dp_vm)
+
+        self.assertAlmostEqual(df_dx.dot(x), df_dp.dot(p))
+
+        # now test the integrated backward filtering
+        int_df_dx = integrated_physical_sensitivity_field.Evaluate()
+        df_dp_1 = A.T @ D @ (int_df_dx / nodal_area)
+        df_dp_1_vm = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field).Evaluate()
+        self.assertVectorAlmostEqual(df_dp_1, df_dp_vm)
+        self.assertVectorAlmostEqual(df_dp_1, df_dp_1_vm)
 
 class TestExplicitFilterReference(kratos_unittest.TestCase):
     @classmethod

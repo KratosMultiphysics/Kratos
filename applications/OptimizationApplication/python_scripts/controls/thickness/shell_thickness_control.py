@@ -82,9 +82,9 @@ class ShellThicknessControl(Control):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
+        if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+            KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))

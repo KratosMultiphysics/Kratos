@@ -19,6 +19,7 @@
 // Application includes
 #include "custom_utilities/filtering/explicit_damping_utils.h"
 #include "custom_utilities/filtering/explicit_filter_utils.h"
+#include "custom_utilities/filtering/explicit_smooth_damping_filter_utils.h"
 
 // Include base h
 #include "add_custom_filters_to_python.h"
@@ -46,10 +47,31 @@ void AddExplicitFilterUtils(
         .def("GetFilterRadius", &ExplicitFilterUtils<TContainerType>::GetFilterRadius)
         .def("GetDampingCoefficients", &ExplicitFilterUtils<TContainerType>::GetDampingCoefficients)
         .def("GetIntegrationWeights", &ExplicitFilterUtils<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
+        .def("CalculateFilteringMatrix", &ExplicitFilterUtils<TContainerType>::CalculateFilteringMatrix, py::arg("output_filtering_matrix"))
         .def("Update", &ExplicitFilterUtils<TContainerType>::Update)
         .def("__str__", &ExplicitFilterUtils<TContainerType>::Info)
         ;
 }
+
+template <class TContainerType>
+void AddExplicitFilterSmoothDampingUtils(
+    pybind11::module& m,
+    const std::string& rName)
+{
+    namespace py = pybind11;
+
+    py::class_<ExplicitSmoothDampingFilterUtils<TContainerType>, typename ExplicitSmoothDampingFilterUtils<TContainerType>::Pointer>(m, rName.c_str())
+        .def(py::init<const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
+        .def(py::init<const ModelPart&, const ModelPart&, const std::string&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("fixed_model_part"), py::arg("kernel_function_type"), py::arg("damping_function_type"), py::arg("max_number_of_neighbours"))
+        .def("SetFilterRadius", &ExplicitSmoothDampingFilterUtils<TContainerType>::SetFilterRadius, py::arg("filter_radius"))
+        .def("FilterField", &ExplicitSmoothDampingFilterUtils<TContainerType>::FilterField, py::arg("unfiltered_field"))
+        .def("FilterIntegratedField", &ExplicitSmoothDampingFilterUtils<TContainerType>::FilterIntegratedField, py::arg("filtered_field"))
+        .def("GetIntegrationWeights", &ExplicitSmoothDampingFilterUtils<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
+        .def("Update", &ExplicitSmoothDampingFilterUtils<TContainerType>::Update)
+        .def("__str__", &ExplicitSmoothDampingFilterUtils<TContainerType>::Info)
+        ;
+}
+
 
 } // namespace Detail
 
@@ -80,6 +102,11 @@ void AddCustomFiltersToPython(pybind11::module& m)
     Detail::AddExplicitFilterUtils<ModelPart::NodesContainerType>(m, "NodalExplicitFilterUtils");
     Detail::AddExplicitFilterUtils<ModelPart::ConditionsContainerType>(m, "ConditionExplicitFilterUtils");
     Detail::AddExplicitFilterUtils<ModelPart::ElementsContainerType>(m, "ElementExplicitFilterUtils");
+
+
+    Detail::AddExplicitFilterSmoothDampingUtils<ModelPart::NodesContainerType>(m, "NodalExplicitSmoothDampingFilterUtils");
+    Detail::AddExplicitFilterSmoothDampingUtils<ModelPart::ConditionsContainerType>(m, "ConditionExplicitSmoothDampingFilterUtils");
+    Detail::AddExplicitFilterSmoothDampingUtils<ModelPart::ElementsContainerType>(m, "ElementExplicitSmoothDampingFilterUtils");
 }
 
 } // namespace Python.

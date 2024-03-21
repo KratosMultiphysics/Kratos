@@ -119,6 +119,19 @@ public:
      */
     void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
 
+    /**
+     * @brief Calculates the filtering matrix used in this filter.
+     * @details This method only calculate the filtering matrix and damping is not applied at all.
+     *          If one wishes to calculate the filtering matrix with damping, then they can use the
+     *          Damping coefficient matrix along with this filtering matrix to do so.
+     *
+     * @param rOutput           Output filtering matrix
+     */
+    void CalculateFilteringMatrix(Matrix& rOutput) const;
+
+    /**
+     * @brief Prints info about the filtering.
+     */
     std::string Info() const;
 
     ///@}

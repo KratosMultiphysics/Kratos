@@ -5,6 +5,7 @@ from itertools import accumulate
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
+from KratosMultiphysics.OptimizationApplication.filtering.filter_radius_utils import Factory as FilterRadiusFactory
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
@@ -79,7 +80,7 @@ class ExplicitFilter(Filter):
 
     def Update(self) -> None:
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
-        filter_radius = self._GetFilterRadiusExpression(self.parameters["filter_radius_settings"])
+        filter_radius = FilterRadiusFactory(self.model_part, self.data_location, self.parameters["filter_radius_settings"])
         self.filter_utils.SetFilterRadius(filter_radius)
         self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
 
@@ -107,6 +108,7 @@ class ExplicitFilter(Filter):
         return self.filter_utils.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
 
     def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+         # WARNING: In general explicit VM doesn't need unfiltered field because it works with changes. Hence, it returns zeros and optimization runs correctly.
         return Kratos.Expression.Utils.Collapse(filtered_field * 0.0)
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
