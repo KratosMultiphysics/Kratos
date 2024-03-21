@@ -27,7 +27,7 @@
 #include "optimization_application_variables.h"
 
 // Include base h
-#include "model_part_utils.h"
+#include "opt_app_model_part_utils.h"
 
 namespace Kratos {
 
@@ -502,7 +502,7 @@ void PopulateModelPart(
 
 } // namespace ModelPartHelperUtils
 
-std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
+std::vector<ModelPart*> OptAppModelPartUtils::GetModelPartsWithCommonReferenceEntities(
     const std::vector<ModelPart*>& rExaminedModelPartsList,
     const std::vector<ModelPart*>& rReferenceModelParts,
     const bool AreNodesConsidered,
@@ -558,7 +558,7 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
                               examined_node_ids, examined_condition_geometry_node_ids,
                               examined_element_geometry_node_ids);
 
-            KRATOS_INFO_IF("ModelPartUtils", EchoLevel > 0)
+            KRATOS_INFO_IF("OptAppModelPartUtils", EchoLevel > 0)
                 << "Created common entity model part using "
                 << r_reference_model_part.FullName() << " for "
                 << GetExaminedModelPartsInfo(
@@ -569,7 +569,7 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
         auto p_model_part = &r_reference_model_part.GetSubModelPart(unique_mp_name);
         output_model_parts[i] = p_model_part;
 
-        KRATOS_INFO_IF("ModelPartUtils", EchoLevel > 1)
+        KRATOS_INFO_IF("OptAppModelPartUtils", EchoLevel > 1)
             << "Retrieved common entity model part using "
             << r_reference_model_part.FullName() << " for "
             << GetExaminedModelPartsInfo(
@@ -602,7 +602,7 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
     return output_model_parts;
 }
 
-void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
+void OptAppModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
     const std::vector<ModelPart*> rModelParts)
 {
     using namespace ModelPartHelperUtils;
@@ -619,7 +619,7 @@ void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReference
     }
 }
 
-void ModelPartUtils::LogModelPartStatus(
+void OptAppModelPartUtils::LogModelPartStatus(
     ModelPart& rModelPart,
     const std::string& rStatus)
 {
@@ -636,7 +636,7 @@ void ModelPartUtils::LogModelPartStatus(
     }
 }
 
-std::vector<std::string> ModelPartUtils::GetModelPartStatusLog(ModelPart& rModelPart)
+std::vector<std::string> OptAppModelPartUtils::GetModelPartStatusLog(ModelPart& rModelPart)
 {
     using namespace ModelPartHelperUtils;
 
@@ -647,7 +647,7 @@ std::vector<std::string> ModelPartUtils::GetModelPartStatusLog(ModelPart& rModel
     }
 }
 
-bool ModelPartUtils::CheckModelPartStatus(
+bool OptAppModelPartUtils::CheckModelPartStatus(
     const ModelPart& rModelPart,
     const std::string& rStatus)
 {
@@ -662,7 +662,7 @@ bool ModelPartUtils::CheckModelPartStatus(
     }
 }
 
-void ModelPartUtils::GenerateModelPart(
+void OptAppModelPartUtils::GenerateModelPart(
     ModelPart::ConditionsContainerType& rOriginContainer,
     ModelPart& rDestinationModelPart,
     const Element& rReferenceElement)
