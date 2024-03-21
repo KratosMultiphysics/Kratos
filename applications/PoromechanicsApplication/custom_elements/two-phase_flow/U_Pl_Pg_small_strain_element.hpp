@@ -108,7 +108,7 @@ protected:
         double LiquidCompressibilityCoeff;
         double GasCompressibilityCoeff;
         double Porosity;
-        double GasDiffusionCoefficient;
+        double GasHenrySolubilityCoeff;
 
         ///ProcessInfo variables
         double VelocityCoefficient;

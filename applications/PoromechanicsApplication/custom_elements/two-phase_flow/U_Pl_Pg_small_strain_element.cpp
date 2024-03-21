@@ -72,8 +72,8 @@ int UPlPgSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentP
     }
     if ( BIOT_COEFFICIENT.Key() == 0 || Prop.Has( BIOT_COEFFICIENT ) == false || Prop[BIOT_COEFFICIENT] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,"BIOT_COEFFICIENT has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( GAS_DIFFUSION_COEFF.Key() == 0 || Prop.Has( GAS_DIFFUSION_COEFF ) == false || Prop[GAS_DIFFUSION_COEFF] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"GAS_DIFFUSION_COEFF has Key zero, is not defined or has an invalid value at element", this->Id() )
+    if ( GAS_HENRY_SOLUBILITY_COEFF.Key() == 0 || Prop.Has( GAS_HENRY_SOLUBILITY_COEFF ) == false || Prop[GAS_HENRY_SOLUBILITY_COEFF] < 0.0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"GAS_HENRY_SOLUBILITY_COEFF has Key zero, is not defined or has an invalid value at element", this->Id() )
 
     // Verify the constitutive law
     if ( CONSTITUTIVE_LAW.Key() == 0 || Prop.Has( CONSTITUTIVE_LAW ) == false )
@@ -1635,7 +1635,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.SolidDensity               = Prop[DENSITY_SOLID];
     rVariables.LiquidDensity              = Prop[DENSITY_LIQUID];
     rVariables.GasDensity                 = Prop[DENSITY_GAS];
-    rVariables.GasDiffusionCoefficient    = Prop[GAS_DIFFUSION_COEFF];
+    rVariables.GasHenrySolubilityCoeff    = Prop[GAS_HENRY_SOLUBILITY_COEFF];
     rVariables.BiotCoefficient            = Prop[BIOT_COEFFICIENT];
     rVariables.SolidCompressibilityCoeff  = (rVariables.BiotCoefficient-rVariables.Porosity)/Prop[BULK_MODULUS_SOLID];
     rVariables.LiquidCompressibilityCoeff = rVariables.Porosity/Prop[BULK_MODULUS_LIQUID];
@@ -1851,7 +1851,7 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::GetHydromechanicalCouplingCoeffici
 {
     Clu = rVariables.BiotCoefficient*rVariables.Sl;
     Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sl) + 
-            rVariables.GasDiffusionCoefficient * rVariables.Sl * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
+            rVariables.GasHenrySolubilityCoeff * rVariables.Sl * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1873,12 +1873,12 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(dou
     // Compute the compressibility coefficients
     Cll = Ms * Sl * (Sl + pc * dSldPc) - dSldPc * Phi + Sl * Ml;
     Clg = Ms * Sl * (Sg - pc * dSldPc) + dSldPc * Phi;
-    Cgl = Ms * (Sg-Variables.GasDiffusionCoefficient*Sl) * (Sl + pc * dSldPc) + (1.0-Variables.GasDiffusionCoefficient) * dSldPc * Phi;
-    Cgg = Ms * (Sg-Variables.GasDiffusionCoefficient*Sl) * (Sg - pc * dSldPc) + Mg * (Sg + Sl * Variables.GasDiffusionCoefficient)
-            - (1.0-Variables.GasDiffusionCoefficient) * dSldPc * Phi;
+    Cgl = Ms * (Sg-Variables.GasHenrySolubilityCoeff*Sl) * (Sl + pc * dSldPc) + (1.0-Variables.GasHenrySolubilityCoeff) * dSldPc * Phi;
+    Cgg = Ms * (Sg-Variables.GasHenrySolubilityCoeff*Sl) * (Sg - pc * dSldPc) + Mg * (Sg + Sl * Variables.GasHenrySolubilityCoeff)
+            - (1.0-Variables.GasHenrySolubilityCoeff) * dSldPc * Phi;
     // TODO. Check whether Cgg should be like this
-    // Cgg = Ms * (Sg-Variables.GasDiffusionCoefficient*Sl) * (Sg - pc * dSldPc) + Mg * (Sg + Sl * Variables.GasDiffusionCoefficient)
-    //         - (1.0+Variables.GasDiffusionCoefficient) * dSldPc * Phi;
+    // Cgg = Ms * (Sg-Variables.GasHenrySolubilityCoeff*Sl) * (Sg - pc * dSldPc) + Mg * (Sg + Sl * Variables.GasHenrySolubilityCoeff)
+    //         - (1.0+Variables.GasHenrySolubilityCoeff) * dSldPc * Phi;
 }
 
 //----------------------------------------------------------------------------------------
