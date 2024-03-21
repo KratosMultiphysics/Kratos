@@ -128,16 +128,16 @@ void FindConservativeElementsProcess<THistorical>::FINDCUTELEMENTNODES()
     // Close the mdpa file
     mdpa_file.close();
 
-    // Print cons element nodes to the output
-    KRATOS_INFO("CutElementNodes") << "Cut Element Nodes: ";
-    for (const auto& pNode : cons_elem_nodes) {
-        KRATOS_INFO("CutElementNodes") << "Node ID: " << pNode.Id() << ", Coordinates: " << pNode.Coordinates() << std::endl;
-    }
-    // Print cons element IDs to the output
-    KRATOS_INFO("CutElementIDs") << "Cut Element IDs: ";
-    for (const auto& r_elem : cons_elem) {
-        KRATOS_INFO("CutElementIDs") << "Element ID: " << r_elem.Id() << std::endl;
-    }
+    // // Print cons element nodes to the output
+    // KRATOS_INFO("CutElementNodes") << "Cut Element Nodes: ";
+    // for (const auto& pNode : cons_elem_nodes) {
+    //     KRATOS_INFO("CutElementNodes") << "Node ID: " << pNode.Id() << ", Coordinates: " << pNode.Coordinates() << std::endl;
+    // }
+    // // Print cons element IDs to the output
+    // KRATOS_INFO("CutElementIDs") << "Cut Element IDs: ";
+    // for (const auto& r_elem : cons_elem) {
+    //     KRATOS_INFO("CutElementIDs") << "Element ID: " << r_elem.Id() << std::endl;
+    // }
 }
 
 template<bool THistorical>

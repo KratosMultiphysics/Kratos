@@ -938,7 +938,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
     def _Curvature_Correction(self):
         for node in self.main_model_part.Nodes:
             distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-            if (distance >= 0.4999 or distance <= -0.4999):
+            if (distance >= 0.49999 or distance <= -0.49999):
                 node.SetValue(KratosCFD.CURVATURE, 0.0)
 
 #####################################################################################################################
@@ -975,11 +975,13 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                     super().__init__(model,project_parameters)
                     self.flush_frequency = flush_frequency
                     self.last_flush = time.time()
+                    self.pseudo_steps_to_convergence = -1
                     sys.stdout.flush()
 
                 def Initialize(self):
                     super().Initialize()
-
+                    self.tolerence = 1.0
+                    
                     nodes2 = self._GetSolver().GetComputingModelPart().Nodes
                     ndes2_num = len(nodes2)
                     print(ndes1_num, ndes2_num) 
@@ -1027,18 +1029,40 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                             node.SetSolutionStepValue(KratosMultiphysics.NORMAL_X, 0, normalx)
                             node.SetSolutionStepValue(KratosMultiphysics.NORMAL_Y, 0, normaly)
 
-                    max_norm_of_temp_grad = 0
                     for node in nodes2:
                         gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
                         grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
-                        if ( math.sqrt(gradx**2 + grady**2) > max_norm_of_temp_grad ):
-                            max_norm_of_temp_grad = math.sqrt(gradx**2 + grady**2)
-                    print("max = ", max_norm_of_temp_grad)
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 1, gradx)
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 1, grady)
 
                 def FinalizeSolutionStep(self):
                     super().FinalizeSolutionStep()
+                    
+                    local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
+                    local_gradient_TEMPERATURE.Execute()
 
                     nodes2 = self._GetSolver().GetComputingModelPart().Nodes
+
+                    max_norm_of_temp_grad = 0.0
+                    max_norm_of_temp_grad_prev = 0.0
+                    max_diff = 0.0
+                    for node in nodes2:
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 1)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 1)
+                        norm_of_temp_grad_prev = math.sqrt(gradx**2 + grady**2)
+                        if ( math.sqrt(gradx**2 + grady**2) > max_norm_of_temp_grad_prev ):
+                           max_norm_of_temp_grad_prev = math.sqrt(gradx**2 + grady**2)
+                        gradx = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_X, 0)
+                        grady = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE_GRADIENT_Y, 0)
+                        norm_of_temp_grad = math.sqrt(gradx**2 + grady**2)
+                        if ( abs(norm_of_temp_grad - norm_of_temp_grad_prev) > max_diff ):
+                           max_diff = abs(norm_of_temp_grad - norm_of_temp_grad_prev)
+                        if ( math.sqrt(gradx**2 + grady**2 ) > max_norm_of_temp_grad ):
+                           max_norm_of_temp_grad = math.sqrt(gradx**2 + grady**2 )
+                    self.tolerence = max_diff/max_norm_of_temp_grad_prev
+                    print("max_norm_of_temp_grad = ", max_norm_of_temp_grad)
+                    print("tolerence = ", self.tolerence)
+                    
                     # Synchronize nodes based on ID
                     nodes_mapping = {}
                     for node in nodes2:
@@ -1056,9 +1080,16 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                         if now - self.last_flush > self.flush_frequency:
                             sys.stdout.flush()
                             self.last_flush = now
-                            
-                    local_gradient_TEMPERATURE = KratosMultiphysics.ComputeNodalGradientProcess2D(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE, KratosMultiphysics.TEMPERATURE_GRADIENT)
-                    local_gradient_TEMPERATURE.Execute()
+
+                def KeepAdvancingSolutionLoop(self):
+                    super().KeepAdvancingSolutionLoop()
+                    self.pseudo_steps_to_convergence += 1
+                    if (self.time < self.end_time):
+                        return  self.tolerence > 0.0001
+                    else:
+                        step = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
+                        KratosMultiphysics.Logger.PrintWarning("Convergence was not achieved after", step,"pseudo time steps.")
+                        return self.time < self.end_time
 
             return AnalysisStageWithFlush(global_model, parameters)
 
@@ -1076,5 +1107,8 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         global_model = KratosMultiphysics.Model()
         simulation = CreateAnalysisStageWithFlushInstance(analysis_stage_class, global_model, parameters)
         simulation.Run()
-
+        
+        # Write the number of pseudo time steps to a text file
+        with open('pseudo_steps_to_convergence.txt', 'a') as file:
+             file.write(str(simulation.pseudo_steps_to_convergence) + '\n')
 
