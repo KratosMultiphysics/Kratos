@@ -25,7 +25,7 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
                                                                     const array_1d<double, 3>& rNewValues)
 {
     const std::vector<std::string> components = {"X", "Y", "Z"};
-    for (const auto& [new_value, component] : boost::combine(rNewValues, components)) {
+    for (auto [new_value, component] : boost::combine(rNewValues, components)) {
         if (const auto& component_variable =
                 VariablesUtilities::GetComponentFromVectorVariable(rDestinationVariable.Name(), component);
             !rNode.IsFixed(component_variable)) {
