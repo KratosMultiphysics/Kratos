@@ -31,7 +31,8 @@ void UPlPgNormalGasFluxCondition<TDim,TNumNodes>::GetNormalFluidFluxVector(array
 {
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        rNormalFluidFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_GAS_FLUX);
+        // Multiplied by -1.0 to obtain an inflow from a positive value of NORMAL_GAS_FLUX
+        rNormalFluidFluxVector[i] = -1.0*Geom[i].FastGetSolutionStepValue(NORMAL_GAS_FLUX);
     }
 }
 
