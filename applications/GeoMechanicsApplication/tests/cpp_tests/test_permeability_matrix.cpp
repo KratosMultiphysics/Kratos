@@ -31,12 +31,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix2D3NGivesCorrectResults, Kr
     // clang-format on
 
     BoundedMatrix<double, 3, 3> PermeabilityMatrix      = ZeroMatrix(3, 3);
-    double                      DynamicViscosityInverse = 1;
+    const double                DynamicViscosityInverse = 1;
     BoundedMatrix<double, 2, 2> MaterialPermeabilityMatrix;
     // clang-format off
-    MaterialPermeabilityMatrix <<= 1.0, 2.0, 3.0, 4.0;
+    MaterialPermeabilityMatrix <<= 1.0, 2.0,
+                                   3.0, 4.0;
     // clang-format on
-    double IntegrationCoefficient = 1.0;
+    const double IntegrationCoefficient = 1.0;
     GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<2, 3>(
         PermeabilityMatrix, GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, IntegrationCoefficient);
 
@@ -45,8 +46,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix2D3NGivesCorrectResults, Kr
     BoundedMatrix<double, 3, 3> PMatrix;
     noalias(PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR * prod(GradNpT, MaterialPermeabilityMatrix);
 
-    double RelativePermeability     = 0.02;
-    double PermeabilityUpdateFactor = 1.5;
+    const double RelativePermeability     = 0.02;
+    const double PermeabilityUpdateFactor = 1.5;
     noalias(PMatrix) = DynamicViscosityInverse * RelativePermeability * PermeabilityUpdateFactor *
                        prod(PDimMatrix, trans(GradNpT)) * IntegrationCoefficient;
 
@@ -73,14 +74,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix3D4NGivesCorrectResults, Kr
     // clang-format on
 
     BoundedMatrix<double, 4, 4> PermeabilityMatrix      = ZeroMatrix(4, 4);
-    double                      DynamicViscosityInverse = 1;
+    const double                DynamicViscosityInverse = 1;
     BoundedMatrix<double, 3, 3> MaterialPermeabilityMatrix;
     // clang-format off
     MaterialPermeabilityMatrix <<= 1.0, 2.0, 3.0,
-                           4.0, 5.0, 6.0,
-                           7.0, 8.0, 9.0;
+                                   4.0, 5.0, 6.0,
+                                   7.0, 8.0, 9.0;
     // clang-format on
-    double IntegrationCoefficient = 1.0;
+    const double IntegrationCoefficient = 1.0;
     GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<3, 4>(
         PermeabilityMatrix, GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, IntegrationCoefficient);
 
@@ -89,8 +90,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix3D4NGivesCorrectResults, Kr
     BoundedMatrix<double, 4, 4> PMatrix;
     noalias(PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR * prod(GradNpT, MaterialPermeabilityMatrix);
 
-    double RelativePermeability     = 0.1;
-    double PermeabilityUpdateFactor = 2.0;
+    const double RelativePermeability     = 0.1;
+    const double PermeabilityUpdateFactor = 2.0;
     noalias(PMatrix) = DynamicViscosityInverse * RelativePermeability * PermeabilityUpdateFactor *
                        prod(PDimMatrix, trans(GradNpT)) * IntegrationCoefficient;
 

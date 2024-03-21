@@ -7,9 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
-//                   Gennady Markelov
+//  Main authors:    Gennady Markelov
 //
 
 #pragma once
@@ -28,7 +26,6 @@ public:
     using VectorType = Vector;
     using MatrixType = Matrix;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void CalculatePermeabilityMatrixH(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                                     const Matrix& GradNpT,

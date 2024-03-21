@@ -1299,23 +1299,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatri
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityMatrix(
-    BoundedMatrix<double, TNumNodes, TDim>&      rPDimMatrix,
-    BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-    const ElementVariables&                      rVariables) const
-{
-    KRATOS_TRY
-
-    noalias(rPDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.PermeabilityMatrix);
-
-    noalias(rPMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
-                        rVariables.PermeabilityUpdateFactor *
-                        prod(rPDimMatrix, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
                                                                                ElementVariables& rVariables)
 {

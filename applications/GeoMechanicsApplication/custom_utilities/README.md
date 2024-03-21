@@ -17,7 +17,7 @@ where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the 
 File transport_equation_utilities.hpp includes 
 
 -  CalculatePermeabilityMatrixH functions with input parameters defined with bounded matrices or matrices
--  PreparePermeabilityMatrixHForIntegration function that multiplies the permeabiity matrix for future integration
+-  PreparePermeabilityMatrixHForIntegration function that multiplies the permeability matrix for future integration
 
 
 
