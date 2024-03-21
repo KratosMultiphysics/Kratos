@@ -1,7 +1,11 @@
 import math
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.testing.utilities import ReadModelPart
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -78,6 +82,54 @@ class TestExplicitSmoothDampingFilter(kratos_unittest.TestCase):
         integrated_constant_field = integration_weights * unfiltered_field
         filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_integrated_data), math.sqrt(12 * len(entities)), 12)
+
+    def test_Factory(self) -> None:
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            ReadModelPart("../mdpas/shell", model_part)
+
+        optimization_problem = OptimizationProblem(0)
+        filter_data = ComponentDataView("test", optimization_problem)
+        filter_data.SetDataBuffer(1)
+        settings = Kratos.Parameters("""{
+            "filter_type"               : "explicit_smooth_damping_filter",
+            "filter_function_type"      : "linear",
+            "damping_function_type"     : "cosine",
+            "max_nodes_in_filter_radius": 100000,
+            "echo_level"                : 0,
+            "filter_radius_settings":{
+                "filter_radius_type": "constant",
+                "filter_radius"     : 0.5
+            },
+            "filtering_boundary_conditions": {
+                "test.DISPLACEMENT_left_edge"  : [ true, false, false]
+            }
+        }""")
+        vm_filter = FilterFactory(model, "test", KratosOA.SHAPE, Kratos.Globals.DataLocation.NodeHistorical, settings)
+        vm_filter.SetComponentDataView(ComponentDataView("test", optimization_problem))
+        vm_filter.Initialize()
+
+        nodal_neighbours = Kratos.Expression.NodalExpression(model_part)
+        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours)
+
+        Kratos.NormalCalculationUtils().CalculateNormalsInElements(model_part, Kratos.NORMAL)
+        element_exp = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.VariableExpressionIO.Read(element_exp, Kratos.NORMAL)
+        domain_size_exp = Kratos.Expression.ElementExpression(model_part)
+        Kratos.Expression.DomainSizeExpressionIO.Read(domain_size_exp)
+        physical_element_gradient = Kratos.Expression.Utils.Scale(element_exp, domain_size_exp)
+
+        physical_space_gradient = Kratos.Expression.NodalExpression(model_part)
+        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(physical_space_gradient, physical_element_gradient, nodal_neighbours)
+
+        control_space_gradient = vm_filter.BackwardFilterField(physical_space_gradient)
+        control_update = control_space_gradient * (1e-2 / Kratos.Expression.Utils.NormInf(control_space_gradient))
+        physical_update = vm_filter.ForwardFilterField(control_update)
+
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_space_gradient), 0.02268505190702854)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(physical_update), 0.010249567403956243)
 
 if __name__ == "__main__":
     kratos_unittest.main()

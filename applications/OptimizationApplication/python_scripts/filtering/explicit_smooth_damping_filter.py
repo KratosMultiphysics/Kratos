@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.OptimizationApplication.filtering.filter_radius_utils import Factory as FilterRadiusFactory
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 
 def Factory(model: Kratos.Model, filtering_model_part_name: str, filtering_variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, parameters: Kratos.Parameters) -> Filter:
     return ExplicitSmoothDampingFilter(model, filtering_model_part_name, filtering_variable, data_location, parameters)
@@ -21,11 +22,11 @@ class ExplicitSmoothDampingFilter(Filter):
             "damping_function_type"        : "cosine",
             "max_nodes_in_filter_radius"   : 100000,
             "echo_level"                   : 0,
-            "filtering_boundary_conditions": {}
+            "filtering_boundary_conditions": {},
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
                 "filter_radius"     : 0.2
-            },
+            }
         }""")
 
     def __init__(self, model: Kratos.Model, filtering_model_part_name: str, filtering_variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, parameters: Kratos.Parameters) -> None:
@@ -67,11 +68,22 @@ class ExplicitSmoothDampingFilter(Filter):
         max_nodes_in_filter_radius = self.parameters["max_nodes_in_filter_radius"].GetInt()
         echo_level = self.parameters["echo_level"].GetInt()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter_utils = KratosOA.NodalExplicitSmoothDampingFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            filter_utils_type = KratosOA.NodalExplicitSmoothDampingFilterUtils
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            self.filter_utils = KratosOA.ConditionExplicitSmoothDampingFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            filter_utils_type = KratosOA.ConditionExplicitSmoothDampingFilterUtils
         elif self.data_location == Kratos.Globals.DataLocation.Element:
-            self.filter_utils = KratosOA.ElementExplicitSmoothDampingFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            filter_utils_type = KratosOA.ElementExplicitSmoothDampingFilterUtils()
+
+        number_of_components = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
+        self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], number_of_components)
+        if all([len(damped_model_parts) == 0 for damped_model_parts in self.damped_model_parts]):
+            self.filter_utils = filter_utils_type(self.model_part, filter_function_type, max_nodes_in_filter_radius)
+        else:
+            fixed_model_parts_names = list(self.parameters["filtering_boundary_conditions"].keys())
+            self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetComponentDataView().GetComponentName()}", fixed_model_parts_names, False)
+            self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
+            damping_function_type = self.parameters["damping_function_type"].GetString()
+            self.filter_utils = filter_utils_type(self.model_part, self.fixed_model_part, filter_function_type, damping_function_type, max_nodes_in_filter_radius)
 
         self.Update()
 

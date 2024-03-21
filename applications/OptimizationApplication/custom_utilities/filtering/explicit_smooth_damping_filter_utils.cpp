@@ -235,13 +235,10 @@ void ExplicitSmoothDampingFilterUtils<TContainerType>::ExplicitSmoothDampingFilt
         const auto& r_elements = mrModelPart.Elements();
         const IndexType number_of_elements = r_elements.size();
 
-        KRATOS_ERROR_IF(number_of_conditions > 0 && number_of_elements > 0) << mrModelPart.FullName()
-            << " has both elements and conditions. Nodal mapping model parts should only have either conditions or elements.\n";
-
-        if (number_of_conditions > 0) {
-            mpNodalDomainSizeExpression = ExplicitFilterWithIntegratedDampingUtilsHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
-        } else if (number_of_elements > 0) {
+        if (number_of_elements > 0) {
             mpNodalDomainSizeExpression = ExplicitFilterWithIntegratedDampingUtilsHelperUtilities::GetNodalDomainSizeExpression(r_elements, r_nodes);
+        } else if (number_of_conditions > 0) {
+            mpNodalDomainSizeExpression = ExplicitFilterWithIntegratedDampingUtilsHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
         } else {
             KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
                          << mrModelPart.FullName() << ".\n";
