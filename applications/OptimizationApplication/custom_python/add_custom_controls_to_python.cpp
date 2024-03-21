@@ -26,7 +26,6 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_controls_to_python.h"
-#include "custom_controls/thickness_controls/helmholtz_thickness.h"
 #include "custom_controls/material_controls/helmholtz_material.h"
 #include "custom_controls/material_controls/helmholtz_partition.h"
 
@@ -48,15 +47,6 @@ void  AddCustomControlsToPython(pybind11::module& m)
     // ================================================================
     //
     // ================================================================
-
-    py::class_<HelmholtzThickness >(m, "HelmholtzThickness")
-        .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
-        .def("Initialize", &HelmholtzThickness::Initialize)
-        .def("Update", &HelmholtzThickness::Update)
-        .def("MapControlUpdate", &HelmholtzThickness::MapControlUpdate)
-        .def("MapFirstDerivative", &HelmholtzThickness::MapFirstDerivative)
-        .def("Finalize", &HelmholtzThickness::Finalize)
-        ;
 
     py::class_<HelmholtzMaterial >(m, "HelmholtzMaterial")
         .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
