@@ -166,6 +166,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             "echo_level"_a = 0)
         .def("RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList", &ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList,
             "model_parts_list"_a)
+        .def("GenerateModelPart",
+            [](ModelPart::ConditionsContainerType& rOriginConditions, ModelPart& rDestinationModelPart, const std::string& rElementName) {
+                ModelPartUtils::GenerateModelPart(rOriginConditions, rDestinationModelPart, KratosComponents<Element>::Get(rElementName));
+            },
+            "conditions_container"_a,
+            "destination_model_part"_a,
+            "element_name"_a)
         ;
 
     m.def_submodule("OptimizationUtils")
@@ -327,9 +334,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     collective_expression_io.def("Write", [](CollectiveExpression& rCExpression, const std::vector<CollectiveExpressionIO::ContainerVariableType>& rContainerVariable){ CollectiveExpressionIO::Write(rCExpression, rContainerVariable); }, py::arg("collective_expression"), py::arg("list_of_variable_containers"));
 
     m.def_submodule("ImplicitFilterUtils")
-        .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount, py::arg("input_model_part"))
         .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering, py::arg("input_model_part"))
-        .def("AssignProperties", &ImplicitFilterUtils::AssignProperties, py::arg("model_part"), py::arg("properties_parameters"))
         ;
 
 
