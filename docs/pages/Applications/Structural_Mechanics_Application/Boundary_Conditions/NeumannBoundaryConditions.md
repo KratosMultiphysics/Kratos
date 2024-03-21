@@ -6,7 +6,7 @@ sidebar: structural_mechanics_application
 summary: 
 ---
 # Overview
-The set of different Neumann boundary conditions are explained in this document. Each loading condition requires a `process_name`. These are explained in the process name's documentation.
+The set of different Neumann boundary conditions are explained in this document. Each loading condition requires a `python_module` for corresponding process. These are explained in the file [Python Modules for Processes](../Boundary_Conditions/PythonModulesForProcesses.md)
 
 ## Point Load:
 - Variable Name: `POINT_LOAD`
