@@ -21,8 +21,9 @@
 #include "testing/testing.h"
 
 // Application includes
-#include "custom_io/hdf5_condition_data_value_io.h"
 #include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_container_component_io.h"
+#include "custom_utilities/container_io_utils.h"
 #include "tests/test_utils.h"
 
 namespace Kratos
@@ -78,10 +79,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSui
     })");
     io_params["list_of_variables"].SetStringArray(variables_list);
 
-    HDF5::ConditionDataValueIO data_io(io_params, p_test_file);
-    data_io.WriteConditionResults(r_write_model_part.Conditions());
-    data_io.ReadConditionResults(r_read_model_part.Conditions(),
-                                 r_read_model_part.GetCommunicator());
+    HDF5::ContainerComponentIO<ModelPart::ConditionsContainerType, HDF5::Internals::NonHistoricalIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>> data_io(io_params, p_test_file);
+    data_io.Write(r_write_model_part.Conditions(), HDF5::Internals::NonHistoricalIO{}, Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Conditions(), HDF5::Internals::NonHistoricalIO{}, r_read_model_part.GetCommunicator());
 
     for (auto& r_write_condition : r_write_model_part.Conditions())
     {
