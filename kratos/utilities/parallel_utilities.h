@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
@@ -67,10 +67,6 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) ParallelUtilities
 {
 public:
-    ///@name Life Cycle
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -281,6 +277,41 @@ public:
         return global_reducer.GetValue();
     }
 
+    template <class TThreadLocalStorage,
+              class TFunction,
+              class TThreadLocalReduction,
+              std::enable_if_t<std::is_same_v<std::invoke_result_t<TThreadLocalReduction,TThreadLocalStorage&>,void>,bool> = true>
+    void for_each(const TThreadLocalStorage& rTls,
+                  TFunction&& rFunction,
+                  TThreadLocalReduction&& rTLSReducer)
+    {
+        // Check type requirements
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
+        #pragma omp parallel
+        {
+            TThreadLocalStorage tls(rTls);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                KRATOS_TRY
+                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
+                    rFunction(*it, tls); // note that we pass the value to the function, not the iterator
+                } // for it in mBlockPartition[i]
+                KRATOS_CATCH_THREAD_EXCEPTION
+            } // for i in range(mNchunks)
+
+            #pragma omp critical
+            {
+                rTLSReducer(tls);
+            } // pragma omp critical
+        } // pragma omp parallel
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
+    }
+
 private:
     int mNchunks;
     std::array<TIterator, MaxThreads> mBlockPartition;
@@ -436,6 +467,29 @@ template <class TReducer,
 [[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
+}
+
+template <class TContainer,
+          class TThreadLocalStorage,
+          class TFunction,
+          class TThreadLocalReduction,
+          std::enable_if_t<std::is_same_v<std::invoke_result_t<TThreadLocalReduction,TThreadLocalStorage&>,void>,bool> = true>
+void block_for_each(TContainer&& rContainer,
+                    const TThreadLocalStorage& rTls,
+                    TFunction&& rFunction,
+                    TThreadLocalReduction&& rReduction)
+{
+    using ContainerType = std::remove_reference_t<TContainer>;
+    using iterator_type = std::conditional_t<
+        std::is_const_v<ContainerType>,
+        typename ContainerType::const_iterator,
+        typename ContainerType::iterator
+    >;
+    return BlockPartition<iterator_type>(rContainer.begin(), rContainer.end()).for_each(
+        rTls,
+        std::forward<TFunction>(rFunction),
+        std::forward<TThreadLocalReduction>(rReduction)
+    );
 }
 
 //***********************************************************************************
