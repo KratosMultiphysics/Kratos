@@ -100,6 +100,9 @@
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_elements/transient_thermal_element.h"
+#include "custom_elements/transient_thermal_well_element.h"
+#include "custom_elements/transient_Pw_well_element.hpp"
 
 // geo structural element
 #include "custom_elements/geo_cable_element.hpp"
@@ -110,7 +113,6 @@
 #include "custom_elements/geo_curved_beam_element.hpp"
 #include "custom_elements/geo_linear_truss_element.hpp"
 #include "custom_elements/geo_truss_element.hpp"
-#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
@@ -456,6 +458,14 @@ private:
     const TransientThermalElement<3, 8> mTransientThermalElement3D8N { 0, Kratos::make_shared< Hexahedra3D8     <NodeType> >(Element::GeometryType::PointsArrayType( 8)) };
     const TransientThermalElement<3,20> mTransientThermalElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
     const TransientThermalElement<3,27> mTransientThermalElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
+
+    // thermal well element
+    const TransientPwWellElement<2, 2> mTransientPwWellElement2D2N{ 0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)) };
+    const TransientPwWellElement<2, 3> mTransientPwWellElement2D3N{ 0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)) };
+    const TransientPwWellElement<2, 4> mTransientPwWellElement2D4N{ 0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)) };
+    const TransientPwWellElement<2, 5> mTransientPwWellElement2D5N{ 0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)) };
+
+    const TransientThermalWellElement<2, 4> mTransientThermalWellElement2D4N { 0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4))};
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N{ 0, Kratos::make_shared< Point2D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };

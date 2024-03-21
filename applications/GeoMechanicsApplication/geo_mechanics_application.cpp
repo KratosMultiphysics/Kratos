@@ -220,6 +220,13 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D20N", mTransientThermalElement3D20N)
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D27N", mTransientThermalElement3D27N)
 
+    // Register thermal well element
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalWellElement2D4N", mTransientThermalWellElement2D4N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientPwWellElement2D2N", mTransientPwWellElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientPwWellElement2D3N", mTransientPwWellElement2D3N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientPwWellElement2D4N", mTransientPwWellElement2D4N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientPwWellElement2D5N", mTransientPwWellElement2D5N)
+
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
@@ -365,6 +372,10 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( QF_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( SMIN_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( SMAX_COEFFICIENT )
+
+    //Variables for thermo-hydro well
+    KRATOS_REGISTER_VARIABLE(WELL_LENGTH)
+    KRATOS_REGISTER_VARIABLE(WELL_DIAMETER)
 
     KRATOS_REGISTER_VARIABLE( K0_MAIN_DIRECTION )
     KRATOS_REGISTER_VARIABLE( K0_VALUE_XX )
