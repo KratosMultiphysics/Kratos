@@ -292,7 +292,7 @@ public:
         std::vector<std::vector<IndexType>> tmp_col(number_of_threads);
         std::vector<std::vector<ValueType>> tmp_val(number_of_threads);
 
-        for(int i = 0; i < number_of_threads; ++i) {
+        for(unsigned int i = 0; i < number_of_threads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
             tmp_val[i].resize(2 * max_row_width);
         }
