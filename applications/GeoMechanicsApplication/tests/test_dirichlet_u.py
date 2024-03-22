@@ -37,10 +37,10 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
         output_data       = []
 
         # run stages and get results
-        for idx, stage in enumerate(stages):
+        for stage, output_file_name in zip(stages, output_file_names):
             stage.Run()
             reader = test_helper.GiDOutputFileReader()
-            output_data.append(reader.read_output_from(output_file_names[idx]))
+            output_data.append(reader.read_output_from(output_file_name))
 
         E = 30E+06
         stage_nr = 0
