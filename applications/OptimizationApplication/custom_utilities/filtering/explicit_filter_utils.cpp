@@ -25,6 +25,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/optimization_utils.h"
 
 // Include base h
 #include "explicit_filter_utils.h"
@@ -118,23 +119,6 @@ void ComputeWeightForAllNeighbors(
         rSumOfWeights += filter_weight;
     }
 }
-
-template<class TContainerType>
-struct TLS
-{
-    explicit TLS(const IndexType MaxNumberOfNeighbors, const IndexType Stride)
-    {
-        mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
-        mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
-        mListOfWeights.resize(MaxNumberOfNeighbors);
-        mListOfDampedWeights.resize(Stride, std::vector<double>(MaxNumberOfNeighbors));
-    }
-
-    typename ExplicitFilterUtils<TContainerType>::EntityPointVector mNeighbourEntityPoints;
-    std::vector<double> mResultingSquaredDistances;
-    std::vector<double> mListOfWeights;
-    std::vector<std::vector<double>> mListOfDampedWeights;
-};
 
 }; // namespace ExplicitFilterUtilsHelperUtilities
 
@@ -249,7 +233,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
 {
     KRATOS_TRY
 
-    using tls = ExplicitFilterUtilsHelperUtilities::TLS<TContainerType>;
+    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
     CheckField(rContainerExpression);
 
@@ -314,7 +298,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 {
     KRATOS_TRY
 
-    using tls = ExplicitFilterUtilsHelperUtilities::TLS<TContainerType>;
+    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
     CheckField(rContainerExpression);
 
@@ -442,7 +426,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 {
     KRATOS_TRY
 
-    using tls = ExplicitFilterUtilsHelperUtilities::TLS<TContainerType>;
+    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
     const auto number_of_entities = mEntityPointVector.size();
 

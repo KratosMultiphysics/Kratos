@@ -43,7 +43,9 @@ public:
 
     using EntityType = typename TContainerType::value_type;
 
-    using EntityPointVector = std::vector<typename EntityPoint<EntityType>::Pointer>;
+    using EntityPointType = EntityPoint<EntityType>;
+
+    using EntityPointVector = std::vector<typename EntityPointType::Pointer>;
 
     // Type definitions for tree-search
     using BucketType = Bucket<3, EntityPoint<EntityType>, EntityPointVector>;
