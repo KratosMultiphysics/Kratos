@@ -193,20 +193,6 @@ protected:
     std::size_t mMeshId = 0;   /// Mesh ID.
 
     ///@}
-    ///@name Protected Access
-    ///@{
-
-    /**
-     * @brief GetModelPart returns the reference to the ModelPart.
-     * @details This function provides access to the ModelPart associated with the current object.
-     * @return Reference to the ModelPart.
-     */
-    ModelPart& GetModelPart() 
-    { 
-        return mrModelPart; 
-    }
-
-    ///@}
 private:
     ///@name Private Operations
     ///@{

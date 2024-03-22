@@ -34,6 +34,8 @@ public:
     }
 
     bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
+
+    Kratos::ModelPart& GetModelPart() { return mrModelPart; }
 };
 
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
