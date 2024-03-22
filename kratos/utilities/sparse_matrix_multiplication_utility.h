@@ -80,12 +80,6 @@ public:
     /// A vector of indexes (signed)
     using SignedIndexVectorType = DenseVector<SignedIndexType>;
 
-#ifdef _OPENMP
-    static constexpr bool UsesOpenMP = true;
-#else
-    static constexpr bool UsesOpenMP = false;
-#endif
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -118,12 +112,10 @@ public:
         CMatrix& rC
         )
     {
-        int nt = 1;
-        if constexpr(UsesOpenMP) {
-            nt = omp_get_max_threads();
-        }
+        // We check the number of threads
+        const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 
-        if (nt > 16) {
+        if (number_of_threads > 16) {
             MatrixMultiplicationRMerge(rA, rB, rC);
         } else {
             MatrixMultiplicationSaad(rA, rB, rC);
@@ -294,15 +286,13 @@ public:
             return rTLS.my_max;
         });
 
-        int nthreads = 1;
-        if constexpr(UsesOpenMP) {
-            nthreads = omp_get_max_threads();
-        }
+        // We check the number of threads
+        const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 
-        std::vector<std::vector<IndexType>> tmp_col(nthreads);
-        std::vector<std::vector<ValueType>> tmp_val(nthreads);
+        std::vector<std::vector<IndexType>> tmp_col(number_of_threads);
+        std::vector<std::vector<ValueType>> tmp_val(number_of_threads);
 
-        for(int i = 0; i < nthreads; ++i) {
+        for(int i = 0; i < number_of_threads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
             tmp_val[i].resize(2 * max_row_width);
         }
@@ -316,9 +306,9 @@ public:
             const IndexType row_end = index1_a[i+1];
 
             int tid = 0;
-            if constexpr(UsesOpenMP) {
+            #ifdef _OPENMP
                 tid = omp_get_thread_num();
-            }
+            #endif
             IndexType* t_col = &tmp_col[tid][0];
 
             c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
@@ -335,9 +325,9 @@ public:
             const IndexType row_end = index1_a[i+1];
 
             int tid = 0;
-            if constexpr(UsesOpenMP) {
+            #ifdef _OPENMP
                 tid = omp_get_thread_num();
-            }
+            #endif
 
             IndexType* t_col = tmp_col[tid].data();
             ValueType* t_val = tmp_val[tid].data();
