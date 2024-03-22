@@ -363,6 +363,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
+            .def(py::init<Model&, Parameters>())
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
             .def(py::init< ModelPart&, Parameters >())
@@ -373,6 +374,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<ApplyConstantVectorValueProcess, ApplyConstantVectorValueProcess::Pointer, Process>(m,"ApplyConstantVectorValueProcess")
+            .def(py::init<Model&, Parameters>())
             .def(py::init<ModelPart&, Parameters>())
             .def(py::init<ModelPart&, const Variable<array_1d<double, 3 > >& , const double, const Vector , std::size_t, Flags>())
             .def(py::init< ModelPart&, Parameters >())

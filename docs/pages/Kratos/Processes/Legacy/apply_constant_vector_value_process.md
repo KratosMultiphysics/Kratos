@@ -16,7 +16,7 @@ This is a Legacy process and should not be used directly. Please see [Assign Sca
 
 This process is intended to be used for setting vector values (`double`) to a variable in a model part.
 
-This process is executed on the follwing hooks:
+This process is executed on the following hooks:
 - `ExecuteInitialize`
 
 ## Parameters & Defaults
