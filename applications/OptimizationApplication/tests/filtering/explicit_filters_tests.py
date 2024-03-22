@@ -15,6 +15,7 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 class TestExplicitFilterConsistency(kratos_unittest.TestCase):
     FilterUtilsType = typing.Union[KratosOA.NodeExplicitFilterUtils, KratosOA.ConditionExplicitFilterUtils, KratosOA.ElementExplicitFilterUtils]
+    DampingType = typing.Union[KratosOA.NodeExplicitDamping, KratosOA.ConditionExplicitDamping, KratosOA.ElementExplicitDamping]
     EntityContainerType = typing.Union[Kratos.NodesArray, Kratos.ConditionsArray, Kratos.ElementsArray]
 
     @classmethod
@@ -42,6 +43,14 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
     def test_ElementExplicitFilterConsistency(self):
         vm_filter = KratosOA.ElementExplicitFilterUtils(self.model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
+
+    def test_NearestEntityDamping(self):
+        damping = KratosOA.NearestNodeExplicitDamping(self.model, Kratos.Parameters("""{"damping_function_type": "cosine", "damped_model_part_settings": { "test.fixed": [true] }}"""), 1)
+        self.__RunMatrixTest(damping)
+
+    def test_IntegratedNearestEntityDamping(self):
+        damping = KratosOA.IntegratedNearestNodeExplicitDamping(self.model, Kratos.Parameters("""{"damping_function_type": "cosine", "damped_model_part_settings": { "test.fixed": [true] }}"""), 1)
+        self.__RunMatrixTest(damping)
 
     def __RunConsistencyTest(self, vm_filter: FilterUtilsType, entities: EntityContainerType, model_part: Kratos.ModelPart):
         if isinstance(entities, Kratos.NodesArray):
@@ -102,15 +111,15 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
         temp = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(temp - control_sensitivity_field), 0.0, 9)
 
-    def test_FilteringMatrix(self):
+    def __RunMatrixTest(self, damping: DampingType) -> None:
         model_part = self.model_part
         vm_filter = KratosOA.NodeExplicitFilterUtils(model_part, "linear", 1000, 0)
 
         radius_exp = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(radius_exp, 1.2)
+        Kratos.Expression.LiteralExpressionIO.SetData(radius_exp, 0.7)
         vm_filter.SetRadius(radius_exp.Clone())
 
-        damping = KratosOA.NearestNodeExplicitDamping(self.model, Kratos.Parameters("""{"damping_function_type": "cosine", "damped_model_part_settings": { "test.fixed": [true] }}"""), 1)
+
         damping.SetRadius(radius_exp.Clone())
         vm_filter.SetDamping(damping)
         damping.Update()

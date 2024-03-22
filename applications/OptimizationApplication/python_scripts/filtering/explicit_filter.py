@@ -136,16 +136,20 @@ class ExplicitFilter(Filter):
 
         damping_types_dict: 'dict[Kratos.Globals.DataLocation, dict[str, typing.Type[typing.Union[KratosOA.NodeExplicitDamping, KratosOA.ConditionExplicitDamping, KratosOA.ElementExplicitDamping]]]]' = {
             Kratos.Globals.DataLocation.NodeHistorical: {
-                "nearest_entity": KratosOA.NearestNodeExplicitDamping
+                "nearest_entity": KratosOA.NearestNodeExplicitDamping,
+                "integrated_nearest_entity": KratosOA.IntegratedNearestNodeExplicitDamping
             },
             Kratos.Globals.DataLocation.NodeNonHistorical: {
-                "nearest_entity": KratosOA.NearestNodeExplicitDamping
+                "nearest_entity": KratosOA.NearestNodeExplicitDamping,
+                "integrated_nearest_entity": KratosOA.IntegratedNearestNodeExplicitDamping
             },
             Kratos.Globals.DataLocation.Condition: {
-                "nearest_entity": KratosOA.NearestConditionExplicitDamping
+                "nearest_entity": KratosOA.NearestConditionExplicitDamping,
+                "integrated_nearest_entity": KratosOA.IntegratedNearestConditionExplicitDamping
             },
             Kratos.Globals.DataLocation.Element: {
-                "nearest_entity": KratosOA.NearestElementExplicitDamping
+                "nearest_entity": KratosOA.NearestElementExplicitDamping,
+                "integrated_nearest_entity": KratosOA.IntegratedNearestElementExplicitDamping
             }
         }
 
