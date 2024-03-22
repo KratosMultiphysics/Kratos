@@ -461,24 +461,32 @@ private:
     const UPwForceCondition<3,1> mUPwForceCondition3D1N{ 0, Kratos::make_shared< Point3D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
 
     const UPwFaceLoadCondition<2,2> mUPwFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwFaceLoadCondition<3,3> mUPwFaceLoadCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwFaceLoadCondition<3,4> mUPwFaceLoadCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
     const UPwNormalFaceLoadCondition<2,2> mUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwNormalFaceLoadCondition<2,3> mUPwNormalFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwNormalFaceLoadCondition<2,4> mUPwNormalFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwNormalFaceLoadCondition<2,5> mUPwNormalFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwNormalFaceLoadCondition<3,3> mUPwNormalFaceLoadCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwNormalFaceLoadCondition<3,4> mUPwNormalFaceLoadCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
     const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwNormalFluxCondition<2,3> mUPwNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwNormalFluxCondition<2,4> mUPwNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwNormalFluxCondition<2,5> mUPwNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
     const PwNormalFluxCondition<2,2> mPwNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const PwNormalFluxCondition<2,3> mPwNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const PwNormalFluxCondition<2,4> mPwNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const PwNormalFluxCondition<2,5> mPwNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const PwNormalFluxCondition<3,3> mPwNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const PwNormalFluxCondition<3,4> mPwNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-
-    const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N{ 0, Kratos::make_shared< Line2D2                   <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N{ 0, Kratos::make_shared< QuadrilateralInterface3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
@@ -499,8 +507,6 @@ private:
     const LineNormalLoad2DDiffOrderCondition mLineNormalLoadDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const LineNormalFluidFlux2DDiffOrderCondition mLineNormalFluidFluxDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const SurfaceLoad3DDiffOrderCondition mSurfaceLoadDiffOrderCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
     const SurfaceLoad3DDiffOrderCondition mSurfaceLoadDiffOrderCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
@@ -514,9 +520,14 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
-    const AxisymmetricUPwNormalFaceLoadCondition<2, 2> mAxisymmetricUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,2> mAxisymmetricUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,3> mAxisymmetricUPwNormalFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,4> mAxisymmetricUPwNormalFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,5> mAxisymmetricUPwNormalFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3<NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D4N{ 0, Kratos::make_shared< Line2D4<NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D5N{ 0, Kratos::make_shared< Line2D5<NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3<NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
 

@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
@@ -84,7 +85,7 @@ public:
     ///@{
 
     /// Default constructor
-    SparseMatrixMultiplicationUtility() = default;
+    SparseMatrixMultiplicationUtility() = delete;
 
     /// Desctructor
     virtual ~SparseMatrixMultiplicationUtility()= default;
@@ -96,12 +97,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /// Metafunction that returns value type of a matrix or a vector type.
-    template <class T, class Enable = void>
-    struct value_type {
-        using type = typename T::value_type;
-    };
 
     /**
      * @brief Matrix-matrix product C = A·B
@@ -117,13 +112,10 @@ public:
         CMatrix& rC
         )
     {
-    #ifdef _OPENMP
-        const int nt = omp_get_max_threads();
-    #else
-        const int nt = 1;
-    #endif
+        // We check the number of threads
+        const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 
-        if (nt > 16) {
+        if (number_of_threads > 16) {
             MatrixMultiplicationRMerge(rA, rB, rC);
         } else {
             MatrixMultiplicationSaad(rA, rB, rC);
@@ -144,7 +136,7 @@ public:
         CMatrix& C
         )
     {
-        using ValueType = typename value_type<CMatrix>::type;
+        using ValueType = typename CMatrix::value_type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -170,9 +162,7 @@ public:
             TLS(const SizeType NumberOfColumns)
                 : marker(NumberOfColumns)
             {
-                for (IndexType i_fill = 0; i_fill < NumberOfColumns; ++i_fill) {
-                    marker[i_fill] = -1;
-                }
+                std::fill(marker.begin(), marker.end(), -1);
             }
             SignedIndexVectorType marker;
         };
@@ -260,7 +250,7 @@ public:
         CMatrix &C
         )
     {
-        using ValueType = typename value_type<CMatrix>::type;
+        using ValueType = typename CMatrix::value_type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -278,67 +268,51 @@ public:
         const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
-        IndexType max_row_width = 0;
-
-        // TODO: Replace with block_for_each. Difficult due to critical section
-        #pragma omp parallel
-        {
+        // Definition of TLS
+        struct TLS_max {
             IndexType my_max = 0;
+        };
 
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
+        const IndexType max_row_width = IndexPartition<IndexType>(nrows).for_each<MaxReduction<IndexType>>(TLS_max(), [&](IndexType i, TLS_max& rTLS) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
 
-                IndexType row_width = 0;
-                for(IndexType j = row_beg; j < row_end; ++j) {
-                    const IndexType a_col = index2_a[j];
-                    row_width += index1_b[a_col + 1] - index1_b[a_col];
-                }
-                my_max = std::max(my_max, row_width);
+            IndexType row_width = 0;
+            for(IndexType j = row_beg; j < row_end; ++j) {
+                const IndexType a_col = index2_a[j];
+                row_width += index1_b[a_col + 1] - index1_b[a_col];
             }
+            rTLS.my_max = std::max(rTLS.my_max, row_width);
+            return rTLS.my_max;
+        });
 
-            #pragma omp critical
-            max_row_width = std::max(max_row_width, my_max);
-        }
+        // We check the number of threads
+        const unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 
-    #ifdef _OPENMP
-        const int nthreads = omp_get_max_threads();
-    #else
-        const int nthreads = 1;
-    #endif
+        std::vector<std::vector<IndexType>> tmp_col(number_of_threads);
+        std::vector<std::vector<ValueType>> tmp_val(number_of_threads);
 
-        std::vector< std::vector<IndexType> > tmp_col(nthreads);
-        std::vector< std::vector<ValueType> > tmp_val(nthreads);
-
-        for(int i = 0; i < nthreads; ++i) {
+        for(unsigned int i = 0; i < number_of_threads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
             tmp_val[i].resize(2 * max_row_width);
         }
 
-        // We create the c_ptr auxiliar variable
+        // We create the c_ptr auxiliary variable
         IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
-        #ifdef _OPENMP
-            const int tid = omp_get_thread_num();
-        #else
-            const int tid = 0;
-        #endif
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
 
+            int tid = 0;
+            #ifdef _OPENMP
+                tid = omp_get_thread_num();
+            #endif
             IndexType* t_col = &tmp_col[tid][0];
 
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
-
-                c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
-            }
-        }
+            c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
+        });
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
@@ -346,27 +320,21 @@ public:
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
-        // TODO: Replace with block_for_each
-        #pragma omp parallel
-        {
-        #ifdef _OPENMP
-            const int tid = omp_get_thread_num();
-        #else
-            const int tid = 0;
-        #endif
+        IndexPartition<IndexType>(nrows).for_each([&](IndexType i) {
+            const IndexType row_beg = index1_a[i];
+            const IndexType row_end = index1_a[i+1];
+
+            int tid = 0;
+            #ifdef _OPENMP
+                tid = omp_get_thread_num();
+            #endif
 
             IndexType* t_col = tmp_col[tid].data();
-            ValueType *t_val = tmp_val[tid].data();
+            ValueType* t_val = tmp_val[tid].data();
 
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const IndexType row_beg = index1_a[i];
-                const IndexType row_end = index1_a[i+1];
-
-                ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
-                        index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
-            }
-        }
+            ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
+                    index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
+        });
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
@@ -389,7 +357,7 @@ public:
         const double Factor = 1.0
         )
     {
-        using ValueType = typename value_type<AMatrix>::type;
+        using ValueType = typename AMatrix::value_type;
 
         // Auxiliary sizes
         const SizeType nrows = A.size1();
@@ -453,9 +421,7 @@ public:
 
         IndexPartition<IndexType>(nrows).for_each([&](IndexType ia) {
             SignedIndexVectorType marker(ncols);
-            for (int i = 0; i < static_cast<int>(ncols); ++i) {
-                marker[i] = -1;
-            }
+            std::fill(marker.begin(), marker.end(), -1);
 
             // Initialize
             const IndexType row_beg = new_a_ptr[ia];
@@ -516,7 +482,7 @@ public:
         const double Factor = 1.0
         )
     {
-        using ValueType = typename value_type<AMatrix>::type;
+        using ValueType = typename AMatrix::value_type;
 
         // Get access to B data
         const IndexType* index1 = rB.index1_data().begin();
@@ -585,7 +551,7 @@ public:
     }
 
     /**
-     * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
+     * @brief This method is designed to create the final solution sparse matrix from the auxiliary values
      * @param C The matrix solution
      * @param NRows The number of rows of the matrix
      * @param NCols The number of columns of the matrix
@@ -963,7 +929,7 @@ public:
 
     /**
      * @brief This is a method to check the block containing nonzero values
-     * @param rMatrix The auxiliar block
+     * @param rMatrix The auxiliary block
      * @param CurrentRow The current row computed
      * @param rNonZeroColsAux2 The nonzero rows array
      */
@@ -985,13 +951,13 @@ public:
     }
 
     /**
-     * @brief This is a method to compute the contribution of the auxiliar blocks
-     * @param AuxK The auxiliar block
+     * @brief This is a method to compute the contribution of the auxiliary blocks
+     * @param AuxK The auxiliary block
      * @param AuxIndex2 The indexes of the non zero columns
      * @param AuxVals The values of the final matrix
      * @param CurrentRow The current row computed
      * @param RowEnd The last column computed
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
+     * @param InitialIndexColumn The initial column index of the auxiliary block in the final matrix
      */
     static inline void ComputeAuxiliarValuesBlocks(
         const CompressedMatrix& rMatrix,
@@ -1375,22 +1341,6 @@ private:
 ///@name Input and output
 ///@{
 
-// /****************************** INPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-//
-// template<class TPointType, class TPointerType>
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   SparseMatrixMultiplicationUtility& rThis);
-//
-// /***************************** OUTPUT STREAM FUNCTION ******************************/
-// /***********************************************************************************/
-//
-// template<class TPointType, class TPointerType>
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const SparseMatrixMultiplicationUtility& rThis)
-// {
-//     return rOStream;
-// }
 
 ///@}
 

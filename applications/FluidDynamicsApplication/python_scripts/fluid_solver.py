@@ -215,7 +215,7 @@ class FluidSolver(PythonSolver):
         prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
         prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
 
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
+        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
 
     def _SetAndFillBuffer(self):
         init_dt = self._ComputeInitialDeltaTime()
