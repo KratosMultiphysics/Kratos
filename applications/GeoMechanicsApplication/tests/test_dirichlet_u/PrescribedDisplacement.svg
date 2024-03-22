@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1"
    inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
-   sodipodi:docname="LoadIncrease.svg"
+   sodipodi:docname="PrescribedDisplacement.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,13 +24,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="0.73139029"
-     inkscape:cx="500.41682"
-     inkscape:cy="-69.730212"
+     inkscape:zoom="0.51717103"
+     inkscape:cx="-48.339908"
+     inkscape:cy="663.22353"
      inkscape:window-width="1346"
      inkscape:window-height="940"
-     inkscape:window-x="2201"
-     inkscape:window-y="24"
+     inkscape:window-x="301"
+     inkscape:window-y="118"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1">
     <inkscape:grid
@@ -100,14 +100,36 @@
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
        d="M 35.000001,39.999999 V 115 H 185"
        id="path1" />
-    <path
-       style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
-       d="M 35.000001,115 44.999999,54.999998 H 180"
-       id="path2" />
+    <g
+       id="g3"
+       transform="translate(0.12789934,-0.78496535)">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
+         d="M 35.000001,115.52917 68.405578,55.418835 67.70438,115.25816"
+         id="path2"
+         sodipodi:nodetypes="ccc" />
+    </g>
+    <g
+       id="g3-4"
+       transform="translate(33.184425,-0.46493976)">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
+         d="M 35.000001,115.52917 68.405578,55.418835 67.70438,115.25816"
+         id="path2-9"
+         sodipodi:nodetypes="ccc" />
+    </g>
     <path
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;paint-order:fill markers stroke"
        d="m 30,54.999998 h 5.000001"
        id="path4" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.495715;paint-order:fill markers stroke"
+       d="m 67.80093,118.90117 v -3.84894"
+       id="path4-2" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.495715;paint-order:fill markers stroke"
+       d="m 100.90657,118.80598 v -3.84894"
+       id="path4-2-6" />
     <path
        style="fill:#ffffff;stroke:#000000;stroke-width:0.564999;marker-start:url(#RoundedArrow);paint-order:fill markers stroke"
        d="M 163.86297,125 H 146.13703"
@@ -118,26 +140,51 @@
        id="path5-2" />
     <text
        xml:space="preserve"
-       style="font-size:9.05691px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.83379e-08;stroke-dasharray:none;paint-order:fill markers stroke"
-       x="25.600685"
-       y="58.208427"
-       id="text1"><tspan
+       style="font-size:6.00371px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.2156e-08;stroke-dasharray:none;paint-order:fill markers stroke"
+       x="17.237534"
+       y="60.087906"
+       id="text1"
+       transform="scale(1.0315885,0.96937878)"><tspan
          sodipodi:role="line"
          id="tspan1"
-         style="fill:#000000;fill-opacity:1;stroke-width:1.83379e-08;stroke-dasharray:none"
-         x="25.600685"
-         y="58.208427">1</tspan></text>
+         style="fill:#000000;fill-opacity:1;stroke-width:1.2156e-08;stroke-dasharray:none"
+         x="17.237534"
+         y="60.087906">0.05</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.00371px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.2156e-08;stroke-dasharray:none;paint-order:fill markers stroke"
+       x="61.504227"
+       y="128.0071"
+       id="text1-9"
+       transform="scale(1.0315885,0.96937878)"><tspan
+         sodipodi:role="line"
+         id="tspan1-8"
+         style="fill:#000000;fill-opacity:1;stroke-width:1.2156e-08;stroke-dasharray:none"
+         x="61.504227"
+         y="128.0071">1.0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.00371px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.2156e-08;stroke-dasharray:none;paint-order:fill markers stroke"
+       x="93.672836"
+       y="128.00693"
+       id="text1-9-0"
+       transform="scale(1.0315885,0.96937878)"><tspan
+         sodipodi:role="line"
+         id="tspan1-8-5"
+         style="fill:#000000;fill-opacity:1;stroke-width:1.2156e-08;stroke-dasharray:none"
+         x="93.672836"
+         y="128.00693">2.0</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:9.6874px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.36229e-08;stroke-dasharray:none;paint-order:fill markers stroke"
-       x="18.0205"
-       y="58.431908"
+       x="15.374666"
+       y="66.369415"
        id="text2"><tspan
          sodipodi:role="line"
          id="tspan2"
          style="font-size:9.6874px;stroke-width:1.36229e-08"
-         x="18.0205"
-         y="58.431908">F</tspan></text>
+         x="15.374666"
+         y="66.369415">u</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:8.02779px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.12891e-08;stroke-dasharray:none;paint-order:fill markers stroke"
@@ -149,5 +196,16 @@
          style="stroke-width:1.12891e-08"
          x="168.78336"
          y="127.41142">t</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:5.64444px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.499999;paint-order:fill markers stroke"
+       x="28.938658"
+       y="60.687717"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="stroke-width:0.5"
+         x="28.938658"
+         y="60.687717" /></text>
   </g>
 </svg>
