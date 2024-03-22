@@ -167,7 +167,7 @@ void ExplicitFilterUtils<TContainerType>::SetRadius(const ContainerExpression<TC
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GetFilterRadius() const
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GetRadius() const
 {
     return *mpFilterRadiusContainer;
 }

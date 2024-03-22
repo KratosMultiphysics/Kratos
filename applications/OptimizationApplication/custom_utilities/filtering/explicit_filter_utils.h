@@ -68,7 +68,7 @@ public:
 
     void SetRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
-    ContainerExpression<TContainerType> GetFilterRadius() const;
+    ContainerExpression<TContainerType> GetRadius() const;
 
     void SetDamping(typename ExplicitDamping<TContainerType>::Pointer pExplicitDamping);
 
