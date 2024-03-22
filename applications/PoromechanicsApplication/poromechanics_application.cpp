@@ -223,9 +223,9 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxCondition2D2N", mUPlPgNormalLiquidFluxCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxCondition3D3N", mUPlPgNormalLiquidFluxCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPlPgNormalLiquidFluxCondition3D4N", mUPlPgNormalLiquidFluxCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition2D2N", mUPlPgNormalLiquidFluxCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition3D3N", mUPlPgNormalLiquidFluxCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition3D4N", mUPlPgNormalLiquidFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition2D2N", mUPlPgNormalGasFluxCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition3D3N", mUPlPgNormalGasFluxCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "UPlPgNormalGasFluxCondition3D4N", mUPlPgNormalGasFluxCondition3D4N )
 
     //Register Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElastoPlasticMohrCoulombCohesive3DLaw",mElastoPlasticMohrCoulombCohesive3DLaw);
