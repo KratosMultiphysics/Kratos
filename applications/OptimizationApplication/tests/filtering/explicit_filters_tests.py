@@ -56,7 +56,7 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
 
         radius_exp = container_expression_type(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(radius_exp, 2.0)
-        vm_filter.SetFilterRadius(radius_exp.Clone())
+        vm_filter.SetRadius(radius_exp.Clone())
         damping = damping_type(self.model, Kratos.Parameters("""{"damping_function_type": "cosine"}"""), 3)
         damping.SetRadius(radius_exp.Clone())
         vm_filter.SetDamping(damping)
@@ -108,7 +108,7 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
 
         radius_exp = Kratos.Expression.NodalExpression(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(radius_exp, 1.2)
-        vm_filter.SetFilterRadius(radius_exp.Clone())
+        vm_filter.SetRadius(radius_exp.Clone())
 
         damping = KratosOA.NearestNodeExplicitDamping(self.model, Kratos.Parameters("""{"damping_function_type": "cosine", "damped_model_part_settings": { "test.fixed": [true] }}"""), 1)
         damping.SetRadius(radius_exp.Clone())

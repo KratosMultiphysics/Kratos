@@ -66,7 +66,7 @@ public:
     ///@}
     ///@name Public operations
 
-    void SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression);
+    void SetRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
     ContainerExpression<TContainerType> GetFilterRadius() const;
 

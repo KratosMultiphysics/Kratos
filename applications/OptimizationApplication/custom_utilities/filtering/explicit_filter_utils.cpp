@@ -152,7 +152,7 @@ ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
 }
 
 template<class TContainerType>
-void ExplicitFilterUtils<TContainerType>::SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression)
+void ExplicitFilterUtils<TContainerType>::SetRadius(const ContainerExpression<TContainerType>& rContainerExpression)
 {
     KRATOS_ERROR_IF_NOT(rContainerExpression.GetItemComponentCount() == 1)
         << "Only scalar values are allowed for the filter radius container expression. "
@@ -226,7 +226,7 @@ void ExplicitFilterUtils<TContainerType>::CheckField(const ContainerExpression<T
 {
     KRATOS_ERROR_IF(mpFilterRadiusContainer.get() == nullptr)
         << "The filter radius container expression not set. "
-        << "Please set it using SetFilterRadius method.\n\t Filter = "
+        << "Please set it using SetRadius method.\n\t Filter = "
         << *this;
 
     KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())

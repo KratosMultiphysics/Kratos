@@ -79,7 +79,7 @@ class ExplicitFilter(Filter):
     def Update(self) -> None:
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
         filter_radius = FilterRadiusFactory(self.model_part, self.data_location, self.parameters["filter_radius_settings"])
-        self.filter_utils.SetFilterRadius(filter_radius)
+        self.filter_utils.SetRadius(filter_radius)
         self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
 
         # now set the damping
