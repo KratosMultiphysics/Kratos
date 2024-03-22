@@ -96,7 +96,7 @@ public:
     constexpr static std::size_t StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
-    using EmbeddedDiscontinuousElementData = EmbeddedDiscontinuousData< BaseElementData >;
+    using ShiftedBoundaryElementData = EmbeddedDiscontinuousData<BaseElementData>;  //TODO
 
     ///@}
     ///@name Life Cycle
@@ -175,15 +175,34 @@ public:
      */
     void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
-    /// Calculates both LHS and RHS contributions
     /**
-     * Computes the LHS and RHS elementar matrices. If the element is split
-     * includes the contribution of the level set boundary condition imposition.
+     * Computes the LHS and RHS elemental matrices.
+     * If the element is flagged as INTERFACE it contains surrogate boundary faces, for which the boundary flux contribution is added.
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rRightHandSideVector reference to the RHS vector
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Computes the LHS elemental matrices.
+     * If the element is flagged as INTERFACE it contains surrogate boundary faces, for which the boundary flux contribution is added.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Computes the RHS elemental vector.
+     * If the element is flagged as INTERFACE it contains surrogate boundary faces, for which the boundary flux contribution is added.
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
+     */
+    void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -295,14 +314,14 @@ protected:
      * This method checks if the element is intersected and calls the elemental data filling methods accordingly.
      * @param rData reference to the element data structure
      */
-    void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void InitializeGeometryData(ShiftedBoundaryElementData& rData) const;
 
     /**
      * @brief Non-intersected element geometry data fill
      * This method sets the data structure geometry fields (shape functions, gradients, ...) for a non-intersected element.
      * @param rData reference to the element data structure
      */
-    void DefineStandardGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void DefineStandardGeometryData(ShiftedBoundaryElementData& rData) const;
 
     /**
      * @brief Intersected element geometry data fill
@@ -311,7 +330,7 @@ protected:
      * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void DefineCutGeometryData(ShiftedBoundaryElementData& rData) const;
 
     /**
      * @brief Intersected element geometry data fill
@@ -320,7 +339,7 @@ protected:
      * to perform all operations on both, the positive and negative, sides of the element.
      * @param rData reference to the element data structure
      */
-    void DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+    void DefineIncisedGeometryData(ShiftedBoundaryElementData& rData) const;
 
     /**
      * @brief For an intersected element, normalize the interface normals
@@ -329,77 +348,8 @@ protected:
      * @param Tolerance tolerance to avoid division by 0 when normalizing
      */
     void NormalizeInterfaceNormals(
-        typename EmbeddedDiscontinuousElementData::InterfaceNormalsType& rNormals,
+        typename ShiftedBoundaryElementData::InterfaceNormalsType& rNormals,
         double Tolerance) const;
-
-    /**
-    * This method adds the no-penetration condition penalty level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddNormalPenaltyContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedDiscontinuousElementData& rData) const;
-
-    /**
-    * This method adds the no-penetration condition adjoint term level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddNormalSymmetricCounterpartContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedDiscontinuousElementData& rData) const;
-
-    /**
-    * This method adds the tangential stress condition penalty level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddTangentialPenaltyContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedDiscontinuousElementData& rData) const;
-
-    /**
-    * This method adds the tangential stress condition adjoint term level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddTangentialSymmetricCounterpartContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedDiscontinuousElementData& rData) const;
-
-    /**
-     * This method computes the penalty coefficient for the Nitsche normal imposition
-     * @param rData reference to element data structure
-     * @param rN the current Gauss pt. shape functions vector
-     * @return double The normal penalty coefficient value
-     */
-    double ComputeNormalPenaltyCoefficient(
-        const EmbeddedDiscontinuousElementData& rData,
-        const Vector& rN) const;
-
-    /**
-     * This method computes the Nitsche coefficients for the Nitsche normal imposition
-     * @param rData reference to element data structure
-     * @return a pair of double containing the two coefficients
-     */
-    std::pair<const double, const double> ComputeTangentialPenaltyCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
-
-    /**
-     * This method computes the Nitsche coefficients for the Nitsche tangential imposition
-     * @param rData reference to element data structure
-     * @return a pair of double containing the two coefficients
-     */
-    std::pair<const double, const double> ComputeTangentialNitscheCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
-
 
     ///@}
     ///@name Protected  Access
@@ -446,6 +396,14 @@ private:
     ///@{
 
     /**
+     * @brief Get the Surrogate Faces local Ids
+     * This method returns a list with the local ids of the surrogate faces of INTERFACE elements.
+     * Surrogate faces are faces shared with BOUNDARY elements and for which all their nodes  lie in the surrogate boundary.
+     * @return std::vector<std::size_t> List with the surrogate faces local ids
+     */
+    std::vector<std::size_t> GetSurrogateFacesIds();
+
+    /**
      * @brief Calculates the drag force
      * For an intersected element, this method calculates the drag force.
      * Note that the drag force includes both the shear and the pressure contributions.
@@ -453,7 +411,7 @@ private:
      * @param rDragForce reference to the computed drag force
      */
     void CalculateDragForce(
-        EmbeddedDiscontinuousElementData& rData,
+        ShiftedBoundaryElementData& rData,
         array_1d<double,3>& rDragForce) const;
 
     /**
@@ -464,22 +422,8 @@ private:
      * @param rDragForce reference to the computed drag force
      */
     void CalculateDragForceCenter(
-        EmbeddedDiscontinuousElementData& rData,
+        ShiftedBoundaryElementData& rData,
         array_1d<double,3>& rDragForceLocation) const;
-
-    /**
-     * @brief Auxiliary method to get the density value
-     * This auxiliary method interfaces the density get in order to make possible the
-     * use of the embedded element with both property-based and nodal-based density formulations.
-     * For the standard case (property-based formulations) the method is not specialized.
-     * In case a nodal density base formulation is used, it needs to be specialized.
-     * @param rData Embedded element data container
-     * @param NodeIndex The local index node for which the density is retrieved (only used in nodal density formulations)
-     * @return double The density value
-     */
-    inline double AuxiliaryDensityGetter(
-        const EmbeddedDiscontinuousElementData& rData,
-        const std::size_t NodeIndex) const;
 
     ///@}
     ///@name Private  Access
