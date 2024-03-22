@@ -1,5 +1,7 @@
 # Prescribed derivatives
 
+The following tests are an adaptation of a model provided by [Muhammed Furkan](https://github.com/muhammedfurkanyilmaz). 
+
 The tests in this folder assert that prescribed derivatives are applied correctly to the models and are not overwritten.
 The
 three derivatives that are prescribed in these tests are acceleration, velocity and dt_water_pressure (the time
@@ -25,13 +27,13 @@ table:
 | 0.2  | 0.01   |
 
 - Constraints:
-    - The Y displacements at the sides and bottom are fixed.
+    - The Y displacements at the sides and bottom are fixed, meaning the column is restricted to react as a shear column.
 - Material:
     - The material is described using a linear elastic material with a GeoLinearElasticPlaneStrain2DLaw, a Young's
       modulus
       of 150000 kPa and a Poisson ratio of 0.3.
-
-No conditions or loads are applied.
+  - Loads:
+    - The prescribed derivatives (velocity, acceleration and dt_water_pressure) are applied to nodes 1, 2 and 3. 
 
 ## Assertions
 
