@@ -103,24 +103,23 @@ void TimoshenkoBeamElement2D2N::EquationIdVector(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    KRATOS_TRY;
-
-    const auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
 
-    if (rResult.size() != dofs_per_node * number_of_nodes)
-        rResult.resize(dofs_per_node * number_of_nodes);
+    IndexType local_index = 0;
 
+    if (rResult.size() != dofs_per_node * number_of_nodes)
+        rResult.resize(dofs_per_node * number_of_nodes, false);
+
+    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        const SizeType index = i * dofs_per_node;
-        rResult[index]     = r_geom[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = r_geom[i].GetDof(ROTATION_Z    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
     }
-
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
