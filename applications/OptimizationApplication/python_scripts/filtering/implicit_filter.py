@@ -169,7 +169,9 @@ class ImplicitFilter(Filter):
         list(map(lambda filter_var: Kratos.VariableUtils().ApplyFixity(filter_var, False, self.filter_analysis._GetSolver().GetComputingModelPart().Nodes), self.filter_variables))
 
         # now re-apply the boundary conditions
-        self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], len(self.filter_variables))
+        self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"])
+        if len(self.filter_variables) != len(self.damped_model_parts) and len(self.damped_model_parts) != 0:
+            raise RuntimeError("Number of components mismatch.")
         list_of_boundary_model_parts: 'list[Kratos.ModelPart]' = []
 
         for component_index, boundary_model_parts in enumerate(self.damped_model_parts):

@@ -75,7 +75,7 @@ class ExplicitSmoothDampingFilter(Filter):
             filter_utils_type = KratosOA.ElementExplicitSmoothDampingFilterUtils()
 
         number_of_components = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
-        self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"], number_of_components)
+        self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, self.parameters["filtering_boundary_conditions"])
         if all([len(damped_model_parts) == 0 for damped_model_parts in self.damped_model_parts]):
             self.filter_utils = filter_utils_type(self.model_part, filter_function_type, max_nodes_in_filter_radius)
         else:

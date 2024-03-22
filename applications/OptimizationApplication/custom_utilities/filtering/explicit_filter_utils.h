@@ -27,6 +27,7 @@
 // Application includes
 #include "entity_point.h"
 #include "filter_function.h"
+#include "explicit_damping.h"
 
 namespace Kratos {
 
@@ -69,9 +70,7 @@ public:
 
     ContainerExpression<TContainerType> GetFilterRadius() const;
 
-    void SetDampingCoefficients(const ContainerExpression<TContainerType>& rContainerExpression);
-
-    ContainerExpression<TContainerType> GetDampingCoefficients() const;
+    void SetDamping(typename ExplicitDamping<TContainerType>::Pointer pExplicitDamping);
 
     /**
      * @brief Updates the internal KD trees or searching neghbours
@@ -145,7 +144,7 @@ private:
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
-    typename ContainerExpression<TContainerType>::Pointer mpDampingCoefficientContainer;
+    typename ExplicitDamping<TContainerType>::Pointer mpDamping;
 
     Expression::ConstPointer mpNodalDomainSizeExpression;
 

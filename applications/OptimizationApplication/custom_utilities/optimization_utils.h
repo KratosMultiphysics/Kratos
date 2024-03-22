@@ -72,10 +72,9 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
-    static std::vector<std::vector<const ModelPart*>> GetComponentWiseModelParts(
+    static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,
-        Parameters Settings,
-        const IndexType NumberOfComponents);
+        Parameters Settings);
 
     ///@}
 };

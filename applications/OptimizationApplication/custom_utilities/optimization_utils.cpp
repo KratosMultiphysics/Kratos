@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <numeric>
 
 // Project includes
 #include "utilities/parallel_utilities.h"
@@ -137,17 +138,28 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
-std::vector<std::vector<const ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
+std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
     Model& rModel,
-    Parameters Settings,
-    const IndexType NumberOfComponents)
+    Parameters Settings)
 {
     KRATOS_TRY
 
-    std::vector<std::vector<const ModelPart*>> result;
-    result.resize(NumberOfComponents);
+    std::vector<std::vector<ModelPart*>> result;
+
+    int number_of_components = -1;
 
     for (auto it = Settings.begin(); it != Settings.end(); ++it) {
+        // first set the number of components by checking the first entry.
+        if (number_of_components == -1) {
+            number_of_components = it->size();
+            result.resize(number_of_components);
+        }
+
+        KRATOS_ERROR_IF_NOT(static_cast<int>(it->size()) == number_of_components)
+            << "Number of component mismatch [ Number of components required = "
+            << number_of_components << ", number of components specified for model part "
+            << it.name() << " = " << it->size() << " ]. Settings = \n" << Settings;
+
         IndexType i_component = 0;
         for (const auto& r_value : *it) {
             if (r_value.GetBool()) {
@@ -155,11 +167,6 @@ std::vector<std::vector<const ModelPart*>> OptimizationUtils::GetComponentWiseMo
             }
             ++i_component;
         }
-
-        KRATOS_ERROR_IF_NOT(i_component == NumberOfComponents)
-            << "Number of damping component mismatch [ Number of components required = "
-            << NumberOfComponents << ", number of components specified for damping model part "
-            << it.name() << " = " << i_component << " ].\n";
     }
 
     return result;
