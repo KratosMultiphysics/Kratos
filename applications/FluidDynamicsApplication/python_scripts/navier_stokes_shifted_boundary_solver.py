@@ -1,20 +1,11 @@
-# Importing Python modules
-import numpy
-import numpy.linalg
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
-have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
-if have_mesh_moving:
-    import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
-from KratosMultiphysics.FluidDynamicsApplication import read_distance_from_file
 
 
 class ShiftedBoundaryFormulation(object):
@@ -55,6 +46,7 @@ class ShiftedBoundaryFormulation(object):
         self.element_name = "ShiftedBoundaryWeaklyCompressibleNavierStokes"
         self.condition_name = "ShiftedBoundaryWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+        #TODO: warning that discontinuous is not supported yet
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
         self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
