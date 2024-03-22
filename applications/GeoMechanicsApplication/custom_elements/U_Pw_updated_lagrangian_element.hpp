@@ -86,7 +86,8 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    explicit UPwUpdatedLagrangianElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
 
@@ -221,8 +222,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -280,18 +281,6 @@ private:
         typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianElement
 
 ///@}

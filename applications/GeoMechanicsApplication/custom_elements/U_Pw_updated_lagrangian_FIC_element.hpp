@@ -87,7 +87,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
+    explicit UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -221,8 +221,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -280,18 +280,6 @@ private:
         typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianFICElement& operator=(const UPwUpdatedLagrangianFICElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianFICElement(const UPwUpdatedLagrangianFICElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianFICElement
 
 ///@}
