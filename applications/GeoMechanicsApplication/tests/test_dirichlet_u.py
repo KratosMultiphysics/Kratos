@@ -5,7 +5,7 @@ import test_helper
 
 class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
     """
-    This class contains some element tests, such as triaxial and oedometer tests
+    This class contains a test for displacement Dirichlet boundary condition
     """
 
     def setUp(self):
@@ -26,13 +26,13 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
         stage 1) elongate 0.05 [m] in 2 steps
         stage 2) elongate another 0.05 [0.05] in 2 steps
         """
-        test_name    = 'test_dirichlet_u'
+        test_name    = 'dirichlet_u'
         project_path = test_helper.get_file_path(os.path.join('.', test_name))
         n_stages     = 2
         stages       = test_helper.get_stages(project_path,n_stages)
 
         # name of output file
-        output_file_names = [os.path.join(project_path, 'test_dirichlet_u_stage' + str(i + 1) + '.post.res') for i in
+        output_file_names = [os.path.join(project_path, 'dirichlet_u_stage' + str(i + 1) + '.post.res') for i in
                             range(n_stages)]
         output_data       = []
 
