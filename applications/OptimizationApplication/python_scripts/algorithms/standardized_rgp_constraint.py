@@ -126,10 +126,13 @@ class StandardizedRGPConstraint(ResponseRoutine):
         # Update CBV if violating
         if step > 1:
             if values[0] > 0.0 and values[1] > 0.0 and delta_values[0] > 0.0:
-                self.CBV = max( self.CBV - values[1], self.CBV - self.BS)
+                value = max(abs(self.CBV - values[1]), self.BS/10)
+                self.CBV = max( self.CBV - value, self.CBV - self.BS)
 
             if values[0] < 0.0 and values[1] < 0.0 and delta_values[0] < 0.0:
-                self.CBV = min( self.CBV - values[1], 0.0)
+                value = max(abs(self.CBV - values[1]), self.BS/10)
+                if self.IsEqualityType(): min( self.CBV +value, self.CBV + self.BS)
+                else: self.CBV = min(self.CBV + value, 0.0)
 
         self.BS = self.BSF * max_delta
         # Update BSF if zig zaging

@@ -158,9 +158,6 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 projected_direction = - (scalled_obj_grad - self.__CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
                 correction = - self.__CollectiveListVectorProduct(scaled_constr_grad, w_c)
                 search_direction = projected_direction + correction
-        correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
-        # if correction_norm > self.correction_size:
-        #     correction *= self.correction_size / correction_norm
         self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("correction", correction.Clone(), overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction.Clone(), overwrite=True)
@@ -185,11 +182,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
         return result
 
-    def ComputeBufferCoefficients(self) -> Kratos.Vector:
+    def ComputeBufferCoefficients(self):
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
         number_of_active_constraints = len(active_constraints_list)
         if number_of_active_constraints == 0:
-            return Kratos.Vector()
+            return Kratos.Vector(), Kratos.Vector()
         else:
             w_r = Kratos.Vector(number_of_active_constraints)
             w_c = Kratos.Vector(number_of_active_constraints)
@@ -268,12 +265,13 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
+                    msg = "active" if constraint.IsActiveConstrant() else "non-active"
+                    print(f"RGP Constaint {constraint.GetResponseName()} is {msg}")
                     if constraint.IsActiveConstrant():
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
 
                 w_r, w_c = self.ComputeBufferCoefficients()
 
-                inner_converged = False
                 inner_iter = 0
                 while inner_iter < self.max_inner_iter:
 
