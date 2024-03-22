@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_particle_utility_pfem2.h"
+#include "custom_utilities/move_particle_utility_modified_pfem2.h" 
 
 #include "custom_utilities/visualization.h"
 #include "custom_utilities/calculate_water_fraction.h"
@@ -130,6 +131,45 @@ namespace py = pybind11;
    .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityPFEM2<3>::AssignNodalVelocityUsingInletConditions)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<3>::RotateParticlesAndDomainVelocities)
    ;
+
+  py::class_< MoveParticleUtilityModifiedPFEM2<2> > (m,"MoveParticleUtilityModifiedPFEM22D").def(py::init<ModelPart& , int >())
+   .def("MountBin", &MoveParticleUtilityModifiedPFEM2<2>::MountBin)
+   .def("MoveParticles", &MoveParticleUtilityModifiedPFEM2<2>::MoveParticles)
+   .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityModifiedPFEM2<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
+   .def("PreReseed", &MoveParticleUtilityModifiedPFEM2<2>::PreReseed)
+   .def("PostReseed", &MoveParticleUtilityModifiedPFEM2<2>::PostReseed)
+   .def("ResetBoundaryConditions", &MoveParticleUtilityModifiedPFEM2<2>::ResetBoundaryConditions)
+   .def("ResetBoundaryConditionsSlip", &MoveParticleUtilityModifiedPFEM2<2>::ResetBoundaryConditionsSlip)
+   .def("TransferLagrangianToEulerian",&MoveParticleUtilityModifiedPFEM2<2>::TransferLagrangianToEulerian)
+   .def("CalculateVelOverElemSize", &MoveParticleUtilityModifiedPFEM2<2>::CalculateVelOverElemSize)
+   .def("CalculateDeltaVelocity", &MoveParticleUtilityModifiedPFEM2<2>::CalculateDeltaVelocity)
+   .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityModifiedPFEM2<2>::CopyVectorVarToPreviousTimeStep)
+   .def("IntializeTransferTool", &MoveParticleUtilityModifiedPFEM2<2>::IntializeTransferTool)
+   .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityModifiedPFEM2<2>::PreReseedUsingTopographicDomain)
+   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityModifiedPFEM2<2>::ExecuteParticlesPritingTool)
+   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityModifiedPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityModifiedPFEM2<2>::RotateParticlesAndDomainVelocities)
+   ;
+
+ py::class_< MoveParticleUtilityModifiedPFEM2<3> > (m,"MoveParticleUtilityModifiedPFEM23D").def(py::init<ModelPart& , int >())
+   .def("MountBin", &MoveParticleUtilityModifiedPFEM2<3>::MountBin)
+   .def("MoveParticles", &MoveParticleUtilityModifiedPFEM2<3>::MoveParticles)
+   .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityModifiedPFEM2<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
+   .def("PreReseed", &MoveParticleUtilityModifiedPFEM2<3>::PreReseed)
+   .def("PostReseed", &MoveParticleUtilityModifiedPFEM2<3>::PostReseed)
+   .def("ResetBoundaryConditions", &MoveParticleUtilityModifiedPFEM2<3>::ResetBoundaryConditions)
+   .def("ResetBoundaryConditionsSlip", &MoveParticleUtilityModifiedPFEM2<3>::ResetBoundaryConditionsSlip)
+   .def("TransferLagrangianToEulerian",&MoveParticleUtilityModifiedPFEM2<3>::TransferLagrangianToEulerian)
+   .def("CalculateVelOverElemSize", &MoveParticleUtilityModifiedPFEM2<3>::CalculateVelOverElemSize)
+   .def("CalculateDeltaVelocity", &MoveParticleUtilityModifiedPFEM2<3>::CalculateDeltaVelocity)
+   .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityModifiedPFEM2<3>::CopyVectorVarToPreviousTimeStep)
+   .def("IntializeTransferTool", &MoveParticleUtilityModifiedPFEM2<3>::IntializeTransferTool)
+   .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityModifiedPFEM2<3>::PreReseedUsingTopographicDomain)
+   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityModifiedPFEM2<3>::ExecuteParticlesPritingTool)
+   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityModifiedPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityModifiedPFEM2<3>::AssignNodalVelocityUsingInletConditions)
+   .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityModifiedPFEM2<3>::RotateParticlesAndDomainVelocities)
+   ; 
 
  py::class_<AddFixedVelocityCondition2D > (m,"AddFixedVelocityCondition2D").def(py::init<ModelPart& >())
    .def("AddThem", &AddFixedVelocityCondition2D::AddThem)

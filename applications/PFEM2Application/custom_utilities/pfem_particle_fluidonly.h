@@ -182,12 +182,10 @@ public:
 		return this->GRADIENT_DISCONTINUITY;
 	}
 	*/
-	/*
 	unsigned int& GetElementId()
 	{
 		return this->ELEMENT_ID;
 	}
-	*/
 	bool& GetEraseFlag()
 	{
 		return this->ERASE_FLAG;
@@ -210,7 +208,7 @@ private:
 	//double TEMPERATURE;
 	//double OXYGEN;
 	//Element::Pointer ELEMENT_WEAKPOINTER;
-	//unsigned int ELEMENT_ID;
+	unsigned int ELEMENT_ID;
 	//double GRADIENT_DISCONTINUITY;
 	bool ERASE_FLAG;
 	
