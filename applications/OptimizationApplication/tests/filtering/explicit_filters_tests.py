@@ -136,7 +136,7 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
         A = Kratos.Matrix()
         damping.CalculateMatrix(A, 0)
         D = numpy.array(A)
-        vm_filter.CalculateFilteringMatrix(A)
+        vm_filter.CalculateMatrix(A)
         A = numpy.array(A)
 
         p =  control_update.Evaluate()

@@ -48,7 +48,7 @@ void AddExplicitFilterUtils(
         .def("BackwardFilterIntegratedField", &ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField, py::arg("physical_space_mesh_dependent_gradient"))
         .def("GetRadius", &ExplicitFilterUtils<TContainerType>::GetRadius)
         .def("GetIntegrationWeights", &ExplicitFilterUtils<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
-        .def("CalculateFilteringMatrix", &ExplicitFilterUtils<TContainerType>::CalculateFilteringMatrix, py::arg("output_filtering_matrix"))
+        .def("CalculateMatrix", &ExplicitFilterUtils<TContainerType>::CalculateMatrix, py::arg("output_filtering_matrix"))
         .def("Update", &ExplicitFilterUtils<TContainerType>::Update)
         .def("__str__", &ExplicitFilterUtils<TContainerType>::Info)
         ;

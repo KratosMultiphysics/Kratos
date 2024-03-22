@@ -438,7 +438,7 @@ std::string ExplicitFilterUtils<TContainerType>::Info() const
 }
 
 template<class TContainerType>
-void ExplicitFilterUtils<TContainerType>::CalculateFilteringMatrix(Matrix& rOutput) const
+void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 {
     KRATOS_TRY
 

@@ -126,7 +126,7 @@ public:
      *
      * @param rOutput           Output filtering matrix
      */
-    void CalculateFilteringMatrix(Matrix& rOutput) const;
+    void CalculateMatrix(Matrix& rOutput) const;
 
     /**
      * @brief Prints info about the filtering.
