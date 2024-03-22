@@ -151,16 +151,6 @@ public:
     ///@name Access
     ///@{
 
-    /**
-     * @brief GetModelPart returns the reference to the ModelPart.
-     * @details This function provides access to the ModelPart associated with the current object.
-     * @return Reference to the ModelPart.
-     */
-    ModelPart& GetModelPart() 
-    { 
-        return mrModelPart; 
-    }
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -192,16 +182,33 @@ public:
 
     ///@}
 protected:
+    ///@name Protected Member Variables
+    ///@{
 
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    double mDoubleValue = 0.0;
-    int mIntValue = 0;
-    bool mBoolValue = false;
-    std::size_t mMeshId = 0;
+    ModelPart& mrModelPart;    /// Reference to the model part.
+    std::string mVariableName; /// Name of the variable.
+    double mDoubleValue = 0.0; /// Double value.
+    int mIntValue = 0;         /// Integer value.
+    bool mBoolValue = false;   /// Boolean value.
+    std::size_t mMeshId = 0;   /// Mesh ID.
 
+    ///@}
+    ///@name Protected Access
+    ///@{
+
+    /**
+     * @brief GetModelPart returns the reference to the ModelPart.
+     * @details This function provides access to the ModelPart associated with the current object.
+     * @return Reference to the ModelPart.
+     */
+    ModelPart& GetModelPart() 
+    { 
+        return mrModelPart; 
+    }
+
+    ///@}
 private:
-    ///@name Static Member Variables
+    ///@name Private Operations
     ///@{
 
     /**
