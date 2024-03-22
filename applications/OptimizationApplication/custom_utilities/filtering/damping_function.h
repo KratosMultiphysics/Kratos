@@ -44,7 +44,9 @@ public:
     ///@{
 
     /// Constructor.
-    DampingFunction(const std::string& rKernelFunctionType);
+    DampingFunction(
+        const std::string& rKernelFunctionType,
+        const double DampingDistanceMultiplier);
 
     ///@}
     ///@name Operations
@@ -54,6 +56,14 @@ public:
         const Array3DType& ICoord,
         const Array3DType& JCoord,
         const double Radius) const;
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const double mDampingDistanceMultiplier;
 
     ///@}
 

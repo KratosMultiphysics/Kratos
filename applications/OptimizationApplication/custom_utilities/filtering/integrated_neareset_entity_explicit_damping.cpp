@@ -37,14 +37,15 @@ IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEntityE
 
     Parameters defaults = Parameters(R"(
     {
-        "damping_type"              : "integrated_nearest_entity",
-        "damping_function_type"     : "cosine",
-        "damped_model_part_settings": {}
+        "damping_type"               : "integrated_nearest_entity",
+        "damping_function_type"      : "cosine",
+        "damping_distance_multiplier": 2.0,
+        "damped_model_part_settings" : {}
     })" );
 
     Settings.ValidateAndAssignDefaults(defaults);
 
-    mpKernelFunction = Kratos::make_unique<DampingFunction>(Settings["damping_function_type"].GetString());
+    mpKernelFunction = Kratos::make_unique<DampingFunction>(Settings["damping_function_type"].GetString(), Settings["damping_distance_multiplier"].GetDouble());
     mComponentWiseDampedModelParts = OptimizationUtils::GetComponentWiseModelParts(rModel, Settings["damped_model_part_settings"]);
 
     KRATOS_ERROR_IF_NOT(mStride == mComponentWiseDampedModelParts.size() || mComponentWiseDampedModelParts.size() == 0)

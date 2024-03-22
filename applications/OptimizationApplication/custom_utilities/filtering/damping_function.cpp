@@ -19,8 +19,11 @@
 namespace Kratos
 {
 
-DampingFunction::DampingFunction(const std::string& rKernelFunctionType)
-    : FilterFunction(rKernelFunctionType)
+DampingFunction::DampingFunction(
+    const std::string& rKernelFunctionType,
+    const double DampingDistanceMultiplier)
+    : FilterFunction(rKernelFunctionType),
+      mDampingDistanceMultiplier(DampingDistanceMultiplier)
 {
 }
 
@@ -37,7 +40,7 @@ double DampingFunction::ComputeWeight(
     if (distance <= Radius) {
         return 0.0;
     } else {
-        return 1.0 - mFilterFunctional(Radius, distance - Radius);
+        return 1.0 - mFilterFunctional(Radius, (distance - Radius) * mDampingDistanceMultiplier);
     }
 
     KRATOS_CATCH("");
