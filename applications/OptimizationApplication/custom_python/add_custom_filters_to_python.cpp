@@ -22,6 +22,7 @@
 #include "custom_utilities/filtering/explicit_smooth_damping_filter_utils.h"
 #include "custom_utilities/filtering/explicit_damping.h"
 #include "custom_utilities/filtering/neareset_entity_explicit_damping.h"
+#include "custom_utilities/filtering/integrated_neareset_entity_explicit_damping.h"
 
 // Include base h
 #include "add_custom_filters_to_python.h"
@@ -92,6 +93,11 @@ void AddExplicitDamping(
 
     using nearest_entity_explicit_damping_type = NearestEntityExplicitDamping<TContainerType>;
     py::class_<nearest_entity_explicit_damping_type, typename nearest_entity_explicit_damping_type::Pointer, explicit_damping_type>(m, ("Nearest" + rSuffix + "ExplicitDamping").c_str())
+        .def(py::init<Model&, Parameters, const IndexType>(), py::arg("model"), py::arg("parameters"), py::arg("stride"))
+        ;
+
+    using integrated_nearest_entity_explicit_damping_type = IntegratedNearestEntityExplicitDamping<TContainerType>;
+    py::class_<integrated_nearest_entity_explicit_damping_type, typename integrated_nearest_entity_explicit_damping_type::Pointer, explicit_damping_type>(m, ("IntegratedNearest" + rSuffix + "ExplicitDamping").c_str())
         .def(py::init<Model&, Parameters, const IndexType>(), py::arg("model"), py::arg("parameters"), py::arg("stride"))
         ;
 }

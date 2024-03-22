@@ -8,20 +8,20 @@
 //                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
 
 #pragma once
 
 // System includes
-#include <string>
-#include <functional>
 
 // Project includes
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
 
-namespace Kratos
-{
+// Application includes
+#include "filter_function.h"
+
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -29,15 +29,12 @@ namespace Kratos
 /// Short class definition.
 /**
  * DampingFunction implementations.
-*/
+ */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) DampingFunction
-{
-  public:
+class KRATOS_API(OPTIMIZATION_APPLICATION) DampingFunction : public FilterFunction {
+public:
     ///@name Type Definitions
     ///@{
-
-    using Array3DType = array_1d<double, 3>;
 
     /// Pointer definition of DampingFunction
     KRATOS_CLASS_POINTER_DEFINITION(DampingFunction);
@@ -60,26 +57,8 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) DampingFunction
 
     ///@}
 
-  private:
-    ///@name Member Variables
-    ///@{
-
-    std::function<double (const double, const double)> mFilterFunctional;
-    std::string mKernelFunctionType;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    double inline GetDistance(
-        const Array3DType& ICoord,
-        const Array3DType& JCoord) const;
-
-    ///@}
-
 }; // Class DampingFunction
 
 ///@}
 
 } // namespace Kratos.
-
