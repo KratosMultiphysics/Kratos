@@ -21,10 +21,16 @@
 
 
 // Project includes
-
+#include "includes/define.h"
+#include "includes/node.h"
+#include "includes/process_info.h"
+#include "includes/properties.h"
+#include "includes/condition.h"
+#include "geometries/geometry.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "custom_conditions/navier_stokes_wall_condition.h"
+
 
 namespace Kratos
 {
@@ -54,15 +60,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Implements a wall condition for the Navier-Stokes monolithic formulation.
-/**
-  It is intended to be used in combination with ASGS Navier-Stokes symbolic elements or their
-  derived classes and the ResidualBasedIncrementalUpdateStaticSchemeSlip time scheme, which supports
-  slip conditions.
-  @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
- */
-template< unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShiftedBoundaryWallCondition : public NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShiftedBoundaryWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
@@ -71,7 +69,7 @@ public:
     /// Pointer definition of ShiftedBoundaryWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShiftedBoundaryWallCondition);
 
-    typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel...> BaseType;
+    /*typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel...> BaseType;
 
     using BaseType::LocalSize;
 
@@ -93,69 +91,33 @@ public:
 
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;*/
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /** Admits an Id as a parameter.
-      @param NewId Index for the new         // Struct to pass around the data
-        ElementDataStruct data;
-        this->FillElementData(data, rCurrentProcessInfo);condition
-      */
-    ShiftedBoundaryWallCondition(IndexType NewId = 0)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId)
-    {
-    }
-
-    /// Constructor using an array of nodes
-    /**
-     @param NewId Index of the new condition
-     @param ThisNodes An array containing the nodes of the new condition
-     */
     ShiftedBoundaryWallCondition(
         IndexType NewId,
         const NodesArrayType& ThisNodes)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, ThisNodes)
-    {
-    }
+        : Condition(NewId, ThisNodes) {}
 
-    /// Constructor using Geometry
-    /**
-     @param NewId Index of the new condition
-     @param pGeometry Pointer to a geometry object
-     */
     ShiftedBoundaryWallCondition(
         IndexType NewId,
-        GeometryType::Pointer pGeometry)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, pGeometry)
-    {
-    }
+        Geometry<Node>::Pointer pGeometry)
+        : Condition(NewId, pGeometry) {}
 
-    /// Constructor using Properties
-    /**
-     @param NewId Index of the new element
-     @param pGeometry Pointer to a geometry object
-     @param pProperties Pointer to the element's properties
-     */
     ShiftedBoundaryWallCondition(
         IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties)
-        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, pGeometry, pProperties)
-    {
-    }
+        Geometry<Node>::Pointer pGeometry,
+        Properties::Pointer pProperties)
+        : Condition(NewId, pGeometry, pProperties) {}
 
     /// Copy constructor.
-    ShiftedBoundaryWallCondition(ShiftedBoundaryWallCondition const& rOther):
-        NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(rOther)
-    {
-    }
+    ShiftedBoundaryWallCondition(ShiftedBoundaryWallCondition const& rOther) = delete;
 
     /// Destructor.
-    ~ShiftedBoundaryWallCondition() override {}
+    ~ShiftedBoundaryWallCondition() override = default;
 
 
     ///@}
@@ -163,68 +125,51 @@ public:
     ///@{
 
     /// Assignment operator
-    ShiftedBoundaryWallCondition & operator=(ShiftedBoundaryWallCondition const& rOther)
-    {
-        Condition::operator=(rOther);
-        return *this;
-    }
+    ShiftedBoundaryWallCondition& operator=(ShiftedBoundaryWallCondition const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /// Create a new ShiftedBoundaryWallCondition object.
-    /**
-      @param NewId Index of the new condition
-      @param ThisNodes An array containing the nodes of the new condition
-      @param pProperties Pointer to the element's properties
-      */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ShiftedBoundaryWallCondition>(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<ShiftedBoundaryWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    /// Create a new ShiftedBoundaryWallCondition object.
-    /**
-      @param NewId Index of the new condition
-      @param pGeom A pointer to the condition's geometry
-      @param pProperties Pointer to the element's properties
-      */
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive< ShiftedBoundaryWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<ShiftedBoundaryWallCondition>(NewId, pGeom, pProperties);
     }
 
-    /**
-     * Clones the selected element variables, creating a new one
-     * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
-     * @return a Pointer to the new element
-     */
-    Condition::Pointer Clone(
-        IndexType NewId,
-        NodesArrayType const& rThisNodes) const override
-    {
-        Condition::Pointer pNewCondition = Create(NewId, BaseType::GetGeometry().Create( rThisNodes ), BaseType::pGetProperties() );
+    //void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-        pNewCondition->SetData(this->GetData());
-        pNewCondition->SetFlags(this->GetFlags());
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-        return pNewCondition;
-    }
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief Condition check
-     * Condition check. Derived from the base Navier-Stokes condition to check if the viscosity is a nodal variable
-     * @param rCurrentProcessInfo Reference to the ProcessInfo container
-     * @return int 0 if successful
-     */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(
+        DofsVectorType& ConditionalDofList,
+        const ProcessInfo& CurrentProcessInfo) const override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
@@ -245,18 +190,22 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ShiftedBoundaryWallCondition" << TDim << "D";
+        buffer << "ShiftedBoundaryWallCondition #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ShiftedBoundaryWallCondition";
+        rOStream << "ShiftedBoundaryWallCondition #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << "ShiftedBoundaryWallCondition #" << Id() << std::endl;
+        this->GetGeometry().PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -323,6 +272,8 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    // Internal default constructor for serialization
+    ShiftedBoundaryWallCondition() = default;
 
     ///@}
 private:
@@ -343,12 +294,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
 
     ///@}
@@ -389,15 +340,13 @@ private:
 ///@{
 
 /// input stream function
-template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
-inline std::istream& operator >> (std::istream& rIStream, ShiftedBoundaryWallCondition<TDim,TNumNodes,TWallModel>& rThis)
+inline std::istream& operator >> (std::istream& rIStream, ShiftedBoundaryWallCondition& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
-inline std::ostream& operator << (std::ostream& rOStream, const ShiftedBoundaryWallCondition<TDim,TNumNodes,TWallModel>& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const ShiftedBoundaryWallCondition& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
