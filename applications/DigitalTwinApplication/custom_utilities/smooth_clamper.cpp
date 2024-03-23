@@ -47,6 +47,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::Clamp(const C
     // x*x*(3.0-2.0*x);
 
     const auto min = mMin;
+    const auto max = mMax;
     const auto delta = mMax - mMin;
     const auto& r_input_exp = rInput.GetExpression();
     const auto number_of_entities = r_input_exp.NumberOfEntities();
@@ -57,16 +58,16 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::Clamp(const C
 
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta](const auto Index) {
-        const double value = r_input_exp.Evaluate(Index, Index, 0);
-        const double x = (value - min) / delta;
-        double& y = *(p_result_exp->begin() + Index);
+    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, max, delta](const auto Index) {
+        const double x = r_input_exp.Evaluate(Index, Index, 0);
+        double& value = *(p_result_exp->begin() + Index);
         if (x < 0.0) {
-            y = 0.0;
+            value = min;
         } else if (x > 1.0) {
-            y = 1.0;
+            value = max;
         } else {
-            y = x * x * (3.0 - 2.0 * x);
+            const double y = x * x * (3.0 - 2.0 * x);
+            value = min + y * delta;
         }
     });
 
@@ -98,15 +99,14 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ClampDerivati
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
     IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta](const auto Index) {
-        const double value = r_input_exp.Evaluate(Index, Index, 0);
-        const double x = (value - min) / delta;
-        double& y = *(p_result_exp->begin() + Index);
+        const double x = r_input_exp.Evaluate(Index, Index, 0);
+        double& value = *(p_result_exp->begin() + Index);
         if (x < 0.0) {
-            y = 0.0;
+            value = 0.0;
         } else if (x > 1.0) {
-            y = 0.0;
+            value = 0.0;
         } else {
-            y = (6 * x - 6 * x * x) / delta;
+            value = (6 * x - 6 * x * x) * delta;
         }
     });
 
@@ -135,15 +135,15 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::InverseClamp(
     auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
 
     IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta, max](const auto Index) {
-        double& value = *(p_result_exp->begin() + Index);
-        const double y = r_input_exp.Evaluate(Index, Index, 0);
-        if (y < 0.0) {
-            value = min;
-        } else if (y > 1.0) {
-            value = max;
+        const double value = r_input_exp.Evaluate(Index, Index, 0);
+        double& x = *(p_result_exp->begin() + Index);
+        if (value < min) {
+            x = 0.0;
+        } else if (value > max) {
+            x = 1.0;
         } else {
-            const double x = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
-            value = x * delta + min;
+            const double y = (value - min) / delta;
+            x = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
         }
     });
 

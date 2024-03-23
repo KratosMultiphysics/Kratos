@@ -48,14 +48,15 @@ public:
 
     /**
      * @brief Clamps the given input expression smoothly.
-     * @details The output value will always be in between [0, 1]
+     * @details The input value (x) can be in [-infty, +infty] range. But the output (y) will be in
+     *          [Min, Max] range.
      * @param rX                                    Input expression in input space.
      * @return ContainerExpression<TContainerType>  Clamped output expression in clamped space.
      */
     ContainerExpression<TContainerType> Clamp(const ContainerExpression<TContainerType>& rX) const;
 
     /**
-     * @brief Compute the derivative dY/dX at given X for clamping.
+     * @brief Compute the derivative dy/dx at given X for clamping.
      * @details Computes the clamped derivative where clamped value is Y and input is X, and the
      *          derivative is dY/dX
      * @param rX                                    Input expression in input space.
