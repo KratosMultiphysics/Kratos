@@ -21,11 +21,28 @@
 
 // Application includes
 #include "custom_utilities/control_utils.h"
+#include "custom_utilities/smooth_clamper.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos::Python {
+
+template<class TContainerType>
+void AddSmoothClamper(
+    pybind11::module& m,
+    const std::string& rName)
+{
+    namespace py = pybind11;
+
+    using smooth_clamper_type = SmoothClamper<TContainerType>;
+    py::class_<smooth_clamper_type, typename smooth_clamper_type::Pointer>(m, (rName + "SmoothClamper").c_str())
+        .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
+        .def("Clamp", &smooth_clamper_type::Clamp, py::arg("x_expression"))
+        .def("ClampDerivative", &smooth_clamper_type::ClampDerivative, py::arg("x_expression"))
+        .def("InverseClamp", &smooth_clamper_type::InverseClamp, py::arg("y_expression"))
+        ;
+}
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -37,6 +54,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     control_utils.def("ClipContainerExpression", &ControlUtils::ClipContainerExpression<ModelPart::NodesContainerType>, py::arg("nodal_expression"), py::arg("min"), py::arg("max"));
     control_utils.def("ClipContainerExpression", &ControlUtils::ClipContainerExpression<ModelPart::ConditionsContainerType>, py::arg("condition_expression"), py::arg("min"), py::arg("max"));
     control_utils.def("ClipContainerExpression", &ControlUtils::ClipContainerExpression<ModelPart::ElementsContainerType>, py::arg("element_expression"), py::arg("min"), py::arg("max"));
+
+    AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
+    AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
+    AddSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
 }
 
 } // namespace Kratos::Python
