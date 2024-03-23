@@ -488,7 +488,9 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N_2(mat_size), global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_u(mat_size-4), N_shape(mat_size-2), N_s(mat_size-2);
+    VectorType global_size_N_2(mat_size), global_size_N(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes),
+        N_u(number_of_nodes), N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -539,7 +541,6 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
         noalias(rRHS) -= global_size_N * M * jacobian_weight;
 
-
         // In here we add the cross terms
         GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
         const double dM_dEl = r_constitutive_matrix(1, 0);
@@ -548,7 +549,6 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         GlobalSizeVector(global_size_N_2, N_s);
         const double dM_dgamma = r_constitutive_matrix(1, 2);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
-
 
         // Shear contributions
         GlobalSizeVector(global_size_N, N_s);
@@ -615,7 +615,8 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), global_size_N_2(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_s(mat_size-2);
+    VectorType global_size_N(mat_size), global_size_N_2(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -722,7 +723,8 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_u(mat_size-4), N_shape(mat_size-2);
+    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes),
+        N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes), N_shape(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
