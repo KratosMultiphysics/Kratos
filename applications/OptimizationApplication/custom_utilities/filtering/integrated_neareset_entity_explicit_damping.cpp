@@ -149,9 +149,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
                 r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mpKernelFunction->ComputeWeight(radius, std::sqrt(squared_distance));
             }
         } else {
-            for (IndexType i_neighbour = 0; i_neighbour < NumberOfNeighbours; ++i_neighbour) {
-                r_damped_weights[i_neighbour] = rWeights[i_neighbour];
-            }
+            std::copy(rWeights.begin(), rWeights.begin() + NumberOfNeighbours, r_damped_weights.begin());
         }
     }
 
