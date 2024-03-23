@@ -1,0 +1,13 @@
+# Application dependent names and paths
+from KratosMultiphysics import _ImportApplication, python_registry_utilities
+from KratosDigitalTwinApplication import *
+
+application = KratosDigitalTwinApplication()
+application_name = "KratosDigitalTwinApplication"
+
+_ImportApplication(application, application_name)
+
+from . import python_registry_lists
+python_registry_utilities.RegisterModelersList("KratosMultiphysics.DigitalTwinApplication", python_registry_lists)
+python_registry_utilities.RegisterOperationsList("KratosMultiphysics.DigitalTwinApplication", python_registry_lists)
+python_registry_utilities.RegisterProcessesList("KratosMultiphysics.DigitalTwinApplication", python_registry_lists)
