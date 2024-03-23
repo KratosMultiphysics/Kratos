@@ -39,7 +39,7 @@ IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEntityE
     {
         "damping_type"               : "integrated_nearest_entity",
         "damping_function_type"      : "cosine",
-        "damping_distance_multiplier": 2.0,
+        "damping_distance_multiplier": 100.0,
         "damped_model_part_settings" : {}
     })" );
 
