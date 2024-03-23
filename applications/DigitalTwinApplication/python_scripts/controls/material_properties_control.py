@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -35,7 +36,7 @@ class MaterialPropertiesControl(Control):
             "control_variable_name"  : "",
             "control_variable_bounds": [0.0, 0.0],
             "output_all_fields"      : false,
-            "filtering"              : {},
+            "filter_settings"        : {},
             "model_part_names": [
                 {
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
@@ -43,7 +44,7 @@ class MaterialPropertiesControl(Control):
                 }
             ]
         }""")
-        parameters.RecursivelyValidateAndAssignDefaults(default_settings)
+        parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model = model
         self.parameters = parameters
@@ -73,7 +74,7 @@ class MaterialPropertiesControl(Control):
                                                 [param["adjoint_model_part_name"].GetString() for param in controlled_model_part_names],
                                                 False)
 
-        self.filter = FilterFactory(self.model, self.adjoint_model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, Kratos.Globals.DataLocation.Element, self.parameters["filter_settings"])
+        self.filter: 'Optional[Filter]' = None
 
         self.primal_model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
@@ -97,20 +98,15 @@ class MaterialPropertiesControl(Control):
                 KratosDT.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
                 KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
 
-        # initialize the filter
-        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
-        self.filter.Initialize()
-
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.Clamp(physical_field)
+        self.physical_phi_field = self.clamper.InverseClamp(physical_field)
 
         # compute the control phi field
-        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+        self.control_phi_field = self.GetEmptyField()
 
-        # now update the physical field
-        self._UpdateAndOutputFields(self.GetEmptyField())
+        self.physical_phi_derivative_field = self.clamper.ClampDerivative(self.physical_phi_field)
 
     def Check(self) -> None:
         pass
@@ -148,7 +144,7 @@ class MaterialPropertiesControl(Control):
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
-            return self.filter.BackwardFilterIntegratedField(physical_gradient / self.physical_phi_derivative_field)
+            return self.__GetFilter().BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field)
 
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
@@ -156,31 +152,31 @@ class MaterialPropertiesControl(Control):
 
         # first clip the control field to max and mins
         update = new_control_field - self.control_phi_field
-        if Kratos.Expression.Utils.NormL2(update) > 1e-15:
+        if True:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
                 self.control_phi_field = new_control_field
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
-                self.filter.Update()
+                self.__GetFilter().Update()
 
                 return True
         return False
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
-        filtered_phi_field_update = self.filter.ForwardFilterField(update)
+        filtered_phi_field_update = self.__GetFilter().ForwardFilterField(update)
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
 
         # project forward the filtered thickness field
-        physical_field = self.clamper.InverseClamp(self.physical_phi_field)
+        physical_field = self.clamper.Clamp(self.physical_phi_field)
 
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.ClampDerivative(physical_field)
+        self.physical_phi_derivative_field = self.clamper.ClampDerivative(self.physical_phi_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -190,6 +186,14 @@ class MaterialPropertiesControl(Control):
             un_buffered_data.SetValue(f"control_{self.controlled_physical_variable.Name()}_phi", self.control_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"physical_{self.controlled_physical_variable.Name()}_phi", self.physical_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"physical_{self.controlled_physical_variable.Name()}_phi_derivative", self.physical_phi_derivative_field.Clone(), overwrite=True)
+
+    def __GetFilter(self) -> Filter:
+        if self.filter is None:
+            self.filter = FilterFactory(self.model, self.adjoint_model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, Kratos.Globals.DataLocation.Element, self.parameters["filter_settings"])
+            self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
+            self.filter.Initialize()
+            self.filter.Update()
+        return self.filter
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"
