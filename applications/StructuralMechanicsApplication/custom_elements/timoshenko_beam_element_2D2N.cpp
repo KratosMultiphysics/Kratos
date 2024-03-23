@@ -347,8 +347,6 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 
     } else {
-        auto &r_displ = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
-
         const auto &r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
         rNodalValues[0] = r_displ_0[0];
         rNodalValues[1] = r_displ_0[1];
