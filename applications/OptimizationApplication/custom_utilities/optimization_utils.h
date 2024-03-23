@@ -38,6 +38,27 @@ public:
     using IndexType = std::size_t;
 
     ///@}
+    ///@name Public classes
+    ///@{
+
+    template<class TEntityPointType>
+    struct KDTreeThreadLocalStorage
+    {
+        explicit KDTreeThreadLocalStorage(const IndexType MaxNumberOfNeighbors, const IndexType Stride)
+        {
+            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
+            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
+            mListOfWeights.resize(MaxNumberOfNeighbors);
+            mListOfDampedWeights.resize(Stride, std::vector<double>(MaxNumberOfNeighbors));
+        }
+
+        std::vector<TEntityPointType> mNeighbourEntityPoints;
+        std::vector<double> mResultingSquaredDistances;
+        std::vector<double> mListOfWeights;
+        std::vector<std::vector<double>> mListOfDampedWeights;
+    };
+
+    ///@}
     ///@name Static operations
     ///@{
 
@@ -72,10 +93,9 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
-    static std::vector<std::vector<const ModelPart*>> GetComponentWiseModelParts(
+    static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,
-        Parameters Settings,
-        const IndexType NumberOfComponents);
+        Parameters Settings);
 
     ///@}
 };
