@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-class TestDisplacementSensor(UnitTest.TestCase):
+class TestSmoothClamper(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
