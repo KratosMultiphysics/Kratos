@@ -142,10 +142,10 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
         if (mComponentWiseKDTrees[i_comp]) {
             for (IndexType i_neighbour = 0; i_neighbour < NumberOfNeighbours; ++i_neighbour) {
 
-                double dummy_distance{};
-                auto p_nearest_damped_entity_point = mComponentWiseKDTrees[i_comp]->SearchNearestPoint(*rNeighbours[i_neighbour], dummy_distance);
+                double distance;
+                auto p_nearest_damped_entity_point = mComponentWiseKDTrees[i_comp]->SearchNearestPoint(*rNeighbours[i_neighbour], distance);
 
-                r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mpKernelFunction->ComputeWeight(*rNeighbours[i_neighbour], p_nearest_damped_entity_point->Coordinates(), radius);
+                r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mpKernelFunction->ComputeWeight(radius, std::sqrt(distance));
             }
         } else {
             for (IndexType i_neighbour = 0; i_neighbour < NumberOfNeighbours; ++i_neighbour) {
@@ -217,10 +217,10 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
             for (IndexType i_neighbour = 0; i_neighbour < number_of_neighbors; ++i_neighbour) {
                 const auto& r_neighbour_point = *rTLS.mNeighbourEntityPoints[i_neighbour];
 
-                double dummy_distance{};
-                auto p_nearest_damped_entity_point = comp_search_tree.SearchNearestPoint(r_neighbour_point, dummy_distance);
+                double distance;
+                auto p_nearest_damped_entity_point = comp_search_tree.SearchNearestPoint(r_neighbour_point, distance);
 
-                const double weight = kernel_function.ComputeWeight(r_neighbour_point, p_nearest_damped_entity_point->Coordinates(), radius);
+                const double weight = kernel_function.ComputeWeight(radius, std::sqrt(distance));
 
                 *(rOutput.data().begin() + Index * number_of_entities + r_neighbour_point.Id()) = weight;
             }

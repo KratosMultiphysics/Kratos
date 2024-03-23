@@ -109,12 +109,13 @@ void ComputeWeightForAllNeighbors(
     const double Radius,
     const EntityPoint<TEntityType>& rDesignPoint,
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
+    const std::vector<double>& rSquaredDistances,
     const IndexType NumberOfNeighbours,
     Expression const * const pExpression)
 {
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
         const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
-        const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius) * domain_size;
+        const double filter_weight = rFilterFunction.ComputeWeight(Radius, std::sqrt(rSquaredDistances[i])) * domain_size;
         rListOfWeights[i] = filter_weight;
         rSumOfWeights += filter_weight;
     }
@@ -269,7 +270,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
@@ -338,7 +339,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
@@ -457,7 +458,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
-            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
 

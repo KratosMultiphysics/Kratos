@@ -53,9 +53,8 @@ public:
     ///@{
 
     double ComputeWeight(
-        const Array3DType& ICoord,
-        const Array3DType& JCoord,
-        const double Radius) const;
+        const double Radius,
+        const double Distance) const;
 
     ///@}
 

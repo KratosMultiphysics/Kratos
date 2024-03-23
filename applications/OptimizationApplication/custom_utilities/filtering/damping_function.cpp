@@ -28,19 +28,15 @@ DampingFunction::DampingFunction(
 }
 
 double DampingFunction::ComputeWeight(
-    const Array3DType& ICoord,
-    const Array3DType& JCoord,
-    const double Radius) const
+    const double Radius,
+    const double Distance) const
 {
     KRATOS_TRY;
 
-    // Compute distance vector
-    const double distance = GetDistance(ICoord, JCoord);
-
-    if (distance <= Radius) {
+    if (Distance <= Radius) {
         return 0.0;
     } else {
-        return 1.0 - mFilterFunctional(Radius, (distance - Radius) * mDampingDistanceMultiplier);
+        return 1.0 - mFilterFunctional(Radius, (Distance - Radius) * mDampingDistanceMultiplier);
     }
 
     KRATOS_CATCH("");

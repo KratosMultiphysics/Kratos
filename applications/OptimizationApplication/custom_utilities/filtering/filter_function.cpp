@@ -67,26 +67,14 @@ FilterFunction::FilterFunction(const std::string& rKernelFunctionType)
     }
 }
 
-double FilterFunction::GetDistance(
-    const Array3DType& ICoord,
-    const Array3DType& JCoord) const
-{
-    const Array3DType dist_vector = ICoord - JCoord;
-    return sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
-}
-
 double FilterFunction::ComputeWeight(
-    const Array3DType& ICoord,
-    const Array3DType& JCoord,
-    const double Radius) const
+    const double Radius,
+    const double Distance) const
 {
     KRATOS_TRY;
 
-    // Compute distance vector
-    const double distance = GetDistance(ICoord, JCoord);
-
     // Depending on which weighting function is chosen, compute weight
-    return mFilterFunctional(Radius, distance);
+    return mFilterFunctional(Radius, Distance);
 
     KRATOS_CATCH("");
 }

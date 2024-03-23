@@ -134,11 +134,11 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
                 const auto data_begin_index = Index * stride;
                 const auto radius = r_damping_radius.Evaluate(Index, Index, 0);
 
-                double dummy_distance{};
-                auto p_nearest_damped_entity_point = p_search_tree->SearchNearestPoint(entity_point, dummy_distance);
+                double distance;
+                auto p_nearest_damped_entity_point = p_search_tree->SearchNearestPoint(entity_point, distance);
 
                 double& value = *(p_output_expression->begin() + data_begin_index + i_comp);
-                value = 1.0 - kernel_function.ComputeWeight(entity_point.Coordinates(), p_nearest_damped_entity_point->Coordinates(), radius);
+                value = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(distance));
             });
         }
     }
