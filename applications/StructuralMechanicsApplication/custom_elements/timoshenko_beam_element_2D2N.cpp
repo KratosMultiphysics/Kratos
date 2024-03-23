@@ -332,22 +332,30 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
-        global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const auto &r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        global_values[0] = r_displ_0[0];
+        global_values[1] = r_displ_0[1];
         global_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        global_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+        const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+        global_values[3] = r_displ_1[0];
+        global_values[4] = r_displ_1[1];
         global_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
 
         // We rotate to local axes
         noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 
     } else {
-        rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        auto &r_displ = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+
+        const auto &r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        rNodalValues[0] = r_displ_0[0];
+        rNodalValues[1] = r_displ_0[1];
         rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+        const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+        rNodalValues[3] = r_displ_1[0];
+        rNodalValues[4] = r_displ_1[1];
         rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
     }
 }
@@ -429,16 +437,12 @@ array_1d<double, 3> TimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
     const double angle = GetAngle();
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
-    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-        const double c = std::cos(angle);
-        const double s = std::sin(angle);
-        array_1d<double, 3> local_body_force = ZeroVector(3);
-        local_body_force[0] = c * body_force[0] + s * body_force[1];
-        local_body_force[1] = -s * body_force[0] + c * body_force[1];
-        return local_body_force;
-    } else {
-        return body_force;
-    }
+    const double c = std::cos(angle);
+    const double s = std::sin(angle);
+    array_1d<double, 3> local_body_force = ZeroVector(3);
+    local_body_force[0] = c * body_force[0] + s * body_force[1];
+    local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    return local_body_force;
 }
 
 /***********************************************************************************/
@@ -486,9 +490,9 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes),
-        N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes),
-        N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
+    VectorType global_size_N_2(mat_size), global_size_N(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes),
+        N_u(number_of_nodes), N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -525,52 +529,43 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
         noalias(rRHS) -= global_size_N * N * jacobian_weight;
 
-        if (r_constitutive_matrix(0, 1) != 0.0 || r_constitutive_matrix(0, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dN_dkappa = r_constitutive_matrix(0, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dN_dkappa = r_constitutive_matrix(0, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dN_dgamma = r_constitutive_matrix(0, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dN_dgamma = r_constitutive_matrix(0, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
 
         // Bending contributions
         GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
         noalias(rRHS) -= global_size_N * M * jacobian_weight;
 
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dM_dEl = r_constitutive_matrix(1, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
 
-        if (r_constitutive_matrix(1, 0) != 0.0 || r_constitutive_matrix(1, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dM_dEl = r_constitutive_matrix(1, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
-
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dM_dgamma = r_constitutive_matrix(1, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dM_dgamma = r_constitutive_matrix(1, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
 
         // Shear contributions
         GlobalSizeVector(global_size_N, N_s);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
 
-        if (r_constitutive_matrix(2, 0) != 0.0 || r_constitutive_matrix(2, 1) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dV_dEl = r_constitutive_matrix(2, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dV_dEl = r_constitutive_matrix(2, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dV_dkappa = r_constitutive_matrix(2, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dV_dkappa = r_constitutive_matrix(2, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
+
 
         // Now we add the body forces contributions
         GlobalSizeAxialVector(global_size_N, N_u);
@@ -622,7 +617,8 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
+    VectorType global_size_N(mat_size), global_size_N_2(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -649,49 +645,41 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
         GlobalSizeAxialVector(global_size_N, N_u_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
 
-        if (r_constitutive_matrix(0, 1) != 0.0 || r_constitutive_matrix(0, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dN_dkappa = r_constitutive_matrix(0, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dN_dkappa = r_constitutive_matrix(0, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dN_dgamma = r_constitutive_matrix(0, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dN_dgamma = r_constitutive_matrix(0, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
 
         // Bending contributions
         GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
 
-        if (r_constitutive_matrix(1, 0) != 0.0 || r_constitutive_matrix(1, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dM_dEl = r_constitutive_matrix(1, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dM_dEl = r_constitutive_matrix(1, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dM_dgamma = r_constitutive_matrix(1, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dM_dgamma = r_constitutive_matrix(1, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
 
         // Shear contributions
         GlobalSizeVector(global_size_N, N_derivatives - N_theta);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
 
-        if (r_constitutive_matrix(2, 0) != 0.0 || r_constitutive_matrix(2, 1) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dV_dEl = r_constitutive_matrix(2, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dV_dEl = r_constitutive_matrix(2, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dV_dkappa = r_constitutive_matrix(2, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dV_dkappa = r_constitutive_matrix(2, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
+
     }
 
     RotateLHS(rLHS, r_geometry);
@@ -737,7 +725,8 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes), N_shape(mat_size-number_of_nodes);
+    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes),
+        N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes), N_shape(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
