@@ -16,11 +16,6 @@ ExpressionUnionType = typing.Union[
                             Kratos.Expression.ConditionExpression,
                             Kratos.Expression.ElementExpression]
 
-ExpressionFilterUnionType = typing.Union[
-                                KratosOA.NodalFilter,
-                                KratosOA.ConditionFilter,
-                                KratosOA.ElementFilter]
-
 def GetContainerExpressionType(data_location: ExpressionDataLocation) -> 'typing.Union[typing.Type[Kratos.Expression.NodalExpression], typing.Type[Kratos.Expression.ConditionExpression], typing.Type[Kratos.Expression.ElementExpression]]':
     if data_location in [ExpressionDataLocation.NodeHistorical, ExpressionDataLocation.NodeNonHistorical]:
         return Kratos.Expression.NodalExpression
