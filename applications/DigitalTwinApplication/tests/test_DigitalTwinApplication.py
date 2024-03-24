@@ -5,6 +5,7 @@ import test_adjoint_sensors
 import test_sensor_output_process
 import test_system_identification
 import test_smooth_clamper
+import test_mask_utils
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -14,6 +15,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_adjoint_sensors.TestStrainSensor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_output_process.TestSensorOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_smooth_clamper.TestSmoothClamper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mask_utils.TestMaskUtils]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification.TestSystemIdentification]))
 
     nightSuite = suites['nightly']
