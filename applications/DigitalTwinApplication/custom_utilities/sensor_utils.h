@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "expression/container_expression.h"
 
 // Application includes
 #include "custom_sensors/sensor.h"
@@ -33,10 +32,19 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Set the Sensor to the given node.
+     */
     static void SetSensor(ModelPart::NodeType& rNode, Sensor::Pointer pSensor);
 
+    /**
+     * @brief Get the Sensor from the node.
+     */
     static Sensor::Pointer GetSensor(const ModelPart::NodeType& rNode);
 
+    /**
+     * @brief Create new node for the sensors and assign the respective sensor in the model part.
+     */
     static void AddSensors(
         ModelPart& rModelPart,
         const std::vector<Sensor::Pointer>& rSensorsList);
