@@ -19,9 +19,11 @@
 // External includes
 
 // Project includes
-#include "containers/variable.h"
 #include "includes/define.h"
-#include "expression/container_expression.h"
+#include "containers/variable.h"
+
+// Application includes
+#include "custom_sensors/sensor.h"
 
 namespace Kratos
 {
@@ -38,5 +40,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE(DIGITAL_TWIN_APPLICATION, double, SENSOR_MEASURED_VALUE)
     KRATOS_DEFINE_APPLICATION_VARIABLE(DIGITAL_TWIN_APPLICATION, double, SENSOR_ERROR)
     KRATOS_DEFINE_APPLICATION_VARIABLE(DIGITAL_TWIN_APPLICATION, int, SENSOR_ELEMENT_ID)
+
+    KRATOS_DEFINE_APPLICATION_VARIABLE(DIGITAL_TWIN_APPLICATION, Sensor::Pointer, SENSOR)
 
 } // namespace Kratos

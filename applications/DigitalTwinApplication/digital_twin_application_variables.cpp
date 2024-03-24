@@ -29,4 +29,6 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, SENSOR_ERROR)
     KRATOS_CREATE_VARIABLE(int, SENSOR_ELEMENT_ID)
 
+    KRATOS_CREATE_VARIABLE(Sensor::Pointer, SENSOR)
+
 } // namespace Kratos
