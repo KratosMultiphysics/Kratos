@@ -29,7 +29,13 @@ class SensorIO:
             self.__ReadContainerData(sensor, container_data_group, exp_type)
 
     def Write(self, sensor: KratosDT.Sensors.Sensor) -> None:
-        pass
+        h5_sensor_data = self.__h5_file.create_group(f"{self.__prefix}/{sensor.GetName()}")
+        for var_name, exp in sensor.GetNodalExpressionsMap().items():
+            h5_sensor_data[f"nodal/{var_name}"] = exp.Evaluate()
+        for var_name, exp in sensor.GetConditionExpressionsMap().items():
+            h5_sensor_data[f"condition/{var_name}"] = exp.Evaluate()
+        for var_name, exp in sensor.GetElementExpressionsMap().items():
+            h5_sensor_data[f"element/{var_name}"] = exp.Evaluate()
 
     def __ReadContainerData(self, sensor: KratosDT.Sensors.Sensor, container_data_group: h5py.Group, exp_type: 'typing.Type[ContainerExpressionTypes]') -> None:
         exp = exp_type(self.__model_part)
