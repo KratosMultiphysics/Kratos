@@ -308,7 +308,8 @@ std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TCon
     // now find unique list of cluster indices
     std::vector<LiteralFlatExpression<int>::Pointer> cluster_mask_exps;
     for (IndexType i = 0; i < number_of_entities; ++i) {
-        const auto& mask_indices = domain_mask_indices[i];
+        auto& mask_indices = domain_mask_indices[i];
+        std::sort(mask_indices.begin(), mask_indices.end());
 
         /// check against existing mask indices
         auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const auto& rData){ return std::get<0>(rData) == mask_indices; });
