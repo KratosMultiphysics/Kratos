@@ -117,6 +117,7 @@ class SensorPlacementAnalysis:
         else:
             raise RuntimeError(f"Unsupported sensor_sensitivity_state = {sensitivity_state}.")
 
+        KratosDT.SensorUtils.AssignSensorIds(sensors_list)
         self.algorithm.Execute(sensors_list)
 
     def _CreateModelPartControllers(self):

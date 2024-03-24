@@ -55,4 +55,15 @@ void SensorUtils::AddSensors(
     KRATOS_CATCH("");
 }
 
+void SensorUtils::AssignSensorIds(std::vector<Sensor::Pointer>& rSensorsList)
+{
+    KRATOS_TRY
+
+    IndexPartition<int>(rSensorsList.size()).for_each([&](const auto Index) {
+        (*(rSensorsList.begin() + Index))->SetValue(SENSOR_ID, Index + 1);
+    });
+
+    KRATOS_CATCH("");
+}
+
 } // namespace Kratos

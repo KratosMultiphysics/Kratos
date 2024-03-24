@@ -93,6 +93,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AddSensors", &SensorUtils::AddSensors, py::arg("model_part"), py::arg("list_of_sensors"))
         .def("SetSensor", &SensorUtils::SetSensor, py::arg("node"), py::arg("sensor"))
         .def("GetSensor", &SensorUtils::GetSensor, py::arg("node"))
+        .def("AssignSensorIds", &SensorUtils::AssignSensorIds, py::arg("list_of_sensors"))
         ;
 }
 

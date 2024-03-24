@@ -49,6 +49,11 @@ public:
         ModelPart& rModelPart,
         const std::vector<Sensor::Pointer>& rSensorsList);
 
+    /**
+     * @brief Assigns sensor ids to the given sensor list.
+     */
+    static void AssignSensorIds(std::vector<Sensor::Pointer>& rSensorsList);
+
     ///@}
 };
 
