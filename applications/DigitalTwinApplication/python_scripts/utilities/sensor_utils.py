@@ -6,9 +6,11 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SupportedValueUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SupportedVariableUnionType
+from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import SensorViewUnionType
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetParameterToKratosValuesConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetNameToCSVString
+from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpressionType
 
 def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.Sensor]':
@@ -161,3 +163,10 @@ def AddSensorVariableData(sensor: KratosDT.Sensors.Sensor, variable_data: Kratos
         var = Kratos.KratosGlobals.GetVariable(var_name)
         value_func =  GetParameterToKratosValuesConverter(var_value)
         sensor.SetValue(var, value_func(var_value))
+
+def AddMeshIndependentPhysicalFields(exp_filter: Filter, list_of_sensor_views: 'list[SensorViewUnionType]') -> None:
+    for sensor_view in list_of_sensor_views:
+        physical_field = exp_filter.ForwardFilterField(exp_filter.BackwardFilterIntegratedField(sensor_view.GetContainerExpression()))
+        # normalize the physical field
+        physical_field /= Kratos.Expression.Utils.NormL2(physical_field)
+        sensor_view.AddAuxiliaryExpression("_filtered_physical")
