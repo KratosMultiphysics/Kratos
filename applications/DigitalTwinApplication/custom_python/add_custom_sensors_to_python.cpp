@@ -37,8 +37,6 @@ void  AddCustomSensorsToPython(pybind11::module& m)
 
     // Add sensor specifications
     py::class_<Sensor, Sensor::Pointer, AdjointResponseFunction, DataValueContainer>(sensor_module, "Sensor")
-        .def_static("SetSensor", &Sensor::SetSensor, py::arg("node"), py::arg("sensor"))
-        .def_static("GetSensor", &Sensor::GetSensor, py::arg("node"))
         .def("GetName", &Sensor::GetName)
         .def("GetLocation", &Sensor::GetLocation)
         .def("GetWeight", &Sensor::GetWeight)

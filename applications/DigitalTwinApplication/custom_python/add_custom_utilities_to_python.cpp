@@ -23,6 +23,7 @@
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/smooth_clamper.h"
 #include "custom_utilities/mask_utils.h"
+#include "custom_utilities/sensor_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -87,6 +88,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
     AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
+
+    m.def_submodule("SensorUtils")
+        .def("AddSensors", &SensorUtils::AddSensors, py::arg("model_part"), py::arg("list_of_sensors"))
+        .def("SetSensor", &SensorUtils::SetSensor, py::arg("node"), py::arg("sensor"))
+        .def("GetSensor", &SensorUtils::GetSensor, py::arg("node"))
+        ;
 }
 
 } // namespace Kratos::Python

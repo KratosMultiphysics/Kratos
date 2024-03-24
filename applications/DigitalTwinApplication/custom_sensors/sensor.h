@@ -255,14 +255,6 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
-    ///@name Static operations
-    ///@{
-
-    static void SetSensor(ModelPart::NodeType& rNode, Sensor::Pointer pSensor);
-
-    static Sensor::Pointer GetSensor(const ModelPart::NodeType& rNode);
-
-    ///@}
 
 private:
     ///@name Private member variables
