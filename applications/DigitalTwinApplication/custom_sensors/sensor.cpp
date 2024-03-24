@@ -17,12 +17,21 @@
 // Project includes
 
 // Application includes
+#include "digital_twin_application_variables.h"
 
 // Include base h
 #include "sensor.h"
 
 namespace Kratos
 {
+
+Sensor::Sensor()
+    : mName("Default Sensor"),
+      mLocation(array_1d<double, 3>(3, 0.0)),
+      mWeight(0.0),
+      mSensorValue(0.0)
+{
+}
 
 Sensor::Sensor(
     const std::string& rName,
@@ -189,6 +198,17 @@ void Sensor::ClearConditionExpressions()
 void Sensor::ClearElementExpressions()
 {
     mElementExpressions.clear();
+}
+
+void Sensor::SetSensor(ModelPart::NodeType& rNode, Sensor::Pointer pSensor)
+{
+    rNode.Coordinates() = pSensor->GetLocation();
+    rNode.SetValue(SENSOR, pSensor);
+}
+
+Sensor::Pointer Sensor::GetSensor(const ModelPart::NodeType& rNode)
+{
+    return rNode.GetValue(SENSOR);
 }
 
 std::string Sensor::Info() const

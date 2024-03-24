@@ -24,6 +24,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "response_functions/adjoint_response_function.h"
+#include "includes/serializer.h"
 
 // Application includes
 
@@ -44,6 +45,9 @@ public:
     ///@{
 
     /// Constructor.
+    // Default constructor required for the variables
+    Sensor();
+
     Sensor(
         const std::string& rName,
         const Point& rLocation,
@@ -251,16 +255,24 @@ public:
     void PrintData(std::ostream& rOStream) const override;
 
     ///@}
+    ///@name Static operations
+    ///@{
+
+    static void SetSensor(ModelPart::NodeType& rNode, Sensor::Pointer pSensor);
+
+    static Sensor::Pointer GetSensor(const ModelPart::NodeType& rNode);
+
+    ///@}
 
 private:
     ///@name Private member variables
     ///@{
 
-    const std::string mName;
+    std::string mName;
 
-    const Point mLocation;
+    Point mLocation;
 
-    const double mWeight;
+    double mWeight;
 
     double mSensorValue;
 
@@ -269,6 +281,30 @@ private:
     std::unordered_map<std::string, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer> mConditionExpressions;
 
     std::unordered_map<std::string, ContainerExpression<ModelPart::ElementsContainerType>::Pointer> mElementExpressions;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+
+    void save(Serializer& rSerializer) const override
+    {
+        rSerializer.save("Name", mName);
+        rSerializer.save("Location", mLocation);
+        rSerializer.save("Weight", mWeight);
+        rSerializer.save("SensorValue", mSensorValue);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        rSerializer.load("Name", mName);
+        rSerializer.load("Location", mLocation);
+        rSerializer.load("Weight", mWeight);
+        rSerializer.load("SensorValue", mSensorValue);
+    }
+
 
     ///@}
 };
