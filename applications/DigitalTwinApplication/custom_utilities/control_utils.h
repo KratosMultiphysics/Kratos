@@ -36,12 +36,6 @@ public:
         TContainerType& rSourceContainer,
         TContainerType& rDestinationContainer);
 
-    template<class TContainerType>
-    static void ClipContainerExpression(
-        ContainerExpression<TContainerType>& rContainerExpression,
-        const double Min,
-        const double Max);
-
     ///@}
 };
 
