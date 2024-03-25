@@ -426,7 +426,7 @@ void BuildElementSizeRotationMatrixFor2D2NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculatePsi(ConstitutiveLaw::Parameters &rValues, const double L)
+double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
 {
     const auto &r_material_properties = rValues.GetMaterialProperties();
     const double E   = r_material_properties[YOUNG_MODULUS];
@@ -436,7 +436,7 @@ double CalculatePsi(ConstitutiveLaw::Parameters &rValues, const double L)
     const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
 
     if (A_s == 0.0)
-        return 1.0;
+        return 0.0;
     else
         return 12.0 * E * I / (G * A_s * std::pow(L, 2));
 }

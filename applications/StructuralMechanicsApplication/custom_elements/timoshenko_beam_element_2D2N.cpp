@@ -458,7 +458,7 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     const double length = CalculateLength();
-    const double Phi    = StructuralMechanicsElementUtilities::CalculatePsi(cl_values, length);
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
     const double J      = 0.5 * length;
     const double area   = GetProperties()[CROSS_AREA];
 
@@ -586,7 +586,7 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     const double length = CalculateLength();
-    const double Phi    = StructuralMechanicsElementUtilities::CalculatePsi(cl_values, length);
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
     const double J      = 0.5 * length;
 
     // Let's initialize the cl values
@@ -693,7 +693,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     const double length = CalculateLength();
-    const double Phi    = StructuralMechanicsElementUtilities::CalculatePsi(cl_values, length);
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
     const double J      = 0.5 * length;
     const double area   = GetProperties()[CROSS_AREA];
 
@@ -848,7 +848,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         const double length = CalculateLength();
-        const double Phi    = StructuralMechanicsElementUtilities::CalculatePsi(cl_values, length);
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
 
         // Let's initialize the cl values
         VectorType strain_vector(3), stress_vector(3);
@@ -878,7 +878,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         const double length = CalculateLength();
-        const double Phi    = StructuralMechanicsElementUtilities::CalculatePsi(cl_values, length);
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
 
         // Let's initialize the cl values
         VectorType strain_vector(3), stress_vector(3);
@@ -908,7 +908,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         const double length = CalculateLength();
-        const double Phi    = StructuralMechanicsElementUtilities::CalculatePsi(cl_values, length);
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
 
         // Let's initialize the cl values
         VectorType strain_vector(3), stress_vector(3);

@@ -62,9 +62,6 @@ public:
     /// The base element type
     using BaseType = Element;
 
-    /// used for creating submatrices
-    using RangeMatrixType = boost::numeric::ublas::matrix_range<MatrixType>;
-
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
 
