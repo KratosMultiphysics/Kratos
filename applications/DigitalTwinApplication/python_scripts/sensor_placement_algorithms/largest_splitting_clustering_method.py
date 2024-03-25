@@ -6,10 +6,10 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import Senso
 from KratosMultiphysics.DigitalTwinApplication.utilities.cluster_utils import GetClusters
 from KratosMultiphysics.DigitalTwinApplication.utilities.cluster_utils import GetReassignedClusters
 
-class MostSplittingClusteringMethod(ClusteringMethod):
+class LargestSplittingClusteringMethod(ClusteringMethod):
     def __init__(self, _: Kratos.Model, parameters: Kratos.Parameters) -> None:
         defaults = Kratos.Parameters("""{
-            "type"      : "most_splitting_clustering_method",
+            "type"      : "largest_splitting_clustering_method",
             "echo_level": 0
         }""")
         parameters.ValidateAndAssignDefaults(defaults)
@@ -21,17 +21,8 @@ class MostSplittingClusteringMethod(ClusteringMethod):
             sensor_view_splits[potential_sensor_view] = 0
 
         potential_masks = [sensor_view.GetContainerExpression() for sensor_view in potential_sensor_views]
-        for current_cluster in large_clusters:
-            indices: list[int] = KratosDT.MaskUtils.GetMasksDividingReferenceMask(current_cluster.GetMask(), potential_masks)
-            for i in indices:
-                sensor_view_splits[potential_sensor_views[i]] += 1
-
-        # now get the most splitting
-        list_of_most_splitting_sensors: 'list[SensorViewUnionType]' = []
-        max_splitting = max(sensor_view_splits.values())
-        for k, v in sensor_view_splits.items():
-            if v == max_splitting:
-                list_of_most_splitting_sensors.append(k)
+        indices: list[int] = KratosDT.MaskUtils.GetMasksDividingReferenceMask(large_clusters[0].GetMask(), potential_masks)
+        list_of_most_splitting_sensors = [potential_sensor_views[index] for index in indices]
 
         # now find the most distance with the current sensor views.
         origin_sensors: list[KratosDT.Sensors.Sensor] = []
@@ -47,7 +38,7 @@ class MostSplittingClusteringMethod(ClusteringMethod):
 
         test_sensors = [sensor_view.GetSensor() for sensor_view in list_of_most_splitting_sensors]
         if self.echo_level > 0:
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tFound following potential sensors with {max_splitting} max splittings:")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tFound following potential sensor:")
             for test_sensor in test_sensors:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"\t\t{test_sensor.GetName()}")
 
