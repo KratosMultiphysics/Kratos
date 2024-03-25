@@ -67,7 +67,6 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))    << "POISSON_RATIO is not defined in the properties" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))       << "CROSS_AREA is not defined in the properties"    << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Y)) << "AREA_EFFECTIVE_Y is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))          << "DENSITY is not defined in the properties"       << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"            << std::endl;
     return 0;
 }
