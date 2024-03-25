@@ -449,13 +449,6 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
     )
 {
     rElementSizeRotationMatrix.clear();
-double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
-{
-    const auto &r_material_properties = rValues.GetMaterialProperties();
-    const double E   = r_material_properties[YOUNG_MODULUS];
-    const double I   = r_material_properties[I33];
-    const double A_s = r_material_properties[AREA_EFFECTIVE_Y];
-    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
 
     rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
     rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
@@ -497,6 +490,13 @@ double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
 /***********************************************************************************/
 /***********************************************************************************/
 
+double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
+{
+    const auto &r_material_properties = rValues.GetMaterialProperties();
+    const double E   = r_material_properties[YOUNG_MODULUS];
+    const double I   = r_material_properties[I33];
+    const double A_s = r_material_properties[AREA_EFFECTIVE_Y];
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
 
     if (A_s == 0.0)
         return 0.0;

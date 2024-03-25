@@ -243,7 +243,7 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNThetaShapeFunctionsValues(
     VectorType N_second_derivative(6), N_fourth_derivative(6);
     GetSecondDerivativesShapeFunctionsValues(N_second_derivative, Length, Phi, xi);
     GetFourthDerivativesShapeFunctionsValues(N_fourth_derivative, Length, Phi, xi);
-    // v' + (Phi * L^2 / 12) * v'''
+    // v'' + (Phi * L^2 / 12) * v''''
     noalias(rN) = N_second_derivative + Phi * std::pow(Length, 2) / 12.0 * N_fourth_derivative;
 }
 
