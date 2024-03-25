@@ -93,8 +93,6 @@ namespace Kratos
 
         static std::size_t GetNextPositionSkippingWhiteSpaces(std::string const& ThisString, std::size_t Position);
 
-        static bool IsWhiteSpace(char C);
-
         static void ReplaceAll(std::string& ThisString, const std::string& FromString, const std::string& ToString);
 
         ///@}
