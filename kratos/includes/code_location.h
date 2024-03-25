@@ -7,12 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_CODE_LOCATION_H_INCLUDED )
-#define  KRATOS_CODE_LOCATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
