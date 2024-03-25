@@ -58,7 +58,7 @@ public:
     /**
      * @brief Get the Most Distanced test sensor from the origin sensors.
      */
-    static Sensor::Pointer GetMostDistanced(
+    static IndexType GetMostDistanced(
         const std::vector<Sensor::Pointer>& rOriginSensors,
         const std::vector<Sensor::Pointer>& rTestSensors);
 

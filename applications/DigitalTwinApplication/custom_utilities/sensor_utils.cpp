@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
@@ -66,7 +67,7 @@ void SensorUtils::AssignSensorIds(std::vector<Sensor::Pointer>& rSensorsList)
     KRATOS_CATCH("");
 }
 
-Sensor::Pointer SensorUtils::GetMostDistanced(
+IndexType SensorUtils::GetMostDistanced(
     const std::vector<Sensor::Pointer>& rOriginSensors,
     const std::vector<Sensor::Pointer>& rTestSensors)
 {
@@ -77,20 +78,23 @@ Sensor::Pointer SensorUtils::GetMostDistanced(
 
     struct Data
     {
-        Sensor::Pointer mpSensor;
-        double mValue;
+        IndexType mIndex;
+        double mValue = 0.0;
         bool operator<(const Data& rRight) const { return mValue < rRight.mValue; }
     };
 
-    return IndexPartition<IndexType>(rTestSensors.size()).for_each<MaxReduction<Data>>([&rOriginSensors, &rTestSensors](const auto Index) {
+    std::vector<double> distances(rTestSensors.size(), 0.0);
+
+    IndexPartition<IndexType>(rTestSensors.size()).for_each([&rOriginSensors, &rTestSensors, &distances](const auto Index) {
         auto& p_test_sensor = rTestSensors[Index];
         double min_distance = std::numeric_limits<double>::max();
         for (const auto& p_origin_sensor : rOriginSensors) {
             min_distance = std::min(min_distance, norm_2(p_origin_sensor->GetLocation() - p_test_sensor->GetLocation()));
         }
+        distances[Index] = min_distance;
+    });
 
-        return Data{p_test_sensor, min_distance};
-    }).mpSensor;
+    return std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
 
     KRATOS_CATCH("");
 }
