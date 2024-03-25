@@ -170,3 +170,18 @@ def AddMeshIndependentPhysicalFields(exp_filter: Filter, list_of_sensor_views: '
         # normalize the physical field
         physical_field /= Kratos.Expression.Utils.NormL2(physical_field)
         sensor_view.AddAuxiliaryExpression("_filtered_physical")
+
+def GetMostCoveringSensorView(list_of_sensor_views: 'list[SensorViewUnionType]') -> SensorViewUnionType:
+    if len(list_of_sensor_views) == 0:
+        raise RuntimeError("No sensor views found.")
+
+    front_sensor_view = list_of_sensor_views[0]
+    if isinstance(front_sensor_view, KratosDT.Sensors.ElementSensorView):
+        domain_size_exp = Kratos.Expression.ElementExpression(front_sensor_view.GetContainerExpression().GetModelPart())
+        Kratos.Expression.DomainSizeExpressionIO.Read(domain_size_exp)
+
+        domain_sizes = [(i, Kratos.Expression.Utils.Sum(domain_size_exp * sensor_view.GetContainerExpression())) for i, sensor_view in enumerate(list_of_sensor_views)]
+        most_covering_sensor_view_index = max(domain_sizes, key=lambda x: x[1])[0]
+        return list_of_sensor_views[most_covering_sensor_view_index]
+    else:
+        raise RuntimeError("Not implemented yet.")
