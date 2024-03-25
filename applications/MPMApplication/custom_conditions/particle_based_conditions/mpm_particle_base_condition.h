@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_MPM_PARTICLE_BASE_CONDITION_3D_H_INCLUDED )
-#define      KRATOS_MPM_PARTICLE_BASE_CONDITION_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -46,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class MPMParticleBaseCondition
+class KRATOS_API(MPM_APPLICATION) MPMParticleBaseCondition
     : public Condition
 {
 
