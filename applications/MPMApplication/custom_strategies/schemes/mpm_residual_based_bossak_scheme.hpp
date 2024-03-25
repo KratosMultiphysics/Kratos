@@ -104,7 +104,7 @@ public:
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
                 :ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(Alpha, NewmarkBeta),
-                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, IS_STRUCTURE)
+                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize)
     {
         // To distinguish quasi-static and dynamic
         mIsDynamic = IsDynamic;
@@ -120,7 +120,7 @@ public:
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
-        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize)
     {
     }
 
@@ -502,7 +502,7 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        if(!mRotationTool.IsParticleBased(rCurrentCondition.GetGeometry())){
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
             // prevent redundant rotation of non-conforming conditions (alr rotated in condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
         }
@@ -539,9 +539,9 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        if(!mRotationTool.IsParticleBased(rCurrentCondition.GetGeometry())){
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
             // prevent redundant rotation of non-conforming conditions (alr rotated in condition itself)
-            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition.GetGeometry());
+            mRotationTool.RotateRHS(RHS_Contribution, rCurrentCondition.GetGeometry());
         }
         mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
 

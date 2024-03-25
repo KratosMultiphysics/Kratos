@@ -86,7 +86,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].SetValue(PARTICLE_BASED_SLIP, true);
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_normal;
             r_geometry[i].UnSetLock();
         }
@@ -294,12 +294,12 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-        // Here MPC normal vector and IS_STRUCTURE are reset
+        // Here MPC normal vector, SLIP, and PARTICLE_BASED_SLIP are reset
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             r_geometry[i].SetLock();
             r_geometry[i].Reset(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
+            r_geometry[i].SetValue(PARTICLE_BASED_SLIP, false);
             r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
             r_geometry[i].UnSetLock();
         }

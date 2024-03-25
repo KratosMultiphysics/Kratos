@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
@@ -26,11 +27,8 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
         # Note that the model part employed here is supposed to only have slip "conditions"
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.SLIP, True)
-            node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
-            node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
 
 
 

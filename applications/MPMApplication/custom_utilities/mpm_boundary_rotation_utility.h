@@ -24,6 +24,7 @@
 #include "containers/variable.h"
 #include "geometries/geometry.h"
 #include "utilities/coordinate_transformation_utilities.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos {
 
@@ -77,9 +78,8 @@ public:
 	 */
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
-		const unsigned int BlockSize,
-		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
+		const unsigned int BlockSize):
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP)
 	{}
 
 	/// Destructor.
@@ -144,8 +144,9 @@ public:
 		{
 			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 			{
-                // non-conforming SLIP BCs are treated within the resp. condition itself
-				if( this->IsSlip(rGeometry[itNode])&& !this->IsParticleBased(rGeometry[itNode]))
+                // Checks for conforming slip
+                // [ non-conforming SLIP BCs are treated within the resp. condition itself ]
+				if( this->IsSlip(rGeometry[itNode]) && !this->IsParticleBasedSlip(rGeometry[itNode]))
 				{
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
@@ -186,25 +187,17 @@ public:
         this->ApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
-    bool IsParticleBased(NodeType& rNode) const
+    bool IsParticleBasedSlip(const NodeType& rNode) const
     {
-        if(this->IsSlip(rNode) )
-        {
-            const double identifier = rNode.FastGetSolutionStepValue(mrFlagVariable);
-            const double tolerance  = 1.e-6;
-            if (identifier > 1.00 + tolerance)
-                return true;
-        }
-
-        return false;
+        return rNode.GetValue(PARTICLE_BASED_SLIP);
     }
 
     // Checking whether it is normal element or penalty element
-    bool IsParticleBased(GeometryType& rGeometry) const
+    bool IsParticleBasedSlip(const GeometryType& rGeometry) const
     {
         for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
         {
-            if(IsParticleBased(rGeometry[itNode]))
+            if(IsParticleBasedSlip(rGeometry[itNode]))
                 return true;
         }
 
@@ -229,7 +222,9 @@ public:
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
-			if( this->IsSlip(*itNode) )
+
+            // non-conforming slip is not rotated except in the relevant condition
+			if( this->IsSlip(*itNode) && !this->IsParticleBasedSlip(*itNode) )
 			{
 				//this->RotationOperator<TLocalMatrixType>(Rotation,);
 				if(this->GetDomainSize() == 3)
@@ -274,7 +269,8 @@ public:
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
-			if( this->IsSlip(*itNode) )
+            // non-conforming slip is not rotated except in the relevant condition
+            if( this->IsSlip(*itNode) && !this->IsParticleBasedSlip(*itNode) )
 			{
 				if(this->GetDomainSize() == 3)
 				{
@@ -300,6 +296,7 @@ public:
 		}
 	}
 
+    // TODO: modify for particle-based slip
 	void CalculateReactionForces(ModelPart& rModelPart)
 	{
 		TLocalVectorType global_reaction(this->GetDomainSize());
@@ -421,8 +418,6 @@ protected:
 private:
 	///@name Static Member Variables
 	///@{
-
-	const Variable<double>& mrFlagVariable;
 
 	///@}
 	///@name Member Variables
