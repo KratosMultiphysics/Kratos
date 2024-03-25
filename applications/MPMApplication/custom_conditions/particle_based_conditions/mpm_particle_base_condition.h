@@ -280,7 +280,7 @@ public:
      * Intended to be called in Initialize() of the instance that owns the rotationUtility (currently Scheme) to
      * allow access to the rotation utility by particle-based conditions
      */
-    static void SetRotationUtility(const MPMBoundaryRotationUtility<MatrixType,VectorType> *pRotationUtility);
+    static void SetRotationUtility(const RotationToolType *pRotationUtility);
 
     ///@}
     ///@name Inquiry

@@ -396,7 +396,7 @@ double MPMParticleBaseCondition::GetIntegrationWeight()
     return m_area;
 }
 
-void MPMParticleBaseCondition::SetRotationUtility(const RotationToolType *pRotationUtility)
+void MPMParticleBaseCondition::SetRotationUtility(const MPMParticleBaseCondition::RotationToolType *pRotationUtility)
 {
     MPMParticleBaseCondition::p_rotation_tool = pRotationUtility;
 }
