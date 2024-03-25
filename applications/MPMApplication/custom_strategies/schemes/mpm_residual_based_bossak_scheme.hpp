@@ -425,8 +425,11 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
-        // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+        }
         mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH( "" )
@@ -462,8 +465,11 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
-        // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement.GetGeometry());
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.RotateRHS(RHS_Contribution, rCurrentElement.GetGeometry());
+        }
         mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH( "" )
@@ -503,7 +509,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
-            // prevent redundant rotation of non-conforming conditions (alr rotated in condition itself)
+            // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
         }
         mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
@@ -540,7 +546,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
-            // prevent redundant rotation of non-conforming conditions (alr rotated in condition itself)
+            // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.RotateRHS(RHS_Contribution, rCurrentCondition.GetGeometry());
         }
         mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
