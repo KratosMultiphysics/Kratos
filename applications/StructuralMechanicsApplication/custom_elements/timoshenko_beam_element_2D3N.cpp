@@ -300,28 +300,38 @@ void TimoshenkoBeamElement2D3N::GetNodalValuesVector(VectorType& rNodalValues)
         StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
-        global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const auto& r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_displ_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+        global_values[0] = r_displ_0[0];
+        global_values[1] = r_displ_0[1];
         global_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        global_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+        global_values[3] = r_displ_1[0];
+        global_values[4] = r_displ_1[1];
         global_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
-        global_values[6] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[7] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+        global_values[6] = r_displ_2[0];
+        global_values[7] = r_displ_2[1];
         global_values[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
 
         // We rotate to local axes
         noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 
     } else {
-        rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const auto& r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& r_displ_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+        rNodalValues[0] = r_displ_0[0];
+        rNodalValues[1] = r_displ_0[1];
         rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[3] = r_displ_1[0];
+        rNodalValues[4] = r_displ_1[1];
         rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
-        rNodalValues[6] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[7] = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rNodalValues[6] = r_displ_2[0];
+        rNodalValues[7] = r_displ_2[1];
         rNodalValues[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
     }
 }
