@@ -66,4 +66,33 @@ void SensorUtils::AssignSensorIds(std::vector<Sensor::Pointer>& rSensorsList)
     KRATOS_CATCH("");
 }
 
+Sensor::Pointer SensorUtils::GetMostDistanced(
+    const std::vector<Sensor::Pointer>& rOriginSensors,
+    const std::vector<Sensor::Pointer>& rTestSensors)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rOriginSensors.empty())
+        << "No origin sensors provided.";
+
+    struct Data
+    {
+        Sensor::Pointer mpSensor;
+        double mValue;
+        bool operator<(const Data& rRight) const { return mValue < rRight.mValue; }
+    };
+
+    return IndexPartition<IndexType>(rTestSensors.size()).for_each<MaxReduction<Data>>([&rOriginSensors, &rTestSensors](const auto Index) {
+        auto& p_test_sensor = rTestSensors[Index];
+        double min_distance = std::numeric_limits<double>::max();
+        for (const auto& p_origin_sensor : rOriginSensors) {
+            const double min_distance = std::min(min_distance, norm_2(p_origin_sensor->GetLocation() - p_test_sensor->GetLocation()));
+        }
+
+        return Data{p_test_sensor, min_distance};
+    }).mpSensor;
+
+    KRATOS_CATCH("");
+}
+
 } // namespace Kratos

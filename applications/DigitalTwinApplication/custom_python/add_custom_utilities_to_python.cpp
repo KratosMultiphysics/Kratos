@@ -94,6 +94,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetSensor", &SensorUtils::SetSensor, py::arg("node"), py::arg("sensor"))
         .def("GetSensor", &SensorUtils::GetSensor, py::arg("node"))
         .def("AssignSensorIds", &SensorUtils::AssignSensorIds, py::arg("list_of_sensors"))
+        .def("GetMostDistanced", &SensorUtils::GetMostDistanced, py::arg("origin_sensors"), py::arg("test_sensors"))
         ;
 }
 

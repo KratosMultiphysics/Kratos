@@ -54,6 +54,14 @@ public:
      */
     static void AssignSensorIds(std::vector<Sensor::Pointer>& rSensorsList);
 
+
+    /**
+     * @brief Get the Most Distanced test sensor from the origin sensors.
+     */
+    static Sensor::Pointer GetMostDistanced(
+        const std::vector<Sensor::Pointer>& rOriginSensors,
+        const std::vector<Sensor::Pointer>& rTestSensors);
+
     ///@}
 };
 

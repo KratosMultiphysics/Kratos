@@ -164,7 +164,7 @@ ContainerExpression<ModelPart::ElementsContainerType>::Pointer Sensor::GetElemen
     const auto p_itr = mElementExpressions.find(rExpressionName);
 
     KRATOS_ERROR_IF(p_itr == mElementExpressions.end())
-        << "A condition expression named \"" << rExpressionName << " not found.";
+        << "An element expression named \"" << rExpressionName << " not found.";
 
     return p_itr->second;
 
