@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #pragma once
@@ -118,6 +119,37 @@ namespace StringUtilities
         const std::string& rStringToBeReplaced,
         const std::string& rStringToReplace
         );
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc from left and right. Same as "strip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    std::string KRATOS_API(KRATOS_CORE) Trim(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc from left. Same as "lstrip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    std::string KRATOS_API(KRATOS_CORE) TrimLeft(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
+    /**
+     * @brief This function trims a string by removing whitespaces, tabs etc and right. Same as "rstrip" in Python
+     * @param rInputString The input string to trim
+     * @param RemoveNullChar Whether or not null-characters ('\0') should be removed
+     * @return The trimmed string
+     */
+    std::string KRATOS_API(KRATOS_CORE) TrimRight(
+        const std::string& rInputString,
+        const bool RemoveNullChar = false);
+
 
     /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.
