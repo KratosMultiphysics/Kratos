@@ -43,7 +43,7 @@ void TimoshenkoBeamElement2D3N::Initialize(const ProcessInfo& rCurrentProcessInf
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
             mConstitutiveLawVector.resize(r_integration_points.size());
-        BaseType::InitializeMaterial();
+        InitializeMaterial();
     }
     KRATOS_CATCH("")
 }
