@@ -133,7 +133,7 @@ public:
             // Get current Gauss point data
             const double w_gauss = wall_law_data.GaussPtsWeights[i_gauss];
             const auto& N_gauss = row(wall_law_data.ShapeFunctionsContainer, i_gauss);
-            
+
             // Interpolate slip length at current Gauss point
             double gp_slip_length = 0.0;
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -146,15 +146,30 @@ public:
                 for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                     const auto& r_v_j = wall_law_data.NodalWallVelocities[j_node];
                     for (IndexType d1 = 0; d1 < TDim; ++d1) {
-                        for (IndexType d2 = 0; d2 < TDim; ++d2) {
+                         for (IndexType d2 = 0; d2 < TDim; ++d2) {
+                            // rRightHandSideVector[i_node*BlockSize + d1] += aux_val * N_gauss[i_node] * N_gauss[j_node] * r_v_j[d1];
+                            // rLeftHandSideMatrix(i_node*BlockSize + d1, j_node*BlockSize + d1) -= aux_val * N_gauss[i_node] * N_gauss[j_node];
                             rRightHandSideVector[i_node*BlockSize + d2] += aux_val * N_gauss[i_node] * N_gauss[j_node] * tang_proj_mat(d1,d2) * r_v_j[d1];
                             rLeftHandSideMatrix(i_node*BlockSize + d1, j_node*BlockSize + d2) -= aux_val * N_gauss[i_node] * N_gauss[j_node] * tang_proj_mat(d1,d2);
                         }
                     }
                 }
             }
-        }
+        //     for (IndexType i_node=0; i_node < TNumNodes; ++i_node){
+        //         for(IndexType j_node=0;i_node<TNumNodes;++j_node){
+        //             const auto& r_v_j=wall_law_data.NodalWallVelocities[j_node];
+        //             for (IndexType d1 = 0; d1 < TDim; ++d1)
+        //             {
+        //             for (IndexType d2 = 0; d2 < TDim; ++d2) {
+        //                 rRightHandSideVector[i_node * BlockSize + d2] += aux_val * N_gauss[i_node]* r_v_j[d1];
+        //                 rLeftHandSideMatrix(i_node * BlockSize + d1, j_node * BlockSize + d2) -= aux_val * N_gauss[i_node] * N_gauss[j_node];
+        //             }
+        //             }
+        //     }
+        // }
+         }
     }
+
 
     /**
      * @brief Add the LHS Navier-slip contribution
@@ -182,7 +197,7 @@ public:
             // Get current Gauss point data
             const double w_gauss = wall_law_data.GaussPtsWeights[i_gauss];
             const auto& N_gauss = row(wall_law_data.ShapeFunctionsContainer, i_gauss);
-            
+
             // Interpolate slip length at current Gauss point
             double gp_slip_length = 0.0;
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -195,6 +210,7 @@ public:
                 for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
                     for (IndexType d1 = 0; d1 < TDim; ++d1) {
                         for (IndexType d2 = 0; d2 < TDim; ++d2) {
+                            // rLeftHandSideMatrix(i_node * BlockSize + d1, j_node * BlockSize + d1) -= aux_val * N_gauss[i_node] * N_gauss[j_node];
                             rLeftHandSideMatrix(i_node*BlockSize + d1, j_node*BlockSize + d2) -= aux_val * N_gauss[i_node] * N_gauss[j_node] * tang_proj_mat(d1,d2);
                         }
                     }
@@ -229,7 +245,7 @@ public:
             // Get current Gauss point data
             const double w_gauss = wall_law_data.GaussPtsWeights[i_gauss];
             const auto& N_gauss = row(wall_law_data.ShapeFunctionsContainer, i_gauss);
-            
+
             // Interpolate slip length at current Gauss point
             double gp_slip_length = 0.0;
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -244,6 +260,7 @@ public:
                     for (IndexType d1 = 0; d1 < TDim; ++d1) {
                         for (IndexType d2 = 0; d2 < TDim; ++d2) {
                             rRightHandSideVector[i_node*BlockSize + d2] += aux_val * N_gauss[i_node] * N_gauss[j_node] * tang_proj_mat(d1,d2) * r_v_j[d1];
+                            // rRightHandSideVector[i_node * BlockSize + d1] += aux_val * N_gauss[i_node] * N_gauss[j_node] * r_v_j[d1];
                         }
                     }
                 }

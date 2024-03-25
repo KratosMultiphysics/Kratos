@@ -4,7 +4,8 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 import math
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
+import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosHydraulics
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
@@ -65,6 +66,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "artificial_visocosity_settings":{
                 "limiter_coefficient": 1000
             },
+            "turn_off_air_gravity": false,
+            "corner_detection":{
+                "apply_fixity":true,
+                "maximum_angle": 10
+            },
             "time_scheme": "NEEDS TO BE FIXED --> PROBLEMS CONVERGENCE CRITERIO",
             "eulerian_fm_ale": true,
             "eulerian_fm_ale_settings":{
@@ -121,7 +127,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.element_name = "TwoFluidNavierStokesAlphaMethod"
         self.rho_inf = 0.0
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SPECTRAL_RADIUS_LIMIT, self.rho_inf)
-        self.condition_name = "TwoFluidNavierStokesWallCondition"
+        self.condition_name = "NavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
         self.min_buffer_size = 2
@@ -253,6 +259,16 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
+        self.apply_fixity_to_corner = self.settings["corner_detection"]["apply_fixity"].GetBool()
+        if self.apply_fixity_to_corner:
+            self.maximum_angle= self.settings["corner_detection"]["maximum_angle"].GetDouble()
+            KratosMultiphysics.FindConditionsNeighboursProcess(self.main_model_part, self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE], 3).Execute()
+            KratosHydraulics.HydraulicFluidAuxiliaryUtilities.FixCornerNodeVelocity(self.main_model_part,self.maximum_angle)
+        self._reinitialization_type="variational"
+        if self._reinitialization_type != "none":
+            self._GetDistanceReinitializationProcess().Execute()
+        self._reinitialization_type = self.settings["distance_reinitialization"].GetString(
+            )
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
     def Check(self):
         super().Check()
@@ -262,6 +278,31 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
+        # self.gid_output = GiDOutputProcess(self.main_model_part,
+        #                                    "gid_output",
+        #                                    KratosMultiphysics.Parameters("""
+        #                                     {
+        #                                         "result_file_configuration" : {
+        #                                             "gidpost_flags": {
+        #                                                 "GiDPostMode": "GiD_PostBinary",
+        #                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                                                 "MultiFileFlag": "SingleFile"
+        #                                             },
+        #                                             "nodal_results"       : ["DISTANCE"],
+        #                                             "nodal_nonhistorical_results": ["AUX_DISTANCE"],
+        #                                             "nodal_flags_results": []
+        #                                         }
+        #                                     }
+        #                                     """)
+        #                                    )
+
+        # self.gid_output.ExecuteInitialize()
+        # self.gid_output.ExecuteBeforeSolutionLoop()
+        # self.gid_output.ExecuteInitializeSolutionStep()
+        # self.gid_output.PrintOutput()
+        # self.gid_output.ExecuteFinalizeSolutionStep()
+        # self.gid_output.ExecuteFinalize()
+        # AAAAAAAAAAAAAAA
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
@@ -280,6 +321,25 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+
+        # Turn off the gravity of the air fluid.
+        if self.settings["formulation"].Has("turn_off_air_gravity"):
+            KratosHydraulics.HydraulicFluidAuxiliaryUtilities.TurnOffGravityOnAirElements(self.main_model_part)
+        # for element in  self.GetComputingModelPart().Elements:
+        #     neg = 0.0
+        #     pos = 0.0
+        #     nodes = element.GetNodes()
+        #     for node in nodes:
+        #         dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+        #         if dist < 0:
+        #             neg += 1
+        #         else:
+        #             pos += 1
+        #     if neg == 0.0:
+        #         for node in nodes:
+        #             node.SetSolutionStepValue(
+        #                 KratosMultiphysics.BODY_FORCE, [0, 0, 0])
+
 
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
@@ -301,7 +361,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
     # TODO:This is a test for do nothing outlet condition.
 
     # def SolveSolutionStep(self):
-    #     n_it =5
+    #     n_it =6
 
     #     for k in range(n_it):
     #         is_converged = self._GetSolutionStrategy().SolveSolutionStep()

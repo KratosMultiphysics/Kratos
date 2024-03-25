@@ -181,6 +181,17 @@ public:
 
         mpRotationTool->RecoverVelocities(r_model_part);
 
+        for (auto& r_node : r_model_part.Nodes()) {
+            if (r_node.Is(OUTLET)) {
+                const auto& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
+                auto& r_velocity = r_node.FastGetSolutionStepValue(VELOCITY);
+                const double aux = inner_prod(r_normal, r_velocity);
+                if (aux < 0.0) {
+                    r_velocity = ZeroVector(3);
+                }
+            }
+        }
+
         KRATOS_CATCH("");
     }
 

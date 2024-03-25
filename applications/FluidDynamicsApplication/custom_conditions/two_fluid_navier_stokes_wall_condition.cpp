@@ -56,62 +56,62 @@ void TwoFluidNavierStokesWallCondition<TDim, TNumNodes, TWallModel...>::ComputeG
 {
     BaseType::ComputeGaussPointRHSContribution(rhs_gauss, data, rProcessInfo);
 
-    if (this->Is(SLIP)){
-    BoundedMatrix<double, BlockSize, LocalSize> N_matrix = ZeroMatrix(BlockSize, LocalSize);
-    array_1d < double, LocalSize> degree_freedom = ZeroVector(LocalSize);
-    array_1d<double, TNumNodes> N = data.N;
-    array_1d<double, TNumNodes> normal = data.Normal;
-    BoundedMatrix<double, BlockSize, BlockSize> normal_cond_matrix = ZeroMatrix(BlockSize, BlockSize);
+    // if (this->Is(SLIP)){
+    // BoundedMatrix<double, BlockSize, LocalSize> N_matrix = ZeroMatrix(BlockSize, LocalSize);
+    // array_1d < double, LocalSize> degree_freedom = ZeroVector(LocalSize);
+    // array_1d<double, TNumNodes> N = data.N;
+    // array_1d<double, TNumNodes> normal = data.Normal;
+    // BoundedMatrix<double, BlockSize, BlockSize> normal_cond_matrix = ZeroMatrix(BlockSize, BlockSize);
 
-    // Define the condition norm tensorial matrix
-    for (unsigned int i = 0; i <TDim;++i){
-        for (unsigned int j = 0; j <TDim;++j){
-            normal_cond_matrix(i, j) = normal[i] * normal[j];
-        }
-    }
-    // Define the Shape function matrix
-    for (unsigned int j=0; j <TDim;++j){
-        for (unsigned int i = 0; i < TNumNodes;++i){
-            N_matrix(j, j+(i * BlockSize)) = N[i];
-        }
-
-    }
-    // Define the transpose function shape function matrix
-    BoundedMatrix<double, LocalSize, BlockSize> N_matrix_transpose = trans(N_matrix);
-    // BoundedMatrix<double, LocalSize, BlockSize> N_matrix_transpose = ZeroMatrix(LocalSize, BlockSize);
-    // for (unsigned int i = 0; i < BlockSize; ++i)
-    // {
-    //     for (unsigned int j = 0; j <LocalSize;++j){
-    //         N_matrix_transpose(j, i) = N_matrix(i, j);
-    //         }
-    // }
-
-    // Define the velocity vector taking into account the pressure (all the degree of freedom )
-    const GeometryType &rGeom = this->GetGeometry();
-    for (unsigned int i = 0; i <TNumNodes;++i)
-    {
-        const array_1d<double, 3> &rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int j = 0; j <TDim;j++){
-            degree_freedom[j+(i * BlockSize)]= rVelNode[j];
-        }
-    }
-    //add corresponding rhs contribution
-    const double penalty_constant = 5.0e2;
-
-    array_1d<double,BlockSize> rhs_aux = prod(N_matrix, degree_freedom);
-    array_1d<double, BlockSize> rhs_aux_r = prod(normal_cond_matrix, rhs_aux);
-    rhs_gauss += penalty_constant*data.wGauss*prod(N_matrix_transpose, rhs_aux_r);
-    // if (this->Id()==1727){
-    //     KRATOS_WATCH(N)
-    //     KRATOS_WATCH(normal)
-    //     KRATOS_WATCH(normal_cond_matrix)
-    //     KRATOS_WATCH(N_matrix)
-    //     KRATOS_WATCH(degree_freedom)
-    //     KRATOS_WATCH(rhs_aux)
-    //     KRATOS_WATCH(rhs_aux_r)
-    //     KRATOS_WATCH(rhs_gauss)
+    // // Define the condition norm tensorial matrix
+    // for (unsigned int i = 0; i <TDim;++i){
+    //     for (unsigned int j = 0; j <TDim;++j){
+    //         normal_cond_matrix(i, j) = normal[i] * normal[j];
     //     }
-    }
+    // }
+    // // Define the Shape function matrix
+    // for (unsigned int j=0; j <TDim;++j){
+    //     for (unsigned int i = 0; i < TNumNodes;++i){
+    //         N_matrix(j, j+(i * BlockSize)) = N[i];
+    //     }
+
+    // }
+    // // Define the transpose function shape function matrix
+    // BoundedMatrix<double, LocalSize, BlockSize> N_matrix_transpose = trans(N_matrix);
+    // // BoundedMatrix<double, LocalSize, BlockSize> N_matrix_transpose = ZeroMatrix(LocalSize, BlockSize);
+    // // for (unsigned int i = 0; i < BlockSize; ++i)
+    // // {
+    // //     for (unsigned int j = 0; j <LocalSize;++j){
+    // //         N_matrix_transpose(j, i) = N_matrix(i, j);
+    // //         }
+    // // }
+
+    // // Define the velocity vector taking into account the pressure (all the degree of freedom )
+    // const GeometryType &rGeom = this->GetGeometry();
+    // for (unsigned int i = 0; i <TNumNodes;++i)
+    // {
+    //     const array_1d<double, 3> &rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+    //     for (unsigned int j = 0; j <TDim;j++){
+    //         degree_freedom[j+(i * BlockSize)]= rVelNode[j];
+    //     }
+    // }
+    // //add corresponding rhs contribution
+    // const double penalty_constant = 5.0e2;
+
+    // array_1d<double,BlockSize> rhs_aux = prod(N_matrix, degree_freedom);
+    // array_1d<double, BlockSize> rhs_aux_r = prod(normal_cond_matrix, rhs_aux);
+    // rhs_gauss += penalty_constant*data.wGauss*prod(N_matrix_transpose, rhs_aux_r);
+    // // if (this->Id()==1727){
+    // //     KRATOS_WATCH(N)
+    // //     KRATOS_WATCH(normal)
+    // //     KRATOS_WATCH(normal_cond_matrix)
+    // //     KRATOS_WATCH(N_matrix)
+    // //     KRATOS_WATCH(degree_freedom)
+    // //     KRATOS_WATCH(rhs_aux)
+    // //     KRATOS_WATCH(rhs_aux_r)
+    // //     KRATOS_WATCH(rhs_gauss)
+    // //     }
+    // }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
@@ -122,44 +122,44 @@ void TwoFluidNavierStokesWallCondition<TDim, TNumNodes, TWallModel...>::ComputeG
 {
     BaseType::ComputeGaussPointLHSContribution(lhs_gauss, data, rProcessInfo);
 
-    if (this->Is(SLIP)){
+    // if (this->Is(SLIP)){
 
-    BoundedMatrix<double,BlockSize, LocalSize> N_matrix = ZeroMatrix(BlockSize, LocalSize);
-    array_1d<double, TNumNodes> N = data.N;
-    array_1d<double, TNumNodes> normal = data.Normal;
-    BoundedMatrix<double, BlockSize, BlockSize> normal_cond_matrix = ZeroMatrix(BlockSize, BlockSize);
+    // BoundedMatrix<double,BlockSize, LocalSize> N_matrix = ZeroMatrix(BlockSize, LocalSize);
+    // array_1d<double, TNumNodes> N = data.N;
+    // array_1d<double, TNumNodes> normal = data.Normal;
+    // BoundedMatrix<double, BlockSize, BlockSize> normal_cond_matrix = ZeroMatrix(BlockSize, BlockSize);
 
-    // Define the condition norm tensorial matrix
-    for (unsigned int i = 0; i < TDim; ++i)
-    {
-        for (unsigned int j = 0; j < TDim; ++j)
-        {
-            normal_cond_matrix(i, j) = normal[i] * normal[j];
-        }
-    }
-
-    // Define the Shape function matrix
-    for (unsigned int j=0; j <TDim;++j){
-        for (unsigned int i = 0; i < TNumNodes;++i){
-            N_matrix(j, j+(i * BlockSize)) = N[i];
-        }
-
-    }
-    // Define the transpose function shape function matrix
-    BoundedMatrix<double, LocalSize, BlockSize> N_matrix_transpose = trans(N_matrix);
-    // for (unsigned int i = 0; i < BlockSize;++i){
-    //     for (unsigned int j = 0; j <LocalSize;++j){
-    //         N_matrix_transpose(j, i) = N_matrix(i, j);
-    //         }
+    // // Define the condition norm tensorial matrix
+    // for (unsigned int i = 0; i < TDim; ++i)
+    // {
+    //     for (unsigned int j = 0; j < TDim; ++j)
+    //     {
+    //         normal_cond_matrix(i, j) = normal[i] * normal[j];
+    //     }
     // }
-    //add corresponding rhs contribution
-    const double penalty_constant = 5.0e2;
+
+    // // Define the Shape function matrix
+    // for (unsigned int j=0; j <TDim;++j){
+    //     for (unsigned int i = 0; i < TNumNodes;++i){
+    //         N_matrix(j, j+(i * BlockSize)) = N[i];
+    //     }
+
+    // }
+    // // Define the transpose function shape function matrix
+    // BoundedMatrix<double, LocalSize, BlockSize> N_matrix_transpose = trans(N_matrix);
+    // // for (unsigned int i = 0; i < BlockSize;++i){
+    // //     for (unsigned int j = 0; j <LocalSize;++j){
+    // //         N_matrix_transpose(j, i) = N_matrix(i, j);
+    // //         }
+    // // }
+    // //add corresponding rhs contribution
+    // const double penalty_constant = 5.0e2;
 
 
-    BoundedMatrix<double,LocalSize,BlockSize> lhs_gauss_aux = prod(N_matrix_transpose,normal_cond_matrix);
-    lhs_gauss -= penalty_constant*data.wGauss*prod(lhs_gauss_aux, N_matrix);
+    // BoundedMatrix<double,LocalSize,BlockSize> lhs_gauss_aux = prod(N_matrix_transpose,normal_cond_matrix);
+    // lhs_gauss -= penalty_constant*data.wGauss*prod(lhs_gauss_aux, N_matrix);
 
-    }
+    // }
 }
 
     // template<unsigned int TDim, unsigned int TNumNodes, class TWallModel>
