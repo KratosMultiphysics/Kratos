@@ -297,14 +297,20 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
  * @param rGeometry The geometry of the beam
  * It assumes 3 dofs per node: u,v,theta
  */
-double GetReferenceRotationAngle2D2NBeam(GeometryType &rGeometry);
+double GetReferenceRotationAngle2D2NBeam(const GeometryType &rGeometry);
 
 /**
  * @brief This function computes the inclination angle of a 3 noded beam
  * @param rGeometry The geometry of the beam
  * It assumes 3 dofs per node: u,v,theta
  */
-double GetReferenceRotationAngle2D3NBeam(GeometryType &rGeometry);
+double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
+
+/**
+ * @brief This function computes the shear psi factor
+ * @param rValues The constitutive law parameters
+ */
+double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

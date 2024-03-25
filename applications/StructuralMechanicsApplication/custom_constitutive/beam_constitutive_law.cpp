@@ -74,7 +74,7 @@ int BeamConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 ) const
 {
-    if (YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0)
+    if (rMaterialProperties[YOUNG_MODULUS] <= 0.0)
     {
         KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
     }
@@ -82,12 +82,12 @@ int BeamConstitutiveLaw::Check(
     const double nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01));
 
-    if (POISSON_RATIO.Key() == 0 || check==true)
+    if (check)
     {
         KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
     }
 
-    if (DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
+    if (rMaterialProperties[DENSITY] < 0.00)
     {
         KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
     }
