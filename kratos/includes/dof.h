@@ -25,6 +25,8 @@
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
+#include "containers/flags.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -83,7 +85,7 @@ This class enables the system to work with different set of dofs and also
 represents the Dirichlet condition assigned to each dof.
 */
 template<class TDataType>
-class Dof{
+class Dof : public Flags {
 public:
     ///@name Type Definitions
     ///@{
@@ -118,7 +120,7 @@ public:
     template<class TVariableType>
     Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable)
-        : mIsFixed(false),
+        : Flags(),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
@@ -156,7 +158,7 @@ public:
     Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
-        : mIsFixed(false),
+        : Flags(),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
@@ -175,7 +177,7 @@ public:
 
     //This default constructor is needed for serializer
     Dof()
-        : mIsFixed(false),
+        : Flags(),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mIndex(),
@@ -185,15 +187,7 @@ public:
     }
 
     /// Copy constructor.
-    Dof(Dof const& rOther)
-        : mIsFixed(rOther.mIsFixed),
-          mVariableType(rOther.mVariableType),
-          mReactionType(rOther.mReactionType),
-          mIndex(rOther.mIndex),
-          mEquationId(rOther.mEquationId),
-          mpNodalData(rOther.mpNodalData)
-    {
-    }
+    Dof(Dof const& rOther) = default;
 
 
     /// Destructor.
@@ -205,17 +199,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    Dof& operator=(Dof const& rOther)
-    {
-        mIsFixed = rOther.mIsFixed;
-        mEquationId = rOther.mEquationId;
-        mpNodalData = rOther.mpNodalData;
-        mIndex = rOther.mIndex;
-        mVariableType = rOther.mVariableType;
-        mReactionType = rOther.mReactionType;
-
-        return *this;
-    }
+    Dof& operator=(Dof const& rOther) = default;
 
     template<class TVariableType>
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
@@ -337,14 +321,14 @@ public:
      */
     void FixDof()
     {
-        mIsFixed=true;
+        this->Set(FIXED);
     }
 
     /** Frees the degree of freedom
      */
     void FreeDof()
     {
-        mIsFixed=false;
+        this->Set(FIXED, false);
     }
 
     SolutionStepsDataContainerType* GetSolutionStepsData()
@@ -375,7 +359,7 @@ public:
 
     bool IsFixed() const
     {
-        return mIsFixed;
+        return this->Is(FIXED);
     }
 
 
@@ -390,7 +374,7 @@ public:
 
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
 
@@ -403,13 +387,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -435,9 +419,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    /** True is is fixed */
-    int mIsFixed : 1;
 
     int mVariableType : 4;
 
@@ -486,9 +467,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
-        rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
+        rSerializer.save("Flags", static_cast<Flags>(*this));
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
         rSerializer.save("NodalData", mpNodalData);
         rSerializer.save("VariableType", static_cast<int>(mVariableType));
@@ -497,12 +478,12 @@ private:
 
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         std::string name;
-        bool is_fixed;
-        rSerializer.load("IsFixed", is_fixed);
-        mIsFixed=is_fixed;
+        Flags flags;
+        rSerializer.load("Flags", flags);
+        static_cast<Flags&>(*this) = flags;
         EquationIdType equation_id;
         rSerializer.load("EquationId", equation_id);
         mEquationId = equation_id;
