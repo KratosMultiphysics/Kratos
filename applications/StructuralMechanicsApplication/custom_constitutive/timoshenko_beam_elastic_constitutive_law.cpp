@@ -103,14 +103,13 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
     const auto& r_cl_law_options = rValues.GetOptions();
     auto &r_material_properties = rValues.GetMaterialProperties();
     auto &r_strain_vector = rValues.GetStrainVector();
-    auto strain_size = GetStrainSize();
+    const auto strain_size = GetStrainSize();
 
     const double axial_strain = r_strain_vector[0]; // E_l
     const double curvature    = r_strain_vector[1]; // Kappa
     const double shear_strain = r_strain_vector[2]; // Gamma_xy
 
     const double E    = r_material_properties[YOUNG_MODULUS];
-    const double nu   = r_material_properties[POISSON_RATIO];
     const double A    = r_material_properties[CROSS_AREA];
     const double I    = r_material_properties[I33];
 
@@ -132,9 +131,9 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
-            if (r_stress_derivatives.size1() != strain_size)
+            if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
                 r_stress_derivatives.resize(strain_size, strain_size, false);
-            r_stress_derivatives.clear();
+            noalias(r_stress_derivatives) = ZeroMatrix(strain_size, strain_size);
 
             r_stress_derivatives(0, 0) = EA;  // dN_dEl
             r_stress_derivatives(1, 1) = EI;  // dM_dkappa
