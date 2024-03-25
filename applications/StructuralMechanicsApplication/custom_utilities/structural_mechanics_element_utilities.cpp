@@ -430,7 +430,6 @@ double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
 {
     const auto &r_material_properties = rValues.GetMaterialProperties();
     const double E   = r_material_properties[YOUNG_MODULUS];
-    const double A   = r_material_properties[CROSS_AREA];
     const double I   = r_material_properties[I33];
     const double A_s = r_material_properties[AREA_EFFECTIVE_Y];
     const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
