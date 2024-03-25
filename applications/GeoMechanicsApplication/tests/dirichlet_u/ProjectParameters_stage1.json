@@ -124,6 +124,18 @@
             "table":           [0,0,0]
         }
     },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.Soil_drained-auto-1",
+            "variable_name":   "WATER_PRESSURE",
+            "active":          true,
+            "is_fixed":        true,
+            "value":           0.0,
+            "table":           0
+        }
+    },{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",

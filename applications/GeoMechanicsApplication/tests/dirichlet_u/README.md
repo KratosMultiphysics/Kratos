@@ -11,7 +11,7 @@ The mesh is a uniform 2 x 2 element grid, which is displayed in the figure below
 The test is performed in two stages, with the following common conditions for both stages:
 
 - Constraints:
-    - Displacements on the bottom are fixed in the Y direction
+    - Displacements on the bottom are fixed in all directions.
     - Displacements on the sides are fixed in the X direction.
     - Displacements on the top are prescribed in time in the Y direction. These increase linear in time during each stage. See the sawtooth like figure below, the prescribed displacement for stage 1 is repeated in stage 2:
 
@@ -24,7 +24,7 @@ The test is performed in two stages, with the following common conditions for bo
 
 The result is a uniform strain and stress field that linearly increases with time.
 
-## Stage 2 - Again apply a top vertical displacement of 0.05 [m], time interval \[1, 1.25\]
+## Stage 2 - Again apply a top vertical displacement of 0.05 [m], time interval \[1, 2\]
 
 Displacement and strain should restart from 0, vertical total displacement and vertical stress continue to increase starting from the end values of stage 1.
 ## Assertions

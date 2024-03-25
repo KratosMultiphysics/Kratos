@@ -27,12 +27,12 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
         stage 2) elongate another 0.05 [0.05] in 2 steps
         """
         test_name    = 'dirichlet_u'
-        project_path = test_helper.get_file_path(os.path.join('.', test_name))
+        project_path = test_helper.get_file_path(test_name)
         n_stages     = 2
         stages       = test_helper.get_stages(project_path,n_stages)
 
         # name of output file
-        output_file_names = [os.path.join(project_path, 'dirichlet_u_stage' + str(i + 1) + '.post.res') for i in
+        output_file_names = [os.path.join(project_path, f'dirichlet_u_stage{i+1}.post.res') for i in
                             range(n_stages)]
         output_data       = []
 
@@ -45,7 +45,7 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
         E = 30E+06
         stage_nr = 0
         for time in [0.5, 1.0]:
-            # displacement of the central node ( half the prescribed displaceemnt at the top )
+            # displacement of the central node ( half the prescribed displacement at the top )
             displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data[stage_nr], [8])[0]
             displacement_8_y = displacements_8[1]
             self.assertAlmostEqual(time*0.05/2., displacement_8_y, 2)
@@ -66,11 +66,11 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
             # displacement start at 0 at begin of second stage
             displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data[stage_nr], [8])[0]
             displacement_8_y = displacements_8[1]
-            self.assertAlmostEqual((time-1.0)*0.025, displacement_8_y, 2)
+            self.assertAlmostEqual((time-1.0)*0.05/2, displacement_8_y, 2)
             # total displacement continuous over stages
             total_displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data[stage_nr], [8])[0]
             total_displacement_8_y = total_displacements_8[1]
-            self.assertAlmostEqual(time*0.025, total_displacement_8_y, 2)
+            self.assertAlmostEqual(time*0.05/2, total_displacement_8_y, 2)
             # integration point check in element 2, integration point 4 ( uniform stress and strain so an arbitrary choice )
             # strains start at 0 at begin of second stage ( like the displacement )
             green_lagrange_strains_2_4 = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_nr], [2], [3])[0][0]
