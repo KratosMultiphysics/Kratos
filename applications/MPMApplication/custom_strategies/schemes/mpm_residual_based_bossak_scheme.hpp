@@ -429,8 +429,9 @@ public:
         if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
         }
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+
 
         KRATOS_CATCH( "" )
     }
@@ -469,8 +470,8 @@ public:
         if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.RotateRHS(RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
         }
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
 
         KRATOS_CATCH( "" )
     }
@@ -511,8 +512,9 @@ public:
         if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
         }
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+
 
         KRATOS_CATCH( "" )
     }
@@ -548,8 +550,9 @@ public:
         if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.RotateRHS(RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
         }
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+
 
         KRATOS_CATCH( "" )
     }
