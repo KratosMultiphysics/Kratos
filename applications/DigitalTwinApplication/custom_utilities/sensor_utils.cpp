@@ -76,14 +76,7 @@ IndexType SensorUtils::GetMostDistanced(
     KRATOS_ERROR_IF(rOriginSensors.empty())
         << "No origin sensors provided.";
 
-    struct Data
-    {
-        IndexType mIndex;
-        double mValue = 0.0;
-        bool operator<(const Data& rRight) const { return mValue < rRight.mValue; }
-    };
-
-    std::vector<double> distances(rTestSensors.size(), 0.0);
+    std::vector<double> distances(rTestSensors.size());
 
     IndexPartition<IndexType>(rTestSensors.size()).for_each([&rOriginSensors, &rTestSensors, &distances](const auto Index) {
         auto& p_test_sensor = rTestSensors[Index];
