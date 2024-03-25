@@ -1,0 +1,41 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_beam",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables"        : {
+                "ELEMENT_LOOP_TOLERANCE" : 1e-9,
+                "MAX_EQUILIBRIUM_ITERATIONS" : 100,
+                "NUMBER_OF_SECTIONS"   : 4,
+                "CONCRETE_FIBERS_DATA" : [
+                    [0.0, -2.7784432686368103, 0.9089467150600142],
+                    [0.0, 2.7784432686368103, 0.9089467150600142],
+                    [-0.734375, -4.440892098500626e-16, 7.51085420324126],
+                    [0.734375, -4.440892098500626e-16, 7.51085420324126],
+                    [-1.96875, 0.0, 6.0],
+                    [1.96875, 0.0, 6.0],
+                    [-1.234375, 3.5, 2.46875],
+                    [1.234375, 3.5, 2.46875],
+                    [-1.234375, -3.5, 2.46875],
+                    [1.234375, -3.5, 2.46875]
+                ],
+                "STEEL_FIBERS_DATA"    : [
+                    [-1.2471932686368106, -2.7784432686368103, 0.19634954084936204],
+                    [1.2471932686368106, -2.7784432686368103, 0.19634954084936204],
+                    [-1.2471932686368106, 2.7784432686368103, 0.19634954084936204],
+                    [1.2471932686368106, 2.7784432686368103, 0.19634954084936204]
+                ],
+                "CONCRETE_YIELD_STRENGTH"     : 6.95,
+                "CONCRETE_YIELD_STRAIN"       : 0.0027,
+                "CONCRETE_CRUSHING_STRAIN"    : 0.0381,
+                "STEEL_YOUNGS_MODULUS"        : 29000,
+                "STEEL_HARDENING_RATIO"       : 0.0042,
+                "STEEL_YIELD_STRENGTH"        : 48.4,
+                "STEEL_TRANSITION_VARIABLE"   : 20,
+                "STEEL_A1_COEFFICIENT"        : 18.5,
+                "STEEL_A2_COEFFICIENT"        : 0.0002
+            },
+            "Tables"           : {}
+        }
+    }]
+}
