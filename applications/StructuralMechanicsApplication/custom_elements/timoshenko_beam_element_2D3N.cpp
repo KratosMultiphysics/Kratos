@@ -381,8 +381,9 @@ double TimoshenkoBeamElement2D3N::CalculateBendingCurvature(
 {
     VectorType N_theta_derivatives(6);
     GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);
-    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] + N_theta_derivatives[4] * rNodalValues[4] +
-           N_theta_derivatives[5] * rNodalValues[5] + N_theta_derivatives[2] * rNodalValues[7] + N_theta_derivatives[3] * rNodalValues[8];
+    return N_theta_derivatives[0] * rNodalValues[1] + N_theta_derivatives[1] * rNodalValues[2] +
+           N_theta_derivatives[4] * rNodalValues[4] + N_theta_derivatives[5] * rNodalValues[5] +
+           N_theta_derivatives[2] * rNodalValues[7] + N_theta_derivatives[3] * rNodalValues[8];
 }
 
 /***********************************************************************************/
