@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos {
@@ -425,6 +426,23 @@ void BuildElementSizeRotationMatrixFor2D2NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double CalculatePsi(ConstitutiveLaw::Parameters &rValues, const double L)
+{
+    const auto &r_material_properties = rValues.GetMaterialProperties();
+    const double E   = r_material_properties[YOUNG_MODULUS];
+    const double A   = r_material_properties[CROSS_AREA];
+    const double I   = r_material_properties[I33];
+    const double A_s = r_material_properties[AREA_EFFECTIVE_Y];
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
+
+    if (A_s == 0.0)
+        return 1.0;
+    else
+        return 12.0 * E * I / (G * A_s * std::pow(L, 2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

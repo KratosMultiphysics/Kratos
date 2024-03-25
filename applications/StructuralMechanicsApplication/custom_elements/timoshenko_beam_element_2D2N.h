@@ -261,11 +261,6 @@ public:
     }
 
     /**
-     * @brief This function computes the Phi parameter in Felippa et al.
-    */
-    double CalculatePhi(ConstitutiveLaw::Parameters &rValues);
-
-    /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
      * Also its derivatives
      * @param rN reference to the shape functions (or derivatives)

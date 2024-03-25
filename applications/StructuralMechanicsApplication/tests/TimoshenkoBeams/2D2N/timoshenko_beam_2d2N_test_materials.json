@@ -11,7 +11,8 @@
                 "YOUNG_MODULUS" : 2100000000.0,
                 "POISSON_RATIO" : 0.3,
                 "CROSS_AREA"    : 0.0116,
-                "I33"           : 0.000482
+                "I33"           : 0.000482,
+				"AREA_EFFECTIVE_Y" : 0.0096666666666
             },
             "Tables"           : null
         }

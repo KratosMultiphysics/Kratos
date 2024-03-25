@@ -15,6 +15,7 @@
 // Project includes
 #include "timoshenko_beam_elastic_constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -62,11 +63,12 @@ int TimoshenkoBeamElasticConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 ) const
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "POISSON_RATIO is not defined in the properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))    << "CROSS_AREA is not defined in the properties"    << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))       << "DENSITY is not defined in the properties"       << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))            << "I33 is not defined in the properties"            << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))    << "YOUNG_MODULUS is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))    << "POISSON_RATIO is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))       << "CROSS_AREA is not defined in the properties"    << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Y)) << "AREA_EFFECTIVE_Y is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))          << "DENSITY is not defined in the properties"       << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"            << std::endl;
     return 0;
 }
 
@@ -113,8 +115,8 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
     const double A    = r_material_properties[CROSS_AREA];
     const double I    = r_material_properties[I33];
 
-    const double G    = E / (2.0 * (1.0 + nu));
-    const double A_s  = r_material_properties.Has(AREA_EFFECTIVE_Y) ? r_material_properties[AREA_EFFECTIVE_Y] : 5.0 / 6.0 * A; // We assume rectangular 
+    const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
+    const double A_s  = r_material_properties[AREA_EFFECTIVE_Y];
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
