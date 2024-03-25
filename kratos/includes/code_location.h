@@ -126,12 +126,8 @@ namespace Kratos
 #define KRATOS_CURRENT_FUNCTION "unknown function"
 #endif
 
-
 #define KRATOS_CODE_LOCATION Kratos::CodeLocation(__FILE__, KRATOS_CURRENT_FUNCTION, __LINE__)
-
 
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CODE_LOCATION_H_INCLUDED  defined
