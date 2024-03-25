@@ -86,7 +86,7 @@ Sensor::Pointer SensorUtils::GetMostDistanced(
         auto& p_test_sensor = rTestSensors[Index];
         double min_distance = std::numeric_limits<double>::max();
         for (const auto& p_origin_sensor : rOriginSensors) {
-            const double min_distance = std::min(min_distance, norm_2(p_origin_sensor->GetLocation() - p_test_sensor->GetLocation()));
+            min_distance = std::min(min_distance, norm_2(p_origin_sensor->GetLocation() - p_test_sensor->GetLocation()));
         }
 
         return Data{p_test_sensor, min_distance};
