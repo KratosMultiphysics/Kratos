@@ -424,8 +424,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                        VectorType&        rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo,
-                                                       const bool CalculateStiffnessMatrixFlag,
-                                                       const bool CalculateResidualVectorFlag)
+                                                       bool CalculateStiffnessMatrixFlag,
+                                                       bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
