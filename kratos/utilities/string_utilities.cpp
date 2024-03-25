@@ -175,4 +175,52 @@ std::string ReplaceAllSubstrings(
     return output_string;
 }
 
+std::string Trim(
+    const std::string& rInputString,
+    const bool RemoveNullChar)
+{
+    return TrimLeft(TrimRight(rInputString), RemoveNullChar);
+}
+
+std::function<bool(std::string::value_type)> TrimChar(const bool RemoveNullChar)
+{
+    if (RemoveNullChar) {
+        return [](auto character) {
+            return std::isspace(character) || character == '\0';
+        };
+    }
+
+    return [](auto character) {
+        return std::isspace(character);
+    };
+}
+
+std::string TrimLeft(
+    const std::string& rInputString,
+    const bool RemoveNullChar)
+{
+    std::string output_string(rInputString);
+
+    output_string.erase(output_string.begin(), std::find_if(output_string.begin(), output_string.end(),
+            [](std::string::value_type ch) {return !TrimChar(ch);}
+        )
+    );
+
+    return output_string;
+}
+
+std::string TrimRight(
+    const std::string& rInputString,
+    const bool RemoveNullChar)
+{
+    std::string output_string(rInputString);
+
+    output_string.erase(std::find_if(output_string.rbegin(), output_string.rend(),
+            [](std::string::value_type ch) {return !TrimChar(ch);}
+        ).base(), output_string.end()
+    );
+
+    return output_string;
+}
+
 } // namespace Kratos::StringUtilities
