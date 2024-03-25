@@ -191,6 +191,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
+        .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
+            py::arg("model"),
+            py::arg("parameters"),
+            py::return_value_policy::reference);
         ;
 
     // Add collective expression to python
@@ -290,6 +294,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("MapNodalVariableToContainerVariable", &ContainerExpressionUtils::MapNodalVariableToContainerVariable<ModelPart::ElementsContainerType>, py::arg("output_container_expression"), py::arg("input_nodal_container_expression_to_map"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
+        .def("ExtractData", &ContainerExpressionUtils::ExtractData<ModelPart::NodesContainerType>, py::arg("input_nodal_expression"), py::arg("model_part_domain_to_extract"))
+        .def("ExtractData", &ContainerExpressionUtils::ExtractData<ModelPart::ConditionsContainerType>, py::arg("input_condition_expression"), py::arg("model_part_domain_to_extract"))
+        .def("ExtractData", &ContainerExpressionUtils::ExtractData<ModelPart::ElementsContainerType>, py::arg("input_element_expression"), py::arg("model_part_domain_to_extract"))
         ;
 
     auto collective_expression_io = m.def_submodule("CollectiveExpressionIO");
