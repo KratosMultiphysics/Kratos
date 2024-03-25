@@ -148,7 +148,7 @@ void CodeLocation::ReplaceAll(std::string& ThisString, const std::string& FromSt
 std::size_t CodeLocation::GetNextPositionSkippingWhiteSpaces(std::string const& ThisString, std::size_t Position)
 {
     char c = ThisString[Position];
-    while (sts::isspace(c))
+    while (std::isspace(c))
         c = ThisString[++Position];
     return Position;
 }
