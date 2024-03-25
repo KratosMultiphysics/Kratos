@@ -120,6 +120,24 @@ public:
 
 	}
 
+    void RotateToGlobal(
+        TLocalMatrixType& rLocalMatrix,
+        TLocalVectorType& rLocalVector,
+        GeometryType& rGeometry) const
+    {
+        if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+        {
+            if (this->GetDomainSize() == 2) this->template RotateAuxPure<2,true>(rLocalMatrix,rLocalVector,rGeometry);
+            else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3,true>(rLocalMatrix,rLocalVector,rGeometry);
+        }
+        else // mixed formulation case
+        {
+            if (this->GetDomainSize() == 2) this->template RotateAux<2,3,true>(rLocalMatrix,rLocalVector,rGeometry);
+            else if (this->GetDomainSize() == 3) this->template RotateAux<3,4,true>(rLocalMatrix,rLocalVector,rGeometry);
+        }
+
+    }
+
 	/// RHS only version of Rotate
 	void RotateRHS(
         TLocalVectorType& rLocalVector,
@@ -127,6 +145,13 @@ public:
 	{
 		this->Rotate(rLocalVector,rGeometry);
 	}
+
+    void RotateRHSToGlobal(
+        TLocalVectorType& rLocalVector,
+        GeometryType& rGeometry) const
+    {
+        this->template RotateRHSAux<true>(rLocalVector,rGeometry);
+    }
 
 	/// Apply roler type boundary conditions to the rotated local contributions.
 	/** This function takes the rotated local system contributions so each

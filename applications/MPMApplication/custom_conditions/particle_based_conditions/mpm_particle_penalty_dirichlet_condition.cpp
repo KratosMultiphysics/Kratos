@@ -213,6 +213,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         }
 
         if (Is(SLIP)){
+            // rotate to normal-tangential frame
             if (CalculateStiffnessMatrixFlag == true){
                 GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
             } else {
@@ -220,14 +221,13 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             }
 
             if (CalculateStiffnessMatrixFlag == true) {
-                MatrixType temp_matrix = ZeroMatrix(rLeftHandSideMatrix.size1(),rLeftHandSideMatrix.size2());
-                for (unsigned int i = 0; i < matrix_size; i+= block_size) {
-                    for (unsigned int j = i; j < matrix_size; j += block_size) {
-                        temp_matrix(i, j) = rLeftHandSideMatrix(i, j);
-                        temp_matrix(j, i) = rLeftHandSideMatrix(j, i);
+                for (unsigned int i = 0; i < matrix_size; ++i) {
+                    for (unsigned int j = 0; j < matrix_size; ++j) {
+                        // erase tangential DoFs
+                        if (j%block_size != 0 || i%block_size != 0)
+                            rLeftHandSideMatrix(i, j) = 0;
                     }
                 }
-                rLeftHandSideMatrix = temp_matrix;
             }
 
             if (CalculateResidualVectorFlag == true) {
@@ -235,6 +235,13 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
                     if (j % block_size != 0) // tangential DoF
                         rRightHandSideVector[j] = 0.0;
                 }
+            }
+
+            // rotate back to global frame
+            if (CalculateStiffnessMatrixFlag == true){
+                GetRotationTool().RotateToGlobal(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+            } else {
+                GetRotationTool().RotateRHSToGlobal(rRightHandSideVector, GetGeometry());
             }
 
         }
