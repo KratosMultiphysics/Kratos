@@ -836,6 +836,8 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     )
 {
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
     rOutput.resize(integration_points.size());
 
     if (rVariable == AXIAL_FORCE) {
@@ -851,11 +853,11 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
 
         // Let's initialize the cl values
-        VectorType strain_vector(3), stress_vector(3);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        VectorType nodal_values(6);
+        VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
         // Loop over the integration points
@@ -881,11 +883,11 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
 
         // Let's initialize the cl values
-        VectorType strain_vector(3), stress_vector(3);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        VectorType nodal_values(6);
+        VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
         // Loop over the integration points
@@ -911,11 +913,11 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
         const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(cl_values, length);
 
         // Let's initialize the cl values
-        VectorType strain_vector(3), stress_vector(3);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        VectorType nodal_values(6);
+        VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
         // Loop over the integration points
