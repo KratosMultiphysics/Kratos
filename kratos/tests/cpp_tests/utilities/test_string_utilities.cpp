@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
@@ -19,8 +19,7 @@
 #include "testing/testing.h"
 #include "utilities/string_utilities.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(ConvertCamelCaseToSnakeCase, KratosCoreFastSuite)
 {
@@ -129,5 +128,77 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceAllSubstrings, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(correct_string, "JoJo Bizarre Adventure is an awesome show. JoJo Bizarre Adventure is the best!");
 }
 
-}   // namespace Testing
-}  // namespace Kratos.
+KRATOS_TEST_CASE_IN_SUITE(Trim, KratosCoreFastSuite)
+{
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(""), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" "), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\n"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\t"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\0"), "\0");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\0", true), "");
+
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("Kratos"), "Kratos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kratos "), "Kratos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra tos "), "Kra tos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\0tos "), "Kra\0tos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos "), "Kra\ntos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" \0 Kra\ntos \0 "), "Kra\ntos");
+
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("Kratos MP"), "Kratos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kratos MP "), "Kratos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\tKratos MP\n"), "Kratos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra tos MP "), "Kra tos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\0tos MP "), "Kra\0tos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos MP "), "Kra\ntos MP");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrimLeft, KratosCoreFastSuite)
+{
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(""), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" "), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\n"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\t"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\0"), "\0");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\0", true), "");
+
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("Kratos"), "Kratos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kratos "), "Kratos ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra tos "), "Kra tos ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\0tos "), "Kra\0tos ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos "), "Kra\ntos ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos\0"), " Kra\ntos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" \0 Kra\ntos \0 "), "Kra\ntos \0 ");
+
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("Kratos MP"), "Kratos MP ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kratos MP "), "Kratos MP ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\tKratos MP\n"), "Kratos MP\n");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra tos MP "), "Kra tos MP ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\0tos MP "), "Kra\0tos MP ");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos MP "), "Kra\ntos MP ");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrimRight, KratosCoreFastSuite)
+{
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(""), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" "), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\n"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\t"), "");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\0"), "\0");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\0", true), "");
+
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("Kratos"), "Kratos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kratos "), " Kratos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra tos "), " Kra tos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\0tos "), " Kra\0tos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos "), " Kra\ntos");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" \0 Kra\ntos \0 "), " \0 Kra\ntos");
+
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("Kratos MP"), "Kratos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kratos MP "), " Kratos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim("\tKratos MP\n"), "\tKratos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra tos MP "), " Kra tos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\0tos MP "), " Kra\0tos MP");
+    KRATOS_EXPECT_EQ(StringUtilities::Trim(" Kra\ntos MP "), " Kra\ntos MP");
+}
+
+} // namespace Kratos::Testing
