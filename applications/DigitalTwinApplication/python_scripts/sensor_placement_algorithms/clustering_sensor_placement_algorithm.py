@@ -127,9 +127,11 @@ class ClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
             list_of_sensors.append(new_sensor_view.GetSensor())
             PrintSensorListToCSV(base_path / f"iteration_{iteration}.csv", list_of_sensors, ["name", "location", "SENSOR_ID"])
 
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration {iteration}: Added sensor {new_sensor_view.GetSensor().GetName()} resulting with {len(clusters)} clusters. Clusters requiring further sub-division:")
-            for large_cluster in list_of_large_clusters:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tCluster id = {large_cluster.GetId()}, domain size ratio = {large_cluster.GetDomainSize(domain_exp) / total_domain_size:0.4e}")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Iteration {iteration}: Added sensor {new_sensor_view.GetSensor().GetName()} resulting with {len(clusters)} clusters")
+            if len(list_of_large_clusters) > 0:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Clusters requiring further sub-division:")
+                for large_cluster in list_of_large_clusters:
+                    Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tCluster id = {large_cluster.GetId()}, domain size ratio = {large_cluster.GetDomainSize(domain_exp) / total_domain_size:0.4e}")
 
     def __OutputClustersToVtu(self, vtu_output: Kratos.VtuOutput, prefix: str, clusters: 'list[Cluster]', new_sensor_view: SensorViewUnionType) -> None:
         if len(clusters) == 0:
