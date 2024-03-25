@@ -280,9 +280,6 @@ public:
         ClearReaction();
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
-
-        // modify reaction forces for material point particle slip conditions (Penalty)
-        mRotationTool.CalculateReactionForces(mGridModelPart);
     }
 
     /**
