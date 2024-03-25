@@ -296,7 +296,6 @@ public:
 		}
 	}
 
-    // TODO: modify for particle-based slip
 	void CalculateReactionForces(ModelPart& rModelPart)
 	{
 		TLocalVectorType global_reaction(this->GetDomainSize());
