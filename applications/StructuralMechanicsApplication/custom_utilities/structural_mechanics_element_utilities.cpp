@@ -362,7 +362,7 @@ void BuildRotationMatrixFor2D2NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetReferenceRotationAngle2D2NBeam(GeometryType& rGeometry)
+double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
 {
     const auto &r_node_1 = rGeometry[0];
     const auto &r_node_2 = rGeometry[1];
@@ -376,7 +376,7 @@ double GetReferenceRotationAngle2D2NBeam(GeometryType& rGeometry)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetReferenceRotationAngle2D3NBeam(GeometryType& rGeometry)
+double GetReferenceRotationAngle2D3NBeam(const GeometryType& rGeometry)
 {
     const auto &r_node_1 = rGeometry[0];
     const auto &r_node_2 = rGeometry[2];
