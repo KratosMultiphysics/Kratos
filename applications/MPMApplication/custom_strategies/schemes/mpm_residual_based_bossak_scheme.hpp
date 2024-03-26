@@ -29,6 +29,7 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 
 namespace Kratos
 {
@@ -103,7 +104,7 @@ public:
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
                 :ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(Alpha, NewmarkBeta),
-                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize, IS_STRUCTURE)
+                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize)
     {
         // To distinguish quasi-static and dynamic
         mIsDynamic = IsDynamic;
@@ -119,7 +120,7 @@ public:
      MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
-        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize)
     {
     }
 
@@ -139,6 +140,13 @@ public:
 
     //***************************************************************************
     //***************************************************************************
+
+    void Initialize(ModelPart& rModelPart) override {
+        MPMParticleBaseCondition::SetRotationUtility(&mRotationTool);
+
+        BossakBaseType::Initialize(rModelPart);
+    }
+
 
     /**
      * @brief Performing the update of the solution
@@ -272,9 +280,6 @@ public:
         ClearReaction();
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
-
-        // modify reaction forces for material point particle slip conditions (Penalty)
-        mRotationTool.CalculateReactionForces(mGridModelPart);
     }
 
     /**
@@ -417,9 +422,13 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
-        // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
-        mRotationTool.ElementApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        }
+
 
         KRATOS_CATCH( "" )
     }
@@ -454,9 +463,12 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
-        // If there is a slip condition, apply it on a rotated system of coordinates
-        mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement.GetGeometry());
-        mRotationTool.ElementApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.RotateRHS(RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+        }
 
         KRATOS_CATCH( "" )
     }
@@ -494,8 +506,12 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        }
+
 
         KRATOS_CATCH( "" )
     }
@@ -528,8 +544,12 @@ public:
         }
 
         // Rotate contributions (to match coordinates for slip conditions)
-        mRotationTool.RotateRHS(RHS_Contribution,rCurrentCondition.GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.RotateRHS(RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+        }
+
 
         KRATOS_CATCH( "" )
     }

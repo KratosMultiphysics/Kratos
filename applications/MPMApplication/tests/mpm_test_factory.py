@@ -102,7 +102,10 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 
 ### Slip Boundary Tests
 class SlipBoundaryTest(MPMTestFactory):
-    file_name = "slip_tests/slip_boundary_test"
+    file_name = "slip_tests/conforming/slip_boundary_test"
+
+class PenaltyBasedSlipTest(MPMTestFactory):
+    file_name = "slip_tests/non_conforming/penalty_based/penalty_based_slip_test"
 
 ### Explicit time integration tests
 class ExplicitOscillatingPointUSLTest(MPMTestFactory):
