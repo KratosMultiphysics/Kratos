@@ -437,5 +437,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_MPM_PARTICLE_BASE_DIRICHLET_CONDITION_3D_H_INCLUDED  defined
