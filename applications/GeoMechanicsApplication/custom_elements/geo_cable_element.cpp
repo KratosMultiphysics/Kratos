@@ -33,8 +33,8 @@ GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType NewId, GeometryType:
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType NewId,
-                                                  GeometryType::Pointer pGeometry,
+GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType               NewId,
+                                                  GeometryType::Pointer   pGeometry,
                                                   PropertiesType::Pointer pProperties)
     : GeoTrussElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
 {
@@ -42,8 +42,8 @@ GeoCableElement<TDim, TNumNodes>::GeoCableElement(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          NodesArrayType const& rThisNodes,
+Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                          NodesArrayType const&   rThisNodes,
                                                           PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = this->GetGeometry();
@@ -52,8 +52,8 @@ Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType NewId,
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType NewId,
-                                                          GeometryType::Pointer pGeom,
+Element::Pointer GeoCableElement<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                          GeometryType::Pointer   pGeom,
                                                           PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoCableElement>(NewId, pGeom, pProperties);

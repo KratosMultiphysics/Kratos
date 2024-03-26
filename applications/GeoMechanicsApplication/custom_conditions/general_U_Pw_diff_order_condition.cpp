@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
@@ -70,34 +71,9 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::
-    GetDofList( DofsVectorType& rConditionDofList,
-                const ProcessInfo& rCurrentProcessInfo ) const
+void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-
-    if(rConditionDofList.size() != ConditionSize)
-        rConditionDofList.resize(ConditionSize);
-
-    SizeType Index = 0;
-
-    for(SizeType i = 0; i < NumUNodes; ++i) {
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
-        if (Dim > 2)
-            rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
-    }
-
-    for (SizeType i=0; i<NumPNodes; ++i)
-        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
-
-    KRATOS_CATCH( "" )
+    rConditionDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -178,35 +154,9 @@ void GeneralUPwDiffOrderCondition::
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::
-    EquationIdVector(EquationIdVectorType& rResult,
-                     const ProcessInfo& rCurrentProcessInfo) const
+void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
-
-    if ( rResult.size() != ConditionSize )
-        rResult.resize( ConditionSize, false );
-
-    SizeType Index = 0;
-
-    for ( SizeType i = 0; i < NumUNodes; ++i )
-    {
-        rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        if(Dim > 2)
-            rResult[Index++] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-    }
-
-    for ( SizeType i = 0; i < NumPNodes; ++i )
-        rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-
-    KRATOS_CATCH( "" )
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -345,6 +295,25 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRi
     KRATOS_ERROR << "calling the default CalculateAndAddConditionForce method for a particular condition ... illegal operation!!" << std::endl;
 
     KRATOS_CATCH( "" )
+}
+
+Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
+{
+    Condition::DofsVectorType result;
+
+    for (const auto& r_node : GetGeometry()) {
+        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
+        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if (GetGeometry().WorkingSpaceDimension() == 3) {
+            result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+        }
+    }
+
+    const auto water_pressure_dofs =
+        Geo::DofUtilities::ExtractDofsFromNodes(*mpPressureGeometry, WATER_PRESSURE);
+    result.insert(result.end(), water_pressure_dofs.begin(), water_pressure_dofs.end());
+
+    return result;
 }
 
 } // Namespace Kratos.

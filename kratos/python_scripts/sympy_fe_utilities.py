@@ -59,21 +59,24 @@ def DefineVector( name, m):
     """
     return sympy.Matrix(m, 1, lambda i,_: sympy.var("{name}_{i}".format(name=name, i=i)))
 
-def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
+def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False, shape_functions_name='N', first_derivatives_name='DN', second_derivatives_name=None):
     """
     This method defines shape functions and derivatives.
-    Note that partition of unity is imposed
-    the name HAS TO BE --> N and DN
+    Second order derivatives can be optionally defined as well.
+    Note that partition of unity can be imposed.
 
     Keyword arguments:
     - nnodes -- Number of nodes
     - dim -- Dimension of the space
     - impose_partion_of_unity -- Impose the partition of unity
+    - shape_functions_name -- Name for the shape functions symbols
+    - first_derivatives_name -- Name for the shape functions first derivatives symbols
+    - second_derivatives_name -- Name for the shape functions second derivatives symbols
     """
-    DN = DefineMatrix('DN', nnodes, dim)
-    N = DefineVector('N', nnodes)
+    DN = DefineMatrix(first_derivatives_name, nnodes, dim)
+    N = DefineVector(shape_functions_name, nnodes)
 
-    #impose partition of unity
+    # Impose partition of unity
     if impose_partion_of_unity:
         N[nnodes-1] = 1
         for i in range(nnodes-1):
@@ -83,7 +86,46 @@ def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
         for i in range(1,nnodes-1):
             DN[nnodes-1,:] -= DN[i,:]
 
-    return N, DN
+    if second_derivatives_name:
+        if not impose_partion_of_unity:
+            DDN = sympy.Matrix(1, nnodes, lambda _, j : (sympy.Matrix(dim, dim, lambda m, n : sympy.var(f"{second_derivatives_name}_{j}_{m}_{n}"))))
+        else:
+            raise Exception("Partition of unity imposition is not implemented for shape functions second derivatives.")
+
+    if second_derivatives_name:
+        return N, DN, DDN
+    else:
+        return N, DN
+
+def StrainToMatrix(V):
+    """
+    This method transfoms a Voigt strain vector to matrix.
+
+    Keyword arguments:
+    - V -- The strain vector in Voigt notation
+    """
+    if V.shape[1] != 1:
+        raise Exception(f"Provided array is not a vector. Shape is {V.shape}.")
+
+    if V.shape[0] == 3:
+        M = sympy.Matrix(2, 2, lambda i,j: 0.0)
+        M[0,0] = V[0]
+        M[0,1] = 0.5*V[2]
+        M[1,0] = 0.5*V[2]
+        M[1,1] = V[1]
+    elif V.shape[0] == 6:
+        M = sympy.Matrix(3, 3, lambda i,j : 0.0)
+        M[0,0] = V[0]
+        M[0,1] = 0.5*V[3]
+        M[0,2] = 0.5*V[5]
+        M[1,0] = 0.5*V[3]
+        M[1,1] = V[1]
+        M[1,2] = 0.5*V[4]
+        M[2,0] = 0.5*V[5]
+        M[2,1] = 0.5*V[4]
+        M[2,2] = V[2]
+
+    return M
 
 def StrainToVoigt(M):
     """
@@ -107,6 +149,36 @@ def StrainToVoigt(M):
         vm[5,0] = 2.0*M[0,2]
 
     return vm
+
+def VoigtToMatrix(V):
+    """
+    This method transforms a Voigt vector to matrix.
+
+    Keyword arguments:
+    - V -- The vector in Voigt notation
+    """
+    if V.shape[1] != 1:
+        raise Exception(f"Provided array is not a vector. Shape is {V.shape}.")
+
+    if V.shape[0] == 3:
+        M = sympy.Matrix(2, 2, lambda i,j: 0.0)
+        M[0,0] = V[0]
+        M[0,1] = V[2]
+        M[1,0] = V[2]
+        M[1,1] = V[1]
+    elif V.shape[0] == 6:
+        M = sympy.Matrix(3, 3, lambda i,j : 0.0)
+        M[0,0] = V[0]
+        M[0,1] = V[3]
+        M[0,2] = V[5]
+        M[1,0] = V[3]
+        M[1,1] = V[1]
+        M[1,2] = V[4]
+        M[2,0] = V[5]
+        M[2,1] = V[4]
+        M[2,2] = V[2]
+
+    return M
 
 def MatrixToVoigt(M):
     """
@@ -465,11 +537,17 @@ def _Suffix(language):
 def _ReplaceIndices(language, expression):
     """Replaces array access with underscored variable.
 
-    For matrices: `variable_3_7` becomes `variable[3,7]`
     For vectors:  `variable_3`   becomes `variable[3]`
+    For matrices: `variable_3_7` becomes `variable[3,7]`
+    For lists of matrices: `variable_0_3_7` becomes `variable[0][3,7]`
 
     The accessor for matrices is chosen according to the language (`[]` vs. `()`)
     """
+    #Lists of matrices
+    pattern = r"_(\d+)_(\d+)_(\d+)"
+    replacement = r"[\1][\2,\3]" if language == 'python' else r"[\1](\2,\3)"
+    expression = re.sub(pattern, replacement, expression)
+
     #Matrices
     pattern = r"_(\d+)_(\d+)"
     replacement = r"[\1,\2]" if language == 'python' else r"(\1,\2)"

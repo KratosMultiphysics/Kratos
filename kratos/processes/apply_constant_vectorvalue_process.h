@@ -4,48 +4,45 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-
-#if !defined(KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED )
-#define  KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED
-
-
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Classes
 ///@{
 
-/// The base class for all processes in Kratos.
-/** This function applies a constant value (and fixity) to all of the nodes in a given mesh
- * TODO: still segfaults if the mesh to which it is applied is not existing
-*/
-class ApplyConstantVectorValueProcess : public Process
+/**
+ * @class ApplyConstantVectorValueProcess
+ * @brief The base class for all processes in Kratos.
+ * @details This function applies a constant Value (and fixity) to all of the nodes in a given mesh
+ * @todo Still segfaults if the mesh to which it is applied is not existing
+ * @ingroup KratosCore
+ * @author Riccardo Rossi
+ */
+class KRATOS_API(KRATOS_CORE) ApplyConstantVectorValueProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Definition of the local flags
     KRATOS_DEFINE_LOCAL_FLAG(X_COMPONENT_FIXED);
     KRATOS_DEFINE_LOCAL_FLAG(Y_COMPONENT_FIXED);
     KRATOS_DEFINE_LOCAL_FLAG(Z_COMPONENT_FIXED);
@@ -57,178 +54,38 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ApplyConstantVectorValueProcess(ModelPart& model_part,
-                                    Parameters parameters
-                                   ) : Process(Flags()), mr_model_part(model_part)
-    {
-        KRATOS_TRY
+    /**
+     * @brief Constructor for ApplyConstantVectorValueProcess.
+     * @details This constructor initializes an instance of the ApplyConstantVectorValueProcess class with the given model part
+     * and parameters.
+     * @param rModelPart Reference to the model part to which the process is applied.
+     * @param parameters Parameters defining the behavior of the process.
+     */
+    ApplyConstantVectorValueProcess(ModelPart& rModelPart,
+                                    Parameters ThisParameters
+                                   );
 
-
-        Parameters default_parameters( R"(
-            {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed_x": false,
-                "is_fixed_y": false,
-                "is_fixed_z": false,
-                "modulus" : 1.0,
-                "direction": [1.0, 0.0, 0.0]
-            }  )" );
-
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
-        if(parameters["direction"].IsArray() == true && parameters["direction"].size() != 3)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"direction vector is not a vector or it does not have size 3. Direction vector currently passed",parameters.PrettyPrintJsonString());
-        }
-        if(parameters["modulus"].IsNumber() == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"modulus shall be a number. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
-        }
-        if(parameters["variable_name"].IsString()  == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"vairbale_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
-        }
-        if(parameters["model_part_name"].IsString() == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"model_part_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
-        }
-
-        //now validate agains defaults -- this also ensures no type mismatch
-        parameters.ValidateAndAssignDefaults(default_parameters);
-
-        // Read from the parameters and assign to the values
-        mmesh_id = parameters["mesh_id"].GetInt();
-
-        this->Set(X_COMPONENT_FIXED,  parameters["is_fixed_x"].GetBool());
-        this->Set(Y_COMPONENT_FIXED,  parameters["is_fixed_y"].GetBool());
-        this->Set(Z_COMPONENT_FIXED,  parameters["is_fixed_z"].GetBool());
-
-        // Get the modulus and variable name
-        mvariable_name = parameters["variable_name"].GetString();
-        mmodulus = parameters["modulus"].GetDouble();
-//         mvalue = parameters["value"].GetDouble();
-
-        mdirection.resize(3,false);
-        mdirection[0] = parameters["direction"][0].GetDouble();
-        mdirection[1] = parameters["direction"][1].GetDouble();
-        mdirection[2] = parameters["direction"][2].GetDouble();
-
-        const double dim_norm = norm_2(mdirection);
-        if(dim_norm < 1e-20)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error," Norm of direction given is approximately zero. Please give a direction vector with a non zero norm : current value of direction vector = ",mdirection);
-        }
-
-        // Normalize the direction
-        mdirection /= dim_norm;
-
-        if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name);
-        }
-        const Variable<array_1d<double,3> >& rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
-
-
-        if(mmesh_id >= model_part.NumberOfMeshes())
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Mesh does not exist in model_part: mesh id is --> ",mmesh_id);
-        }
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has(rVariable) == false )
-        {
-            std::string err_msg = std::string("Trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
-            KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
-        }
-
-        if(mdirection.size() != 3)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Direction vector is expected to have size 3. Direction vector currently passed",mdirection);
-        }
-
-        typedef Variable<double> component_type;
-        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_X"));
-        }
-        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Y")) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Y"));
-        }
-        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Z"));
-        }
-
-        KRATOS_CATCH("");
-    }
-
-
-    ApplyConstantVectorValueProcess(ModelPart& model_part,
+    /**
+    * @brief Constructor for ApplyConstantVectorValueProcess.
+    * @details This constructor initializes an instance of the ApplyConstantVectorValueProcess class with the given model part,
+    * variable, modulus, direction, mesh ID, and options.
+    * @param rModelPart Reference to the model part to which the process is applied.
+    * @param rVariable Reference to the variable to which the constant vector value is applied.
+    * @param Modulus The modulus of the constant vector value.
+    * @param Direction The direction of the constant vector value.
+    * @param MeshId The ID of the mesh to which the process is applied.
+    * @param Options Flags specifying additional options for the process.
+    */
+    ApplyConstantVectorValueProcess(ModelPart& rModelPart,
                               const Variable< array_1d<double, 3 > >& rVariable,
-                              const double modulus,
-                              const Vector& direction,
-                              std::size_t mesh_id,
-                              const Flags options
-                                   ) : Process(options) , mr_model_part(model_part), mmodulus(modulus),mdirection(direction),mmesh_id(mesh_id)
-    {
-        KRATOS_TRY;
-
-        if(mesh_id >= model_part.NumberOfMeshes())
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Mesh does not exist in model_part: mesh id is --> ",mesh_id);
-        }
-
-        if(this->IsDefined(X_COMPONENT_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","");
-        }
-        if(this->IsDefined(Y_COMPONENT_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","");
-        }
-        if(this->IsDefined(Z_COMPONENT_FIXED) == false )
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","");
-        }
-
-        mvariable_name = rVariable.Name();
-
-        if( model_part.GetNodalSolutionStepVariablesList().Has(rVariable) == false )
-         {
-             std::string err_msg = std::string("Trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
-             KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
-         }
-
-        if(direction.size() != 3)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Direction vector is expected to have size 3. Direction vector currently passed",mdirection);
-        }
-
-        typedef Variable<double> component_type;
-        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_X"));
-        }
-        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Y")) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Y"));
-        }
-        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
-        {
-            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Z"));
-        }
-
-        KRATOS_CATCH("");
-    }
-
-
+                              const double Modulus,
+                              const Vector& rDirection,
+                              std::size_t MeshId,
+                              const Flags Options
+                              );
 
     /// Destructor.
-    ~ApplyConstantVectorValueProcess() override {}
-
+    ~ApplyConstantVectorValueProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -240,78 +97,28 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This function is designed for being called at the beginning of the computations
+     * right after reading the model and the groups
+     */
+    void ExecuteInitialize() override;
 
-    /// Execute method is used to execute the ApplyConstantVectorValueProcess algorithms.
-    void Execute() override {}
-
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override
-    {
-        //compute the value to be applied
-        array_1d<double,3> value = mmodulus*mdirection;
-        typedef Variable<double> component_type;
-
-        const component_type& varx = KratosComponents< component_type >::Get(mvariable_name+std::string("_X"));
-        const component_type& vary = KratosComponents< component_type >::Get(mvariable_name+std::string("_Y"));
-        const component_type& varz = KratosComponents< component_type >::Get(mvariable_name+std::string("_Z"));
-
-        InternalApplyValue<component_type >(varx, this->Is(X_COMPONENT_FIXED),  value[0]);
-        InternalApplyValue<component_type >(vary, this->Is(Y_COMPONENT_FIXED),  value[1]);
-        InternalApplyValue<component_type >(varz, this->Is(Z_COMPONENT_FIXED),  value[2]);
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    void ExecuteBeforeSolutionLoop() override
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override
-    {
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override
-    {
-    }
-
-
-    /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override
-    {
-    }
-
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    void ExecuteFinalize() override
-    {
-    }
-
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -334,50 +141,48 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
 protected:
-
-    ModelPart& mr_model_part;
-    std::string mvariable_name;
-    double mmodulus;
-    Vector mdirection;
-    std::size_t mmesh_id;
-
-private:
-    ///@name Static Member Variables
+    ///@name Protected Member Variables
     ///@{
 
-    template< class TVarType >
-    void InternalApplyValue(const TVarType& rVar, const bool to_be_fixed, const double value)
-    {
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+    /// The computed model part
+    ModelPart& mrModelPart;
 
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+    /// The variable to be fixed
+    std::string mVariableName;
 
-            //check if the dofs are there (on the first node)
-            if(to_be_fixed && (it_begin->HasDofFor(rVar) == false) )
-            {
-                KRATOS_THROW_ERROR(std::runtime_error, " Trying to fix a dofs which was not allocated. Variable is --> ",rVar.Name() );
-            }
+    /// The modulus of the vector
+    double mModulus = 1.0;
 
-            block_for_each(mr_model_part.GetMesh(mmesh_id).Nodes(), [&](Node& rNode){
-                if(to_be_fixed)
-                {
-                    rNode.Fix(rVar);
-                }
-                rNode.FastGetSolutionStepValue(rVar) = value;
-            });
-        }
-    }
+    /// The direction of the vector
+    Vector mDirection;
+
+    /// The mesh id (LEGACY, to be removed in the future)
+    std::size_t mMeshId = 0;
+
+    ///@}
+private:
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Apply a constant value to a specified variable for nodes in a model part.
+     * @details This method applies a constant value to a specified variable for all nodes in a given model part.
+     * Optionally, the value can be fixed for the nodes.
+     * @param rVariable The variable to which the constant value is applied.
+     * @param ToBeFixed Flag indicating whether the variable should be fixed for the nodes.
+     * @param Value The constant value to be applied.
+     */
+    void InternalApplyValue(
+        const Variable<double>& rVariable,
+        const bool ToBeFixed,
+        const double Value
+        );
 
     ///@}
     ///@name Un accessible methods
@@ -389,26 +194,17 @@ private:
     /// Copy constructor.
     //ApplyConstantVectorValueProcess(ApplyConstantVectorValueProcess const& rOther);
 
-
     ///@}
 
 }; // Class ApplyConstantVectorValueProcess
 
-KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,X_COMPONENT_FIXED, 0);
-KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,Y_COMPONENT_FIXED, 1);
-KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,Z_COMPONENT_FIXED, 2);
-
-
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -426,9 +222,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED  defined
-
-

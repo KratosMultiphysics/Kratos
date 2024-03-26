@@ -19,7 +19,7 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.5,
+            "time_step":                0.1,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
@@ -65,7 +65,7 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Lateral_fixity","Bottom_fixity","top_load"],
+        "processes_sub_model_part_list":      ["Lateral_fixity","Bottom_fixed","top_load"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -75,24 +75,24 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "Oedometer_ULFEM",
+                "output_name": "oedometer_ULFEM",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
-                        "file_label":          "step",
-                        "output_control_type": "step",
-                        "output_interval":     1,
+                        "file_label":          "time",
+                        "output_control_type": "time",
+                        "output_interval":     0.1,
                         "body_output":         true,
-                        "node_output":         false,
+                        "node_output":         true,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","LINE_LOAD"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR"]
+                        "nodal_results":       ["DISPLACEMENT"],
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -117,12 +117,24 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Bottom_fixity",
+            "model_part_name": "PorousDomain.Bottom_fixed",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,false],
             "is_fixed":        [true,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.Bottom_fixed",
+            "variable_name":        "WATER_PRESSURE",
+            "is_fixed":             true,
+            "fluid_pressure_type": "Uniform",
+            "value":                0.0,
+            "table":                0
         }
     }],
     "loads_process_list": [{
