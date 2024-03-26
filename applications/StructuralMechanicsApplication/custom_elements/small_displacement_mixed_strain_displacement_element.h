@@ -53,12 +53,13 @@ namespace Kratos
 ///@{
 
 /**
- * @class SmallDisplacementMixedVolumetricStrainElement
+ * @class SmallDisplacementMixedStrainDisplacementElement
  * @ingroup StructuralMechanicsApplication
- * @brief Small displacement with strain based mixed formulation element
- * @details This implements a small displacements element formulation with an extra volumetric strain nodal DOF
- * @author Ruben Zorrilla
- * @author Riccardo Rossi
+ * @brief Small displacement with a mixed strain-displacement discretization
+ * @details This implements a small displacements element formulation with an extra strain nodal DOF, in total u (3) + E(6) Dofs in 3D
+ * Reference: Finite element modeling of quasi-brittle cracks in 2D and 3D with enhanced strain accuracy, M. Cervera, G. Barbat and M. Chiumenti,
+ * Computational Mechanics, (60) 767-796, 2017. DOI: https://doi.org/10.1007/s00466-017-1438-8
+ * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainDisplacementElement
     : public Element
