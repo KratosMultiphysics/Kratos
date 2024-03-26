@@ -29,6 +29,7 @@
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/fluid_characteristic_numbers_utilities.h"
+#include "custom_utilities/fluid_mesh_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
@@ -75,6 +76,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Fluid characteristic numbers utilities
     py::class_<FluidCharacteristicNumbersUtilities>(m,"FluidCharacteristicNumbersUtilities")
         .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &FluidCharacteristicNumbersUtilities::CalculateLocalCFL)
+        ;
+
+    // Fluid mesh utilities
+    py::class_<FluidMeshUtilities>(m,"FluidMeshUtilities")
+        .def_static("AllElementsAreSimplex", [](const ModelPart& rModelPart){
+            return FluidMeshUtilities::AllElementsAreSimplex(rModelPart);})
+        .def_static("AssignNeighbourElementsToConditions", [](ModelPart& rModelPart, const bool CheckRepeatedConditions){
+            return FluidMeshUtilities::AssignNeighbourElementsToConditions(rModelPart, CheckRepeatedConditions);})
         ;
 
     // Periodic boundary conditions utilities
