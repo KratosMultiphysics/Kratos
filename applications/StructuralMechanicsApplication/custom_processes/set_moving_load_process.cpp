@@ -416,7 +416,7 @@ void SetMovingLoadProcess::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process);
     rSerializer.save("SortedConditions", mSortedConditions);
-    rSerializer.save("IsCondReversedVector", mIsCondReversedVector);
+    //rSerializer.save("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.save("UseLoadFunction", mUseLoadFunction);
     rSerializer.save("UseVelocityFunction", mUseVelocityFunction);
     rSerializer.save("CurrentDistance", mCurrentDistance);
@@ -427,7 +427,7 @@ void SetMovingLoadProcess::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process);
     rSerializer.load("SortedConditions", mSortedConditions);
-    rSerializer.load("IsCondReversedVector", mIsCondReversedVector);
+    //rSerializer.load("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.load("UseLoadFunction", mUseLoadFunction);
     rSerializer.load("UseVelocityFunction", mUseVelocityFunction);
     rSerializer.load("CurrentDistance", mCurrentDistance);
