@@ -423,6 +423,16 @@ protected:
     virtual void InitializeMaterial();
 
     /**
+     * @brief Calculation of the deformation gradient F
+     * @param rF The deformation gradient
+     * @param rStrainTensor The strain tensor in Voigt notation
+     */
+    void ComputeEquivalentF(
+        Matrix& rF,
+        const Vector& rStrainTensor
+        ) const;
+
+    /**
      * @brief This method returns if the element provides the strain
      */
     virtual bool UseElementProvidedStrain() const;
