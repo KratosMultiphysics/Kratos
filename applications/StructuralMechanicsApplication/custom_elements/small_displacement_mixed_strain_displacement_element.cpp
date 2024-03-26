@@ -195,41 +195,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(con
 {
     KRATOS_TRY
 
-    // const auto& r_geometry = GetGeometry();
-    // const SizeType n_nodes = r_geometry.PointsNumber();
-    // const SizeType dim = r_geometry.WorkingSpaceDimension();
-    // const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    // const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-
-    // // Create the kinematics container and fill the nodal data
-    // KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-    // for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-    //     const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-    //     for (IndexType d = 0; d < dim; ++d) {
-    //         kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
-    //     }
-    //     kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-    // }
-
-    // // Set te constitutive law values
-    // ConstitutiveVariables constitutive_variables(strain_size);
-    // ConstitutiveLaw::Parameters cons_law_values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    // auto& r_cons_law_options = cons_law_values.GetOptions();
-    // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    // r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    // // Call the initialize material response
-    // for (IndexType i_gauss = 0; i_gauss < mConstitutiveLawVector.size(); ++i_gauss) {
-    //     // Recompute the kinematics
-    //     CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-    //     // Set the constitutive variables
-    //     SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
-
-    //     // Call the constitutive law to update material variables
-    //     mConstitutiveLawVector[i_gauss]->InitializeMaterialResponseCauchy(cons_law_values);
-    // }
+    // TODO
 
     KRATOS_CATCH( "" )
 }
@@ -241,41 +207,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(const
 {
     KRATOS_TRY
 
-    // const auto& r_geometry = GetGeometry();
-    // const SizeType n_nodes = r_geometry.PointsNumber();
-    // const SizeType dim = r_geometry.WorkingSpaceDimension();
-    // const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    // const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-
-    // // Create the kinematics container and fill the nodal data
-    // KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-    // for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-    //     const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-    //     for (IndexType d = 0; d < dim; ++d) {
-    //         kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
-    //     }
-    //     kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-    // }
-
-    // // Set te constitutive law values
-    // ConstitutiveVariables constitutive_variables(strain_size);
-    // ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    // auto& r_cons_law_options = cons_law_values.GetOptions();
-    // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    // r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    // // Call the initialize material response
-    // for (IndexType i_gauss = 0; i_gauss < mConstitutiveLawVector.size(); ++i_gauss) {
-    //     // Recompute the kinematics
-    //     CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-    //     // Set the constitutive variables
-    //     SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
-
-    //     // Call the constitutive law to update material variables
-    //     mConstitutiveLawVector[i_gauss]->FinalizeMaterialResponseCauchy(cons_law_values);
-    // }
+    // TODO
 
     KRATOS_CATCH( "" )
 }
