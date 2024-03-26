@@ -245,10 +245,6 @@ protected:
 
     virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculatePermeabilityMatrix(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                             BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                             const ElementVariables& rVariables) const;
-
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
@@ -267,8 +263,7 @@ protected:
 
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TDim>&      rPDimMatrix,
-                                           BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
+    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                            array_1d<double, TNumNodes>&                 rPVector,
                                            const ElementVariables& rVariables) const;
 
