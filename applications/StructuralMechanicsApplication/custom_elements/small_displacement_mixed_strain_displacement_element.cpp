@@ -127,29 +127,37 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
 {
     KRATOS_TRY
 
-    // const auto& r_geometry = GetGeometry();
-    // const IndexType n_nodes = r_geometry.PointsNumber();
-    // const IndexType dim = r_geometry.WorkingSpaceDimension();
-    // const IndexType dof_size  = n_nodes*(dim+1);
+    const auto& r_geometry     = GetGeometry();
+    const SizeType n_nodes     = r_geometry.PointsNumber();
+    const SizeType dim         = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType dof_size    = n_nodes * (dim + strain_size);
 
-    // if (rElementalDofList.size() != dof_size){
-    //     rElementalDofList.resize(dof_size);
-    // }
+    if (rElementalDofList.size() != dof_size){
+        rElementalDofList.resize(dof_size);
+    }
 
-    // if (dim == 2) {
-    //     for(IndexType i = 0; i < n_nodes; ++i) {
-    //         rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-    //         rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-    //         rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
-    //     }
-    // } else if (dim == 3) {
-    //     for(IndexType i = 0; i < n_nodes; ++i){
-    //         rElementalDofList[i * (dim + 1)] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-    //         rElementalDofList[i * (dim + 1) + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-    //         rElementalDofList[i * (dim + 1) + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-    //         rElementalDofList[i * (dim + 1) + 3] = this->GetGeometry()[i].pGetDof(VOLUMETRIC_STRAIN);
-    //     }
-    // }
+    if (dim == 2) {
+        for(IndexType i = 0; i < n_nodes; ++i) {
+            rElementalDofList[i * dof_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * dof_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * dof_size + 2] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[i * dof_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[i * dof_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
+        }
+    } else if (dim == 3) {
+        for(IndexType i = 0; i < n_nodes; ++i) {
+            rElementalDofList[i * dof_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * dof_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * dof_size + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[i * dof_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[i * dof_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[i * dof_size + 5] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_ZZ);
+            rElementalDofList[i * dof_size + 6] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[i * dof_size + 7] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YZ);
+            rElementalDofList[i * dof_size + 8] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XZ);
+        }
+    }
 
     KRATOS_CATCH("");
 }
