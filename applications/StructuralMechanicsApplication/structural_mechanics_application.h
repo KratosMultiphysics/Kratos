@@ -79,6 +79,7 @@
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
+#include "custom_elements/small_displacement_mixed_strain_displacement_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
