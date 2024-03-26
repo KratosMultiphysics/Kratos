@@ -216,9 +216,9 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(const
 /***********************************************************************************/
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo)
 {
     // const auto& r_geometry = GetGeometry();
     // const SizeType dim = r_geometry.WorkingSpaceDimension();
