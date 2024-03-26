@@ -79,33 +79,41 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
 {
     KRATOS_TRY
 
-    // const auto& r_geometry = GetGeometry();
-    // const IndexType n_nodes = r_geometry.PointsNumber();
-    // const IndexType dim = r_geometry.WorkingSpaceDimension();
-    // const IndexType dof_size = n_nodes*(dim+1);
+    const auto& r_geometry     = GetGeometry();
+    const SizeType n_nodes     = r_geometry.PointsNumber();
+    const SizeType dim         = r_geometry.WorkingSpaceDimension();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType dof_size    = n_nodes * (dim + strain_size);
 
-    // if (rResult.size() != dof_size){
-    //     rResult.resize(dof_size);
-    // }
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size);
+    }
 
-    // const IndexType disp_pos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    // const IndexType eps_vol_pos = r_geometry[0].GetDofPosition(VOLUMETRIC_STRAIN);
+    const IndexType displ_pos  = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType strain_pos = r_geometry[0].GetDofPosition(NODAL_STRAIN_VECTOR_XX);
 
-    // IndexType aux_index = 0;
-    // if (dim == 2) {
-    //     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
-    //     }
-    // } else {
-    //     for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, disp_pos).EquationId();
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, disp_pos + 1).EquationId();
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, disp_pos + 2).EquationId();
-    //         rResult[aux_index++] = r_geometry[i_node].GetDof(VOLUMETRIC_STRAIN, eps_vol_pos).EquationId();
-    //     }
-    // }
+    IndexType aux_index = 0;
+    if (dim == 2) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X,          displ_pos    ).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y,          displ_pos + 1).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos + 2).EquationId();
+        }
+    } else {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, displ_pos             ).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, displ_pos + 1         ).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, displ_pos + 2         ).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_ZZ, strain_pos + 2).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos + 3).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_YZ, strain_pos + 4).EquationId();
+            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XZ, strain_pos + 5).EquationId();
+        }
+    }
 
     KRATOS_CATCH("");
 }
