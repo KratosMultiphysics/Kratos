@@ -1,12 +1,12 @@
 ---
 title: Neumann Boundary Conditions
 keywords: json
-tags: [NeumannBoundaryConditions.md]
+tags: [NeumannBoundaryConditions.md, NBC, Neumann]
 sidebar: structural_mechanics_application
-summary: 
+summary:
 ---
 # Overview
-The set of different Neumann boundary conditions are explained in this document. Each loading condition requires a `python_module` for corresponding process. These are explained in the file [Python Modules for Processes](../Boundary_Conditions/PythonModulesForProcesses.md)
+The set of different Neumann boundary conditions are explained in this document. Each loading condition requires a `python_module` for corresponding process. These are explained in the file [Python Modules for Processes](./PythonModulesForProcesses.html).
 
 ## Point Load:
 - Variable Name: `POINT_LOAD`
