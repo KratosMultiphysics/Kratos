@@ -1921,13 +1921,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
 {
     KRATOS_TRY
 
-    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
-        rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
-        rVariables.LocalPermeabilityMatrix, rVariables.IntegrationCoefficient);
-
-    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
-        rVariables.PPMatrix, rVariables.RelativePermeability, rVariables.JointWidth);
-
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.JointWidth, rVariables.IntegrationCoefficient);
+    
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix);
 

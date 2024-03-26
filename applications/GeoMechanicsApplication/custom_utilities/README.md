@@ -12,12 +12,11 @@ Utilities are developed to calculate matrices and vectors in transport equations
 
 The mathematical definition of the permeability matrix is:
 $$H = \int_\Omega (\nabla N_p)^T \frac{1}{\mu} k \nabla N_p d\Omega$$
-where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the dynamic viscosity (material parameter) and $k$ is permeability (material parameter)
+where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the dynamic viscosity (material parameter) and $k$ is material permeability matrix. The k matrix allows one to take into account, for example, an anisotropic permeability. 
 
 File transport_equation_utilities.hpp includes 
 
--  CalculatePermeabilityMatrixH functions with input parameters defined with bounded matrices or matrices
--  PreparePermeabilityMatrixHForIntegration function that multiplies the permeability matrix for future integration
+-  CalculatePermeabilityMatrix function
 
 
 

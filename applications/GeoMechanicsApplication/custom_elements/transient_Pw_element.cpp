@@ -556,12 +556,10 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(Matr
 {
     KRATOS_TRY;
 
-    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<TDim, TNumNodes>(
-        rVariables.PPMatrix, rVariables.GradNpT, rVariables.DynamicViscosityInverse,
-        rVariables.PermeabilityMatrix, rVariables.IntegrationCoefficient);
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
 
-    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<TNumNodes>(
-        rVariables.PPMatrix, rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor);
     // Distribute permeability block matrix into the elemental matrix
     rLeftHandSideMatrix += rVariables.PPMatrix;
 

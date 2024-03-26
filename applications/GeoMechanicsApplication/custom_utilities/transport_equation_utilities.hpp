@@ -23,42 +23,30 @@ namespace Kratos
 class GeoTransportEquationUtilities
 {
 public:
-    using VectorType = Vector;
-    using MatrixType = Matrix;
-
     template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void CalculatePermeabilityMatrixH(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                                    const Matrix& GradNpT,
-                                                    double        DynamicViscosityInverse,
-                                                    const BoundedMatrix<double, TDim, TDim>& PermeabilityMatrix,
-                                                    double IntegrationCoefficient)
+    static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
+        const Matrix&                            rGradNpT,
+        double                                   DynamicViscosityInverse,
+        const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
+        double                                   RelativePermeability,
+        double                                   PermeabilityUpdateFactor,
+        double                                   IntegrationCoefficient)
     {
-        noalias(rPMatrix) = DynamicViscosityInverse *
-                            prod(Matrix(prod(GradNpT, PermeabilityMatrix)), trans(GradNpT)) * IntegrationCoefficient;
+        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse,
+                                           rMaterialPermeabilityMatrix, RelativePermeability,
+                                           PermeabilityUpdateFactor, IntegrationCoefficient);
     }
 
-    static inline Matrix CalculatePermeabilityMatrixH(const Matrix& GradNpT,
-                                                      double        DynamicViscosityInverse,
-                                                      const Matrix& PermeabilityMatrix,
-                                                      double        IntegrationCoefficient)
+    static inline Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
+                                                     double        DynamicViscosityInverse,
+                                                     const Matrix& rMaterialPermeabilityMatrix,
+                                                     double        RelativePermeability,
+                                                     double        PermeabilityUpdateFactor,
+                                                     double        IntegrationCoefficient)
     {
-        return DynamicViscosityInverse *
-               prod(GradNpT, Matrix(prod(PermeabilityMatrix, trans(GradNpT)))) * IntegrationCoefficient;
-    }
-
-    template <unsigned int TNumNodes>
-    static inline void PreparePermeabilityMatrixHForIntegration(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                                                double RelativePermeability,
-                                                                double PermeabilityUpdateFactor)
-    {
-        rPMatrix *= (-PORE_PRESSURE_SIGN_FACTOR * RelativePermeability * PermeabilityUpdateFactor);
-    }
-
-    static inline void PreparePermeabilityMatrixHForIntegration(Matrix& rPMatrix,
-                                                                double  RelativePermeability,
-                                                                double  PermeabilityUpdateFactor)
-    {
-        rPMatrix *= (-PORE_PRESSURE_SIGN_FACTOR * RelativePermeability * PermeabilityUpdateFactor);
+        return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
+               prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
+               RelativePermeability * PermeabilityUpdateFactor * IntegrationCoefficient;
     }
 
 }; /* Class GeoTransportEquationUtilities*/

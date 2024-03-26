@@ -37,30 +37,21 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix2D3NGivesCorrectResults, Kr
     MaterialPermeabilityMatrix <<= 1.0, 2.0,
                                    3.0, 4.0;
     // clang-format on
-    const double IntegrationCoefficient = 1.0;
-    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<2, 3>(
-        PermeabilityMatrix, GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, IntegrationCoefficient);
-
-    // Kratos original calculation of the permeability matrix
-    BoundedMatrix<double, 3, 2> PDimMatrix;
-    BoundedMatrix<double, 3, 3> PMatrix;
-    noalias(PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR * prod(GradNpT, MaterialPermeabilityMatrix);
-
+    const double IntegrationCoefficient   = 1.0;
     const double RelativePermeability     = 0.02;
     const double PermeabilityUpdateFactor = 1.5;
-    noalias(PMatrix) = DynamicViscosityInverse * RelativePermeability * PermeabilityUpdateFactor *
-                       prod(PDimMatrix, trans(GradNpT)) * IntegrationCoefficient;
+    PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<2, 3>(
+        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, RelativePermeability,
+        PermeabilityUpdateFactor, IntegrationCoefficient);
 
-    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<3>(
-        PermeabilityMatrix, RelativePermeability, PermeabilityUpdateFactor);
+    BoundedMatrix<double, 3, 3> PMatrix;
+    // clang-format off
+    PMatrix <<= -0.81, -1.83, -2.85,
+                -1.77, -3.99, -6.21,
+                -2.73, -6.15, -9.57;
+    // clang-format on
+
     KRATOS_CHECK_MATRIX_NEAR(PermeabilityMatrix, PMatrix, 1e-12)
-
-    // check of permeability matrix calculation using Matrix input parameters
-    Matrix PermeabilityMatrixMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrixH(
-        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, IntegrationCoefficient);
-    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration(
-        PermeabilityMatrixMatrix, RelativePermeability, PermeabilityUpdateFactor);
-    KRATOS_CHECK_MATRIX_NEAR(PermeabilityMatrix, PermeabilityMatrixMatrix, 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
@@ -81,30 +72,22 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix3D4NGivesCorrectResults, Kr
                                    4.0, 5.0, 6.0,
                                    7.0, 8.0, 9.0;
     // clang-format on
-    const double IntegrationCoefficient = 1.0;
-    GeoTransportEquationUtilities::CalculatePermeabilityMatrixH<3, 4>(
-        PermeabilityMatrix, GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, IntegrationCoefficient);
-
-    // Kratos original calculation of the permeability matrix
-    BoundedMatrix<double, 4, 3> PDimMatrix;
-    BoundedMatrix<double, 4, 4> PMatrix;
-    noalias(PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR * prod(GradNpT, MaterialPermeabilityMatrix);
-
+    const double IntegrationCoefficient   = 1.0;
     const double RelativePermeability     = 0.1;
     const double PermeabilityUpdateFactor = 2.0;
-    noalias(PMatrix) = DynamicViscosityInverse * RelativePermeability * PermeabilityUpdateFactor *
-                       prod(PDimMatrix, trans(GradNpT)) * IntegrationCoefficient;
+    PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<3, 4>(
+        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, RelativePermeability,
+        PermeabilityUpdateFactor, IntegrationCoefficient);
 
-    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration<4>(
-        PermeabilityMatrix, RelativePermeability, PermeabilityUpdateFactor);
+    BoundedMatrix<double, 4, 4> PMatrix;
+    // clang-format off
+    PMatrix <<= -45.6,  -88.8, -132.0, -175.2,
+                -84.0, -163.2, -242.4, -321.6,
+               -122.4, -237.6, -352.8, -468.0,
+               -160.8, -312.0, -463.2, -614.4;
+    // clang-format on
+
     KRATOS_CHECK_MATRIX_NEAR(PermeabilityMatrix, PMatrix, 1e-12)
-
-    // check of permeability matrix calculation using Matrix input parameters
-    Matrix PermeabilityMatrixMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrixH(
-        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, IntegrationCoefficient);
-    GeoTransportEquationUtilities::PreparePermeabilityMatrixHForIntegration(
-        PermeabilityMatrixMatrix, RelativePermeability, PermeabilityUpdateFactor);
-    KRATOS_CHECK_MATRIX_NEAR(PermeabilityMatrix, PermeabilityMatrixMatrix, 1e-12)
 }
 
 } // namespace Kratos::Testing
