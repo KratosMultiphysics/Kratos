@@ -22,6 +22,11 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     double& rSl = rValues.GetSl();
     double& rdSldPc = rValues.GetdSldPc();
 
+    //TODO. Ignasi
+    // This is only used in the Liakopoulos test
+    // rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
+    //
+
     // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
     rSl = 1.0 - rVariables.Sgr;
     rdSldPc = 0.0;
@@ -43,6 +48,12 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
 void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariables& rVariables, Parameters& rValues)
 {
     double& rkrl = rValues.Getkrl();
+
+    //TODO. Ignasi
+    // This is only used in the Liakopoulos test
+    // double& rSl = rValues.GetSl();
+    // rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
+    //
 
     if (rVariables.Se >= 1.0) {
         // Fully saturated medium
