@@ -62,6 +62,10 @@ CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumbe
         NormalStress += rVariables.Nu[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     }
 
+    // Since the normal vector is pointing outwards for the 3D conditions, the normal stress should
+    // switch sign, such that positive stress is defined inwardly.
+    NormalStress *= -1;
+
     rVariables.ConditionVector[0] = NormalStress * NormalVector[0];
     rVariables.ConditionVector[1] = NormalStress * NormalVector[1];
     rVariables.ConditionVector[2] = NormalStress * NormalVector[2];
