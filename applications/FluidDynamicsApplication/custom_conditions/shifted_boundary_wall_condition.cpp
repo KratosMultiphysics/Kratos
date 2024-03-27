@@ -22,6 +22,8 @@
 
 // Application includes
 #include "shifted_boundary_wall_condition.h"
+#include <cstddef>
+#include <string>
 
 
 namespace Kratos
@@ -160,31 +162,27 @@ void ShiftedBoundaryWallCondition::EquationIdVector(
 {
     KRATOS_TRY
 
-    // Resize the equation ids. vector
+    // Resize the equation IDs vector
     const auto &r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     const std::size_t n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
-    const  std::size_t local_size = (n_dim+1) * n_nodes;
+    const std::size_t local_size = (n_dim+1) * n_nodes;
     if (rResult.size() != local_size) {
         rResult.resize(local_size, false);
     }
 
-    // TODO check Navier Stokes!!!
-    // Fill the equation ids. vector from the condition DOFs
-    const  std::size_t u_x_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
-    if (n_dim == 2) {
-        for (std::size_t i = 0; i < n_nodes; ++i){
-            rResult[i*n_dim] = r_geometry[i].GetDof(VELOCITY_X, u_x_pos).EquationId();
-            rResult[i*n_dim +1] = r_geometry[i].GetDof(VELOCITY_Y, u_x_pos+1).EquationId();
-            rResult[i*n_dim +2] = r_geometry[i].GetDof(PRESSURE, u_x_pos+2).EquationId();
-        }
-    } else {
-        for (std::size_t i = 0; i < n_nodes; ++i){
-            rResult[i*n_dim] = r_geometry[i].GetDof(VELOCITY_X, u_x_pos).EquationId();
-            rResult[i*n_dim +1] = r_geometry[i].GetDof(VELOCITY_Y, u_x_pos+1).EquationId();
-            rResult[i*n_dim +2] = r_geometry[i].GetDof(VELOCITY_Z, u_x_pos+2).EquationId();
-            rResult[i*n_dim +3] = r_geometry[i].GetDof(PRESSURE, u_x_pos+3).EquationId();
-        }
+    // Get position of DOF for first velocity component and pressure
+    const std::size_t ux_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
+    const std::size_t p_pos = r_geometry[0].GetDofPosition(PRESSURE);
+
+    // Fill the equation IDs vector from the condition DOFs
+    std::size_t i_local = 0;
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node)
+    {
+        rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_X, ux_pos).EquationId();
+        rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_Y, ux_pos+1).EquationId();
+        if (n_dim == 3) rResult[i_local++] = r_geometry[i_node].GetDof(VELOCITY_Z, ux_pos+2).EquationId();
+        rResult[i_local++] = r_geometry[i_node].GetDof(PRESSURE, p_pos).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -200,26 +198,23 @@ void ShiftedBoundaryWallCondition::GetDofList(
     const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     const std::size_t n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
-    const  std::size_t local_size = (n_dim+1) * n_nodes;
+    const std::size_t local_size = (n_dim+1) * n_nodes;
     if (rConditionalDofList.size() != local_size){
         rConditionalDofList.resize(local_size);
     }
 
-    // TODO check Navier Stokes!!!
+    // Get position of DOF for first velocity component and pressure
+    const std::size_t ux_pos = r_geometry[0].GetDofPosition(VELOCITY_X);
+    const std::size_t p_pos = r_geometry[0].GetDofPosition(PRESSURE);
+
     // Fill the DOFs vector from the condition nodes
-    if (n_dim == 2) {
-        for (std::size_t i = 0; i < n_nodes; ++i) {
-            rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(VELOCITY_X);
-            rConditionalDofList[i*n_dim +1] = r_geometry[i].pGetDof(VELOCITY_Y);
-            rConditionalDofList[i*n_dim +2] = r_geometry[i].pGetDof(PRESSURE);
-        }
-    } else {
-        for (std::size_t i = 0; i < n_nodes; ++i) {
-            rConditionalDofList[i*n_dim] = r_geometry[i].pGetDof(VELOCITY_X);
-            rConditionalDofList[i*n_dim +1] = r_geometry[i].pGetDof(VELOCITY_Y);
-            rConditionalDofList[i*n_dim +2] = r_geometry[i].pGetDof(VELOCITY_Z);
-            rConditionalDofList[i*n_dim +3] = r_geometry[i].pGetDof(PRESSURE);
-        }
+    std::size_t i_local = 0;
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node)
+    {
+        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_X, ux_pos);
+        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_Y, ux_pos+1);
+        if (n_dim == 3) rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(VELOCITY_Z, ux_pos+2);
+        rConditionalDofList[i_local++] = r_geometry[i_node].pGetDof(PRESSURE, p_pos);
     }
 
     KRATOS_CATCH("")
@@ -273,7 +268,7 @@ int ShiftedBoundaryWallCondition::Check(const ProcessInfo& rCurrentProcessInfo) 
 //         }
 //         FluidElementUtilities<3>::SetTangentialProjectionMatrix(nodal_normal, nodal_projection_matrix);
 
-//         // Finding the coefficent to relate velocity to drag
+//         // Finding the coefficient to relate velocity to drag
 //         const double viscosity = r_geom[i_node].GetSolutionStepValue(DYNAMIC_VISCOSITY);
 //         const double navier_slip_length = r_geom[i_node].GetValue(SLIP_LENGTH);
 //         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
@@ -323,7 +318,7 @@ int ShiftedBoundaryWallCondition::Check(const ProcessInfo& rCurrentProcessInfo) 
 //         nodal_normal /= sqrt(sum_of_squares);
 //         FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
 
-//         // finding the coefficent to relate velocity to drag
+//         // finding the coefficient to relate velocity to drag
 //         const double viscosity = r_geom[inode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
 //         const double navier_slip_length = r_geom[inode].GetValue(SLIP_LENGTH);
 //         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
