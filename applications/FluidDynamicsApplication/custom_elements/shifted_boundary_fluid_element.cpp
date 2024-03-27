@@ -100,77 +100,127 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
     // Note that the INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
     // At the faces of these INTERFACE elements which are attached to BOUNDARY elements (surrogate interface gamma_tilde), the boundary flux contributions is added as a surrogate.
     if (this->Is(INTERFACE)) {
-        // Get fluid data containers
-        /*auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-        auto &r_settings = *p_settings;
-        const auto& r_unknown_var = r_settings.GetUnknownVariable();
-        const auto& r_diffusivity_var = r_settings.GetDiffusionVariable();*/
 
-        // Get the surrgate faces local IDs.
+        // Initialize the element data
+        ShiftedBoundaryElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+
+        // Get the surrogate faces local IDs.
         // Note that it might happen that an INTERFACE element has no surrogate face (i.e. a unique node in the surrogate skin)
-        /*const auto sur_bd_ids_vect = GetSurrogateFacesIds();
-        if (sur_bd_ids_vect.size() != 0) {
+        const auto surrogate_face_ids = GetSurrogateFacesIds();
+        if (surrogate_face_ids.size() != 0) {
+
             // Get the parent geometry data
-            double dom_size_parent;
-            const auto& r_geom = GetGeometry();
+            double volume_parent;
+            const auto& r_geom = this->GetGeometry();
             array_1d<double, NumNodes> N_parent;
-            BoundedMatrix<double, NumNodes, TDim> DN_DX_parent;
-            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+            BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, volume_parent);
             const auto& r_boundaries = r_geom.GenerateBoundariesEntities();
             DenseMatrix<unsigned int> nodes_in_faces;
             r_geom.NodesInFaces(nodes_in_faces);
 
-            // Get the unknowns vector
-            BoundedVector<double, NumNodes> nodal_unknown;
-            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                nodal_unknown[i_node] = r_geom[i_node].FastGetSolutionStepValue(r_unknown_var);
-            }
+            //Initialize auxillary LHS contribution
+            BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
 
-            // Loop the surrogate faces
+            // Loop the surrogate faces of the element
             // Note that there is the chance that the surrogate face is not unique
-            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
+            for (std::size_t bd_id : surrogate_face_ids) {
                 // Get the current surrogate face geometry information
-                const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
-                const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
-                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-
-                // Get the surrogate boundary average conductivity
-                double k_avg = 0.0;
-                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
-                    k_avg += r_sur_bd_geom[i_bd_node].FastGetSolutionStepValue(r_diffusivity_var);
-                }
-                k_avg /= n_bd_points;
+                const auto& r_bd_geom = r_boundaries[bd_id];
+                const unsigned int n_bd_points = r_bd_geom.PointsNumber();
+                const DenseVector<std::size_t> bd_local_ids = row(nodes_in_faces, bd_id);  //TODO face is column, row works as well because of symmetry
+                const auto& r_bd_N = r_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
                 // Get the gradient of the node contrary to the surrogate face
                 // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
-                // const BoundedVector<double,TDim> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
-                BoundedVector<double,TDim> n_sur_bd = row(DN_DX_parent, sur_bd_local_ids[0]);
-                const double h_sur_bd = 1.0 / norm_2(n_sur_bd);
-                n_sur_bd *= -h_sur_bd;
+                BoundedVector<double,Dim> bd_normal = row(DN_DX_parent, bd_local_ids[0]);
+                const double h_bd = 1.0 / norm_2(bd_normal);
+                bd_normal *= -h_bd;
 
                 // Calculate the gradient projection
-                const BoundedVector<double,NumNodes> DN_DX_proj_n = prod(DN_DX_parent, n_sur_bd);
+                const BoundedVector<double,NumNodes> DN_DX_proj_n = prod(DN_DX_parent, bd_normal);
 
+                //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 // Add the surrogate boundary flux contribution
-                // Note that the local face ids. are already taken into account in the assembly
-                // Note that the integration weight is calculated as TDim * Parent domain size * norm(DN_DX_cont_node)
+                // Note that the local face IDs are already taken into account in the assembly
+                // Note that the integration weight is calculated as Dim * Parent domain volume * norm(DN_DX_cont_node)
                 double aux_1;
                 double aux_2;
-                std::size_t i_loc_id;
-                BoundedVector<double,TDim> j_node_grad;
-                const double aux_w_k = TDim * dom_size_parent * k_avg / h_sur_bd;
+                std::size_t i_local_id;
+                BoundedVector<double,Dim> j_node_grad;
+                const double aux_w_k = Dim * volume_parent * k_avg / h_bd;
                 for (std::size_t i_node = 0; i_node < n_bd_points; ++i_node) {
-                    aux_1 = aux_w_k * r_sur_bd_N(0,i_node);
-                    i_loc_id = sur_bd_local_ids[i_node + 1];
+                    aux_1 = aux_w_k * r_bd_N(0,i_node);
+                    i_local_id = bd_local_ids[i_node + 1];
                     for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                         aux_2 = aux_1 * DN_DX_proj_n(j_node);
-                        rLeftHandSideMatrix(i_loc_id, j_node) -= aux_2;
-                        rRightHandSideVector(i_loc_id) += aux_2 * nodal_unknown(j_node);
+                        rLeftHandSideMatrix(i_local_id, j_node) -= aux_2;
+                        rRightHandSideVector(i_local_id) += aux_2 * nodal_unknown(j_node);
                     }
                 }
+                //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                // Set the current Gauss pt. Voigt notation normal projection matrix
+                BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(bd_normal, voigt_normal_projection_matrix);
+
+                // Set the current Gauss pt. strain matrix
+                BoundedMatrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+                FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX, B_matrix);
+
+                // Compute some Gauss pt. auxiliar matrices
+                //TODO: C is calculated using FluidElement::CalculateMaterialResponse, which takes N and DN_DX from rData
+                //TODO: Idea to update integration point data and call boundary traction:
+                /*const std::size_t n_surrogate_faces_points = 0;  //TODO
+                for (unsigned int i_pt = 0; i_pt < n_surrogate_faces_points; i_pt++) {
+                    const std::size_t pt_index = 0 + i_pt;
+                    auto weight = Dim * volume_parent / h_bd;
+                    this->UpdateIntegrationPointData(data, pt_index, weight, N_parent, DN_DX_parent);
+                    this->AddBoundaryTraction(data, bd_normal,rLeftHandSideMatrix, rRightHandSideVector)
+                }*/
+                const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+                const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+
+                // Fill the pressure to Voigt notation operator matrix
+                BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
+                for (unsigned int i=0; i<NumNodes; ++i) {
+                    for (unsigned int comp=0; comp<Dim; ++comp) {
+                        pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = rData.N[i];
+                    }
+                }
+
+                // Set the shape functions auxiliar transpose matrix
+                BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
+                for (unsigned int i=0; i<NumNodes; ++i) {
+                    for (unsigned int comp=0; comp<Dim; ++comp) {
+                        N_aux_trans(i*BlockSize+comp, comp) = rData.N[i];
+                    }
+                }
+
+                //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                // Contribution coming from the shear stress operator
+                noalias(aux_LHS) = prod(N_aux_trans, aux_matrix_ACB);
+
+                // Contribution coming from the pressure terms
+                const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+                noalias(aux_LHS) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+
+
+                // Multiply LHS by integration weight, which is calculated as Dim * Parent domain volume * norm(DN_DX_cont_node)
+                aux_LHS *= Dim * volume_parent / h_bd;
             }
-        }*/
+
+            // Get velocity and pressure values of previous iteration
+            array_1d<double,LocalSize> values;
+            this->GetCurrentValuesVector(data, values);
+
+            // Add boundary flux contribution to LHS and RHS
+            noalias(rLeftHandSideMatrix) -= aux_LHS;
+            noalias(rRightHandSideVector) += prod(aux_LHS,values);
+        }
     }
 
     KRATOS_CATCH("")
