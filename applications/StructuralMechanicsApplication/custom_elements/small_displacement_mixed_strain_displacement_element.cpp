@@ -554,23 +554,20 @@ int  SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& r
 {
     KRATOS_TRY
 
-    // int check = SmallDisplacementMixedStrainDisplacementElement::BaseType::Check(rCurrentProcessInfo);
+    int check = SmallDisplacementMixedStrainDisplacementElement::BaseType::Check(rCurrentProcessInfo);
 
-    // // Base check
-    // check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
+    // Base check
+    check = StructuralMechanicsElementUtilities::SolidElementCheck(*this, rCurrentProcessInfo, mConstitutiveLawVector);
 
-    // // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    // const auto& r_geometry = this->GetGeometry();
-    // for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
-    //     const NodeType& r_node = r_geometry[i];
-    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    const auto& r_geometry = this->GetGeometry();
+    for (IndexType i = 0; i < r_geometry.size(); i++) {
+        const NodeType& r_node = r_geometry[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_STRAIN_VECTOR, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(NODAL_STRAIN_VECTOR_XX, r_node)
+    }
 
-    //     KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
-    // }
-
-    // return check;
-
-    return 1;
+    return check;
 
     KRATOS_CATCH( "" );
 }

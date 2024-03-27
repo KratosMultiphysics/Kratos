@@ -76,7 +76,7 @@ protected:
     {
         Vector N;
         Matrix B;
-        Matrix N_epsilon;
+        Matrix N_epsilon;          // Used to interpolate nodal strains
         double detJ0;
         Matrix J0;
         Matrix InvJ0;
