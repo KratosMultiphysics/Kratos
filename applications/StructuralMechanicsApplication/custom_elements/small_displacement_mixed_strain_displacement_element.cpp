@@ -357,6 +357,30 @@ void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
     }
 }
 
+void SmallDisplacementMixedStrainDisplacementElement::AssembleRHS(
+    Vector &rRHS,
+    const Vector &rRHSu,
+    const Vector &rRHSe)
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType dim     = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType system_size = n_nodes * (strain_size + dim);
+    const SizeType displ_size = n_nodes * dim;
+
+    if (rRHS.size() != system_size)
+        rRHS.resize(system_size, false);
+
+    for (IndexType i = 0; i < rRHSu.size(); ++i) {
+        rRHS[i] = rRHSu[i];
+    }
+
+    for (IndexType i = 0; i < rRHSe.size(); ++i) {
+        rRHS[i + displ_size] = rRHSu[i];
+    }
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

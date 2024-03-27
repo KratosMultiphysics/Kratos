@@ -479,7 +479,15 @@ protected:
      */
     void CalculateN_EpsilonMatrix(Matrix &rN_Epsilon, const Vector &rN);
 
+    /**
+     * @brief This method assembles the nodal values vectors U and E
+     */
     void GetNodalDoFsVectors(Vector &rU, Vector &rE);
+
+    /**
+     * @brief This method assembles the contributions to the RHS from the u and E parts
+     */
+    void AssembleRHS(Vector &rRHS, const Vector &rRHSu, const Vector &rRHSe);
 
     ///@}
     ///@name Protected  Access
