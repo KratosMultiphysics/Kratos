@@ -50,17 +50,14 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
     const GeometryType& rGeom     = GetGeometry();
     const SizeType      NumUNodes = rGeom.PointsNumber();
 
-    Vector normal_stress_vector(NumUNodes);
-    std::transform(rGeom.begin(), rGeom.end(), normal_stress_vector.begin(), [](const auto& node) {
+    Vector normal_stresses(NumUNodes);
+    std::transform(rGeom.begin(), rGeom.end(), normal_stresses.begin(), [](const auto& node) {
         return node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     });
 
-    double NormalStress = MathUtils<>::Dot(rVariables.Nu, normal_stress_vector);
-
     // Since the normal vector is pointing outwards for the 3D conditions, the normal stress should
-    // switch sign, such that positive stress is defined inwardly.
-    NormalStress *= -1;
-
+    // switch sign (multiplied by -1), such that positive stress is defined inwardly.
+    double NormalStress        = -1 * MathUtils<>::Dot(rVariables.Nu, normal_stresses);
     rVariables.ConditionVector = NormalStress * NormalVector;
 
     KRATOS_CATCH("")
