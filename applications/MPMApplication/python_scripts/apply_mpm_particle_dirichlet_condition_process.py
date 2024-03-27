@@ -14,17 +14,17 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "material_points_per_condition"   : 0,
-                "imposition_type"           : "penalty",
-                "penalty_factor"            : 0,
-                "variable_name"             : "DISPLACEMENT",
-                "constrained"               : "fixed",
-                "value"                     : [0.0, "0*t", 0.0],
-                "interval"                  : [0.0, 1e30],
-                "option"                    : "",
-                "is_equal_distributed"      : false,
-                "local_axes"                : {}
+                "model_part_name"               : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "material_points_per_condition" : 0,
+                "imposition_type"               : "penalty",
+                "penalty_coefficient"           : 0,
+                "variable_name"                 : "DISPLACEMENT",
+                "constrained"                   : "fixed",
+                "value"                         : [0.0, "0*t", 0.0],
+                "interval"                      : [0.0, 1e30],
+                "option"                        : "",
+                "is_equal_distributed"          : false,
+                "local_axes"                    : {}
             }  """ )
 
          # Assign this here since it will change the "interval" prior to validation
@@ -33,6 +33,12 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         context_string = type(self).__name__
         old_name = 'particles_per_condition'
         new_name = 'material_points_per_condition'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
+
+        context_string = type(self).__name__
+        old_name = 'penalty_factor'
+        new_name = 'penalty_coefficient'
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
@@ -59,7 +65,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         # set type of boundary
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
-            self.penalty_factor = settings["penalty_factor"].GetDouble()
+            self.penalty_coefficient = settings["penalty_coefficient"].GetDouble()
             self.boundary_condition_type = 1
         else:
             err_msg =  "The requested type of Dirichlet boundary imposition: \"" + self.imposition_type + "\" is not available!\n"
@@ -131,7 +137,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
                 ### Set necessary essential BC variables
                 if self.boundary_condition_type==1:
-                    condition.SetValue(KratosMPM.PENALTY_FACTOR, self.penalty_factor)
+                    condition.SetValue(KratosMultiphysics.PENALTY_COEFFICIENT, self.penalty_coefficient)
         else:
             err_msg = '\n::[ApplyMPMParticleDirichletConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "material_points_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "material_points_per_condition" > 0 or = 0 (for automatic value)!\n'

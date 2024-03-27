@@ -112,7 +112,6 @@ namespace Python{
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_REACTION);
 
         // Essential Boundary variables
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_BOUNDARY_CONDITION_TYPE);
 
         // Nodal load variables

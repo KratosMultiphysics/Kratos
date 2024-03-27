@@ -68,7 +68,6 @@ namespace Kratos
 
     // Conditions
     // Essential Boundary Conditions
-    KRATOS_CREATE_VARIABLE( double, PENALTY_FACTOR )
     KRATOS_CREATE_VARIABLE( int, MPC_BOUNDARY_CONDITION_TYPE )
 
     // Nodal load variables
