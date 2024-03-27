@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "normal_load_quad_8n_diff_order",
+        "problem_name":         "test_normal_load_quad_8n",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -13,7 +13,7 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "normal_load_quad_8n_diff_order"
+            "input_filename":   "test_normal_load_quad_8n"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -74,7 +74,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "normal_load_quad_8n_diff_order",
+                "output_name": "test_normal_load_quad_8n",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
