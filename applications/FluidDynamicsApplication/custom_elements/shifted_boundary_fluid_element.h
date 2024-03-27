@@ -21,7 +21,7 @@
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 
-#include "custom_utilities/embedded_discontinuous_data.h"
+#include "custom_utilities/embedded_data.h"
 
 namespace Kratos
 {
@@ -96,7 +96,7 @@ public:
     constexpr static std::size_t StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
-    using ShiftedBoundaryElementData = EmbeddedDiscontinuousData<BaseElementData>;  //TODO
+    using ShiftedBoundaryElementData = EmbeddedData<BaseElementData>;  //TODO
 
     ///@}
     ///@name Life Cycle
@@ -333,15 +333,6 @@ protected:
     void DefineCutGeometryData(ShiftedBoundaryElementData& rData) const;
 
     /**
-     * @brief Intersected element geometry data fill
-     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
-     * incised element. To do that, the modified shape functions utility is firstly created and then called
-     * to perform all operations on both, the positive and negative, sides of the element.
-     * @param rData reference to the element data structure
-     */
-    void DefineIncisedGeometryData(ShiftedBoundaryElementData& rData) const;
-
-    /**
      * @brief For an intersected element, normalize the interface normals
      * This method normalizes the interface normals for an intersected element.
      * @param rNormals interface normals container
@@ -453,20 +444,9 @@ private:
 namespace ShiftedBoundaryInternals {
 
 template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator(
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
     const Element &rElement,
-    const Vector &rElementalDistances);
-
-template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
-    const Element &rElement,
-    const Vector &rElementalDistances);
-
-template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator(
-    const Element &rElement,
-    const Vector &rElementalDistancesWithExtrapolated,
-    const Vector &rElementalEdgeDistancesExtrapolated);
+    const Vector &rDistance);
 }
 
 ///@}

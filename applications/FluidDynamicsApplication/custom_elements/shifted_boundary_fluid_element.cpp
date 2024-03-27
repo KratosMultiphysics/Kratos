@@ -7,15 +7,11 @@
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_ausas_incised_shape_functions.h"
 
 // Application includes
 #include "custom_elements/shifted_boundary_fluid_element.h"
 #include "custom_elements/weakly_compressible_navier_stokes.h"
-#include "custom_utilities/embedded_discontinuous_data.h"
+#include "custom_utilities/embedded_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 
@@ -86,16 +82,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Initialize(const ProcessInfo& rC
         this->SetValue(ELEMENTAL_DISTANCES, zero_vector);
     }
 
-    // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
-    const array_1d<double,3> zero_vel = ZeroVector(3);
-    for (auto &r_node : this->GetGeometry()) {
-        r_node.SetLock();
-        if (!r_node.Has(EMBEDDED_VELOCITY)) {
-            r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
-        }
-        r_node.UnSetLock();
-    }
-
     KRATOS_CATCH("");
 }
 
@@ -112,7 +98,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
     // Check if the element belongs to the surrogate interface.
     // Note that the INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
-    // At the faces of these INTERFACE elements attached to BOUNDARY elements (surrogate interface gamma_tilde) the boundary flux contributions is added as a surrogate.
+    // At the faces of these INTERFACE elements which are attached to BOUNDARY elements (surrogate interface gamma_tilde), the boundary flux contributions is added as a surrogate.
     if (this->Is(INTERFACE)) {
         // Get fluid data containers
         /*auto p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -214,7 +200,20 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
     double& rOutput,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    if (rVariable == CUTTED_AREA) {
+        // Initialize the embedded element data
+        ShiftedBoundaryElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+        // Calculate the intersection area as the Gauss weights summation
+        const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
+        rOutput = 0.0;
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+            rOutput += data.PositiveInterfaceWeights[g];
+        }
+    } else {
+        TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
 }
 
 template <class TBaseElement>
@@ -226,19 +225,17 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
     rOutput = ZeroVector(3);
 
     // If the element is split, integrate sigma.n over the interface
-    // Note that in the ausas formulation, both interface sides need to be integrated
+    // Note that in the Ausas formulation (discontinuous for thin-walled), both interface sides need to be integrated
     if (rVariable == DRAG_FORCE) {
         ShiftedBoundaryElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
-        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         // Calculate the drag force
         this->CalculateDragForce(data, rOutput);
     } else if (rVariable == DRAG_FORCE_CENTER) {
         ShiftedBoundaryElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
         this->InitializeGeometryData(data);
-        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         // Calculate the drag force location
         this->CalculateDragForceCenter(data, rOutput);
     } else {
@@ -353,29 +350,20 @@ void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBo
 
     // Number of positive and negative distance function values
     for (std::size_t i = 0; i < ShiftedBoundaryElementData::NumNodes; ++i){
-        if (rData.ElementalDistances[i] > 0.0){
+        if (rData.Distance[i] > 0.0) {
             rData.NumPositiveNodes++;
             rData.PositiveIndices.push_back(i);
-        } else {
+        }
+        else {
             rData.NumNegativeNodes++;
             rData.NegativeIndices.push_back(i);
         }
     }
 
-    // Number of edges cut by extrapolated geometry, if not empty
-    for (std::size_t i = 0; i < rData.ElementalEdgeDistancesExtrapolated.size(); ++i) {
-        if (rData.ElementalEdgeDistancesExtrapolated[i] > 0.0) {
-            rData.NumIntersectedEdgesExtrapolated++;
-        }
-    }
-
-    // Check whether element is intersected or incised and whether user gave flag CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED,
-    // then use Ausas incised shape functions
     if ( rData.IsCut() ) {
         this->DefineCutGeometryData(rData);
-    } else if ( rData.IsIncised() ) {
-        this->DefineIncisedGeometryData(rData);
-    } else {
+    }
+    else {
         this->DefineStandardGeometryData(rData);
     }
 }
@@ -392,49 +380,25 @@ template <class TBaseElement>
 void ShiftedBoundaryFluidElement<TBaseElement>::DefineCutGeometryData(ShiftedBoundaryElementData& rData) const
 {
     // Auxiliary distance vector for the element subdivision utility
-    Vector elemental_distances = rData.ElementalDistances;
+    Vector distances = rData.Distance;
 
-    ModifiedShapeFunctions::UniquePointer p_calculator =
-        ShiftedBoundaryInternals::GetShapeFunctionCalculator<ShiftedBoundaryElementData::Dim, ShiftedBoundaryElementData::NumNodes>(
-            *this,
-            elemental_distances);
+    ModifiedShapeFunctions::Pointer p_calculator = ShiftedBoundaryInternals::GetShapeFunctionCalculator<
+        ShiftedBoundaryElementData::Dim,
+        ShiftedBoundaryElementData::NumNodes>(*this, distances);
 
     // Positive side volume
     p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveSideN,
-        rData.PositiveSideDNDX,
-        rData.PositiveSideWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Negative side volume
-    p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        rData.NegativeSideN,
-        rData.NegativeSideDNDX,
-        rData.NegativeSideWeights,
+        rData.PositiveSideN, rData.PositiveSideDNDX, rData.PositiveSideWeights,
         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Positive side interface
     p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveInterfaceN,
-        rData.PositiveInterfaceDNDX,
-        rData.PositiveInterfaceWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Negative side interface
-    p_calculator->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-        rData.NegativeInterfaceN,
-        rData.NegativeInterfaceDNDX,
-        rData.NegativeInterfaceWeights,
+        rData.PositiveInterfaceN, rData.PositiveInterfaceDNDX, rData.PositiveInterfaceWeights,
         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Positive side interface normals
     p_calculator->ComputePositiveSideInterfaceAreaNormals(
         rData.PositiveInterfaceUnitNormals,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Negative side interface normals
-    p_calculator->ComputeNegativeSideInterfaceAreaNormals(
-        rData.NegativeInterfaceUnitNormals,
         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Normalize the normals
@@ -443,68 +407,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::DefineCutGeometryData(ShiftedBou
     double h = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
     const double tolerance = std::pow(1e-3 * h, Dim-1);
     this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
-    this->NormalizeInterfaceNormals(rData.NegativeInterfaceUnitNormals, tolerance);
-}
-
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::DefineIncisedGeometryData(ShiftedBoundaryElementData& rData) const
-{
-    // Auxiliary distance vector for the element subdivision utility
-    Vector elemental_distances = rData.ElementalDistances;
-    // Auxiliary edge distance vector of extrapolated intersecting geometry for the element subdivision utility
-    Vector edge_distances_extrapolated = rData.ElementalEdgeDistancesExtrapolated;
-
-    ModifiedShapeFunctions::UniquePointer p_calculator =
-        ShiftedBoundaryInternals::GetIncisedShapeFunctionCalculator<ShiftedBoundaryElementData::Dim, ShiftedBoundaryElementData::NumNodes>(
-            *this,
-            elemental_distances,
-            edge_distances_extrapolated);
-
-    // Positive side volume
-    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveSideN,
-        rData.PositiveSideDNDX,
-        rData.PositiveSideWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Negative side volume
-    p_calculator->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        rData.NegativeSideN,
-        rData.NegativeSideDNDX,
-        rData.NegativeSideWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Positive side interface
-    p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveInterfaceN,
-        rData.PositiveInterfaceDNDX,
-        rData.PositiveInterfaceWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Negative side interface
-    p_calculator->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-        rData.NegativeInterfaceN,
-        rData.NegativeInterfaceDNDX,
-        rData.NegativeInterfaceWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Positive side interface normals
-    p_calculator->ComputePositiveSideInterfaceAreaNormals(
-        rData.PositiveInterfaceUnitNormals,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Negative side interface normals
-    p_calculator->ComputeNegativeSideInterfaceAreaNormals(
-        rData.NegativeInterfaceUnitNormals,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Normalize the normals
-    // Note: we calculate h here (and we don't use the value in rData.ElementSize)
-    // because rData.ElementSize might still be uninitialized: some data classes define it at the Gauss point.
-    double h = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
-    const double tolerance = std::pow(1e-3 * h, Dim-1);
-    this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
-    this->NormalizeInterfaceNormals(rData.NegativeInterfaceUnitNormals, tolerance);
 }
 
 template <class TBaseElement>
@@ -546,106 +448,35 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateDragForce(
     ShiftedBoundaryElementData& rData,
     array_1d<double,3>& rDragForce) const
 {
-    // Initialize the embedded element data
-    const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
-    const std::size_t number_of_negative_gauss_points = rData.NegativeSideWeights.size();
-    const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+    const std::size_t n_pos_gauss = rData.PositiveSideWeights.size();
 
-    if (rData.IsCut()){
-        const auto& r_geom = this->GetGeometry();
-
+    if (rData.IsCut()) {
         // Integrate positive interface side drag
-        const std::size_t n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
-        for (std::size_t g = 0; g < n_int_pos_gauss; ++g) {
-            // Update the Gauss pt. data and the constitutive law
+        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+
+            // Update the Gauss pt. rData and the constitutive law
             this->UpdateIntegrationPointData(
                 rData,
-                g + volume_gauss_points,
+                g + n_pos_gauss,
                 rData.PositiveInterfaceWeights[g],
                 row(rData.PositiveInterfaceN, g),
                 rData.PositiveInterfaceDNDX[g]);
 
-            // Get the interface Gauss pt. unit normal
+            // Get the interface Gauss pt. unit noromal
             const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
-            // Compute Gauss pt. values
+            // Compute Gauss pt. pressure
             const double p_gauss = inner_prod(rData.N, rData.Pressure);
-            const array_1d<double, Dim> v_gauss = prod(rData.N, rData.Velocity);
-            array_1d<double,Dim> v_emb_gauss = ZeroVector(Dim);
-            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-                for (std::size_t d = 0; d < Dim; ++d) {
-                    v_emb_gauss(d) += r_i_emb_vel(d) * rData.N(i_node);
-                }
-            }
 
             // Get the normal projection matrix in Voigt notation
             BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
             FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-            BoundedMatrix<double, Dim, Dim> norm_proj_matrix, tang_proj_matrix;
-            FluidElementUtilities<NumNodes>::SetNormalProjectionMatrix(aux_unit_normal, norm_proj_matrix);
-            FluidElementUtilities<NumNodes>::SetTangentialProjectionMatrix(aux_unit_normal, tang_proj_matrix);
 
             // Add the shear and pressure drag contributions
             const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            const array_1d<double, Dim> shear_proj_n = prod(shear_proj, norm_proj_matrix);
-            array_1d<double, Dim> shear_proj_t = ZeroVector(Dim);
-            if (rData.SlipLength > 1.0e-12) {
-                const auto v_aux = v_gauss - v_emb_gauss;
-                const auto v_tan = prod(v_aux, tang_proj_matrix);
-                shear_proj_t = rData.Weight * (rData.DynamicViscosity / rData.SlipLength) * v_tan;
-            }
-            for (std::size_t i = 0; i < Dim ; ++i){
-                rDragForce(i) -= shear_proj_n(i);
-                rDragForce(i) += shear_proj_t(i);
-            }
-            rDragForce += rData.Weight * p_gauss * aux_unit_normal;
-        }
-
-        // Integrate negative interface side drag
-        const std::size_t n_int_neg_gauss = rData.NegativeInterfaceWeights.size();
-        for (std::size_t g = 0; g < n_int_neg_gauss; ++g) {
-            // Update the Gauss pt. data and the constitutive law
-            this->UpdateIntegrationPointData(
-                rData,
-                g + volume_gauss_points + n_int_pos_gauss,
-                rData.NegativeInterfaceWeights[g],
-                row(rData.NegativeInterfaceN, g),
-                rData.NegativeInterfaceDNDX[g]);
-
-            // Get the interface Gauss pt. unit normal
-            const auto &aux_unit_normal = rData.NegativeInterfaceUnitNormals[g];
-
-            // Compute Gauss pt. values
-            const double p_gauss = inner_prod(rData.N, rData.Pressure);
-            const array_1d<double, Dim> v_gauss = prod(rData.N, rData.Velocity);
-            array_1d<double,Dim> v_emb_gauss = ZeroVector(Dim);
-            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                const auto &r_i_emb_vel = r_geom[i_node].GetValue(EMBEDDED_VELOCITY);
-                for (std::size_t d = 0; d < Dim; ++d) {
-                    v_emb_gauss(d) += r_i_emb_vel(d) * rData.N(i_node);
-                }
-            }
-
-            // Get the normal projection matrix in Voigt notation
-            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-            BoundedMatrix<double, Dim, Dim> norm_proj_matrix, tang_proj_matrix;
-            FluidElementUtilities<NumNodes>::SetNormalProjectionMatrix(aux_unit_normal, norm_proj_matrix);
-            FluidElementUtilities<NumNodes>::SetTangentialProjectionMatrix(aux_unit_normal, tang_proj_matrix);
-
-            // Add the shear and pressure drag contributions
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            const array_1d<double, Dim> shear_proj_n = prod(shear_proj, norm_proj_matrix);
-            array_1d<double, Dim> shear_proj_t = ZeroVector(Dim);
-            if (rData.SlipLength > 1.0e-12) {
-                const auto v_aux = v_gauss - v_emb_gauss;
-                const auto v_tan = prod(v_aux, tang_proj_matrix);
-                shear_proj_t = rData.Weight * (rData.DynamicViscosity / rData.SlipLength) * v_tan;
-            }
-            for (std::size_t i = 0; i < Dim ; ++i){
-                rDragForce(i) -= shear_proj_n(i);
-                rDragForce(i) += shear_proj_t(i);
+            for (unsigned int i = 0; i < Dim ; ++i) {
+                rDragForce(i) -= shear_proj(i);
             }
             rDragForce += rData.Weight * p_gauss * aux_unit_normal;
         }
@@ -659,43 +490,28 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateDragForceCenter(
 {
     const auto &r_geometry = this->GetGeometry();
     array_1d<double,3> tot_drag = ZeroVector(3);
-    const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
-    const std::size_t number_of_negative_gauss_points = rData.NegativeSideWeights.size();
-    const std::size_t volume_gauss_points = number_of_positive_gauss_points + number_of_negative_gauss_points;
+    const unsigned int n_pos_gauss = rData.PositiveSideWeights.size();
 
-    if (rData.IsCut()){
-        // Get the positive interface continuous shape functions
-        // We use these ones to interpolate the position of the intersection Gauss pt.
-        // Note that we take advantage of the fact that the positive and negative interface Gauss pt. coincide
-        Vector pos_int_continuous_weights;
-        Matrix pos_int_continuous_N;
-        typename ShiftedBoundaryElementData::ShapeFunctionsGradientsType pos_int_continuous_DN_DX;
-        auto p_continuous_sh_func_calculator = ShiftedBoundaryInternals::GetContinuousShapeFunctionCalculator<Dim, NumNodes>(*this, rData.ElementalDistances);
-        p_continuous_sh_func_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-            pos_int_continuous_N,
-            pos_int_continuous_DN_DX,
-            pos_int_continuous_weights,
-            GeometryData::IntegrationMethod::GI_GAUSS_2);
-
+    if (rData.IsCut()) {
         // Integrate positive interface side drag
-        const std::size_t n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
-        for (std::size_t g = 0; g < n_int_pos_gauss; ++g) {
-            // Obtain the Gauss pt. coordinates using the standard shape functions
+        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
+        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+            // Calculate the Gauss pt. coordinates
             array_1d<double,3> g_coords = ZeroVector(3);
-            const auto g_shape_functions = row(pos_int_continuous_N, g);
-            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+            const auto g_shape_functions = row(rData.PositiveInterfaceN, g);
+            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
                 g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
             }
 
-            // Update the Gauss pt. data and the constitutive law
+            // Update the Gauss pt. rData and the constitutive law
             this->UpdateIntegrationPointData(
                 rData,
-                g + volume_gauss_points,
+                g + n_pos_gauss,
                 rData.PositiveInterfaceWeights[g],
-                row(rData.PositiveInterfaceN, g),
+                g_shape_functions,
                 rData.PositiveInterfaceDNDX[g]);
 
-            // Get the interface Gauss pt. unit normal
+            // Get the interface Gauss pt. unit noromal
             const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
             // Compute Gauss pt. pressure
@@ -708,46 +524,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateDragForceCenter(
             // Add the shear and pressure drag contributions
             const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
             const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (std::size_t i = 0; i < Dim ; ++i){
-                tot_drag(i) -= shear_proj(i);
-                rDragForceLocation(i) += g_coords(i) * p_proj(i);
-                rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
-            }
-            tot_drag += p_proj;
-        }
-
-        // Integrate negative interface side drag
-        const std::size_t n_int_neg_gauss = rData.NegativeInterfaceWeights.size();
-        for (std::size_t g = 0; g < n_int_neg_gauss; ++g) {
-            // Obtain the Gauss pt. coordinates using the standard shape functions
-            array_1d<double,3> g_coords = ZeroVector(3);
-            const auto g_shape_functions = row(pos_int_continuous_N, g);
-            for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
-            }
-
-            // Update the Gauss pt. data and the constitutive law
-            this->UpdateIntegrationPointData(
-                rData,
-                g + volume_gauss_points + n_int_pos_gauss,
-                rData.NegativeInterfaceWeights[g],
-                row(rData.NegativeInterfaceN, g),
-                rData.NegativeInterfaceDNDX[g]);
-
-            // Get the interface Gauss pt. unit normal
-            const auto &aux_unit_normal = rData.NegativeInterfaceUnitNormals[g];
-
-            // Compute Gauss pt. pressure
-            const double p_gauss = inner_prod(rData.N, rData.Pressure);
-
-            // Get the normal projection matrix in Voigt notation
-            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-
-            // Add the shear and pressure drag contributions
-            const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (std::size_t i = 0; i < Dim ; ++i){
+            for (unsigned int i = 0; i < Dim ; ++i) {
                 tot_drag(i) -= shear_proj(i);
                 rDragForceLocation(i) += g_coords(i) * p_proj(i);
                 rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
@@ -785,59 +562,15 @@ void ShiftedBoundaryFluidElement<TBaseElement>::load(Serializer& rSerializer)
 namespace ShiftedBoundaryInternals {
 
 template <>
-ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<2, 3>(const Element& rElement, const Vector& rElementalDistances)
-{
-    return Kratos::make_unique<Triangle2D3AusasModifiedShapeFunctions>(
-        rElement.pGetGeometry(),
-        rElementalDistances);
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(
+    const Element& rElement, const Vector& rDistance) {
+    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
 }
 
 template <>
-ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<3, 4>(const Element& rElement, const Vector& rElementalDistances)
-{
-    return Kratos::make_unique<Tetrahedra3D4AusasModifiedShapeFunctions>(
-        rElement.pGetGeometry(),
-        rElementalDistances);
-}
-
-template <>
-ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
-    const Element& rElement,
-    const Vector& rElementalDistances)
-{
-    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
-}
-
-template <>
-ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
-    const Element& rElement,
-    const Vector& rElementalDistances)
-{
-    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
-}
-
-template <>
-ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<2, 3>(
-    const Element& rElement,
-    const Vector& rElementalDistancesWithExtrapolated,
-    const Vector& rElementalEdgeDistancesExtrapolated)
-{
-    return Kratos::make_unique<Triangle2D3AusasIncisedShapeFunctions>(
-        rElement.pGetGeometry(),
-        rElementalDistancesWithExtrapolated,
-        rElementalEdgeDistancesExtrapolated);
-}
-
-template <>
-ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<3, 4>(
-    const Element& rElement,
-    const Vector& rElementalDistancesWithExtrapolated,
-    const Vector& rElementalEdgeDistancesExtrapolated)
-{
-    return Kratos::make_unique<Tetrahedra3D4AusasIncisedShapeFunctions>(
-        rElement.pGetGeometry(),
-        rElementalDistancesWithExtrapolated,
-        rElementalEdgeDistancesExtrapolated);
+ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
+    const Element& rElement, const Vector& rDistance) {
+    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
 }
 
 }  // namespace ShiftedBoundaryInternals
