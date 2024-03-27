@@ -312,7 +312,7 @@ bool SmallDisplacementMixedStrainDisplacementElement::UseElementProvidedStrain()
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
     Matrix &rN_Epsilon,
-    const Vector &rN)
+    const Vector &rN) const
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
@@ -514,6 +514,12 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
 
     // Compute B
     CalculateB(rKinVariables.B, rKinVariables.DN_DX);
+
+    // Compute N_epsilon
+    CalculateN_EpsilonMatrix(rKinVariables.N_epsilon, rKinVariables.N);
+
+    // Compute the symmetric gradient of the displacements
+    noalias(rKinVariables.SymmGradientDispl) = prod(rKinVariables.B, rKinVariables.NodalDisplacements);
 
     // Calculate the equivalent total strain
     CalculateEquivalentStrain(rKinVariables);

@@ -481,7 +481,7 @@ protected:
      */
     void CalculateN_EpsilonMatrix(
         Matrix &rN_Epsilon,
-        const Vector &rN);
+        const Vector &rN) const;
 
     /**
      * @brief This method assembles the nodal values vectors U and E
