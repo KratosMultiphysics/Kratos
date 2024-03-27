@@ -627,6 +627,8 @@ int  SmallDisplacementMixedStrainDisplacementElement::Check(const ProcessInfo& r
         const NodeType& r_node = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_STRAIN_VECTOR, r_node)
         KRATOS_CHECK_DOF_IN_NODE(NODAL_STRAIN_VECTOR_XX, r_node)
+
+        // to improve................
     }
 
     return check;
