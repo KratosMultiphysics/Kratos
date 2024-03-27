@@ -1,0 +1,26 @@
+{
+    "properties" : [{
+        "model_part_name" : "PfemFluidModelPart.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "Bingham2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 1600.0,
+                "DYNAMIC_VISCOSITY" : 300.0,
+                "BULK_MODULUS"      : 2100000000.0,
+                "YIELD_SHEAR"       : 50.0,
+                "ADAPTIVE_EXPONENT" : 1000
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "PfemFluidModelPart.Parts_Parts_Auto2",
+        "properties_id"   : 2,
+        "Material"        : {
+            "Variables" : [],
+            "Tables"    : {}
+        }
+    }]
+}

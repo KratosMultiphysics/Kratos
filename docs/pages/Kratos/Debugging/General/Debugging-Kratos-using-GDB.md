@@ -21,13 +21,13 @@ To correctly compile a version of Kratos for debug you must first chose one of t
 
 As python is used as the main for the Kratos executions, some times you will want to know exactly which are the entry points that python used to execute C++ code. While this information is usually not available from GDB itself, you can obtain it if you execute te code through a python binary compiled with debug symbols. In order to do so, you must first install the python-dbg package:
 
-```sh
+```console
 sudo apt-get install python3-dbg
 ```
 
 And then modify you `configure.sh` script so you target the debug Python version:
 
-```sh
+```console
 # Set basic configuration
 export KRATOS_BUILD_TYPE="Debug"
 export PYTHON_EXECUTABLE="/usr/bin/python3-dbg"
@@ -74,7 +74,7 @@ It is also possible to debug MPI code using GDB. Although there are different ap
 This processes can be laborious if you want to debug even a small number of processes. Hence, we provide the next launcher in order to automatize such process:
 
 *mpirun_debug.sh*:
-```sh
+```console
 #!/bin/bash
 
 BREAKPOINTS=`echo "${GDB_BREAKPOINTS}" | sed -r -e "s/([^;]++);?/-ex 'break \1' /g"`
@@ -98,16 +98,16 @@ chmod +x mpirun_debug.sh
 
 Then, this script will automatically set up N instances of gdb, launch the command specified and run the code with a single instruction:
 
-```sh
+```console
 alias mpirund=~/.scripts/mpirun_debug.sh
 ```
 
-```sh
+```console
 mpirund NUM_PROCS python3-dbg MainKratos.py
 ```
 
 Be aware that in order to correctly debug the code, most of the times you will want to set the same breakpoints in all processes. You can do this by using `GDB_BREAKPOINTS` environment variable as you would within GDB and the breakpoints there will be automatically loaded to all processes open:
 
-```sh
+```console
 export GDB_BREAKPOINTS="my_file1.cpp:20;my_file2.h:13140"
 ```

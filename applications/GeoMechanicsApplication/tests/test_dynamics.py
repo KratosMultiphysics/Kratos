@@ -26,10 +26,10 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         bottom of the geometry such that half the stress in the soil column is cancelled out.
 
         Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
-        time step size is increase for faster calculation
+        time step size is increased for faster calculation
         :return:
         """
-        test_name = 'test_1d_wave_prop_drained_soil.gid'
+        test_name = 'test_1d_wave_prop_drained_soil'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         test_helper.run_kratos(file_path)
@@ -54,10 +54,10 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         step.
 
         Note that for an accurate results, the timestep size has to be decreased. For regression test purposes, the
-        time step size is increase for faster calculation
+        time step size is increased for faster calculation
         :return:
         """
-        test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping.gid'
+        test_name = 'test_1d_wave_prop_drained_soil_constant_mass_damping'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
 
         simulation = test_helper.run_kratos(file_path)
@@ -100,12 +100,6 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         for node in nodes:
             self.assertVectorAlmostEqual(calculated_result[node][what], expected_result[node][what])
 
-    @KratosUnittest.skip("unit test skipped as it is not ready")
-    def test_wave_through_undrained_linear_elastic_soil(self):
-        test_name = 'test_1d_confined_undrained_wave.gid'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
-        simulation = test_helper.run_kratos(file_path)
-        pass
 
 if __name__ == '__main__':
     KratosUnittest.main()

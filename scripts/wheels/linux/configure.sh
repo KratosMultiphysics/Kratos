@@ -25,13 +25,12 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/DEMApplication
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/MPMApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 # add_app ${KRATOS_APP_DIR}/FemToDemApplication;
