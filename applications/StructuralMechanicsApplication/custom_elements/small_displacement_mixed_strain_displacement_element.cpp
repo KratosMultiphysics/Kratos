@@ -384,6 +384,43 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleRHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
+    Matrix &rLHS,
+    const Matrix &rK,
+    const Matrix &rG,
+    const Matrix &rM)
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType dim     = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType system_size = n_nodes * (strain_size + dim);
+    const SizeType displ_size = n_nodes * dim;
+
+    // Assemble K
+    for (IndexType i = 0; i < rK.size1(); ++i)
+        for (IndexType j = 0; j < rK.size2(); ++j)
+            rLHS(i, j) = rK(i, j);
+
+    // Assemble M
+    for (IndexType i = 0; i < rM.size1(); ++i)
+        for (IndexType j = 0; j < rM.size2(); ++j)
+            rLHS(i + displ_size, j + displ_size) = rM(i, j);
+
+    // Assemble G
+    for (IndexType i = 0; i < rG.size1(); ++i)
+        for (IndexType j = 0; j < rG.size2(); ++j)
+            rLHS(i + displ_size, j) = rG(i, j);
+
+    // Assemble G transposed
+    for (IndexType i = 0; i < rG.size2(); ++i)
+        for (IndexType j = 0; j < rG.size1(); ++j)
+            rLHS(i, j + displ_size) = rG(j, i);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,

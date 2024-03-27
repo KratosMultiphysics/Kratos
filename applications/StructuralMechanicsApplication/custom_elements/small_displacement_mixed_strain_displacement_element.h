@@ -477,17 +477,37 @@ protected:
      * @param rN_Epsilon The matrix for interpolating the nodal strains
      * @param rN The nodal shape function values
      */
-    void CalculateN_EpsilonMatrix(Matrix &rN_Epsilon, const Vector &rN);
+    void CalculateN_EpsilonMatrix(
+        Matrix &rN_Epsilon,
+        const Vector &rN);
 
     /**
      * @brief This method assembles the nodal values vectors U and E
      */
-    void GetNodalDoFsVectors(Vector &rU, Vector &rE);
+    void GetNodalDoFsVectors(
+        Vector &rU,
+        Vector &rE);
 
     /**
      * @brief This method assembles the contributions to the RHS from the u and E parts
+     * RHS = | RHSu |
+     *       | RHSe |
      */
-    void AssembleRHS(Vector &rRHS, const Vector &rRHSu, const Vector &rRHSe);
+    void AssembleRHS(
+        Vector &rRHS,
+        const Vector &rRHSu,
+        const Vector &rRHSe);
+
+    /**
+     * @brief This method assembles the contributions to the LHS from the u and E parts
+     * LHS = | K , Gt |
+     *       | G ,  M |
+     */
+    void AssembleLHS(
+        Matrix &rLHS,
+        const Matrix &rK,
+        const Matrix &rG,
+        const Matrix &rM);
 
     ///@}
     ///@name Protected  Access
