@@ -75,8 +75,6 @@ protected:
         Vector N;
         Matrix B;
         Matrix N_epsilon;
-        // double detF;
-        // Matrix F;
         double detJ0;
         Matrix J0;
         Matrix InvJ0;
@@ -84,6 +82,7 @@ protected:
         Vector NodalDisplacements; // Displacement DoFs -> U
         Vector NodalStrains;       // Strains stored at the nodes (strain DoFs) -> E
         Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
+        Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
 
         /**
          * The default constructor
@@ -101,13 +100,13 @@ protected:
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            // F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             NodalDisplacements = ZeroVector(Dimension * NumberOfNodes);
             NodalStrains = ZeroVector(NumberOfNodes * StrainSize);
             EquivalentStrain = ZeroVector(StrainSize);
+            SymmGradientDispl = ZeroVector(StrainSize);
             N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
         }
     };

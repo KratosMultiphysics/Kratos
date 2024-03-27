@@ -339,8 +339,6 @@ void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     // Here we essentially set the input parameters
     rValues.SetStrainVector(rThisKinematicVariables.EquivalentStrain); // Equivalent stabilized total strain
     rValues.SetShapeFunctionsValues(rThisKinematicVariables.N);        // shape functions
-    // rValues.SetDeterminantF(rThisKinematicVariables.detF);             // assuming that det(F) is computed somewhere else
-    // rValues.SetDeformationGradientF(rThisKinematicVariables.F);        // assuming that F is computed somewhere else
 
     // Here we set the space on which the results shall be written
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D);
