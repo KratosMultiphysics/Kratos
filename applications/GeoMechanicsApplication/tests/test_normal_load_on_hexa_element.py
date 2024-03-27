@@ -38,10 +38,10 @@ class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
                                                                                        node_ids=bottom_node_nbrs)
 
         young_modulus = 3e7
-        A = 25.0
-        L = 5.0
+        area = 25.0
+        length = 5.0
         normal_contact_stress_at_top = -1000.0
-        expected_displacement = normal_contact_stress_at_top * A / (young_modulus * A / L)
+        expected_displacement = normal_contact_stress_at_top * area / (young_modulus * area / length)
 
         for displacement_at_top in displacements_at_top:
             self.assertAlmostEqual(displacement_at_top[2], expected_displacement, 6)
