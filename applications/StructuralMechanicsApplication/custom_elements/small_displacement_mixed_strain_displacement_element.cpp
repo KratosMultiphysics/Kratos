@@ -312,20 +312,143 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 /***********************************************************************************/
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLHS,
+    const ProcessInfo& rProcessInfo)
 {
+    const auto& r_geometry = GetGeometry();
+    const auto &r_props    = GetProperties();
+    const SizeType dim     = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType block_size  = dim + strain_size;
+    const SizeType matrix_size = block_size * n_nodes;
+    const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
 
+    // Check LHS size
+    if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
+        rLHS.resize(matrix_size, matrix_size, false);
+    }
+    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
+
+    // Create the kinematics container and fill the nodal data
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
+    // Compute U and E
+    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geometry, r_props, rProcessInfo);
+    auto& r_cl_options = cons_law_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+
+    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
+        M(n_nodes * strain_size, n_nodes * strain_size);
+    noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
+    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
+    noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
+
+    // IP loop
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+
+        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        if (dim == 2 && r_props.Has(THICKNESS))
+            w_gauss *= r_props[THICKNESS];
+
+        // Calculate the constitutive response with the equivalent stabilized strain
+        CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
+            cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // Contributions to the LHS
+        noalias(K) += tau * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(M) += (tau - 1.0)   * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += (1.0 - tau)   * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+    }
+    AssembleLHS(rLHS, K, G, M);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRHS,
+    const ProcessInfo& rProcessInfo)
 {
+    const auto& r_geometry = GetGeometry();
+    const auto &r_props    = GetProperties();
+    const SizeType dim     = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType block_size  = dim + strain_size;
+    const SizeType matrix_size = block_size * n_nodes;
+    const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
 
+    // Check RHS size
+    if (rRHS.size() != matrix_size) {
+        rRHS.resize(matrix_size, false);
+    }
+
+    noalias(rRHS) = ZeroVector(matrix_size);
+
+    // Create the kinematics container and fill the nodal data
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
+    // Compute U and E
+    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+
+    // Create the constitutive variables and values containers
+    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveLaw::Parameters cons_law_values(r_geometry, r_props, rProcessInfo);
+    auto& r_cl_options = cons_law_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+
+    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
+    noalias(RHSu) = ZeroVector(dim * n_nodes);
+    noalias(RHSe) = ZeroVector(strain_size * n_nodes);
+
+    // IP loop
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+
+        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+        if (dim == 2 && r_props.Has(THICKNESS))
+            w_gauss *= r_props[THICKNESS];
+
+        // Calculate the constitutive response with  Symmetric gradient of u
+        CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.SymmGradientDispl, constitutive_variables,
+            cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        const Vector stress_u = constitutive_variables.StressVector;
+
+        // Calculate the constitutive response with the equivalent stabilized strain
+        CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
+            cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        const Vector stress_epsilon = constitutive_variables.StressVector;
+
+        // Contributions to the RHS
+        noalias(RHSe) -= w_gauss * (prod(trans(kinematic_variables.N_epsilon), stress_u) - prod(trans(kinematic_variables.N_epsilon), stress_epsilon));
+        noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), stress_epsilon);
+
+        // Now we add the body forces
+        for (IndexType i = 0; i < n_nodes; ++i) {
+            const SizeType index = dim * i;
+            for (IndexType j = 0; j < dim; ++j)
+                RHSu[index + j] += w_gauss * kinematic_variables.N[i] * body_force[j];
+        }
+    }
+    AssembleRHS(rRHS, RHSu, RHSe);
 }
 
 /***********************************************************************************/
