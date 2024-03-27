@@ -445,7 +445,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleRHS(
     }
 
     for (IndexType i = 0; i < rRHSe.size(); ++i) {
-        rRHS[i + displ_size] = rRHSu[i];
+        rRHS[i + displ_size] = rRHSe[i];
     }
 }
 
