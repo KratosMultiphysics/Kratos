@@ -306,9 +306,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the LHS
-        noalias(K) += tau * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(M) += (tau - 1.0)   * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau)   * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, G, M);
@@ -372,9 +372,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Contributions to the LHS
-        noalias(K) += tau * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(M) += (tau - 1.0)   * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau)   * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
     }
     AssembleLHS(rLHS, K, G, M);
 }
@@ -520,7 +520,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
             rN_Epsilon(5, initial_index + 5) = rN[i];
         }
     }
-    KRATOS_WATCH(rN_Epsilon)
 }
 
 /***********************************************************************************/
@@ -614,6 +613,10 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     for (IndexType i = 0; i < rG.size2(); ++i)
         for (IndexType j = 0; j < rG.size1(); ++j)
             rLHS(i, j + displ_size) = rG(j, i);
+    // const Matrix Gt = trans(rG);
+    // for (IndexType i = 0; i < Gt.size1(); ++i)
+    //     for (IndexType j = 0; j < Gt.size2(); ++j)
+    //         rLHS(i, j + displ_size) = Gt(i, j);
 }
 
 /***********************************************************************************/
