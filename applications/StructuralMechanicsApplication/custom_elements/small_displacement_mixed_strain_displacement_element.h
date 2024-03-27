@@ -74,8 +74,9 @@ protected:
     {
         Vector N;
         Matrix B;
-        double detF;
-        Matrix F;
+        Matrix N_epsilon;
+        // double detF;
+        // Matrix F;
         double detJ0;
         Matrix J0;
         Matrix InvJ0;
@@ -96,17 +97,18 @@ protected:
             const SizeType NumberOfNodes
             )
         {
-            detF = 1.0;
+            // detF = 1.0;
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-            F = IdentityMatrix(Dimension);
+            // F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
             NodalDisplacements = ZeroVector(Dimension * NumberOfNodes);
             NodalStrains = ZeroVector(NumberOfNodes * StrainSize);
             EquivalentStrain = ZeroVector(StrainSize);
+            N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
         }
     };
 
@@ -481,6 +483,13 @@ protected:
     virtual Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
         const IndexType PointNumber) const;
+
+    /**
+     * @brief This function computes N_epsilon interpolation matrix for nodal strains
+     * @param rN_Epsilon The matrix for interpolating the nodal strains
+     * @param rN The nodal shape function values
+     */
+    void CalculateN_EpsilonMatrix(Matrix &rN_Epsilon, const Vector &rN);
 
     ///@}
     ///@name Protected  Access
