@@ -741,12 +741,12 @@ class DEMAnalysisStage(AnalysisStage):
         '''
         if type == "porosity":
 
-            measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
             sphere_volume_inside_range = 0.0
             measured_porosity = 0.0
 
             for node in self.spheres_model_part.Nodes:
-
+                
                 r = node.GetSolutionStepValue(RADIUS)
                 x = node.X
                 y = node.Y
@@ -758,7 +758,7 @@ class DEMAnalysisStage(AnalysisStage):
 
                     sphere_volume_inside_range += 4/3 * math.pi * r * r * r
 
-                elif center_to_sphere_distance < (radius + r):
+                elif center_to_sphere_distance <= (radius + r):
 
                     other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
 
@@ -767,8 +767,8 @@ class DEMAnalysisStage(AnalysisStage):
                     cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
                     
                     sphere_volume_inside_range += cross_volume
-
-            measured_porosity = 1 - (sphere_volume_inside_range / measure_sphere_volume)
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
 
             return measured_porosity
         
