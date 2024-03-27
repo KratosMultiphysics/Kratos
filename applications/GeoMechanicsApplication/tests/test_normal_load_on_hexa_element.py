@@ -3,29 +3,51 @@ import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
+
 class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
     """
-    This class contains benchmark tests to test if normal loads are correctly calculated on 1D elements.
+    This class contains tests for applying normal loads on 3D elements.
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
 
     def test_hexa_8n_normal_load(self):
         test_name = 'hexa_8n_normal_load'
         file_path = test_helper.get_file_path(test_name)
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
 
+        all_integration_points = [0, 1, 2, 3, 4, 5, 6, 7]
+        output_file_path = os.path.join(file_path, test_name + '.post.res')
+        output_reader = test_helper.GiDOutputFileReader()
+        output_data = output_reader.read_output_from(output_file_path)
+        total_stresses = \
+            test_helper.GiDOutputFileReader.element_integration_point_values_at_time("TOTAL_STRESS_TENSOR", 1.0,
+                                                                                     output_data, element_ids=[1],
+                                                                                     integration_point_indices=all_integration_points)[0]
 
+        self.assertEqual(len(total_stresses), 8)
 
+        for total_stress in total_stresses:
+            self.assertAlmostEqual(total_stress[0], 0.0, 6)  # Sxx
+            self.assertAlmostEqual(total_stress[1], 0.0, 6)  # Syy
+            self.assertAlmostEqual(total_stress[2], -1000.0, 6)  # Szz
 
+        top_node_nbrs = [5, 6, 7, 8]
+        displacements_at_top = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data,
+                                                                                    node_ids=top_node_nbrs)
+        bottom_node_nbrs = [1, 2, 3, 4]
+        displacements_at_bottom = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data,
+                                                                                       node_ids=bottom_node_nbrs)
 
-        self.assertAlmostEqual(0, 0, places=3)
+        young_modulus = 3e7
+        A = 25.0
+        L = 5.0
+        normal_contact_stress_at_top = -1000.0
+        expected_displacement = normal_contact_stress_at_top * A / (young_modulus * A / L)
+
+        for displacement_at_top in displacements_at_top:
+            self.assertAlmostEqual(displacement_at_top[2], expected_displacement, 6)
+        for displacement_at_bottom in displacements_at_bottom:
+            self.assertAlmostEqual(displacement_at_bottom[2], 0.0, 6)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
