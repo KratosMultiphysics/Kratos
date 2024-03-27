@@ -80,9 +80,9 @@ protected:
         Matrix J0;
         Matrix InvJ0;
         Matrix DN_DX;
-        Vector Displacements;    // Displacement DoFs
-        Vector NodalStrains;     // Strains stored at the nodes (strain DoFs)
-        Vector EquivalentStrain; // Stabilized strain field
+        Vector NodalDisplacements; // Displacement DoFs -> U
+        Vector NodalStrains;       // Strains stored at the nodes (strain DoFs) -> E
+        Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
 
         /**
          * The default constructor
@@ -104,7 +104,7 @@ protected:
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
             InvJ0 = ZeroMatrix(Dimension, Dimension);
-            Displacements = ZeroVector(Dimension * NumberOfNodes);
+            NodalDisplacements = ZeroVector(Dimension * NumberOfNodes);
             NodalStrains = ZeroVector(NumberOfNodes * StrainSize);
             EquivalentStrain = ZeroVector(StrainSize);
         }
