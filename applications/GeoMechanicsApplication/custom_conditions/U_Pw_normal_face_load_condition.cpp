@@ -108,7 +108,7 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
     }
     else if constexpr (TDim == 3) {
         // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
-        // should switch sign, such that positive stress is defined inwardly.
+        // should switch sign, such that positive normal contact stress is defined inwards.
         NormalStress *= -1;
 
         MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));

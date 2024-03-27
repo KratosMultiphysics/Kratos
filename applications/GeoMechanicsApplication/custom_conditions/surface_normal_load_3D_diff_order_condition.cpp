@@ -37,28 +37,27 @@ Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType NewId
     return Condition::Pointer(new SurfaceNormalLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                      unsigned int PointNumber)
 {
     KRATOS_TRY
 
-    Vector NormalVector(3);
-    MathUtils<double>::CrossProduct(NormalVector, column(rVariables.JContainer[PointNumber], 0),
+    Vector normal_vector(3);
+    MathUtils<double>::CrossProduct(normal_vector, column(rVariables.JContainer[PointNumber], 0),
                                     column(rVariables.JContainer[PointNumber], 1));
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
+    const auto& r_geometry                   = GetGeometry();
+    const auto  number_of_displacement_nodes = r_geometry.PointsNumber();
 
-    Vector normal_stresses(NumUNodes);
-    std::transform(rGeom.begin(), rGeom.end(), normal_stresses.begin(), [](const auto& node) {
-        return node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    Vector normal_stresses(number_of_displacement_nodes);
+    std::transform(r_geometry.begin(), r_geometry.end(), normal_stresses.begin(), [](const auto& r_node) {
+        return r_node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     });
 
-    // Since the normal vector is pointing outwards for the 3D conditions, the normal stress should
-    // switch sign (multiplied by -1), such that positive stress is defined inwardly.
-    double NormalStress        = -1 * MathUtils<>::Dot(rVariables.Nu, normal_stresses);
-    rVariables.ConditionVector = NormalStress * NormalVector;
+    // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
+    // should switch sign, such that positive normal contact stress is defined inwards.
+    const double normal_stress = -1 * MathUtils<>::Dot(rVariables.Nu, normal_stresses);
+    rVariables.ConditionVector = normal_stress * normal_vector;
 
     KRATOS_CATCH("")
 }
