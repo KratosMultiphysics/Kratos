@@ -65,6 +65,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementMixedStrainD
     : public Element
 {
 
+    static constexpr double default_stabilization_factor = 0.1;
+
 protected:
 
     /**

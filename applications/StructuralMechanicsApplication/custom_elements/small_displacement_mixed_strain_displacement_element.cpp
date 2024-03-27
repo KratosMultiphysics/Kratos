@@ -236,8 +236,23 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
         rLHS.resize(matrix_size, matrix_size, false);
     }
-    noalias(rLHS) = ZeroMatrix(matrix_size);
+    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
     noalias(rRHS) = ZeroVector(matrix_size);
+
+    // Create the kinematics container and fill the nodal data
+    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+
+    // Compute U and E
+    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
+
+    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+
+        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        const double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
+    }
+
 }
 
 /***********************************************************************************/
@@ -477,43 +492,32 @@ Vector SmallDisplacementMixedStrainDisplacementElement::GetBodyForce(
 /***********************************************************************************/
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariables(
-    KinematicVariables& rThisKinematicVariables,
-    const IndexType PointNumber,
+    KinematicVariables& rKinVariables,
+    const IndexType IP,
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
-    // const auto& r_geometry = GetGeometry();
-    // const auto& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
 
-    // // Shape functions
-    // rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
+    // Shape functions
+    rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
 
-    // // Calculate the inverse Jacobian
-    // GeometryUtils::JacobianOnInitialConfiguration(
-    //     r_geometry,
-    //     r_integration_points[PointNumber],
-    //     rThisKinematicVariables.J0);
-    // MathUtils<double>::InvertMatrix(
-    //     rThisKinematicVariables.J0,
-    //     rThisKinematicVariables.InvJ0,
-    //     rThisKinematicVariables.detJ0);
-    // KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0)
-    //     << "Element ID: " << this->Id() << " is inverted. det(J0) = " << rThisKinematicVariables.detJ0 << std::endl;
+    // Calculate the inverse Jacobian
+    GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[IP], rKinVariables.J0);
+    MathUtils<double>::InvertMatrix(rKinVariables.J0, rKinVariables.InvJ0, rKinVariables.detJ0);
+    KRATOS_ERROR_IF(rKinVariables.detJ0 < 0.0) << "Element ID: " << this->Id() << " is inverted. det(J0) = " 
+        << rKinVariables.detJ0 << std::endl;
 
-    // // Calculate the shape functions gradients
-    // GeometryUtils::ShapeFunctionsGradients(
-    //     r_geometry.ShapeFunctionsLocalGradients(rIntegrationMethod)[PointNumber],
-    //     rThisKinematicVariables.InvJ0,
-    //     rThisKinematicVariables.DN_DX);
+    // Calculate the shape functions gradients
+    GeometryUtils::ShapeFunctionsGradients(r_geometry.ShapeFunctionsLocalGradients(rIntegrationMethod)[IP],
+        rKinVariables.InvJ0, rKinVariables.DN_DX);
 
-    // // Compute B
-    // CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.DN_DX);
+    // Compute B
+    CalculateB(rKinVariables.B, rKinVariables.DN_DX);
 
-    // // Calculate the equivalent total strain
-    // CalculateEquivalentStrain(rThisKinematicVariables);
+    // Calculate the equivalent total strain
+    CalculateEquivalentStrain(rKinVariables);
 
-    // // Compute equivalent F
-    // ComputeEquivalentF(rThisKinematicVariables.F, rThisKinematicVariables.EquivalentStrain);
-    // rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/
@@ -534,9 +538,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
+void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
+    KinematicVariables& rKinVars) const
 {
-
+    const auto &r_props = GetProperties();
+    const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
+    noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * prod(rKinVars.N_epsilon, rKinVars.NodalStrains) +
+        tau * prod(rKinVars.B, rKinVars.NodalDisplacements);
 }
 
 /***********************************************************************************/
