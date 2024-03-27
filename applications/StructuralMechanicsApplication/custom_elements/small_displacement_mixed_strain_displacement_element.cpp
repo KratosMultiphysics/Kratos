@@ -131,7 +131,8 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
     const SizeType n_nodes     = r_geometry.PointsNumber();
     const SizeType dim         = r_geometry.WorkingSpaceDimension();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-    const SizeType dof_size    = n_nodes * (dim + strain_size);
+    const SizeType block_size  = dim + strain_size;
+    const SizeType dof_size    = n_nodes * block_size;
 
     if (rElementalDofList.size() != dof_size){
         rElementalDofList.resize(dof_size);
@@ -139,23 +140,23 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
 
     if (dim == 2) {
         for(IndexType i = 0; i < n_nodes; ++i) {
-            rElementalDofList[i * dof_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[i * dof_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[i * dof_size + 2] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[i * dof_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[i * dof_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[i * block_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * block_size + 2] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[i * block_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[i * block_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
         }
     } else if (dim == 3) {
         for(IndexType i = 0; i < n_nodes; ++i) {
-            rElementalDofList[i * dof_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[i * dof_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[i * dof_size + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[i * dof_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[i * dof_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[i * dof_size + 5] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_ZZ);
-            rElementalDofList[i * dof_size + 6] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
-            rElementalDofList[i * dof_size + 7] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YZ);
-            rElementalDofList[i * dof_size + 8] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XZ);
+            rElementalDofList[i * block_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * block_size + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[i * block_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[i * block_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[i * block_size + 5] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_ZZ);
+            rElementalDofList[i * block_size + 6] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[i * block_size + 7] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YZ);
+            rElementalDofList[i * block_size + 8] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XZ);
         }
     }
 
