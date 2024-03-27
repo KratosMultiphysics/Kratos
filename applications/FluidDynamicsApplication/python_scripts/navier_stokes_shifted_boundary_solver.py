@@ -44,9 +44,13 @@ class ShiftedBoundaryFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "ShiftedBoundaryWeaklyCompressibleNavierStokes"
-        self.condition_name = "ShiftedBoundaryWallCondition"
+        self.condition_name = "NavierStokesWallCondition"
+        self.sbm_interface_condition_name = "ShiftedBoundaryWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
-        #TODO: warning that discontinuous is not supported yet
+        # Error that discontinuous is not supported yet
+        if self.level_set_type == "discontinuous":
+            err_msg = 'Provided level set type \'discontinuous\' is not supported yet for MLS-based SBM.'
+            raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
         self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
@@ -158,6 +162,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.shifted_boundary_formulation = ShiftedBoundaryFormulation(self.settings["formulation"])
         self.element_name = self.shifted_boundary_formulation.element_name
         self.condition_name = self.shifted_boundary_formulation.condition_name
+        self.sbm_interface_condition_name = self.shifted_boundary_formulation.sbm_interface_condition_name
         self.level_set_type = self.shifted_boundary_formulation.level_set_type
         self.element_integrates_in_time = self.shifted_boundary_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.shifted_boundary_formulation.element_has_nodal_properties
@@ -179,6 +184,8 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         # Adding variables required for the nodal material properties
         if self.element_has_nodal_properties:
@@ -301,7 +308,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("conforming_basis").SetBool(self.settings["formulation"]["conforming_basis"].GetBool())
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
-        settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.condition_name)
+        settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
         sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
         sbm_interface_utility.CalculateExtensionOperator()
 
