@@ -538,6 +538,9 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( cons
             //Compute Saturation Law variables: Sl, dSldPc, krl and krg
             mSaturationLawVector[GPoint]->CalculateMaterialResponse(SaturationParameters);
 
+            // Update the density based on the new saturation degree
+            this->UpdateDensity(Variables);
+
             noalias(GradGasPressureTerm) = prod(trans(Variables.GradNpT),Variables.GasPressureVector);
             noalias(GradGasPressureTerm) += -Variables.GasDensity*Variables.BodyAcceleration;
 
@@ -1636,6 +1639,11 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.LiquidDensity              = Prop[DENSITY_LIQUID];
     rVariables.GasDensity                 = Prop[DENSITY_GAS];
     rVariables.GasHenrySolubilityCoeff    = Prop[GAS_HENRY_SOLUBILITY_COEFF];
+    rVariables.GasMolarWeight             = Prop[GAS_MOLAR_WEIGHT];
+    rVariables.Temperature                = Prop[TEMPERATURE];
+    rVariables.TortuosityCoeff            = Prop[TORTUOSITY_COEFF];
+    rVariables.GasDiffusionCoeff          = Prop[GAS_DIFFUSION_COEFF];
+    rVariables.LiquidDensityRefPressure   = Prop[LIQUID_DENSITY_REF_PRESSURE];
     rVariables.BiotCoefficient            = Prop[BIOT_COEFFICIENT];
     rVariables.SolidCompressibilityCoeff  = (rVariables.BiotCoefficient-rVariables.Porosity)/Prop[BULK_MODULUS_SOLID];
     rVariables.LiquidCompressibilityCoeff = rVariables.Porosity/Prop[BULK_MODULUS_LIQUID];
@@ -1886,6 +1894,12 @@ void UPlPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(dou
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPlPgSmallStrainElement<TDim,TNumNodes>::UpdateDensity(ElementVariables& rVariables)
 {
+    //TODO. Ignasi
+    // Gas density defined from the ideal gas law (Liakopoulos test in OGS)
+    const double ideal_gas_constant = 8.31446261815324;
+    const double pg = inner_prod(rVariables.Np,rVariables.GasPressureVector);
+    rVariables.GasDensity = pg*rVariables.GasMolarWeight/(ideal_gas_constant*rVariables.Temperature);
+
     // Update the density based on the new saturation degree
     rVariables.Density = rVariables.Porosity * (rVariables.Sl * rVariables.LiquidDensity + (1.0 - rVariables.Sl) * rVariables.GasDensity) + 
                             (1.0 - rVariables.Porosity) * rVariables.SolidDensity;

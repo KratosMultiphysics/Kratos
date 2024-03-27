@@ -22,11 +22,6 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     double& rSl = rValues.GetSl();
     double& rdSldPc = rValues.GetdSldPc();
 
-    //TODO. Ignasi
-    // This is only used in the Liakopoulos test
-    // rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
-    //
-
     // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
     rSl = 1.0 - rVariables.Sgr;
     rdSldPc = 0.0;
@@ -34,12 +29,18 @@ void BrooksAndCoreyLaw::CalculateLiquidSaturationDegree (SaturationLawVariables&
     if(rVariables.pc > rVariables.pb)
     {
         // Liquid saturation degree
-        rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
-                + rVariables.Slr;
-
+        // rSl = (1.0 - rVariables.Sgr - rVariables.Slr)*std::pow(rVariables.pb/rVariables.pc,rVariables.lambda)
+        //         + rVariables.Slr;
+        //TODO. Ignasi
+        // This is only used in the Liakopoulos test
+        rSl = 1.0 - 0.10152*std::pow(rVariables.pc/(9806.0),2.4279);
+    
         // Derivative of the liquid saturation degree with respect to the capillary pressure
-        rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
-                    std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
+        // rdSldPc = -rVariables.lambda * (1.0 - rVariables.Sgr - rVariables.Slr) * 
+        //             std::pow(rVariables.pb,rVariables.lambda) / std::pow(rVariables.pc,rVariables.lambda+1.0);
+        //TODO. Ignasi
+        // This is only used in the Liakopoulos test
+        rdSldPc = (-2.4279*0.10152/std::pow(9806.0,2.4279))*std::pow(rVariables.pc,1.4279);
     }
 }
 
@@ -49,12 +50,6 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
 {
     double& rkrl = rValues.Getkrl();
 
-    //TODO. Ignasi
-    // This is only used in the Liakopoulos test
-    // double& rSl = rValues.GetSl();
-    // rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
-    //
-
     if (rVariables.Se >= 1.0) {
         // Fully saturated medium
         rkrl = 1.0;
@@ -62,8 +57,12 @@ void BrooksAndCoreyLaw::CalculateLiquidRelativePermeability (SaturationLawVariab
         // Dry medium
         rkrl = rVariables.krmin;
     } else {
-        const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
-        rkrl = std::pow(rVariables.Se,nl);
+        // const double nl = (2.0 + 3.0*rVariables.lambda)/rVariables.lambda;
+        // rkrl = std::pow(rVariables.Se,nl);
+        //TODO. Ignasi
+        // This is only used in the Liakopoulos test
+        double& rSl = rValues.GetSl();
+        rkrl = 1.0 - 2.207*std::pow(1.0-rSl,1.0121);
         rkrl = std::max(rkrl,rVariables.krmin);
     }
 }
