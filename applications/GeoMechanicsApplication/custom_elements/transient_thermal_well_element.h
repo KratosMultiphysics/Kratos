@@ -58,6 +58,8 @@ public:
         return make_intrusive<TransientThermalWellElement>(NewId, pGeom, pProperties);
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
         KRATOS_TRY
@@ -70,6 +72,8 @@ public:
         KRATOS_CATCH("")
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
         KRATOS_TRY
@@ -82,6 +86,8 @@ public:
         KRATOS_CATCH("")
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override
@@ -113,28 +119,26 @@ public:
         KRATOS_CATCH("")
     }
 
+    // ============================================================================================
+    // ============================================================================================
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (TNumNodes) {
+        case 2:
         case 3:
-        case 4:
-        case 6:
-        case 8:
-        case 9:
-        case 20:
-        case 27:
             return GeometryData::IntegrationMethod::GI_GAUSS_2;
-        case 10:
-            return GeometryData::IntegrationMethod::GI_GAUSS_4;
-        case 15:
+        case 4:
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        case 5:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected "
-                            "number of nodes: "
+            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: "
                          << TNumNodes << std::endl;
         }
     }
 
+    // ============================================================================================
+    // ============================================================================================
     int Check(const ProcessInfo&) const override
     {
         KRATOS_TRY
@@ -152,6 +156,8 @@ public:
     }
 
 private:
+    // ============================================================================================
+    // ============================================================================================
     void CheckDomainSize() const
     {
         constexpr auto min_domain_size = 1.0e-15;
@@ -159,6 +165,8 @@ private:
             << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
@@ -167,6 +175,8 @@ private:
         }
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CheckHasDofsFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
@@ -176,27 +186,17 @@ private:
         }
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CheckProperties() const
     {
         CheckProperty(DENSITY_WATER);
-        CheckProperty(POROSITY);
-        CheckProperty(RETENTION_LAW, "SaturatedLaw");
-        CheckProperty(SATURATED_SATURATION);
-        CheckProperty(DENSITY_SOLID);
-        CheckProperty(SPECIFIC_HEAT_CAPACITY_WATER);
-        CheckProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
+        CheckProperty(VISCOSITY_WATER);
         CheckProperty(THERMAL_CONDUCTIVITY_WATER);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
-        CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
-
-        if constexpr (TDim == 3) {
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
-            CheckProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
-        }
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
@@ -205,6 +205,8 @@ private:
             << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
@@ -214,6 +216,8 @@ private:
             << ") instead of (" << rName << ") at element " << Id() << std::endl;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void CheckForNonZeroZCoordinateIn2D() const
     {
         if constexpr (TDim == 2) {
@@ -225,6 +229,8 @@ private:
         }
     }
 
+    // ============================================================================================
+    // ============================================================================================
     static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix,
@@ -236,6 +242,8 @@ private:
         rLeftHandSideMatrix += rConvectionMatrix;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix,
@@ -253,6 +261,8 @@ private:
         rRightHandSideVector += convection_vector;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
@@ -267,6 +277,8 @@ private:
         return result;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector& rIntegrationCoefficients,
@@ -301,6 +313,8 @@ private:
         return result;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients,
                                                                         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -329,6 +343,8 @@ private:
         return result;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
         auto result            = array_1d<double, TNumNodes>{};

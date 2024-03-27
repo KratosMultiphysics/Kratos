@@ -136,15 +136,11 @@ namespace Kratos
         if (Prop.Has(DENSITY_WATER) == false || Prop[DENSITY_WATER] < 0.0) {
             KRATOS_ERROR << "DENSITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-        if (Prop.Has(VISCOSITY_WATER) == false || Prop[VISCOSITY_WATER] < 0.0) {
-            KRATOS_ERROR << "VISCOSITY_WATER does not exist in the material properties or has an "
-                            "invalid value at element" << this->Id() << std::endl;
-        }
         if (Prop.Has(DYNAMIC_VISCOSITY) == false || Prop[DYNAMIC_VISCOSITY] < 0.0) {
             KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-        if (Prop.Has(TRANSVERSAL_PERMEABILITY) == false || Prop[PERMEABILITY_XX] < 0.0) {
-            KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+        if (Prop.Has(TRANSVERSAL_PERMEABILITY) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0) {
+            KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
         if (Prop.Has(WELL_LENGTH) == false || Prop[WELL_LENGTH] < 0.0) {
             KRATOS_ERROR << "WELL_LENGTH does not exist in the material properties or has an "
@@ -152,6 +148,10 @@ namespace Kratos
         }
         if (Prop.Has(WELL_DIAMETER) == false || Prop[WELL_DIAMETER] < 0.0) {
             KRATOS_ERROR << "WELL_DIAMETER does not exist in the material properties or has an "
+                            "invalid value at element" << this->Id() << std::endl;
+        }
+        if (Prop.Has(WATER_COMPRESSIBILITY) == false || Prop[WATER_COMPRESSIBILITY] < 0.0) {
+            KRATOS_ERROR << "WATER_COMPRESSIBILITY does not exist in the material properties or has an "
                             "invalid value at element" << this->Id() << std::endl;
         }
         if (TDim == 2) {
@@ -187,14 +187,32 @@ namespace Kratos
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+
+
+
+
+        GeometryType::JacobiansType JContainer(NumGPoints);
+        for (unsigned int i = 0; i < NumGPoints; ++i)
+            JContainer[i].resize(TDim, 1, false);
+        rGeom.Jacobian(JContainer, this->GetIntegrationMethod());
+
+
+
+
+
+
+
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
             // Compute weighting coefficient for integration
-            Variables.IntegrationCoefficient =
+            Variables.IntegrationCoefficient = 
                 this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+
+            //Variables.IntegrationCoefficient = 
+            //    this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
             // Contributions to the left hand side
             if (CalculateStiffnessMatrixFlag) {
@@ -202,8 +220,8 @@ namespace Kratos
             }
         }
 
-        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.compressibilityMatrix);
-        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtPressureCoefficient * Variables.permeabilityMatrix);
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, Variables.DtPressureCoefficient * Variables.compressibilityMatrix);
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix,  Variables.permeabilityMatrix);
 
         if (CalculateResidualVectorFlag) {
             this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -228,26 +246,31 @@ namespace Kratos
         rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
         // Nodal Variables
+
         this->InitializeNodalPorePressureVariables(rVariables);
         this->InitializeNodalVolumeAccelerationVariables(rVariables);
 
         // Variables computed at each GP
         rVariables.N.resize(TNumNodes, false);
-        rVariables.GradNT.resize(TNumNodes, TDim, false);
+        rVariables.GradNT.resize(TNumNodes, 1, false);
 
         // General Variables
         const GeometryType& Geom      = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // shape functions
-        (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
+        rVariables.NContainer.resize(NumGPoints, TNumNodes, false);
         rVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         // gradient of shape functions and determinant of Jacobian
         rVariables.detJContainer.resize(NumGPoints, false);
 
-        Geom.ShapeFunctionsIntegrationPointsGradients(rVariables.DN_DXContainer,
-            rVariables.detJContainer, this->GetIntegrationMethod());
+        //Geom.ShapeFunctionsIntegrationPointsGradients(rVariables.DN_DXContainer,
+        //    rVariables.detJContainer, this->GetIntegrationMethod());
+        //
+
+        Geom.DeterminantOfJacobian(rVariables.detJContainer, this->GetIntegrationMethod());
+        rVariables.DN_DXContainer = Geom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
 
         rVariables.compressibilityMatrix = ZeroMatrix(TNumNodes, TNumNodes);
         rVariables.permeabilityMatrix    = ZeroMatrix(TNumNodes, TNumNodes);
@@ -308,7 +331,7 @@ namespace Kratos
 
         this->CalculateAndAddCompressibilityVector(rRightHandSideVector, rVariables);
         this->CalculateAndAddPermeabilityVector(rRightHandSideVector, rVariables);
-        //this->CalculateAndAddFluidBodyVector(rRightHandSideVector, rVariables);   //TODO: is it rho g ?
+        this->CalculateAndAddBodyForceVector(rRightHandSideVector, rVariables);
 
         KRATOS_CATCH("");
     }
@@ -368,7 +391,7 @@ namespace Kratos
         const GeometryType& rGeom = this->GetGeometry();
 
         // Nodal Variables
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VolumeAcceleration,
+        GeoElementUtilities::GetNodalVariableVector<1, TNumNodes>(rVariables.VolumeAcceleration,
                                                                      rGeom, VOLUME_ACCELERATION);
 
         KRATOS_CATCH("")
@@ -385,6 +408,19 @@ namespace Kratos
         return IntegrationPoints[PointNumber].Weight() * detJ;
     }
 
+//----------------------------------------------------------------------------------------
+    template <unsigned int TDim, unsigned int TNumNodes>
+    double TransientPwWellElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
+        const Matrix& Jacobian,
+        const double& Weight)
+    {
+        double dx_dxi = Jacobian(0, 0);
+        double dy_dxi = Jacobian(1, 0);
+
+        double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+        return ds * Weight;
+    }
 
     // ============================================================================================
     // ============================================================================================
@@ -394,8 +430,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        rVariables.compressibilityMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient *
-            rVariables.BiotModulusInverse * outer_prod(rVariables.N, rVariables.N) *
+        this->CalculateCompressibilityFactor(rVariables);
+
+        rVariables.compressibilityMatrix += rVariables.compressibilityFactor * outer_prod(rVariables.N, rVariables.N) *
             rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("");
@@ -409,11 +446,13 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        Matrix PDimMatrix = -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNT, rVariables.permeabilityMatrix);
+        this->CalculatePermeabilityTensor(rVariables);
 
-        rVariables.permeabilityMatrix =
-            (1.0 / rVariables.dynamicViscosity) *
-            prod(PDimMatrix, trans(rVariables.GradNT)) * rVariables.IntegrationCoefficient;
+        Matrix Temp = -prod(rVariables.GradNT, rVariables.permeabilityTensor);
+
+        rVariables.permeabilityMatrix += rVariables.waterDensity / rVariables.dynamicViscosity *
+                                        prod(Temp, trans(rVariables.GradNT)) *
+                                        rVariables.IntegrationCoefficient ;
 
         KRATOS_CATCH("");
     }
@@ -437,6 +476,18 @@ namespace Kratos
     // ============================================================================================
     // ============================================================================================
     template <unsigned int TDim, unsigned int TNumNodes>
+    void TransientPwWellElement<TDim, TNumNodes>::CalculateCompressibilityVector(ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        rVariables.compressibilityVector = -prod(rVariables.compressibilityMatrix, rVariables.DtPressureVector);
+
+        KRATOS_CATCH("")
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
     void TransientPwWellElement<TDim, TNumNodes>::CalculateAndAddPermeabilityVector(
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables)
@@ -446,19 +497,6 @@ namespace Kratos
         this->CalculatePermeabilityVector(rVariables);
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,
             rVariables.permeabilityVector);
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template <unsigned int TDim, unsigned int TNumNodes>
-    void TransientPwWellElement<TDim, TNumNodes>::CalculateCompressibilityVector(
-        ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        rVariables.compressibilityVector = -prod(rVariables.compressibilityMatrix, rVariables.DtPressureVector);
 
         KRATOS_CATCH("")
     }
@@ -485,14 +523,142 @@ namespace Kratos
         const PropertiesType& rProp = this->GetProperties();
 
         rVariables.waterDensity      = rProp[DENSITY_WATER];
-        rVariables.dynamicViscosity  = rProp[VISCOSITY_WATER];
+        rVariables.dynamicViscosity  = rProp[DYNAMIC_VISCOSITY];
         rVariables.wellLength        = rProp[WELL_LENGTH];
         rVariables.wellDiameter      = rProp[WELL_DIAMETER];
+        rVariables.waterCompressibility = rProp[WATER_COMPRESSIBILITY];
 
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
+    void TransientPwWellElement<TDim, TNumNodes>::CalculateCompressibilityFactor(ElementVariables& rVariables)
+    {
+        const PropertiesType& rProp = this->GetProperties();
+        rVariables.compressibilityFactor =
+            1.0 / (rProp[DENSITY_WATER] * rProp[WELL_LENGTH] * 9.81) + rProp[WATER_COMPRESSIBILITY];
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
+    void TransientPwWellElement<TDim, TNumNodes>::CalculatePermeabilityTensor(ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+
+        const PropertiesType& rProp         = this->GetProperties();
+
+        rVariables.permeabilityTensor(0, 0) = rProp[WELL_DIAMETER] * rProp[WELL_DIAMETER] / 32.0;
+        //rVariables.permeabilityTensor(1, 1) = rProp[TRANSVERSAL_PERMEABILITY];
+        //rVariables.permeabilityTensor(0, 1) = 0.0;
+        //rVariables.permeabilityTensor(1, 0) = 0.0;
+
+        KRATOS_CATCH("");
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
+    void TransientPwWellElement<TDim, TNumNodes>::CalculateAndAddBodyForceVector(VectorType& rRightHandSideVector,
+                                                                                 ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+
+        this->CalculateBodyForceVector(rVariables);
+        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.bodyForceVector);
+
+        KRATOS_CATCH("");
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
+    void TransientPwWellElement<TDim, TNumNodes>::CalculateBodyForceVector(ElementVariables& rVariables)
+    {
+        KRATOS_TRY;
+
+        const GeometryType& rGeom = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->GetIntegrationMethod());
+        const unsigned int NumGPoints = IntegrationPoints.size();
+
+        const PropertiesType& rProp = this->GetProperties();
+
+        rVariables.bodyForceVector = ZeroVector(TNumNodes);
+
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            this->CalculateKinematics(rVariables, GPoint);
+            rVariables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, rVariables.detJ);
+            Matrix Temp = -prod(rVariables.GradNT, rVariables.permeabilityTensor);
+            rVariables.bodyForceVector += rVariables.waterDensity / rVariables.dynamicViscosity *
+                                          prod(Temp, rVariables.waterDensity * rVariables.VolumeAcceleration) *
+                                          rVariables.IntegrationCoefficient;
+        }
+        KRATOS_CATCH("");
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
+    void TransientPwWellElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                                                        VectorType& rRightHandSideVector,
+                                                                        const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        const unsigned int N_DOF = this->GetNumberOfDOF();
+
+        // Resetting the LHS
+        if (rLeftHandSideMatrix.size1() != N_DOF) {
+            rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
+        }
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
+
+        // Resetting the RHS
+        if (rRightHandSideVector.size() != N_DOF) {
+            rRightHandSideVector.resize(N_DOF, false);
+        }
+        noalias(rRightHandSideVector) = ZeroVector(N_DOF);
+
+        // calculation flags
+        const bool CalculateStiffnessMatrixFlag = true;
+        const bool CalculateResidualVectorFlag  = true;
+
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+                     CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+
+        KRATOS_CATCH("")
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template <unsigned int TDim, unsigned int TNumNodes>
+    GeometryData::IntegrationMethod TransientPwWellElement<TDim, TNumNodes>::GetIntegrationMethod() const
+    {
+        GeometryData::IntegrationMethod GI_GAUSS;
+        //
+        switch (TNumNodes) {
+        case 2:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        case 3:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        case 4:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
+            break;
+        case 5:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+            break;
+        default:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        }
+        return GI_GAUSS;
+    }
+
+    //----------------------------------------------------------------------------------------------------
 
 template class TransientPwWellElement<2, 2>;
 template class TransientPwWellElement<2, 3>;

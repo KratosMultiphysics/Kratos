@@ -65,20 +65,23 @@ public:
         double waterDensity = 0.0;
         double wellLength = 0.0;
         double wellDiameter = 0.0;
+        double compressibilityFactor = 0.0;
+        double waterCompressibility  = 0.0;
 
         double BiotCoefficient;
         double BiotModulusInverse;
-        BoundedMatrix<double, TDim, TDim> compressibilityMatrix;
-        BoundedMatrix<double, TDim, TDim> permeabilityMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes> compressibilityMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes> permeabilityMatrix;
         array_1d<double, TNumNodes> compressibilityVector;
         array_1d<double, TNumNodes> permeabilityVector;
+        BoundedMatrix<double, 1, 1> permeabilityTensor;
+        array_1d<double, TNumNodes> bodyForceVector;
 
         double DtPressureCoefficient;
 
         array_1d<double, TNumNodes> pressureVector;
         array_1d<double, TNumNodes> DtPressureVector;
-        array_1d<double, TNumNodes * TDim> VolumeAcceleration;
-        array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TNumNodes * 1> VolumeAcceleration;
 
         Vector N;
         Matrix GradNT;
@@ -145,6 +148,19 @@ protected:
     void InitializeProperties(ElementVariables& rVariables);
 
     unsigned int GetNumberOfDOF() const;
+
+    void CalculateCompressibilityFactor(ElementVariables& rVariables);
+    void CalculatePermeabilityTensor(ElementVariables& rVariables);
+    void CalculateBodyForceVector(ElementVariables& rVariables);
+    void CalculateAndAddBodyForceVector(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+    double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight);
+
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
