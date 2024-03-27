@@ -220,22 +220,24 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo)
 {
-    // const auto& r_geometry = GetGeometry();
-    // const SizeType dim = r_geometry.WorkingSpaceDimension();
-    // const SizeType n_nodes = r_geometry.PointsNumber();
-    // const SizeType block_size = dim + 1;
-    // const SizeType matrix_size = block_size * n_nodes;
-    // const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const auto& r_geometry = GetGeometry();
+    const SizeType dim     = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType block_size  = dim + strain_size;
+    const SizeType matrix_size = block_size * n_nodes;
 
-    // // Check RHS size
-    // if (rRightHandSideVector.size() != matrix_size) {
-    //     rRightHandSideVector.resize(matrix_size, false);
-    // }
+    // Check RHS size
+    if (rRHS.size() != matrix_size) {
+        rRHS.resize(matrix_size, false);
+    }
 
-    // // Check LHS size
-    // if (rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size) {
-    //     rLeftHandSideMatrix.resize(matrix_size, matrix_size, false);
-    // }
+    // Check LHS size
+    if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
+        rLHS.resize(matrix_size, matrix_size, false);
+    }
+    noalias(rLHS) = ZeroMatrix(matrix_size);
+    noalias(rRHS) = ZeroVector(matrix_size);
 
     // // Create the kinematics container and fill the nodal data
     // KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
