@@ -96,7 +96,6 @@ protected:
             const SizeType NumberOfNodes
             )
         {
-            // detF = 1.0;
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
@@ -425,16 +424,6 @@ protected:
     virtual void InitializeMaterial();
 
     /**
-     * @brief Calculation of the deformation gradient F
-     * @param rF The deformation gradient
-     * @param rStrainTensor The strain tensor in Voigt notation
-     */
-    void ComputeEquivalentF(
-        Matrix& rF,
-        const Vector& rStrainTensor
-        ) const;
-
-    /**
      * @brief This method returns if the element provides the strain
      */
     virtual bool UseElementProvidedStrain() const;
@@ -489,6 +478,8 @@ protected:
      * @param rN The nodal shape function values
      */
     void CalculateN_EpsilonMatrix(Matrix &rN_Epsilon, const Vector &rN);
+
+    void GetNodalDoFsVectors(Vector &rU, Vector &rE);
 
     ///@}
     ///@name Protected  Access

@@ -328,6 +328,38 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
+    Vector &rU,
+    Vector &rE)
+{
+    const auto& r_geometry = GetGeometry();
+    const SizeType dim     = r_geometry.WorkingSpaceDimension();
+    const SizeType n_nodes = r_geometry.PointsNumber();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    if (rU.size() != dim*n_nodes)
+        rU.resize(dim * n_nodes, false);
+    if (rE.size() != strain_size*n_nodes)
+        rE.resize(strain_size * n_nodes, false);
+
+    for (IndexType i = 0; i < n_nodes; ++i) {
+        const auto& r_displ = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        SizeType index = i * dim;
+        for(IndexType k = 0; k < dim; ++k) {
+            rU[index + k] = r_displ[k];
+        }
+
+        const auto& r_nodal_strain = r_geometry[i].FastGetSolutionStepValue(NODAL_STRAIN_VECTOR);
+        index = i * strain_size;
+        for(IndexType k = 0; k < strain_size; ++k) {
+            rE[index + k] = r_nodal_strain[k];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
@@ -443,44 +475,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateB(
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(KinematicVariables& rThisKinematicVariables) const
 {
-    // const auto& r_geom = GetGeometry();
-    // const SizeType n_nodes = r_geom.PointsNumber();
-    // const SizeType dim = r_geom.WorkingSpaceDimension();
-    // const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
-    // // Set the identity in Voigt notation
-    // Vector voigt_identity = ZeroVector(strain_size);
-    // for (IndexType d = 0; d < dim; ++d) {
-    //     voigt_identity[d] = 1.0;
-    // }
-
-    // // Calculate the total strain
-    // Vector eq_strain = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
-
-    // // Calculate the volumetric contribution
-    // const Vector T_B_U = prod(mAnisotropyTensor, eq_strain);
-    // double gauss_vol_strain = inner_prod(voigt_identity, T_B_U);
-    // for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-    //     gauss_vol_strain -= rThisKinematicVariables.N[i_node] * rThisKinematicVariables.VolumetricNodalStrains[i_node];
-    // }
-    // gauss_vol_strain /= dim;
-
-    // // Substract the volumetric contribution to the total strain
-    // eq_strain -= gauss_vol_strain * prod(mInverseAnisotropyTensor, voigt_identity);
-
-    // // Save the obtained value in the kinematics container
-    // rThisKinematicVariables.EquivalentStrain = eq_strain;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallDisplacementMixedStrainDisplacementElement::ComputeEquivalentF(
-    Matrix& rF,
-    const Vector& rStrainTensor
-    ) const
-{
-    StructuralMechanicsElementUtilities::ComputeEquivalentF(*this, rStrainTensor, rF);
 }
 
 /***********************************************************************************/
