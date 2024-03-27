@@ -338,9 +338,9 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         n_dim = 2
         self.assert_linear_elastic_saturated_block(simulation, n_dim)
 
-    def test_normal_load_quad_8n(self):
-        test_name = 'test_normal_load_quad_8n'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+    def test_normal_load_quad_8n_diff_order(self):
+        test_name = 'normal_load_quad_8n_diff_order'
+        file_path = test_helper.get_file_path(test_name)
         simulation = test_helper.run_kratos(file_path)
 
         n_dim = 2
