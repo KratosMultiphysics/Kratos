@@ -331,8 +331,8 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         self.assert_linear_elastic_saturated_block(simulation, n_dim)
 
     def test_normal_load_triangle_6n(self):
-        test_name = 'normal_load_triangle_6n_diff_order'
-        file_path = test_helper.get_file_path(test_name)
+        test_name = 'test_normal_load_triangle_6n'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
         n_dim = 2
