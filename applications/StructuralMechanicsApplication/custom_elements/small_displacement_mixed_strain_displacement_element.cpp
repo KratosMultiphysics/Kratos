@@ -89,29 +89,32 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
         rResult.resize(dof_size);
     }
 
-    const IndexType displ_pos  = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType strain_pos = r_geometry[0].GetDofPosition(NODAL_STRAIN_VECTOR_XX);
+    const IndexType displ_pos     = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType strain_pos    = r_geometry[0].GetDofPosition(NODAL_STRAIN_VECTOR_XX);
+    const IndexType strain_pos_xy = r_geometry[0].GetDofPosition(NODAL_STRAIN_VECTOR_XY);
 
     IndexType aux_index = 0;
     if (dim == 2) {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X,          displ_pos    ).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y,          displ_pos + 1).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos + 2).EquationId();
+            const auto &r_node = GetGeometry()[i_node];
+            rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_X,          displ_pos    ).EquationId();
+            rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_Y,          displ_pos + 1).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos_xy ).EquationId();
         }
     } else {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_X, displ_pos             ).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Y, displ_pos + 1         ).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(DISPLACEMENT_Z, displ_pos + 2         ).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_ZZ, strain_pos + 2).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos + 3).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_YZ, strain_pos + 4).EquationId();
-            rResult[aux_index++] = r_geometry[i_node].GetDof(NODAL_STRAIN_VECTOR_XZ, strain_pos + 5).EquationId();
+            const auto &r_node = GetGeometry()[i_node];
+            rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_X, displ_pos             ).EquationId();
+            rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_Y, displ_pos + 1         ).EquationId();
+            rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_Z, displ_pos + 2         ).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ, strain_pos + 2).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos + 3).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ, strain_pos + 4).EquationId();
+            rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ, strain_pos + 5).EquationId();
         }
     }
 
@@ -134,29 +137,31 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
     const SizeType block_size  = dim + strain_size;
     const SizeType dof_size    = n_nodes * block_size;
 
-    if (rElementalDofList.size() != dof_size){
+    if (rElementalDofList.size() != dof_size) {
         rElementalDofList.resize(dof_size);
     }
 
     if (dim == 2) {
         for(IndexType i = 0; i < n_nodes; ++i) {
-            rElementalDofList[i * block_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[i * block_size + 2] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[i * block_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[i * block_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
+            const auto &r_node = GetGeometry()[i];
+            rElementalDofList[i * block_size    ] = r_node.pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * block_size + 1] = r_node.pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * block_size + 2] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[i * block_size + 3] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[i * block_size + 4] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
         }
     } else if (dim == 3) {
         for(IndexType i = 0; i < n_nodes; ++i) {
-            rElementalDofList[i * block_size    ] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[i * block_size + 1] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
-            rElementalDofList[i * block_size + 2] = this->GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-            rElementalDofList[i * block_size + 3] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XX);
-            rElementalDofList[i * block_size + 4] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YY);
-            rElementalDofList[i * block_size + 5] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_ZZ);
-            rElementalDofList[i * block_size + 6] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XY);
-            rElementalDofList[i * block_size + 7] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_YZ);
-            rElementalDofList[i * block_size + 8] = this->GetGeometry()[i].pGetDof(NODAL_STRAIN_VECTOR_XZ);
+            const auto &r_node = GetGeometry()[i];
+            rElementalDofList[i * block_size    ] = r_node.pGetDof(DISPLACEMENT_X);
+            rElementalDofList[i * block_size + 1] = r_node.pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[i * block_size + 2] = r_node.pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[i * block_size + 3] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[i * block_size + 4] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[i * block_size + 5] = r_node.pGetDof(NODAL_STRAIN_VECTOR_ZZ);
+            rElementalDofList[i * block_size + 6] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[i * block_size + 7] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YZ);
+            rElementalDofList[i * block_size + 8] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XZ);
         }
     }
 
@@ -515,6 +520,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateN_EpsilonMatrix(
             rN_Epsilon(5, initial_index + 5) = rN[i];
         }
     }
+    KRATOS_WATCH(rN_Epsilon)
 }
 
 /***********************************************************************************/
