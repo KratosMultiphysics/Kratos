@@ -440,6 +440,7 @@ protected:
      */
     virtual void SetConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
+        Vector& rStrainVector,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
@@ -457,6 +458,7 @@ protected:
      */
     virtual void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
+        Vector& rStrainVector,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
