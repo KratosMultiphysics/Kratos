@@ -21,5 +21,5 @@ A schematic depiction of the test case is shown below:
 ## Assertions
 The following two assertions are made in this test:
 1. The total stress in the entire cube is -1000 kPa in the Z direction and 0.0 in the other directions, due to the Poisson ratio being 0.0.
-2. The displacement of the z-direction is asserted to be equal to the analytical result: $d_z = \epsilon / (EA / L)$, where $\epsilon = -1000$ kPa, $E = 3.0e7$ kPa, $A = 25$ m$^2$ and $L = 5$ m. 
+2. The displacement of the z-direction is asserted to be equal to the analytical result: $d_z = (\epsilon A) / (EA / L)$, where $\epsilon = -1000 \text{kPa}$, $E = 3.0e7 \text{kPa}$, $A = 25 \text{m}^2$ and $L = 5 \text{m}$. 
 
