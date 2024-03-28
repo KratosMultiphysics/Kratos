@@ -13,6 +13,7 @@
 #include "stress_strain_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
+#include <cmath>
 
 namespace Kratos
 {
@@ -55,6 +56,47 @@ double StressStrainUtilities::CalculateTrace(const Vector& StressVector)
 double StressStrainUtilities::CalculateMeanStress(const Vector& StressVector)
 {
     return CalculateTrace(StressVector) / (StressVector.size() == 3 ? 2.0 : 3.0);
+}
+
+double StressStrainUtilities::CalculateLodeAngle(const Vector& StressVector)
+{
+    KRATOS_ERROR_IF(StressVector.size()<4);
+
+    const double p                   = CalculateMeanStress(StressVector);
+    const double q                   = CalculateVonMisesStress(StressVector);
+    Matrix       local_stress_tensor = MathUtils<double>::StressVectorToTensor(StressVector);
+    Matrix       sigma_princi;
+    Matrix       eigen_vectors;
+    MathUtils<double>::GaussSeidelEigenSystem(local_stress_tensor, eigen_vectors, sigma_princi, 1.0e-16, 20);
+    const double counter = (sigma_princi(0,0)-p)*(sigma_princi(1,1)-p)*(sigma_princi(2,2)-p);
+    if ( abs(counter) < 1.0E-12 ) return 0.;
+    return asin((-27. / 2.) * counter / (q * q * q)) / 3.0;
+}
+
+double StressStrainUtilities::CalculateMCShearCapacity(const Vector& StressVector, const double C, const double Phi)
+{
+    KRATOS_ERROR_IF(StressVector.size()<4);
+
+    const double p          = CalculateMeanStress(StressVector);
+    const double q          = CalculateVonMisesStress(StressVector);
+    const double lode_angle = CalculateLodeAngle(StressVector);
+
+    const double denominator = sqrt(3.) * cos(lode_angle) - sin(lode_angle)*sin(Phi);
+    const double q_mc        = 3. * (p * sin(Phi) + C * cos(Phi)) / denominator;
+    return q / q_mc;
+}
+
+double StressStrainUtilities::CalculateMCPressureCapacity(const Vector& StressVector, const double C, const double Phi)
+{
+    KRATOS_ERROR_IF(StressVector.size()<4);
+
+    const double p          = CalculateMeanStress(StressVector);
+    const double q          = CalculateVonMisesStress(StressVector);
+    const double lode_angle = CalculateLodeAngle(StressVector);
+
+    const double denominator = sqrt(3.) * cos(lode_angle) - sin(lode_angle)*sin(Phi);
+    const double q_mc        = 3. * (p * sin(Phi) + C * cos(Phi)) / denominator;
+    return 3. * sin(Phi) * (q_mc - q) / denominator;
 }
 
 double StressStrainUtilities::CalculateVonMisesStrain(const Vector& StrainVector)
