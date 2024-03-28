@@ -110,56 +110,55 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Get the surrogate faces local IDs.
         // Note that it might happen that an INTERFACE element has no surrogate face (i.e. a unique node in the surrogate skin)
-        const auto surrogate_face_ids = GetSurrogateFacesIds();
-        if (surrogate_face_ids.size() != 0) {
+        const auto sur_bd_ids_vect = GetSurrogateFacesIds();
+        if (sur_bd_ids_vect.size() != 0) {
 
             // Get the parent geometry data
-            double volume_parent;
+            double size_parent;
             const auto& r_geom = this->GetGeometry();
             array_1d<double, NumNodes> N_parent;
             BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;
-            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, volume_parent);
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, size_parent);
             const auto& r_boundaries = r_geom.GenerateBoundariesEntities();
             DenseMatrix<unsigned int> nodes_in_faces;
             r_geom.NodesInFaces(nodes_in_faces);
 
-            //Initialize auxillary LHS contribution
-            BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
+            //TODO ?? Calculate the stress at the element midpoint
 
             // Loop the surrogate faces of the element
             // Note that there is the chance that the surrogate face is not unique
             const std::size_t n_volume_gauss_points = data.PositiveInterfaceWeights.size();
             std::size_t surrogate_pt_index = 0;
-            for (std::size_t face_id : surrogate_face_ids) {
+            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
                 // Get the current surrogate face geometry information
-                const auto& r_face_geom = r_boundaries[face_id];
-                const unsigned int n_face_points = r_face_geom.PointsNumber();
-                const DenseVector<std::size_t> face_local_ids = row(nodes_in_faces, face_id);  //TODO face is column, row works as well because of symmetry
-                const auto& r_face_N = r_face_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+                const auto& r_bd_geom = r_boundaries[sur_bd_id];
+                const unsigned int n_bd_points = r_bd_geom.PointsNumber();  //NOTE 2 nodes for a triangle parent (EdgeType is Line2D2N)
+                const DenseVector<std::size_t> n_bd_local_ids = row(nodes_in_faces, sur_bd_id);  //ERROR?? face is column, for triangle row works as well because of symmetry, first node is the contrary onw tri and tetra
+                const auto& r_sur_bd_N = r_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);   //NOTE returns matrix of SF values F_{ij}, where i is integration pt index and j is SF index
 
                 // Get the gradient of the node contrary to the surrogate face
-                // Note that this is used to calculate the normal as n = - DN_DX_contrary_node / norm_2(DN_DX_contrary_node)
-                BoundedVector<double,Dim> DN_DX_contrary_node = row(DN_DX_parent, face_local_ids[0]);
-                const double h_face = 1.0 / norm_2(DN_DX_contrary_node);
-                BoundedVector<double,Dim> face_normal = - DN_DX_contrary_node * h_face;
+                // Note that this is used to calculate the normal as n = - DN_DX_contrary_node / norm_2(DN_DX_contrary_node)  //TODO ???
+                BoundedVector<double,Dim> DN_DX_contrary_node = row(DN_DX_parent, n_bd_local_ids[0]);
+                const double h_sur_bd = 1.0 / norm_2(DN_DX_contrary_node);
+                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_contrary_node * h_sur_bd;
 
                 // Calculate the gradient projection
                 //TODO???
-                const BoundedVector<double,NumNodes> DN_DX_proj_n = prod(DN_DX_parent, face_normal);
+                const BoundedVector<double,NumNodes> DN_DX_proj_n = prod(DN_DX_parent, normal_sur_bd);
 
                 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 // Add the surrogate boundary flux contribution
                 // Note that the local face IDs are already taken into account in the assembly
-                // Note that the integration weight is calculated as Dim * Parent domain volume * norm(DN_DX_contrary_node)
+                // Note that the integration weight is calculated as Dim * Parent domain volume * norm(DN_DX_contrary_node)  //TODO ???
                 /*
                 double aux_1;
                 double aux_2;
                 std::size_t i_local_id;
                 BoundedVector<double,Dim> j_node_grad;
-                const double aux_w_k = Dim * volume_parent * k_avg / h_face;
-                for (std::size_t i_node = 0; i_node < n_face_points; ++i_node) {
-                    aux_1 = aux_w_k * r_face_N(0,i_node);
-                    i_local_id = face_local_ids[i_node + 1];
+                const double aux_w_k = Dim * size_parent * k_avg / h_sur_bd;
+                for (std::size_t i_face_node = 0; i_face_node < n_bd_points; ++i_face_node) {
+                    aux_1 = aux_w_k * r_sur_bd_N(0,i_face_node);  //ERROR?? only first integration point taken? no loop over integration points? works for tri, but for tetra as well?
+                    i_local_id = face_local_ids[i_face_node + 1];
                     for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                         aux_2 = aux_1 * DN_DX_proj_n(j_node);
                         rLeftHandSideMatrix(i_local_id, j_node) -= aux_2;
@@ -169,14 +168,14 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                 // Add the surrogate boundary flux contribution
-                // Note that the integration weight is calculated as Dim * Parent domain volume * norm(DN_DX_contrary_node)
+                // Note that the integration weight is calculated as Dim * Parent domain size * norm(DN_DX_contrary_node)
                 //TODO: C of BoundaryTraction is calculated using FluidElement::CalculateMaterialResponse, which takes N and DN_DX from rData
                 //TODO: Idea to update integration point data and call boundary traction:
                 //TODO: doesn't match because face geometry is different than volume geometry ?!? so N and DNDX do not match
-                for (std::size_t i_pt = 0; i_pt < n_face_points; ++i_pt) {
-                    double weight = Dim * volume_parent / h_face;
-                    this->UpdateIntegrationPointData(data, n_volume_gauss_points + surrogate_pt_index++, weight, row(r_face_N,i_pt), DN_DX_parent);
-                    this->AddBoundaryTraction(data, face_normal,rLeftHandSideMatrix, rRightHandSideVector)
+                for (std::size_t i_pt = 0; i_pt < n_bd_points; ++i_pt) {
+                    double weight = Dim * size_parent / h_sur_bd;
+                    this->UpdateIntegrationPointData(data, n_volume_gauss_points + surrogate_pt_index++, weight, row(r_sur_bd_N,i_pt), DN_DX_parent);
+                    this->AddBoundaryTraction(data, normal_sur_bd,rLeftHandSideMatrix, rRightHandSideVector)
                 }
                 */
             }
