@@ -1908,8 +1908,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
     noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient,
         rVariables.DtPressureCoefficient);
-    /*-PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse
-     * outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;*/
 
     // Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix * rVariables.JointWidth);
@@ -2053,9 +2051,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
 
     noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    /*-PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                   outer_prod(rVariables.Np, rVariables.Np) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;*/
 
     noalias(rVariables.PVector) =
         -1.0 * prod(rVariables.PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);

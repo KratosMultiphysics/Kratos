@@ -1796,8 +1796,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(Matrix
     Matrix CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient,
         rVariables.DtPressureCoefficient);
-    /*-PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse
-     * outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;*/
 
     // Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, CompressibilityMatrix);

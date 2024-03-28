@@ -584,9 +584,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
     noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient,
         rVariables.DtPressureCoefficient);
-    /*-PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse *
-    outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;*/
-
+ 
     // Distribute compressibility block matrix into the elemental matrix
     rLeftHandSideMatrix += rVariables.PPMatrix * rVariables.JointWidth;
 
@@ -633,9 +631,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 
     noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    /*-PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                   outer_prod(rVariables.Np, rVariables.Np) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;*/
 
     noalias(rVariables.PVector) =
         -1.0 * prod(rVariables.PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
