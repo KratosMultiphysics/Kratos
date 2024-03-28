@@ -28,7 +28,9 @@ class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
         for total_stress in total_stresses:
             self.assertAlmostEqual(total_stress[0], 0.0, 6)  # Sxx
             self.assertAlmostEqual(total_stress[1], 0.0, 6)  # Syy
-            self.assertAlmostEqual(total_stress[2], -1000.0, 6)  # Szz
+
+            # Szz, note the negative sign, for a positive NORMAL_CONTACT_STRESS on the top face.
+            self.assertAlmostEqual(total_stress[2], -1000.0, 6)
 
         top_node_nbrs = [5, 6, 7, 8]
         displacements_at_top = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data,
