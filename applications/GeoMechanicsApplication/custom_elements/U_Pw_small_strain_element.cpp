@@ -1277,7 +1277,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatri
 {
     KRATOS_TRY
 
-    // this->CalculateCompressibilityMatrix(rVariables.PPMatrix, rVariables);
     rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient,
         rVariables.DtPressureCoefficient);
@@ -1421,7 +1420,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(
 {
     KRATOS_TRY
 
-    rPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    noalias(rPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     noalias(rPVector) = -prod(rPMatrix, rVariables.DtPressureVector);
