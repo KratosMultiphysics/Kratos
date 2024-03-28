@@ -137,8 +137,7 @@ public:
 
     /**
      * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
-     * @details For example if we are implementing a direct solver, this is the place to do the factorization
-     * so that then the backward substitution can be performed effectively more than once
+     * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
@@ -148,8 +147,7 @@ public:
     }
 
     /**
-     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the
-     * @details Initialize and InitializeSolutionStep functions.
+     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
@@ -180,8 +178,7 @@ public:
 
     /**
      * @brief Normal solve method.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial
     guess for iterative linear solvers.
