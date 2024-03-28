@@ -47,9 +47,8 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
                                     column(rVariables.JContainer[PointNumber], 1));
 
     const auto& r_geometry                   = GetGeometry();
-    const auto  number_of_displacement_nodes = r_geometry.PointsNumber();
 
-    Vector normal_stresses(number_of_displacement_nodes);
+    Vector normal_stresses(r_geometry.PointsNumber());
     std::transform(r_geometry.begin(), r_geometry.end(), normal_stresses.begin(), [](const auto& r_node) {
         return r_node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     });

@@ -14,18 +14,16 @@ class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(test_name)
         test_helper.run_kratos(file_path)
 
-        all_integration_points = [0, 1, 2, 3, 4, 5, 6, 7]
         output_file_path = os.path.join(file_path, test_name + '.post.res')
         output_reader = test_helper.GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)
-        total_stresses = \
+        total_stress_vectors = \
             test_helper.GiDOutputFileReader.element_integration_point_values_at_time("TOTAL_STRESS_TENSOR", 1.0,
-                                                                                     output_data, element_ids=[1],
-                                                                                     integration_point_indices=all_integration_points)[0]
+                                                                                     output_data, element_ids=[1])[0]
 
-        self.assertEqual(len(total_stresses), 8)
+        self.assertEqual(len(total_stress_vectors), 8)
 
-        for total_stress in total_stresses:
+        for total_stress in total_stress_vectors:
             self.assertAlmostEqual(total_stress[0], 0.0, 6)  # Sxx
             self.assertAlmostEqual(total_stress[1], 0.0, 6)  # Syy
 
