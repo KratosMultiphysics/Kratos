@@ -58,8 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCompressibilityMatrix3D4NGivesCorrectResults,
     Np <<= 1.0, 2.0, 3.0, 3.0;
     // clang-format on
 
-    BoundedMatrix<double, 4, 4> CompressibilityMatrix   = ZeroMatrix(4, 4);
-    const double                DynamicViscosityInverse = 1;
+    BoundedMatrix<double, 4, 4> CompressibilityMatrix = ZeroMatrix(4, 4);
     BoundedMatrix<double, 3, 3> MaterialCompressibilityMatrix;
 
     const double IntegrationCoefficient = 1.0;
