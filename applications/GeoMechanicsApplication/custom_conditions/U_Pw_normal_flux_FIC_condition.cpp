@@ -202,13 +202,12 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassMatr
     MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
 {
     noalias(rFICVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-        rVariables.Np, rFICVariables.BiotModulusInverse / 6.0, rVariables.IntegrationCoefficient,
+        rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient,
         rFICVariables.DtPressureCoefficient);
-    /*-rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
-                                        outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;*/
 
     // Distribute boundary mass matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rFICVariables.PPMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(
+        rLeftHandSideMatrix, rFICVariables.PPMatrix * rFICVariables.ElementLength / 6.0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -227,11 +226,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow(
     VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PPMatrix) = rFICVariables.ElementLength * rFICVariables.BiotModulusInverse /
+    noalias(rFICVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+    /*rFICVariables.ElementLength * rFICVariables.BiotModulusInverse /
                                       6.0 * outer_prod(rVariables.Np, rVariables.Np) *
-                                      rVariables.IntegrationCoefficient;
+                                      rVariables.IntegrationCoefficient;*/
 
-    noalias(rVariables.PVector) = prod(rFICVariables.PPMatrix, rFICVariables.DtPressureVector);
+    noalias(rVariables.PVector) =
+        prod(rFICVariables.PPMatrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
 
     // Distribute boundary mass flow vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
