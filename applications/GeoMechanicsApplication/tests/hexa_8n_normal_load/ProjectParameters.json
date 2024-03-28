@@ -64,7 +64,7 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["BottomFixed","TopLoad"],
+        "processes_sub_model_part_list":      ["BottomFixed","TopLoad","Soil"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -116,7 +116,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.BottomFixed",
+            "model_part_name": "PorousDomain.Soil",
             "variable_name":   "WATER_PRESSURE",
             "active":          true,
             "is_fixed":        true,
