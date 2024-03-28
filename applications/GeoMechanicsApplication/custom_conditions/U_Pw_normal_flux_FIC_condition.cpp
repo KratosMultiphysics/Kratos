@@ -228,9 +228,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow
 {
     noalias(rFICVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    /*rFICVariables.ElementLength * rFICVariables.BiotModulusInverse /
-                                      6.0 * outer_prod(rVariables.Np, rVariables.Np) *
-                                      rVariables.IntegrationCoefficient;*/
 
     noalias(rVariables.PVector) =
         prod(rFICVariables.PPMatrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
