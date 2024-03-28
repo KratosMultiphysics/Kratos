@@ -13,6 +13,7 @@
 #pragma once
 
 // Project includes
+#include <optional>
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -49,5 +50,26 @@ public:
                RelativePermeability * PermeabilityUpdateFactor * IntegrationCoefficient;
     }
 
+    template <unsigned int TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(
+        const Vector&         rNp,
+        double                BiotModulusInverse,
+        double                IntegrationCoefficient,
+        std::optional<double> DtPressureCoefficient = std::nullopt)
+    {
+        return CalculateCompressibilityMatrix(rNp, BiotModulusInverse, IntegrationCoefficient, DtPressureCoefficient);
+    }
+
+    static inline Matrix CalculateCompressibilityMatrix(const Vector& rNp,
+                                                        double        BiotModulusInverse,
+                                                        double        IntegrationCoefficient,
+                                                        std::optional<double> DtPressureCoefficient = std::nullopt)
+    {
+        if (DtPressureCoefficient.has_value())
+            return -PORE_PRESSURE_SIGN_FACTOR * DtPressureCoefficient.value() * BiotModulusInverse *
+                   outer_prod(rNp, rNp) * IntegrationCoefficient;
+        else
+            return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
+    }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
