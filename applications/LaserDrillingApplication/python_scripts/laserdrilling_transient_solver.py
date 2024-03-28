@@ -244,7 +244,6 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
     def SetParameters(self):
         self.element_id_to_study = 1578
-        self.V = 4.72e-7 # mm3. Approximate ablated volume for 1 pulses (experimental). For 5 pulses it should be around 2.36e-6
 
         self.some_elements_are_above_the_evap_temp = True
         self.plot_decomposed_volume_graph = False
@@ -308,6 +307,11 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
         self.irradiated_surface_area = np.pi * self.R_far**2
 
+        # Problem calibrated for Q = 15e-6 (3W power). For different powers, the ablated volume should change linearly as experiments show
+        Q_reference = 15e-6
+        self.V = 4.72e-7 # mm3. Approximate ablated volume for 1 pulses (experimental). For 5 pulses it should be around 2.36e-6
+        self.V *= self.Q / Q_reference
+
         if self.ablation_energy_fraction:
             # Find F_th_fraction multiplying F_th so Radius_th = R_far
             # This gives a F_th_fraction of 0.313, a little too flat (maximum not captured)
@@ -321,7 +325,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             if not self.compute_vaporisation:
                 F_th_fraction = 0.333 # 5 pulses, no evaporation
             else:
-                F_th_fraction = 0.43 # 5 pulses, with evaporation
+                F_th_fraction = 0.333 #0.43 # 5 pulses, with evaporation
 
             self.F_th = F_th_fraction * self.ablation_energy_fraction * self.Q / self.irradiated_surface_area
             self.radius_th = np.sqrt(np.log(self.C / self.F_th) / self.K)
@@ -329,9 +333,9 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             if not self.compute_vaporisation:
                 self.l_s = self.PenetrationDepth() # It gives self.l_s = 0.002mm # 5 pulses, no evaporation
             else:
-                self.l_s = 0.001 # 5 pulses, with evaporation     
+                self.l_s = self.PenetrationDepth() #0.001 # 5 pulses, with evaporation     
 
-        self.l_th = 0.33 # micrometers # Thermal depth, assumed
+        self.l_th = 0.05 # micrometers # Thermal depth, assumed
 
         l_th_in_meters = self.l_th * 1e-6
         kappa_in_square_meters = self.kappa * 1e-6
