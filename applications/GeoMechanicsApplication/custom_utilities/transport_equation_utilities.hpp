@@ -65,11 +65,9 @@ public:
                                                         double        IntegrationCoefficient,
                                                         std::optional<double> DtPressureCoefficient = std::nullopt)
     {
-        if (DtPressureCoefficient.has_value())
-            return -PORE_PRESSURE_SIGN_FACTOR * DtPressureCoefficient.value() * BiotModulusInverse *
-                   outer_prod(rNp, rNp) * IntegrationCoefficient;
-        else
-            return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
+        auto result = -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
+        if (DtPressureCoefficient.has_value()) return result * DtPressureCoefficient.value();
+        else return result;
     }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

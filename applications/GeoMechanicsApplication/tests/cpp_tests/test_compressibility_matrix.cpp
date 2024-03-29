@@ -21,67 +21,63 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateCompressibilityMatrix2D3NGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Calculatecompressibility_matrix2D3NGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
+    Vector n_p(3);
+    n_p <<= 1.0, 2.0, 3.0;
+
+    BoundedMatrix<double, 3, 3> compressibility_matrix  = ZeroMatrix(3, 3);
+    const double                integration_coefficient = 1.0;
+    const double                biot_modulus_inverse    = 0.02;
+    compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<3>(
+        n_p, biot_modulus_inverse, integration_coefficient);
+
+    BoundedMatrix<double, 3, 3> expected_compressibility_matrix;
     // clang-format off
-    Vector Np(3);
-    Np <<= 1.0, 2.0, 3.0;
+    expected_compressibility_matrix <<= -0.02,-0.04,-0.06,
+                                        -0.04,-0.08,-0.12,
+                                        -0.06,-0.12,-0.18;
     // clang-format on
 
-    BoundedMatrix<double, 3, 3> CompressibilityMatrix  = ZeroMatrix(3, 3);
-    const double                IntegrationCoefficient = 1.0;
-    const double                BiotModulusInverse     = 0.02;
-    CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<3>(
-        Np, BiotModulusInverse, IntegrationCoefficient);
+    KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 
-    BoundedMatrix<double, 3, 3> CMatrix;
-    // clang-format off
-    CMatrix <<= -0.02,-0.04,-0.06,
-                -0.04,-0.08,-0.12,
-                -0.06,-0.12,-0.18;
-    // clang-format on
+    const double dt_pressure_coefficient = 1.5;
+    compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<3>(
+        n_p, biot_modulus_inverse, integration_coefficient, dt_pressure_coefficient);
+    expected_compressibility_matrix *= dt_pressure_coefficient;
 
-    KRATOS_CHECK_MATRIX_NEAR(CompressibilityMatrix, CMatrix, 1e-12)
-
-    const double DtPressureCoefficient = 1.5;
-    CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<3>(
-        Np, BiotModulusInverse, IntegrationCoefficient, DtPressureCoefficient);
-    CMatrix *= DtPressureCoefficient;
-
-    KRATOS_CHECK_MATRIX_NEAR(CompressibilityMatrix, CMatrix, 1e-12)
+    KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateCompressibilityMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Calculatecompressibility_matrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
+    Vector n_p(4);
+    n_p <<= 1.0, 2.0, 3.0, 3.0;
+
+    BoundedMatrix<double, 4, 4> compressibility_matrix = ZeroMatrix(4, 4);
+    BoundedMatrix<double, 3, 3> material_compressibility_matrix;
+
+    const double integration_coefficient = 1.0;
+    const double biot_modulus_inverse    = 0.1;
+    compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<4>(
+        n_p, biot_modulus_inverse, integration_coefficient);
+
+    BoundedMatrix<double, 4, 4> expected_compressibility_matrix;
     // clang-format off
-    Vector Np(4);
-    Np <<= 1.0, 2.0, 3.0, 3.0;
+    expected_compressibility_matrix <<= -0.1,-0.2,-0.3,-0.3,
+                                        -0.2,-0.4,-0.6,-0.6,
+                                        -0.3,-0.6,-0.9,-0.9,
+                                        -0.3,-0.6,-0.9,-0.9;
     // clang-format on
 
-    BoundedMatrix<double, 4, 4> CompressibilityMatrix = ZeroMatrix(4, 4);
-    BoundedMatrix<double, 3, 3> MaterialCompressibilityMatrix;
+    KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 
-    const double IntegrationCoefficient = 1.0;
-    const double BiotModulusInverse     = 0.1;
-    CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<4>(
-        Np, BiotModulusInverse, IntegrationCoefficient);
+    const double dt_pressure_coefficient = 2.5;
+    compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<4>(
+        n_p, biot_modulus_inverse, integration_coefficient, dt_pressure_coefficient);
+    expected_compressibility_matrix *= dt_pressure_coefficient;
 
-    BoundedMatrix<double, 4, 4> CMatrix;
-    // clang-format off
-    CMatrix <<= -0.1,-0.2,-0.3,-0.3,
-                -0.2,-0.4,-0.6,-0.6,
-                -0.3,-0.6,-0.9,-0.9,
-                -0.3,-0.6,-0.9,-0.9;
-    // clang-format on
-
-    KRATOS_CHECK_MATRIX_NEAR(CompressibilityMatrix, CMatrix, 1e-12)
-
-    const double DtPressureCoefficient = 2.5;
-    CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<4>(
-        Np, BiotModulusInverse, IntegrationCoefficient, DtPressureCoefficient);
-    CMatrix *= DtPressureCoefficient;
-
-    KRATOS_CHECK_MATRIX_NEAR(CompressibilityMatrix, CMatrix, 1e-12)
+    KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 }
 
 } // namespace Kratos::Testing
