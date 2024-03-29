@@ -68,7 +68,7 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& StressVector)
     Matrix       sigma_princi;
     Matrix       eigen_vectors;
     MathUtils<double>::GaussSeidelEigenSystem(local_stress_tensor, eigen_vectors, sigma_princi, 1.0e-16, 20);
-    const double counter = (sigma_princi(0,0)-p)*(sigma_princi(1,1)-p)*(sigma_princi(2,2)-p);
+    const double counter = (sigma_princi(0,0) - p) * (sigma_princi(1,1) - p) * (sigma_princi(2,2) - p);
     if ( abs(counter) < 1.0E-12 ) return 0.;
     return asin((-27. / 2.) * counter / (q * q * q)) / 3.0;
 }
