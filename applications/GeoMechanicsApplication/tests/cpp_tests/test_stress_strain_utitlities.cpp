@@ -56,9 +56,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuite)
     Vector stress_vector(4);
     stress_vector <<= 0.5, -1.0, 0.5, 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.), StressStrainUtilities::CalculateLodeAngle(stress_vector));
-    KRATOS_EXPECT_DOUBLE_EQ(-MathUtils<>::DegreesToRadians(30.), StressStrainUtilities::CalculateLodeAngle(-1.*stress_vector));
+    KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.), StressStrainUtilities::CalculateLodeAngle(-1.*stress_vector));
     Vector stress_vector2(4);
-    stress_vector <<= -1.0, 0.0, 1.0, 0.0;
+    stress_vector2 <<= -1.0, 0.0, 1.0, 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.), StressStrainUtilities::CalculateLodeAngle(stress_vector2));
 }
 
