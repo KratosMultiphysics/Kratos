@@ -206,6 +206,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassMatr
         rFICVariables.DtPressureCoefficient);
 
     // Distribute boundary mass matrix into the elemental matrix
+    // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
     GeoElementUtilities::AssemblePPBlockMatrix(
         rLeftHandSideMatrix, rFICVariables.PPMatrix * rFICVariables.ElementLength / 6.0);
 }
@@ -229,6 +230,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow
     noalias(rFICVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
+    // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
     noalias(rVariables.PVector) =
         prod(rFICVariables.PPMatrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
 
