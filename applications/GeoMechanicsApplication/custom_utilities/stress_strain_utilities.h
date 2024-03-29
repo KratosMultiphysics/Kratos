@@ -27,8 +27,8 @@ public:
     static double CalculateTrace(const Vector& StressVector);
     static double CalculateMeanStress(const Vector& StressVector);
     static double CalculateLodeAngle(const Vector& StressVector);
-    static double CalculateMCShearCapacity(const Vector& StressVector, const double C, const double Phi);
-    static double CalculateMCPressureCapacity(const Vector& StressVector, const double C, const double Phi);
+    static double CalculateMCShearCapacity(const Vector& StressVector, double C, double Phi);
+    static double CalculateMCPressureCapacity(const Vector& StressVector, double C, double Phi);
     static double CalculateVonMisesStrain(const Vector& StrainVector);
     static Vector CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
