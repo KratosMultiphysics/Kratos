@@ -425,13 +425,13 @@ virtual void ComputeWear(double LocalRelVel[3],
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
 virtual void AddNeighbourContributionToStressTensor(const ProcessInfo& r_process_info,
-                                                    const double GlobalElasticContactForce[3],
+                                                    const double GlobalContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
                                                     const double radius_sum,
                                                     SphericParticle* element);
 
-virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
+virtual void AddWallContributionToStressTensor(const double GlobalContactForce[3],
                                                const double other_to_me_vect[3],
                                                const double distance,
                                                const double contact_area);

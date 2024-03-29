@@ -736,7 +736,7 @@ class DEMAnalysisStage(AnalysisStage):
     def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type):
         '''
         This is a function to establish a sphere to measure local packing properties
-        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress" or "strain" 
+        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress_tensor" or "strain" 
         This funtion is only valid for 3D model now
         '''
         if type == "porosity":
@@ -852,6 +852,7 @@ class DEMAnalysisStage(AnalysisStage):
         if type == "voronoi_input_data":
 
             particle_id_positions_and_radius = np.empty((0, 5))
+            particle_id_positions_and_radius[:] = 0.0
             particle_number_count = 0
             for node in self.spheres_model_part.Nodes:
 
@@ -872,8 +873,72 @@ class DEMAnalysisStage(AnalysisStage):
             fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
             np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
         
-        if type == "stress":
-            pass
+        if type == "stress_tensor_modulus":
+            
+            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+                
+                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+                total_tensor_raw    = np.empty((3, 3))
+                total_tensor        = np.empty((3, 3))
+                total_tensor_raw[:] = 0.0
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                    if center_to_sphere_distance < (radius - r):
+                        total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
+                
+                total_tensor = total_tensor_raw / measure_sphere_volume
+
+                stress_tensor_modulus = np.linalg.norm(total_tensor)
+                
+                return stress_tensor_modulus
+            
+            else:
+                
+                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        
+        if type == "stress_tensor":
+            
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+            
+            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+                
+                measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+                total_tensor_raw    = np.empty((3, 3))
+                total_tensor        = np.empty((3, 3))
+                total_tensor_raw[:] = 0.0
+                total_tensor[:]     = 0.0
+
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                    if center_to_sphere_distance < (radius - r):
+                        total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
+                
+                total_tensor = total_tensor_raw / measure_sphere_volume
+
+                return total_tensor
+            
+            else:
+
+                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
 
         if type == "strain":
             pass
@@ -882,9 +947,11 @@ class DEMAnalysisStage(AnalysisStage):
         
         min_reference_particle_to_center_distance = 1e10
         particle_positions = np.empty((0, 3))
+        particle_positions[:] = 0.0
         IsTheFirstParticle = True
         TotalParticleNumber = 0
         reference_particle = np.empty((0, 3))
+        reference_particle[:] = 0.0
         for node in self.spheres_model_part.Nodes:
 
                 r = node.GetSolutionStepValue(RADIUS)
@@ -933,7 +1000,7 @@ class DEMAnalysisStage(AnalysisStage):
     def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
         '''
         This is a function to establish a cubic with 'side_length' to measure local packing properties
-        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress" or "strain" 
+        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress_tensor" or "strain" 
         This funtion is only valid for 3D model now
         '''
         if type == "porosity":
@@ -1013,6 +1080,7 @@ class DEMAnalysisStage(AnalysisStage):
             if self.DEM_parameters["ContactMeshOption"].GetBool():
                 
                 total_tensor = np.empty((3, 3))
+                total_tensor[:] = 0.0
                 total_contact_number  = 0
                 #number_of_contacts_in_a_direction = np.zeros((18, 36))
                 number_of_contacts_in_a_direction_2D_x_z = np.zeros(36)
@@ -1221,8 +1289,69 @@ class DEMAnalysisStage(AnalysisStage):
             fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
             np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
 
-        if type == "stress":
-            pass
+        if type == "stress_tensor_modulus":
+            
+            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+                
+                measure_cubic_volume = side_length ** 3
+                total_tensor_raw    = np.empty((3, 3))
+                total_tensor        = np.empty((3, 3))
+                total_tensor_raw[:] = 0.0
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                                total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
+                
+                total_tensor = total_tensor_raw / measure_cubic_volume
+
+                stress_tensor_modulus = np.linalg.norm(total_tensor)
+                
+                return stress_tensor_modulus
+            
+            else:
+                
+                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+        if type == "stress_tensor":
+            
+            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+                
+                measure_cubic_volume = side_length ** 3
+                total_tensor_raw    = np.empty((3, 3))
+                total_tensor        = np.empty((3, 3))
+                total_tensor_raw[:] = 0.0
+                total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
+
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                                total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
+                
+                total_tensor = total_tensor_raw / measure_cubic_volume
+                
+                return total_tensor
+            
+            else:
+                
+                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
 
         if type == "strain":
             pass
