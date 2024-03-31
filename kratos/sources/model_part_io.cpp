@@ -1124,7 +1124,7 @@ void ModelPartIO::SkipBlock(std::string const& BlockName)
         {
             ReadWord(word);
             if(number_of_nested_blocks == 0) {
-                CheckStatement(word , BlockName)
+                CheckStatement(word , BlockName);
                 break;
             } else {
                 number_of_nested_blocks--;
