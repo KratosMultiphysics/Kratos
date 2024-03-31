@@ -48,11 +48,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &FindNodalHProcessMax<false>::Execute);
 
     // Add FindConservativeElementsProcess to Python
-    py::class_<FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsHistoricalVariable>, FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalNighbersProcess")
+    py::class_<FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsHistoricalVariable>, FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindConservativeElementsProcess")
     .def(py::init<ModelPart&>())
     ;
 
-    py::class_<FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsNonHistoricalVariable>, FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalNighbersNonHistoricalProcess")
+    py::class_<FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsNonHistoricalVariable>, FindConservativeElementsProcess<FindConservativeElementsSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindConservativeElementsNonHistoricalProcess")
     .def(py::init<ModelPart&>())
     ;
 

@@ -955,11 +955,11 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
             json.dump(updated_project_parameters, f, indent = 4)
 
         self.pseudo_time +=1
+        KratosDroplet.FindConservativeElementsProcess(self.main_model_part).Execute()
 
         nodes1 = self.main_model_part.Nodes
         ndes1_num = len(nodes1)
 
-        KratosDroplet.FindNodalNighbersProcess(self.main_model_part).Execute()
         for node in nodes1:
             dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE, 0)
             if (dist > 0.4999995):
