@@ -246,11 +246,13 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"CalculateNonHistoricalNodalAreaProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, std::size_t>())
     ;

@@ -151,17 +151,17 @@ End Elements
 
 
 Begin Conditions UPwFaceLoadCondition3D4N
-  1  1  5 13 9 2
-  2  1  12 21 13 5
-  3  1  3 5 2 1
-  4  1  10 12 5 3
+  1  1  2 9 13 5
+  2  1  5 13 21 12
+  3  1  1 2 5 3
+  4  1  3 5 12 10
 End Conditions
 
 Begin Conditions UPwLysmerAbsorbingCondition3D4N
-  5  1  93 95 98 94
-  6  1  94 98 99 97
-  7  1  91 93 94 92
-  8  1  92 94 97 96
+  5  1  94 98 95 93
+  6  1  97 99 98 94
+  7  1  92 94 93 91
+  8  1  96 97 94 92
 End Conditions
 
 

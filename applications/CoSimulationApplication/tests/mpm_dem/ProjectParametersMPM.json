@@ -58,7 +58,7 @@
     "loads_process_list": [
       {
         "python_module": "apply_mpm_coupling_interface_neumann_condition_process",
-        "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
+        "kratos_module": "KratosMultiphysics.MPMApplication",
         "Parameters": {
           "model_part_name": "Background_Grid.INTERFACE_coupling_to_dem",
           "particles_per_condition": 1
@@ -68,7 +68,7 @@
     "list_other_processes": [
       {
         "python_module": "particle_from_json_check_result_process",
-        "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
+        "kratos_module": "KratosMultiphysics.MPMApplication",
         "help": "",
         "process_name": "ParticleFromJsonCheckResultProcess",
         "Parameters": {
@@ -84,7 +84,7 @@
   "print_output_process": [
     {
       "python_module": "particle_json_output_process",
-      "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
+      "kratos_module": "KratosMultiphysics.MPMApplication",
       "help": "",
       "process_name": "ParticleJsonOutputProcess",
       "Parameters": {

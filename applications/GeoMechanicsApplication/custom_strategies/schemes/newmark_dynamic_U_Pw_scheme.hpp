@@ -17,6 +17,7 @@
 
 // Application includes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -80,15 +81,15 @@ public:
         const std::vector<std::string> components = {"X", "Y", "Z"};
 
         for (const auto& component : components) {
-            const auto& instance_component =
-                this->GetComponentFromVectorVariable(rSecondOrderVariables.instance, component);
+            const auto& instance_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVariables.instance.Name(), component);
 
             if (!rNode.HasDofFor(instance_component)) continue;
 
-            const auto& first_time_derivative_component = this->GetComponentFromVectorVariable(
-                rSecondOrderVariables.first_time_derivative, component);
-            const auto& second_time_derivative_component = this->GetComponentFromVectorVariable(
-                rSecondOrderVariables.second_time_derivative, component);
+            const auto& first_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVariables.first_time_derivative.Name(), component);
+            const auto& second_time_derivative_component = VariablesUtilities::GetComponentFromVectorVariable(
+                rSecondOrderVariables.second_time_derivative.Name(), component);
 
             const double previous_variable = rNode.FastGetSolutionStepValue(instance_component, 1);
             const double current_first_time_derivative =
