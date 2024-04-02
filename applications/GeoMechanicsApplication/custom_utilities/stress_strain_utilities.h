@@ -32,6 +32,10 @@ public:
     static double CalculateVonMisesStrain(const Vector& StrainVector);
     static Vector CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
+
+private:
+    static double CalculateQMC(const Vector& StressVector, double C, double Phi);
+    static double CalculateDenominator(const Vector& StressVector, double Phi);
 };
 
 } // namespace Kratos
