@@ -127,11 +127,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def _GetSnapshotsMatrix(self):
-        snapshots_matrix = numpy.empty((self.n_nodal_unknowns*self.n_nodes,self.n_data_cols))
-        for i_col in range(self.n_data_cols):
-            aux_col = numpy.array(self.snapshots_data_list[i_col])
-            snapshots_matrix[:,i_col] = aux_col.transpose()
-        return snapshots_matrix
+        return numpy.block(self.snapshots_data_list)
 
 
     def _PrintRomBasis(self, snapshots_matrix):
