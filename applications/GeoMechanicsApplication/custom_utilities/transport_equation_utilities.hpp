@@ -13,7 +13,6 @@
 #pragma once
 
 // Project includes
-#include <optional>
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
