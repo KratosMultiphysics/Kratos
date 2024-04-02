@@ -57,7 +57,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianFICElement
 public:
     ///@name Type Definitions
     ///@{
-    using IndexType      = std::size_t;
+    using BaseType       = UPwSmallStrainFICElement<TDim, TNumNodes>;
     using PropertiesType = Properties;
     using NodeType       = Node;
     using GeometryType   = Geometry<NodeType>;
@@ -271,14 +271,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
 }; // Class UPwUpdatedLagrangianFICElement
 
