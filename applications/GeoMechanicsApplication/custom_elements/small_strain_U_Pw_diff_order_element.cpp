@@ -1769,12 +1769,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
     for (unsigned int i = 0; i < StressTensorSize; ++i)
         VoigtVector[i] = 1.0;
 
-    Matrix CouplingMatrix = PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-                            prod(trans(rVariables.B), Matrix(outer_prod(VoigtVector, rVariables.Np))) *
-                            rVariables.IntegrationCoefficient;
+    Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient, rVariables.IntegrationCoefficient);
+    /*PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
+                            prod(trans(rVariables.B), Matrix(outer_prod(VoigtVector,
+       rVariables.Np))) * rVariables.IntegrationCoefficient;*/
 
     // Distribute coupling block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix * rVariables.BishopCoefficient);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
@@ -1811,7 +1813,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix(MatrixTyp
     Matrix PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
         rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
         rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
-    
+
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, PermeabilityMatrix);
 

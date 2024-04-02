@@ -1250,14 +1250,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
+    // noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) =
-        PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.IntegrationCoefficient);
+    /*PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
+    outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;*/
 
     // Distribute coupling block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,
+                                               rVariables.UPMatrix * rVariables.BishopCoefficient);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
@@ -1464,7 +1467,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
     rPermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
-    
+
     noalias(rPVector) = -prod(rPermeabilityMatrix, rVariables.PressureVector);
 
     KRATOS_CATCH("")

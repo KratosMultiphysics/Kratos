@@ -49,5 +49,22 @@ public:
                RelativePermeability * PermeabilityUpdateFactor * IntegrationCoefficient;
     }
 
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(
+        const Matrix& rB, const Vector& rVoigtVector, const Vector& rNp, double BiotCoefficient, double IntegrationCoefficient)
+    {
+        return CalculateCouplingMatrix(rB, rVoigtVector, rNp, BiotCoefficient, IntegrationCoefficient);
+    }
+
+    static inline Matrix CalculateCouplingMatrix(const Matrix& rB,
+                                                 const Vector& rVoigtVector,
+                                                 const Vector& rNp,
+                                                 double        BiotCoefficient,
+                                                 double        IntegrationCoefficient)
+    {
+        return PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient *
+               outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp) * IntegrationCoefficient;
+    }
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
