@@ -58,6 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
     using BaseType       = UPwSmallStrainFICElement<TDim, TNumNodes>;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
     using GeometryType   = Geometry<NodeType>;
