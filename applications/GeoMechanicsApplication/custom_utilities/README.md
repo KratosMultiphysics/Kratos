@@ -19,7 +19,7 @@ where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the 
 The mathematical definition is:
 $$C = \int_\Omega N_{p}^T \frac{1}{Q} N_p d\Omega$$
 
-Where $\Omega$ is the domain, $N_p$ is the pressure shape function and $1/Q$ is the inverse biot modulus.
+Where $\Omega$ is the domain, $N_p$ is the pressure shape function and $1/Q$ is the inverse Biot modulus.
 
 
 
