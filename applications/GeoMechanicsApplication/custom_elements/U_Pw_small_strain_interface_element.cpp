@@ -1906,11 +1906,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
     KRATOS_TRY
 
     noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient,
-        rVariables.DtPressureCoefficient);
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix * rVariables.JointWidth);
+    GeoElementUtilities::AssemblePPBlockMatrix(
+        rLeftHandSideMatrix, rVariables.PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }

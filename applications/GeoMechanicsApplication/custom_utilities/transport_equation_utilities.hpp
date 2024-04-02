@@ -52,22 +52,14 @@ public:
 
     template <unsigned int TNumNodes>
     static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(
-        const Vector&         rNp,
-        double                BiotModulusInverse,
-        double                IntegrationCoefficient,
-        std::optional<double> DtPressureCoefficient = std::nullopt)
+        const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
     {
-        return CalculateCompressibilityMatrix(rNp, BiotModulusInverse, IntegrationCoefficient, DtPressureCoefficient);
+        return CalculateCompressibilityMatrix(rNp, BiotModulusInverse, IntegrationCoefficient);
     }
 
-    static inline Matrix CalculateCompressibilityMatrix(const Vector& rNp,
-                                                        double        BiotModulusInverse,
-                                                        double        IntegrationCoefficient,
-                                                        std::optional<double> DtPressureCoefficient = std::nullopt)
+    static inline Matrix CalculateCompressibilityMatrix(const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
     {
-        auto result = -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
-        if (DtPressureCoefficient.has_value()) return result * DtPressureCoefficient.value();
-        else return result;
+        return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
     }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

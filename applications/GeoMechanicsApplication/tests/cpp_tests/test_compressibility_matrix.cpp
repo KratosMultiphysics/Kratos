@@ -40,13 +40,6 @@ KRATOS_TEST_CASE_IN_SUITE(Calculatecompressibility_matrix2D3NGivesCorrectResults
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
-
-    const double dt_pressure_coefficient = 1.5;
-    compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<3>(
-        n_p, biot_modulus_inverse, integration_coefficient, dt_pressure_coefficient);
-    expected_compressibility_matrix *= dt_pressure_coefficient;
-
-    KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Calculatecompressibility_matrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
@@ -69,13 +62,6 @@ KRATOS_TEST_CASE_IN_SUITE(Calculatecompressibility_matrix3D4NGivesCorrectResults
                                         -0.3,-0.6,-0.9,-0.9,
                                         -0.3,-0.6,-0.9,-0.9;
     // clang-format on
-
-    KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
-
-    const double dt_pressure_coefficient = 2.5;
-    compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<4>(
-        n_p, biot_modulus_inverse, integration_coefficient, dt_pressure_coefficient);
-    expected_compressibility_matrix *= dt_pressure_coefficient;
 
     KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 }
