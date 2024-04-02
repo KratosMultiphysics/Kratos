@@ -27,6 +27,7 @@
 
 #define KRATOS_TEST_CASE(A) TEST_F(KratosCoreFastSuite, A)
 #define KRATOS_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
+#define KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
 
 namespace Kratos::Testing {
 

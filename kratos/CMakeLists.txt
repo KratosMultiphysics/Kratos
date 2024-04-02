@@ -145,7 +145,7 @@ endif()
 
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
-target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
+target_link_libraries(Kratos PRIVATE KratosCore)
 
 # Precompile most demanding / widely included headers
 if(KRATOS_USE_PCH MATCHES ON)
