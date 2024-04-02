@@ -280,6 +280,7 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 #include the file with custom installation properties
 include(install_function)
 include(KratosDependencies)
+include(KratosGTest)
 include(FetchContent)
 
 # Logger configuration
