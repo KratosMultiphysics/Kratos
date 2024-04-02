@@ -71,6 +71,7 @@
 #include "processes/parallel_distance_calculation_process.h"
 #include "processes/generic_find_elements_neighbours_process.h"
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
+#include "processes/calculate_nodal_distance_to_skin_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -238,16 +239,19 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
-            .def(py::init<ModelPart&, int, unsigned int>())
-    .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, const int, const unsigned int>())
+        .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"CalculateNonHistoricalNodalAreaProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, std::size_t>())
     ;
@@ -400,6 +404,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Historical */
     py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
@@ -413,6 +418,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Non-Historical */
     py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
@@ -680,6 +686,10 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<GenericFindElementalNeighboursProcess, GenericFindElementalNeighboursProcess::Pointer, Process> (m, "GenericFindElementalNeighboursProcess")
     .def(py::init<ModelPart&>())
     .def("HasNeighboursInFaces", &GenericFindElementalNeighboursProcess::HasNeighboursInFaces)
+    ;
+
+    py::class_<CalculateNodalDistanceToSkinProcess, CalculateNodalDistanceToSkinProcess::Pointer, Process> (m, "CalculateNodalDistanceToSkinProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 }
 

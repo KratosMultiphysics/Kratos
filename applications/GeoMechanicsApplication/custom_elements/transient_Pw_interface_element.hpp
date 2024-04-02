@@ -58,20 +58,27 @@ public:
     }
 
     /// Constructor using an array of nodes
-    TransientPwInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                const NodesArrayType&              ThisNodes,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                PropertiesType::Pointer            pProperties,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -89,9 +96,9 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -130,8 +137,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,
                                     const GeometryType&        Geom,
@@ -162,6 +169,8 @@ protected:
     unsigned int GetNumberOfDOF() const override;
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     /// Serialization
     friend class Serializer;
 

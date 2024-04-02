@@ -56,14 +56,19 @@ public:
     UPwSmallStrainLinkInterfaceElement() : UPwSmallStrainInterfaceElement<TDim, TNumNodes>() {}
 
     // Constructor 1
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainLinkInterfaceElement(IndexType                          NewId,
+                                       GeometryType::Pointer              pGeometry,
+                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     // Constructor 2
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainLinkInterfaceElement(IndexType                          NewId,
+                                       GeometryType::Pointer              pGeometry,
+                                       PropertiesType::Pointer            pProperties,
+                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -112,8 +117,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -16,12 +16,10 @@
 #include "custom_retention/retention_law_factory.h"
 #include "geo_mechanics_application_variables.h"
 
-namespace Kratos {
-
- GeoThermalDispersionLaw::GeoThermalDispersionLaw()
-    : mNumberOfDimensions{2}
+namespace Kratos
 {
-}
+
+GeoThermalDispersionLaw::GeoThermalDispersionLaw() : mNumberOfDimensions{2} {}
 
 GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
     : mNumberOfDimensions{NumberOfDimensions}
@@ -35,23 +33,20 @@ ConstitutiveLaw::Pointer GeoThermalDispersionLaw::Clone() const
     return Kratos::make_shared<GeoThermalDispersionLaw>(*this);
 }
 
-SizeType GeoThermalDispersionLaw::WorkingSpaceDimension()
-{
-    return mNumberOfDimensions;
-}
+SizeType GeoThermalDispersionLaw::WorkingSpaceDimension() { return mNumberOfDimensions; }
 
-Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(
-    const Properties& rProp, const ProcessInfo& rProcessInfo) const
+Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp,
+                                                                 const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
 
     Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
 
     RetentionLaw::Parameters parameters(rProp, rProcessInfo);
-    auto retention_law = RetentionLawFactory::Clone(rProp);
-    const double saturation = retention_law->CalculateSaturation(parameters);
-    const double water_fraction = rProp[POROSITY] * saturation;
-    const double solid_fraction = 1.0 - rProp[POROSITY];
+    auto                     retention_law  = RetentionLawFactory::Clone(rProp);
+    const double             saturation     = retention_law->CalculateSaturation(parameters);
+    const double             water_fraction = rProp[POROSITY] * saturation;
+    const double             solid_fraction = 1.0 - rProp[POROSITY];
 
     const auto x = static_cast<int>(indexThermalFlux::X);
     const auto y = static_cast<int>(indexThermalFlux::Y);

@@ -42,8 +42,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw
-    : public GeoLinearElasticLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw : public GeoLinearElasticLaw
 {
 public:
     ///@name Type Definitions
@@ -61,7 +60,7 @@ public:
     static constexpr SizeType VoigtSize = 3;
 
     /// Counted pointer of GeoLinearElasticPlaneStress2DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStress2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(GeoLinearElasticPlaneStress2DLaw);
 
     ///@name Life Cycle
     ///@{
@@ -85,18 +84,12 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    };
+    SizeType WorkingSpaceDimension() override { return Dimension; };
 
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() const override
-    {
-        return VoigtSize;
-    }
+    SizeType GetStrainSize() const override { return VoigtSize; }
 
     ///@}
     ///@name Access
@@ -126,7 +119,6 @@ public:
     ///@}
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -143,36 +135,32 @@ protected:
     ///@{
 
     /**
-    * It calculates the constitutive matrix C
-    * @param C: The constitutive matrix
-    * @param rValues Parameters of the constitutive law
-    */
+     * It calculates the constitutive matrix C
+     * @param C: The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-    * It calculates the stress vector
-    * @param rStrainVector The strain vector in Voigt notation
-    * @param rStressVector The stress vector in Voigt notation
-    * @param rValues Parameters of the constitutive law
-    */
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
-                            ConstitutiveLaw::Parameters& rValues
-                           ) override;
+     * It calculates the stress vector
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
+     * @param rValues Parameters of the constitutive law
+     */
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
+                            ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-    * It calculates the strain vector
-    * @param rValues The internal values of the law
-    * @param rStrainVector The strain vector in Voigt notation
-    */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                    Vector& rStrainVector
-                                   ) override;
+     * It calculates the strain vector
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -210,4 +198,4 @@ private:
     }
 }; // Class GeoLinearElasticPlaneStress2DLaw
 
-}
+} // namespace Kratos
