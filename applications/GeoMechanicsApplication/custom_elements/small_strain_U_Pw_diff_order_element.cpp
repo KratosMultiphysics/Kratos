@@ -1771,9 +1771,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 
     Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient, rVariables.IntegrationCoefficient);
-    /*PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-                            prod(trans(rVariables.B), Matrix(outer_prod(VoigtVector,
-       rVariables.Np))) * rVariables.IntegrationCoefficient;*/
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix * rVariables.BishopCoefficient);
