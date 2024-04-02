@@ -45,6 +45,7 @@ from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
 from test_conditions import KratosGeoMechanicsConditionTests
 from test_prescribed_derivatives import KratosGeoMechanicsPrescribedDerivatives
 from test_dirichlet_u import KratosGeoMechanicsDirichletUTests
+from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -86,7 +87,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsRotationWithMovingLoadTests,
                         KratosGeoMechanicsConditionTests,
                         KratosGeoMechanicsPrescribedDerivatives,
-                        KratosGeoMechanicsDirichletUTests
+                        KratosGeoMechanicsDirichletUTests,
+                        KratosGeoMechanicsNormalLoadHexaTests
     ]
 
     # Create an array with the selected tests

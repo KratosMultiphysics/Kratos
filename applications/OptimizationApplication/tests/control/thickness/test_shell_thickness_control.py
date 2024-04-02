@@ -18,34 +18,18 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
 
         parameters = Kratos.Parameters("""{
             "controlled_model_part_names": ["shell"],
+            "physical_thicknesses"       : [0.01, 0.02],
             "filter_settings": {
-                "type" : "implicit",
-                "radius": 0.2,
-                "linear_solver_settings" : {
-                    "solver_type" : "amgcl",
-                    "smoother_type":"ilu0",
-                    "krylov_type": "gmres",
-                    "coarsening_type": "aggregation",
-                    "max_iteration": 200,
-                    "provide_coordinates": false,
-                    "gmres_krylov_space_dimension": 100,
-                    "verbosity" : 0,
-                    "tolerance": 1e-7,
-                    "scaling": false,
-                    "block_size": 1,
-                    "use_block_matrices_if_possible" : true,
-                    "coarse_enough" : 5000
-                }
-            },
-            "initial_physical_thickness":0.015,
-            "physical_thicknesses": [0.01,0.02]
+                "filter_type"  : "implicit_filter",
+                "filter_radius": 0.2
+            }
         }""")
 
         cls.optimization_problem = OptimizationProblem()
         cls.thickness_control = ShellThicknessControl("test", cls.model, parameters, cls.optimization_problem)
         cls.optimization_problem.AddComponent(cls.thickness_control)
 
-        with kratos_unittest.WorkFolderScope("../../control/thickness", __file__):
+        with kratos_unittest.WorkFolderScope(".", __file__):
             Kratos.ModelPartIO("Thick_2x2_Shell", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
             material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "materials_2D.json"}} """)
             Kratos.ReadMaterialsUtility(material_settings, cls.model)
