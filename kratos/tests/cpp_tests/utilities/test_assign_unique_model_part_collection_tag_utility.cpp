@@ -20,7 +20,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Utilities */
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
