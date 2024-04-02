@@ -26,6 +26,7 @@ file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_CORE
 ## CoSimulation testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    kratos_add_gtests(KratosCoSimulationCore ${KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES})
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## CoSimulation python interface sources
@@ -35,7 +36,7 @@ set(KRATOS_CO_SIMULATION_TESTING_CPP_PING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/te
 set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_ping_pong_solvers/cpp_test_solver_pong/cpp_test_solver_pong.cpp)
 
 
-add_library(KratosCoSimulationCore SHARED ${KRATOS_CO_SIMULATION_APPLICATION_CORE} ${KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES})
+add_library(KratosCoSimulationCore SHARED ${KRATOS_CO_SIMULATION_APPLICATION_CORE})
 target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore co_sim_io)
 set_target_properties(KratosCoSimulationCore PROPERTIES COMPILE_DEFINITIONS "CO_SIMULATION_APPLICATION=EXPORT,API")
 
