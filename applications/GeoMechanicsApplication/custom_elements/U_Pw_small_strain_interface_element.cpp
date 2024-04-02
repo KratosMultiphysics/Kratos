@@ -1876,15 +1876,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 {
     KRATOS_TRY
 
-    // noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
-    Matrix B = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
-
-    // noalias(rVariables.UVector) = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
+    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
     noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient, rVariables.IntegrationCoefficient);
-    /*PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-    outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;*/
+        rVariables.UDimMatrix, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,

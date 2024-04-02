@@ -1250,13 +1250,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 {
     KRATOS_TRY
 
-    // noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
-
     noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
         rVariables.IntegrationCoefficient);
-    /*PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-    outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;*/
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,
@@ -1403,13 +1399,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
+    // noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
 
-    noalias(rVariables.UPMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.IntegrationCoefficient);
+    /*   -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
+       outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;*/
 
-    noalias(rVariables.UVector) = prod(rVariables.UPMatrix, rVariables.PressureVector);
+    noalias(rVariables.UVector) =
+        prod(rVariables.UPMatrix * (-1) * rVariables.BishopCoefficient, rVariables.PressureVector);
 
     // Distribute coupling block vector 1 into elemental vector
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
