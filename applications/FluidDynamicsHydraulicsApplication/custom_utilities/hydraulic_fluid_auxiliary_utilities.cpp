@@ -307,7 +307,8 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
         if (rNode.Is(rSkinFlag)){
             double inlet_dist = rNode.GetValue(rDistanceVariable);
             rNode.FastGetSolutionStepValue(DISTANCE) = inlet_dist;
-            rNode.Fix(DISTANCE);
+            if (inlet_dist<0.0)
+                rNode.Fix(DISTANCE);
         }
     });
 }
