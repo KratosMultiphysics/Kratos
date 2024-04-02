@@ -1,0 +1,173 @@
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+  CONSTITUTIVE_LAW_NAME LinearElasticPlaneStrainSolid2DLaw
+  YOUNG_MODULUS 1.0e6
+  POISSON_RATIO 0.3
+  DENSITY_SOLID 2.0e3
+  DENSITY_LIQUID 1.0e3
+  POROSITY 0.3
+  BULK_MODULUS_SOLID 1.0e12
+  BULK_MODULUS_LIQUID 3.0e9
+  PERMEABILITY_XX 1.15741e-12
+  PERMEABILITY_YY 1.15741e-12
+  PERMEABILITY_XY 0.0
+  DYNAMIC_VISCOSITY_LIQUID 1.0e-3
+  THICKNESS 1.0
+  BIOT_COEFFICIENT 1.0
+End Properties
+
+
+Begin Nodes
+  1  1.0000000000 1.0000000000 0.0000000000
+  2  0.6666666667 1.0000000000 0.0000000000
+  3  1.0000000000 0.6666666667 0.0000000000
+  4  0.6666666667 0.6666666667 0.0000000000
+  5  0.3333333333 1.0000000000 0.0000000000
+  6  1.0000000000 0.3333333333 0.0000000000
+  7  0.3333333333 0.6666666667 0.0000000000
+  8  0.6666666667 0.3333333333 0.0000000000
+  9  0.3333333333 0.3333333333 0.0000000000
+  10  1.0000000000 0.0000000000 0.0000000000
+  11  0.0000000000 1.0000000000 0.0000000000
+  12  0.0000000000 0.6666666667 0.0000000000
+  13  0.6666666667 0.0000000000 0.0000000000
+  14  0.0000000000 0.3333333333 0.0000000000
+  15  0.3333333333 0.0000000000 0.0000000000
+  16  0.0000000000 0.0000000000 0.0000000000
+End Nodes
+
+
+Begin Elements UPlSmallStrainElement2D4N
+  1  0  15 9 14 16
+  2  0  13 8 9 15
+  3  0  10 6 8 13
+  4  0  9 7 12 14
+  5  0  8 4 7 9
+  6  0  6 3 4 8
+  7  0  7 5 11 12
+  8  0  4 2 5 7
+  9  0  3 1 2 4
+End Elements
+
+
+Begin Conditions UPlLiquidDischargeCondition2D1N
+  1  1  1
+  2  1  11
+End Conditions
+
+Begin Conditions UPlLiquidDischargeCondition2D1N
+  3  1  2
+  4  1  5
+End Conditions
+
+
+Begin SubModelPart Material
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Solid_Displacement-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Liquid_Pressure-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    10
+    13
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Discharge-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    11
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    1
+    2
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Discharge-auto-2
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    2
+    5
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    3
+    4
+  End SubModelPartConditions
+End SubModelPart
+

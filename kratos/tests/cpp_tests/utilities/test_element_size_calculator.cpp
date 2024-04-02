@@ -98,9 +98,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(3, 0.0, 1.0, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Triangle2D3<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Triangle2D3<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 3>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<2, 3>::MinimumElementSize,
                 ElementSizeCalculator<2, 3>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -110,9 +110,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(1, 0.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(3, 0.0, 1.0, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Triangle2D3<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Triangle2D3<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 3>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<2, 3>::AverageElementSize,
                 ElementSizeCalculator<2, 3>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -125,9 +125,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.5, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(5, 0.5, 0.5, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(6, 0.0, 0.5, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Triangle2D6<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Triangle2D6<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 6>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<2, 6>::MinimumElementSize,
                 ElementSizeCalculator<2, 6>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -140,9 +140,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.5, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(5, 0.5, 0.5, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(6, 0.0, 0.5, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Triangle2D6<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Triangle2D6<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 6>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<2, 6>::AverageElementSize,
                 ElementSizeCalculator<2, 6>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -153,9 +153,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(3, 1.0, 1.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.0, 1.0, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Quadrilateral2D4<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Quadrilateral2D4<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 4>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<2, 4>::MinimumElementSize,
                 ElementSizeCalculator<2, 4>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -166,9 +166,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 0.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(3, 1.0, 1.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.0, 1.0, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Quadrilateral2D4<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Quadrilateral2D4<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 4>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<2, 4>::AverageElementSize,
                 ElementSizeCalculator<2, 4>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -184,9 +184,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(7, 0.5, 1.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.0, 0.5, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.5, 0.5, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Quadrilateral2D9<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Quadrilateral2D9<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 9>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<2, 9>::MinimumElementSize,
                 ElementSizeCalculator<2, 9>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -202,9 +202,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(7, 0.5, 1.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.0, 0.5, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.5, 0.5, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Quadrilateral2D9<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Quadrilateral2D9<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<2, 9>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<2, 9>::AverageElementSize,
                 ElementSizeCalculator<2, 9>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -215,9 +215,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 2.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(3, 0.5, 0.5, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.2, 0.3, 1.0)));
-            auto geometry = *GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 4>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<3, 4>::MinimumElementSize,
                 ElementSizeCalculator<3, 4>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -228,9 +228,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(2, 1.0, 2.0, 0.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(3, 0.2, 0.3, 1.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.5, 0.5, 0.0)));
-            auto geometry = *GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Tetrahedra3D4<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 4>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<3, 4>::AverageElementSize,
                 ElementSizeCalculator<3, 4>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -247,9 +247,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.1, 0.15, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.35, 0.4, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(10, 0.6, 1.15, 0.5)));
-            auto geometry = *GeometryType::Pointer(new Tetrahedra3D10<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Tetrahedra3D10<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 10>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<3, 10>::MinimumElementSize,
                 ElementSizeCalculator<3, 10>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -266,9 +266,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.1, 0.15, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(9, 0.35, 0.4, 0.5)));
             nodes.push_back(NodeType::Pointer(new NodeType(10, 0.6, 1.15, 0.5)));
-            auto geometry = *GeometryType::Pointer(new Tetrahedra3D10<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Tetrahedra3D10<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 10>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<3, 10>::AverageElementSize,
                 ElementSizeCalculator<3, 10>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -281,9 +281,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.0, 0.0, 1.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(5, 1.0, 0.0, 1.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(6, 0.0, 1.0, 1.0)));
-            auto geometry = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 6>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<3, 6>::MinimumElementSize,
                 ElementSizeCalculator<3, 6>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -296,9 +296,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(4, 0.0, 0.0, 1.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(5, 1.0, 0.0, 1.0)));
             nodes.push_back(NodeType::Pointer(new NodeType(6, 0.0, 1.0, 1.0)));
-            auto geometry = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 6>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<3, 6>::AverageElementSize,
                 ElementSizeCalculator<3, 6>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -313,9 +313,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(6, 0.7, 0.1, 0.4)));
             nodes.push_back(NodeType::Pointer(new NodeType(7, 0.7, 0.8, 0.3)));
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.1, 0.8, 0.6)));
-            auto geometry = *GeometryType::Pointer(new Hexahedra3D8<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Hexahedra3D8<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 8>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<3, 8>::MinimumElementSize,
                 ElementSizeCalculator<3, 8>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -330,9 +330,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(6, 0.7, 0.1, 0.4)));
             nodes.push_back(NodeType::Pointer(new NodeType(7, 0.7, 0.8, 0.3)));
             nodes.push_back(NodeType::Pointer(new NodeType(8, 0.1, 0.8, 0.6)));
-            auto geometry = *GeometryType::Pointer(new Hexahedra3D8<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Hexahedra3D8<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 8>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<3, 8>::AverageElementSize,
                 ElementSizeCalculator<3, 8>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -366,9 +366,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(25, 0.05, 0.55, 0.15)));
             nodes.push_back(NodeType::Pointer(new NodeType(26, 0.7, 0.4, 0.45)));
             nodes.push_back(NodeType::Pointer(new NodeType(27, 0.45, 0.5, 0.1625)));
-            auto geometry = *GeometryType::Pointer(new Hexahedra3D27<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Hexahedra3D27<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 27>::MinimumElementSize,
+                *p_geometry, ElementSizeCalculator<3, 27>::MinimumElementSize,
                 ElementSizeCalculator<3, 27>::MinimumElementSizeDerivative, 1e-8, 1e-7);
         }
 
@@ -402,9 +402,9 @@ namespace Kratos
             nodes.push_back(NodeType::Pointer(new NodeType(25, 0.05, 0.55, 0.15)));
             nodes.push_back(NodeType::Pointer(new NodeType(26, 0.7, 0.4, 0.45)));
             nodes.push_back(NodeType::Pointer(new NodeType(27, 0.45, 0.5, 0.1625)));
-            auto geometry = *GeometryType::Pointer(new Hexahedra3D27<NodeType>(nodes));
+            auto p_geometry = GeometryType::Pointer(new Hexahedra3D27<NodeType>(nodes));
             RunElementSizeCalculatorDerivativesTest(
-                geometry, ElementSizeCalculator<3, 27>::AverageElementSize,
+                *p_geometry, ElementSizeCalculator<3, 27>::AverageElementSize,
                 ElementSizeCalculator<3, 27>::AverageElementSizeDerivative, 1e-8, 1e-7);
         }
 

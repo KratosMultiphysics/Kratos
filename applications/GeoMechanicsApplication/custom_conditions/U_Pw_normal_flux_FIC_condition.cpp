@@ -15,6 +15,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -86,7 +87,9 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         //Contributions to the left hand side
         this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
@@ -150,7 +153,9 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -199,11 +204,11 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassMatrix(MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables,
                                                                                     NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PMatrix) = -rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
+    noalias(rFICVariables.PPMatrix) = -rFICVariables.DtPressureCoefficient*rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute boundary mass matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,rFICVariables.PMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix,rFICVariables.PPMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -222,14 +227,14 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwNormalFluxFICCondition<TDim,TNumNodes>::CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables,
                                                                                     NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PMatrix) = rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
+    noalias(rFICVariables.PPMatrix) = rFICVariables.ElementLength*rFICVariables.BiotModulusInverse/6.0*
                                         outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
 
-    noalias(rVariables.PVector) = prod(rFICVariables.PMatrix,rFICVariables.DtPressureVector);
+    noalias(rVariables.PVector) = prod(rFICVariables.PPMatrix,rFICVariables.DtPressureVector);
 
     //Distribute boundary mass flow vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector< TDim, TNumNodes >(rRightHandSideVector,rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector,rVariables.PVector);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

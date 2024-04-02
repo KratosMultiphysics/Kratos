@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "1D-Consolidationtest_stage2",
-        "start_time":           1.0,
-        "end_time":             8641,
+        "start_time":           0.0,
+        "end_time":             8640.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "1D-Consolidationtest_stage2"
+            "input_filename":   "1D-Consolidationtest"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters_stage2.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":            100
@@ -29,7 +29,7 @@
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
-        "solution_type":                      "Quasi-Static",
+        "solution_type":                      "dynamic",
         "scheme_type":                        "Newmark",
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
@@ -42,21 +42,21 @@
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
         "residual_absolute_tolerance":        1.0E-9,
-        "min_iterations":                      6,
-        "max_iterations":                      15,
-        "number_cycles":                      10,
+        "min_iterations":                     6,
+        "max_iterations":                     15,
+        "number_cycles":                      1,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-		"calculate_reactions"        : true,
-		"max_line_search_iterations" : 5,
-		"first_alpha_value"          : 0.5,
-		"second_alpha_value"         : 1.0,
-		"min_alpha"                  : 0.1,
-		"max_alpha"                  : 2.0,
-		"line_search_tolerance"      : 0.5,
+        "calculate_reactions":                true,
+        "max_line_search_iterations":         5,
+        "first_alpha_value":                  0.5,
+        "second_alpha_value":                 1.0,
+        "min_alpha":                          0.1,
+        "max_alpha":                          2.0,
+        "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":     "amgcl",
@@ -68,9 +68,9 @@
             "tolerance":       1.0e-6,
             "scaling":         false
         },
-        "problem_domain_sub_model_part_list": ["Soil_two_phase-auto-1"],
-        "processes_sub_model_part_list":      ["BOTTOM","SIDE","Fluid_Pressure-auto-1","Line_Load-auto-1"],
-        "body_domain_sub_model_part_list":    ["Soil_two_phase-auto-1"]
+        "problem_domain_sub_model_part_list": ["Soil_two_phase"],
+        "processes_sub_model_part_list":      ["Bottom","Side","Fluid_pressure","Line_load"],
+        "body_domain_sub_model_part_list":    ["Soil_two_phase"]
     },
     "output_processes": {
         "gid_output": [{
@@ -95,8 +95,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE","REACTION","REACTION_WATER_PRESSURE"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR"]
+                        "nodal_results":       ["DISPLACEMENT","WATER_PRESSURE"],
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -109,7 +109,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.BOTTOM",
+            "model_part_name": "PorousDomain.Bottom",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,true],
             "is_fixed":        [true,true,true],
@@ -121,7 +121,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.SIDE",
+            "model_part_name": "PorousDomain.Side",
             "variable_name":   "DISPLACEMENT",
             "active":          [true,false,false],
             "is_fixed":        [true,false,false],
@@ -133,15 +133,11 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "PorousDomain.Fluid_Pressure-auto-1",
+            "model_part_name":      "PorousDomain.Fluid_pressure",
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
             "value":                0.0,
-            "table":                0,
-            "hydrostatic":          false,
-            "gravity_direction":    1,
-            "reference_coordinate": 0.0,
-            "specific_weight":      10000.0
+            "table":                0
         }
     }],
     "loads_process_list": [{
@@ -149,10 +145,10 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Line_Load-auto-1",
+            "model_part_name": "PorousDomain.Line_load",
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
-            "value":           [0.0,-1,0.0],
+            "value":           [0.0,-1.0,0.0],
             "table":           [0,0,0]
         }
     }]

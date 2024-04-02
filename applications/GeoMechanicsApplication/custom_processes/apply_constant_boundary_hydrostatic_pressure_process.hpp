@@ -46,8 +46,8 @@ public:
                 "table" : 1
             }  )" );
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values have to be input by the user since no meaningful default value exist. For
+        // this reason, we try to access them, so that an error is thrown if they don't exist.
         rParameters["reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
@@ -59,7 +59,7 @@ public:
 
         mVariableName        = rParameters["variable_name"].GetString();
         mIsFixed             = rParameters["is_fixed"].GetBool();
-        mGravityDirection    = rParameters["gravity_direction"].GetInt();
+        mGravityDirection    = static_cast<unsigned int>(rParameters["gravity_direction"].GetInt());
         mReferenceCoordinate = rParameters["reference_coordinate"].GetDouble();
         mSpecificWeight      = rParameters["specific_weight"].GetDouble();
 
@@ -68,7 +68,7 @@ public:
 
 
     ApplyConstantBoundaryHydrostaticPressureProcess(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
-    ApplyConstantHydrostaticPressureProcess& operator=(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
+    ApplyConstantBoundaryHydrostaticPressureProcess& operator=(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
     ~ApplyConstantBoundaryHydrostaticPressureProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations
@@ -77,14 +77,15 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(GetVariableName());
 
-        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-            if (mIsFixed) rNode.Fix(var);
-            else if (mIsFixedProvided) rNode.Free(var);
+        block_for_each(GetModelPart().Nodes(), [&r_variable, this](Node& rNode) {
+            if (mIsFixed) rNode.Fix(r_variable);
+            else if (mIsFixedProvided) rNode.Free(r_variable);
 
-            const double pressure = mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
-            rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.);
+            const auto pressure = GetSpecificWeight() * (GetReferenceCoordinate() -
+                                                         rNode.Coordinates()[GetGravityDirection()]);
+            rNode.FastGetSolutionStepValue(r_variable) = std::max(pressure, 0.);
         });
 
         KRATOS_CATCH("")
@@ -96,15 +97,24 @@ public:
         return "ApplyConstantBoundaryHydrostaticPressureProcess";
     }
 
-protected:
-    /// Member Variables
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsFixedProvided;
+    ModelPart& GetModelPart() { return mrModelPart; }
+
+    [[nodiscard]] const std::string& GetVariableName() const { return mVariableName; }
+
+    [[nodiscard]] unsigned int GetGravityDirection() const { return mGravityDirection; }
+
+    [[nodiscard]] double GetReferenceCoordinate() const { return mReferenceCoordinate; }
+
+    [[nodiscard]] double GetSpecificWeight() const { return mSpecificWeight; }
+
+private:
+    ModelPart&   mrModelPart;
+    std::string  mVariableName;
+    bool         mIsFixed;
+    bool         mIsFixedProvided;
     unsigned int mGravityDirection;
-    double mReferenceCoordinate;
-    double mSpecificWeight;
+    double       mReferenceCoordinate;
+    double       mSpecificWeight;
 };
 
 }

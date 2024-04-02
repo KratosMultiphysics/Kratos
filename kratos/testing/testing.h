@@ -28,8 +28,7 @@
 #define KRATOS_TEST_CASE(A) TEST_F(KratosCoreFastSuite, A)
 #define KRATOS_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
 
-namespace Kratos::Testing 
-{
+namespace Kratos::Testing {
 
 /*
  * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.

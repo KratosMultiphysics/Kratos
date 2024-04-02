@@ -33,8 +33,8 @@ endif(POLICY CMP0135)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 3)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 4)
+set (KratosMultiphysics_PATCH_VERSION 6)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -46,6 +46,8 @@ if(NOT DEFINED KRATOS_BINARY_DIR)
   message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
   set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
 endif(NOT DEFINED KRATOS_BINARY_DIR)
+
+option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -441,12 +443,6 @@ if(${USE_CUDA} MATCHES ON)
   find_package(CUDA QUIET REQUIRED)
 endif(${USE_CUDA} MATCHES ON)
 
-# Clean the Module and libs install directories
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
-
 ##*****************************
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -576,9 +572,25 @@ if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
     add_compile_definitions(KRATOS_ENABLE_PROFILING)
 endif()
 
-# include subdirectories
-add_subdirectory(external_libraries/gidpost)
-add_subdirectory(kratos)
+# Build exclusions and linking dirs.
+# The intended usage of this flags is to allow a defered/incremental compilation of core/applications.
+# Please do not use this options for regular development and never use this with REMOVE_INSTALL_DIRECTORIES=ON
+OPTION ( EXCLUDE_KRATOS_CORE "Force exclusion of the core" OFF )
+OPTION ( EXCLUDE_AUTOMATIC_DEPENDENCIES "Force exclusion of automatically added app dependencies" OFF )
+
+if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON AND (${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES ON))
+  message(FATAL_ERROR "REMOVE_INSTALL_DIRECTORIES cannot be enabled with EXCLUDE_KRATOS_CORE or EXCLUDE_AUTOMATIC_DEPENDENCIES")
+endif()
+
+if(${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES ON)
+  link_directories( ${CMAKE_INSTALL_PREFIX}/libs )
+endif()
+
+# Compile Kratos Core
+if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
+  add_subdirectory(external_libraries/gidpost)
+  add_subdirectory(kratos)
+endif()
 
 # Configure kratos applications
 message(STATUS "Configuring applications (ENV):")
@@ -627,7 +639,7 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
-message("\t Behavior change of Testing. Please esnure you sue KRATOS_EXPECT for testing instead of KRATOS_CHECK")
+message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
@@ -638,6 +650,14 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
+
+# Clean the Module and libs install directories
+if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
+    install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+    install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+    install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
+    install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
+endif(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
 
 # Install core files for the KratosMultiphysics python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )

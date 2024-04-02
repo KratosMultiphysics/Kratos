@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
 class MasterControl:
     """Master control class.
@@ -183,8 +184,11 @@ class MasterControl:
 
         return update_map
 
-    def Initialize(self):
-        pass
+    def Check(self) -> None:
+        CallOnAll(self.__list_of_controls, Control.Check)
 
-    def Finalize(self):
-        pass
+    def Initialize(self) -> None:
+        CallOnAll(self.__list_of_controls, Control.Initialize)
+
+    def Finalize(self) -> None:
+        CallOnAll(self.__list_of_controls, Control.Finalize)

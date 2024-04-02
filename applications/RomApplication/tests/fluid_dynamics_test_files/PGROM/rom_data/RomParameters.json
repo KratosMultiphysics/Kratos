@@ -4,12 +4,6 @@
     "run_hrom": false,
     "rom_format":"numpy",
     "projection_strategy": "petrov_galerkin",
-    "train_petrov_galerkin": {
-        "train": false,
-        "basis_strategy": "residuals",
-        "include_phi": false,
-        "svd_truncation_tolerance": 1e-08
-    },
     "rom_settings": {
         "nodal_unknowns": [
             "PRESSURE",
@@ -17,7 +11,13 @@
             "VELOCITY_Y"
         ],
         "number_of_rom_dofs": 3,
-        "petrov_galerkin_number_of_rom_dofs": 6
+        "petrov_galerkin_number_of_rom_dofs": 6,
+        "rom_bns_settings":{
+            "train_petrov_galerkin": false,
+            "basis_strategy": "residuals",
+            "include_phi": false,
+            "solving_technique": "qr_decomposition"
+        }
     },
     "hrom_settings": {},
     "nodal_modes": {

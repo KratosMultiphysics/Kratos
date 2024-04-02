@@ -284,6 +284,7 @@ PrimalTestSolver::PrimalTestSolver(ModelPart* pPrimalModelPart, unsigned Respons
 double PrimalTestSolver::CalculateResponseValue()
 {
     auto p_solver = CreateSolvingStrategy();
+    p_solver->SetEchoLevel(0);
     p_solver->Initialize();
     p_solver->Solve();
     auto p_response_function = ResponseFunctionFactory(mpPrimalModelPart, mResponseNodeId);
@@ -335,6 +336,7 @@ AdjointTestSolver::AdjointTestSolver(ModelPart* pAdjointModelPart, unsigned Resp
     auto p_adjoint_response_function =
         ResponseFunctionFactory(mpAdjointModelPart, mResponseNodeId);
     auto p_adjoint_solver = CreateAdjointSolvingStrategy(p_adjoint_response_function);
+    p_adjoint_solver->SetEchoLevel(0);
     p_adjoint_solver->Initialize();
     p_adjoint_solver->Solve();
     SensitivityBuilder sensitivity_builder(

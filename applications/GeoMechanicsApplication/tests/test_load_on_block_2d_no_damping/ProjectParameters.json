@@ -1,0 +1,179 @@
+{
+    "problem_data": {
+        "problem_name": "simple_block",
+        "start_time": 0.0,
+        "end_time": 0.02,
+        "echo_level": 1,
+        "parallel_type": "OpenMP",
+        "number_of_threads": 1
+    },
+    "solver_settings": {
+        "solver_type": "U_Pw",
+        "model_part_name": "PorousDomain",
+        "domain_size": 2,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "simple_block_stage_1"
+        },
+        "material_import_settings": {
+            "materials_filename": "MaterialParameters_stage_1.json"
+        },
+        "time_stepping": {
+            "time_step": 0.01,
+            "max_delta_time_factor": 1000
+        },
+        "reduction_factor": 1.0,
+        "increase_factor": 1.0,
+        "buffer_size": 2,
+        "echo_level": 1,
+        "clear_storage": false,
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "reform_dofs_at_each_step": false,
+        "nodal_smoothing": true,
+        "block_builder": true,
+        "rebuild_level": 0,
+        "prebuild_dynamics": true,
+        "solution_type": "dynamic",
+        "rayleigh_m": 0.0,
+        "rayleigh_k": 0.0,
+        "calculate_reactions": true,
+        "rotation_dofs": true,
+        "reset_displacements": false,
+        "scheme_type": "newmark",
+        "newmark_beta": 0.25,
+        "newmark_gamma": 0.5,
+        "newmark_theta": 0.5,
+        "strategy_type": "newton_raphson",
+        "max_iterations": 15,
+        "min_iterations": 6,
+        "number_cycles": 100,
+        "convergence_criterion": "displacement_criterion",
+        "displacement_relative_tolerance": 0.0001,
+        "displacement_absolute_tolerance": 1e-09,
+        "linear_solver_settings": {
+            "solver_type": "amgcl",
+            "scaling": false,
+            "tolerance": 1e-06,
+            "max_iteration": 1000
+        },
+        "problem_domain_sub_model_part_list": [
+            "soil"
+        ],
+        "processes_sub_model_part_list": [
+            "load",
+            "bottom",
+            "sides"
+        ],
+        "body_domain_sub_model_part_list": [
+            "soil"
+        ]
+    },
+    "output_processes": {},
+    "processes": {
+        "json_output": [
+            {
+                "python_module": "json_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "JsonOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.load",
+                    "output_file_name": "calculated_results.json",
+                    "output_variables": [
+                        "DISPLACEMENT_Y"
+                    ],
+                    "gauss_points_output_variables": [],
+                    "historical_value": true,
+                    "time_frequency": 0.0099
+                }
+            }
+        ],
+        "constraints_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "active": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "is_fixed": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "model_part_name": "PorousDomain.bottom",
+                    "variable_name": "DISPLACEMENT",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "active": [
+                        true,
+                        false,
+                        false
+                    ],
+                    "is_fixed": [
+                        true,
+                        false,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "model_part_name": "PorousDomain.sides",
+                    "variable_name": "DISPLACEMENT",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "active": [
+                        false,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        -10.0,
+                        0.0
+                    ],
+                    "model_part_name": "PorousDomain.load",
+                    "variable_name": "LINE_LOAD",
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        ],
+        "auxiliary_process_list": []
+    }
+}

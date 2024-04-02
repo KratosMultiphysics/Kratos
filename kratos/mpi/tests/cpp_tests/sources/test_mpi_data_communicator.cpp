@@ -1877,6 +1877,54 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDoubleVector, KratosMPICoreFa
     #endif
 }
 
+// MinLocAll /////////////////////////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinLocAllInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+
+    int local = 2  *world_rank;
+    auto result = mpi_world_communicator.MinLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, 0);
+    KRATOS_EXPECT_EQ(result.second, 0);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinLocAllDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+
+    double local = 2.0 * world_rank;
+    auto result = mpi_world_communicator.MinLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, 0.0);
+    KRATOS_EXPECT_EQ(result.second, 0);
+}
+
+// MaxLocAll /////////////////////////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxLocAllInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+
+    int local = 2 * world_rank;
+    auto result = mpi_world_communicator.MaxLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, 2 * (mpi_world_communicator.Size() - 1));
+    KRATOS_EXPECT_EQ(result.second, mpi_world_communicator.Size() - 1);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxLocAllDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+
+    double local = 2.0 * world_rank;
+    auto result = mpi_world_communicator.MaxLocAll(local);
+    KRATOS_EXPECT_EQ(result.first, 2.0 * (mpi_world_communicator.Size() - 1));
+    KRATOS_EXPECT_EQ(result.second, mpi_world_communicator.Size() - 1);
+}
+
 // ScanSum ////////////////////////////////////////////////////////////////////
 
 namespace {

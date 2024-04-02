@@ -1088,21 +1088,18 @@ namespace Kratos {
             }
 
             // The integration points
-            std::vector<double> art_dyn_visc;
+            double art_dyn_visc;
             const auto &r_process_info = r_model_part.GetProcessInfo();
             p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
-            // Obtain the artificial dynamic viscosity in each gauss point.
-            p_element->CalculateOnIntegrationPoints(ARTIFICIAL_DYNAMIC_VISCOSITY, art_dyn_visc, r_process_info);
+            // Obtain the artificial dynamic viscosity in the element.
+            p_element->Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY, art_dyn_visc, r_process_info);
 
-            // for (auto val : art_dyn_visc) {
-            //     std::cout << std::setprecision(12) << val << std::endl;
-            // }
-
+            // std::cout << std::setprecision(12) << art_dyn_visc << std::endl;
             const double tolerance = 1.0e-8;
-            std::vector<double> exact_art_dyn_visc = { 2501.10848959, 3288.28103954, 4328.52239208, 1961.64629118};
+            double exact_art_dyn_visc =  3019.8895531;
 
-            KRATOS_EXPECT_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
+            KRATOS_EXPECT_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesAlphaMethodArtificialDynamicViscosity2D3N, FluidDynamicsApplicationFastSuite)
@@ -1160,17 +1157,16 @@ namespace Kratos {
             }
 
             // The integration points
-            std::vector<double> art_dyn_visc;
+            double art_dyn_visc;
             const auto &r_process_info = r_model_part.GetProcessInfo();
             p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 
-            // Obtain the artificial dynamic viscosity in each gauss point.
-            p_element->CalculateOnIntegrationPoints(ARTIFICIAL_DYNAMIC_VISCOSITY, art_dyn_visc, r_process_info);
+            // Obtain the artificial dynamic viscosity in the element.
+            p_element->Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY, art_dyn_visc, r_process_info);
 
             const double tolerance = 1.0e-8;
-            std::vector<double> exact_art_dyn_visc = {2829.53964846, 3772.34868778, 4715.15772801};
-
-            KRATOS_EXPECT_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
+            double exact_art_dyn_visc = 3772.34868808;
+            KRATOS_EXPECT_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.
