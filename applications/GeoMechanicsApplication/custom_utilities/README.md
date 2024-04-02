@@ -14,9 +14,17 @@ The mathematical definition of the permeability matrix is:
 $$H = \int_\Omega (\nabla N_p)^T \frac{1}{\mu} k \nabla N_p d\Omega$$
 where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the dynamic viscosity (material parameter) and $k$ is material permeability matrix. The k matrix allows one to take into account, for example, an anisotropic permeability. 
 
+### Coupling Matrix (Q)
+
+The mathematical definition is:
+$$Q = \int_\Omega B^T \alpha m N_p d\Omega$$
+where $B$ is the B-matrix, $\alpha$ is Biot-alpha (relation between pressure and displacements, material parameter), $m$ is the Voigt-vector ($[1,1,1,0,0,0]$) and $N_p$ is the pressure shape function.
+
+
 File transport_equation_utilities.hpp includes 
 
 -  CalculatePermeabilityMatrix function
+-  CalculateCouplingMatrix function
 
 
 
