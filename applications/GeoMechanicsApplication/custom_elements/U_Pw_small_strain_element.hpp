@@ -240,9 +240,6 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateCompressibilityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                                const ElementVariables& rVariables) const;
-
     virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);

@@ -1793,12 +1793,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(Matrix
 {
     KRATOS_TRY
 
-    Matrix CompressibilityMatrix =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse *
-        outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+    Matrix CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, CompressibilityMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(
+        rLeftHandSideMatrix, CompressibilityMatrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("")
 }
@@ -1811,7 +1811,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix(MatrixTyp
     Matrix PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
         rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
         rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
-    
+
     // Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, PermeabilityMatrix);
 
@@ -1939,8 +1939,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 {
     KRATOS_TRY
 
-    Matrix CompressibilityMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                   outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+    Matrix CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     Vector CompressibilityFlow = -prod(CompressibilityMatrix, rVariables.PressureDtVector);
 
