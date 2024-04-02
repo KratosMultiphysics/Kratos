@@ -230,35 +230,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             # to solver
             to_solver_data = self.__GetInterfaceDataFromSolver(solver_name, to_data_name)
 
-            # print("########PRINT BEFORE SYNCHRONIZATION##########")
-            # if solver_name=="solid":
-            #     model_part = self.solver_wrappers["fluid"]._analysis_stage._GetSolver().GetComputingModelPart()
-            #     interface_model_part = model_part.GetSubModelPart("GENERIC_Interface_fluid")
-            #     interface_nodes = set(node.Id for node in interface_model_part.Nodes)
-            #     for cond in model_part.Conditions:
-            #         if cond.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
-            #             for node in cond.GetNodes():
-            #                 if node.Id in interface_nodes:
-            #                     aux_flux = node.GetSolutionStepValue(KCD.AUX_FLUX)
-            #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Aux flux: {np.round(aux_flux, 10)}")
-            #                     reaction_flux = node.GetSolutionStepValue(KM.REACTION_FLUX)
-            #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Reaction flux: {np.round(reaction_flux, 10)}")
-
             self.__SynchronizeData(i_data, from_solver_data, to_solver_data)
-
-            # print("########PRINT AFTER SYNCHRONIZATION##########")
-            # if solver_name=="solid":
-            #     model_part = self.solver_wrappers["fluid"]._analysis_stage._GetSolver().GetComputingModelPart()
-            #     interface_model_part = model_part.GetSubModelPart("GENERIC_Interface_fluid")
-            #     interface_nodes = set(node.Id for node in interface_model_part.Nodes)
-            #     for cond in model_part.Conditions:
-            #         if cond.GetValue(RomApp.HROM_WEIGHT)!= 1.0:
-            #             for node in cond.GetNodes():
-            #                 if node.Id in interface_nodes:
-            #                     aux_flux = node.GetSolutionStepValue(KCD.AUX_FLUX)
-            #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Aux flux: {np.round(aux_flux, 10)}")
-            #                     reaction_flux = node.GetSolutionStepValue(KM.REACTION_FLUX)
-            #                     print(f"Condition ID: {cond.Id}, Node ID: {node.Id}, Reaction flux: {np.round(reaction_flux, 10)}")
 
             debug = True
 

@@ -1138,7 +1138,8 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetNeighbouringElementIds(
     ModelPart& rModelPart,
-    const std::vector<IndexType>& rNodeIds)
+    const std::vector<IndexType>& rNodeIds,
+    bool retrieveSingleNeighbour)
 {
     std::unordered_set<IndexType> new_entity_ids_set;
 
@@ -1156,6 +1157,9 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNeighbouringElementIds(
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_elem = r_neigh_elements[i];
             new_entity_ids_set.insert(r_elem.Id() - 1);
+            if (retrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
         }
     }
 
@@ -1167,7 +1171,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNeighbouringElementIds(
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetNeighbouringConditionIds(
     ModelPart& rModelPart,
-    const std::vector<IndexType>& rNodeIds)
+    const std::vector<IndexType>& rNodeIds,
+    bool retrieveSingleNeighbour)
 {
     std::unordered_set<IndexType> new_condition_ids_set;
 
@@ -1185,6 +1190,9 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNeighbouringConditionIds(
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_cond = r_neigh_elements[i];
             new_condition_ids_set.insert(r_cond.Id() - 1);
+            if (retrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
         }
     }
 
@@ -1212,6 +1220,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIdsForList(
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_elem = r_neigh_elements[i];
             parent_ids_set.insert(r_elem.Id() - 1);
+            break;
         }
     }
 

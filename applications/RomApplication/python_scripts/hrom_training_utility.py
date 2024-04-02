@@ -117,6 +117,12 @@ class HRomTrainingUtility(object):
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
 
+        self.transfer_operator_model_parts_list = settings["transfer_operator_model_parts_list"].GetStringArray()
+
+        for model_part_name in self.transfer_operator_model_parts_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+
     # Example function to load, concatenate and delete files
     def load_concatenate_and_erase_files(self):
         # Initialize an empty list to hold numpy arrays
@@ -171,7 +177,8 @@ class HRomTrainingUtility(object):
         # Generate the matrix of projected residuals
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
         if (self.projection_strategy=="galerkin"):
-            res_mat = self.load_concatenate_and_erase_files()
+            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+            # res_mat = self.load_concatenate_and_erase_files()
 
         elif (self.projection_strategy=="lspg"):
                 jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
@@ -284,6 +291,13 @@ class HRomTrainingUtility(object):
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
 
+            for transfer_operator_model_part in self.transfer_operator_model_parts_list:
+                interface_model_part = aux_model.GetModelPart(transfer_operator_model_part)
+                hrom_interface_nodes_ids = []
+                for node in interface_model_part.Nodes:
+                    hrom_interface_nodes_ids.append(node.Id)
+                np.save(f"{interface_model_part.Name}HROM_interface_node_ids.npy", hrom_interface_nodes_ids)
+
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
@@ -301,7 +315,8 @@ class HRomTrainingUtility(object):
             "include_minimum_condition": false,
             "include_condition_parents": false,
             "constraint_sum_weights": true,
-            "constrain_conditions": false
+            "constrain_conditions": true,
+            "transfer_operator_model_parts_list": []
         }""")
         return default_settings
 
@@ -554,8 +569,6 @@ class HRomTrainingUtility(object):
         nonzero_unique_condition_weights_list = nonzero_unique_condition_weights.tolist()
 
         return nonzero_unique_element_ids_list, nonzero_unique_element_weights_list,nonzero_unique_condition_ids_list, nonzero_unique_condition_weights_list
-
-
 
 
 

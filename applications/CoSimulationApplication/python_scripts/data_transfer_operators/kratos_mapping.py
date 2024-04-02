@@ -13,6 +13,8 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 from time import time
 
+import numpy as np
+
 def Create(*args):
     return KratosMappingDataTransferOperator(*args)
 
@@ -38,6 +40,136 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             raise Exception('No "mapper_settings" provided!')
         super().__init__(settings, parent_coupled_solver_data_communicator)
         self.__mappers = {}
+
+        ###ADDED BY SEBASTIAN####
+        # Initialize snapshot dictionaries for temperature and auxiliary flux
+        self.temperature_solid = []
+        self.temperature_fluid = []
+        self.face_heat_flux_solid = []
+        self.face_heat_flux_fluid = []
+        origin_var_name = "TEMPERATURE"
+        if not KM.KratosGlobals.HasVariable(origin_var_name):
+            err_msg = "\'{}\' variable in \'nodal_unknowns\' is not in KratosGlobals. Please check provided value.".format(origin_var_name)
+        if not KM.KratosGlobals.GetVariableType(origin_var_name):
+            err_msg = "\'{}\' variable in \'nodal_unknowns\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(origin_var_name)
+        self.origin_var_to_store = KM.KratosGlobals.GetVariable(origin_var_name)# TODO: Make it something that the user can give
+        destination_var_name = "FACE_HEAT_FLUX"
+        if not KM.KratosGlobals.HasVariable(destination_var_name):
+            err_msg = "\'{}\' variable in \'nodal_unknowns\' is not in KratosGlobals. Please check provided value.".format(destination_var_name)
+        if not KM.KratosGlobals.GetVariableType(destination_var_name):
+            err_msg = "\'{}\' variable in \'nodal_unknowns\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(destination_var_name)
+        self.destination_var_to_store = KM.KratosGlobals.GetVariable(destination_var_name)# TODO: Make it something that the user can give
+
+        # Initiliazation flag
+        self.solid_init_flag = False
+        self.fluid_init_flag = False
+
+        self.counter = 0
+
+    def __ExtractNodeIds(self, model_part):
+        node_ids = np.array([node.Id for node in model_part.Nodes])
+        return node_ids
+
+    def ExtractAndStoreDataSnapshot(self, from_solver_data, to_solver_data):
+        # Obtain the model parts
+        model_part_origin = self.__GetModelPartFromInterfaceData(from_solver_data)
+        model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
+
+        data_origin = self.__ExtractData(model_part_origin, self.origin_var_to_store)
+        data_destination = self.__ExtractData(model_part_destination, self.destination_var_to_store)
+
+        # Store the snapshots
+        from_solver_data_model_part_name = model_part_origin.Name
+        to_solver_data_model_part_name = model_part_destination.Name
+        if from_solver_data.solver_name=="solid" and len(self.temperature_solid)==0:#TODO: this is hardcoded, think of something else
+            data_origin_node_ids = self.__ExtractNodeIds(model_part_origin)
+            origin_node_ids_name = f"{from_solver_data_model_part_name}_interface_node_ids.npy"
+            np.save(origin_node_ids_name, data_origin_node_ids)
+            data_destination_node_ids = self.__ExtractNodeIds(model_part_destination)
+            destination_node_ids_name = f"{to_solver_data_model_part_name}_interface_node_ids.npy"
+            np.save(destination_node_ids_name, data_destination_node_ids)
+        if from_solver_data.solver_name=="solid":
+            self.temperature_solid.append(data_origin)
+            temperature_data_file_name = f"{from_solver_data_model_part_name}_temperature.npy"
+            np.save(temperature_data_file_name, np.array(self.temperature_solid))
+            self.face_heat_flux_fluid.append(data_destination)
+            face_heat_flux_data_file_name = f"{to_solver_data_model_part_name}_face_heat_flux.npy"
+            np.save(face_heat_flux_data_file_name, np.array(self.face_heat_flux_fluid))
+        elif from_solver_data.solver_name=="fluid":
+            self.temperature_fluid.append(data_origin)
+            temperature_data_file_name = f"{from_solver_data_model_part_name}_temperature.npy"
+            np.save(temperature_data_file_name, np.array(self.temperature_fluid))
+            self.face_heat_flux_solid.append(data_destination)
+            face_heat_flux_data_file_name = f"{to_solver_data_model_part_name}_face_heat_flux.npy"
+            np.save(face_heat_flux_data_file_name, np.array(self.face_heat_flux_solid))
+
+    def __ExtractData(self, model_part, variable):
+        """
+        Extracts data for a specified variable from a model part.
+
+        :param model_part: The model part from which to extract data.
+        :param variable: The variable for which to extract data.
+        :return: A NumPy array with the corresponding variable values.
+        """
+        # Assuming GetSolutionStepValue(variable) for each node returns a scalar or a vector of variable values
+        # across time steps. If it's just a single value per time step, this needs to be accumulated in a loop
+        # over time steps which is not shown here.
+
+        variable_values = np.array([node.GetSolutionStepValue(variable) for node in model_part.Nodes])
+
+        return variable_values
+
+    def _ExecuteTransferDataWithTransferOperator(self, from_solver_data, to_solver_data, transfer_options):
+
+        self.P_temp_to_temp = np.load("transfer_operator_P_temperature_to_temperature.npy")  # Load the projection operator P temp
+        self.P_temp_to_face_heat_flux = np.load("transfer_operator_P_temperature_to_face_heat_flux.npy")  # Load the projection operator P flux
+
+        # Obtain the model parts
+        model_part_origin = self.__GetModelPartFromInterfaceData(from_solver_data)
+        model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
+
+        if from_solver_data.solver_name=="solid":
+            # Retrieve temperatures from the solid interface
+            solid_interface_temperatures = np.array([
+                node.GetSolutionStepValue(KM.TEMPERATURE)
+                for node in model_part_origin.Nodes
+            ])
+
+            # Apply the projection operator P to map temperatures
+            mapped_fluid_temperatures = np.dot(self.P_temp_to_temp, solid_interface_temperatures)
+
+            # mapped_fluid_temperatures = np.load("GENERIC_Interface_fluid_temperature.npy")[self.counter,:]
+
+            # if not self.solid_init_flag:
+            #     mapped_fluid_temperatures *= 0.0
+            #     self.solid_init_flag = True
+
+            # Assign the mapped temperatures to the fluid interface nodes
+            for i, node in enumerate(model_part_destination.Nodes):
+                node.SetSolutionStepValue(KM.TEMPERATURE, mapped_fluid_temperatures[i])
+
+        elif from_solver_data.solver_name=="fluid":
+            # Retrieve temperatures from the solid interface
+            fluid_interface_temperatures = np.array([
+                node.GetSolutionStepValue(KM.TEMPERATURE)
+                for node in model_part_origin.Nodes
+            ])
+
+            # Apply the projection operator P to map temperatures to face heat flux
+            mapped_solid_face_heat_flux = np.dot(self.P_temp_to_face_heat_flux, fluid_interface_temperatures)
+
+            # mapped_solid_face_heat_flux = np.load("GENERIC_Interface_solid_face_heat_flux.npy")[self.counter,:]
+
+            # if not self.fluid_init_flag:
+            #     mapped_solid_face_heat_flux *= 0.0
+            #     self.fluid_init_flag = True
+
+            # Assign the mapped temperatures to the fluid interface nodes
+            for i, node in enumerate(model_part_destination.Nodes):
+                node.SetSolutionStepValue(KM.FACE_HEAT_FLUX, mapped_solid_face_heat_flux[i])
+
+        self.counter += 1
+    ###ADDED BY SEBASTIAN####
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
         model_part_origin_name = from_solver_data.model_part_name

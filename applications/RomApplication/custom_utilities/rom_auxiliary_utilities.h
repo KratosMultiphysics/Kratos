@@ -189,7 +189,8 @@ public:
      * and 'NEIGHBOUR_CONDITIONS' values attached to each node. The function ensures that each entity ID
      * (elements and conditions) is unique, thus avoiding duplicates in the returned vector. It's important to note
      * that this function assumes that the 'NEIGHBOUR_ELEMENTS' and 'NEIGHBOUR_CONDITIONS' values are already
-     * computed for the nodes in the model part.
+     * computed for the nodes in the model part. The boolean flag 'retrieveSingleNeighbour' indicates whether to retrieve
+     * all neighboring entities or only a single neighbor per node.
      *
      * The function is particularly useful in scenarios where it's necessary to find all elements and conditions
      * that are directly connected to a certain subset of nodes within a model part. This can be essential in
@@ -198,15 +199,18 @@ public:
      *
      * @param rModelPart The model part which contains all the elements and conditions.
      * @param rNodeIds A vector of node IDs for which neighboring elements and conditions should be fetched.
+     * @param retrieveSingleNeighbour Indicates whether to retrieve all neighbors or only a single neighbor per node.
      * @return std::vector<IndexType> A list of unique IDs of neighboring elements and conditions.
      */
     static std::vector<IndexType> GetNeighbouringElementIds(
         ModelPart& rModelPart,
-        const std::vector<IndexType>& rNodeIds);
+        const std::vector<IndexType>& rNodeIds,
+        bool retrieveSingleNeighbour);
 
     static std::vector<IndexType> GetNeighbouringConditionIds(
         ModelPart& rModelPart,
-        const std::vector<IndexType>& rNodeIds);
+        const std::vector<IndexType>& rNodeIds,
+        bool retrieveSingleNeighbour);
 
     static std::vector<IndexType> GetHRomConditionParentsIdsForList(
         ModelPart& rModelPart,

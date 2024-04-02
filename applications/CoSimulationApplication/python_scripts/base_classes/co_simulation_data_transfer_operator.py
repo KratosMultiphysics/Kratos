@@ -15,6 +15,43 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
         self.data_communicator = parent_coupled_solver_data_communicator
         self.__checked_combinations = []
 
+    def TransferData_ConstructOperator(self, from_solver_data, to_solver_data, transfer_options):
+        # 1. Check if specified transfer options are available
+        self._CheckAvailabilityTransferOptions(transfer_options)
+
+        # 2. Perform check (only if it has not been done before in this combination)
+        if from_solver_data and to_solver_data:
+            identifier_from_solver_data = from_solver_data.solver_name + "." + from_solver_data.model_part_name
+            identifier_to_solver_data   = to_solver_data.solver_name   + "." + to_solver_data.model_part_name
+
+            identifier_tuple = (identifier_from_solver_data, identifier_to_solver_data)
+            if not identifier_tuple in self.__checked_combinations:
+                self.__checked_combinations.append(identifier_tuple)
+                self._Check(from_solver_data, to_solver_data)
+
+        # 3. Perform data transfer
+        self._ExecuteTransferData(from_solver_data, to_solver_data, transfer_options)
+        ###ADDED BY SEBASTIAN####
+        self.ExtractAndStoreDataSnapshot(from_solver_data, to_solver_data)
+        ###ADDED BY SEBASTIAN####
+
+    def TransferDataWithTransferOperator(self, from_solver_data, to_solver_data, transfer_options):
+        # 1. Check if specified transfer options are available
+        self._CheckAvailabilityTransferOptions(transfer_options)
+
+        # 2. Perform check (only if it has not been done before in this combination)
+        if from_solver_data and to_solver_data:
+            identifier_from_solver_data = from_solver_data.solver_name + "." + from_solver_data.model_part_name
+            identifier_to_solver_data   = to_solver_data.solver_name   + "." + to_solver_data.model_part_name
+
+            identifier_tuple = (identifier_from_solver_data, identifier_to_solver_data)
+            if not identifier_tuple in self.__checked_combinations:
+                self.__checked_combinations.append(identifier_tuple)
+                self._Check(from_solver_data, to_solver_data)
+
+        # 3. Perform data transfer
+        self._ExecuteTransferDataWithTransferOperator(from_solver_data, to_solver_data, transfer_options)
+
     def TransferData(self, from_solver_data, to_solver_data, transfer_options):
         # 1. Check if specified transfer options are available
         self._CheckAvailabilityTransferOptions(transfer_options)
@@ -31,6 +68,8 @@ class CoSimulationDataTransferOperator(metaclass=ABCMeta):
 
         # 3. Perform data transfer
         self._ExecuteTransferData(from_solver_data, to_solver_data, transfer_options)
+
+        debug = True
 
     @abstractmethod
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options): pass
