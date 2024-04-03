@@ -108,16 +108,22 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
         }
     } else {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            // const auto &r_node = GetGeometry()[i_node];
-            // rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_X, displ_pos             ).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_Y, displ_pos + 1         ).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(DISPLACEMENT_Z, displ_pos + 2         ).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX, strain_pos    ).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY, strain_pos + 1).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ, strain_pos + 2).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY, strain_pos + 3).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ, strain_pos + 4).EquationId();
-            // rResult[aux_index++] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ, strain_pos + 5).EquationId();
+            const auto &r_node = GetGeometry()[i_node];
+            const SizeType u_block = i_node * dim;
+            const SizeType E_block = i_node * strain_size + u_size;
+
+            const IndexType displ_dof = r_node.GetDofPosition(DISPLACEMENT_X);
+            const IndexType E_dof     = r_node.GetDofPosition(NODAL_STRAIN_VECTOR_XX);
+
+            rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
+            rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
+            rResult[u_block + 2] = r_node.GetDof(DISPLACEMENT_Z,          displ_dof + 2).EquationId();
+            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  E_dof        ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  E_dof + 1    ).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_ZZ,  E_dof + 2    ).EquationId();
+            rResult[E_block + 3] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  E_dof + 3    ).EquationId();
+            rResult[E_block + 4] = r_node.GetDof(NODAL_STRAIN_VECTOR_YZ,  E_dof + 4    ).EquationId();
+            rResult[E_block + 5] = r_node.GetDof(NODAL_STRAIN_VECTOR_XZ,  E_dof + 5    ).EquationId();
         }
     }
 
@@ -159,15 +165,17 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
     } else if (dim == 3) {
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             const auto &r_node = GetGeometry()[i_node];
-            // rElementalDofList[i * block_size    ] = r_node.pGetDof(DISPLACEMENT_X);
-            // rElementalDofList[i * block_size + 1] = r_node.pGetDof(DISPLACEMENT_Y);
-            // rElementalDofList[i * block_size + 2] = r_node.pGetDof(DISPLACEMENT_Z);
-            // rElementalDofList[i * block_size + 3] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
-            // rElementalDofList[i * block_size + 4] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
-            // rElementalDofList[i * block_size + 5] = r_node.pGetDof(NODAL_STRAIN_VECTOR_ZZ);
-            // rElementalDofList[i * block_size + 6] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
-            // rElementalDofList[i * block_size + 7] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YZ);
-            // rElementalDofList[i * block_size + 8] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XZ);
+            const SizeType u_block = i_node * dim;
+            const SizeType E_block = i_node * strain_size + u_size;
+            rElementalDofList[u_block    ] = r_node.pGetDof(DISPLACEMENT_X);
+            rElementalDofList[u_block + 1] = r_node.pGetDof(DISPLACEMENT_Y);
+            rElementalDofList[u_block + 2] = r_node.pGetDof(DISPLACEMENT_Z);
+            rElementalDofList[E_block    ] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XX);
+            rElementalDofList[E_block + 1] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YY);
+            rElementalDofList[E_block + 2] = r_node.pGetDof(NODAL_STRAIN_VECTOR_ZZ);
+            rElementalDofList[E_block + 3] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XY);
+            rElementalDofList[E_block + 4] = r_node.pGetDof(NODAL_STRAIN_VECTOR_YZ);
+            rElementalDofList[E_block + 5] = r_node.pGetDof(NODAL_STRAIN_VECTOR_XZ);
         }
     }
 
