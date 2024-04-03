@@ -300,7 +300,7 @@ protected:
 
     void CalculateB2Matrix( Matrix & rB2, const Matrix& rDN_DX);
 
-   double &CalculateGaussPointWaterPressure(ElementDataType &rVariables, double &rWaterPressure) const;
+   double &CalculateGaussPointWaterPressure(ElementDataType &rVariables, double &rWaterPressure);
 
     ///@}
     ///@name Protected  Access
