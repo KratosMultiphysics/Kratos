@@ -57,6 +57,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianElement
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType       = UPwSmallStrainElement<TDim, TNumNodes>;
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
@@ -222,8 +223,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -272,14 +273,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
 }; // Class UPwUpdatedLagrangianElement
 

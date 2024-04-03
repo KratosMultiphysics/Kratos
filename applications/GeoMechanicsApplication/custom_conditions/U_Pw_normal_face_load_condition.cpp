@@ -98,7 +98,7 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
     const unsigned int& GPoint)
 {
     Vector NormalVector = ZeroVector(TDim);
-    const double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
+    double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
 
     if constexpr (TDim == 2) {
         const double TangentialStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
@@ -107,6 +107,10 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
         rTractionVector[1] = NormalStress * NormalVector[0] + TangentialStress * NormalVector[1];
     }
     else if constexpr (TDim == 3) {
+        // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
+        // should switch sign, such that positive normal contact stress is defined inwards.
+        NormalStress *= -1;
+
         MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
         rTractionVector = NormalStress * NormalVector;
     }
