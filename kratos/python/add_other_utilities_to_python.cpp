@@ -387,6 +387,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // Auxiliar ModelPart Utility
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
+        .def("AddElementWithNodes", &AuxiliarModelPartUtilities::AddElementWithNodes)
+        .def("AddConditionWithNodes", &AuxiliarModelPartUtilities::AddConditionWithNodes)
         .def("CopySubModelPartStructure", &AuxiliarModelPartUtilities::CopySubModelPartStructure)
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
@@ -419,7 +421,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     // Sparse matrix multiplication utility
     py::class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
-        .def(py::init<>())
         .def_static("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
         .def_static("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
         .def_static("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)

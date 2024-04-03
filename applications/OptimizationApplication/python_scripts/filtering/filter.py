@@ -74,43 +74,62 @@ class Filter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def FilterField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        """Filter the input unfiltered_field.
+    def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        """Return the physical field by filtering/smoothing control field
 
-        This method filters the passed input field. Unfiltered field is assumed to be a
-        non-integrated field over entity domains.
+        This method filters the passed input field. control_field field is assumed to be a
+        mesh-independent field.
 
         Args:
-            unfiltered_field (ContainerExpressionTypes): Input field
+            control_field (ContainerExpressionTypes): Input control field
 
         Returns:
-            ContainerExpressionTypes: Filtered output field.
+            ContainerExpressionTypes: Physical field.
         """
         pass
 
     @abc.abstractmethod
-    def FilterIntegratedField(self, unfiltered_integrated_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        """Filter the input integrated field.
+    def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        """Returns mesh-independent control space gradient from mesh-independent physical space gradient.
 
-        This method filters the passed integrated input field. The unfiltered integrated field is
-        assumed to be already integrated over entity domains.
+        This method filters the passed mesh-independent input field. This is not the inverse
+        operator, it uses the transpose of the ForwardFilterField matrix.
 
         Args:
-            unfiltered_integrated_field (ContainerExpressionTypes): Unfiltered integrated field.
+            physical_mesh_independent_gradient_field (ContainerExpressionTypes): Mesh independent gradient field in physical space.
 
         Returns:
-            ContainerExpressionTypes: Filtered output field.
+            ContainerExpressionTypes: Mesh-independent gradient in the control space.
         """
         pass
 
-    def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        """Get the unfiltered field from a filtered field
+    @abc.abstractmethod
+    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        """Returns mesh-independent control space gradient from mesh-dependent physical space gradient.
+
+        This method filters the passed mesh-dependent input field. This is not the inverse
+        operator, it uses the transpose of the ForwardFilterField matrix.
 
         Args:
-            filtered_field (ContainerExpressionTypes): Filtered field
+            physical_mesh_dependent_gradient_field (ContainerExpressionTypes): Mesh dependent gradient field in physical space.
 
         Returns:
-            ContainerExpressionTypes: Unfiltered field.
+            ContainerExpressionTypes: Mesh-independent gradient in the control space.
+        """
+        pass
+
+    @abc.abstractmethod
+    def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+        """Returns control space field from the physical space field using the inverse operator.
+
+        This method needs to compute the inverse of the matrix used in ForwardFilterField
+        to compute the UnfilteredField of the physical field.
+
+        Args:
+            physical_field (ContainerExpressionTypes): Physical field.
+
+        Returns:
+            ContainerExpressionTypes: Control field.
         """
         pass
 
@@ -121,6 +140,19 @@ class Filter(abc.ABC):
         This method is used to update the filter state. This will be called by the control, when control changes
         the optimization domain.
 
+        """
+        pass
+
+    @abc.abstractmethod
+    def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
+        """Returns boundary conditions.
+
+        This returns a list of model parts where the filter is having fixed
+        boundary conditions for each component for the variable this filter
+        is being used.
+
+        Returns:
+            list[list[Kratos.ModelPart]]: list of fixed boundary condition model parts for each component.
         """
         pass
 

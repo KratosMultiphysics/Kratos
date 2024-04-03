@@ -193,10 +193,10 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes>               PPMatrix;
         Matrix                                                    UVoigtMatrix;
         BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
         array_1d<double, TNumNodes * TDim>                        UVector;
@@ -240,14 +240,7 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateCompressibilityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                                const ElementVariables& rVariables) const;
-
     virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
-    virtual void CalculatePermeabilityMatrix(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                             BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                             const ElementVariables& rVariables) const;
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -267,8 +260,7 @@ protected:
 
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TDim>&      rPDimMatrix,
-                                           BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
+    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                            array_1d<double, TNumNodes>&                 rPVector,
                                            const ElementVariables& rVariables) const;
 
