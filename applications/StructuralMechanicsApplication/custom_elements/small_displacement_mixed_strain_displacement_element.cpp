@@ -90,10 +90,6 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
         rResult.resize(dof_size);
     }
 
-    // const IndexType displ_pos     = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    // const IndexType strain_pos    = r_geometry[0].GetDofPosition(NODAL_STRAIN_VECTOR_XX);
-    // const IndexType strain_pos_xy = r_geometry[0].GetDofPosition(NODAL_STRAIN_VECTOR_XY);
-
     if (dim == 2) {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             const auto &r_node = GetGeometry()[i_node];
@@ -106,9 +102,9 @@ void SmallDisplacementMixedStrainDisplacementElement::EquationIdVector(
 
             rResult[u_block    ] = r_node.GetDof(DISPLACEMENT_X,          displ_dof    ).EquationId();
             rResult[u_block + 1] = r_node.GetDof(DISPLACEMENT_Y,          displ_dof + 1).EquationId();
-            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX, E_dof         ).EquationId();
-            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY, E_dof + 1     ).EquationId();
-            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY, E_dof_xy      ).EquationId();
+            rResult[E_block    ] = r_node.GetDof(NODAL_STRAIN_VECTOR_XX,  E_dof        ).EquationId();
+            rResult[E_block + 1] = r_node.GetDof(NODAL_STRAIN_VECTOR_YY,  E_dof + 1    ).EquationId();
+            rResult[E_block + 2] = r_node.GetDof(NODAL_STRAIN_VECTOR_XY,  E_dof_xy     ).EquationId();
         }
     } else {
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {

@@ -111,7 +111,7 @@ class convergence_criterion:
             if(convergence_crit == "displacement_criterion"):
                 self.mechanical_convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
                     [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
-                    (KratosMultiphysics.NODAL_STRAIN_VECTOR, D_RT, D_AT)])
+                    (StructuralMechanicsApplication.NODAL_STRAIN_VECTOR, D_RT, D_AT)])
                 self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
             elif(convergence_crit == "residual_criterion"):
                 self.mechanical_convergence_criterion = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, "NODAL_STRAIN_VECTOR")
