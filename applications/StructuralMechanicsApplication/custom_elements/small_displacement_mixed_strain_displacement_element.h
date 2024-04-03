@@ -640,7 +640,7 @@ private:
             SetConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
 
             // Calculate the output value
-            rOutput[i_gauss] = mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, rVariable, rOutput[i_gauss] );
+            rOutput[i_gauss] = mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, rVariable, rOutput[i_gauss]);
         }
     }
 
