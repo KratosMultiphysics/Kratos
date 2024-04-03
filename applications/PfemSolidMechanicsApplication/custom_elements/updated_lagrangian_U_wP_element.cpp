@@ -143,7 +143,7 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -165,7 +165,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -288,7 +288,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUwPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
