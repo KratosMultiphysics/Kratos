@@ -564,8 +564,14 @@ void SmallDisplacementMixedStrainDisplacementElement::GetNodalDoFsVectors(
 
         const auto& r_nodal_strain = r_geometry[i].FastGetSolutionStepValue(NODAL_STRAIN_VECTOR);
         index = i * strain_size;
-        for(IndexType k = 0; k < strain_size; ++k) {
-            rE[index + k] = r_nodal_strain[k];
+        if (dim == 3) {
+            for(IndexType k = 0; k < strain_size; ++k) {
+                rE[index + k] = r_nodal_strain[k];
+            }
+        } else { // 2D
+            rE[index    ] = r_nodal_strain[0];
+            rE[index + 1] = r_nodal_strain[1];
+            rE[index + 2] = r_nodal_strain[3]; // XY of the 6 components vector
         }
     }
 }
