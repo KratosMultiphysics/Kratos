@@ -1,0 +1,1 @@
+#define MPI_EXPECT_MPI(A, B)
