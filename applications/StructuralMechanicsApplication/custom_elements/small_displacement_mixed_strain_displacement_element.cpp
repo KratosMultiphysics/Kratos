@@ -309,7 +309,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         const Vector stress_epsilon = constitutive_variables.StressVector;
 
         // Contributions to the RHS
-        noalias(RHSe) -= w_gauss * (prod(trans(kinematic_variables.N_epsilon), stress_u) - prod(trans(kinematic_variables.N_epsilon), stress_epsilon));
+        noalias(RHSe) -= w_gauss * (prod(trans(kinematic_variables.N_epsilon), stress_u - stress_epsilon));
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), stress_epsilon);
 
         // Now we add the body forces
@@ -460,7 +460,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         const Vector stress_epsilon = constitutive_variables.StressVector;
 
         // Contributions to the RHS
-        noalias(RHSe) -= w_gauss * (prod(trans(kinematic_variables.N_epsilon), stress_u) - prod(trans(kinematic_variables.N_epsilon), stress_epsilon));
+        noalias(RHSe) -= w_gauss * (prod(trans(kinematic_variables.N_epsilon), stress_u - stress_epsilon));
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), stress_epsilon);
 
         // Now we add the body forces
