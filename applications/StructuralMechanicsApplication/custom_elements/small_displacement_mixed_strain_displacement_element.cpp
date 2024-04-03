@@ -619,10 +619,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     for (IndexType i = 0; i < rG.size2(); ++i)
         for (IndexType j = 0; j < rG.size1(); ++j)
             rLHS(i, j + displ_size) = rG(j, i);
-    // const Matrix Gt = trans(rG);
-    // for (IndexType i = 0; i < Gt.size1(); ++i)
-    //     for (IndexType j = 0; j < Gt.size2(); ++j)
-    //         rLHS(i, j + displ_size) = Gt(i, j);
+
 }
 
 /***********************************************************************************/

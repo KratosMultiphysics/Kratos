@@ -611,42 +611,37 @@ private:
         std::vector<TType>& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        // const auto& r_geometry = GetGeometry();
-        // const SizeType n_nodes = r_geometry.size();
-        // const SizeType dim = r_geometry.WorkingSpaceDimension();
-        // const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-        // const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-        // const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+        const auto& r_geometry = GetGeometry();
+        const SizeType n_nodes = r_geometry.size();
+        const SizeType dim = r_geometry.WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+        const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-        // // Create the kinematics container and fill the nodal data
-        // KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-        // for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        //     const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        //     for (IndexType d = 0; d < dim; ++d) {
-        //         kinematic_variables.Displacements(i_node * dim + d) = r_disp[d];
-        //     }
-        //     kinematic_variables.VolumetricNodalStrains[i_node] = r_geometry[i_node].FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-        // }
+        // Create the kinematics container and fill the nodal data
+        KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
+        // Compute U and E
+        GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
 
-        // // Create the constitutive variables and values containers
-        // ConstitutiveVariables constitutive_variables(strain_size);
-        // ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
-        // auto& r_cons_law_options = cons_law_values.GetOptions();
-        // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        // r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        // Create the constitutive variables and values containers
+        ConstitutiveVariables constitutive_variables(strain_size);
+        ConstitutiveLaw::Parameters cons_law_values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        auto& r_cons_law_options = cons_law_values.GetOptions();
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        // // Call the initialize material response
-        // for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-        //     // Recompute the kinematics
-        //     CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        // Call the initialize material response
+        for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+            // Recompute the kinematics
+            CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
 
-        //     // Set the constitutive variables
-        //     SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
+            // Set the constitutive variables
+            SetConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
 
-        //     // Calculate the output value
-        //     rOutput[i_gauss] = mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, rVariable, rOutput[i_gauss] );
-        // }
+            // Calculate the output value
+            rOutput[i_gauss] = mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, rVariable, rOutput[i_gauss] );
+        }
     }
 
     ///@}
