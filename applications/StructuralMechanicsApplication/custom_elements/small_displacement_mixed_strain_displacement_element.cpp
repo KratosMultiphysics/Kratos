@@ -215,7 +215,54 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(con
 {
     KRATOS_TRY
 
-    // TODO
+
+    bool required = false;
+    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
+            required = true;
+            break;
+        }
+    }
+    if (required) {
+        const auto &r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+
+        // Compute U and E
+        GetNodalDoFsVectors(this_kinematic_variables.NodalDisplacements, this_kinematic_variables.NodalStrains);
+
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_properties, rCurrentProcessInfo);
+
+        // Set constitutive law flags:
+        Flags &cl_options = cl_values.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+        cl_values.SetStressVector(this_constitutive_variables.StressVector);
+        cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+        const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+
+            // Compute constitutive law variables
+            SetConstitutiveVariables(this_kinematic_variables, this_kinematic_variables.EquivalentStrain, this_constitutive_variables, cl_values, point_number, r_integration_points);
+
+            // Call the constitutive law to update material variables
+            mConstitutiveLawVector[point_number]->InitializeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
+    }
 
     KRATOS_CATCH( "" )
 }
