@@ -146,8 +146,6 @@ namespace Kratos
          int Check(const ProcessInfo& rCurrentProcessInfo) const override;
          
          
-         // Get Values defined in order to avoid a clang warning (?)
-         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculate a Matrix Variable on the Element Constitutive Law
