@@ -377,6 +377,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
             w_gauss *= r_props[THICKNESS];
@@ -443,6 +444,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
 
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
             w_gauss *= r_props[THICKNESS];
