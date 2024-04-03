@@ -33,6 +33,7 @@ file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES ${CMAKE_CURRENT
 ## define fluid dynamics test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  kratos_add_gtests(KratosFluidDynamicsCore ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES})
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
