@@ -511,7 +511,8 @@ protected:
         Matrix &rLHS,
         const Matrix &rK,
         const Matrix &rG,
-        const Matrix &rM);
+        const Matrix &rM,
+        const Matrix &rGt);
 
     ///@}
     ///@name Protected  Access
