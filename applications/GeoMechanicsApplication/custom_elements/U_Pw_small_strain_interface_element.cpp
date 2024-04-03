@@ -1880,11 +1880,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.UDimMatrix, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
-        rVariables.IntegrationCoefficient);
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,
-                                               rVariables.UPMatrix * rVariables.BishopCoefficient);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;

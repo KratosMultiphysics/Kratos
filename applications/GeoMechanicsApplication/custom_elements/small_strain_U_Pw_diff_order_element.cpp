@@ -1755,7 +1755,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                   ElementVariables& rVariables)
+                                                                   const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1770,10 +1770,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
         VoigtVector[i] = 1.0;
 
     Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient, rVariables.IntegrationCoefficient);
+        rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix * rVariables.BishopCoefficient);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;

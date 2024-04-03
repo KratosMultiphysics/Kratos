@@ -17,8 +17,8 @@ where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the 
 ### Coupling Matrix (Q)
 
 The mathematical definition is:
-$$Q = \int_\Omega B^T \alpha m N_p d\Omega$$
-where $B$ is the B-matrix, $\alpha$ is Biot-alpha (relation between pressure and displacements, material parameter), $m$ is the Voigt-vector ($[1,1,1,0,0,0]$) and $N_p$ is the pressure shape function.
+$$Q = \int_\Omega B^T \alpha \ksi m N_p d\Omega$$
+where $B$ is the B-matrix, $\alpha$ is Biot-alpha (relation between pressure and displacements, material parameter), $\ksi$ is Bishop coefficienet, $m$ is the Voigt-vector ($[1,1,1,0,0,0]$) and $N_p$ is the pressure shape function.
 
 
 File transport_equation_utilities.hpp includes 
