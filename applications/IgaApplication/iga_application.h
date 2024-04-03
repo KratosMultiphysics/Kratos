@@ -39,6 +39,7 @@
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_penalty_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_neumann_condition.h"
 #include "custom_conditions/sbm_support_lagrange_condition.h"
 #include "custom_conditions/support_laplacian_lagrange_condition.h"
 
@@ -140,6 +141,7 @@ private:
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportPenaltyLaplacianCondition mSupportPenaltyLaplacianCondition;
     const SBMLaplacianCondition mSBMLaplacianCondition;
+    const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
 

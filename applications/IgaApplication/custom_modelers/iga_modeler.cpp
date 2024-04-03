@@ -157,7 +157,7 @@ namespace Kratos
                 : mpModel->CreateModelPart("skin_model_part_out");
 
         bool is_inner;     
-        if (name == "SBMLaplacianCondition") { 
+        if (name.substr(0, 3) == "SBM") {
             is_inner = rParameters["is_inner"].GetBool();
             if (is_inner) { // INNER
                 for (auto &i_cond : skin_model_part_in.Conditions()) {
@@ -238,7 +238,7 @@ namespace Kratos
 
                 Point gaussPoint = geometries[0].Center(); 
                 bool isOnExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates);
-                if (name == "SBMLaplacianCondition"  && !isOnExternalParameterSpace) { 
+                if (name.substr(0, 3) == "SBM"  && !isOnExternalParameterSpace) { 
                     for (auto j= 0; j < geometries.size() ; j++) {  
 
                         Point gaussPoint = geometries[j].Center(); 
@@ -272,12 +272,12 @@ namespace Kratos
                     if (is_inner) {
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType());
+                        rModelPart, skin_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
                     }
                     else{
                         this->CreateConditions(
                         geometries.ptr_begin(), geometries.ptr_end(),
-                        rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType());
+                        rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
                     }
                 } else if (isOnExternalParameterSpace){
                     std::string nameBodyFittedCondition = "SupportPenaltyLaplacianCondition";
@@ -407,7 +407,8 @@ namespace Kratos
         std::vector<int>& listIdClosestCondition,
         std::string& rConditionName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const
+        PropertiesPointerType pProperties,
+        bool isInner) const
     {
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
 
@@ -432,7 +433,11 @@ namespace Kratos
             Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
 
             new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
-
+            if (isInner) {
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+            } else {
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+            }
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 // These are the control points associated with the basis functions involved in the condition we are creating
                 rModelPart.AddNode((*it)->pGetPoint(i));

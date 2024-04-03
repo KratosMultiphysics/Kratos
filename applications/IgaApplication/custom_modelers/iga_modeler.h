@@ -182,7 +182,8 @@ private:
         std::vector<int>& listIdClosestCondition,
         std::string& rConditionName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        bool isInner) const;
 
     ///@}
     ///@name Get Points at Boundaries
