@@ -108,11 +108,6 @@ namespace Kratos
           */
          Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-         /**
-          * Get on rVariable a double Value from the Element Constitutive Law
-          */
-
-         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
          //************* STARTING - ENDING  METHODS
 
