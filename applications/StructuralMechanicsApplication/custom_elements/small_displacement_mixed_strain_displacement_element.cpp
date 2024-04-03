@@ -348,11 +348,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.SymmGradientDispl, constitutive_variables,
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
         const Vector stress_u = constitutive_variables.StressVector;
+        const Matrix D_u = constitutive_variables.D;
 
         // Calculate the constitutive response with the equivalent stabilized strain
         CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
         const Vector stress_epsilon = constitutive_variables.StressVector;
+        const Matrix D_e = constitutive_variables.D;
 
         // Contributions to the RHS
         noalias(RHSe) -= w_gauss * (prod(trans(kinematic_variables.N_epsilon), stress_u - stress_epsilon));
@@ -366,9 +368,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the LHS
-        noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(K) += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(D_e, kinematic_variables.B)));
+        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D_e, kinematic_variables.N_epsilon)));
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D_u - tau * D_e, kinematic_variables.B)));
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, G, M);
@@ -428,14 +430,20 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
         if (dim == 2 && r_props.Has(THICKNESS))
             w_gauss *= r_props[THICKNESS];
 
+        // Calculate the constitutive response with  Symmetric gradient of u
+        CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.SymmGradientDispl, constitutive_variables,
+            cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        const Matrix D_u = constitutive_variables.D;
+
         // Calculate the constitutive response with the equivalent stabilized strain
         CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        const Matrix D_e = constitutive_variables.D;
 
         // Contributions to the LHS
-        noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B),         Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(K) += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(D_e, kinematic_variables.B)));
+        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D_e, kinematic_variables.N_epsilon)));
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D_u - tau * D_e, kinematic_variables.B)));
     }
     AssembleLHS(rLHS, K, G, M);
 }
