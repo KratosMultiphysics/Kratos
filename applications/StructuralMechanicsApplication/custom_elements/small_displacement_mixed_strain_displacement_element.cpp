@@ -855,8 +855,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     const SizeType n_gauss = r_integration_points.size();
+
     if (rOutput.size() != n_gauss) {
         rOutput.resize(n_gauss);
+    }
+
+    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        rOutput[i_gauss] = 0.0;
     }
 
     if (mConstitutiveLawVector[0]->Has(rVariable))
