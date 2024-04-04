@@ -162,11 +162,16 @@ class StandardizedRGPConstraint(ResponseRoutine):
         if self.ComputeW() > 0.0: return True
         else: return False
 
-    def IsSatisfied(self):
-        value = abs(self.GetStandardizedValue()) if self.IsEqualityType() else self.GetStandardizedValue()
-
-        if value < self.tolerance: return True
-        else: return False
+    def IsSatisfied(self, value=None):
+        if not value:
+            value = abs(self.GetStandardizedValue()) if self.IsEqualityType() else self.GetStandardizedValue()
+        print(value)
+        if self.IsEqualityType():
+            if abs(value) <= self.tolerance: return True
+            else: return False
+        else:
+            if value <= self.tolerance: return True
+            else: return False
 
     def GetReferenceValue(self) -> float:
         if self.__reference_value is not None:

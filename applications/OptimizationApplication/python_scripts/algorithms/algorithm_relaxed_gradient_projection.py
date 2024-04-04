@@ -39,7 +39,8 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 "conv_settings"   : {},
                 "linear_solver_settings" : {},
                 "history_size"           : 20,
-                "max_inner_iter"         : 20
+                "max_inner_iter"         : 20,
+                "buffer_coeff_update_factor" : 0.1
             }
         }""")
 
@@ -82,6 +83,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         settings["linear_solver_settings"].ValidateAndAssignDefaults(default_linear_solver_settings)
         self.linear_solver = ConstructSolver(settings["linear_solver_settings"])
         self.max_inner_iter = settings["max_inner_iter"].GetInt()
+        self.buffer_coeff_update_factor = settings["buffer_coeff_update_factor"].GetDouble()
 
     def GetMinimumBufferSize(self) -> int:
         return self.history_size
@@ -233,12 +235,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
         for i, constraint in enumerate(active_constraints_list):
             predicted_value = constraint.GetStandardizedValue() + KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
-            print(f"norm = {KratosOA.ExpressionUtils.NormInf(active_constr_grad[i])}")
             print(f"RGP Constaint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
-            if predicted_value > 0.0:
+            if not constraint.IsSatisfied(predicted_value):
                 all_feasible = False
                 w = constraint.ComputeW()
-                w += 0.1
+                w += self.buffer_coeff_update_factor
                 w_r[i] = constraint.Compute_W_relax(w)
                 w_c[i] = constraint.Compute_W_correction(w)
                 print(f"RGP Constaint {constraint.GetResponseName()}:: Corrected w_r = {w_r[i]}, w_c = {w_c[i]}")
