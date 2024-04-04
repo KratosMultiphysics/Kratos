@@ -23,19 +23,19 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
 public:
-    static double CalculateVonMisesStress(const Vector& StressVector);
-    static double CalculateTrace(const Vector& StressVector);
-    static double CalculateMeanStress(const Vector& StressVector);
-    static double CalculateLodeAngle(const Vector& StressVector);
-    static double CalculateMCShearCapacity(const Vector& StressVector, double C, double Phi);
-    static double CalculateMCPressureCapacity(const Vector& StressVector, double C, double Phi);
-    static double CalculateVonMisesStrain(const Vector& StrainVector);
-    static Vector CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize);
+    static double CalculateVonMisesStress(const Vector& rStressVector);
+    static double CalculateTrace(const Vector& rStressVector);
+    static double CalculateMeanStress(const Vector& rStressVector);
+    static double CalculateLodeAngle(const Vector& rStressVector);
+    static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi);
+    static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi);
+    static double CalculateVonMisesStrain(const Vector& rStrainVector);
+    static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
 
 private:
-    static double CalculateQMC(const Vector& StressVector, double C, double Phi);
-    static double CalculateDenominator(const Vector& StressVector, double Phi);
+    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
+    static double CalculateDenominator(const Vector& rStressVector, double Phi);
 };
 
 } // namespace Kratos
