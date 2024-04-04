@@ -77,7 +77,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_component_data_view.TestComponentDataView]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestOptAppModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
@@ -102,10 +102,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControlShell]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControlSolid]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.implicit_filters_tests.HelmholtzAnalysisTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilter]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilterConsistency]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilterReference]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_vtu_output_process.TestOptimizationProblemVtuOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_ascii_output_process.TestOptimizationProblemAsciiOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_graph_output_process.TestOptimizationProblemGraphOutputProcess]))

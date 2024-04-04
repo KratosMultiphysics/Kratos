@@ -215,6 +215,7 @@ void KratosApplication::RegisterKratosCore() {
 #endif
     KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
     KRATOS_REGISTER_MODELER("CombineModelPartModeler", mCombineModelPartModeler);
+    KRATOS_REGISTER_MODELER("ConnectivityPreserveModeler", mConnectivityPreserveModeler);
 
     // Register general geometries:
     // Point register:
