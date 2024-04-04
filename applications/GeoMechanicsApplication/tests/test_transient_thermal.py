@@ -10,6 +10,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
     etalon_value1 = 28.04411163544510063559
     etalon_value2 = 17.55892791313559322
     etalon_value3 = 41.3797035928672316
+    etalon_value4 = 35.31073446327683615819
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
@@ -90,6 +91,22 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[124]
         self.assertAlmostEqual(self.etalon_value3, temp)
+
+    def test_thermal_heat_flux_3D8N(self):
+        test_name = 'test_thermal_heat_flux_3D8N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_heat_flux', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[38]
+        self.assertAlmostEqual(self.etalon_value4, temp)
+
+    def test_thermal_heat_flux_3D20N(self):
+        test_name = 'test_thermal_heat_flux_3D20N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_heat_flux', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[213]
+        self.assertAlmostEqual(self.etalon_value4, temp)
 
     def test_transient_thermal_heat_flux_2D3N(self):
         test_name = 'test_transient_thermal_heat_flux_2D3N'

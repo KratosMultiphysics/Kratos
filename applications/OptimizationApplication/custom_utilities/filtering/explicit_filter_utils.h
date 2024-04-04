@@ -27,6 +27,7 @@
 // Application includes
 #include "entity_point.h"
 #include "filter_function.h"
+#include "explicit_damping.h"
 
 namespace Kratos {
 
@@ -42,7 +43,9 @@ public:
 
     using EntityType = typename TContainerType::value_type;
 
-    using EntityPointVector = std::vector<typename EntityPoint<EntityType>::Pointer>;
+    using EntityPointType = EntityPoint<EntityType>;
+
+    using EntityPointVector = std::vector<typename EntityPointType::Pointer>;
 
     // Type definitions for tree-search
     using BucketType = Bucket<3, EntityPoint<EntityType>, EntityPointVector>;
@@ -65,13 +68,11 @@ public:
     ///@}
     ///@name Public operations
 
-    void SetFilterRadius(const ContainerExpression<TContainerType>& rContainerExpression);
+    void SetRadius(const ContainerExpression<TContainerType>& rContainerExpression);
 
-    ContainerExpression<TContainerType> GetFilterRadius() const;
+    ContainerExpression<TContainerType> GetRadius() const;
 
-    void SetDampingCoefficients(const ContainerExpression<TContainerType>& rContainerExpression);
-
-    ContainerExpression<TContainerType> GetDampingCoefficients() const;
+    void SetDamping(typename ExplicitDamping<TContainerType>::Pointer pExplicitDamping);
 
     /**
      * @brief Updates the internal KD trees or searching neghbours
@@ -127,7 +128,7 @@ public:
      *
      * @param rOutput           Output filtering matrix
      */
-    void CalculateFilteringMatrix(Matrix& rOutput) const;
+    void CalculateMatrix(Matrix& rOutput) const;
 
     /**
      * @brief Prints info about the filtering.
@@ -145,7 +146,7 @@ private:
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
-    typename ContainerExpression<TContainerType>::Pointer mpDampingCoefficientContainer;
+    typename ExplicitDamping<TContainerType>::Pointer mpDamping;
 
     Expression::ConstPointer mpNodalDomainSizeExpression;
 

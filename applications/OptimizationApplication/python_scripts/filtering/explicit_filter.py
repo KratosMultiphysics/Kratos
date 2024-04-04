@@ -1,11 +1,11 @@
-import typing
 import operator
 from itertools import accumulate
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
-from KratosMultiphysics.OptimizationApplication.filtering.filter_radius_utils import Factory as FilterRadiusFactory
+from KratosMultiphysics.OptimizationApplication.filtering.filter_utils import FilterRadiusFactory
+from KratosMultiphysics.OptimizationApplication.filtering.filter_utils import ExplicitFilterDampingFactory
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
@@ -58,8 +58,6 @@ class ExplicitFilter(Filter):
         else:
             raise RuntimeError(f"Unsupported variable = \"{filtering_variable.Name()}\". Only supports DoubleVariable and Array1DVariable3.")
 
-        self.damped_model_parts: 'typing.Optional[list[list[Kratos.ModelPart]]]' = None
-
     def Initialize(self) -> None:
         # get the model part
         self.model_part = self.model.GetModelPart(self.filtering_model_part_name)
@@ -70,7 +68,7 @@ class ExplicitFilter(Filter):
         max_nodes_in_filter_radius = self.parameters["max_nodes_in_filter_radius"].GetInt()
         echo_level = self.parameters["echo_level"].GetInt()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter_utils = KratosOA.NodalExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
             self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
@@ -81,15 +79,17 @@ class ExplicitFilter(Filter):
     def Update(self) -> None:
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
         filter_radius = FilterRadiusFactory(self.model_part, self.data_location, self.parameters["filter_radius_settings"])
-        self.filter_utils.SetFilterRadius(filter_radius)
+        self.filter_utils.SetRadius(filter_radius)
         self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
 
         # now set the damping
-        damping_coefficients = self._GetDampingCoefficients(filter_radius, self.parameters["filtering_boundary_conditions"])
-        self.filter_utils.SetDampingCoefficients(damping_coefficients)
-        self.GetComponentDataView().GetUnBufferedData().SetValue("damping_coefficients", damping_coefficients.Clone(), overwrite=True)
+        stride = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
+        self.damping = ExplicitFilterDampingFactory(self.model, self.data_location, stride, self.parameters["filtering_boundary_conditions"])
+        self.damping.SetRadius(filter_radius)
+        self.filter_utils.SetDamping(self.damping)
 
         # initialize the filter
+        self.damping.Update()
         self.filter_utils.Update()
 
     def Check(self) -> None:
@@ -112,52 +112,4 @@ class ExplicitFilter(Filter):
         return Kratos.Expression.Utils.Collapse(filtered_field * 0.0)
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
-        return self.damped_model_parts
-
-    def _GetFilterRadiusExpression(self, filter_radius_settings: Kratos.Parameters) -> ContainerExpressionTypes:
-        if not filter_radius_settings.Has("filter_radius_type"):
-            raise RuntimeError(f"\"filter_radius_type\" not specified in the following settings:\n{filter_radius_settings}")
-
-        filter_radius_type = filter_radius_settings["filter_radius_type"].GetString()
-        if filter_radius_type == "constant":
-            defaults = Kratos.Parameters("""{
-                "filter_radius_type": "constant",
-                "filter_radius"     : 0.2
-            }""")
-            filter_radius_settings.ValidateAndAssignDefaults(defaults)
-            filter_radius = self._GetContainerExpressionType()(self.model_part)
-            Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, filter_radius_settings["filter_radius"].GetDouble())
-            return filter_radius
-        else:
-            raise RuntimeError(f"Unsupported filter_radius_type = \"{filter_radius_type}\".")
-
-    def _GetDampingCoefficients(self, damping_radius:ContainerExpressionTypes, filter_boundary_condition_settings: Kratos.Parameters) -> ContainerExpressionTypes:
-        if not filter_boundary_condition_settings.Has("damping_type"):
-            raise RuntimeError(f"\"damping_type\" not specified in the following settings:\n{filter_boundary_condition_settings}")
-
-        damping_type = filter_boundary_condition_settings["damping_type"].GetString()
-        if damping_type == "nearest_entity":
-            defaults = Kratos.Parameters("""{
-                "damping_type"              : "nearest_entity",
-                "damping_function_type"     : "cosine",
-                "bucket_size"               : 100,
-                "damped_model_part_settings": {}
-            }""")
-            filter_boundary_condition_settings.ValidateAndAssignDefaults(defaults)
-
-            number_of_components = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
-            self.damped_model_parts = KratosOA.OptimizationUtils.GetComponentWiseModelParts(self.model, filter_boundary_condition_settings["damped_model_part_settings"], number_of_components)
-            return KratosOA.ExplicitDampingUtils.ComputeDampingCoefficientsBasedOnNearestEntity(damping_radius, self.damped_model_parts, self.filter_variable_shape, filter_boundary_condition_settings["damping_function_type"].GetString(), filter_boundary_condition_settings["bucket_size"].GetInt())
-        else:
-            raise RuntimeError(f"Unsupported damping_type = \"{damping_type}\".")
-
-    def _GetContainerExpressionType(self) -> typing.Type[ContainerExpressionTypes]:
-        if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            return Kratos.Expression.NodalExpression
-        elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            return Kratos.Expression.ConditionExpression
-        elif self.data_location == Kratos.Globals.DataLocation.Element:
-            return Kratos.Expression.ElementExpression
-
-
-
+        return self.damping.GetDampedModelParts()

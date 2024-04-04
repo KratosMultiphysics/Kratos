@@ -194,7 +194,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
             py::arg("model"),
             py::arg("parameters"),
-            py::arg("number_of_components"),
             py::return_value_policy::reference);
         ;
 
