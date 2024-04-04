@@ -6,12 +6,12 @@ import numpy as np
 import importlib
 import json
 from pathlib import Path
-
-
+import sqlite3
+import hashlib
 
 class RomManager(object):
 
-    def __init__(self,project_parameters_name, general_rom_manager_parameters, CustomizeSimulation, UpdateProjectParameters,UpdateMaterialParametersFile):
+    def __init__(self,project_parameters_name, general_rom_manager_parameters, CustomizeSimulation, UpdateProjectParameters,UpdateMaterialParametersFile, mu_names = None):
         #FIXME:
         # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
@@ -25,85 +25,66 @@ class RomManager(object):
         self.UpdateProjectParameters = UpdateProjectParameters
         self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
         self.SetUpQuantityOfInterestContainers()
+        self.database_name = "rom_database_sqlite3.db" #TODO This should be made user-defined. Use the same for FOM ROM HROM HHROM??
+        self.set_up_or_get_data_base()
+        self.mu_names = mu_names # These are the explicit name of each parameter to be used in the database for reference, e.g. ["alpha", "permeability", "mach"]. They should match the inputs in the lists mu_train, mu_test, mu_run
 
 
-    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
+    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=True, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         #######################
         ######  Galerkin ######
+        #TODO where to accept the flags to save snapshots???
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
-                if store_all_snapshots or store_fom_snapshots:
-                    self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.__LaunchROM(mu_train)
-                if store_all_snapshots or store_rom_snapshots:
-                    self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
-                self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                self.__LaunchROM(mu_train)
 
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
-                if store_all_snapshots or store_hrom_snapshots:
-                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.__LaunchHROM(mu_train)
+
         #######################
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
-                if store_all_snapshots or store_fom_snapshots:
-                    self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.__LaunchROM(mu_train)
-                if store_all_snapshots or store_rom_snapshots:
-                    self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
-                self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                self.__LaunchROM(mu_train)
+
             if any(item == "HROM" for item in training_stages):
                 # Change the flags to train the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
-
                 # Change the flags to run the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
+                self.__LaunchHROM(mu_train)
 
-                if store_all_snapshots or store_hrom_snapshots:
-                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-
-                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
-                #######################################
+        #######################################
 
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
-                if store_all_snapshots or store_fom_snapshots:
-                    self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
                 self.__LaunchTrainPG(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.__LaunchROM(mu_train)
-                if store_all_snapshots or store_rom_snapshots:
-                    self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
-                self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
-                if store_all_snapshots or store_hrom_snapshots:
-                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.__LaunchHROM(mu_train)
+
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -112,6 +93,7 @@ class RomManager(object):
 
 
     def Test(self, mu_test=[None]):
+        #TODO come up with solutions for Test method
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         #######################
@@ -129,6 +111,7 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
 
+        #######################
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
@@ -209,6 +192,9 @@ class RomManager(object):
 
 
     def PrintErrors(self):
+        #TODO load respective snapshots matrices from the data base and compute the errors
+        #self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
@@ -228,27 +214,39 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        SnapshotsMatrix = []
+
         for Id, mu in enumerate(mu_train):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Fit',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Fit_FOM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
-        BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
+            mu_dict = self.FOM_make_mu_dictionary(mu)
+            serialized_mu = self.serialize_mu(mu_dict)
+            in_database, hash_mu = self.check_if_mu_already_in_database(serialized_mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Fit',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                self.QoI_Fit_FOM.append(simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                file_path = self.save_simulation_result(SnapshotsMatrix, hash_mu)
+                self.add_to_database(serialized_mu, hash_mu)  # Pass serialized parameters directly
+                print(f"Simulation saved to {file_path}")
+            else:
+                print("Simulation for given parameters already in database.")
 
-        return SnapshotsMatrix
+        self.generate_database_summary_file(mu_train)
+        #TODO Check if basis exists already for current parameters
+        #SnapshotsMatrix = get_from_database
+        #TODO come up with a solution for when no simulation has been launched, i.e. all snapshtos are already in the data base.
+        BasisOutputProcess._PrintRomBasis(self.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
 
+        return 0#SnapshotsMatrix
 
     def __LaunchROM(self, mu_train):
         """
@@ -791,20 +789,6 @@ class RomManager(object):
         return hrom_training_parameters
 
 
-    def _StoreSnapshotsMatrix(self, string_numpy_array_name, numpy_array):
-
-        # Define the directory and file path
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices'
-        file_path = directory / f'{string_numpy_array_name}.npy'
-
-        # Create the directory if it doesn't exist
-        directory.mkdir(parents=True, exist_ok=True)
-
-        #save the array inside the chosen directory
-        np.save(file_path, numpy_array)
-
-
     def SetUpQuantityOfInterestContainers(self):
         #TODO implement more options if the QoI is too large to keep in RAM
         self.QoI_Fit_FOM = []
@@ -846,3 +830,119 @@ class RomManager(object):
             "monotonicity_preserving": false
         }"""
         return rom_bns_settings
+
+
+    def set_up_or_get_data_base(self):
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name)
+        directory.mkdir(parents=True, exist_ok=True)
+        self.database_name = Path(rom_output_folder_name) / self.database_name
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        #TODO verify the table name: "simulation_results" is adecuate
+        try:
+            # First, try to create the table with all necessary columns
+            cursor.execute('''CREATE TABLE IF NOT EXISTS simulation_results
+                            (id INTEGER PRIMARY KEY,
+                            parameters TEXT,
+                            file_name TEXT)''')
+            conn.commit()
+        except sqlite3.OperationalError as e:
+            print(f"Error creating table: {e}")
+        finally:
+            conn.close()
+
+
+    def hash_parameters(self, mu):
+        # Convert parameters list to a string and encode
+        mu_str = '_'.join(map(str, mu))
+        return hashlib.sha256(mu_str.encode()).hexdigest()
+
+    def check_if_mu_already_in_database(self, mu):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        hash_mu = self.hash_parameters(mu)
+        cursor.execute('SELECT COUNT(*) FROM simulation_results WHERE file_name = ?', (hash_mu,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0, hash_mu
+
+    def add_to_database(self, parameters, file_name):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        parameters_str = self.serialize_mu(parameters)
+        cursor.execute('INSERT INTO simulation_results (parameters, file_name) VALUES (?, ?)',
+                       (parameters_str, file_name))
+        conn.commit()
+        conn.close()
+
+    def serialize_mu(self, parameters):
+        return json.dumps(parameters)
+
+    def save_simulation_result(self, result, hash_mu):
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices'
+        file_path = directory / f"{hash_mu}.npy"
+        directory.mkdir(parents=True, exist_ok=True)
+        np.save(file_path, result)
+        return file_path
+
+
+    def generate_database_summary_file(self, mu):
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name)
+        directory.mkdir(parents=True, exist_ok=True)
+        number_of_samples_to_include_in_summary = 10 #if not enough, last one is repeated
+
+        summary_path = directory / "data_base_summary.dat"
+
+        with summary_path.open('w') as f:
+            # Assuming all dictionaries in mu_train have the same keys
+            this_dic = [dict(zip(self.mu_names, values)) for values in mu]
+
+            # Writing headers based on the keys of the first dictionary in mu_train
+            headers = list(this_dic[0].keys())
+            f.write(" | ".join(headers) + " | File Name (Hash)\n")
+            f.write("-" * (len(headers) * 15) + "\n")  # Adjust "-" length as needed
+
+            # Writing a few example rows based on available simulations
+            for params in this_dic[:number_of_samples_to_include_in_summary]:
+                params_str = " | ".join(f"{params[name]:.3f}" for name in headers)
+                hash_mu = self.hash_parameters(params)
+                f.write(f"{params_str} | {hash_mu}\n")
+
+        print(f"Summary file generated at {summary_path}")
+
+
+    def FOM_make_mu_dictionary(self, mu):
+        if self.mu_names is None:
+            self.mu_names = []
+            for i in range(len(mu)):
+                self.mu_names.append(f'generic_name_{i}')
+        return dict(zip(self.mu_names , mu))
+
+
+    def get_snapshots_matrix_from_database(self, mu_list):
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices' #TODO hardcoded names here
+        directory.mkdir(parents=True, exist_ok=True)
+        SnapshotsMatrix = []
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+
+        for mu in mu_list:
+            serialized_mu = self.serialize_mu(self.FOM_make_mu_dictionary(mu))
+            hash_mu = self.hash_parameters(serialized_mu)
+            cursor.execute("SELECT file_name FROM simulation_results WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
+            result = cursor.fetchone()
+
+            if result:
+                file_name = result[0]
+                file_path = directory / (file_name + '.npy')
+                SnapshotsMatrix.append(np.load(file_path))
+            else:
+                print(f"No entry found for hash {hash_mu}")
+
+        conn.close()
+
+        return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
