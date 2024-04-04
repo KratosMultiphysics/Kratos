@@ -34,13 +34,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMeanStress, KratosGeoMechanicsFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CheckGreenLagrangeStrainTensor, KratosGeoMechanicsFastSuite)
 {
-    Matrix eye = StressStrainUtilities::CalculateGreenLagrangeStrainTensor(sqrt(3.) * IdentityMatrix(3));
-    KRATOS_EXPECT_DOUBLE_EQ(1.0, eye(0, 0));
-    KRATOS_EXPECT_DOUBLE_EQ(1.0, eye(1, 1));
-    KRATOS_EXPECT_DOUBLE_EQ(1.0, eye(2, 2));
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, eye(0, 1));
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, eye(0, 2));
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, eye(1, 2));
+    Matrix eye =
+        StressStrainUtilities::CalculateGreenLagrangeStrainTensor(std::sqrt(3.) * IdentityMatrix(3));
+    KRATOS_EXPECT_MATRIX_NEAR(eye, IdentityMatrix(3), 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStress, KratosGeoMechanicsFastSuite)
@@ -69,8 +65,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCShearCapacityZeroStress, KratosGeoMech
     Vector stress_vector  = ZeroVector(4);
     double cohesion       = 2.;
     double friction_angle = 0.;
-    KRATOS_EXPECT_DOUBLE_EQ(
-        0.0, StressStrainUtilities::CalculateMCShearCapacity(stress_vector, cohesion, friction_angle));
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                                     stress_vector, cohesion, friction_angle));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCShearCapacityHydrostatic, KratosGeoMechanicsFastSuite)
@@ -79,8 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCShearCapacityHydrostatic, KratosGeoMec
     stress_vector <<= -2.0, -2.0, -2.0, 0.0;
     double cohesion       = 0.;
     double friction_angle = MathUtils<>::DegreesToRadians(90.);
-    KRATOS_EXPECT_DOUBLE_EQ(
-        0.0, StressStrainUtilities::CalculateMCShearCapacity(stress_vector, cohesion, friction_angle));
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                                     stress_vector, cohesion, friction_angle));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCShearCapacityShearOnly, KratosGeoMechanicsFastSuite)
@@ -89,8 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCShearCapacityShearOnly, KratosGeoMecha
     stress_vector <<= -2.0, 0.0, 2.0, 0.0;
     double cohesion       = 2.;
     double friction_angle = 0.0;
-    KRATOS_EXPECT_DOUBLE_EQ(
-        1.0, StressStrainUtilities::CalculateMCShearCapacity(stress_vector, cohesion, friction_angle));
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
+                                     stress_vector, cohesion, friction_angle));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCPressureCapacityZeroStress, KratosGeoMechanicsFastSuite)
@@ -98,18 +94,20 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCPressureCapacityZeroStress, KratosGeoM
     Vector stress_vector  = ZeroVector(4);
     double cohesion       = 2.;
     double friction_angle = 0.;
-    KRATOS_EXPECT_DOUBLE_EQ(
-        0.0, StressStrainUtilities::CalculateMCPressureCapacity(stress_vector, cohesion, friction_angle));
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateMohrCoulombPressureCapacity(
+                                     stress_vector, cohesion, friction_angle));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMCPressureCapacityShearOnly, KratosGeoMechanicsFastSuite)
 {
     Vector stress_vector(4);
     stress_vector <<= -2.0, 0.0, 2.0, 0.0;
-    double cohesion       = std::sqrt(2.*2.*3.);
+    double cohesion       = std::sqrt(2. * 2. * 3.);
     double friction_angle = MathUtils<>::DegreesToRadians(30.0);
-    KRATOS_EXPECT_NEAR(
-        3.*std::sin(friction_angle), StressStrainUtilities::CalculateMCPressureCapacity(stress_vector, cohesion, friction_angle), 1.E-10);
+    KRATOS_EXPECT_NEAR(3. * std::sin(friction_angle),
+                       StressStrainUtilities::CalculateMohrCoulombPressureCapacity(
+                           stress_vector, cohesion, friction_angle),
+                       1.E-10);
 }
 
 } // namespace Kratos::Testing
