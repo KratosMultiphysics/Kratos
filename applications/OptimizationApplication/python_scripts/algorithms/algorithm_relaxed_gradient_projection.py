@@ -37,7 +37,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 "line_search"     : {},
                 "conv_settings"   : {},
                 "linear_solver_settings" : {},
-                "history_size"           : 10,
+                "history_size"           : 20,
                 "max_inner_iter"         : 20
             }
         }""")
@@ -58,6 +58,8 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
+        self.history_size = settings["history_size"].GetInt()
+
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
@@ -68,7 +70,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__constraints_list: 'list[StandardizedRGPConstraint]' = []
         for constraint_param in parameters["constraints"].values():
-            constraint = StandardizedRGPConstraint(constraint_param, self.master_control, self._optimization_problem, settings["history_size"].GetInt())
+            constraint = StandardizedRGPConstraint(constraint_param, self.master_control, self._optimization_problem, self.GetMinimumBufferSize())
             self.__constraints_list.append(constraint)
         self.__control_field = None
         self.__obj_val = None
@@ -81,7 +83,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.max_inner_iter = settings["max_inner_iter"].GetInt()
 
     def GetMinimumBufferSize(self) -> int:
-        return 2
+        return self.history_size
 
     def Check(self):
         self.master_control.Check()
@@ -229,12 +231,13 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         all_feasible = True
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
         for i, constraint in enumerate(active_constraints_list):
-            predicted_value = KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
+            predicted_value = constraint.GetStandardizedValue() + KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
             print(f"norm = {KratosOA.ExpressionUtils.NormInf(active_constr_grad[i])}")
             print(f"RGP Constaint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
             if predicted_value > 0.0:
                 all_feasible = False
-                w = constraint.PredictW(predicted_value)
+                w = constraint.ComputeW()
+                w += 0.1
                 w_r[i] = constraint.Compute_W_relax(w)
                 w_c[i] = constraint.Compute_W_correction(w)
                 print(f"RGP Constaint {constraint.GetResponseName()}:: Corrected w_r = {w_r[i]}, w_c = {w_c[i]}")
@@ -295,6 +298,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 self.UpdateControl()
 
                 self.converged = self.__convergence_criteria.IsConverged()
+
+                if self.converged:
+                    for constraint in self.__constraints_list:
+                        if not constraint.IsSatisfied():
+                            self.converged = False
 
                 self._optimization_problem.AdvanceStep()
 

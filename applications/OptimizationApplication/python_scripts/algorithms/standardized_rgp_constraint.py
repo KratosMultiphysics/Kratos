@@ -27,7 +27,8 @@ class StandardizedRGPConstraint(ResponseRoutine):
             "type"                : "",
             "scaled_ref_value"    : 0.0,
             "buffer_factor"       : 2.0,
-            "max_w_c"             : 10.0
+            "max_w_c"             : 10.0,
+            "tolerance"           : 1e-3
         }""")
 
         if parameters.Has("scaled_ref_value") and parameters["scaled_ref_value"].IsDouble():
@@ -74,6 +75,9 @@ class StandardizedRGPConstraint(ResponseRoutine):
         self.CBV = 0.0
         self.BS = 1e-6
         self.max_w_c = parameters["max_w_c"].GetDouble()
+        self.CF = 1.0
+
+        self.tolerance = parameters["tolerance"].GetDouble()
 
     def IsEqualityType(self) -> str:
         return self.__constraint_type == "="
@@ -102,9 +106,9 @@ class StandardizedRGPConstraint(ResponseRoutine):
         if w <= 1.0:
             return 0.0
         elif w <= self.max_w_c:
-            return (w - 1.0) * self.BSF_init
+            return (w - 1.0) * self.BSF_init * self.CF
         else:
-            return (self.max_w_c - 1) * self.BSF_init
+            return (self.max_w_c - 1) * self.BSF_init * self.CF
 
     def UpdateBufferSize(self):
         step = self.__optimization_problem.GetStep() + 1
@@ -123,16 +127,22 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
         max_delta = max(abs_delta_values)
 
-        # Update CBV if violating
-        if step > 1:
-            if values[0] > 0.0 and values[1] > 0.0 and delta_values[0] > 0.0:
-                value = max(abs(self.CBV - values[1]), self.BS/10)
-                self.CBV = max( self.CBV - value, self.CBV - self.BS)
+        # # Update CBV if violating
+        if self.IsEqualityType():
+            if step > 1:
+                if values[0] > 0.0 and values[1] > 0.0 and delta_values[0] > 0.0:
+                    self.CF += 0.5
 
-            if values[0] < 0.0 and values[1] < 0.0 and delta_values[0] < 0.0:
-                value = max(abs(self.CBV - values[1]), self.BS/10)
-                if self.IsEqualityType(): min( self.CBV +value, self.CBV + self.BS)
-                else: self.CBV = min(self.CBV + value, 0.0)
+                if values[0] < 0.0 and values[1] < 0.0 and delta_values[0] < 0.0:
+                    self.CF += 0.5
+        else:
+            if step > 1:
+                if values[0] > 0.0 and values[1] > 0.0 and delta_values[0] > 0.0:
+                    self.CF += 0.5
+
+                if values[0] < 0.0 and values[1] < 0.0 and delta_values[0] < 0.0:
+                    self.CF -= 0.5
+                    self.CF = max (self.CF, 1.0)
 
         self.BS = self.BSF * max_delta
         # Update BSF if zig zaging
@@ -144,9 +154,16 @@ class StandardizedRGPConstraint(ResponseRoutine):
         print(f"RGP Constraint {self.GetResponseName()}:: CBV = {self.CBV}")
         print(f"RGP Constraint {self.GetResponseName()}:: BSF = {self.BSF}")
         print(f"RGP Constraint {self.GetResponseName()}:: BS = {self.BS}")
+        print(f"RGP Constraint {self.GetResponseName()}:: CF = {self.CF}")
 
     def IsActiveConstrant(self):
         if self.ComputeW() > 0.0: return True
+        else: return False
+
+    def IsSatisfied(self):
+        value = abs(self.GetStandardizedValue()) if self.IsEqualityType() else self.GetStandardizedValue()
+
+        if value < self.tolerance: return True
         else: return False
 
     def GetReferenceValue(self) -> float:
@@ -198,7 +215,10 @@ class StandardizedRGPConstraint(ResponseRoutine):
                     # does not create additional memory.
                     self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
-        return gradient_collective_expression * self.__scaling
+        if self.IsEqualityType():
+            factor = 1.0 if self.GetStandardizedValue() > 0.0 else -1.0
+        else: factor = 1.0
+        return gradient_collective_expression * self.__scaling * factor
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
