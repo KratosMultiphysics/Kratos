@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 class StandardizedRGPConstraint(ResponseRoutine):
-    """Standardized constraint response function
+    """Standardized RGP constraint response function
 
     This class creates instances to standardize any response function for the specified type of the contraint.
     Supported contraint types:
@@ -19,6 +19,8 @@ class StandardizedRGPConstraint(ResponseRoutine):
         ">="
 
     The reference value for the constraint either can be the "initial_value" or a specified value.
+
+    It can be used only with relaxed_gradient_projection_algorithm. The class contains neccessary functions to compute critical zones. 
 
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 4):
