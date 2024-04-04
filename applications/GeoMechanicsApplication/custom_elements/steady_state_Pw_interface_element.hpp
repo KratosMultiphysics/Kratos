@@ -87,8 +87,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwInterfaceElement() override {}
+    ~SteadyStatePwInterfaceElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

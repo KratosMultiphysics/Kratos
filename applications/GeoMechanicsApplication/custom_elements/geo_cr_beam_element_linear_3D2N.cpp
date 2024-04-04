@@ -53,9 +53,6 @@ Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType               NewI
     return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(NewId, pGeom, pProperties);
 }
 
-//-------------------------------------------------------------------------------------------------
-GeoCrBeamElementLinear3D2N::~GeoCrBeamElementLinear3D2N() = default;
-
 //----------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::ResetConstitutiveLaw()
 {

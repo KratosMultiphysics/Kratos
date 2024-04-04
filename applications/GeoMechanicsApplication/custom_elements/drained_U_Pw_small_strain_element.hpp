@@ -81,8 +81,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~DrainedUPwSmallStrainElement() override {}
+    ~DrainedUPwSmallStrainElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,

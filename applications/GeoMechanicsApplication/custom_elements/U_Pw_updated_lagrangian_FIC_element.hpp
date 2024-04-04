@@ -118,8 +118,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~UPwUpdatedLagrangianFICElement() override {}
+    ~UPwUpdatedLagrangianFICElement() override = default;
 
     /**
      * @brief Creates a new element
