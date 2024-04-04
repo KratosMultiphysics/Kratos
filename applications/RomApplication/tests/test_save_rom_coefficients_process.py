@@ -26,7 +26,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
             self.process_settings = KratosMultiphysics.Parameters("""{
                 "Parameters": {
                     "model_part_name": "Structure",
-                    "rom_coefficients_output_folder": "rom_data_test",
+                    "rom_coefficients_output_folder": "../../save_rom_coefficients_process_test_files/save_rom_coefficients_process_test",
                     "rom_coefficients_output_name": "ObtainedOutputSaveRomCoefficientsProcess",
                     "snapshots_control_type": "step",
                     "snapshots_interval": 1.0,
@@ -37,7 +37,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
                 "python_module": "save_rom_coefficients_process"
             }""")
 
-            # parameters["output_processes"]["rom_output"].Append(self.process_settings)
+            parameters["output_processes"]["rom_output"].Append(self.process_settings)
             model = KratosMultiphysics.Model()
             self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
@@ -45,27 +45,24 @@ class TestStructuralRom(KratosUnittest.TestCase):
             self.simulation.Run()
 
             # Check results
-            # self.__CheckResults()
+            self.__CheckResults()
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            for path in os.listdir():
-                full_path = os.path.join(os.getcwd(), path)
-                if not "Expected" in path:
-                    if os.path.isfile(full_path):
-                        kratos_utilities.DeleteFileIfExisting(full_path)
-                    elif os.path.isdir(full_path):
-                        kratos_utilities.DeleteDirectoryIfExisting(full_path)
+            # Construct the full path to the output directory
+            output_directory_path = os.path.join(os.getcwd(), self.output_folder)
+            # Delete the output directory and its contents
+            kratos_utilities.DeleteDirectoryIfExisting(output_directory_path)
 
     def __CheckResults(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Load ROM coefficients output file
-            output_folder = self.process_settings["rom_coefficients_output_folder"].GetString()
-            rom_coeffs_obtained_output_name = os.path.join(output_folder, "ObtainedOutputSaveRomCoefficientsProcess.npy")
+            self.output_folder = self.process_settings["Parameters"]["rom_coefficients_output_folder"].GetString()
+            rom_coeffs_obtained_output_name = os.path.join(self.output_folder, "ObtainedOutputSaveRomCoefficientsProcess.npy")
             rom_coeffs_obtained_output = np.load(rom_coeffs_obtained_output_name)
 
             # Load reference file
-            rom_coeffs_expected_output_name = "ExpectedOutputSaveRomCoefficientsProcess.npy"
+            rom_coeffs_expected_output_name = "../../save_rom_coefficients_process_test_files/ExpectedOutputSaveRomCoefficientsProcess.npy"
             rom_coeffs_expected_output = np.load(rom_coeffs_expected_output_name)
 
             for i in range(rom_coeffs_obtained_output.shape[0]):
