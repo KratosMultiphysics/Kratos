@@ -753,7 +753,13 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.VELOCITY)
         a *= -1
         c = a.Evaluate().reshape([len(self._GetContainer()) * 3])
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), self.data_comm.MaxAll(numpy.linalg.norm(c, ord=numpy.inf)), 9)
+        if c.shape == (0,):
+            # numpy norm inf throws an error if the array shape is zero.
+            # hence this is checked before.
+            norm_inf = 0.0
+        else:
+            norm_inf = numpy.linalg.norm(c, ord=numpy.inf)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(a), self.data_comm.MaxAll(norm_inf), 9)
 
     def test_NormL2(self):
         a = self._GetContainerExpression()
