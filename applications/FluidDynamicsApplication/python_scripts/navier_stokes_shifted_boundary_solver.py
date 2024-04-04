@@ -215,6 +215,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         if hasattr(self, 'shifted_boundary_formulation'):
             self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
 
+        # Construct and initialize the solution strategy
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
+
         # # Set the distance modification process
         # self.GetDistanceModificationProcess().ExecuteInitialize()
         # # Correct the distance field
@@ -229,11 +234,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpInterfaceUtility()
-
-        # Construct and initialize the solution strategy
-        solution_strategy = self._GetSolutionStrategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        solution_strategy.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
@@ -288,7 +288,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def __SetDistanceFunction(self):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
-            KratosMultiphysics.Logger.PrintInfo("Navier-Stokes Shifted-Boundary Solver","Distance function taken from the .mdpa input file.")
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Distance function taken from the .mdpa input file.")
             # Recall to swap the distance sign (GiD considers d<0 in the fluid region)
             for node in self.main_model_part.Nodes:
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -309,8 +309,11 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
+        settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
         sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
         sbm_interface_utility.CalculateExtensionOperator()
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility initialized and extension operators were calculated.")
 
     def GetDistanceModificationProcess(self):
         if not hasattr(self, '_distance_modification_process'):
