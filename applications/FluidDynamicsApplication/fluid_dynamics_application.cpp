@@ -427,8 +427,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition3D3N", mTwoFluidNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N", mEmbeddedAusasNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition3D3N", mEmbeddedAusasNavierStokesWallCondition3D);
-    KRATOS_REGISTER_CONDITION("ShiftedBoundaryWallCondition3D3N", mShiftedBoundaryWallCondition);
-    KRATOS_REGISTER_CONDITION("ShiftedBoundaryWallCondition2D2N", mShiftedBoundaryWallCondition);
+    KRATOS_REGISTER_CONDITION("ShiftedBoundaryWallCondition", mShiftedBoundaryWallCondition);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D", mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D4N", mStokesWallCondition3D4N);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D", mFSPeriodicCondition2D);
