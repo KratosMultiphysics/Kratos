@@ -93,7 +93,7 @@ class AverageAbsoluteImprovement:
             "type"              : "aver_abs_delta",
             "max_iter"          : 0,
             "tracked_iter"      : 5,
-            "tolerance"         : 1e-3
+            "tolerance"         : 1e-4
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):

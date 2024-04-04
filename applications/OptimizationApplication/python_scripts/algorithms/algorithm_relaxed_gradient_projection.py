@@ -20,7 +20,8 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        Relaxed Gradient Projection algorithm to solve constrainted optimization problems. Implemnetation is based on:
+        Antonau, I., Hojjat, M. & Bletzinger, KU. Relaxed gradient projection algorithm for constrained node-based shape optimization. Struct Multidisc Optim 63, 1633–1651 (2021). https://doi.org/10.1007/s00158-020-02821-y
     """
 
     @classmethod
