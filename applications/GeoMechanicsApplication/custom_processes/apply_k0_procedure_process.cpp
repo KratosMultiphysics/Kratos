@@ -84,8 +84,8 @@ bool ApplyK0ProcedureProcess::UseStandardProcedure() const
 void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
-    const Element::PropertiesType& rProp = rElement.GetProperties();
-    const int k0_main_direction          = rProp[K0_MAIN_DIRECTION];
+    const Element::PropertiesType& rProp             = rElement.GetProperties();
+    const int                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
     if (k0_main_direction < 0 || k0_main_direction > 1) {
         KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in ApplyK0ProcedureProcess: " << k0_main_direction
                      << std::endl;
@@ -130,7 +130,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
     rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
 
     // Loop over integration points
-    const Element::GeometryType& rGeom = rElement.GetGeometry();
+    const Element::GeometryType&                             rGeom = rElement.GetGeometry();
     const Element::GeometryType::IntegrationPointsArrayType& integration_points =
         rGeom.IntegrationPoints(rElement.GetIntegrationMethod());
     for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
