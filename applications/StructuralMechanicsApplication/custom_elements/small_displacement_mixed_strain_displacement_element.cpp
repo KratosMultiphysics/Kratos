@@ -397,8 +397,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Contributions to the RHS
-        const Vector delta_stress = prod(constitutive_variables.D, kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain);
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), delta_stress);
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Now we add the body forces
@@ -410,8 +409,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
         // Contributions to the LHS
         noalias(K)  += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.N_epsilon);
+        noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
         noalias(Gt) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
     }
     AssembleRHS(rRHS, RHSu, RHSe);
@@ -479,8 +478,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
 
         // Contributions to the LHS
         noalias(K)  += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.N_epsilon);
+        noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
         noalias(Gt) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
 
     }
@@ -547,8 +546,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Contributions to the RHS
-        const Vector delta_stress = prod(constitutive_variables.D, kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain);
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), delta_stress);
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.EquivalentStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Now we add the body forces
