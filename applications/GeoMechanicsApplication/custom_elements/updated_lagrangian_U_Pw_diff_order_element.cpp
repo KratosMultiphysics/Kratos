@@ -41,8 +41,8 @@ Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType         
 void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                         VectorType&        rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo,
-                                                        const bool CalculateStiffnessMatrixFlag,
-                                                        const bool CalculateResidualVectorFlag)
+                                                        bool CalculateStiffnessMatrixFlag,
+                                                        bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
