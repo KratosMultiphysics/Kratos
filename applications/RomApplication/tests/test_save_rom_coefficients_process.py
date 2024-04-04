@@ -11,9 +11,6 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestStructuralRom(KratosUnittest.TestCase):
 
-    def setUp(self):
-        self.relative_tolerance = 1.0e-12
-
     def testSaveRomCoefficientsProcess(self):
         self.work_folder = "structural_static_test_files/ROM/"
         parameters_filename = "../ProjectParameters.json"
@@ -68,8 +65,6 @@ class TestStructuralRom(KratosUnittest.TestCase):
             for i in range(rom_coeffs_obtained_output.shape[0]):
                 for j in range(rom_coeffs_obtained_output.shape[1]):
                     self.assertAlmostEqual(rom_coeffs_obtained_output[i,j], rom_coeffs_expected_output[i,j])
-
-            #JSON part tested in the JSON test already
 
 
 ##########################################################################################
