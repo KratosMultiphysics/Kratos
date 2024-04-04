@@ -56,8 +56,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    SteadyStatePwInterfaceElement(IndexType NewId = 0)
+    explicit SteadyStatePwInterfaceElement(IndexType NewId = 0)
         : TransientPwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }

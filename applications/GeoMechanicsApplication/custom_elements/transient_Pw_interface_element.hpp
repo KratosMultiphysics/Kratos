@@ -51,8 +51,7 @@ public:
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    /// Default Constructor
-    TransientPwInterfaceElement(IndexType NewId = 0)
+    explicit TransientPwInterfaceElement(IndexType NewId = 0)
         : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }

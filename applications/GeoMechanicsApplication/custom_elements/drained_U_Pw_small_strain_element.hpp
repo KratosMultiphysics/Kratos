@@ -51,7 +51,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    DrainedUPwSmallStrainElement(IndexType NewId = 0)
+    explicit DrainedUPwSmallStrainElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
