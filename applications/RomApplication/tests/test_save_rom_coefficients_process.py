@@ -25,7 +25,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
             self.process_settings = KratosMultiphysics.Parameters("""{
                 "Parameters": {
-                    "model_part_name": "MainModelPart",
+                    "model_part_name": "Structure",
                     "rom_coefficients_output_folder": "rom_data_test",
                     "rom_coefficients_output_name": "ObtainedOutputSaveRomCoefficientsProcess",
                     "snapshots_control_type": "step",

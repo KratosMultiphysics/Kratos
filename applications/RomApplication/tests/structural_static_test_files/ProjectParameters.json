@@ -74,18 +74,6 @@
     "output_processes": {
         "gid_output" : [],
         "vtk_output": [],
-        "rom_output": [{
-            "Parameters": {
-                "model_part_name": "MainModelPart",
-                "rom_coefficients_output_folder": "rom_data_test",
-                "rom_coefficients_output_name": "ObtainedOutputSaveRomCoefficientsProcess",
-                "snapshots_control_type": "step",
-                "snapshots_interval": 1.0,
-                "snapshot_solution_type": "incremental"
-            },
-            "kratos_module": "KratosMultiphysics.RomApplication",
-            "process_name": "SaveROMCoefficientsProcess",
-            "python_module": "save_rom_coefficients_process"
-        }]
+        "rom_output": []
     }
 }
