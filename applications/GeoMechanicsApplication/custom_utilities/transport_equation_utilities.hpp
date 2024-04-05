@@ -68,5 +68,17 @@ public:
                outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp) * IntegrationCoefficient;
     }
 
+    template <unsigned int TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(
+        const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
+    {
+        return CalculateCompressibilityMatrix(rNp, BiotModulusInverse, IntegrationCoefficient);
+    }
+
+    static inline Matrix CalculateCompressibilityMatrix(const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
+    {
+        return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
+    }
+    
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
