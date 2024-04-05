@@ -107,5 +107,8 @@ $$q_{mc} = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi 
 
 Assessment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
-$$ \frac{3 \sin \phi}{\sqrt{3} \cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi } (q_{mc} - q) $$
+$$3 \sin \phi $$
+$$\sqrt{3} \cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi$$
+$$ \frac{3 \sin \phi }{ \sqrt{3} \cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi } $$
+$$ (q_{mc} - q) $$
 
