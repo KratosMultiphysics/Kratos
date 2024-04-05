@@ -84,7 +84,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    virtual ~GeoCurvedBeamElement() = default;
+    ~GeoCurvedBeamElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

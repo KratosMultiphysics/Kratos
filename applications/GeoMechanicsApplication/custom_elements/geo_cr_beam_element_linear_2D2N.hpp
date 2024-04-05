@@ -72,7 +72,7 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    ~GeoCrBeamElementLinear2D2N() override = default;
+    ~GeoCrBeamElementLinear2D2N() = default;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 

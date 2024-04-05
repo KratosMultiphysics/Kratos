@@ -118,7 +118,7 @@ public:
     {
     }
 
-    ~UPwUpdatedLagrangianFICElement() override = default;
+    ~UPwUpdatedLagrangianFICElement() = default;
 
     /**
      * @brief Creates a new element

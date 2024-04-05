@@ -81,7 +81,7 @@ public:
     {
     }
 
-    ~UndrainedUPwSmallStrainElement() override = default;
+    ~UndrainedUPwSmallStrainElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,

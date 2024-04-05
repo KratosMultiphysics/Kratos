@@ -69,7 +69,7 @@ public:
     ) const override;
 
 
-    ~CrBeamElementLinear2D2N() override;
+    ~CrBeamElementLinear2D2N();
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,

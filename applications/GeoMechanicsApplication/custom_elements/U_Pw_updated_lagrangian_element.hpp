@@ -117,7 +117,7 @@ public:
     {
     }
 
-    ~UPwUpdatedLagrangianElement() override = default;
+    ~UPwUpdatedLagrangianElement() = default;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 

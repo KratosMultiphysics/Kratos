@@ -72,7 +72,7 @@ public:
     {
     }
 
-    ~UPwSmallStrainLinkInterfaceElement() override = default;
+    ~UPwSmallStrainLinkInterfaceElement() = default;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

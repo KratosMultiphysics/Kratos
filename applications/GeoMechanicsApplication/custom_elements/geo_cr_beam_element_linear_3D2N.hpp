@@ -53,7 +53,7 @@ public:
     GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~GeoCrBeamElementLinear3D2N() override = default;
+    ~GeoCrBeamElementLinear3D2N() = default;
 
     /**
      * @brief Creates a new element

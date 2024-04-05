@@ -81,7 +81,7 @@ public:
     {
     }
 
-    ~TransientPwInterfaceElement() override                                    = default;
+    ~TransientPwInterfaceElement()                                             = default;
     TransientPwInterfaceElement(const TransientPwInterfaceElement&)            = delete;
     TransientPwInterfaceElement& operator=(const TransientPwInterfaceElement&) = delete;
     TransientPwInterfaceElement(TransientPwInterfaceElement&&)                 = delete;
