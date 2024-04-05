@@ -5,8 +5,10 @@
 
 Utilities are developed to calculate matrices and vectors in transport equations
 
-![Image](https://github.com/KratosMultiphysics/Kratos/assets/56549273/296486b0-9e5e-408f-9839-aef8d8c7e720)
-
+$$ \begin{bmatrix} M & 0 // 0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} // \ddot{p} \end{bmatrix}
+  + \begin{bmatrix} D & 0 // Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} // \dot{p} \end{bmatrix}
+  + \begin{bmatrix} K & -Q // 0 & H \end{bmatrix} \begin{bmatrix} u // p \end{bmatrix} =
+    \begin{bmatrix} f_u // f_p \end{bmatrix} $$ 
 
 ### Permeability matrix (H)
 
@@ -33,13 +35,13 @@ File transport_equation_utilities.hpp includes
 For convenience functions that compute invariants, equivalents and strain definitions.
 Given a stress tensor $\sigma$ or a strain tensor $\epsilon$. The eigenvalues of the stress tensor are $\sigma_1 \le \sigma_2 \le \sigma_3$
 
-$$\sigma = \begin{bmatrix} \sigma_xx & \sigma_xy & sigma_xz \\
-                           \sigma_xy & \sigma_yy & sigma_yz \\
-                           \sigma_xz & \sigma_yz & sigma_zz  \end{bmatrix}$$
+$$\sigma = \begin{bmatrix} \sigma_{xx} & \sigma_{xy} & \sigma_{xz} \\
+                           \sigma_{xy} & \sigma_{yy} & \sigma_{yz} \\
+                           \sigma_{xz} & \sigma_{yz} & \sigma_{zz}  \end{bmatrix}$$
 
-$$\epsilon = \begin{bmatrix} \epsilon_xx & \epsilon_xy & epsilon_xz \\
-                             \epsilon_xy & \epsilon_yy & epsilon_yz \\
-                             \epsilon_xz & \epsilon_yz & epsilon_zz  \end{bmatrix}$$
+$$\epsilon = \begin{bmatrix} \epsilon_{xx} & \epsilon_{xy} & \epsilon_{xz} \\
+                             \epsilon_{xy} & \epsilon_{yy} & \epsilon_{yz} \\
+                             \epsilon_{xz} & \epsilon_{yz} & \epsilon_{zz}  \end{bmatrix}$$
 
 ### Trace
 
@@ -49,7 +51,7 @@ $$ I_1 = trace(\sigma) = \Sigma_i \sigma_{i,i} $$
 
 ### Mean stress
 
-$$ p = \frac{1}{3} I_1 = \frac{1}{3} \trace ( \sigma ) $$
+$$ p = \frac{1}{3} I_1 = \frac{1}{3} trace ( \sigma ) $$
 
 ### Von Mises stress
 
@@ -82,7 +84,7 @@ $$ - \sin( 3 \bar{\theta}_s) = \frac{J_3}{2} (\frac{3}{J_2})^{\frac{3}{2}} $$
 
 which brings:
 
-$$ \bar{\theta}_s = \frac{1}{3} \asin( - \frac{27}{2} \frac{(\sigma_1 - p)(\sigma_2 - p)(\sigma_3 - p)}{q^3}) $$
+$$ \bar{\theta}_s = \frac{1}{3} asin( - \frac{27}{2} \frac{(\sigma_1 - p)(\sigma_2 - p)(\sigma_3 - p)}{q^3}) $$
 
 ### Mohr Coulomb shear capacity
 
@@ -92,11 +94,11 @@ $$ \frac{q}{q_{mc}} $$
 
 where 
 
-$$q_mc = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi }(p \sin \phi + c \cos \phi) $$
+$$q_{mc} = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi }(p \sin \phi + c \cos \phi) $$
 
 ## Mohr Coulomb pressure capacity
 
 Assesment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
-$$ \frac{3 \sin \phi}{\sqrt{3}\cos \theta_s - \sin \bar{\theta}_s \sin \phi} (q_mc - q) $$
+$$ \frac{3 \sin \phi}{\sqrt{3}\cos \theta_s - \sin \bar{\theta}_s \sin \phi} (q_{mc} - q) $$
 
