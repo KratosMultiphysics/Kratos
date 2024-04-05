@@ -318,7 +318,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.__PerformLevelSetConvection()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
         # Perform the level-set convection according to the previous step velocity
-
+        for node in self.main_model_part.Nodes:
+            node.Free(KratosMultiphysics.DISTANCE)
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
