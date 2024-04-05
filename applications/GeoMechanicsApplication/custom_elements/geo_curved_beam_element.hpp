@@ -63,7 +63,10 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    explicit GeoCurvedBeamElement(IndexType NewId = 0) : GeoStructuralBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit GeoCurvedBeamElement(IndexType NewId = 0)
+        : GeoStructuralBaseElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     GeoCurvedBeamElement(IndexType NewId, const NodesArrayType& ThisNodes)

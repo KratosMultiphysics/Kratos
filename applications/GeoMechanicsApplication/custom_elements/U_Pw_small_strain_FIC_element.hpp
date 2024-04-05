@@ -54,7 +54,10 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    explicit UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainFICElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
