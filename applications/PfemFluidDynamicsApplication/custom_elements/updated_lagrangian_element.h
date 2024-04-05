@@ -430,7 +430,7 @@ namespace Kratos
                                Matrix &rNContainer,
                                Vector &rGaussWeights);
 
-    void CalculateGeometryData(Vector &rGaussWeights);
+    virtual void CalculateGeometryData(Vector &rGaussWeights);
     double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
     /**
