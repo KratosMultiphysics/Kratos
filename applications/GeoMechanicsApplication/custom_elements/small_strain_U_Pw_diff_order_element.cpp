@@ -1913,9 +1913,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     for (SizeType idim = 0; idim < StressTensorSize; ++idim)
         VoigtVector[idim] = 1.0;
 
-    Matrix CouplingMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-                            prod(trans(rVariables.B), Matrix(outer_prod(VoigtVector, rVariables.Np))) *
-                            rVariables.IntegrationCoefficient;
+    Matrix CouplingMatrix = (-1) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                                       rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+                                       rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     Vector CouplingForce = prod(CouplingMatrix, rVariables.PressureVector);
 
