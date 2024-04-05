@@ -20,7 +20,7 @@ namespace Kratos
 
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
-    Matrix LocalStressTensor =
+    const Matrix LocalStressTensor =
         MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     Matrix StressTensor(3, 3); // 3D stress tensor
@@ -31,7 +31,7 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
         }
     }
 
-    double SigmaEquivalent =
+    const double SigmaEquivalent =
         0.5 * ((StressTensor(0, 0) - StressTensor(1, 1)) * (StressTensor(0, 0) - StressTensor(1, 1)) +
                (StressTensor(1, 1) - StressTensor(2, 2)) * (StressTensor(1, 1) - StressTensor(2, 2)) +
                (StressTensor(2, 2) - StressTensor(0, 0)) * (StressTensor(2, 2) - StressTensor(0, 0)) +
@@ -43,7 +43,7 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
 
 double StressStrainUtilities::CalculateTrace(const Vector& rStressVector)
 {
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
+    const Matrix StressTensor = MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     double trace = 0.0;
     for (std::size_t i = 0; i < StressTensor.size1(); ++i) {
@@ -64,7 +64,7 @@ double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 
     const double p                   = CalculateMeanStress(rStressVector);
     const double q                   = CalculateVonMisesStress(rStressVector);
-    Matrix       local_stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    const Matrix local_stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
     Matrix       sigma_princi;
     Matrix       eigen_vectors;
     MathUtils<double>::GaussSeidelEigenSystem(local_stress_tensor, eigen_vectors, sigma_princi, 1.0e-16, 20);
