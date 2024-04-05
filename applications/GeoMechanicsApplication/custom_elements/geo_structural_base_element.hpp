@@ -55,7 +55,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    virtual ~GeoStructuralBaseElement() = default;
+    ~GeoStructuralBaseElement() override = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
