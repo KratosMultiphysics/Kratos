@@ -6,6 +6,15 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from enum import Enum
+
+
+class ConstraintType(Enum):
+    EQUAL = "="
+    LOWER = "<"
+    LOWEREQ = "<="
+    GREATER = ">"
+    GREATEREQ = ">="
 
 class StandardizedRGPConstraint(ResponseRoutine):
     """Standardized RGP constraint response function
@@ -62,10 +71,11 @@ class StandardizedRGPConstraint(ResponseRoutine):
         elif parameters["scaled_ref_value"].IsString() and parameters["scaled_ref_value"].GetString() == "initial_value":
             self.__reference_value = None
 
-        self.__constraint_type = parameters["type"].GetString()
-        if self.__constraint_type in ["<=", "="]:
+
+        self.__constraint_type = ConstraintType(parameters["type"].GetString())
+        if self.__constraint_type in [ConstraintType.EQUAL, ConstraintType.LOWEREQ, ConstraintType.LOWER]:
             self.__scaling = 1.0
-        elif self.__constraint_type in [">="]:
+        elif self.__constraint_type in [ConstraintType.GREATEREQ, ConstraintType.GREATER]:
             self.__scaling = -1.0
             if not self.__reference_value is None: self.__reference_value *= -1
         else:
@@ -82,7 +92,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
         self.tolerance = parameters["tolerance"].GetDouble()
 
     def IsEqualityType(self) -> str:
-        return self.__constraint_type == "="
+        return self.__constraint_type == ConstraintType.EQUAL
 
     def ComputeW(self) -> float:
         if self.IsEqualityType():
@@ -159,8 +169,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
         print(f"RGP Constraint {self.GetResponseName()}:: CF = {self.CF}")
 
     def IsActiveConstrant(self):
-        if self.ComputeW() > 0.0: return True
-        else: return False
+        return self.ComputeW() > 0.0
 
     def IsSatisfied(self, value=None):
         if not value:

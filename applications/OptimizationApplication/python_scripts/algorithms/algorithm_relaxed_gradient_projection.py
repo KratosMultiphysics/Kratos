@@ -204,7 +204,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             return w_r, w_c
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha):
+    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
         update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
         self.algorithm_data.GetBufferedData().SetValue("control_field_update", update.Clone(), overwrite=True)
