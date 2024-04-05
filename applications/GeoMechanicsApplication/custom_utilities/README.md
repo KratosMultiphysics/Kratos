@@ -18,7 +18,7 @@ where $\nabla N_p$ is the gradient of the pressure shape function, $\mu$ is the 
 
 The mathematical definition is:
 $$Q = \int_\Omega B^T \alpha \xi m N_p d\Omega$$
-where $B$ is the B-matrix, $\alpha$ is Biot-alpha (relation between pressure and displacements, material parameter), $\xi$ is Bishop coefficienet, $m$ is the Voigt-vector ($[1,1,1,0,0,0]$) and $N_p$ is the pressure shape function.
+where $B$ is the B-matrix, $\alpha$ is Biot-alpha (relation between pressure and displacements, material parameter), $\xi$ is Bishop coefficient, $m$ is the Voigt-vector ($[1,1,1,0,0,0]$) and $N_p$ is the pressure shape function.
 
 ### Compressibility matrix (C)
 
