@@ -43,7 +43,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class TimoshenkoBeamElement2D3N
+ * @class LinearTimoshenkoBeamElement2D3N
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Timoshenko beam element of 3 nodes. 5th order degree Hermitic polynomials
  * for deflection and 3rd degree for axial displacements. The ordering of the local shape functions
@@ -54,8 +54,8 @@ namespace Kratos
  * Global Ordering of the nodes:      0 ------ 2 ------- 1 --> x, u      and rotation theta node-wise
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TimoshenkoBeamElement2D3N
-    : public TimoshenkoBeamElement2D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D3N
+    : public LinearTimoshenkoBeamElement2D2N
 {
 
 public:
@@ -64,28 +64,28 @@ public:
     ///@{
 
     /// The base element type
-    using BaseType = TimoshenkoBeamElement2D2N;
+    using BaseType = LinearTimoshenkoBeamElement2D2N;
 
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D3N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoBeamElement2D3N);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    TimoshenkoBeamElement2D3N()
+    LinearTimoshenkoBeamElement2D3N()
     {
     }
 
     // Constructor using an array of nodes
-    TimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
+    LinearTimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
     }
 
     // Constructor using an array of nodes with properties
-    TimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTimoshenkoBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
@@ -93,7 +93,7 @@ public:
     }
 
     // Copy constructor
-    TimoshenkoBeamElement2D3N(TimoshenkoBeamElement2D2N const& rOther)
+    LinearTimoshenkoBeamElement2D3N(LinearTimoshenkoBeamElement2D2N const& rOther)
         : BaseType(rOther)
     {
     }
@@ -101,13 +101,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<TimoshenkoBeamElement2D3N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D3N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
     {
-        return Kratos::make_intrusive<TimoshenkoBeamElement2D3N>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D3N>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -345,7 +345,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class TimoshenkoBeamElement2D2N.
+}; // class LinearTimoshenkoBeamElement2D2N.
 
 ///@}
 ///@name Type Definitions

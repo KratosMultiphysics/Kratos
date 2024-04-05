@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-void TimoshenkoBeamElement2D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void LinearTimoshenkoBeamElement2D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -51,14 +51,14 @@ void TimoshenkoBeamElement2D3N::Initialize(const ProcessInfo& rCurrentProcessInf
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer TimoshenkoBeamElement2D3N::Clone(
+Element::Pointer LinearTimoshenkoBeamElement2D3N::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    TimoshenkoBeamElement2D3N::Pointer p_new_elem = Kratos::make_intrusive<TimoshenkoBeamElement2D3N>
+    LinearTimoshenkoBeamElement2D3N::Pointer p_new_elem = Kratos::make_intrusive<LinearTimoshenkoBeamElement2D3N>
         (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
@@ -77,7 +77,7 @@ Element::Pointer TimoshenkoBeamElement2D3N::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetShapeFunctionsValues(
     VectorType& rN,
     const double L,
     const double Phi,
@@ -107,7 +107,7 @@ void TimoshenkoBeamElement2D3N::GetShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double L,
     const double Phi,
@@ -135,7 +135,7 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetSecondDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetSecondDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double L,
     const double Phi,
@@ -162,7 +162,7 @@ void TimoshenkoBeamElement2D3N::GetSecondDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetThirdDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetThirdDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double L,
     const double Phi,
@@ -187,7 +187,7 @@ void TimoshenkoBeamElement2D3N::GetThirdDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetFourthDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetFourthDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double L,
     const double Phi,
@@ -212,7 +212,7 @@ void TimoshenkoBeamElement2D3N::GetFourthDerivativesShapeFunctionsValues(
 // /***********************************************************************************/
 // /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetNThetaShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetNThetaShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -231,7 +231,7 @@ void TimoshenkoBeamElement2D3N::GetNThetaShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetFirstDerivativesNThetaShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetFirstDerivativesNThetaShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -250,7 +250,7 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNThetaShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetNu0ShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetNu0ShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -267,7 +267,7 @@ void TimoshenkoBeamElement2D3N::GetNu0ShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -285,7 +285,7 @@ void TimoshenkoBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::GetNodalValuesVector(VectorType& rNodalValues)
+void LinearTimoshenkoBeamElement2D3N::GetNodalValuesVector(VectorType& rNodalValues)
 {
     if (rNodalValues.size() != 9)
         rNodalValues.resize(9, false);
@@ -339,7 +339,7 @@ void TimoshenkoBeamElement2D3N::GetNodalValuesVector(VectorType& rNodalValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D3N::CalculateAxialStrain(
+double LinearTimoshenkoBeamElement2D3N::CalculateAxialStrain(
     const double Length,
     const double Phi,
     const double xi,
@@ -354,7 +354,7 @@ double TimoshenkoBeamElement2D3N::CalculateAxialStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D3N::CalculateShearStrain(
+double LinearTimoshenkoBeamElement2D3N::CalculateShearStrain(
     const double Length,
     const double Phi,
     const double xi,
@@ -372,7 +372,7 @@ double TimoshenkoBeamElement2D3N::CalculateShearStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D3N::CalculateBendingCurvature(
+double LinearTimoshenkoBeamElement2D3N::CalculateBendingCurvature(
     const double Length,
     const double Phi,
     const double xi,
@@ -389,7 +389,7 @@ double TimoshenkoBeamElement2D3N::CalculateBendingCurvature(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::RotateLHS(
+void LinearTimoshenkoBeamElement2D3N::RotateLHS(
     MatrixType& rLHS,
     const GeometryType& rGeometry
 )
@@ -409,7 +409,7 @@ void TimoshenkoBeamElement2D3N::RotateLHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::RotateRHS(
+void LinearTimoshenkoBeamElement2D3N::RotateRHS(
     VectorType& rRHS,
     const GeometryType& rGeometry
 )
@@ -430,7 +430,7 @@ void TimoshenkoBeamElement2D3N::RotateRHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::RotateAll(
+void LinearTimoshenkoBeamElement2D3N::RotateAll(
     MatrixType& rLHS,
     VectorType& rRHS,
     const GeometryType& rGeometry
@@ -455,17 +455,17 @@ void TimoshenkoBeamElement2D3N::RotateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::save(Serializer& rSerializer) const
+void LinearTimoshenkoBeamElement2D3N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TimoshenkoBeamElement2D2N);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearTimoshenkoBeamElement2D2N);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D3N::load(Serializer& rSerializer)
+void LinearTimoshenkoBeamElement2D3N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TimoshenkoBeamElement2D2N);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearTimoshenkoBeamElement2D2N);
 }
 
 /***********************************************************************************/

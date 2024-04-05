@@ -490,7 +490,6 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
 double CalculatePhi(const Properties& rProperties, const double L)
 {
     const double E   = rProperties[YOUNG_MODULUS];
