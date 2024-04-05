@@ -5,10 +5,10 @@
 
 Utilities are developed to calculate matrices and vectors in transport equations
 
-$$ \begin{bmatrix} M & 0 // 0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} // \ddot{p} \end{bmatrix}
-  + \begin{bmatrix} D & 0 // Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} // \dot{p} \end{bmatrix}
-  + \begin{bmatrix} K & -Q // 0 & H \end{bmatrix} \begin{bmatrix} u // p \end{bmatrix} =
-    \begin{bmatrix} f_u // f_p \end{bmatrix} $$ 
+$$ \begin{bmatrix} M & 0 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} \\ \ddot{p} \end{bmatrix}  +
+   \begin{bmatrix} D & 0 \\ Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} \\ \dot{p} \end{bmatrix}  +
+   \begin{bmatrix} K & -Q \\ 0 & H \end{bmatrix} \begin{bmatrix} u \\ p \end{bmatrix} =
+   \begin{bmatrix} f_u \\ f_p \end{bmatrix} $$
 
 ### Permeability matrix (H)
 
@@ -100,5 +100,5 @@ $$q_{mc} = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi 
 
 Assesment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
-$$ \frac{3 \sin \phi}{\sqrt{3}\cos \theta_s - \sin \bar{\theta}_s \sin \phi} (q_{mc} - q) $$
+$$ \frac{3} \sin \phi}{\sqrt{3}\cos \theta_s - \sin \bar{\theta}_s \sin \phi} (q_{mc} - q) $$
 
