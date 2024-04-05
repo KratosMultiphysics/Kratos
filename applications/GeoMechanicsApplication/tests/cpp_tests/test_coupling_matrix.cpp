@@ -24,7 +24,10 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
     constexpr SizeType voigt_size = VOIGT_SIZE_2D_PLANE_STRESS;
-    Matrix             b_matrix   = ZeroMatrix(voigt_size, 2 * 3);
+    constexpr SizeType size_D     = 2;
+    constexpr SizeType size_N     = 3;
+
+    Matrix b_matrix = ZeroMatrix(voigt_size, size_D * size_N);
     // clang-format off
     b_matrix <<=  1.0,  2.0,  3.0,  4.0,  5.0,  6.0,
                  11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
@@ -33,24 +36,25 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
     Vector voigt_vector = ZeroVector(voigt_size);
     voigt_vector <<= 1.0, 1.0, 0.0;
 
-    Vector n_p = ZeroVector(voigt_size);
+    Vector n_p = ZeroVector(size_N);
     n_p <<= 1.0, 2.0, 3.0;
 
-    const double                integration_coefficient = 1.0;
-    const double                biot_coefficient        = 0.02;
-    BoundedMatrix<double, 6, 3> coupling_matrix         = ZeroMatrix(6, 3);
+    const double integration_coefficient = 1.0;
+    const double biot_coefficient        = 0.02;
+    const double bishop_coefficient      = 0.1;
+    BoundedMatrix<double, size_D * size_N, size_N> coupling_matrix = ZeroMatrix(size_D * size_N, size_N);
 
-    coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<2, 3>(
-        b_matrix, voigt_vector, n_p, biot_coefficient, integration_coefficient);
+    coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<size_D, size_N>(
+        b_matrix, voigt_vector, n_p, biot_coefficient, bishop_coefficient, integration_coefficient);
 
-    BoundedMatrix<double, 6, 3> expected_coupling_matrix;
+    BoundedMatrix<double, size_D * size_N, size_N> expected_coupling_matrix;
     // clang-format off
-    expected_coupling_matrix <<= 0.24,0.48,0.72,
-                                 0.28,0.56,0.84,
-                                 0.32,0.64,0.96,
-                                 0.36,0.72,1.08,
-                                 0.40,0.80,1.20,
-                                 0.44,0.88,1.32;
+    expected_coupling_matrix <<= 0.024,0.048,0.072,
+                                 0.028,0.056,0.084,
+                                 0.032,0.064,0.096,
+                                 0.036,0.072,0.108,
+                                 0.040,0.080,0.120,
+                                 0.044,0.088,0.132;
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
@@ -59,7 +63,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
 KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
     constexpr SizeType voigt_size = VOIGT_SIZE_3D;
-    Matrix             b_matrix   = ZeroMatrix(voigt_size, 3 * 4);
+    constexpr SizeType size_D     = 3;
+    constexpr SizeType size_N     = 4;
+
+    Matrix b_matrix = ZeroMatrix(voigt_size, size_D * size_N);
     // clang-format off
     b_matrix <<=  1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0, 10.0, 11.0, 12.0,
                  11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0,
@@ -72,31 +79,31 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, Kratos
     Vector voigt_vector = ZeroVector(voigt_size);
     voigt_vector <<= 1.0, 1.0, 1.0, 0.0, 0.0, 0.0;
 
-    Vector n_p = ZeroVector(voigt_size);
-    n_p <<= 1.0, 2.0, 3.0, 4.0, 5.0, 6.0;
+    Vector n_p = ZeroVector(size_N);
+    n_p <<= 1.0, 2.0, 3.0, 4.0;
 
-    const double                 integration_coefficient = 1.0;
-    const double                 biot_coefficient        = 0.02;
-    BoundedMatrix<double, 12, 6> coupling_matrix         = ZeroMatrix(12, 6);
+    const double integration_coefficient = 1.0;
+    const double biot_coefficient        = 0.02;
+    const double bishop_coefficient      = 0.1;
+    BoundedMatrix<double, size_D * size_N, size_N> coupling_matrix = ZeroMatrix(size_D * size_N, size_N);
 
-    coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<3, 4>(
-        b_matrix, voigt_vector, n_p, biot_coefficient, integration_coefficient);
+    noalias(coupling_matrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix<size_D, size_N>(
+        b_matrix, voigt_vector, n_p, biot_coefficient, bishop_coefficient, integration_coefficient);
 
-    BoundedMatrix<double, 12, 6> expected_coupling_matrix = ZeroMatrix(12, 6);
+    BoundedMatrix<double, size_D * size_N, size_N> expected_coupling_matrix;
     // clang-format off
-    expected_coupling_matrix <<= 0.66,1.32,1.98,2.64,3.3,3.96,
-                                 0.72,1.44,2.16,2.88,3.6,4.32,
-                                 0.78,1.56,2.34,3.12,3.9,4.68,
-                                 0.84,1.68,2.52,3.36,4.2,5.04,
-                                 0.90,1.80,2.70,3.60,4.5,5.40,
-                                 0.96,1.92,2.88,3.84,4.8,5.76,
-                                 1.02,2.04,3.06,4.08,5.1,6.12,
-                                 1.08,2.16,3.24,4.32,5.4,6.48,
-                                 1.14,2.28,3.42,4.56,5.7,6.84,
-                                 1.20,2.40,3.60,4.80,6.0,7.20,
-                                 1.26,2.52,3.78,5.04,6.3,7.56,
-                                 1.32,2.64,3.96,5.28,6.6,7.92;
-    std::cout << expected_coupling_matrix << std::endl;
+    expected_coupling_matrix <<= 0.066,0.132,0.198,0.264,
+                                 0.072,0.144,0.216,0.288,
+                                 0.078,0.156,0.234,0.312,
+                                 0.084,0.168,0.252,0.336,
+                                 0.090,0.180,0.270,0.360,
+                                 0.096,0.192,0.288,0.384,
+                                 0.102,0.204,0.306,0.408,
+                                 0.108,0.216,0.324,0.432,
+                                 0.114,0.228,0.342,0.456,
+                                 0.120,0.240,0.360,0.480,
+                                 0.126,0.252,0.378,0.504,
+                                 0.132,0.264,0.396,0.528;
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
