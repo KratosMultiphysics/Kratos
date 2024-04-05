@@ -31,15 +31,15 @@ File transport_equation_utilities.hpp includes
 ## Stress strain utilities
 
 For convenience functions that compute invariants, equivalents and strain definitions.
-Given a stress tensor $$\sigma$$ or a strain tensor $$\epsilon$$. The eigenvalues of the stress tensor are $$\sigma_1 \le \sigma_2 \le \sigma_3$$
+Given a stress tensor $\sigma$ or a strain tensor $\epsilon$. The eigenvalues of the stress tensor are $\sigma_1 \le \sigma_2 \le \sigma_3$
 
 $$\sigma = \begin{bmatrix} \sigma_xx & \sigma_xy & sigma_xz \\
                            \sigma_xy & \sigma_yy & sigma_yz \\
-                           \sigma_xz & \sigma_yz & sigma_zz  \end{bmatrix$$
+                           \sigma_xz & \sigma_yz & sigma_zz  \end{bmatrix}$$
 
 $$\epsilon = \begin{bmatrix} \epsilon_xx & \epsilon_xy & epsilon_xz \\
                              \epsilon_xy & \epsilon_yy & epsilon_yz \\
-                             \epsilon_xz & \epsilon_yz & epsilon_zz  \end{bmatrix$$
+                             \epsilon_xz & \epsilon_yz & epsilon_zz  \end{bmatrix}$$
 
 ### Trace
 
@@ -49,11 +49,11 @@ $$ I_1 = trace(\sigma) = \Sigma_i \sigma_{i,i} $$
 
 ### Mean stress
 
-$$ p = I_1 = \frac{1}{3} trace(\sigma) $$
+$$ p = \frac{1}{3} I_1 = \frac{1}{3} \trace ( \sigma ) $$
 
 ### Von Mises stress
 
-With $$J_2$$ the second invariant of the tensor:
+With $J_2$ the second invariant of the tensor:
 
 $$ \overline\sigma = \sqrt{3 J_2} = \sqrt{0.5((\sigma_{xx}-\sigma_{yy})^2 +
                                  (\sigma_{yy}-\sigma_{zz})^2 +
@@ -62,41 +62,41 @@ $$ \overline\sigma = \sqrt{3 J_2} = \sqrt{0.5((\sigma_{xx}-\sigma_{yy})^2 +
 
 ### Von Mises strain
 
-$$ \overline(\epsilon) = \frac{2}{3} \sqrt{3 J_2} $$
+$$ \overline{\epsilon} = \frac{2}{3} \sqrt{3 J_2} $$
 
 ### Green Lagrange strain tensor
 
-With current configuration $$x$$ and reference configuration $$X$$, the deformation gradient $$F = \frac(x)(X)$$ and unit tensor I:
+With current configuration $x$ and reference configuration $X$, the deformation gradient $F = \frac{x}{X}$ and unit tensor I:
 
 $$ \epsilon = 0.5 ( F^T \cdot F - I ) $$
 
 ### Hencky strain tensor
 
-$$\epsilon = 0.5 ln( F^T \cdot F )$$
+$$\epsilon = 0.5 \ln ( F^T \cdot F )$$
 
 ### Lode angle
 
 The negative sine definition for Lode angle is adapted here [Lode coordinates Wikipedia](https://en.wikipedia.org/wiki/Lode_coordinates):
 
-$$ - sin( 3 \bar{\theta}_s) = \frac{J_3}{2} (\frac{3}{J_2})^{\frac{3}{2}} $$
+$$ - \sin( 3 \bar{\theta}_s) = \frac{J_3}{2} (\frac{3}{J_2})^{\frac{3}{2}} $$
 
 which brings:
 
-$$ \theta_s = \frac{1}{3} asin( - \frac{27}{2} \frac{(\sigma_1 - p)(\sigma_2 - p)(\sigma_3 - p)}{q^3}) $$
+$$ \bar{\theta}_s = \frac{1}{3} \asin( - \frac{27}{2} \frac{(\sigma_1 - p)(\sigma_2 - p)(\sigma_3 - p)}{q^3}) $$
 
 ### Mohr Coulomb shear capacity
 
 Assesment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
-$$ \frac{q}{q_mc} $$
+$$ \frac{q}{q_{mc}} $$
 
 where 
 
-$$q_mc = frac{3}{\sqrt{3}cos \theta_s - sin \theta_s sin \phi}(p sin \phi + c cos \phi) $$
+$$q_mc = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi }(p \sin \phi + c \cos \phi) $$
 
 ## Mohr Coulomb pressure capacity
 
 Assesment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
-$$ frac{3 sin \phi}{\sqrt{3}cos \theta_s - sin \theta_s sin \phi} (q_mc - q) $$
+$$ \frac{3 \sin \phi}{\sqrt{3}\cos \theta_s - \sin \bar{\theta}_s \sin \phi} (q_mc - q) $$
 
