@@ -40,8 +40,13 @@ class ShellThicknessControl(Control):
             "penalty_power"              : 1,
             "output_all_fields"          : false,
             "physical_thicknesses"       : [],
-            "beta_value"                 : 25.0,
-            "penalty_power"              : 1
+            "beta_settings": {
+                "initial_value": 5,
+                "max_value"    : 30,
+                "adaptive"     : true,
+                "increase_fac" : 1.05,
+                "update_period": 50
+            }
         }""")
 
         self.parameters.ValidateAndAssignDefaults(default_settings)
@@ -56,9 +61,19 @@ class ShellThicknessControl(Control):
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), Kratos.THICKNESS, Kratos.Globals.DataLocation.Element, self.parameters["filter_settings"])
 
         self.penalty_power = self.parameters["penalty_power"].GetInt()
-        self.beta = self.parameters["beta_value"].GetDouble()
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
+
+        # beta settings
+        beta_settings = parameters["beta_settings"]
+        beta_settings.ValidateAndAssignDefaults(default_settings["beta_settings"])
+        self.beta = beta_settings["initial_value"].GetDouble()
+        self.beta_max = beta_settings["max_value"].GetDouble()
+        self.beta_adaptive = beta_settings["adaptive"].GetBool()
+        self.beta_increase_frac = beta_settings["increase_fac"].GetDouble()
+        self.beta_update_period = beta_settings["update_period"].GetInt()
+        self.beta_computed_step = 1
+
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
             raise RuntimeError("The physical_thicknesses can not be empty, at least min and max should be provided.")
@@ -146,8 +161,18 @@ class ShellThicknessControl(Control):
                 self._UpdateAndOutputFields(update)
 
                 self.filter.Update()
+
+                self.__UpdateBeta()
                 return True
         return False
+
+    def __UpdateBeta(self) -> None:
+        if self.beta_adaptive:
+            step = self.optimization_problem.GetStep()
+            if step % self.beta_update_period == 0 and self.beta_computed_step != step:
+                self.beta_computed_step = step
+                self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
+                Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field

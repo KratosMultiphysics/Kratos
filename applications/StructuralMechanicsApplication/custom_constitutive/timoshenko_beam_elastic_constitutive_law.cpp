@@ -113,7 +113,7 @@ void TimoshenkoBeamElasticConstitutiveLaw::CalculateMaterialResponseCauchy(Const
     const double A    = r_material_properties[CROSS_AREA];
     const double I    = r_material_properties[I33];
 
-    const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
+    const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
     const double A_s  = r_material_properties[AREA_EFFECTIVE_Y];
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {

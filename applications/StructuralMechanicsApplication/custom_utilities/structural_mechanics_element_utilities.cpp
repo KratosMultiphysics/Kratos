@@ -491,14 +491,14 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 /***********************************************************************************/
 
 double CalculatePhi(ConstitutiveLaw::Parameters &rValues, const double L)
+double CalculatePhi(const Properties& rProperties, const double L)
 {
-    const auto &r_material_properties = rValues.GetMaterialProperties();
-    const double E   = r_material_properties[YOUNG_MODULUS];
-    const double I   = r_material_properties[I33];
-    const double A_s = r_material_properties[AREA_EFFECTIVE_Y];
-    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
+    const double E   = rProperties[YOUNG_MODULUS];
+    const double I   = rProperties[I33];
+    const double A_s = rProperties[AREA_EFFECTIVE_Y];
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
 
-    if (A_s == 0.0)
+    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
         return 0.0;
     else
         return 12.0 * E * I / (G * A_s * std::pow(L, 2));

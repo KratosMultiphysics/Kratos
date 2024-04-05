@@ -39,7 +39,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TimoshenkoBeamElement2D2N// GUI group identifier: Beam Auto1
+Begin Elements LinearTimoshenkoBeamElement2D2N// GUI group identifier: Beam Auto1
         1          0    31    30 
         2          0    30    29 
         3          0    29    27 
