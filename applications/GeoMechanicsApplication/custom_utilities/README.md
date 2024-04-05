@@ -6,10 +6,16 @@
 Utilities are developed to calculate matrices and vectors in transport equations
 
 $$ \begin{bmatrix} M & 0 \\
-                   0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} \\ \ddot{p} \end{bmatrix}  +
-   \begin{bmatrix} D & 0 \\ Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} \\ \dot{p} \end{bmatrix}  +
-   \begin{bmatrix} K & -Q \\ 0 & H \end{bmatrix} \begin{bmatrix} u \\ p \end{bmatrix} =
-   \begin{bmatrix} f_u \\ f_p \end{bmatrix} $$
+                   0 & 0 \end{bmatrix} \begin{bmatrix} \ddot{u} \\
+                                                       \ddot{p} \end{bmatrix}  +
+   \begin{bmatrix} D & 0 \\
+                   Q^T & C \end{bmatrix} \begin{bmatrix} \dot{u} \\
+                                                          \dot{p} \end{bmatrix}  +
+   \begin{bmatrix} K & -Q \\
+                   0 & H \end{bmatrix} \begin{bmatrix} u \\
+                                                       p \end{bmatrix} =
+   \begin{bmatrix} f_u \\
+                   f_p \end{bmatrix} $$
 
 ### Permeability matrix (H)
 
