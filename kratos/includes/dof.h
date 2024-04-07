@@ -481,9 +481,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         std::string name;
-        Flags flags;
-        rSerializer.load("Flags", flags);
-        static_cast<Flags&>(*this) = flags;
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags);
         EquationIdType equation_id;
         rSerializer.load("EquationId", equation_id);
         mEquationId = equation_id;
