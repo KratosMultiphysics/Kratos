@@ -29,125 +29,71 @@
 namespace Kratos {
 
 
-namespace {
-
-
-/// @brief Find the largest @ref Element ID in a @ref ModelPart.
-Element::IndexType GetLargestElementId(const ModelPart& rModelPart)
-{
-    // IDs are 1-based
-    Element::IndexType output = 1;
-
-    // Elements are stored in an ordered container, sorted by their IDs,
-    // so the last element in the container should have the largest ID.
-    if (!rModelPart.Elements().empty()) {
-        output = rModelPart.Elements().back().Id();
-    }
-
-    const DataCommunicator& r_mpi = rModelPart.GetCommunicator().GetDataCommunicator();
-    return r_mpi.MaxAll(output);
-}
-
-
-/// @brief Pair of integers with commutative hash and equality comparisons.
-template <class TIndex>
-struct SymmetricIdPair
-{
-    using value_type = TIndex;
-
-    using first_type = value_type;
-
-    using second_type = value_type;
-
-    struct hash
-    {
-        std::size_t operator()(SymmetricIdPair Instance) const noexcept
-        {
-            value_type min = std::min(Instance.first, Instance.second);
-            const value_type max = std::max(Instance.first, Instance.second);
-            HashCombine(min, max); // <== mutates min
-            return min;
-        }
-    }; // struct hash
-
-    friend bool operator==(SymmetricIdPair Left, SymmetricIdPair Right) noexcept
-    {
-        return (Left.first == Right.first && Left.second == Right.second)
-            || (Left.first == Right.second && Left.second == Right.first);
-    }
-
-    first_type first;
-
-    second_type second;
-};
-
-
-/// @brief Pair of symmetric ID pairs.
-/// @note This pair is NOT symmetric, but the subpairs are.
-template <class TFirst, class TSecond>
-struct NestedIdPair
-{
-    using first_type = SymmetricIdPair<TFirst>;
-
-    using second_type = SymmetricIdPair<TSecond>;
-
-    struct hash
-    {
-        std::size_t operator()(NestedIdPair Instance) const noexcept
-        {
-            auto first_hash = typename first_type::hash()(Instance.first);
-            const auto second_hash = typename second_type::hash()(Instance.second);
-            HashCombine(first_hash, second_hash); // <== mutates first_hash
-            return first_hash;
-        }
-    }; // struct hash
-
-    friend bool operator==(NestedIdPair Left, NestedIdPair Right) noexcept
-    {
-        return Left.first == Right.first && Left.second == Right.second;
-    }
-
-    first_type first;
-
-    second_type second;
-};
-
-
-void EnsureNode(ModelPart& rOutputModelPart, const Node& rInputNode)
-{
-    const auto it_node = rOutputModelPart.Nodes().find(rInputNode.Id());
-    if (it_node == rOutputModelPart.Nodes().end()) {
-        rOutputModelPart.CreateNewNode(rInputNode.Id(),
-                                       rInputNode.X0(),
-                                       rInputNode.Y0(),
-                                       rInputNode.Z0());
-    }
-}
-
-
-Element& ConstructMPCElement(ModelPart& rOutputModelPart,
-                             std::pair<const Node*,const Node*> Nodes,
-                             Element::IndexType Id,
-                             const Properties::Pointer& rpProperties)
-{
-    // The node pointers might not be in the output model part (usually they aren't)
-    // so they must be constructed if they haven't been already.
-    EnsureNode(rOutputModelPart, *Nodes.first);
-    EnsureNode(rOutputModelPart, *Nodes.second);
-
-    Element::Pointer p_element = rOutputModelPart.CreateNewElement("Element2D2N",
-                                                                   Id,
-                                                                   std::vector<Node::IndexType> {Nodes.first->Id(), Nodes.second->Id()},
-                                                                   rpProperties);
-    return *p_element;
-}
-
-
-} // anonymous namespace
-
-
 struct MultipointConstraintToElementProcess::Impl
 {
+    /// @brief Pair of integers with commutative hash and equality comparisons.
+    template <class TIndex>
+    struct SymmetricIdPair
+    {
+        using value_type = TIndex;
+
+        using first_type = value_type;
+
+        using second_type = value_type;
+
+        struct hash
+        {
+            std::size_t operator()(SymmetricIdPair Instance) const noexcept
+            {
+                value_type min = std::min(Instance.first, Instance.second);
+                const value_type max = std::max(Instance.first, Instance.second);
+                HashCombine(min, max); // <== mutates min
+                return min;
+            }
+        }; // struct hash
+
+        friend bool operator==(SymmetricIdPair Left, SymmetricIdPair Right) noexcept
+        {
+            return (Left.first == Right.first && Left.second == Right.second)
+                || (Left.first == Right.second && Left.second == Right.first);
+        }
+
+        first_type first;
+
+        second_type second;
+    };
+
+
+    /// @brief Pair of symmetric ID pairs.
+    /// @note This pair is NOT symmetric, but the subpairs are.
+    template <class TFirst, class TSecond>
+    struct NestedIdPair
+    {
+        using first_type = SymmetricIdPair<TFirst>;
+
+        using second_type = SymmetricIdPair<TSecond>;
+
+        struct hash
+        {
+            std::size_t operator()(NestedIdPair Instance) const noexcept
+            {
+                auto first_hash = typename first_type::hash()(Instance.first);
+                const auto second_hash = typename second_type::hash()(Instance.second);
+                HashCombine(first_hash, second_hash); // <== mutates first_hash
+                return first_hash;
+            }
+        }; // struct hash
+
+        friend bool operator==(NestedIdPair Left, NestedIdPair Right) noexcept
+        {
+            return Left.first == Right.first && Left.second == Right.second;
+        }
+
+        first_type first;
+
+        second_type second;
+    };
+
     std::optional<ModelPart*> mpInputModelPart;
 
     std::optional<ModelPart*> mpOutputModelPart;
@@ -174,6 +120,53 @@ struct MultipointConstraintToElementProcess::Impl
         >,
         NestedIdPair<Node::IndexType,Variable<double>::KeyType>::hash
     > mConstraintMap;
+
+    /// @brief Find the largest @ref Element ID in a @ref ModelPart.
+    static Element::IndexType GetLargestElementId(const ModelPart& rModelPart)
+    {
+        // IDs are 1-based
+        Element::IndexType output = 1;
+
+        // Elements are stored in an ordered container, sorted by their IDs,
+        // so the last element in the container should have the largest ID.
+        if (!rModelPart.Elements().empty()) {
+            output = rModelPart.Elements().back().Id();
+        }
+
+        const DataCommunicator& r_mpi = rModelPart.GetCommunicator().GetDataCommunicator();
+        return r_mpi.MaxAll(output);
+    }
+
+
+    static void EnsureNode(ModelPart& rOutputModelPart, const Node& rInputNode)
+    {
+        const auto it_node = rOutputModelPart.Nodes().find(rInputNode.Id());
+        if (it_node == rOutputModelPart.Nodes().end()) {
+            rOutputModelPart.CreateNewNode(rInputNode.Id(),
+                                           rInputNode.X0(),
+                                           rInputNode.Y0(),
+                                           rInputNode.Z0());
+        }
+    }
+
+
+    static Element& ConstructMPCElement(ModelPart& rOutputModelPart,
+                                        std::pair<const Node*,const Node*> Nodes,
+                                        Element::IndexType Id,
+                                        const Properties::Pointer& rpProperties)
+    {
+        // The node pointers might not be in the output model part (usually they aren't)
+        // so they must be constructed if they haven't been already.
+        EnsureNode(rOutputModelPart, *Nodes.first);
+        EnsureNode(rOutputModelPart, *Nodes.second);
+
+        Element::Pointer p_element = rOutputModelPart.CreateNewElement(
+            "Element2D2N",
+            Id,
+            std::vector<Node::IndexType> {Nodes.first->Id(), Nodes.second->Id()},
+            rpProperties);
+        return *p_element;
+    }
 }; // struct MultipointConstraintToElementProcess::Impl
 
 
@@ -239,7 +232,7 @@ void MultipointConstraintToElementProcess::Execute()
     const Variable<double>& r_variable = *mpImpl->mpVariable.value();
 
     // @todo make sure that issuing new element IDs is MPI-safe and reasonably efficient (@matekelemen)
-    Element::IndexType next_element_id = GetLargestElementId(r_output_model_part.GetRootModelPart()) + 1;
+    Element::IndexType next_element_id = Impl::GetLargestElementId(r_output_model_part.GetRootModelPart()) + 1;
     KRATOS_ERROR_IF(r_output_model_part.GetRootModelPart().rProperties().empty());
     Properties::Pointer p_element_properties = *r_input_model_part.GetRootModelPart().rProperties().ptr_begin();
 
@@ -268,10 +261,10 @@ void MultipointConstraintToElementProcess::Execute()
 
                     const Dof<double>& r_slave = *r_constraint.GetSlaveDofsVector()[i_slave];
                     const Dof<double>& r_master = *r_constraint.GetMasterDofsVector()[i_master];
-                    SymmetricIdPair<Node::IndexType> node_id_pair {r_slave.GetId(), r_master.GetId()};
-                    SymmetricIdPair<Variable<double>::KeyType> variable_id_pair {r_slave.GetVariable().SourceKey(),
-                                                                                 r_master.GetVariable().SourceKey()};
-                    NestedIdPair<Node::IndexType,Variable<double>::KeyType> mpc_id {node_id_pair, variable_id_pair};
+                    Impl::SymmetricIdPair<Node::IndexType> node_id_pair {r_slave.GetId(), r_master.GetId()};
+                    Impl::SymmetricIdPair<Variable<double>::KeyType> variable_id_pair {r_slave.GetVariable().SourceKey(),
+                                                                                       r_master.GetVariable().SourceKey()};
+                    Impl::NestedIdPair<Node::IndexType,Variable<double>::KeyType> mpc_id {node_id_pair, variable_id_pair};
 
                     // Get or create the element related to this MPC
                     auto it_mpc = mpImpl->mConstraintMap.find(mpc_id);
@@ -294,10 +287,10 @@ void MultipointConstraintToElementProcess::Execute()
                         KRATOS_ERROR_IF(it_slave_node == r_input_model_part.Nodes().end());
                         KRATOS_ERROR_IF(it_master_node == r_input_model_part.Nodes().end());
                         ModelPart& r_output_sub_model_part = *it_sub_model_part->second;
-                        Element& r_element = ConstructMPCElement(r_output_sub_model_part,
-                                                                 {&*it_slave_node, &*it_master_node},
-                                                                 next_element_id++,
-                                                                 p_element_properties);
+                        Element& r_element = Impl::ConstructMPCElement(r_output_sub_model_part,
+                                                                       {&*it_slave_node, &*it_master_node},
+                                                                       next_element_id++,
+                                                                       p_element_properties);
                         it_mpc = mpImpl->mConstraintMap.emplace(mpc_id, std::make_pair(r_element.Id(), r_constraint.Id())).first;
                     } // if constraint is new
 
