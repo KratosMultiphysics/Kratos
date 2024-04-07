@@ -133,8 +133,9 @@ struct MultipointConstraintToElementProcess::Impl
             output = rModelPart.Elements().back().Id();
         }
 
+        // Max reduce across MPI ranks
         const DataCommunicator& r_mpi = rModelPart.GetCommunicator().GetDataCommunicator();
-        return r_mpi.MaxAll(output);
+        return static_cast<Element::IndexType>(r_mpi.MaxAll(static_cast<long unsigned int>(output))); // <== explicit casts for MSVC
     }
 
 
