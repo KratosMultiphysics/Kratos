@@ -469,7 +469,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        rSerializer.save("Flags", static_cast<Flags>(*this));
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags);
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
         rSerializer.save("NodalData", mpNodalData);
         rSerializer.save("VariableType", static_cast<int>(mVariableType));
