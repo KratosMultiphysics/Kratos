@@ -222,9 +222,7 @@ MultipointConstraintToElementProcess::MultipointConstraintToElementProcess(Model
 
 
 /// Required by PIMPL
-MultipointConstraintToElementProcess::~MultipointConstraintToElementProcess()
-{
-}
+MultipointConstraintToElementProcess::~MultipointConstraintToElementProcess() = default;
 
 
 // Make sure every MPC is associated with an element
