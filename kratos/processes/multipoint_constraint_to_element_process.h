@@ -38,14 +38,14 @@ namespace Kratos {
  *           if @a output_model_part_name is @a root and a multipoint constraint relates @a DISPLACEMENT_X to @a PRESSURE,
  *           then @ref Element2D2N "Element2D2Ns" will be constructed in the @a root.DISPLACEMENT_X_PRESSURE sub model part.
  *
- *  @param input_model_part_name full name of the model part to scane multipoint constraints in.
+ *  @param input_model_part_name full name of the model part to scan multipoint constraints in.
  *  @param output_model_part_name full name of the model part to generate elements in. It is created if it does not exist yet.
  *  @param output_variable name of the element variable to write the scale of the constraints to.
- *  @param interval time interval to manage the generated elements in.
+ *  @param interval time interval in which this process is active.
  *
  *  @note This process requires exclusive access to its output @ref ModelPart, which it will manage while active.
  *        Elements are added and deleted to reflect active @ref MasterSlaveConstraint "multipoint constraints".
- *  @todo This process would be better off generating @ref Geometry "geometries", but no output process writes those yet @matekelemen.
+ *  @todo This process would be better off generating @ref Geometry "geometries", but no output process writes them yet @matekelemen.
  *
  *  @ingroup KratosCore
  */
