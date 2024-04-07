@@ -54,8 +54,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
     TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -78,8 +77,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~TransientPwElement() override {}
+    ~TransientPwElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

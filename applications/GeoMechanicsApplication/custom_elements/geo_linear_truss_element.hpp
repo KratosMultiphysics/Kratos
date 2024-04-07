@@ -57,7 +57,7 @@ public:
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoLinearTrussElement(){};
+    GeoLinearTrussElement() = default;
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 

@@ -56,7 +56,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoTrussElement);
 
-    GeoTrussElement(){};
+    GeoTrussElement() = default;
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 

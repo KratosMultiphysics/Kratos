@@ -22,23 +22,20 @@ namespace Kratos
 
 class ApplyBoundaryPhreaticLinePressureTableProcess : public ApplyConstantBoundaryPhreaticLinePressureProcess
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyBoundaryPhreaticLinePressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    using TableType = Table<double,double>;
+    using TableType = Table<double, double>;
 
-    ApplyBoundaryPhreaticLinePressureTableProcess(ModelPart& model_part,
-                                                 Parameters rParameters
-                                                 ) : ApplyConstantBoundaryPhreaticLinePressureProcess(model_part, rParameters)
+    ApplyBoundaryPhreaticLinePressureTableProcess(ModelPart& model_part, Parameters rParameters)
+        : ApplyConstantBoundaryPhreaticLinePressureProcess(model_part, rParameters)
     {
         KRATOS_TRY
 
         unsigned int TableId = rParameters["table"].GetInt();
-        mpTable            = model_part.pGetTable(TableId);
-        mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
+        mpTable              = model_part.pGetTable(TableId);
+        mTimeUnitConverter   = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
         KRATOS_CATCH("")
     }
@@ -72,16 +69,12 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyBoundaryPhreaticLinePressureTableProcess";
-    }
+    std::string Info() const override { return "ApplyBoundaryPhreaticLinePressureTableProcess"; }
 
 private:
     /// Member Variables
     TableType::Pointer mpTable;
-    double mTimeUnitConverter;
-
+    double             mTimeUnitConverter;
 };
 
-}
+} // namespace Kratos
