@@ -18,7 +18,6 @@
 #include "includes/element.h" // Element
 #include "includes/kratos_components.h" // KratosComponents
 #include "includes/key_hash.h" // HashCombine
-#include "includes/variables.h" // SCALAR_LAGRANGE_MULTIPLIER
 #include "utilities/interval_utility.h" // IntervalUtility
 
 // System includes
@@ -50,7 +49,7 @@ Element::IndexType GetLargestElementId(const ModelPart& rModelPart)
 }
 
 
-/// @brief Pair of integers with commutative hash and equality comparison.
+/// @brief Pair of integers with commutative hash and equality comparisons.
 template <class TIndex>
 struct SymmetricIdPair
 {
@@ -153,11 +152,12 @@ struct MultipointConstraintToElementProcess::Impl
 
     std::optional<ModelPart*> mpOutputModelPart;
 
+    std::optional<const Variable<double>*> mpVariable;
+
     std::optional<IntervalUtility> mInterval;
 
     /// Map associating each constrained variable pair with a sub model part
-    /// in the output model part, as well as a pair of pointers to the actual
-    /// static variables.
+    /// in the output model part.
     std::unordered_map<
         SymmetricIdPair<Variable<double>::KeyType>,
         ModelPart*,
@@ -211,6 +211,12 @@ MultipointConstraintToElementProcess::MultipointConstraintToElementProcess(Model
         }
     }
 
+    const std::string variable_name = Settings["output_variable"].Get<std::string>();
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(variable_name))
+        << "output variable " << variable_name << " is not registered. "
+        << "Check its spelling and import the application it's defined in.";
+    mpImpl->mpVariable = &KratosComponents<Variable<double>>::Get(variable_name);
+
     KRATOS_CATCH("")
 }
 
@@ -224,14 +230,15 @@ MultipointConstraintToElementProcess::~MultipointConstraintToElementProcess()
 // Make sure every MPC is associated with an element
 // AND every element represents at least one MPC.
 // Each MPC is represented by a scalar variable in an
-// element (SCALAR_LAGRANGE_MULTIPLIER).
+// element.
 void MultipointConstraintToElementProcess::Execute()
 {
     KRATOS_TRY
 
     ModelPart& r_input_model_part = *mpImpl->mpInputModelPart.value();
-    auto& r_constraints = r_input_model_part.MasterSlaveConstraints();
+    const auto& r_constraints = r_input_model_part.MasterSlaveConstraints();
     ModelPart& r_output_model_part = *mpImpl->mpOutputModelPart.value();
+    const Variable<double>& r_variable = *mpImpl->mpVariable.value();
 
     // @todo make sure that issuing new element IDs is MPI-safe and reasonably efficient (@matekelemen)
     Element::IndexType next_element_id = GetLargestElementId(r_output_model_part.GetRootModelPart()) + 1;
@@ -301,7 +308,7 @@ void MultipointConstraintToElementProcess::Execute()
                     const auto it_element = r_output_model_part.Elements().find(element_id);
                     KRATOS_ERROR_IF(it_element == r_output_model_part.Elements().end());
                     Element& r_element = *it_element;
-                    r_element.SetValue(SCALAR_LAGRANGE_MULTIPLIER, scale);
+                    r_element.SetValue(r_variable, scale);
                 } // if scale
             } // for p_slave in constraint.Slaves
         } // for p_master in constraint.Masters
@@ -335,6 +342,7 @@ const Parameters MultipointConstraintToElementProcess::GetDefaultParameters() co
     return Parameters(R"({
         "input_model_part_name" : "",
         "output_model_part_name" : "",
+        "output_variable" : "CONSTRAINT_SCALE_FACTOR",
         "interval" : [0.0, "End"]
     })");
 }

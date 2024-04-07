@@ -29,6 +29,7 @@ namespace Kratos {
  *           {
  *              "input_model_part_name" : "",
  *              "output_model_part_name" : "",
+ *              "output_variable" : "CONSTRAINT_SCALE_FACTOR",
  *              "interval" : [0.0, "End"]
  *           }
  *           @endcode
@@ -39,9 +40,9 @@ namespace Kratos {
  *
  *  @param input_model_part_name full name of the model part to scane multipoint constraints in.
  *  @param output_model_part_name full name of the model part to generate elements in. It is created if it does not exist yet.
+ *  @param output_variable name of the element variable to write the scale of the constraints to.
  *  @param interval time interval to manage the generated elements in.
  *
- *  @note The coefficient of the relationships is stored in elements' @a SCALAR_LAGRANGE_MULTIPLIER variable.
  *  @note This process requires exclusive access to its output @ref ModelPart, which it will manage while active.
  *        Elements are added and deleted to reflect active @ref MasterSlaveConstraint "multipoint constraints".
  *  @todo This process would be better off generating @ref Geometry "geometries", but no output process writes those yet @matekelemen.
