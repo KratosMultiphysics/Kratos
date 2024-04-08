@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-class StressStatePolicy
+class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStatePolicy
 {
 public:
     virtual ~StressStatePolicy() = default;
