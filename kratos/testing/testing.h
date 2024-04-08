@@ -45,6 +45,7 @@ class KratosCoreFastSuite : public ::testing::Test
 };
 
 class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
+class KratosStructuralMechanicsFastSuite: public KratosCoreFastSuite {};
 class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosCoreGeometryContainerFastSuite : public KratosCoreFastSuite {};
 class KratosCoreNurbsGeometriesFastSuite : public KratosCoreFastSuite {};
