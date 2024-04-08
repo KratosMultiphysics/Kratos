@@ -74,12 +74,14 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
 
     target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest_main GTest::gmock_main)
+    set_target_properties(KratosCoreTestUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")
     target_link_libraries(KratosCoreTest KratosCoreTestUtilities)
+    set_target_properties(KratosCoreTest PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
 
     install(TARGETS KratosCoreTestUtilities DESTINATION libs)
-    install(TARGETS KratosCoreTest)
+    install(TARGETS KratosCoreTest DESTINATION test)
 
-    gtest_discover_tests(KratosCoreTest)
+    gtest_discover_tests(KratosCoreTest DISCOVERY_MODE PRE_TEST)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object

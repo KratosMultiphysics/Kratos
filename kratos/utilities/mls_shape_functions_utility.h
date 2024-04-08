@@ -31,7 +31,7 @@ namespace Kratos
  * This class uses a linear polynomial basis and an exponential kernel to calculate
  * the shape function values and gradients in a given point using a Moving Least-Squares minimization
  */
-class MLSShapeFunctionsUtility
+class KRATOS_API(KRATOS_CORE) MLSShapeFunctionsUtility
 {
 
 public:

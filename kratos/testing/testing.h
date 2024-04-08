@@ -56,6 +56,6 @@ class KratosCoreStressSuite : public KratosCoreFastSuite {};
 // TODO: To be removed
 class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite {};
 
-DataCommunicator& GetDefaultDataCommunicator();
+KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
 
 }

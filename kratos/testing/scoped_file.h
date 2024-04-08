@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include "includes/kratos_export_api.h"
 
 namespace Kratos::Testing {
 
@@ -25,7 +26,7 @@ namespace Kratos::Testing {
  *  A base class for filesystem entities that get created upon construction
  *  and get deleted when the object gets destroyed.
  */
-class ScopedEntry
+class KRATOS_API(KRATOS_TEST_UTILS) ScopedEntry
 {
 public:
     ScopedEntry(const std::filesystem::path& rPath);
@@ -48,14 +49,14 @@ private:
 
 
 /// Class representing a directory that follows RAII.
-struct ScopedDirectory final : public ScopedEntry
+struct KRATOS_API(KRATOS_TEST_UTILS) ScopedDirectory final : public ScopedEntry
 {
     ScopedDirectory(const std::filesystem::path& rPath);
 }; // struct ScopedDirectory
 
 
 /// Class representing a file that follows RAII.
-class ScopedFile final : public ScopedEntry
+class KRATOS_API(KRATOS_TEST_UTILS) ScopedFile final : public ScopedEntry
 {
 public:
     ScopedFile(const std::filesystem::path& rPath);
@@ -76,7 +77,7 @@ private:
 
 
 /// Class representing a symlink that follows RAII.
-struct ScopedSymlink final : public ScopedEntry
+struct KRATOS_API(KRATOS_TEST_UTILS) ScopedSymlink final : public ScopedEntry
 {
     ScopedSymlink(const std::filesystem::path& rSymlinkPath, const std::filesystem::path& rTargetPath);
 }; // struct ScopedSymlink

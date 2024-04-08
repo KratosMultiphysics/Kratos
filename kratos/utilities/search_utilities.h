@@ -130,7 +130,7 @@ struct DistributedSearchInformation
  * @author Philipp Bucher (MappingUtilities methods)
  * @author Vicente Mataix Ferrandiz
  */
-class SearchUtilities
+class KRATOS_API(KRATOS_CORE) SearchUtilities
 {
 public:
     ///@name Type Definitions
