@@ -103,7 +103,7 @@ where
 
 $$q_{mc} = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi }(p \sin \phi + c \cos \phi)$$
 
-## Mohr Coulomb pressure capacity
+### Mohr Coulomb pressure capacity
 
 Assessment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
