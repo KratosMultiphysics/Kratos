@@ -72,7 +72,7 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    ~GeoCrBeamElementLinear2D2N() override;
+    ~GeoCrBeamElementLinear2D2N() = default;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -97,7 +97,7 @@ public:
     void ResetConstitutiveLaw() override;
 
 protected:
-    GeoCrBeamElementLinear2D2N(){};
+    GeoCrBeamElementLinear2D2N() = default;
 
     Vector mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
     Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
