@@ -61,7 +61,7 @@ namespace CppTestsUtilities
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
-    void KRATOS_API(KRATOS_TEST_CORE) Create2DGeometry(
+    KRATOS_API(KRATOS_TEST_UTILS) void Create2DGeometry(
         ModelPart& rModelPart,
         const std::string& rEntityName = "Element2D3N",
         const bool Initialize = true,
@@ -72,7 +72,7 @@ namespace CppTestsUtilities
      * @brief This method creates a pure (Element) simple geometry in 2D (triangles)
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    void KRATOS_API(KRATOS_TEST_CORE) CreateTestModelPartTriangle2D3N(ModelPart& rModelPart);
+    KRATOS_API(KRATOS_TEST_UTILS) void CreateTestModelPartTriangle2D3N(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 2D (quadrilaterals)
@@ -81,7 +81,7 @@ namespace CppTestsUtilities
      * @param Initialize If initialize the entities
      * @param Elements If create elements or conditions
      */
-    void KRATOS_API(KRATOS_TEST_CORE) Create2DQuadrilateralsGeometry(
+    KRATOS_API(KRATOS_TEST_UTILS) void Create2DQuadrilateralsGeometry(
         ModelPart& rModelPart, 
         const std::string& rEntityName = "Element2D4N",
         const bool Initialize = true,
@@ -94,7 +94,7 @@ namespace CppTestsUtilities
      * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
-    void KRATOS_API(KRATOS_TEST_CORE) Create3DGeometry(
+    KRATOS_API(KRATOS_TEST_UTILS) void Create3DGeometry(
         ModelPart& rModelPart,
         const std::string& rElementName = "Element3D4N",
         const bool Initialize = true
@@ -104,7 +104,7 @@ namespace CppTestsUtilities
      * @brief This method creates a pure (Element) simple geometry in 3D (tetrahedra)
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    void KRATOS_API(KRATOS_TEST_CORE) CreateTestModelPartTetrahedra3D4N(ModelPart& rModelPart);
+    KRATOS_API(KRATOS_TEST_UTILS) void CreateTestModelPartTetrahedra3D4N(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 3D (hexahedra)
@@ -112,7 +112,7 @@ namespace CppTestsUtilities
      * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
-    void KRATOS_API(KRATOS_TEST_CORE) Create3DHexahedraGeometry(
+    KRATOS_API(KRATOS_TEST_UTILS) void Create3DHexahedraGeometry(
         ModelPart& rModelPart,
         const std::string& rElementName = "Element3D8N",
         const bool Initialize = true
@@ -124,7 +124,7 @@ namespace CppTestsUtilities
      * @param rElementName The element name considered
      * @param Initialize If initialize the elements
      */
-    void KRATOS_API(KRATOS_TEST_CORE) Create3DQuadraticGeometry(
+    KRATOS_API(KRATOS_TEST_UTILS) void Create3DQuadraticGeometry(
         ModelPart& rModelPart,
         const std::string& rElementName = "Element3D10N",
         const bool Initialize = true
@@ -137,7 +137,7 @@ namespace CppTestsUtilities
      * @param Radius The radius of the sphere
      * @param rCenter The center of the sphere
      */
-    void KRATOS_API(KRATOS_TEST_CORE) CreateSphereTriangularMesh(
+    KRATOS_API(KRATOS_TEST_UTILS) void CreateSphereTriangularMesh(
         ModelPart& rModelPart,
         const std::string& rConditionName = "SurfaceCondition3D3N",
         const double Radius = 0.25,
@@ -153,7 +153,7 @@ namespace CppTestsUtilities
      * @param rDataCommunicator The data communicator.
      * @return ModelPart& The created cube skin model part.
      */
-    KRATOS_API(KRATOS_TEST_CORE) ModelPart& CreateCubeSkinModelPart(
+    KRATOS_API(KRATOS_TEST_UTILS) ModelPart& CreateCubeSkinModelPart(
         Model& rCurrentModel,
         const double HalfX = 0.6,
         const double HalfY = 0.9,
@@ -167,7 +167,7 @@ namespace CppTestsUtilities
      * @param rDataCommunicator The data communicator.
      * @return The created cube model part.
      */
-    KRATOS_API(KRATOS_TEST_CORE) ModelPart& CreateCubeModelPart(
+    KRATOS_API(KRATOS_TEST_UTILS) ModelPart& CreateCubeModelPart(
         Model& rCurrentModel,
         const DataCommunicator& rDataCommunicator = Testing::GetDefaultDataCommunicator()
         );
