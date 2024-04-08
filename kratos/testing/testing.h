@@ -52,6 +52,8 @@ class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
+class KratosGeoMechanicsFastSuite: public KratosCoreFastSuite {};
+class KratosGeoMechanicsIntegrationSuite: public KratosCoreFastSuite{};
 
 // TODO: To be removed
 class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite {};
