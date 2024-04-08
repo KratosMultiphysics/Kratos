@@ -1913,9 +1913,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     for (SizeType idim = 0; idim < StressTensorSize; ++idim)
         VoigtVector[idim] = 1.0;
 
-    Matrix CouplingMatrix = (-1) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                                       rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
-                                       rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+    Matrix CouplingMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                                         rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+                                         rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     Vector CouplingForce = prod(CouplingMatrix, rVariables.PressureVector);
 
@@ -1935,7 +1935,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                        ElementVariables& rVariables) const
+                                                                        const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 

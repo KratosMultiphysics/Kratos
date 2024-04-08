@@ -276,7 +276,8 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                            const ElementVariables& rVariables) const;
 
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 

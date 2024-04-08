@@ -1388,9 +1388,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
     KRATOS_TRY
 
     noalias(rVariables.UPMatrix) =
-        (-1) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                   rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
-                   rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                     rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+                     rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix, rVariables.PressureVector);
 
