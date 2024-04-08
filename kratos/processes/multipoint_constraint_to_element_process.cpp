@@ -198,6 +198,14 @@ MultipointConstraintToElementProcess::MultipointConstraintToElementProcess(Model
         mpImpl->mpOutputModelPart = &rModel.GetModelPart(output_model_part_name);
     } else {
         mpImpl->mpOutputModelPart = &rModel.CreateModelPart(output_model_part_name);
+
+        // Link the input model part's process info. This is necessary to ensure that
+        // the interval control works properly (TIME and STEP get updated). This is
+        // essential if the user provides an output model part that's outside the tree
+        // of the input model part.
+        mpImpl->mpOutputModelPart.value()->SetProcessInfo(mpImpl->mpInputModelPart.value()->pGetProcessInfo());
+
+        // Make sure the output model part has properties; it will be used for constructing elements.
         if (mpImpl->mpOutputModelPart.value()->GetRootModelPart().rProperties().empty()) {
             mpImpl->mpOutputModelPart.value()->GetRootModelPart().CreateNewProperties(1);
         }
@@ -216,7 +224,7 @@ MultipointConstraintToElementProcess::~MultipointConstraintToElementProcess()
 // Make sure every MPC is associated with an element
 // AND every element represents at least one MPC.
 // Each MPC is represented by a scalar variable in an
-// element.
+// element (SCALAR_LAGRANGE_MULTIPLIER).
 void MultipointConstraintToElementProcess::Execute()
 {
     KRATOS_TRY
