@@ -12,6 +12,9 @@ from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory imp
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
+from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
+
 import math
 
 
@@ -111,7 +114,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]', w_r: Kratos.Vector, w_c: Kratos.Vector) -> KratosOA.CollectiveExpression:
-        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
+        active_constraints_list = [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]        
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
             search_direction = obj_grad * -1.0
@@ -154,38 +157,18 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
 
-                lagrangian_multiplier = ntn_inverse * self.__CollectiveListCollectiveProduct(scaled_constr_grad, scalled_obj_grad)
+                lagrangian_multiplier = ntn_inverse * CollectiveListCollectiveProduct(scaled_constr_grad, scalled_obj_grad)
                 for i in range(number_of_active_constraints):
                     if lagrangian_multiplier[i] > 0.0:
                         lagrangian_multiplier[i] = 0.0
                     else:
                         lagrangian_multiplier[i] *= w_r[i]
-                projected_direction = - (scalled_obj_grad - self.__CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
-                correction = - self.__CollectiveListVectorProduct(scaled_constr_grad, w_c)
+                projected_direction = - (scalled_obj_grad - CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
+                correction = - CollectiveListVectorProduct(scaled_constr_grad, w_c)
                 search_direction = projected_direction + correction
         self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("correction", correction.Clone(), overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction.Clone(), overwrite=True)
-
-
-    def __CollectiveListCollectiveProduct(self, collective_list: 'list[KratosOA.CollectiveExpression]', other_collective: KratosOA.CollectiveExpression) -> Kratos.Vector:
-        result = Kratos.Vector(len(collective_list))
-
-        for i, collective_list_item in enumerate(collective_list):
-            result[i] = KratosOA.ExpressionUtils.InnerProduct(collective_list_item, other_collective)
-        return result
-
-    def __CollectiveListVectorProduct(self, collective_list: 'list[KratosOA.CollectiveExpression]', vector: Kratos.Vector) -> KratosOA.CollectiveExpression:
-        if len(collective_list) != vector.Size():
-            raise RuntimeError(f"Collective list size and vector size mismatch. [ Collective list size = {len(collective_list)}, vector size = {vector.Size()}]")
-        if len(collective_list) == 0:
-            raise RuntimeError("Collective lists cannot be empty.")
-
-        result = collective_list[0] * 0.0
-        for i, collective_list_item in enumerate(collective_list):
-            result += collective_list_item * vector[i]
-
-        return result
 
     def ComputeBufferCoefficients(self):
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
@@ -256,7 +239,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
@@ -301,10 +284,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self.converged = self.__convergence_criteria.IsConverged()
 
-                if self.converged:
-                    for constraint in self.__constraints_list:
-                        if not constraint.IsSatisfied():
-                            self.converged = False
+                self.converged &= all([c.IsSatisfied() for c in self.__constraints_list])
 
                 self._optimization_problem.AdvanceStep()
 
