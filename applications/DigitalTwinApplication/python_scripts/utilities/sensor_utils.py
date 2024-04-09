@@ -1,4 +1,5 @@
 import typing
+import json
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
@@ -12,6 +13,9 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKr
 from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetNameToCSVString
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.DigitalTwinApplication.utilities.expression_utils import GetContainerExpressionType
+from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetParameterToKratosValuesConverter
+from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
+from KratosMultiphysics.DigitalTwinApplication.utilities.data_utils import GetKratosValueToPythonValueConverter
 
 def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.Sensor]':
     """Get list of sensors from given parameters.
@@ -185,3 +189,30 @@ def GetMostCoveringSensorView(list_of_sensor_views: 'list[SensorViewUnionType]')
         return list_of_sensor_views[most_covering_sensor_view_index]
     else:
         raise RuntimeError("Not implemented yet.")
+
+def PrintSensorListToJson(output_file_name: Path, list_of_sensors: 'list[KratosDT.Sensors.Sensor]') -> None:
+    number_of_sensor_views = len(list_of_sensors)
+
+    # do nothing if number of clusters is zero
+    if number_of_sensor_views == 0:
+        return
+
+    # create output path
+    output_file_name.parent.mkdir(exist_ok=True, parents=True)
+
+    list_of_vars: 'list[tuple[SupportedVariableUnionType, typing.Callable[[SupportedValueUnionType], typing.Union[bool, int, float, str, list[float]]]]]' = []
+    for var_name in list_of_sensors[0].GetDataVariableNames():
+        var: SupportedVariableUnionType = Kratos.KratosGlobals.GetVariable(var_name)
+        list_of_vars.append((var, GetKratosValueToPythonValueConverter(list_of_sensors[0].GetValue(var))))
+
+    json_sensors = {"list_of_sensors": []}
+    with open(str(output_file_name), "w") as file_output:
+        for sensor in list_of_sensors:
+            json_params = json.loads(sensor.GetSensorParameters().WriteJsonString())
+            json_params["variable_data"] = {}
+
+            for var, func in list_of_vars:
+                json_params["variable_data"][var.Name()] = func(sensor.GetValue(var))
+            json_sensors["list_of_sensors"].append(json_params)
+
+        file_output.write(json.dumps(json_sensors, indent=4))

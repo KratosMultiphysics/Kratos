@@ -10,7 +10,7 @@ from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import Pri
 from KratosMultiphysics.DigitalTwinApplication.utilities.cluster_utils import Cluster
 from KratosMultiphysics.DigitalTwinApplication.utilities.cluster_utils import GetClusters
 from KratosMultiphysics.DigitalTwinApplication.utilities.cluster_utils import GetReassignedClusters
-from KratosMultiphysics.DigitalTwinApplication.utilities.cluster_utils import GetClusterSensorViews
+from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import PrintSensorListToJson
 from KratosMultiphysics.DigitalTwinApplication.sensor_placement_algorithms.clustering_method import ClusteringMethod
 
 class ClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
@@ -132,6 +132,8 @@ class ClusteringSensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Clusters requiring further sub-division:")
                 for large_cluster in list_of_large_clusters:
                     Kratos.Logger.PrintInfo(self.__class__.__name__, f"\tCluster id = {large_cluster.GetId()}, domain size ratio = {large_cluster.GetDomainSize(domain_exp) / total_domain_size:0.4e}")
+
+        PrintSensorListToJson(base_path / "best_sensor_data.json", list_of_sensors)
 
     def __OutputClustersToVtu(self, vtu_output: Kratos.VtuOutput, prefix: str, clusters: 'list[Cluster]', new_sensor_view: SensorViewUnionType) -> None:
         if len(clusters) == 0:
