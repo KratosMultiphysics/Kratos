@@ -43,7 +43,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("TurnOffGravityOnAirElements", [](ModelPart &rModelPart)
                     { return HydraulicFluidAuxiliaryUtilities::TurnOffGravityOnAirElements(rModelPart); })
         .def_static("MaximumWaterDepthChange", [](ModelPart &rModelPart)
-                    { return HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(rModelPart); });
+                    { return HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(rModelPart); })
+        .def_static("CalculateArtificialViscosity", [](ModelPart &rModelPart, double WaterDynamicViscosityMax)
+                    { return HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(rModelPart, WaterDynamicViscosityMax); });
 }
 
 } // namespace Kratos::Python

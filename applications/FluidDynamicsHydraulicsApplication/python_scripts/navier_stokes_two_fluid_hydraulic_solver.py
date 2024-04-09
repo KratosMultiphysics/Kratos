@@ -8,7 +8,7 @@ import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosHydraulics
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
-
+import time
 
 from pathlib import Path
 
@@ -347,9 +347,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Accumulative water volume error ratio due to level set. Adding source term
         self._ComputeVolumeError()
-
+        time_in = time.time()
         if self.artificial_viscosity:
             self.__CalculateArtificialViscosity()
+        time_out =time.time()
+        tiem_final=time_out-time_in
+        print("Artificial Viscosity Time: ",tiem_final)
 
         # Initialize the solver current step
         self._GetSolutionStrategy().InitializeSolutionStep()
@@ -448,27 +451,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        for element in self.GetComputingModelPart().Elements:
-            elem_artificial_viscosity = element.Calculate(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
-
-            if elem_artificial_viscosity > water_dynamic_viscosity_max:
-                elem_artificial_viscosity = water_dynamic_viscosity_max
-            nodes = element.GetNodes()
-            neg_nodes=0
-            pos_nodes=0
-            for node in nodes:
-                distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                if distance>0:
-                    pos_nodes += 1
-                else:
-                    neg_nodes+=1
-            if neg_nodes>0 and pos_nodes>0:
-                elem_artificial_viscosity= 0.0
-            # elif pos_nodes==3:
-            #     elem_artificial_viscosity = 0.0
-
-            element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
-
+        KratosHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateArtificialViscosity(self.main_model_part, water_dynamic_viscosity_max)
     def __PerformLevelSetConvection(self):
 
         # Solve the levelset convection problem
