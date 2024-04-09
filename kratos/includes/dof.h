@@ -119,6 +119,7 @@ public:
     Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable)
         : mIsFixed(false),
+          mIsActive(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
@@ -157,6 +158,7 @@ public:
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
         : mIsFixed(false),
+          mIsActive(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
@@ -174,8 +176,9 @@ public:
     }
 
     //This default constructor is needed for serializer
-    Dof()
+    Dof() noexcept
         : mIsFixed(false),
+          mIsActive(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mIndex(),
@@ -185,37 +188,14 @@ public:
     }
 
     /// Copy constructor.
-    Dof(Dof const& rOther)
-        : mIsFixed(rOther.mIsFixed),
-          mVariableType(rOther.mVariableType),
-          mReactionType(rOther.mReactionType),
-          mIndex(rOther.mIndex),
-          mEquationId(rOther.mEquationId),
-          mpNodalData(rOther.mpNodalData)
-    {
-    }
-
-
-    /// Destructor.
-    ~Dof() {}
-
+    Dof(Dof const& rOther) noexcept = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    Dof& operator=(Dof const& rOther)
-    {
-        mIsFixed = rOther.mIsFixed;
-        mEquationId = rOther.mEquationId;
-        mpNodalData = rOther.mpNodalData;
-        mIndex = rOther.mIndex;
-        mVariableType = rOther.mVariableType;
-        mReactionType = rOther.mReactionType;
-
-        return *this;
-    }
+    Dof& operator=(Dof const& rOther) noexcept = default;
 
     template<class TVariableType>
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
@@ -347,6 +327,23 @@ public:
         mIsFixed=false;
     }
 
+    /// @brief Mark this @p Dof active.
+    /// @details A @p Dof is active if it is present in the linear system that
+    ///          a @ref BuilderAndSolver built, and has a valid equation ID
+    ///          accessible at @ref Dof::EquationId.
+    void Activate() noexcept
+    {
+        mIsActive = true;
+    }
+
+    /// @brief Mark this @p Dof inactive.
+    /// @details A @p Dof is inactive if the @ref BuilderAndSolver did not use it during the
+    ///          assembly of the linear system, in which case @ref Dof::EquationId is invalid.
+    void Deactivate() noexcept
+    {
+        mIsActive = false;
+    }
+
     SolutionStepsDataContainerType* GetSolutionStepsData()
     {
         return &(mpNodalData->GetSolutionStepData());
@@ -382,6 +379,18 @@ public:
     bool IsFree() const
     {
         return !IsFixed();
+    }
+
+    /// @brief Indicates whether the @p Dof is present in the system that the @ref BuilderAndSolver assembled.
+    /// @details A @p Dof is active if it is present in the linear system that
+    ///          a @ref BuilderAndSolver built, and has a valid equation ID
+    ///          accessible at @ref Dof::EquationId.
+    ///          On the other hand, a @p Dof is inactive if the @ref BuilderAndSolver did not
+    ///          use it during the assembly of the linear system, in which case @ref Dof::EquationId
+    ///          is invalid.
+    bool IsActive() const noexcept
+    {
+        return mIsActive;
     }
 
     ///@}
@@ -439,6 +448,9 @@ private:
     /** True is is fixed */
     int mIsFixed : 1;
 
+    /// @copydoc Dof::IsActive
+    int mIsActive : 1;
+
     int mVariableType : 4;
 
     int mReactionType : 4;
@@ -489,6 +501,7 @@ private:
     void save(Serializer& rSerializer) const
     {
         rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
+        rSerializer.save("IsActive", static_cast<bool>(mIsActive));
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
         rSerializer.save("NodalData", mpNodalData);
         rSerializer.save("VariableType", static_cast<int>(mVariableType));
@@ -499,10 +512,12 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        std::string name;
         bool is_fixed;
         rSerializer.load("IsFixed", is_fixed);
         mIsFixed=is_fixed;
+        bool is_active;
+        rSerializer.load("IsActive", is_active);
+        mIsActive = is_active;
         EquationIdType equation_id;
         rSerializer.load("EquationId", equation_id);
         mEquationId = equation_id;
