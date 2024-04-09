@@ -946,7 +946,7 @@ class RomManager(object):
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name)
         directory.mkdir(parents=True, exist_ok=True)
-        summary_path = directory / "database_summary.dat"
+        summary_path = directory / "rom_database_summary.dat"
         number_of_samples_to_include_in_summary = 5  # Adjust as needed
 
         with summary_path.open('w') as f:
