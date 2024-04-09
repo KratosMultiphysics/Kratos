@@ -20,7 +20,7 @@
             "input_filename" : "shell_test"
         },
         "material_import_settings"        : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "../../../mdpas/algorithms_test_input/constraint/StructuralMaterials.json"
         },
         "line_search"                     : false,
         "convergence_criterion"           : "residual_criterion",
