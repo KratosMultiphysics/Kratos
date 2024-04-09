@@ -215,7 +215,6 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
             mu_dict = self.FOM_make_mu_dictionary(mu)
@@ -262,26 +261,36 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        SnapshotsMatrix = []
+        BasisOutputProcess = None
+        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
         for Id, mu in enumerate(mu_train):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Fit',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Fit_ROM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
+            mu_dict = self.FOM_make_mu_dictionary(mu)
+            serialized_mu = self.serialize_mu(mu_dict)
+            in_database, hash_mu = self.check_if_rom_already_in_database(serialized_mu, tol_sol)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Fit',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                self.QoI_Fit_ROM.append(simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                file_path = self.save_as_npy(SnapshotsMatrix, hash_mu)
+                self.add_ROM_to_database(serialized_mu, hash_mu, tol_sol)
+                print(f"Simulation saved to {file_path}")
+            else:
+                print("Simulation for given parameters already in database.")
 
-        return SnapshotsMatrix
+        self.generate_database_summary_file()
+
+        return 0
 
 
     def __LaunchTrainPG(self, mu_train):
@@ -347,26 +356,37 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        SnapshotsMatrix = []
+        BasisOutputProcess = None
+        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
+        tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
         for Id, mu in enumerate(mu_train):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Fit',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Fit_HROM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
+            mu_dict = self.FOM_make_mu_dictionary(mu)
+            serialized_mu = self.serialize_mu(mu_dict)
+            in_database, hash_mu = self.check_if_hrom_already_in_database(serialized_mu, tol_sol, tol_res)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Fit',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                self.QoI_Fit_HROM.append(simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                file_path = self.save_as_npy(SnapshotsMatrix, hash_mu)
+                self.add_HROM_to_database(serialized_mu, hash_mu, tol_sol, tol_res) #TODO differentiate between HROM and HHROM
+                print(f"Simulation saved to {file_path}")
+            else:
+                print("Simulation for given parameters already in database.")
 
-        return SnapshotsMatrix
+        self.generate_database_summary_file()
+
+        return 0
 
 
     def __LaunchTestFOM(self, mu_test):
@@ -905,6 +925,19 @@ class RomManager(object):
         mu_str = '_'.join(map(str, mu))
         return hashlib.sha256(mu_str.encode()).hexdigest()
 
+    def hash_parameters_with_tol(self, mu, tol):
+        # Convert the parameters list and the tolerance value to a string
+        # Ensure the tolerance is converted to a string with consistent formatting
+        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}"  # Example with 10 decimal places
+        # Generate the hash
+        return hashlib.sha256(mu_str.encode()).hexdigest()
+
+
+    def hash_parameters_with_tol_2_tols(self, mu, tol, tol2):
+        # Convert the parameters list to a string and encode
+        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}"  # Convert both tol and tol2 to strings with consistent formatting
+        # Generate the hash of the combined string including both tolerance values
+        return hashlib.sha256(mu_str.encode()).hexdigest()
 
     def check_if_mu_already_in_database(self, mu):
         conn = sqlite3.connect(self.database_name)
@@ -916,6 +949,27 @@ class RomManager(object):
         return count > 0, hash_mu
 
 
+    def check_if_rom_already_in_database(self, mu, tol_sol):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        hash_mu = self.hash_parameters_with_tol(mu, tol_sol)
+        cursor.execute('SELECT COUNT(*) FROM ROM WHERE file_name = ?', (hash_mu,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0, hash_mu
+
+
+    def check_if_hrom_already_in_database(self, mu, tol_sol, tol_res):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        hash_mu = self.hash_parameters_with_tol_2_tols(mu, tol_sol, tol_res)
+        cursor.execute('SELECT COUNT(*) FROM HROM WHERE file_name = ?', (hash_mu,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0, hash_mu
+
+
+
     def add_FOM_to_database(self, parameters, file_name):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -925,7 +979,24 @@ class RomManager(object):
         conn.commit()
         conn.close()
 
+    def add_ROM_to_database(self, parameters, file_name, tol_sol):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        parameters_str = self.serialize_mu(parameters)
+        cursor.execute('INSERT INTO ROM (parameters, tol_sol , file_name) VALUES (?, ?, ?)',
+                       (parameters_str, tol_sol, file_name))
+        conn.commit()
+        conn.close()
 
+
+    def add_HROM_to_database(self, parameters, file_name, tol_sol, tol_res):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        parameters_str = self.serialize_mu(parameters)
+        cursor.execute('INSERT INTO HROM (parameters, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?)',
+                       (parameters_str, tol_sol, tol_res, file_name))
+        conn.commit()
+        conn.close()
 
 
     def serialize_mu(self, parameters):
@@ -1038,7 +1109,7 @@ class RomManager(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
         # Include both file_name and tol_sol in the WHERE clause
         cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
         count = cursor.fetchone()[0]
@@ -1050,7 +1121,7 @@ class RomManager(object):
         print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
 
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train, real_value)
         file_path = self.save_as_npy(mu_train, hashed_mu_train)  # Save numpy array and get file path
 
         conn = sqlite3.connect(self.database_name)
@@ -1065,11 +1136,24 @@ class RomManager(object):
         conn.close()
 
 
-    def hash_mu_train(self, serialized_mu_train):
+
+    # def hash_mu_train(self, serialized_mu_train, real_value):
+    #     """
+    #     Generates a hash for the serialized mu_train.
+    #     """
+
+    #     use real_value here
+    #     return hashlib.sha256(serialized_mu_train.encode()).hexdigest()
+
+    def hash_mu_train(self, serialized_mu_train, real_value):
         """
-        Generates a hash for the serialized mu_train.
+        Generates a hash for the serialized mu_train, including a real value in the hash.
         """
-        return hashlib.sha256(serialized_mu_train.encode()).hexdigest()
+        # Concatenate the serialized mu_train with the real_value (converted to string) for hashing
+        # Ensure real_value is converted to a string with consistent formatting
+        combined_str = f"{serialized_mu_train}_{real_value:.10f}"  # Example with 10 decimal places
+        # Generate the hash of the combined string
+        return hashlib.sha256(combined_str.encode()).hexdigest()
 
 
     def serialize_entire_mu_train(self, mu_train):
