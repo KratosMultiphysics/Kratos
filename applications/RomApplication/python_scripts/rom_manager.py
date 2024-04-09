@@ -27,7 +27,7 @@ class RomManager(object):
         self.SetUpQuantityOfInterestContainers()
         self.database_name = "rom_database_sqlite3.db" #TODO This should be made user-defined. Use the same for FOM ROM HROM HHROM??
         self.set_up_or_get_data_base()
-        self.mu_names = mu_names # These are the explicit name of each parameter to be used in the database for reference, e.g. ["alpha", "permeability", "mach"]. They should match the inputs in the lists mu_train, mu_test, mu_run
+        self.mu_names = mu_names
 
 
     def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=True, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
