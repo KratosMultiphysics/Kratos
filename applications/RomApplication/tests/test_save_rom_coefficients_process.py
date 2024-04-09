@@ -62,9 +62,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
             rom_coeffs_expected_output_name = "../../save_rom_coefficients_process_test_files/ExpectedOutputSaveRomCoefficientsProcess.npy"
             rom_coeffs_expected_output = np.load(rom_coeffs_expected_output_name)
 
-            for i in range(rom_coeffs_obtained_output.shape[0]):
-                for j in range(rom_coeffs_obtained_output.shape[1]):
-                    self.assertAlmostEqual(rom_coeffs_obtained_output[i,j], rom_coeffs_expected_output[i,j])
+            self.assertMatrixAlmostEqual(rom_coeffs_obtained_output, rom_coeffs_expected_output)
 
 
 ##########################################################################################
