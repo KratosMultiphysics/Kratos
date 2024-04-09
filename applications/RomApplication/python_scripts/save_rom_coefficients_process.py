@@ -32,7 +32,7 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         elif snapshots_control_type == "step":
             self.snapshots_control_is_time = False
         else:
-            err_msg = "Unknown value \'{}\' for \'snapshots_control_type\'. Available options are \'time\' and \'step\'.".format(snapshots_control_type)
+            err_msg = f"Unknown value \'{snapshots_control_type}\' for \'snapshots_control_type\'. Available options are \'time\' and \'step\'."
             raise Exception(err_msg)
         self.snapshots_interval = settings["snapshots_interval"].GetDouble()
 
