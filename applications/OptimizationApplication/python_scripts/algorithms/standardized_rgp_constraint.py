@@ -174,7 +174,6 @@ class StandardizedRGPConstraint(ResponseRoutine):
     def IsSatisfied(self, value=None):
         if not value:
             value = abs(self.GetStandardizedValue()) if self.IsEqualityType() else self.GetStandardizedValue()
-        print(value)
         if self.IsEqualityType():
             if abs(value) <= self.tolerance: return True
             else: return False
@@ -192,7 +191,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
                 raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
 
     def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
-        with TimeLogger(f"StandardizedConstraint::Calculate {self.GetResponseName()} value", None, "Finished"):
+        with TimeLogger(f"StandardizedRGPConstraint::Calculate {self.GetResponseName()} value", None, "Finished"):
             response_value = self.CalculateValue(control_field)
             standardized_response_value = response_value * self.__scaling
 
@@ -211,7 +210,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
     def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
 
-        with TimeLogger(f"StandardizedConstraint::Calculate {self.GetResponseName()} gradients", None, "Finished"):
+        with TimeLogger(f"StandardizedRGPConstraint::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
             if save_field:
                 # save the physical gradients for post processing in unbuffered data container.
