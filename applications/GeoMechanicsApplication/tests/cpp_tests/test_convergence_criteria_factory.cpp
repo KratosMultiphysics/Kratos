@@ -10,8 +10,8 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
 #include "custom_utilities/convergence_criteria_factory.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
 
 using namespace Kratos;

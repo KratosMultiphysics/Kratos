@@ -12,8 +12,8 @@
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+#include "geo_mechanics_fast_suite.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
 
 namespace Kratos::Testing
 {

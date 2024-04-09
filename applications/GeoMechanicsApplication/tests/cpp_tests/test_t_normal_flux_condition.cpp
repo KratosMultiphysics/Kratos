@@ -13,8 +13,8 @@
 #include "containers/model.h"
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "geo_mechanics_application_variables.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/condition.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 

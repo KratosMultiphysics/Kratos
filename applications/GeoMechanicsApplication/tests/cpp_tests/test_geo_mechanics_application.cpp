@@ -10,8 +10,8 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "testing/testing.h"
 #include "geo_mechanics_application.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

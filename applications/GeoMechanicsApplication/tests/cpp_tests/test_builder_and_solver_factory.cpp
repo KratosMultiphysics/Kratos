@@ -10,10 +10,10 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "testing/testing.h"
 #include "custom_utilities/builder_and_solver_factory.hpp"
-#include "spaces/ublas_space.h"
+#include "geo_mechanics_fast_suite.h"
 #include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;

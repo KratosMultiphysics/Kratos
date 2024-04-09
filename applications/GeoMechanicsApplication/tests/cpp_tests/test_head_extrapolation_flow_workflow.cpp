@@ -14,9 +14,9 @@
 #include <iostream>
 
 // Project includes
-#include "testing/testing.h"
 #include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
+#include "geo_mechanics_fast_suite.h"
 #include "test_utilities.h"
 
 namespace Kratos::Testing

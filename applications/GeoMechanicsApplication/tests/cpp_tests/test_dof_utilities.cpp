@@ -18,9 +18,9 @@
 #include "custom_utilities/dof_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/element.h"
 #include "test_utilities/model_setup_utilities.h"
-#include "testing/testing.h"
 
 namespace
 {

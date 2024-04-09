@@ -12,7 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_conditions/T_microclimate_flux_condition.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 

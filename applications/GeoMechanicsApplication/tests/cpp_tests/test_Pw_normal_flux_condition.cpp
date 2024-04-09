@@ -14,8 +14,8 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {

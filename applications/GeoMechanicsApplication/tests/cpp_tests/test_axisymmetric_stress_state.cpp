@@ -14,9 +14,9 @@
 #include "containers/model.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
+#include "geo_mechanics_fast_suite.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
-#include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 

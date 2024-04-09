@@ -10,9 +10,9 @@
 //  Main authors:    Richard Faasse
 //
 #include "custom_utilities/node_utilities.h"
+#include "geo_mechanics_fast_suite.h"
 #include "includes/node.h"
 #include "includes/variables.h"
-#include "testing/testing.h"
 
 using namespace Kratos;
 

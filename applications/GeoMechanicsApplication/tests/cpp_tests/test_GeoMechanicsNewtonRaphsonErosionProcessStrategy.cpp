@@ -14,9 +14,9 @@
 #include <map>
 
 /* Project includes */
-#include "testing/testing.h"
 #include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
+#include "geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing
 {
