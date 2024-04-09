@@ -20,7 +20,7 @@
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "spaces/ublas_space.h"
 #include "../../trilinos_cpp_test_utilities.h"
 #include "containers/model.h"

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/testing.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "../trilinos_cpp_test_utilities.h"
 

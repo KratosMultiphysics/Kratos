@@ -19,7 +19,7 @@
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "containers/model.h"
 #include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "mpi/includes/mpi_data_communicator.h"
