@@ -3,11 +3,11 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_gradient_projection import AlgorithmGradientProjection
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
-from KratosMultiphysics.OptimizationApplication.algorithms.standardized_constraint import StandardizedConstraint
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_rgp_constraint import StandardizedRGPConstraint
 from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
@@ -15,12 +15,16 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
 
-def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-    return AlgorithmGradientProjection(model, parameters, optimization_problem)
+import math
 
-class AlgorithmGradientProjection(Algorithm):
+
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    return AlgorithmRelaxedGradientProjection(model, parameters, optimization_problem)
+
+class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        Relaxed Gradient Projection algorithm to solve constrainted optimization problems. Implemnetation is based on:
+        Antonau, I., Hojjat, M. & Bletzinger, KU. Relaxed gradient projection algorithm for constrained node-based shape optimization. Struct Multidisc Optim 63, 1633–1651 (2021). https://doi.org/10.1007/s00158-020-02821-y
     """
 
     @classmethod
@@ -37,7 +41,9 @@ class AlgorithmGradientProjection(Algorithm):
                 "line_search"     : {},
                 "conv_settings"   : {},
                 "linear_solver_settings" : {},
-                "correction_size" : 0.0
+                "history_size"           : 20,
+                "max_inner_iter"         : 20,
+                "buffer_coeff_update_factor" : 0.1
             }
         }""")
 
@@ -57,6 +63,8 @@ class AlgorithmGradientProjection(Algorithm):
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
+        self.history_size = settings["history_size"].GetInt()
+
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
@@ -65,9 +73,9 @@ class AlgorithmGradientProjection(Algorithm):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
-        self.__constraints_list: 'list[StandardizedConstraint]' = []
+        self.__constraints_list: 'list[StandardizedRGPConstraint]' = []
         for constraint_param in parameters["constraints"].values():
-            constraint = StandardizedConstraint(constraint_param, self.master_control, self._optimization_problem)
+            constraint = StandardizedRGPConstraint(constraint_param, self.master_control, self._optimization_problem, self.GetMinimumBufferSize())
             self.__constraints_list.append(constraint)
         self.__control_field = None
         self.__obj_val = None
@@ -77,15 +85,16 @@ class AlgorithmGradientProjection(Algorithm):
         }""")
         settings["linear_solver_settings"].ValidateAndAssignDefaults(default_linear_solver_settings)
         self.linear_solver = ConstructSolver(settings["linear_solver_settings"])
-        self.correction_size = settings["correction_size"].GetDouble()
+        self.max_inner_iter = settings["max_inner_iter"].GetInt()
+        self.buffer_coeff_update_factor = settings["buffer_coeff_update_factor"].GetDouble()
 
     def GetMinimumBufferSize(self) -> int:
-        return 2
+        return self.history_size
 
     def Check(self):
         self.master_control.Check()
         self.__objective.Check()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Check)
+        CallOnAll(self.__constraints_list, StandardizedRGPConstraint.Check)
 
     @time_decorator()
     def Initialize(self):
@@ -93,7 +102,7 @@ class AlgorithmGradientProjection(Algorithm):
         self.__obj_val = None
         self.master_control.Initialize()
         self.__objective.Initialize()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Initialize)
+        CallOnAll(self.__constraints_list, StandardizedRGPConstraint.Initialize)
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
@@ -101,25 +110,39 @@ class AlgorithmGradientProjection(Algorithm):
     def Finalize(self):
         self.master_control.Finalize()
         self.__objective.Finalize()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Finalize)
+        CallOnAll(self.__constraints_list, StandardizedRGPConstraint.Finalize)
 
     @time_decorator()
-    def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
-        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constr_value[i] >= 0.0]
+    def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]', w_r: Kratos.Vector, w_c: Kratos.Vector) -> KratosOA.CollectiveExpression:
+        active_constraints_list = [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]        
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
             search_direction = obj_grad * -1.0
             correction = obj_grad * 0.0
+            projected_direction = obj_grad * 0.0
         else:
-            constraint_violations = Kratos.Vector(number_of_active_constraints)
+            # scaling obj gradients
+            obj_norm = KratosOA.ExpressionUtils.NormInf(obj_grad)
+            if not math.isclose(obj_norm, 0.0, abs_tol=1e-16):
+                scalled_obj_grad = obj_grad / obj_norm
+            else:
+                scalled_obj_grad = obj_grad
+
+            scaled_constr_grad: list[KratosOA.CollectiveExpression] = list()
+            lagrangian_multiplier = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
-                    constraint_violations[i] = active_constraint.GetScaledViolationValue()
+                # scaling constraints grad
+                norm = KratosOA.ExpressionUtils.NormInf(constr_grad[i])
+                if not math.isclose(obj_norm, 0.0, abs_tol=1e-16):
+                    scaled_constr_grad.append( constr_grad[i] / norm )
+                else:
+                    scaled_constr_grad.append( constr_grad[i] )
 
             # compute the projected search direction and correction
             ntn = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
             for i in range(number_of_active_constraints):
                 for j in range(i, number_of_active_constraints):
-                    ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(constr_grad[i], constr_grad[j])
+                    ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(scaled_constr_grad[i], scaled_constr_grad[j])
                     ntn[j, i] = ntn[i, j]
 
                 # get the inverse of ntn
@@ -133,19 +156,42 @@ class AlgorithmGradientProjection(Algorithm):
                 # solve for inverse of ntn
                 self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
-                search_direction = - (obj_grad - CollectiveListVectorProduct(constr_grad, ntn_inverse * CollectiveListCollectiveProduct(constr_grad, obj_grad)))
-                correction = - CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
-        correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
-        if correction_norm > self.correction_size:
-            correction *= self.correction_size / correction_norm
-        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
-        self.algorithm_data.GetBufferedData()["correction"] = correction.Clone()
+
+                lagrangian_multiplier = ntn_inverse * CollectiveListCollectiveProduct(scaled_constr_grad, scalled_obj_grad)
+                for i in range(number_of_active_constraints):
+                    if lagrangian_multiplier[i] > 0.0:
+                        lagrangian_multiplier[i] = 0.0
+                    else:
+                        lagrangian_multiplier[i] *= w_r[i]
+                projected_direction = - (scalled_obj_grad - CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
+                correction = - CollectiveListVectorProduct(scaled_constr_grad, w_c)
+                search_direction = projected_direction + correction
+        self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
+        self.algorithm_data.GetBufferedData().SetValue("correction", correction.Clone(), overwrite=True)
+        self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction.Clone(), overwrite=True)
+
+    def ComputeBufferCoefficients(self):
+        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
+        number_of_active_constraints = len(active_constraints_list)
+        if number_of_active_constraints == 0:
+            return Kratos.Vector(), Kratos.Vector()
+        else:
+            w_r = Kratos.Vector(number_of_active_constraints)
+            w_c = Kratos.Vector(number_of_active_constraints)
+            for i, active_constraint in enumerate(active_constraints_list):
+                active_constraint.UpdateBufferSize()
+                w = active_constraint.ComputeW()
+                w_r[i] = active_constraint.Compute_W_relax(w)
+                w_c[i] = active_constraint.Compute_W_correction(w)
+                print(f"RGP Constaint {active_constraint.GetResponseName()}:: w_r = {w_r[i]}, w_c = {w_c[i]}")
+            return w_r, w_c
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha: float) -> KratosOA.CollectiveExpression:
+    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha) + self.algorithm_data.GetBufferedData()["correction"]
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
+        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
+        self.algorithm_data.GetBufferedData().SetValue("control_field_update", update.Clone(), overwrite=True)
+        return update
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
@@ -166,6 +212,24 @@ class AlgorithmGradientProjection(Algorithm):
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
+
+    def CheckLinearizedConstraints(self, active_constr_grad: 'list[KratosOA.CollectiveExpression]', update: KratosOA.CollectiveExpression, w_r, w_c) -> bool:
+        all_feasible = True
+        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
+        for i, constraint in enumerate(active_constraints_list):
+            predicted_value = constraint.GetStandardizedValue() + KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
+            print(f"RGP Constaint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
+            if not constraint.IsSatisfied(predicted_value):
+                all_feasible = False
+                w = constraint.ComputeW()
+                w += self.buffer_coeff_update_factor
+                w_r[i] = constraint.Compute_W_relax(w)
+                w_c[i] = constraint.Compute_W_correction(w)
+                print(f"RGP Constaint {constraint.GetResponseName()}:: Corrected w_r = {w_r[i]}, w_c = {w_c[i]}")
+            else:
+                print(f"RGP Constaint {constraint.GetResponseName()}:: no correction for w_r, w_c ")
+        return all_feasible
+
 
     @time_decorator()
     def Solve(self):
@@ -189,14 +253,28 @@ class AlgorithmGradientProjection(Algorithm):
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
-                    if value >= 0.0:
+                    msg = "active" if constraint.IsActiveConstrant() else "non-active"
+                    print(f"RGP Constaint {constraint.GetResponseName()} is {msg}")
+                    if constraint.IsActiveConstrant():
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
 
-                self.ComputeSearchDirection(obj_grad, active_constr_grad)
+                w_r, w_c = self.ComputeBufferCoefficients()
 
-                alpha = self.__line_search_method.ComputeStep()
+                inner_iter = 0
+                while inner_iter < self.max_inner_iter:
 
-                self.ComputeControlUpdate(alpha)
+                    print(f"\n inner_iter :: {inner_iter}")
+
+                    self.ComputeSearchDirection(obj_grad, active_constr_grad, w_r, w_c)
+
+                    alpha = self.__line_search_method.ComputeStep()
+
+                    update = self.ComputeControlUpdate(alpha)
+
+                    if self.CheckLinearizedConstraints(active_constr_grad, update, w_r, w_c):
+                        break
+
+                    inner_iter += 1
 
                 self._FinalizeIteration()
 
@@ -205,6 +283,8 @@ class AlgorithmGradientProjection(Algorithm):
                 self.UpdateControl()
 
                 self.converged = self.__convergence_criteria.IsConverged()
+
+                self.converged &= all([c.IsSatisfied() for c in self.__constraints_list])
 
                 self._optimization_problem.AdvanceStep()
 

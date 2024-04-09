@@ -34,8 +34,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
+    explicit GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
     GeoStructuralBaseElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -56,8 +55,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoStructuralBaseElement() {}
+    ~GeoStructuralBaseElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
