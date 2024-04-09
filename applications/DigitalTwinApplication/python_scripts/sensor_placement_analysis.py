@@ -153,7 +153,9 @@ class SensorPlacementAnalysis:
             self.filters[(var_name, model_part_name)] = new_filter
 
         current_filter = self.filters[(var_name, model_part_name)]
-        filtered_exp = current_filter.ForwardFilterField(current_filter.BackwardFilterIntegratedField(exp))
+        abs_exp = Kratos.Expression.Utils.Abs(exp)
+        sensor_view.AddAuxiliaryExpression("abs", abs_exp)
+        filtered_exp = current_filter.ForwardFilterField(current_filter.BackwardFilterIntegratedField(abs_exp))
         sensor_view.AddAuxiliaryExpression("filtered", filtered_exp)
         l2_norm = Kratos.Expression.Utils.NormL2(filtered_exp)
         if l2_norm > 0.0:
