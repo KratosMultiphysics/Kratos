@@ -439,7 +439,6 @@ private:
     ///@{
 
     static const Variable<TDataType> msNone;
-    static constexpr int msIsFixedPosition = 63;
 
     ///@}
     ///@name Member Variables
