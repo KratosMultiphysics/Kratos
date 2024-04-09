@@ -34,6 +34,10 @@ using ::testing::Pointwise;
 ///@{
 ///@name macros
 ///@{
+
+#define KRATOS_FAIL()    FAIL();
+#define KRATOS_SUCCEED() SUCCEED();
+
 #define KRATOS_EXPECT_TRUE(a)  EXPECT_TRUE((a))  << "Check failed because " << #a << " is not true" << std::endl;
 #define KRATOS_EXPECT_FALSE(a) EXPECT_FALSE((a)) << "Check failed because " << #a << " is not false" << std::endl;
 
