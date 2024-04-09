@@ -149,10 +149,9 @@ class RomManager(object):
             raise Exception(err_msg)
 
 
-
-
     def RunFOM(self, mu_run=[None]):
         self.__LaunchRunFOM(mu_run)
+
 
     def RunROM(self, mu_run=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -217,6 +216,7 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+        BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
             mu_dict = self.FOM_make_mu_dictionary(mu)
             serialized_mu = self.serialize_mu(mu_dict)
@@ -236,19 +236,25 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                file_path = self.save_simulation_result(SnapshotsMatrix, hash_mu)
-                self.add_to_database(serialized_mu, hash_mu)  # Pass serialized parameters directly
+                file_path = self.save_as_npy(SnapshotsMatrix, hash_mu)
+                self.add_FOM_to_database(serialized_mu, hash_mu)
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.generate_database_summary_file(mu_train)
-        #TODO Check if basis exists already for current parameters
-        #SnapshotsMatrix = get_from_database
-        #TODO come up with a solution for when no simulation has been launched, i.e. all snapshtos are already in the data base.
-        BasisOutputProcess._PrintRomBasis(self.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
+        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
+        in_database =  self.check_if_basis_already_in_database(mu_train, tol_sol)
+        if not in_database: #Check if basis exists already for current parameters
+            if BasisOutputProcess is None:
+                BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
+            BasisOutputProcess._PrintRomBasis(self.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
+            self.add_Basis_to_database(mu_train,tol_sol)
+        else:
+            pass
 
-        return 0#SnapshotsMatrix
+        self.generate_database_summary_file()
+
+        return 0
 
     def __LaunchROM(self, mu_train):
         """
@@ -507,6 +513,21 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
+
+
+    def InitializeDummySimulationForBasisOutputProcess(self):
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        parameters = self._AddBasisCreationToProjectParameters(parameters)
+        parameters = self._StoreNoResults(parameters)
+        model = KratosMultiphysics.Model()
+        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation.Initialize()
+        for process in simulation._GetListOfOutputProcesses():
+            if isinstance(process, CalculateRomBasisOutputProcess):
+                BasisOutputProcess = process
+        return BasisOutputProcess
 
 
     def _AddHromParametersToRomParameters(self,f):
@@ -838,21 +859,45 @@ class RomManager(object):
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name)
         directory.mkdir(parents=True, exist_ok=True)
-        self.database_name = Path(rom_output_folder_name) / self.database_name
+        self.database_name = directory / "rom_database.db"  # Adjust the database file name as needed
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        #TODO verify the table name: "simulation_results" is adecuate
-        try:
-            # First, try to create the table with all necessary columns
-            cursor.execute('''CREATE TABLE IF NOT EXISTS simulation_results
-                            (id INTEGER PRIMARY KEY,
-                            parameters TEXT,
-                            file_name TEXT)''')
-            conn.commit()
-        except sqlite3.OperationalError as e:
-            print(f"Error creating table: {e}")
-        finally:
-            conn.close()
+
+        # Updated table definitions including new tables
+        table_definitions = {
+            "FOM": '''CREATE TABLE IF NOT EXISTS FOM
+                      (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
+            "ROM": '''CREATE TABLE IF NOT EXISTS ROM
+                      (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+            "HROM": '''CREATE TABLE IF NOT EXISTS HROM
+                       (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+            "HHROM": '''CREATE TABLE IF NOT EXISTS HHROM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+            "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
+                            (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
+            "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
+                             (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+            "Conditions": '''CREATE TABLE IF NOT EXISTS Conditions
+                             (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+            "ConditionsWeights": '''CREATE TABLE IF NOT EXISTS ConditionsWeights
+                                    (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+            "Elements": '''CREATE TABLE IF NOT EXISTS Elements
+                           (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+            "ElementsWeights": '''CREATE TABLE IF NOT EXISTS ElementsWeights
+                                  (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)'''
+        }
+
+        # Create each table using its definition
+        for table_name, table_sql in table_definitions.items():
+            try:
+                cursor.execute(table_sql)
+                conn.commit()
+                print(f"Table {table_name} created successfully.")
+            except sqlite3.OperationalError as e:
+                print(f"Error creating table {table_name}: {e}")
+
+        # Close the database connection
+        conn.close()
 
 
     def hash_parameters(self, mu):
@@ -860,60 +905,95 @@ class RomManager(object):
         mu_str = '_'.join(map(str, mu))
         return hashlib.sha256(mu_str.encode()).hexdigest()
 
+
     def check_if_mu_already_in_database(self, mu):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         hash_mu = self.hash_parameters(mu)
-        cursor.execute('SELECT COUNT(*) FROM simulation_results WHERE file_name = ?', (hash_mu,))
+        cursor.execute('SELECT COUNT(*) FROM FOM WHERE file_name = ?', (hash_mu,))
         count = cursor.fetchone()[0]
         conn.close()
         return count > 0, hash_mu
 
-    def add_to_database(self, parameters, file_name):
+
+    def add_FOM_to_database(self, parameters, file_name):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO simulation_results (parameters, file_name) VALUES (?, ?)',
+        cursor.execute('INSERT INTO FOM (parameters, file_name) VALUES (?, ?)',
                        (parameters_str, file_name))
         conn.commit()
         conn.close()
 
+
+
+
     def serialize_mu(self, parameters):
         return json.dumps(parameters)
 
-    def save_simulation_result(self, result, hash_mu):
+
+    def save_as_npy(self, result, hash_mu):
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices'
+        directory = Path(rom_output_folder_name) / 'rom_database'  #TODO hardcoded names here
         file_path = directory / f"{hash_mu}.npy"
         directory.mkdir(parents=True, exist_ok=True)
         np.save(file_path, result)
         return file_path
 
 
-    def generate_database_summary_file(self, mu):
+    def generate_database_summary_file(self):
+        table_names = ["FOM", "ROM", "HROM", "HHROM","LeftBasis", "RightBasis", "Conditions","ConditionsWeights", "Elements", "ElementsWeights"]
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name)
         directory.mkdir(parents=True, exist_ok=True)
-        number_of_samples_to_include_in_summary = 10 #if not enough, last one is repeated
-
-        summary_path = directory / "data_base_summary.dat"
+        summary_path = directory / "database_summary.dat"
+        number_of_samples_to_include_in_summary = 5  # Adjust as needed
 
         with summary_path.open('w') as f:
-            # Assuming all dictionaries in mu_train have the same keys
-            this_dic = [dict(zip(self.mu_names, values)) for values in mu]
+            conn = sqlite3.connect(self.database_name)
+            cursor = conn.cursor()
 
-            # Writing headers based on the keys of the first dictionary in mu_train
-            headers = list(this_dic[0].keys())
-            f.write(" | ".join(headers) + " | File Name (Hash)\n")
-            f.write("-" * (len(headers) * 15) + "\n")  # Adjust "-" length as needed
+            for table_name in table_names:
+                f.write(f"\nTable Name: {table_name}\n")
+                f.write("-" * (10 + len(table_name)) + "\n")
 
-            # Writing a few example rows based on available simulations
-            for params in this_dic[:number_of_samples_to_include_in_summary]:
-                params_str = " | ".join(f"{params[name]:.3f}" for name in headers)
-                hash_mu = self.hash_parameters(params)
-                f.write(f"{params_str} | {hash_mu}\n")
+                if table_name =="LeftBasis":
 
-        print(f"Summary file generated at {summary_path}")
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT tol_sol, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+
+                    f.write(" | tol_sol | File Name (Hash)\n")
+                    f.write("-" * 15 + "\n")
+                    # Write each row to the file
+                    for tol_sol, file_name in rows:
+                        f.write(f"{tol_sol} | {file_name}\n")
+
+                else:
+
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT parameters, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+
+                    if rows:
+                        # Assuming the first row's parameters to figure out the headers
+                        sample_params = json.loads(json.loads(rows[0][0]))
+                        headers = list(sample_params.keys())
+                        f.write(" | ".join(headers) + " | File Name (Hash)\n")
+                        f.write("-" * (len(headers) * 15) + "\n")
+
+                        # Write each row to the file
+                        for parameters, file_name in rows:
+                            params_dict = json.loads(json.loads(parameters))
+                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
+                            f.write(f"{params_str} | {file_name}\n")
+                    else:
+                        f.write("No data available.\n")
+
+                print(f"Summary file generated at {summary_path}")
+
+        # Don't forget to close the database connection
+        conn.close()
 
 
     def FOM_make_mu_dictionary(self, mu):
@@ -923,10 +1003,14 @@ class RomManager(object):
                 self.mu_names.append(f'generic_name_{i}')
         return dict(zip(self.mu_names , mu))
 
+    def LeftBasis_make_dictionary(self, mu):
+        keys = ["hashed_name", "svd_tol_solution"]
+        return dict(zip(keys, mu))
+
 
     def get_snapshots_matrix_from_database(self, mu_list):
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices' #TODO hardcoded names here
+        directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
         directory.mkdir(parents=True, exist_ok=True)
         SnapshotsMatrix = []
         conn = sqlite3.connect(self.database_name)
@@ -935,7 +1019,7 @@ class RomManager(object):
         for mu in mu_list:
             serialized_mu = self.serialize_mu(self.FOM_make_mu_dictionary(mu))
             hash_mu = self.hash_parameters(serialized_mu)
-            cursor.execute("SELECT file_name FROM simulation_results WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
+            cursor.execute("SELECT file_name FROM FOM WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
             result = cursor.fetchone()
 
             if result:
@@ -948,3 +1032,51 @@ class RomManager(object):
         conn.close()
 
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
+
+
+    def check_if_basis_already_in_database(self, mu_train, tol_sol):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train)
+        # Include both file_name and tol_sol in the WHERE clause
+        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0
+
+
+    def add_Basis_to_database(self, mu_train, real_value):
+        print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
+
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train)
+        file_path = self.save_as_npy(mu_train, hashed_mu_train)  # Save numpy array and get file path
+
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+
+        # Debugging: Print the values before executing the SQL command
+        print(f"Inserting into LeftBasis: tol_sol={real_value}, file_name={hashed_mu_train}")
+
+        cursor.execute('INSERT INTO LeftBasis (tol_sol, file_name) VALUES (?, ?)',
+                    (real_value, str(hashed_mu_train)))
+        conn.commit()
+        conn.close()
+
+
+    def hash_mu_train(self, serialized_mu_train):
+        """
+        Generates a hash for the serialized mu_train.
+        """
+        return hashlib.sha256(serialized_mu_train.encode()).hexdigest()
+
+
+    def serialize_entire_mu_train(self, mu_train):
+        """
+        Serializes the entire mu_train list of lists into a string.
+        """
+        # Ensure consistent serialization by sorting sublists if needed
+        # Here, we assume mu_train's structure is consistent without needing sorting
+        serialized_mu_train = json.dumps(mu_train, sort_keys=True)
+        return serialized_mu_train
