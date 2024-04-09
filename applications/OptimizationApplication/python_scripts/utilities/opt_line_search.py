@@ -131,6 +131,8 @@ class QNBBStep(BBStep):
     def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
+        if math.isclose(norm, 0.0, abs_tol=1e-16):
+            norm = 1.0
         self.step = algorithm_buffered_data.GetValue("search_direction", 0).Clone()
         self.step *= 0.0
         if not algorithm_buffered_data.HasValue("step_size"):
@@ -152,11 +154,8 @@ class QNBBStep(BBStep):
                     self.step_numpy[i] = self._max_step
                 else:
                     self.step_numpy[i] = abs( yd / yy )
-                if self.step_numpy[i] > self._max_step:
-                    self.step_numpy[i] = self._max_step
-
-        if not math.isclose(norm, 0.0, abs_tol=1e-16):
-            self.step_numpy[:] /= norm
+                if self.step_numpy[i] > self._max_step / norm:
+                    self.step_numpy[i] = self._max_step / norm
 
         DictLogger("Line Search info",self.GetInfo())
 
