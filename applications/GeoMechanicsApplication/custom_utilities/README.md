@@ -75,7 +75,7 @@ $$\overline{\epsilon} = \frac{2}{3} \sqrt{3 J_2}$$
 
 ### Green Lagrange strain tensor
 
-With current configuration $x$ and reference configuration $X$, the deformation gradient $F = \frac{x}{X}$ and unit tensor I:
+With current configuration $x$ and reference configuration $X$, the deformation gradient $F = \frac{x}{X}$ and unit tensor $I$:
 
 $$\epsilon = 0.5 ( F^T \cdot F - I )$$
 
@@ -91,7 +91,7 @@ $$- \sin( 3 \bar{\theta}_s) = \frac{J_3}{2} (\frac{3}{J_2})^{\frac{3}{2}}$$
 
 which brings:
 
-$$\bar{\theta}_s = \frac{1}{3} asin( - \frac{27}{2} \frac{(\sigma_1 - p)(\sigma_2 - p)(\sigma_3 - p)}{q^3})$$
+$$\bar{\theta}_s = \frac{1}{3} \arcsin( - \frac{27}{2} \frac{(\sigma_1 - p)(\sigma_2 - p)(\sigma_3 - p)}{q^3})$$
 
 ### Mohr Coulomb shear capacity
 

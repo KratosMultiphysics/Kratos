@@ -93,7 +93,7 @@ double StressStrainUtilities::CalculateQMohrCoulomb(const Vector& rStressVector,
 double StressStrainUtilities::CalculateDenominator(const Vector& rStressVector, double Phi)
 {
     const double lode_angle = CalculateLodeAngle(rStressVector);
-    return sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(Phi);
+    return std::sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(Phi);
 }
 
 double StressStrainUtilities::CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi)
