@@ -28,7 +28,7 @@ file(GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
 ## define shallow water test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    kratos_add_gtests(KratosShallowWaterCore ${KRATOS_SHALLOW_WATER_TESTING_SOURCES})
+    kratos_add_gtests(TARGET KratosShallowWaterCore SOURCES "${KRATOS_SHALLOW_WATER_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
