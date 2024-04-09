@@ -348,10 +348,9 @@ void LinearElastic3DLaw::CalculateStress( const Vector & rStrainVector,
     //1.-2nd Piola Kirchhoff StressVector or Cauchy StressVector
     if( rStressVector.size() != rStrainVector.size() )
       rStressVector.resize(rStrainVector.size(),false);
-   
     noalias(rStressVector) = prod(rConstitutiveMatrix,rStrainVector);
-    
-    //Check if the problem to solve is 2D and then, add initial stresses
+
+    //Check if the problem is 2D and then, add initial stresses
     if (rStressVector.size() == 3) {
       const Element::GeometryType& geometry = rValues.GetElementGeometry();
       PoroElementUtilities::AddInitialStresses2D(rStressVector, rValues, geometry);
