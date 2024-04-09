@@ -21,7 +21,9 @@ class SensorDataModelPartController(ModelPartController):
             "list_of_sensors"       : []
         }""")
 
-        parameters.ValidateAndAssignDefaults(default_settings)
+        self.optimization_problem = optimization_problem
+        self.parameters = parameters
+        self.parameters.ValidateAndAssignDefaults(default_settings)
 
         self.target_model_part_name = model[parameters["target_model_part_name"].GetString()]
         self.sensor_data_file_name = parameters["sensor_data_file_name"].GetString()
@@ -32,19 +34,19 @@ class SensorDataModelPartController(ModelPartController):
             raise RuntimeError(f"The sensor model part name \"{sensor_model_part_name}\" already exists.")
         self.sensor_model_part = model.CreateModelPart(sensor_model_part_name)
 
-        self.list_of_sensors = GetSensors(self.target_model_part_name, parameters["list_of_sensors"].values())
+    def ImportModelPart(self) -> None:
+        self.list_of_sensors = GetSensors(self.target_model_part_name, self.parameters["list_of_sensors"].values())
 
         # add the list of sensors to optimization problem
-        sensors = ComponentDataView("sensor", optimization_problem)
+        sensors = ComponentDataView("sensor", self.optimization_problem)
         sensors.GetUnBufferedData().SetValue("list_of_sensors", self.list_of_sensors)
 
-    def ImportModelPart(self) -> None:
         # create nodes for every sensor
         with OpenSensorFile(self.target_model_part_name, self.sensor_data_file_name, self.prefix, "r") as sensor_io:
             for i, sensor in enumerate(self.list_of_sensors):
                 sensor_io.Read(sensor)
                 location = sensor.GetLocation()
-                node: Kratos.Node = self.sensor_model_part.CreateNewNode(i + 1, location[0], location[1], location[2])
+                self.sensor_model_part.CreateNewNode(i + 1, location[0], location[1], location[2])
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.sensor_model_part
