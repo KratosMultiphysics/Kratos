@@ -380,8 +380,7 @@ private:
         pressure_gradient = pressure_gradient - weight_vector;
 
         auto permeability_matrix = this->CalculatePermeabilityMatrix();
-        array_1d<double, TDim> result = -prod(permeability_matrix, pressure_gradient) /
-                                        mWaterDensity[integration_point_index];
+        array_1d<double, TDim> result = -prod(permeability_matrix, pressure_gradient) / mWaterViscosity[integration_point_index];
 
         return result;
     }
@@ -428,7 +427,7 @@ private:
                  integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
                  ++integration_point_index) {
                  mWaterDensity[integration_point_index]   = rProp[DENSITY_WATER];
-                 mWaterViscosity[integration_point_index] = rProp[VISCOSITY_WATER];
+                 mWaterViscosity[integration_point_index] = rProp[DYNAMIC_VISCOSITY];
             }
         }
 
