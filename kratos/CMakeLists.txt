@@ -70,7 +70,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     )
     file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 
-    set(GTEST_LINKED_AS_SHARED_LIBRARY 1)
+    set(GTEST_CREATE_SHARED_LIBRARY 1)
 
     add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
     add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
