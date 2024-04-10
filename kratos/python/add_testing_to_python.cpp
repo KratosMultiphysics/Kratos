@@ -15,7 +15,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-// #include "includes/parallel_environment.h"
+#include "includes/parallel_environment.h"
 // #include "testing/testing.h"
 #include "add_testing_to_python.h"
 
