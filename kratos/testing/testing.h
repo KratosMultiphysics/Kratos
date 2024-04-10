@@ -52,6 +52,8 @@ class KratosCoreNurbsGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
+class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
+class KratosStatisticsFastSuite: public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
 
 // TODO: To be removed
