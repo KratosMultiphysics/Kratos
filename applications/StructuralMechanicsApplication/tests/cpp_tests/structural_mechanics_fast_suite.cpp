@@ -15,8 +15,8 @@ namespace Kratos::Testing {
 KratosStructuralMechanicsFastSuite::KratosStructuralMechanicsFastSuite()
     : KratosCoreFastSuite() {
   if (!this->mKernel.IsImported("StructuralMechanicsApplication")) {
-    mpStructuralApp = std::make_shared<KratosStructuralMechanicsApplication>();
-    this->mKernel.ImportApplication(mpStructuralApp);
+    mpStructuralMechanicsApp = std::make_shared<KratosStructuralMechanicsApplication>();
+    this->mKernel.ImportApplication(mpStructuralMechanicsApp);
   }
 }
 
