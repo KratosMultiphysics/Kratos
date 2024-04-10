@@ -22,3 +22,9 @@ KratosTrilinosFastSuite::KratosTrilinosFastSuite()
 }
 
 } // namespace Kratos::Testing
+
+// Create a custom main with the MPI environment and custom listeners for the test output
+int main(int argc, char* argv[]) 
+{
+    return Kratos::Testing::GTestMain::InitializeMPIKernel(argc, argv);
+}
