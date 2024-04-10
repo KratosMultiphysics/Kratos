@@ -14,6 +14,7 @@
 #pragma once
 
 #include "geo_mechanics_application.h"
+#include "linear_solvers_application.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing
@@ -26,6 +27,7 @@ public:
 
 private:
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    KratosLinearSolversApplication::Pointer mpLinearSolversApp;
 };
 
 class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
@@ -35,6 +37,7 @@ public:
 
 private:
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    KratosLinearSolversApplication::Pointer mpLinearSolversApp;
 };
 
 } // namespace Kratos::Testing
