@@ -28,15 +28,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoStructuralBaseElement : public Element
 {
 public:
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoStructuralBaseElement);
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
+    explicit GeoStructuralBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
     GeoStructuralBaseElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -57,8 +55,7 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoStructuralBaseElement() {}
+    ~GeoStructuralBaseElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

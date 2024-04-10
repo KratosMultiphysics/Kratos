@@ -172,6 +172,4 @@ KRATOS_TEST_CASE_IN_SUITE(ForInvalidGamma_CheckNewmarkUPwScheme_Throws, KratosGe
         "Gamma must be larger than zero, but got -2.5")
 }
 
-
-
 } // namespace Kratos::Testing

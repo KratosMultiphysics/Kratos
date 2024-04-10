@@ -23,27 +23,24 @@ namespace Kratos
 
 class SetAbsorbingBoundaryParametersProcess : public Process
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(SetAbsorbingBoundaryParametersProcess);
 
-    SetAbsorbingBoundaryParametersProcess(ModelPart& model_part,
-                                          Parameters rParameters
-                                         ) : Process(Flags()) , mrModelPart(model_part)
+    SetAbsorbingBoundaryParametersProcess(ModelPart& model_part, Parameters rParameters)
+        : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
-        //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        // only include validation with c++11 since raw_literals do not exist in c++03
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "absorbing_factors": [1.0,1.0],
                 "virtual_thickness": 1e10
-            }  )" );
+            }  )");
 
-        // Some values need to be mandatory prescribed since no meaningful default value exist. For this reason try accessing to them
-        // So that an error is thrown if they don't exist
+        // Some values need to be mandatory prescribed since no meaningful default value exist. For
+        // this reason try accessing to them So that an error is thrown if they don't exist
         rParameters["model_part_name"];
 
         // Now validate against defaults -- this also ensures no type mismatch
@@ -56,7 +53,7 @@ public:
 
         // get virtual thickness
         mVirtualThickness = rParameters["virtual_thickness"].GetDouble();
-         
+
         KRATOS_CATCH("")
     }
 
@@ -78,16 +75,13 @@ public:
         KRATOS_CATCH("")
     }
 
-    std::string Info() const override
-    {
-        return "SetAbsorbingBoundaryParametersProcess";
-    }
+    std::string Info() const override { return "SetAbsorbingBoundaryParametersProcess"; }
 
 private:
     /// Member Variables
     ModelPart& mrModelPart;
-    Vector mAbsorbingFactors;
-    double mVirtualThickness;
+    Vector     mAbsorbingFactors;
+    double     mVirtualThickness;
 };
 
-}
+} // namespace Kratos

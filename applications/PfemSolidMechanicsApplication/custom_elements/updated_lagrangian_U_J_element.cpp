@@ -151,7 +151,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -173,7 +173,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -311,7 +311,7 @@ namespace Kratos
    // **************************************************************************
    // **************************************************************************
 
-   void UpdatedLagrangianUJElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUJElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo) 
    {
       KRATOS_TRY
 
@@ -323,11 +323,11 @@ namespace Kratos
       {
          std::vector<double> Values;
          mElementStabilizationNumber = 1.0;
-         GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, rCurrentProcessInfo);
+         this->CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, rCurrentProcessInfo);
          if ( fabs(Values[0]) > 1e-6)
             mElementStabilizationNumber = 1.0 / Values[0];
 
-         GetValueOnIntegrationPoints( BULK_MODULUS, Values, rCurrentProcessInfo);
+         this->CalculateOnIntegrationPoints( BULK_MODULUS, Values, rCurrentProcessInfo);
          if ( fabs(Values[0]) > 1e-6)
             mElementStabilizationNumber *= Values[0];
       }
@@ -340,7 +340,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   int  UpdatedLagrangianUJElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUJElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -369,7 +369,7 @@ namespace Kratos
    //*********************************SET DOUBLE VALUE***********************************
    //************************************************************************************
    void UpdatedLagrangianUJElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-         std::vector<double>& rValues,
+         const std::vector<double>& rValues,
          const ProcessInfo& rCurrentProcessInfo )
    {
 
@@ -391,35 +391,6 @@ namespace Kratos
 
    }
 
-
-   //**********************************GET DOUBLE VALUE**********************************
-   //************************************************************************************
-   void UpdatedLagrangianUJElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo )
-   {
-      KRATOS_TRY
-
-      const unsigned int& integration_points_number = mConstitutiveLawVector.size();
-      if (rVariable == DETERMINANT_F){
-
-         if ( rValues.size() != integration_points_number )
-            rValues.resize( integration_points_number );
-
-         for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
-         {
-            rValues[PointNumber] = mDeterminantF0[PointNumber];
-         }
-
-      }
-      else{
-
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-      }
-
-      KRATOS_CATCH("")
-   }
 
    // ******************************************************************************************
    // Calculate On Integration Points. (VECTOR)
@@ -683,7 +654,7 @@ namespace Kratos
             rOutput.resize( mConstitutiveLawVector.size() );
 
          std::vector<double>  DetF0;
-         GetValueOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
+         this->CalculateOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
 
          if (rOutput.size() != integration_points_number)
             rOutput.resize( integration_points_number) ;
@@ -695,7 +666,7 @@ namespace Kratos
       }
       else if ( rVariable == VOID_RATIO) {
 
-         GetValueOnIntegrationPoints( POROSITY, rOutput, rCurrentProcessInfo);
+         this->CalculateOnIntegrationPoints( POROSITY, rOutput, rCurrentProcessInfo);
 
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
@@ -724,7 +695,7 @@ namespace Kratos
          }
 
          std::vector<double>  Porosity;
-         GetValueOnIntegrationPoints( POROSITY, Porosity, rCurrentProcessInfo);
+         this->CalculateOnIntegrationPoints( POROSITY, Porosity, rCurrentProcessInfo);
          double PorosityInitial = GetProperties()[INITIAL_POROSITY];
          double initialVoidRatio = PorosityInitial / (1.0 - PorosityInitial);
 
@@ -750,42 +721,16 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
-   {
-
-      if ( rVariable == DARCY_FLOW)
-      {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-      } else {
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-   }
-
-   //**********************************GET TENSOR VALUE**********************************
-   //************************************************************************************
-   void UpdatedLagrangianUJElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
-   {
-      if ( rVariable == CAUCHY_STRESS_TENSOR) {
-         CalculateOnIntegrationPoints(rVariable, rValue, rCurrentProcessInfo);
-      }
-      else if ( rVariable == TOTAL_CAUCHY_STRESS) {
-         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
-      }
-      else {
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
-      }
-
-   }
 
 
    //************* STARTING - ENDING  METHODS
    //************************************************************************************
    //************************************************************************************
-   void UpdatedLagrangianUJElement::Initialize()
+   void UpdatedLagrangianUJElement::Initialize(const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
-      LargeDisplacementElement::Initialize();
+      LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
       SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -1664,7 +1609,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    // ** mass and damping matrix, copied directly from LargeDisplacementUPElement
-   void UpdatedLagrangianUJElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -1729,7 +1674,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -1835,7 +1780,7 @@ namespace Kratos
    ////************************************************************************************
    ////************************************************************************************
 
-   void UpdatedLagrangianUJElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -1898,7 +1843,7 @@ namespace Kratos
    ////************************************************************************************
 
    void UpdatedLagrangianUJElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -1995,7 +1940,7 @@ namespace Kratos
       // COMPUTE THE EFFECT OF THE INTERPOLATION, LETS SEE
       std::vector< Matrix > EECCInverseDefGrad;
       ProcessInfo SomeProcessInfo;
-      this->GetValueOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
       if(  EECCInverseDefGrad[0].size1() == 0)
          return;
       Matrix EECCInverseBig = EECCInverseDefGrad[0];
