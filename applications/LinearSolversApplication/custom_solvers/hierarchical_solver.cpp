@@ -203,9 +203,7 @@ HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::HierarchicalSolver(Para
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::~HierarchicalSolver()
-{
-}
+HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::~HierarchicalSolver() = default;
 
 
 
