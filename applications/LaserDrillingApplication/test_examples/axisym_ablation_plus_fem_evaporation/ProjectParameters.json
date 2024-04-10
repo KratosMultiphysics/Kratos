@@ -5,13 +5,12 @@
         "parallel_type" : "OpenMP",
         "time_step"     : 5e-7,
         "start_time"    : 0.0,
-        "end_time"      : 25e-6,
+        "end_time"      : 2e-6,
         "echo_level"    : 0,
-        "energy"        : 15e-6,
-        "residual_heat_fraction" : 0.05,
+        "energy"        : 1e-6,
         "mask_aperture_diameter" : 0.025,
         "vaporisation_temperature" : 1000.0,
-        "compute_vaporisation" : false,
+        "compute_vaporisation" : true,
         "time_jump_between_pulses": 5e-6
     },
     "solver_settings"  : {

@@ -1,9 +1,4 @@
-import sys
-import time
-import importlib
-
 import KratosMultiphysics
-
 from KratosMultiphysics.LaserDrillingApplication.laserdrilling_analysis import LaserDrillingAnalysis
 
 if __name__ == "__main__":

@@ -4,7 +4,9 @@ from scipy.interpolate import interp1d
 import h5py
 import time as timer
 from sympy import *
-from fem_tools import SurfaceFEMProjector
+from KratosMultiphysics.LaserDrillingApplication.fem_tools import SurfaceFEMProjector
+from os import environ
+environ['OMP_NUM_THREADS'] = '4'
 
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
@@ -54,19 +56,21 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         for elem in self.main_model_part.Elements:
             elem.SetValue(LaserDrillingApplication.THERMAL_COUNTER, 0)
             elem.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+            elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
             elem.SetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION, 0.01)
             elem.SetValue(LaserDrillingApplication.DECOMPOSED_ELEMENTAL_VOLUME, 0.0)
             elem.Set(KratosMultiphysics.ACTIVE, True)
 
         for node in self.main_model_part.Nodes:
             node.SetValue(LaserDrillingApplication.DECOMPOSED_NODE, 0.0)
+            node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, 0.0)
 
     def SetParameters(self):
 
         self.some_elements_are_above_the_evap_temp = False
-        self.plot_decomposed_volume_graph = False
         self.jump_between_pulses_counter = 0
         self.pulse_number = 1
+        self.print_hdf5_and_gnuplot_files = False
 
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
 
@@ -82,10 +86,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.Q = 25e-6
         else:
             self.Q = project_parameters["problem_data"]["energy"].GetDouble()
-        if not project_parameters["problem_data"].Has("residual_heat_fraction"):
-            self.residual_heat_fraction = 0.05
-        else:
-            self.residual_heat_fraction = project_parameters["problem_data"]["residual_heat_fraction"].GetDouble()
+
         if not project_parameters["problem_data"].Has("mask_aperture_diameter"):
             mask_aperture_diameter = 0.025
         else:
@@ -102,10 +103,32 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.compute_vaporisation = False
         else:
             self.compute_vaporisation = project_parameters["problem_data"]["compute_vaporisation"].GetBool()
+
+        if not self.material_settings["Variables"].Has("IONIZATION_ALPHA"):
+            self.ionization_alpha = 0.95
+        else:
+            self.ionization_alpha = self.material_settings['Variables']['IONIZATION_ALPHA'].GetDouble()
+
         if not self.material_settings["Variables"].Has("ENTHALPY"):
             self.specific_evaporation_enthalpy = 4e5 # J/Kg. Value found on the internet for a given epoxy resin.
         else:
             self.specific_evaporation_enthalpy = self.material_settings['Variables']['ENTHALPY'].GetDouble()
+
+        if not self.material_settings["Variables"].Has("THERMAL_DEPTH"):
+            self.l_th = 0.00033 # mm.
+        else:
+            self.l_th = self.material_settings['Variables']['THERMAL_DEPTH'].GetDouble()
+
+        if not self.material_settings["Variables"].Has("ABLATION_THRESHOLD"):
+            self.F_th = 0.009667 # J/mm2
+        else:
+            self.F_th = self.material_settings['Variables']['ABLATION_THRESHOLD'].GetDouble()
+
+        if not self.material_settings["Variables"].Has("PENETRATION_DEPTH"):
+            self.l_s = 0.002048 # mm.
+        else:
+            self.l_s = self.material_settings['Variables']['PENETRATION_DEPTH'].GetDouble()
+
         if self.compute_vaporisation:
             self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_with_evap.txt"
         else:
@@ -118,7 +141,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.rho = self.material_settings['Variables']['DENSITY'].GetDouble()
         self.T0 = self.settings['ambient_temperature'].GetDouble()
         self.kappa = self.conductivity / (self.rho * self.cp)
-        self.ablation_energy_fraction = 1 - self.residual_heat_fraction
+        self.ablation_energy_fraction = self.ionization_alpha
         self.sigma = 0.5 * self.R_far
         self.K = 1 / (2 * self.sigma**2)
         self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
@@ -133,30 +156,27 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             # Calibrated for:                  #
             # residual heat fraction   = 0.05  #
             # Vaporisation temperature = 1000K #
+            # Power                    = 3W    #
             ####################################
-            if not self.compute_vaporisation:
-                F_th_fraction = 0.333 # 5 pulses, no evaporation
-            else:
-                F_th_fraction = 0.333 #0.43 # 5 pulses, with evaporation
 
-            self.F_th = 0.01 #F_th_fraction * self.ablation_energy_fraction * self.Q / self.irradiated_surface_area
-        
+            #self.F_th = 0.009667 # J/mm2 #F_th_fraction * self.ablation_energy_fraction * self.Q / self.irradiated_surface_area
             self.radius_th = np.sqrt(np.log(self.C / self.F_th) / self.K)
 
-            self.l_s = self.PenetrationDepthEstimation() #0.001 # 5 pulses, with evaporation     
+            #self.l_s = self.PenetrationDepthEstimation() #0.001 # 5 pulses, with evaporation
 
-        self.l_s = 0.002
-        self.l_th = 0.33 # micrometers # Thermal depth, assumed
+        #self.l_s = 0.002048
+        #self.l_th = 0.33 # micrometers # Thermal depth, assumed
 
-        l_th_in_meters = self.l_th * 1e-6
+        l_th_in_meters = self.l_th * 1e-3
         kappa_in_square_meters = self.kappa * 1e-6
         self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
 
         # Finite Elements
-        self.n_surface_elements = 10 # number of elements
-        self.lumped_projection_option = True
+        self.n_surface_elements = 100 # number of elements
+        self.sparse_option = True
         self.surface_nodes_Y_values = np.linspace(0.0, self.R_far, self.n_surface_elements + 1)
         self.surface_element_size = self.R_far / self.n_surface_elements
+        self.support_elements = [[] for i in range(self.n_surface_elements+1)]
 
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
@@ -192,7 +212,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.list_of_decomposed_nodes_coords_X = []
         self.list_of_decomposed_nodes_coords_Y = []
 
-        self.SetUpResultsFiles()
+        if self.print_hdf5_and_gnuplot_files:
+            self.SetUpResultsFiles()
 
         # TODO: Initial condition, ambient temperature. Do this using GUI!
         for node in self.main_model_part.Nodes:
@@ -201,12 +222,12 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.IdentifyInitialSurfaceNodes()
 
         initial_system_energy = self.MonitorEnergy()
-        
+
         self.RemoveElementsByAblation()
 
         computed_energy_after_ablation = self.MonitorEnergy()
 
-        residual_heat = self.residual_heat_fraction * self.Q
+        residual_heat = (1 - self.ionization_alpha) * self.Q
 
         self.ResidualHeatStage()
 
@@ -219,7 +240,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         difference_after_and_before_residual_heat = system_energy_after_residual_heat - computed_energy_after_ablation
         print("Difference after and before residual heat:", difference_after_and_before_residual_heat, "\n")
 
-        self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+        if self.print_hdf5_and_gnuplot_files:
+            self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
     def IdentifyInitialSurfaceNodes(self):
         list_of_decomposed_nodes_ids = []
@@ -248,33 +270,43 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.boundary_part.AddElements(self.list_of_decomposed_elements_ids)
         self.boundary_part.AddNodes(self.list_of_decomposed_nodes_ids)
 
+    def StorePreEvaporationTemperature(self):
+        for node in self.main_model_part.Nodes:
+            pre_evaporation_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+            node.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
+            #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
+        for elem in self.main_model_part.Elements:
+            pre_evaporation_temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+            elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
+
     def ResidualHeatStage(self):
-        if self.residual_heat_fraction:
-            self.projector = SurfaceFEMProjector(self.n_surface_elements, self.R_far) #, delta_coefficients)
+        if 1 - self.ionization_alpha:
+            self.projector = SurfaceFEMProjector(self.n_surface_elements, self.R_far, self.sparse_option) #, delta_coefficients)
             self.q_interp = self.projector.InterpolateFunctionAndNormalize(self.EnergyPerUnitArea1D) #, 1.0)
+            #print("self.q_interp:", self.q_interp)
             if self.compute_vaporisation:
                 self.total_removed_energy = 0.0
                 self.first_evaporation_stage_done = False
-                max_iterations = 20
-                iterations = 0
+                self.max_vaporisation_layers = 2
+                self.vaporisation_layer_number = 1
                 self.some_elements_are_above_the_evap_temp = True
                 print("Removing elements by evaporation...")
                 print("Pulse number:", self.pulse_number)
+                self.last_evaporation_layer_applied = False
+                self.StorePreEvaporationTemperature()
 
                 while self.some_elements_are_above_the_evap_temp:
-                    self.ImposeTemperatureIncreaseDueTo1DConduction()
-                    self.RemoveElementsByEvaporation()
-                    iterations += 1
-                    print("Evaporated layer:", iterations)
-                    if iterations > max_iterations:
+                    if self.vaporisation_layer_number > self.max_vaporisation_layers:
+                        if not self.max_vaporisation_layers:
+                            self.ImposeTemperatureIncreaseDueTo1DConduction()
                         print("******************************MAXIMUM ITERATIONS EXCEEDED!!!")
                         break
+                    self.ImposeTemperatureIncreaseDueTo1DConduction()
+                    self.RemoveElementsByEvaporation()
+
                 print("Done!")
             else:
                 self.ImposeTemperatureIncreaseDueTo1DConduction()
-
-    def MarkElementsToEvaporate(self):
-        pass
 
     def RemoveElementsByEvaporation(self):
         evap_elements_centers_Y = []
@@ -318,37 +350,65 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.evap_elements_centers_Y = evap_elements_centers_Y[evap_elements_centers_Y.argsort()]
         self.evap_elements_enthalpies = self.rho * self.specific_evaporation_enthalpy * evap_elements_volumes[evap_elements_centers_Y.argsort()]
 
-        self.projector.FillUpMassMatrix()
-        self.projector.FillUpDeltasRHS(self.evap_elements_centers_Y, self.evap_elements_volumes)
-        self.projector.AssignDeltasToTestFunctionSupports(self.evap_elements_volumes)
+        self.support_elements = [[] for i in range(self.n_surface_elements+1)]
+
+        if not self.some_elements_are_above_the_evap_temp:
+            return
+
+        print("\nEvaporating layer number", self.vaporisation_layer_number, "...")
+        self.vaporisation_layer_number += 1
+
+        #print('self.vaporisation_layer_number:', self.vaporisation_layer_number)
+        #('self.evap_elements_centers_Y:', self.evap_elements_centers_Y)
+        #print('self.evap_elements_enthalpies:', self.evap_elements_enthalpies)
+
+        if not self.sparse_option:
+            self.projector.FillUpMassMatrix()
+        else:
+            self.projector.FillUpSparseMassMatrix()
+        self.projector.AssignDeltasToTestFunctionSupports(self.evap_elements_centers_Y, self.support_elements)
+        self.projector.FillUpDeltasRHS(self.evap_elements_centers_Y, self.support_elements, self.evap_elements_enthalpies)
         self.u = self.projector.Project()
+
+        #total_energy = self.projector.CalculateEnergyOfFEMFunction(self.u)
+
+        #print('Total energy expected =', sum(self.evap_elements_enthalpies))
+        #print('Total energy calculated =', total_energy)
+
+        #print("self.projector.A:", self.projector.A)
+        #print("self.projector.b:", self.projector.b)
+
+        import matplotlib.pyplot as plt
+
+        #plt.grid()
+        #plt.plot(self.projector.X, self.q_interp, color='red', marker='+')
+        #plt.plot(self.projector.X, self.u, color='blue', marker='o')
+
         self.q_interp -= self.u
+        #print("self.q_interp:", self.q_interp)
+        #print("self.u:", self.u)
 
         for i, q in enumerate(self.q_interp):
             if q < 0.0:
                 self.q_interp[i] = 0.0
 
-        import matplotlib.pyplot as plt
-
-        plt.grid()
-        plt.plot(self.projector.X, self.u, color='blue', marker='o')
-        #plt.plot(projector.X, q_cont, color='black', marker='x')
-        plt.plot(self.projector.X, self.q_interp, color='red', marker='+')
-        #plt.plot(self.projector.X, remaining_energy, color='green', marker='*')
-        #plt.plot(self.evap_elements_centers_Y, q_eval, color='black', marker='x')
-        plt.legend(["E/A lost", "q FEM proj", "remaining energy FEM", "remaining energy FEM eval"], loc="center left")
+        #plt.plot(self.projector.X, self.q_interp, color='black', marker='*')
+        #plt.plot(self.evap_elements_centers_Y, q_eval, color='green', marker='x')
+        #plt.legend(["fluence (interpolated)", "fluence (lost)", "fluence (remaining)"], loc="upper right")
         #plt.show()
 
         self.AddDecomposedNodesToSurfaceList()
         self.first_evaporation_stage_done = True
 
-    def ResetDomainTemperature(self):
-        if self.first_evaporation_stage_done:
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, self.T0)
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, self.T0)
-            for elem in self.main_model_part.Elements:
-                elem.SetValue(KratosMultiphysics.TEMPERATURE, self.T0)
+        if self.vaporisation_layer_number <= self.max_vaporisation_layers:
+            self.RetrievePreEvaporationTemperatureState()
+
+    def RetrievePreEvaporationTemperatureState(self):
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE))
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, node.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE))
+        for elem in self.main_model_part.Elements:
+            elem.SetValue(KratosMultiphysics.TEMPERATURE, elem.GetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE))
 
     def ImposeTemperatureIncreaseDueTo1DConduction(self):
         X = self.list_of_decomposed_nodes_coords_X
@@ -369,7 +429,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
                 new_temp = old_temp + delta_temp
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
-        #print("\nResidual heat fraction:", self.residual_heat_fraction)
+        #print("\nResidual heat fraction:", self.ionization_alpha)
         #print("\nMaximum characteristic depth:", self.maximum_characteristic_Z)
         problem_characteristic_time_minimum_depth = self.minimum_characteristic_Z**2 / self.kappa
         problem_characteristic_time_maximum_depth = self.maximum_characteristic_Z**2 / self.kappa
@@ -404,34 +464,33 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.maximum_characteristic_Z = characteristic_Z
         return delta_temp
 
-    def FEMInterpolatedTemperatureVariationInZDueToLaser1D(self, radius, z):
-        pass
-
     def SolveSolutionStep(self):
         super(convection_diffusion_transient_solver.ConvectionDiffusionTransientSolver, self).SolveSolutionStep()
-        self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
-        self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+        if self.print_hdf5_and_gnuplot_files:
+            self.temperature_increments = np.array([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - self.T0 for node in self.near_field_nodes])
+            self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        decomp_vol = self.MonitorDecomposedVolume()
-        decomp_vol *= 1e9 # To convert mm3 into um3
-        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        self.decomposed_volume_file.write(str(current_time) + " " + str(decomp_vol) + "\n")
-        '''for elem in self.main_model_part.Elements:
-            if elem.Id == self.element_id_to_study:
-                temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
-                thermal_decomposition = elem.GetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION)
-                self.temperature_alpha_file.write(str(temperature) + " " + str(thermal_decomposition) + "\n")
-                self.time_alpha_file.write(str(current_time) + " " + str(thermal_decomposition) + "\n")
-                break'''
+        if self.print_hdf5_and_gnuplot_files:
+            decomp_vol = self.MonitorDecomposedVolume()
+            decomp_vol *= 1e9 # To convert mm3 into um3
+            current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            self.decomposed_volume_file.write(str(current_time) + " " + str(decomp_vol) + "\n")
+            for elem in self.main_model_part.Elements:
+                if elem.Id == self.element_id_to_study:
+                    temperature = elem.GetValue(KratosMultiphysics.TEMPERATURE)
+                    thermal_decomposition = elem.GetValue(LaserDrillingApplication.THERMAL_DECOMPOSITION)
+                    self.temperature_alpha_file.write(str(temperature) + " " + str(thermal_decomposition) + "\n")
+                    self.time_alpha_file.write(str(current_time) + " " + str(thermal_decomposition) + "\n")
+                    break
 
     def Finalize(self):
         super().Finalize()
-        self.decomposed_volume_file.close()
-        self.temperature_alpha_file.close()
-        self.time_alpha_file.close()
-        if self.plot_decomposed_volume_graph:
+        if self.print_hdf5_and_gnuplot_files:
+            self.decomposed_volume_file.close()
+            self.temperature_alpha_file.close()
+            self.time_alpha_file.close()
             self.PrintDecomposedVolumeEvolution()
         elapsed_time = timer.time() - self.starting_time
         print("\nElapsed_time:", elapsed_time, '\n')

@@ -7,7 +7,9 @@
                 "DENSITY"       : 1.72E-06,
                 "CONDUCTIVITY"  : 3.00E-04,
                 "SPECIFIC_HEAT" : 1500.0,
-                "ENTHALPY": 4e5
+                "ENTHALPY": 4e5,
+                "IONIZATION_ALPHA": 0.0,
+                "THERMAL_DEPTH": 0.00033
             },
             "Tables"    : null
         }

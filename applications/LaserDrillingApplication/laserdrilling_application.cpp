@@ -10,7 +10,6 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-
 // System includes
 
 // External includes
@@ -24,8 +23,6 @@
 #include "includes/variables.h"
 
 namespace Kratos {
-
-
 
 KratosLaserDrillingApplication::KratosLaserDrillingApplication()
     : KratosApplication("LaserDrillingApplication"),
@@ -54,11 +51,15 @@ void KratosLaserDrillingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DECOMPOSITION_LAW_CONSTANT_1)
     KRATOS_REGISTER_VARIABLE(DECOMPOSITION_LAW_CONSTANT_2)
     KRATOS_REGISTER_VARIABLE(DECOMPOSED_NODE)
+    KRATOS_REGISTER_VARIABLE(IONIZATION_ALPHA)
+    KRATOS_REGISTER_VARIABLE(THERMAL_DEPTH)
+    KRATOS_REGISTER_VARIABLE(ABLATION_THRESHOLD)
+    KRATOS_REGISTER_VARIABLE(PENETRATION_DEPTH)
+    KRATOS_REGISTER_VARIABLE(PRE_EVAPORATION_TEMPERATURE)
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("LaserAxisymmetricEulerianConvectionDiffusion2D3N", mLaserAxisymmetricEulerianConvectionDiffusion2D3N);
     KRATOS_REGISTER_ELEMENT("LaserAxisymmetricEulerianConvectionDiffusion2D4N", mLaserAxisymmetricEulerianConvectionDiffusion2D4N);
-
 }
 
 }  // namespace Kratos.
