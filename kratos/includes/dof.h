@@ -18,6 +18,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <bitset>
 
 // External includes
 
@@ -25,6 +26,8 @@
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
+#include "containers/flags.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -435,6 +438,138 @@ public:
 
     ///@}
 private:
+    /// @brief 3-bit-wide bit array that hides its data in the 3 least significant bits of a pointer.
+    /// @details List of supported flags:
+    ///          - @ref MASTER
+    ///          - @ref SLAVE
+    ///          - there is space for one extra flag to support.
+    class DofFlags
+    {
+    private:
+        static constexpr std::size_t msMask = 0b111ul;
+
+    public:
+        /// @brief A pointer with access restricted to @ref DofFlags.
+        /// @details This class is meant to catch attempts to dereference pointers
+        ///          that were manipulated by @ref DofFlags at compile time.
+        template <class T>
+        class DirtyPointer
+        {
+        public:
+            DirtyPointer() noexcept = default;
+
+            explicit DirtyPointer(T* Pointer) noexcept : mPointer(Pointer) {}
+
+            void save(Serializer& rSerializer) const
+            {
+                rSerializer.save("Pointer", mPointer);
+            }
+
+            void load(Serializer& rSerializer)
+            {
+                rSerializer.load("Pointer", mPointer);
+            }
+
+        private:
+            friend class DofFlags;
+
+            T* mPointer;
+        };
+
+        /// @brief Counterpart of the @ref MASTER @ref Flags "flag".
+        static constexpr DofFlags Master = 0b001;
+
+        /// @brief Counterpart of the @ref SLAVE @ref Flags "flag".
+        static constexpr DofFlags Slave = 0b010;
+
+        //constexpr static DofFlags LAST_SUPPORTED_FLAG_GOES_HERE = 0b100;
+
+        /// @brief Default constructor that unsets all flags.
+        constexpr DofFlags() noexcept : mData(0) {}
+
+        /// @brief Convert a @ref Flags instance to @ref DofFlags.
+        /// @throws if any unsupported flags are set.
+        /// @details @see Dof for more information on supported flags.
+        explicit DofFlags(Flags flags)
+            : mData(0b000)
+        {
+            mData |= flags.Is(MASTER);
+            mData |= flags.Is(SLAVE) << 1;
+            //mData |= flags.Is(LAST_SUPPORTED_FLAG_GOES_HERE) << 2;
+
+            // Check whether any flag is set other than
+            // the supported ones, and throw if there are.
+            flags.Set(MASTER, false);
+            flags.Set(SLAVE, false);
+            KRATOS_ERROR_IF(flags) << "unsupported flags set in " << flags;
+        }
+
+        /// @brief Break up a dirty pointer into a clean one and the @p DofFlags that corrupted it.
+        /// @details @p DirtyPointer is assumed to be a pointer to an instance of @p T (whose alignment
+        ///          is at least 8), but with the 3 least significant bits corrupted. The corrupted bits
+        ///          should contain the data for a @p DofFlags instance. This function extracts the last
+        ///          3 bits and returns the resulting @p DofFlags, as well as the @b valid pointer to @p T
+        ///          (last 3 bits are unset). The resulting valid pointer can be safely dereferenced.
+        /// @note Use @ref DofFlags::Compose to recover the original dirty pointer.
+        template <class T>
+        static constexpr std::pair<DofFlags,T*> Decompose(DirtyPointer<T> Dirty) noexcept
+        {
+            static_assert(1 << 3 <= std::alignment_of_v<T>);
+            DofFlags flags(Data(reinterpret_cast<std::size_t>(Dirty.mPointer) & msMask));
+            T* clean_pointer = reinterpret_cast<T*>(reinterpret_cast<std::size_t>(Dirty.mPointer) & ~msMask);
+            return std::make_pair(flags, clean_pointer);
+        }
+
+        /// @brief Inject the 3 bits of data in this @p DofFlags into the 3 least significant bits of the provided pointer.
+        /// @note Use @ref DofFlags::Decompose to recover the original valid pointer.
+        /// @warning The returned pointer should not be dereferenced directly. Use @ref DofFlags::Decompose to recover the
+        ///          original pointer.
+        template <class T>
+        constexpr DirtyPointer<T> Compose(T* CleanPointer) const
+        {
+            static_assert(1 << 3 <= std::alignment_of_v<T>);
+            KRATOS_ERROR_IF(reinterpret_cast<std::size_t>(CleanPointer) & msMask)
+                << "the provided pointer is not valid " << CleanPointer;
+            T* dirty_pointer = reinterpret_cast<T*>(reinterpret_cast<std::size_t>(CleanPointer) | mData.to_ulong());
+            return DirtyPointer<T>(dirty_pointer);
+        }
+
+        constexpr bool Is(DofFlags Other) const noexcept
+        {
+            return (mData & Other.mData).any();
+        }
+
+        bool Is(Flags flags) const
+        {
+            KRATOS_TRY
+            return this->Is(DofFlags(flags));
+            KRATOS_CATCH("")
+        }
+
+        void Set(Flags flags)
+        {
+            KRATOS_TRY
+            DofFlags supported_flags(flags);
+            mData = mData | supported_flags.mData;
+            KRATOS_CATCH("")
+        }
+
+        void Unset(Flags flags)
+        {
+            KRATOS_TRY
+            DofFlags supported_flags(flags);
+            mData = mData & ~supported_flags.mData;
+            KRATOS_CATCH("")
+        }
+
+    private:
+        using Data = std::bitset<3>;
+
+        explicit constexpr DofFlags(Data data) noexcept : mData(data) {}
+
+        Data mData;
+    }; // class DofFlags
+
     ///@name Static Member Variables
     ///@{
 
