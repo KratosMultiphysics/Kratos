@@ -232,31 +232,37 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // /**
-    //  * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
-    //  * The (Navier) slip length is read as a nodal variable.
-    //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-    //  * Though only tangential velocities should appear, a tangetial projection is added.
-    //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-    //  * @param rRightHandSideVector reference to the RHS vector
-    //  * @param rDataStruct reference to a struct to hand over data
-    //  */
-    // void ComputeGaussPointNavierSlipRHSContribution(
-    //     array_1d<double,LocalSize>& rRightHandSideVector,
-    //     const ConditionDataStruct& rDataStruct) override;
+    /**
+     * This function computes the penalty coefficient for the Nitsche normal imposition (penalization and stabilization)
+     * @param rN the current Gauss pt. shape functions vector
+     * @param TODO
+     * @return double The normal penalty coefficient value
+     */
+    double ComputeSlipNormalPenaltyCoefficient(
+        const Vector& rN,
+        const double DeltaTime,
+        const double Penalty,
+        const double ParentSize) const;
 
-    // /**
-    //  * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
-    //  * The (Navier) slip length is read as a nodal variable.
-    //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-    //  * Though only tangential velocities should appear, a tangetial projection is added.
-    //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-    //  * @param rLeftHandSideMatrix reference to the LHS matrix
-    //  * @param rDataStruct reference to a struct to hand over data
-    //  */
-    // void ComputeGaussPointNavierSlipLHSContribution(
-    //     BoundedMatrix<double,LocalSize,LocalSize>& rLeftHandSideMatrix,
-    //     const ConditionDataStruct& rDataStruct ) override;
+    /**
+     * This function computes the penalty coefficients for the Nitsche tangential imposition
+     * @param TODO
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
+        const double SlipLength,
+        const double Penalty,
+        const double ParentSize) const;
+
+    /**
+     * This function computes the Nitsche coefficients for the Nitsche tangential imposition
+     * @param TODO
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
+        const double SlipLength,
+        const double Penalty,
+        const double ParentSize) const;
 
     ///@}
     ///@name Protected  Access
