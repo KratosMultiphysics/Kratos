@@ -14,7 +14,7 @@
 
 namespace Kratos::Testing {
 KratosTrilinosFastSuite::KratosTrilinosFastSuite()
-    : KratosCoreFastSuite() {
+    : KratosMPICoreFastSuite() {
   if (!this->mKernel.IsImported("TrilinosApplication")) {
     mpTrilinosApp = std::make_shared<KratosTrilinosApplication>();
     this->mKernel.ImportApplication(mpTrilinosApp);
