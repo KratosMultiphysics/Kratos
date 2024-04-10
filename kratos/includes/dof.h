@@ -132,7 +132,8 @@ public:
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
             << "in the list of variables" << std::endl;
 
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable);
     }
 
     /** Constructor. This constructor takes the same input
@@ -175,7 +176,8 @@ public:
             << "The Reaction-Variable " << rThisReaction.Name() << " is not "
             << "in the list of variables" << std::endl;
 
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
     }
 
     //This default constructor is needed for serializer
@@ -238,34 +240,40 @@ public:
 
     TDataType& GetSolutionStepValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetVariable(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
     TDataType const& GetSolutionStepValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetVariable(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
     {
-        return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0) const
     {
-        return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
     TDataType& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(GetReaction(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetReaction(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
 
     TDataType const& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(GetReaction(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetReaction(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
 
     ///@}
@@ -274,32 +282,37 @@ public:
 
     IndexType Id() const
     {
-        return mpNodalData->GetId();
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetId();
     }
 
     IndexType GetId() const
     {
-        return mpNodalData->GetId();
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetId();
     }
 
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
     {
-        return mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
     }
 
     /** Returns reaction variable of this degree of freedom. */
     const VariableData& GetReaction() const
     {
-        auto p_reaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        auto p_reaction = p_nodal_data->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
         return (p_reaction == nullptr) ? msNone : *p_reaction;
     }
 
     template<class TReactionType>
     void SetReaction(TReactionType const& rReaction)
     {
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
         mReactionType = DofTrait<TDataType, TReactionType>::Id;
-        mpNodalData->GetSolutionStepData().pGetVariablesList()->SetDofReaction(&rReaction, mIndex);
+        p_nodal_data->GetSolutionStepData().pGetVariablesList()->SetDofReaction(&rReaction, mIndex);
     }
 
     /** Return the Equation Id related to this degree eof freedom.
@@ -347,26 +360,50 @@ public:
         mIsActive = false;
     }
 
+    void Set(Flags flags)
+    {
+        KRATOS_TRY
+        auto [dof_flags, clean_pointer] = DofFlags::Decompose(mpNodalData);
+        dof_flags.Set(flags);
+        mpNodalData = dof_flags.Compose(clean_pointer);
+        KRATOS_CATCH("")
+    }
+
+    void Set(Flags flags, bool value)
+    {
+        KRATOS_TRY
+        auto [dof_flags, clean_pointer] = DofFlags::Decompose(mpNodalData);
+        value ? dof_flags.Set(flags) : dof_flags.Unset(flags);
+        mpNodalData = dof_flags.Compose(clean_pointer);
+        KRATOS_CATCH("")
+    }
+
     SolutionStepsDataContainerType* GetSolutionStepsData()
     {
-        return &(mpNodalData->GetSolutionStepData());
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return &p_nodal_data->GetSolutionStepData();
     }
 
     void SetNodalData(NodalData* pNewNodalData)
     {
+        auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
         auto p_variable = &GetVariable();
-        auto p_reaction = mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
-        mpNodalData = pNewNodalData;
+        auto p_reaction = p_nodal_data->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
+        p_nodal_data = pNewNodalData;
+
         if(p_reaction != nullptr){
-            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
+            mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
         } else{
-            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
+            mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
         }
+
+        mpNodalData = dof_flags.Compose(p_nodal_data);
     }
 
     bool HasReaction() const
     {
-        return (mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex) != nullptr);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex) != nullptr;
     }
 
     ///@}
@@ -394,6 +431,14 @@ public:
     bool IsActive() const noexcept
     {
         return mIsActive;
+    }
+
+    bool Is(Flags flags) const
+    {
+        KRATOS_TRY
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return dof_flags.Is(flags);
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -595,7 +640,7 @@ private:
     EquationIdType mEquationId : 48;
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
-    NodalData* mpNodalData;
+    typename DofFlags::template DirtyPointer<NodalData> mpNodalData;
 
     ///@}
     ///@name Private Operators
