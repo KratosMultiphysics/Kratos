@@ -254,15 +254,10 @@ class ConfigurableEventListener : public ::testing::TestEventListener
 class KratosMPICoreFastSuite : public ::testing::Test 
 {
     protected:
-        KratosMPICoreFastSuite() {
-            pKernel = std::unique_ptr<Kratos::Kernel>(new Kratos::Kernel(true));    // Initialize kernel with mpi
-        }
+        KratosMPICoreFastSuite(): mKernel(true) {}
+        ~KratosMPICoreFastSuite() {}
 
-        ~KratosMPICoreFastSuite() {
-            pKernel.reset(nullptr);
-        }
-
-    std::unique_ptr<Kratos::Kernel> pKernel;
+    	Kratos::Kernel mKernel;
 };
 
 class KratosTrilinosApplicationMPITestSuite : public KratosMPICoreFastSuite {};
