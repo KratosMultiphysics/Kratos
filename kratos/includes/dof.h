@@ -485,9 +485,9 @@ public:
 private:
     /// @brief 3-bit-wide bit array that hides its data in the 3 least significant bits of a pointer.
     /// @details List of supported flags:
-    ///          - @ref MASTER
-    ///          - @ref SLAVE
-    ///          - there is space for one extra flag to support.
+    ///          - @ref MASTER                                      (0b001)
+    ///          - @ref SLAVE                                       (0b010)
+    ///          - there is space for one extra flag to support.    (0b100)
     class DofFlags
     {
     private:
@@ -520,12 +520,6 @@ private:
 
             T* mPointer;
         };
-
-        /// @brief Counterpart of the @ref MASTER @ref Flags "flag".
-        static constexpr DofFlags Master = 0b001;
-
-        /// @brief Counterpart of the @ref SLAVE @ref Flags "flag".
-        static constexpr DofFlags Slave = 0b010;
 
         //constexpr static DofFlags LAST_SUPPORTED_FLAG_GOES_HERE = 0b100;
 
