@@ -8,7 +8,7 @@ from KratosMultiphysics.DigitalTwinApplication.responses.sensor_localization_res
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
-class TestSensorCoverageResponse(UnitTest.TestCase):
+class TestSensorLocalizationResponse(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """
