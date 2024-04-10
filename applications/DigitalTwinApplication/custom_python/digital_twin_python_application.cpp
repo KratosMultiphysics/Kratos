@@ -20,6 +20,7 @@
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_response_utilities_to_python.h"
 #include "custom_python/add_custom_sensors_to_python.h"
 #include "digital_twin_application.h"
 #include "digital_twin_application_variables.h"
@@ -34,6 +35,7 @@ PYBIND11_MODULE(KratosDigitalTwinApplication, m)
         m, "KratosDigitalTwinApplication")
         .def(py::init<>());
 
+    AddCustomResponseUtilitiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomSensorsToPython(m);
 

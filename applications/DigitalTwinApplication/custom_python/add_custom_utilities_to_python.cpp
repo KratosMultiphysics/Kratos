@@ -40,9 +40,9 @@ void AddSmoothClamper(
     using smooth_clamper_type = SmoothClamper<TContainerType>;
     py::class_<smooth_clamper_type, typename smooth_clamper_type::Pointer>(m, (rName + "SmoothClamper").c_str())
         .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
-        .def("Clamp", &smooth_clamper_type::Clamp, py::arg("x_expression"))
-        .def("ClampDerivative", &smooth_clamper_type::ClampDerivative, py::arg("x_expression"))
-        .def("InverseClamp", &smooth_clamper_type::InverseClamp, py::arg("y_expression"))
+        .def("Clamp", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::Clamp, py::const_), py::arg("x_expression"))
+        .def("ClampDerivative", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ClampDerivative, py::const_), py::arg("x_expression"))
+        .def("InverseClamp", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::InverseClamp, py::const_), py::arg("y_expression"))
         ;
 }
 
