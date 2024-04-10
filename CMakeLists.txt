@@ -296,6 +296,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   )
   # For Windows: Prevent overriding the parent project's compiler/linker settings
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  set(GTEST_CREATE_SHARED_LIBRARY 1)
   FetchContent_MakeAvailable(googletest)
   enable_testing()
 endif(KRATOS_BUILD_TESTING MATCHES ON) 
