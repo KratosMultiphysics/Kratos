@@ -30,7 +30,7 @@ file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE
 ## RomApplication testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_ROM_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    kratos_add_gtests(KratosRomCore ${KRATOS_ROM_APPLICATION_TESTING_SOURCES})
+    kratos_add_gtests(TARGET KratosRomCore SOURCES "${KRATOS_ROM_APPLICATION_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## RomApplication python interface sources

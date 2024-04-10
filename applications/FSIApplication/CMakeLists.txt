@@ -21,7 +21,7 @@ set( KRATOS_FSI_APPLICATION_PYTHON_INTERFACE_SOURCES
 ## define fsi test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FSI_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    kratos_add_gtests(KratosFSICore ${KRATOS_FSI_TESTING_SOURCES})
+    kratos_add_gtests(TARGET KratosFSICore SOURCES "${KRATOS_FSI_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
