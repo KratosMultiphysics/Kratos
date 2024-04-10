@@ -1061,9 +1061,8 @@ class RomManager(object):
                     else:
                         f.write("No data available.\n")
 
-                print(f"Summary file generated at {summary_path}")
+            print(f"Summary file generated at {summary_path}")
 
-        # Don't forget to close the database connection
         conn.close()
 
 
@@ -1080,6 +1079,8 @@ class RomManager(object):
 
 
     def get_snapshots_matrix_from_database(self, mu_list):
+        unique_tuples = set(tuple(item) for item in mu_list)
+        mu_list = [list(item) for item in unique_tuples] #unique members in mu_lust
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
         directory.mkdir(parents=True, exist_ok=True)
