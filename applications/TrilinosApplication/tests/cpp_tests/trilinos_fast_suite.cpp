@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "structural_mechanics_fast_suite.h"
+#include "trilinos_fast_suite.h"
 
 namespace Kratos::Testing {
 KratosTrilinosFastSuite::KratosTrilinosFastSuite()

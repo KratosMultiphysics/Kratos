@@ -51,6 +51,7 @@ class KratosCoreNurbsGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
+class KratosCoreStressSuite : public KratosCoreFastSuite {};
 
 KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
 
