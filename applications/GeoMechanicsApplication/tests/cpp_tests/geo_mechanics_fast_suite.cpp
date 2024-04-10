@@ -22,6 +22,10 @@ KratosGeoMechanicsFastSuite::KratosGeoMechanicsFastSuite() : KratosCoreFastSuite
         mpGeoApp = std::make_shared<KratosGeoMechanicsApplication>();
         this->mKernel.ImportApplication(mpGeoApp);
     }
+    if (!this->mKernel.IsImported("LinearSolversApplication")) {
+        mpLinearSolversApp = std::make_shared<KratosLinearSolversApplication>();
+        this->mKernel.ImportApplication(mpLinearSolversApp);
+    }
 }
 
 KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : KratosCoreFastSuite()
@@ -29,6 +33,10 @@ KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : Krato
     if (!this->mKernel.IsImported("GeoMechanicsApplication")) {
         mpGeoApp = std::make_shared<KratosGeoMechanicsApplication>();
         this->mKernel.ImportApplication(mpGeoApp);
+    }
+    if (!this->mKernel.IsImported("LinearSolversApplication")) {
+        mpLinearSolversApp = std::make_shared<KratosLinearSolversApplication>();
+        this->mKernel.ImportApplication(mpLinearSolversApp);
     }
 }
 

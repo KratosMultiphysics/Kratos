@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "containers/model.h"
 #include "includes/variables.h"
 #include "includes/debug_helpers.h"
