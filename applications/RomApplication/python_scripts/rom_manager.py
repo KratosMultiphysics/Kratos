@@ -43,14 +43,13 @@ class RomManager(object):
                 self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
                 self.__LaunchROM(mu_train)
-
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
                 self.__LaunchHROM(mu_train)
-
+            self.ComputeErrors(mu_train)
         #######################
 
         #######################################
@@ -190,6 +189,26 @@ class RomManager(object):
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
         self.__LaunchRunHROM(mu_run, use_full_model_part)
+
+
+
+    def ComputeErrors(self, mu_list):
+        fom_snapshots = None
+        rom_snapshots = None
+        training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        if any(item == "ROM" for item in training_stages):
+            if fom_snapshots is None:
+                fom_snapshots = self.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
+            rom_snapshots = self.get_snapshots_matrix_from_database(mu_list, table_name='ROM')
+            self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+        if any(item == "HROM" for item in training_stages):
+            if fom_snapshots is None:
+                fom_snapshots = self.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
+            if rom_snapshots is None:
+                rom_snapshots = self.get_snapshots_matrix_from_database(mu_list, table_name='ROM')
+            hrom_snapshots = self.get_snapshots_matrix_from_database(mu_list, table_name='HROM')
+            self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots)/ np.linalg.norm(rom_snapshots)
+            self.FOMvsHROM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
 
     def PrintErrors(self):
@@ -1078,20 +1097,26 @@ class RomManager(object):
         return dict(zip(keys, mu))
 
 
-    def get_snapshots_matrix_from_database(self, mu_list):
+    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM'):
         unique_tuples = set(tuple(item) for item in mu_list)
-        mu_list = [list(item) for item in unique_tuples] #unique members in mu_lust
+        mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_lust
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
         directory.mkdir(parents=True, exist_ok=True)
         SnapshotsMatrix = []
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-
-        for mu in mu_list:
+        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
+        tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
+        for mu in mu_list_unique:
             serialized_mu = self.serialize_mu(self.FOM_make_mu_dictionary(mu))
-            hash_mu = self.hash_parameters(serialized_mu)
-            cursor.execute("SELECT file_name FROM FOM WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
+            if table_name == 'FOM':
+                hash_mu = self.hash_parameters(serialized_mu)
+            elif table_name == 'ROM':
+                hash_mu = self.hash_parameters_with_tol(serialized_mu, tol_sol)
+            elif table_name == 'HROM':
+                hash_mu = self.hash_parameters_with_tol_2_tols(serialized_mu, tol_sol, tol_res)
+            cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
             result = cursor.fetchone()
 
             if result:
