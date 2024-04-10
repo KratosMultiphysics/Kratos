@@ -23,7 +23,7 @@
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 
 // Application includes
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"

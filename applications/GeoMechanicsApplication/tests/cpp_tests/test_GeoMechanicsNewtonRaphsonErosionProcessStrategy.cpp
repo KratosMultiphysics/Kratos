@@ -23,7 +23,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
+    auto workingDirectory = "./applications/GeoMechanics    Application/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
     auto projectFile = "ProjectParameters.json";
 
     auto execute = KratosExecute();
