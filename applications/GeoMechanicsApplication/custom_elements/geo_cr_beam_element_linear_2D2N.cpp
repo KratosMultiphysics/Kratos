@@ -52,9 +52,6 @@ Element::Pointer GeoCrBeamElementLinear2D2N::Create(IndexType               NewI
     return Kratos::make_intrusive<GeoCrBeamElementLinear2D2N>(NewId, pGeom, pProperties);
 }
 
-//-------------------------------------------------------------------------------------------------
-GeoCrBeamElementLinear2D2N::~GeoCrBeamElementLinear2D2N() {}
-
 //----------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear2D2N::ResetConstitutiveLaw()
 {
