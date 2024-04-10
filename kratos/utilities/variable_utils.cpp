@@ -332,7 +332,7 @@ void VariableUtils::AuxiliaryHistoricalValueSetter(
 }
 
 template<>
-void VariableUtils::AuxiliaryHistoricalValueSetter(
+KRATOS_API(KRATOS_CORE) void VariableUtils::AuxiliaryHistoricalValueSetter(
     const Variable<array_1d<double,3>>& rVariable,
     const array_1d<double,3>& rValue,
     NodeType& rNode)
@@ -628,7 +628,6 @@ template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetCurrentPo
 
 template KRATOS_API(KRATOS_CORE) void VariableUtils::AuxiliaryHistoricalValueSetter<int>(const Variable<int>&, const int&, NodeType&);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::AuxiliaryHistoricalValueSetter<double>(const Variable<double>&, const double&, NodeType&);
-// template KRATOS_API(KRATOS_CORE) void VariableUtils::AuxiliaryHistoricalValueSetter<array_1d<double,3>>(const Variable<array_1d<double,3>>&, const array_1d<double,3>&, NodeType&);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::AuxiliaryHistoricalValueSetter<Vector>(const Variable<Vector>&, const Vector&, NodeType&);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::AuxiliaryHistoricalValueSetter<Matrix>(const Variable<Matrix>&, const Matrix&, NodeType&);
 
