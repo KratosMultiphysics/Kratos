@@ -47,6 +47,11 @@ class KratosCoreFastSuite : public ::testing::Test
         }
 
         ~KratosCoreFastSuite() {}
+        void ImportApplicationIntoKernel(KratosApplication::Pointer pNewApplication){
+            if (!mKernel.IsImported(pNewApplication->Name())) {
+                mKernel.ImportApplication(pNewApplication);
+            }
+        }
 
     private:
         Kratos::Kernel mKernel;
