@@ -278,7 +278,7 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
-            "create_hrom_visualization_model_part" : true,
+            "create_hrom_visualization_model_part" : false,
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
