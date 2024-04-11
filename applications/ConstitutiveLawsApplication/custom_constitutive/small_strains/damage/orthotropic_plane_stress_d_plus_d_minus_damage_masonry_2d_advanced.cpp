@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 #define OPTIMIZE_CHARACTERISTIC_LENGTH
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
@@ -444,7 +445,7 @@ void OrthotropicDamageDPlusDMinusMasonry2DLawAdvanced::GetLawFeatures(
 int OrthotropicDamageDPlusDMinusMasonry2DLawAdvanced::Check(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
-	const ProcessInfo& rCurrentProcessInfo)
+	const ProcessInfo& rCurrentProcessInfo) const
 {
 	KRATOS_TRY
 
@@ -683,9 +684,9 @@ void OrthotropicDamageDPlusDMinusMasonry2DLawAdvanced::TensionCompressionSplit(
 	array_1d<double,3>& effective_tension_stress_vector 	= data.EffectiveTensionStressVector;
 	array_1d<double,3>& effective_compression_stress_vector = data.EffectiveCompressionStressVector;
 
-	ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+	AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
 		principal_stress_vector, effective_stress_vector);
-	ConstitutiveLawUtilities<3>::SpectralDecomposition(
+	AdvancedConstitutiveLawUtilities<3>::SpectralDecomposition(
 		effective_stress_vector, effective_tension_stress_vector, effective_compression_stress_vector);
 }
 
