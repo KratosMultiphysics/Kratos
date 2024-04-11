@@ -32,27 +32,23 @@ class RomDatabase(object):
         # Updated table definitions including new tables
         table_definitions = {
             "FOM": '''CREATE TABLE IF NOT EXISTS FOM
-                      (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
             "ROM": '''CREATE TABLE IF NOT EXISTS ROM
-                      (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
             "HROM": '''CREATE TABLE IF NOT EXISTS HROM
-                       (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
             "HHROM": '''CREATE TABLE IF NOT EXISTS HHROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
-                            (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
-                             (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
             "ResidualsProjected": '''CREATE TABLE IF NOT EXISTS ResidualsProjected
-                            (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
-            "Conditions": '''CREATE TABLE IF NOT EXISTS Conditions
-                             (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
-            "ConditionsWeights": '''CREATE TABLE IF NOT EXISTS ConditionsWeights
-                                    (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
-            "Elements": '''CREATE TABLE IF NOT EXISTS Elements
-                           (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
-            "ElementsWeights": '''CREATE TABLE IF NOT EXISTS ElementsWeights
-                                  (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)'''
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
+            "HROM_Elements": '''CREATE TABLE IF NOT EXISTS HROM_Elements
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
+            "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)'''
         }
 
         # Create each table using its definition
@@ -92,6 +88,29 @@ class RomDatabase(object):
         mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}_" +  projection # Convert both tol and tol2 to strings with consistent formatting
         # Generate the hash of the combined string including both tolerance values
         return hashlib.sha256(mu_str.encode()).hexdigest()
+
+
+    def hash_mu_train(self, serialized_mu_train, real_value):
+        """
+        Generates a hash for the serialized mu_train, including a real value in the hash.
+        """
+        # Concatenate the serialized mu_train with the real_value (converted to string) for hashing
+        # Ensure real_value is converted to a string with consistent formatting
+        combined_str = f"{serialized_mu_train}_{real_value:.10f}"  # Example with 10 decimal places
+        # Generate the hash of the combined string
+        return hashlib.sha256(combined_str.encode()).hexdigest()
+
+
+    def hash_mu_train_with_3_parms(self, serialized_mu_train, tol_sol,tol_res,projection_type):
+        """
+        Generates a hash for the serialized mu_train, including a real value in the hash.
+        """
+        # Concatenate the serialized mu_train with the real_value (converted to string) for hashing
+        # Ensure real_value is converted to a string with consistent formatting
+        combined_str_z = f"{serialized_mu_train}_{tol_sol:.10f}_{tol_res:.10f}_{projection_type}_z"  # Example with 10 decimal places
+        combined_str_w = f"{serialized_mu_train}_{tol_sol:.10f}_{tol_res:.10f}_{projection_type}_w"  # Example with 10 decimal places
+        # Generate the hash of the combined string
+        return hashlib.sha256(combined_str_z.encode()).hexdigest(), hashlib.sha256(combined_str_w.encode()).hexdigest()
 
 
     def check_if_mu_already_in_database(self, mu):
@@ -145,16 +164,16 @@ class RomDatabase(object):
         return count > 0, hash_mu
 
 
-    def check_if_hrom_elems_and_weights_already_in_database(self, *args):#TODO implement the check on the elements and weights
+    def check_if_hrom_elems_and_weights_already_in_database(self, mu_train, tol_sol, tol_res, projection_type):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
+        hashed_z, hashed_w = self.hash_mu_train_with_3_parms(serialized_mu_train, tol_sol,tol_res,projection_type)
         # Include both file_name and tol_sol in the WHERE clause
-        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
+        cursor.execute('SELECT COUNT(*) FROM HROM_Elements WHERE file_name = ?', (hashed_z,))
         count = cursor.fetchone()[0]
         conn.close()
-        return count > 0
+        return count > 0, hashed_z, hashed_w
 
 
 
@@ -218,17 +237,14 @@ class RomDatabase(object):
         conn.close()
 
 
-        #add_elements_and_weights_to_database(mu_train, tol_sol,tol_res, projection_type,z,w)
-    def add_elements_and_weights_to_database(self, mu_train, tol_sol,tol_res, projection_type,z,w):
+    def add_elements_and_weights_to_database(self, tol_sol,tol_res, projection_type,z,w):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
-        # Include both file_name and tol_sol in the WHERE clause
-        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
-        count = cursor.fetchone()[0]
+        cursor.execute('INSERT INTO HROM_Elements (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)', (z, tol_sol, tol_res, projection_type))
+        cursor.execute('INSERT INTO HROM_Weights  (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)', (w, tol_sol, tol_res, projection_type))
+        conn.commit()
         conn.close()
-        return count > 0
+
 
     def serialize_mu(self, parameters):
         return json.dumps(parameters)
@@ -244,7 +260,7 @@ class RomDatabase(object):
 
 
     def generate_database_summary_file(self):
-        table_names = ["FOM", "ROM", "HROM", "HHROM","LeftBasis", "RightBasis", "ResidualsProjected","Conditions","ConditionsWeights", "Elements", "ElementsWeights"]
+        table_names = ["FOM", "ROM", "HROM", "HHROM","LeftBasis", "RightBasis", "ResidualsProjected","HROM_Elements","HROM_Weights"]
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name)
         directory.mkdir(parents=True, exist_ok=True)
@@ -287,6 +303,20 @@ class RomDatabase(object):
                             params_dict = json.loads(json.loads(parameters))
                             params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
                             f.write(f"{params_str} | {tol_sol} | {tol_res} | {type_of_projection} | {file_name}\n")
+                    else:
+                        f.write("No data available.\n")
+
+                elif table_name=="HROM_Elements" or table_name=="HROM_Weights":
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT tol_sol, tol_res, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+
+                    if rows:
+                        f.write(" tol_sol   |  tol_res  |   Projection type  |   File Name (Hash)\n")
+                        f.write("-" * (4 * 15) + "\n")
+                        # Write each row to the file
+                        for tol_sol, tol_res, type_of_projection, file_name in rows:
+                            f.write(f" {tol_sol} | {tol_res} | {type_of_projection} | {file_name}\n")
                     else:
                         f.write("No data available.\n")
 
@@ -365,16 +395,18 @@ class RomDatabase(object):
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
 
 
+    def get_elements_and_weights(self, hash_w , hash_z):
 
-    def hash_mu_train(self, serialized_mu_train, real_value):
-        """
-        Generates a hash for the serialized mu_train, including a real value in the hash.
-        """
-        # Concatenate the serialized mu_train with the real_value (converted to string) for hashing
-        # Ensure real_value is converted to a string with consistent formatting
-        combined_str = f"{serialized_mu_train}_{real_value:.10f}"  # Example with 10 decimal places
-        # Generate the hash of the combined string
-        return hashlib.sha256(combined_str.encode()).hexdigest()
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
+        directory.mkdir(parents=True, exist_ok=True)
+        file_path = directory / (hash_z + '.npy')
+        z = np.load(file_path)
+        file_path = directory / (hash_w + '.npy')
+        w = np.load(file_path)
+
+        return w, z
+
 
 
     def serialize_entire_mu_train(self, mu_train):

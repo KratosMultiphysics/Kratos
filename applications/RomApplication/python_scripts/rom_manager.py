@@ -257,7 +257,7 @@ class RomManager(object):
         if not in_database: #Check if basis exists already for current parameters
             if BasisOutputProcess is None:
                 BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            BasisOutputProcess._PrintRomBasis(self.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_Basis_to_database(mu_train,tol_sol)
         else:
             pass
@@ -350,6 +350,7 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
+
                 ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                 file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
                 self.data_base.add_ResidualProjected_to_database(serialized_mu, hash_mu, tol_sol, tol_res, projection_type)
@@ -359,14 +360,14 @@ class RomManager(object):
 
         self.data_base.generate_database_summary_file()
 
-        in_database =  self.data_base.check_if_hrom_elems_and_weights_already_in_database(mu_train, tol_sol,tol_res, projection_type)
+        in_database, hash_z, hash_w =  self.data_base.check_if_hrom_elems_and_weights_already_in_database(mu_train, tol_sol,tol_res, projection_type)
 
         if not in_database:
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
             self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
             if simulation is None:
-                simulation = self.InitializeDummySimulationForHromTrainingUtility()
+                HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             else:
                 HROM_utility = simulation.GetHROM_utility()
             HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = HROM_utility.candidate_ids)
@@ -376,22 +377,24 @@ class RomManager(object):
                 #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
                 HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
                 HROM_utility.hyper_reduction_element_selector.Run()
-                z = HROM_utility.hyper_reduction_element_selector.z
-                w = HROM_utility.hyper_reduction_element_selector.w
-            self.data_base.add_elements_and_weights_to_database(mu_train, tol_sol,tol_res, projection_type,z,w) #we'll store the elements and weights selected by the ECM
-            file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
-            file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
+            z = HROM_utility.hyper_reduction_element_selector.z
+            w = HROM_utility.hyper_reduction_element_selector.w
+            self.data_base.add_elements_and_weights_to_database(tol_sol,tol_res, projection_type,hash_z,hash_w) #we'll store the elements and weights selected by the ECM
+            self.data_base.save_as_npy(np.squeeze(w), hash_w)
+            self.data_base.save_as_npy(np.squeeze(z), hash_z)
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
         else:
             if simulation is None:
-                simulation = self.InitializeDummySimulationForHromTrainingUtility()
+                HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             else:
                 HROM_utility = simulation.GetHROM_utility()
-            HROM_utility.hyper_reduction_element_selector.w, HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_elements_and_weights(mu_train, tol_sol,tol_res,projection_type)
+            HROM_utility.hyper_reduction_element_selector.w, HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_elements_and_weights(hash_w ,hash_z)
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
             #TODO make sure correct file is available for the simulations. DONE HERE
+
+        self.data_base.generate_database_summary_file()
 
     def __LaunchHROM(self, mu_train):
         """
