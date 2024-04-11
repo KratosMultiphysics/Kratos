@@ -310,11 +310,15 @@ class HRomTrainingUtility(object):
             # Use NumPy's SVD and manually truncate based on the truncation tolerance
             u, s, _ = np.linalg.svd(self._GetResidualsProjectedMatrix(), full_matrices=False)
             # Calculate total energy and identify truncation point
-            total_energy = np.sum(s**2)
-            cumulative_energy = np.cumsum(s**2)
-            r = np.searchsorted(cumulative_energy, total_energy * (1 - self.element_selection_svd_truncation_tolerance))
+            total_energy = np.sqrt(np.sum(s**2))
+            # Reverse the squared singular values, compute the cumulative sum, then take the square root
+            squared_s = s**2
+            reversed_cumulative_sum = np.cumsum(squared_s[::-1])
+            # Reverse the cumulative sum back to the original order and then take the square root
+            cumulative_energy_reversed = np.sqrt(reversed_cumulative_sum[::-1])
+            r = np.argmax(cumulative_energy_reversed/total_energy < self.element_selection_svd_truncation_tolerance)
             # Truncate the singular vectors accordingly
-            u = u[:, :r+1]
+            u = u[:, :r]
 
         return u
 
