@@ -463,4 +463,28 @@ class HRomTrainingUtility(object):
 
         return hrom_weights
 
+    def __CreateListsWithRomElements(self):
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+
+        # Load combined indexes for elements and conditions
+        element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
+
+        # Combine element and condition IDs
+        combined_indexes = np.r_[element_ids, condition_ids]
+
+        # Separate element and condition indexes
+        element_mask = combined_indexes < number_of_elements
+        condition_mask = ~element_mask
+
+        # Extract unique element and condition indexes
+        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
+        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
+
+        # Convert to Python lists
+        unique_element_ids_list = unique_element_ids.astype(int).tolist()
+        unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
+
+        return unique_element_ids_list, unique_condition_ids_list
+
 
