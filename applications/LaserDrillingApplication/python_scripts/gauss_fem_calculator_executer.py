@@ -13,8 +13,9 @@ R_far = 1.0
 debug_mode = True
 n_evap_elements = n_elements
 H = 20
-lumped_option = True
+sparse_option = True
 number_of_triangles = 110
+random.seed(42)
 
 #delta_coefficients = np.array([0.5 * R_far * ((i+1)%2) * random.random() * i / n_evap_elements for i in range(2 * n_evap_elements)])
 #evap_element_centers = np.array([0.5 * R_far * ((i+1)%2) * random.random() * i / n_evap_elements for i in range(2 * n_evap_elements)])
@@ -31,8 +32,13 @@ elems_sides = R_far / len(evap_element_centers)
 evap_enthalpies = np.array([H * elems_sides * r for r in evap_element_centers])
 support_elements = [[] for i in range(n_elements+1)]
 
-projector = SurfaceFEMProjector(n_elements, R_far, lumped_option) #, delta_coefficients)
-projector.FillUpMassMatrix()
+projector = SurfaceFEMProjector(n_elements, R_far, sparse_option) #, delta_coefficients)
+
+if not sparse_option:
+    projector.FillUpMassMatrix()
+else:
+    projector.FillUpSparseMassMatrix()
+
 projector.AssignDeltasToTestFunctionSupports(evap_element_centers, support_elements)
 projector.FillUpDeltasRHS(evap_element_centers, support_elements, evap_enthalpies)
 u = projector.Project()
@@ -42,6 +48,7 @@ remaining_energy = q_interp - u
 q_eval = np.array([projector.EvaluateFEMFunction(remaining_energy, x) for x in evap_element_centers])
 
 total_energy = projector.CalculateEnergyOfFEMFunction(u)
+u_mean = np.mean(u)
 
 if debug_mode:
     #print('A =', projector.A)
@@ -49,9 +56,10 @@ if debug_mode:
     #print('r-coordinates =', evap_element_centers)
     print('total energy exp. =', sum(evap_enthalpies))
     print('total energy calc. =', total_energy)
+    print('u_mean =', u_mean)
     #print('radii: ', evap_element_centers)    
     #print('volumes: ', evap_enthalpies)
-    print('u: ', u)
+    #print('u: ', u)
     #print('check evaluation:', projector.EvaluateFEMFunction([2 for i in range(n_elements+1)], 1*R_far))
     '''def N_test(x):
         return projector.N(10, x)

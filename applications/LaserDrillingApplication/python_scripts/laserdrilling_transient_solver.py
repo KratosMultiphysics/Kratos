@@ -287,7 +287,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             if self.compute_vaporisation:
                 self.total_removed_energy = 0.0
                 self.first_evaporation_stage_done = False
-                self.max_vaporisation_layers = 2
+                self.max_vaporisation_layers = 1
                 self.vaporisation_layer_number = 1
                 self.some_elements_are_above_the_evap_temp = True
                 print("Removing elements by evaporation...")
@@ -370,10 +370,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.projector.FillUpDeltasRHS(self.evap_elements_centers_Y, self.support_elements, self.evap_elements_enthalpies)
         self.u = self.projector.Project()
 
-        #total_energy = self.projector.CalculateEnergyOfFEMFunction(self.u)
+        total_energy = self.projector.CalculateEnergyOfFEMFunction(self.u)
 
-        #print('Total energy expected =', sum(self.evap_elements_enthalpies))
-        #print('Total energy calculated =', total_energy)
+        print('Total energy expected =', sum(self.evap_elements_enthalpies))
+        print('Total energy calculated =', total_energy)
 
         #print("self.projector.A:", self.projector.A)
         #print("self.projector.b:", self.projector.b)

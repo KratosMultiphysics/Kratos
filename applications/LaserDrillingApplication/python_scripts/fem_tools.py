@@ -49,10 +49,20 @@ class SurfaceFEMProjector:
             return 0.0
 
     def EvaluateFEMFunction(self, nodal_values, x):
-        result = 0.0
-        for i, U in enumerate(nodal_values):
-            result += U * self.N(i, x)
-        return result        
+        if not self.sparse_option:
+            result = 0.0
+            for i, U in enumerate(nodal_values):
+                result += U * self.N(i, x)
+            return result
+        else:
+            X = self.X
+            i_val = 0
+            for i, _ in enumerate(X):
+                if x >= X[i] and x <= X[i+1]:
+                    i_val = i
+                    break
+            result = nodal_values[i_val] * self.N(i_val, x) + nodal_values[i_val+1] * self.N(i_val+1, x)
+            return result
 
     def FillUpMassMatrix(self):
         X = self.X
@@ -100,30 +110,20 @@ class SurfaceFEMProjector:
         A_diag = self.A_diag
         A_diag_bot = self.A_diag_bot
         A_diag_top = self.A_diag_top
-        NDesc = self.NDesc
-        NAsc = self.NAsc
 
-        x = symbols('x')
-        for i in range(0, n+1):
-            if i == 0:
-                integrand = NDesc(i, x)**2 * x
-                A_diag[i] = integrate(integrand, (x, X[0], X[1]))
-                integrand = NDesc(i, x) * NAsc(i+1, x) * x
-                A_diag_top[i] = integrate(integrand, (x, X[i], X[i+1]))
-                A_diag_bot[i] = A_diag_top[i]
-                A_diag[i] = 2 * np.pi * (A_diag[i] + A_diag_bot[i])
-            elif i < n:
-                integrand1 = NAsc(i, x)**2 * x
-                integrand2 = NDesc(i, x)**2 * x
-                A_diag[i] = integrate(integrand1, (x, X[i-1], X[i])) + integrate(integrand2, (x, X[i], X[i+1]))
-                integrand = NDesc(i, x) * NAsc(i+1, x) * x
-                A_diag_top[i] = integrate(integrand, (x, X[i], X[i+1]))
-                A_diag_bot[i] = A_diag_top[i]
-                A_diag[i] = 2 * np.pi * (A_diag[i] + A_diag_bot[i] + A_diag_top[i-1])
-            else:
-                integrand = NAsc(i, x)**2 * x
-                A_diag[i] = integrate(integrand, (x, X[n-1], X[n]))
-                A_diag[i] = 2 * np.pi * (A_diag[i] + A_diag_top[i-1])
+        A_diag[0] = (1.0 / (X[1]-X[0])**2) * (X[1]*X[1]*X[1]*X[1] * 0.083333333333333 - 0.5 * X[1]**2 * X[0]**2 - 0.25 * X[0]*X[0]*X[0]*X[0] + 0.66666666666666 * X[1] * X[0]*X[0]*X[0])
+        A_diag_top[0] = (1.0 / (X[1]-X[0])**2) * (0.083333333333333*X[1]*X[1]*X[1]*X[1] - 0.1666666666666667 * X[1]*X[1]*X[1]*X[0] + 0.166666666666666*X[1]*X[0]*X[0]*X[0] - 0.083333333333333*X[0]*X[0]*X[0]*X[0])
+        A_diag_bot[0] = A_diag_top[0]
+        A_diag[0] = 2 * np.pi * (A_diag[0] + A_diag_bot[0])
+        for i in range(1, n):
+            integrand1 = (1.0 / (X[i]-X[i-1])**2) * (0.25 * X[i]*X[i]*X[i]*X[i] + 0.5 * X[i-1]**2 * X[i]**2 - 0.66666666666666 * X[i-1]*X[i]*X[i]*X[i] - X[i-1]*X[i-1]*X[i-1]*X[i-1] * 0.083333333333333)
+            integrand2 = (1.0 / (X[i+1]-X[i])**2) * (X[i+1]*X[i+1]*X[i+1]*X[i+1] * 0.083333333333333 - 0.5 * X[i+1]**2 * X[i]**2 - 0.25 * X[i]*X[i]*X[i]*X[i] + 0.66666666666666 * X[i+1] * X[i]*X[i]*X[i])
+            A_diag[i] = integrand1 + integrand2
+            A_diag_top[i] = (1.0 / (X[i+1]-X[i])**2) * (0.083333333333333*X[i+1]*X[i+1]*X[i+1]*X[i+1] - 0.1666666666666667 * X[i+1]*X[i+1]*X[i+1]*X[i] + 0.166666666666666*X[i+1]*X[i]*X[i]*X[i] - 0.083333333333333*X[i]*X[i]*X[i]*X[i])
+            A_diag_bot[i] = A_diag_top[i]
+            A_diag[i] = 2 * np.pi * (A_diag[i] + A_diag_bot[i] + A_diag_top[i-1])
+        A_diag[n] = (1.0 / (X[n]-X[n-1])**2) * (0.25 * X[n]*X[n]*X[n]*X[n] + 0.5 * X[n-1]**2 * X[n]**2 - 0.66666666666666 * X[n-1]*X[n]*X[n]*X[n] - X[n-1]*X[n-1]*X[n-1]*X[n-1] * 0.083333333333333)
+        A_diag[n] = 2 * np.pi * (A_diag[n] + A_diag_top[n-1])
 
     def FillUpDeltasRHS(self, evap_element_centers, support_elements, evap_enthalpies):
         n = self.n_elements
@@ -201,8 +201,6 @@ class SurfaceFEMProjector:
             self.solution = np.linalg.solve(self.A, self.b)
         else:
             self.solution = self.b / self.A_diag
-            '''for k, b in enumerate(self.b):
-                self.solution[k] = b / self.A_diag[k]'''
         return self.solution 
 
     def q(self, r):
