@@ -18,9 +18,9 @@
 
 // Project includes
 #include "utilities/math_utils.h"
-#include "custom_constitutive/orthotropic_plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "orthotropic_plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #define OPTIMIZE_CHARACTERISTIC_LENGTH
