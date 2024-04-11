@@ -260,7 +260,7 @@ protected:
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
@@ -276,7 +276,8 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                            const ElementVariables& rVariables) const;
 
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 

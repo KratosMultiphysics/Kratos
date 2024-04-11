@@ -79,7 +79,7 @@
         }
     ],
     "algorithm_settings": {
-        "type": "algorithm_gradient_projection",
+        "type": "algorithm_relaxed_gradient_projection",
         "settings": {
             "echo_level": 0,
             "line_search": {
@@ -93,8 +93,7 @@
             },
             "linear_solver_settings": {
                 "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
-            },
-            "correction_size": 2e-2
+            }
         },
         "controls": [
             "thickness_control"
@@ -108,9 +107,7 @@
             {
                 "response_name": "strain_energy",
                 "type": "<=",
-                "scaling": 1.0,
-                "scaled_ref_value": "initial_value",
-                "violation_scaling"   : 5.0
+                "scaled_ref_value": "initial_value"
             }
         ]
     },

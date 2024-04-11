@@ -56,8 +56,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    SteadyStatePwPipingElement(IndexType NewId = 0)
+    explicit SteadyStatePwPipingElement(IndexType NewId = 0)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -87,8 +86,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwPipingElement() override {}
+    ~SteadyStatePwPipingElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
