@@ -36,7 +36,7 @@ namespace Testing
 /**
 * Check the correct calculation of the CL utilities principal stress
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosConstitutiveLawsFastSuite)
 {
     array_1d<double, 6> stress_vector;
     array_1d<double, 3> principal_stress_vector;
@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosStruc
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosConstitutiveLawsFastSuite)
 {
     // Declaration of Cauchy tensor and strain vector
     Matrix C = ZeroMatrix(3, 3);
@@ -105,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosConstitutiveLawsFastSuite)
 {
     // Declaration of Cauchy tensor and strain vector
     Matrix C = ZeroMatrix(3, 3);
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructu
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosConstitutiveLawsFastSuite)
 {
     // Declaration of Cauchy tensor and strain vector
     Matrix F = ZeroMatrix(3, 3);
@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
 /**
 * Check the correct calculation of the CL utilities Hencky and Biot strains
 */
-KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosConstitutiveLawsFastSuite)
 {
     // Model part
     Model current_model;
