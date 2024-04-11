@@ -212,10 +212,7 @@ class RomManager(object):
 
 
     def PrintErrors(self):
-        #TODO load respective snapshots matrices from the data base and compute the errors
-        #self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
-
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        #chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
@@ -340,34 +337,50 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        RedidualsSnapshotsMatrix = []
+        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
+        tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
+        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        simulation = None
         for mu in mu_train:
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreNoResults(parameters_copy)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            RedidualsSnapshotsMatrix.append(simulation.GetHROM_utility()._GetResidualsProjectedMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
-        RedidualsSnapshotsMatrix = np.block(RedidualsSnapshotsMatrix)
-        if store_residuals_projected:
-            self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
-        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-        self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
-        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = simulation.GetHROM_utility().candidate_ids)
-        simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
-        if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
-            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
-            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-            simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
-            simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
-        simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
-        simulation.GetHROM_utility().CreateHRomModelParts()
+            mu_dict = self.FOM_make_mu_dictionary(mu)
+            serialized_mu = self.serialize_mu(mu_dict)
+            in_database, hash_mu = self.check_if_res_already_in_database(serialized_mu, tol_sol, tol_res, projection_type)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreNoResults(parameters_copy)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
+                file_path = self.save_as_npy(ResidualProjected, hash_mu)
+                self.add_ResidualProjected_to_database(serialized_mu, hash_mu, tol_sol, tol_res, projection_type)
+                print(f"Simulation saved to {file_path}")
+            else:
+                print("Simulation for given parameters already in database.")
 
+        self.generate_database_summary_file()
+
+        if True: #TODO implement the check on the elements and weights
+            RedidualsSnapshotsMatrix = self.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
+            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
+            self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
+            if simulation is None:
+                simulation = self.InitializeDummySimulationForHromTrainingUtility()
+            simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = simulation.GetHROM_utility().candidate_ids)
+            simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
+            if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
+                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
+                #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+                simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
+                simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
+            simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
+            simulation.GetHROM_utility().CreateHRomModelParts()
+        else:
+            pass
 
     def __LaunchHROM(self, mu_train):
         """
@@ -567,6 +580,19 @@ class RomManager(object):
             if isinstance(process, CalculateRomBasisOutputProcess):
                 BasisOutputProcess = process
         return BasisOutputProcess
+
+
+    def InitializeDummySimulationForHromTrainingUtility(self):
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        parameters = self._AddBasisCreationToProjectParameters(parameters)
+        parameters = self._StoreNoResults(parameters)
+        model = KratosMultiphysics.Model()
+        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation.Initialize()
+        return simulation
+
 
 
     def _AddHromParametersToRomParameters(self,f):
@@ -916,6 +942,8 @@ class RomManager(object):
                             (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                              (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+            "ResidualsProjected": '''CREATE TABLE IF NOT EXISTS ResidualsProjected
+                            (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "Conditions": '''CREATE TABLE IF NOT EXISTS Conditions
                              (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
             "ConditionsWeights": '''CREATE TABLE IF NOT EXISTS ConditionsWeights
@@ -958,6 +986,13 @@ class RomManager(object):
         # Generate the hash of the combined string including both tolerance values
         return hashlib.sha256(mu_str.encode()).hexdigest()
 
+    def hash_parameters_with_tol_2_tols_and_string(self, mu, tol, tol2, projection):
+        # Convert the parameters list to a string and encode
+        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}_" +  projection # Convert both tol and tol2 to strings with consistent formatting
+        # Generate the hash of the combined string including both tolerance values
+        return hashlib.sha256(mu_str.encode()).hexdigest()
+
+
     def check_if_mu_already_in_database(self, mu):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -983,6 +1018,16 @@ class RomManager(object):
         cursor = conn.cursor()
         hash_mu = self.hash_parameters_with_tol_2_tols(mu, tol_sol, tol_res)
         cursor.execute('SELECT COUNT(*) FROM HROM WHERE file_name = ?', (hash_mu,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0, hash_mu
+
+
+    def check_if_res_already_in_database(self, mu, tol_sol, tol_res, projection_type):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        hash_mu = self.hash_parameters_with_tol_2_tols_and_string(mu, tol_sol, tol_res, projection_type)
+        cursor.execute('SELECT COUNT(*) FROM ResidualsProjected WHERE file_name = ?', (hash_mu,))
         count = cursor.fetchone()[0]
         conn.close()
         return count > 0, hash_mu
@@ -1018,6 +1063,15 @@ class RomManager(object):
         conn.close()
 
 
+    def add_ResidualProjected_to_database(self, parameters, file_name, tol_sol, tol_res, type_of_projection):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        parameters_str = self.serialize_mu(parameters)
+        cursor.execute('INSERT INTO ResidualsProjected (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
+                       (parameters_str, type_of_projection, tol_sol, tol_res, file_name))
+        conn.commit()
+        conn.close()
+
     def serialize_mu(self, parameters):
         return json.dumps(parameters)
 
@@ -1032,7 +1086,7 @@ class RomManager(object):
 
 
     def generate_database_summary_file(self):
-        table_names = ["FOM", "ROM", "HROM", "HHROM","LeftBasis", "RightBasis", "Conditions","ConditionsWeights", "Elements", "ElementsWeights"]
+        table_names = ["FOM", "ROM", "HROM", "HHROM","LeftBasis", "RightBasis", "ResidualsProjected","Conditions","ConditionsWeights", "Elements", "ElementsWeights"]
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name)
         directory.mkdir(parents=True, exist_ok=True)
@@ -1058,6 +1112,25 @@ class RomManager(object):
                     # Write each row to the file
                     for tol_sol, file_name in rows:
                         f.write(f"{tol_sol} | {file_name}\n")
+
+                elif table_name =="ResidualsProjected":
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT parameters, tol_sol, tol_res, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+
+                    if rows:
+                        # Assuming the first row's parameters to figure out the headers
+                        sample_params = json.loads(json.loads(rows[0][0]))
+                        headers = list(sample_params.keys())
+                        f.write(" | ".join(headers) + " |   tol_sol   |  tol_res  |   Projection type  |   File Name (Hash)\n")
+                        f.write("-" * ((len(headers)+4) * 15) + "\n")
+                        # Write each row to the file
+                        for parameters, tol_sol, tol_res, type_of_projection, file_name in rows:
+                            params_dict = json.loads(json.loads(parameters))
+                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
+                            f.write(f"{params_str} | {tol_sol} | {tol_res} | {type_of_projection} | {file_name}\n")
+                    else:
+                        f.write("No data available.\n")
 
                 else:
 
@@ -1108,6 +1181,7 @@ class RomManager(object):
         cursor = conn.cursor()
         tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
         tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
+        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
         for mu in mu_list_unique:
             serialized_mu = self.serialize_mu(self.FOM_make_mu_dictionary(mu))
             if table_name == 'FOM':
@@ -1116,6 +1190,8 @@ class RomManager(object):
                 hash_mu = self.hash_parameters_with_tol(serialized_mu, tol_sol)
             elif table_name == 'HROM':
                 hash_mu = self.hash_parameters_with_tol_2_tols(serialized_mu, tol_sol, tol_res)
+            elif table_name == 'ResidualsProjected':
+                hash_mu = self.hash_parameters_with_tol_2_tols_and_string(serialized_mu, tol_sol, tol_res, projection_type)
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
             result = cursor.fetchone()
 
