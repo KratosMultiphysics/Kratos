@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <cstddef>
 #include <string>
 #include <iostream>
 
@@ -60,6 +61,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<std::size_t TDim>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShiftedBoundaryWallCondition : public Condition
 {
 public:
@@ -69,11 +71,8 @@ public:
     /// Pointer definition of ShiftedBoundaryWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShiftedBoundaryWallCondition);
 
-    /*typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel...> BaseType;
-
-    using BaseType::LocalSize;
-
-    typedef typename BaseType::ConditionDataStruct ConditionDataStruct;
+    static constexpr std::size_t VoigtSize = 3 * (TDim-1);
+    static constexpr std::size_t BlockSize = TDim + 1;
 
     typedef Node NodeType;
 
@@ -91,7 +90,7 @@ public:
 
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;*/
+    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -346,13 +345,15 @@ private:
 ///@{
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream, ShiftedBoundaryWallCondition& rThis)
+template< std::size_t TDim>
+inline std::istream& operator >> (std::istream& rIStream, ShiftedBoundaryWallCondition<TDim>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, const ShiftedBoundaryWallCondition& rThis)
+template< std::size_t TDim>
+inline std::ostream& operator << (std::ostream& rOStream, const ShiftedBoundaryWallCondition<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
