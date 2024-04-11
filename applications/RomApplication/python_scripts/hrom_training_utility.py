@@ -224,7 +224,8 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         if self.hrom_output_format == "numpy":
-            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+            #hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+            element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -234,7 +235,10 @@ class HRomTrainingUtility(object):
         if (self.projection_strategy=="lspg"):
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+            if self.hrom_output_format == "numpy":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
+            elif self.hrom_output_format == "json":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
