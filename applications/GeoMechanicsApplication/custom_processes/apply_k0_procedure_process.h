@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "processes/process.h"
 #include "includes/kratos_parameters.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
@@ -32,14 +32,14 @@ public:
     void ExecuteInitialize() override;
     void ExecuteFinalize() override;
 
-    void ExecuteFinalizeSolutionStep() override;
+    void        ExecuteFinalizeSolutionStep() override;
     std::string Info() const override;
 
 private:
     [[nodiscard]] bool UseStandardProcedure() const;
-    void CalculateK0Stresses(Element& rElement);
+    void               CalculateK0Stresses(Element& rElement);
 
-    ModelPart& mrModelPart;
+    ModelPart&       mrModelPart;
     const Parameters mSettings;
 };
 

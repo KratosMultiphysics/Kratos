@@ -117,8 +117,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~UPwUpdatedLagrangianElement() override {}
+    ~UPwUpdatedLagrangianElement() = default;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
