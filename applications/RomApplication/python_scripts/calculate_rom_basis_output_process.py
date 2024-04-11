@@ -109,10 +109,10 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         # Save the data in the snapshots data list
         aux_data_array = []
-        for node in self.model_part.Nodes:
-            for snapshot_var in self.snapshot_variables_list:
-                aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
-        self.snapshots_data_list.append(aux_data_array)
+        for snapshot_var in self.snapshot_variables_list:
+            aux_data_array.append( numpy.array(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self.model_part.Nodes, snapshot_var, 0), copy=False ))
+        self.snapshots_data_list.append(numpy.stack(aux_data_array, axis=1).reshape(-1,1))
+
 
         # Schedule next snapshot output
         if self.snapshots_interval > 0.0: # Note: if == 0, we'll just always print
@@ -127,11 +127,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def _GetSnapshotsMatrix(self):
-        snapshots_matrix = numpy.empty((self.n_nodal_unknowns*self.n_nodes,self.n_data_cols))
-        for i_col in range(self.n_data_cols):
-            aux_col = numpy.array(self.snapshots_data_list[i_col])
-            snapshots_matrix[:,i_col] = aux_col.transpose()
-        return snapshots_matrix
+        return numpy.block(self.snapshots_data_list)
 
 
     def _PrintRomBasis(self, snapshots_matrix):
