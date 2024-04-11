@@ -76,7 +76,8 @@ class WaterDrainResponseFunction(ResponseFunctionInterface):
                 "input_type"        : "use_input_model_part",
                 "input_filename"    : "UNKNOWN_NAME"
             },
-            "gravity_direction": [0.0, 0.0, 1.0]
+            "gravity_direction": [0.0, 0.0, 1.0],
+            "max_iterations_volume_search": 1000
         }""")
         return this_defaults
 

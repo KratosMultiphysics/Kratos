@@ -27,6 +27,8 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "custom_utilities/geometry_utilities.h"
+
 
 // ==============================================================================
 
@@ -52,11 +54,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+typedef Node NodeType;
+typedef NodeType::Pointer NodeTypePointer;
+typedef std::vector<NodeType::Pointer> NodeVector;
+typedef ModelPart::NodesContainerType NodesArrayType;
+
 struct Volume {
-	double mValue;
-	std::vector<Node> mListOfNodes;
-	Node& mrHighestNode;
-	Node& mrLowestNode;
+	double mValue = 0.0;
+	NodesArrayType mListOfNodes;
+	NodesArrayType mNeigbhourNodes;
+	Vector mHighestPoint;
+	Vector mLowestPoint;
+	bool isGrowing = true;
+	bool isMerged = false;
 };
 
 /// Short class definition.
@@ -136,6 +146,14 @@ private:
 
 	void SearchWaterVolumes();
 
+	void GrowVolume(Volume& rVolume);
+
+	void GrowVolumeV2(Volume& rVolume);
+
+	void MergeVolumes();
+
+	void MergeTwoVolumes(Volume& rVolume1, Volume& rVolume2);
+
 	void SearchLowPoints();
 
 	double CalculateConditionValue(const Condition& rFace);
@@ -149,8 +167,10 @@ private:
 	///@{
 
 	ModelPart &mrModelPart;
+	GeometryUtilities mGeometryUtilities;
 	double mDelta;
-	array_3d mGravityDirection;
+	Vector mGravityDirection;
+	int mMaxIterations;
 	double mValue;
 	std::vector<Volume> mListOfVolumes;
 

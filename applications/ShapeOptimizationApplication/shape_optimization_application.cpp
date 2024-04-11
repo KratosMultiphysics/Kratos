@@ -103,8 +103,11 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
 
-        // For face angle response
+    // For face angle response
     KRATOS_CREATE_VARIABLE(bool, CONSIDER_FACE_ANGLE);
+
+    // For water drain response
+    KRATOS_CREATE_VARIABLE(double, WATER_HEIGHT);
 
 	// For sensitivity heatmap
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(HEATMAP_DF1DX);
@@ -240,6 +243,9 @@ namespace Kratos
 
         // For face angle response
         KRATOS_REGISTER_VARIABLE(CONSIDER_FACE_ANGLE);
+
+        // For water drain response
+        KRATOS_REGISTER_VARIABLE(WATER_HEIGHT);
 
 	    // For sensitivity heatmap
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(HEATMAP_DF1DX);
