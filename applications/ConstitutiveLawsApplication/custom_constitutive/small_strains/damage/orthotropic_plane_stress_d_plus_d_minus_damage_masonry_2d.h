@@ -76,7 +76,7 @@ public:
 	/**
 	* @brief returns the size of the strain vector of the current constitutive law
 	*/
-	SizeType GetStrainSize() override 
+	SizeType GetStrainSize() const override 
 	{
 		return VoigtSize;
 	};
@@ -413,7 +413,7 @@ public:
 	int Check(
 		const Properties& rMaterialProperties,
 		const GeometryType& rElementGeometry,
-		const ProcessInfo& rCurrentProcessInfo) override;
+		const ProcessInfo& rCurrentProcessInfo) const override;
 
 
 	void CalculateMaterialResponse(const Vector& StrainVector,
@@ -426,7 +426,7 @@ public:
 		const Vector& rShapeFunctionsValues,
 		bool CalculateStresses = true,
 		int CalculateTangent = true,
-		bool SaveInternalVariables = true) override;
+		bool SaveInternalVariables = true);
 
 protected:
 
