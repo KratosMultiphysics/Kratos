@@ -79,7 +79,7 @@ class KratosMedFastSuite : public KratosCoreFastSuite {};
 class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosMeshingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosRansFastSuite : public KratosCoreFastSuite {};
-class KratosRomFastSuite : public KratosCoreFastSuite {};
+class RomApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosStatisticsFastSuite : public KratosCoreFastSuite {};
 class KratosWindEngineeringFastSuite : public KratosCoreFastSuite {};
