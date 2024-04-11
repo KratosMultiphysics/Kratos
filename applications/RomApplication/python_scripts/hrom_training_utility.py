@@ -105,6 +105,12 @@ class HRomTrainingUtility(object):
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
 
+        # Retrieve the svd_type from settings and validate it
+        self.svd_type = settings["svd_type"].GetString()
+        # Check if the svd_type is either 'rsvd' or 'numpy'
+        if self.svd_type not in ["rsvd", "numpy"]:
+            raise Exception(f"Unsupported SVD type specified: {self.svd_type}. Available options are 'rsvd' or 'numpy'.")
+
     def _setup_mappings(self, root_model_part, number_of_elements):
         self.element_id_to_numpy_index_mapping = {}
         self.numpy_index_to_element_id_mapping = {}
@@ -289,15 +295,26 @@ class HRomTrainingUtility(object):
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": false,
-            "constraint_sum_weights": true
+            "constraint_sum_weights": true,
+            "svd_type": "rsvd"
         }""")
         return default_settings
 
     def __CalculateResidualBasis(self):
-        # Calculate the randomized and truncated SVD of the residual snapshots #TODO add other SVD options
-        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-            self._GetResidualsProjectedMatrix(),
-            self.element_selection_svd_truncation_tolerance)
+        if self.svd_type == "rsvd":
+            # Calculate the randomized and truncated SVD of the residual snapshots #TODO add other SVD options
+            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+                self._GetResidualsProjectedMatrix(),
+                self.element_selection_svd_truncation_tolerance)
+        elif self.svd_type == "numpy":
+            # Use NumPy's SVD and manually truncate based on the truncation tolerance
+            u, s, _ = np.linalg.svd(self._GetResidualsProjectedMatrix(), full_matrices=False)
+            # Calculate total energy and identify truncation point
+            total_energy = np.sum(s**2)
+            cumulative_energy = np.cumsum(s**2)
+            r = np.searchsorted(cumulative_energy, total_energy * (1 - self.element_selection_svd_truncation_tolerance))
+            # Truncate the singular vectors accordingly
+            u = u[:, :r+1]
 
         return u
 
