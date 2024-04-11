@@ -92,8 +92,9 @@ namespace Kratos
 
             const double tolerance = 1.0e-4;
             for (auto& i_node : r_model_part.Nodes())
-                if (i_node.X() < 0.001 || i_node.X() > 1.9999)
+                if (i_node.X() < 0.001 || i_node.X() > 1.9999) {
                     KRATOS_EXPECT_LE(i_node.GetValue(NODAL_H) - 1.0, tolerance);
+                }
 
             for (auto& i_elem : r_model_part.Elements())
                 KRATOS_EXPECT_TRUE(i_elem.Is(ACTIVE));
