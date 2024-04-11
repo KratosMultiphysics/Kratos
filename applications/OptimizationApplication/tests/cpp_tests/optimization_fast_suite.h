@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "mpm_application.h"
+#include "optimization_application.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing {

@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "fluid_dynamics_biomecanical_application.h"
+#include "fluid_dynamics_biomedical_application.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing {

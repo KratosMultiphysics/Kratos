@@ -16,7 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "charp_wrapper_application.h"
+#include "csharp_wrapper_application.h"
 
 int main(int argc, char* argv[]) 
 {
@@ -32,5 +32,3 @@ int main(int argc, char* argv[])
 
     return RUN_ALL_TESTS();
 }
-
-} // namespace Kratos::Testing

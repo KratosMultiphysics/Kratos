@@ -16,15 +16,15 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "fluid_dynamics_biomecanical_application.h"
+#include "fluid_dynamics_biomedical_application.h"
 
 int main(int argc, char* argv[]) 
 {
     ::testing::InitGoogleTest(&argc, argv);
 
     Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("FluidDynamicsBiomecanicalApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosFluidDynamicsBiomecanicalApplication>();
+      if (!rKernel.IsImported("FluidDynamicsBiomedicalApplication")) {
+        auto pApplication = std::make_shared<Kratos::KratosFluidDynamicsBiomedicalApplication>();
         rKernel.ImportApplication(pApplication);
         rRegisteredApplications.push_back(std::move(pApplication));
       }
@@ -32,5 +32,3 @@ int main(int argc, char* argv[])
 
     return RUN_ALL_TESTS();
 }
-
-} // namespace Kratos::Testing

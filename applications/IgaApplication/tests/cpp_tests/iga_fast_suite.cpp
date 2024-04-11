@@ -16,7 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "fsi_application.h"
+#include "iga_application.h"
 
 int main(int argc, char* argv[]) 
 {

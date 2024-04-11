@@ -74,6 +74,7 @@ class ExaquteSandboxApplicationFastSuite : public KratosCoreFastSuite {};
 class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {};
 class FSIApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosIgaFastSuite : public KratosCoreFastSuite {};
+class KratosIgaFast5PSuite : public KratosCoreFastSuite {};
 class KratosMappingApplicationSerialTestSuite : public KratosCoreFastSuite {};
 class KratosMedFastSuite : public KratosCoreFastSuite {};
 class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
@@ -85,7 +86,11 @@ class KratosStatisticsFastSuite : public KratosCoreFastSuite {};
 class KratosWindEngineeringFastSuite : public KratosCoreFastSuite {};
 class KratosMPMFastSuite : public KratosCoreFastSuite {};
 class KratosHDF5TestSuite : public KratosCoreFastSuite {};
+class ShallowWaterApplicationFastSuite : public KratosCoreFastSuite {};
+
+// TODO: those should be in its own mpi suite
 class KratosMappingApplicationMPITestSuite : public KratosCoreFastSuite {};
+class KratosCosimulationMPIFastSuite : public KratosCoreFastSuite {};
 
 KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
 
