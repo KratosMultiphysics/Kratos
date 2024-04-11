@@ -8,13 +8,17 @@ class RomDatabase(object):
 
     def __init__(self, general_rom_manager_parameters, rom_training_parameters, hrom_training_parameters, mu_names):
         self.database_name = "rom_database_sqlite3.db" #TODO This should be made user-defined. Use the same for FOM ROM HROM HHROM??
+
+
         self.mu_names = mu_names
+        # A single list with the name of each parameter to be used (for reference) in the database, e.g. ["alpha", "permeability", "mach"].
+        # self.mu_names are expected to match the position and the number of inputs in the lists mu_train, mu_test, mu_run
+
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.rom_training_parameters = rom_training_parameters
         self.hrom_training_parameters = hrom_training_parameters
         self.set_up_or_get_data_base()
-        # A single list with the name of each parameter to be used (for reference) in the database, e.g. ["alpha", "permeability", "mach"].
-        # self.mu_names are expected to match the position and the number of inputs in the lists mu_train, mu_test, mu_run
+
 
 
     def set_up_or_get_data_base(self):
@@ -129,6 +133,9 @@ class RomDatabase(object):
         conn.close()
         return count > 0, hash_mu
 
+
+    def check_if_hrom_elems_and_weights_already_in_database(self, *args):#TODO implement the check on the elements and weights
+        return False
 
 
     def add_FOM_to_database(self, parameters, file_name):

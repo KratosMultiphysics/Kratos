@@ -359,7 +359,9 @@ class RomManager(object):
 
         self.data_base.generate_database_summary_file()
 
-        if True: #TODO implement the check on the elements and weights
+        in_database =  self.data_base.check_if_hrom_elems_and_weights_already_in_database(mu_train, tol_sol,tol_res, projection_type)
+
+        if not in_database:
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
             self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
@@ -376,6 +378,7 @@ class RomManager(object):
             simulation.GetHROM_utility().CreateHRomModelParts()
         else:
             pass
+            #TODO make sure correct file is available for the simulations
 
     def __LaunchHROM(self, mu_train):
         """
