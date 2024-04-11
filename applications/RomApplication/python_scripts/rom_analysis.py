@@ -50,7 +50,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.rom_basis_output_process_check = True
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
-            self.rom_manager = self.rom_parameters["rom_manager"].GetBool()
+            self.rom_manager = self.rom_parameters["rom_manager"].GetBool() if self.rom_parameters.Has("rom_manager") else False
             if self.run_hrom and self.train_hrom:
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
