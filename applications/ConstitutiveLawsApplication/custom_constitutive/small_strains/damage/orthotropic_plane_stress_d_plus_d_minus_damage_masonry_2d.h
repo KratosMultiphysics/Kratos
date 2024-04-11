@@ -27,7 +27,7 @@ namespace Kratos
 * @class OrthotropicDamageDPlusDMinusMasonry2DLaw 
 * @ingroup StructuralMechanicsApplication
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) OrthotropicDamageDPlusDMinusMasonry2DLaw 
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) OrthotropicDamageDPlusDMinusMasonry2DLaw 
 	: public ConstitutiveLaw
 {
 public:
