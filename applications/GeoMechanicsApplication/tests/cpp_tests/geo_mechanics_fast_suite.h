@@ -20,24 +20,27 @@
 namespace Kratos::Testing
 {
 
-class KratosGeoMechanicsFastSuite : public KratosCoreFastSuite
-{
-public:
-    KratosGeoMechanicsFastSuite();
+// class KratosGeoMechanicsFastSuite : public KratosCoreFastSuite
+// {
+// public:
+//     KratosGeoMechanicsFastSuite();
 
-private:
-    KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    KratosLinearSolversApplication::Pointer mpLinearSolversApp;
-};
+// private:
+//     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+//     KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+// };
 
-class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
-{
-public:
-    KratosGeoMechanicsIntegrationSuite();
+// class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite
+// {
+// public:
+//     KratosGeoMechanicsIntegrationSuite();
 
-private:
-    KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    KratosLinearSolversApplication::Pointer mpLinearSolversApp;
-};
+// private:
+//     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+//     KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+// };
+
+class KratosGeoMechanicsFastSuite : public KratosCoreFastSuite {};
+class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite {};
 
 } // namespace Kratos::Testing

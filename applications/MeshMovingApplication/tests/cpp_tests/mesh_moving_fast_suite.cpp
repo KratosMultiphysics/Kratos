@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Richard Faasse
-//                   Carlos A. Roig
 //
 
 // External includes
@@ -17,15 +16,15 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "fluid_dynamics_application.h"
+#include "mesh_moving_application.h"
 
 int main(int argc, char* argv[]) 
 {
     ::testing::InitGoogleTest(&argc, argv);
 
     Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("FluidDynamicsApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosFluidDynamicsApplication>();
+      if (!rKernel.IsImported("MeshMovingApplication")) {
+        auto pApplication = std::make_shared<Kratos::KratosMeshMovingApplication>();
         rKernel.ImportApplication(pApplication);
         rRegisteredApplications.push_back(std::move(pApplication));
       }

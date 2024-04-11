@@ -12,18 +12,11 @@
 
 #pragma once
 
-#include "fluid_dynamics_application.h"
+#include "metis_application.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing {
 
-class KratosFluidDynamicsFastSuite : public KratosCoreFastSuite {
-public:
-  KratosFluidDynamicsFastSuite();
-
-private:
-  KratosFluidDynamicsApplication::Pointer mpFluidDynamicsApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
-};
+class KratosMetisFastSuite : public KratosCoreFastSuite {};
 
 } // namespace Kratos::Testing

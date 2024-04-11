@@ -47,10 +47,6 @@ pybind11_add_module( KratosFluidDynamicsApplication MODULE THIN_LTO ${KRATOS_FLU
 target_link_libraries( KratosFluidDynamicsApplication PRIVATE KratosFluidDynamicsCore)
 set_target_properties( KratosFluidDynamicsApplication PROPERTIES PREFIX "")
 
-## FluidDynamicsApplication testing
-add_executable( KratosFluidDynamicsTests ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES})
-target_link_libraries( KratosFluidDynamicsTests KratosFluidDynamicsCore GTest::gtest_main GTest::gmock_main)
-
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosFluidDynamicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})

@@ -10,15 +10,13 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "structural_mechanics_fast_suite.h"
+#pragma once
+
+#include "mpm_application.h"
+#include "testing/testing.h"
 
 namespace Kratos::Testing {
-KratosStructuralMechanicsFastSuite::KratosStructuralMechanicsFastSuite()
-    : KratosCoreFastSuite() {
-  if (!this->mKernel.IsImported("StructuralMechanicsApplication")) {
-    mpStructuralApp = std::make_shared<KratosStructuralMechanicsApplication>();
-    this->mKernel.ImportApplication(mpStructuralApp);
-  }
-}
+
+class KratosOptimizationFastSuite : public KratosCoreFastSuite {};
 
 } // namespace Kratos::Testing

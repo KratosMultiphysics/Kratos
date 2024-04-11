@@ -18,7 +18,7 @@
 
 
 // Project includes
-#include "testing/testing.h"
+#include "tests/cpp_tests/metis_fast_suite.h"
 #include "custom_utilities/legacy_partitioning_utilities.h"
 
 

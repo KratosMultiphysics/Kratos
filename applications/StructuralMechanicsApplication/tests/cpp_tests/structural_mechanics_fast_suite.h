@@ -16,13 +16,6 @@
 
 namespace Kratos::Testing {
 
-class KratosStructuralMechanicsFastSuite : public KratosCoreFastSuite {
-public:
-  KratosStructuralMechanicsFastSuite();
-
-private:
-  KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
-};
+class KratosStructuralMechanicsFastSuite : public KratosCoreFastSuite {};
 
 } // namespace Kratos::Testing

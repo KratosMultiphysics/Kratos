@@ -26,8 +26,12 @@
 
 namespace Kratos
 {
+
+std::vector<std::function<void(std::vector<KratosApplication::Pointer> &, Kratos::Kernel &)>> Testing::mApplicationInitializerList{};
+
 namespace CppTestsUtilities
 {
+
 void Create2DGeometry(
     ModelPart& rModelPart,
     const std::string& rEntityName,

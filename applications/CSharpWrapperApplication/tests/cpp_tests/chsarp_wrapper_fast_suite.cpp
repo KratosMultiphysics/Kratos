@@ -10,15 +10,27 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "chsarp_wrapper_fast_suite.h"
+// External includes
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-namespace Kratos::Testing {
-KratosCSharpWrapperFastSuite::KratosCSharpWrapperFastSuite()
-    : KratosCoreFastSuite() {
-  if (!this->mKernel.IsImported("CSharpWrapperApplication")) {
-    mpStructuralApp = std::make_shared<KratosCSharpWrapperApplication>();
-    this->mKernel.ImportApplication(mpStructuralApp);
-  }
+// Project includes
+#include "testing/testing.h"
+#include "charp_wrapper_application.h"
+
+int main(int argc, char* argv[]) 
+{
+    ::testing::InitGoogleTest(&argc, argv);
+
+    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
+      if (!rKernel.IsImported("CSharpWrapperApplication")) {
+        auto pApplication = std::make_shared<Kratos::KratosCSharpWrapperApplication>();
+        rKernel.ImportApplication(pApplication);
+        rRegisteredApplications.push_back(std::move(pApplication));
+      }
+    });
+
+    return RUN_ALL_TESTS();
 }
 
 } // namespace Kratos::Testing

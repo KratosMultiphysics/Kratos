@@ -10,15 +10,25 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "wind_engineering_fast_suite.h"
+// External includes
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-namespace Kratos::Testing {
-KratosWindEngineeringsFastSuite::KratosWindEngineeringFastSuite()
-    : KratosCoreFastSuite() {
-  if (!this->mKernel.IsImported("WindEngineeringApplication")) {
-    mpWindEngineeringApp = std::make_shared<KratosWindEngineeringsApplication>();
-    this->mKernel.ImportApplication(mpWindEngineeringApp);
-  }
+// Project includes
+#include "testing/testing.h"
+#include "wind_engineering_application.h"
+
+int main(int argc, char* argv[]) 
+{
+    ::testing::InitGoogleTest(&argc, argv);
+
+    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
+      if (!rKernel.IsImported("WindEngineeringApplication")) {
+        auto pApplication = std::make_shared<Kratos::KratosWindEngineeringApplication>();
+        rKernel.ImportApplication(pApplication);
+        rRegisteredApplications.push_back(std::move(pApplication));
+      }
+    });
+
+    return RUN_ALL_TESTS();
 }
-
-} // namespace Kratos::Testing

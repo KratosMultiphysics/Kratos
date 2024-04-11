@@ -10,15 +10,25 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "convection_diffusion_fast_suite.h"
+// External includes
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-namespace Kratos::Testing {
-KratosConvectionDiffusionFastSuite::KratosConvectionDiffusionFastSuite()
-    : KratosCoreFastSuite() {
-  if (!this->mKernel.IsImported("ConvectionDiffusionApplication")) {
-    mpConvectionDiffusionApp = std::make_shared<KratosConvectionDiffusionApplication>();
-    this->mKernel.ImportApplication(mpConvectionDiffusionApp);
-  }
+// Project includes
+#include "testing/testing.h"
+#include "convection_diffusion_application.h"
+
+int main(int argc, char* argv[]) 
+{
+    ::testing::InitGoogleTest(&argc, argv);
+
+    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
+      if (!rKernel.IsImported("ConvectionDiffusionApplication")) {
+        auto pApplication = std::make_shared<Kratos::KratosConvectionDiffusionApplication>();
+        rKernel.ImportApplication(pApplication);
+        rRegisteredApplications.push_back(std::move(pApplication));
+      }
+    });
+
+    return RUN_ALL_TESTS();
 }
-
-} // namespace Kratos::Testing

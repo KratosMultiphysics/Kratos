@@ -12,11 +12,11 @@
 
 #pragma once
 
-#include "trilinos_application.h"
-#include "mpi/testing/mpi_testing.h"
+#include "mpm_application.h"
+#include "testing/testing.h"
 
 namespace Kratos::Testing {
 
-class KratosTrilinosApplicationMPITestSuite : public KratosMPICoreFastSuite {};
+class KratosMPMFastSuite : public KratosCoreFastSuite {};
 
 } // namespace Kratos::Testing
