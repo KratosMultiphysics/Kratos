@@ -8,8 +8,7 @@ include_directories(
 
 file(
   GLOB_RECURSE
-  KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+  KRATOS_MAPPING_MPI_EXTENSION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
@@ -17,14 +16,24 @@ file(
 ## define test sources (cpp tests)
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB KRATOS_MAPPING_MPI_EXTENSION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cpp_tests/*.cpp)
-  kratos_add_gtests(TARGET KratosMappingMPIExtension SOURCES "${KRATOS_MAPPING_MPI_EXTENSION_TESTING_SOURCES}" USE_MPI)
+  kratos_add_gtests(TARGET KratosMappingMPICore SOURCES "${KRATOS_MAPPING_MPI_EXTENSION_TESTING_SOURCES}" USE_MPI)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+file(
+  GLOB_RECURSE
+  KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
+)
+
+add_library(KratosMappingMPICore SHARED ${KRATOS_MAPPING_APPLICATION_CORE})
+target_link_libraries(KratosMappingMPICore PUBLIC KratosMPICore )
+set_target_properties(KratosMappingMPICore PROPERTIES COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
 
 ## Python module
 pybind11_add_module( KratosMappingMPIExtension MODULE THIN_LTO ${KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
 target_include_directories(KratosMappingMPIExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
-target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingCore KratosTrilinosCore KratosMPICore )
+target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingMPICore KratosTrilinosCore )
 set_target_properties( KratosMappingMPIExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -44,10 +53,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingMPICore" PARENT_SCOPE)
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingMPIExtension" PARENT_SCOPE)
 
 ###############################################################################
 ## installing the resulting libraries
+install(TARGETS KratosMappingMPICore DESTINATION libs )
 install(TARGETS KratosMappingMPIExtension DESTINATION libs )
 
 ###############################################################################

@@ -36,6 +36,17 @@ bool PointWithId::operator<(const PointWithId& rOther) const
     return mDistance < rOther.mDistance;
 }
 
+bool PointWithId::operator!=(const PointWithId& rOther) const
+{
+    if (Point::operator==(rOther)) return false;
+    return mDistance < rOther.mDistance || mDistance > rOther.mDistance;
+}
+
+bool PointWithId::operator==(const PointWithId& rOther) const
+{
+    return (Point::operator==(rOther));
+}
+
 void PointWithId::save(Serializer &rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);

@@ -76,6 +76,7 @@ class FSIApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosIgaFastSuite : public KratosCoreFastSuite {};
 class KratosMappingApplicationSerialTestSuite : public KratosCoreFastSuite {};
 class KratosMedFastSuite : public KratosCoreFastSuite {};
+class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosMeshingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosRansFastSuite : public KratosCoreFastSuite {};
 class KratosRomFastSuite : public KratosCoreFastSuite {};
