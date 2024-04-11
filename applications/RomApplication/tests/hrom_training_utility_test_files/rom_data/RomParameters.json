@@ -16,7 +16,8 @@
         "petrov_galerkin_number_of_rom_dofs": 0
     },
     "hrom_settings": {
-        "hrom_format": "numpy"
+        "hrom_format": "numpy",
+        "svd_type": "numpy"
     },
     "nodal_modes": {},
     "elements_and_weights": {}
