@@ -124,6 +124,17 @@ class RomDatabase(object):
         return count > 0, hash_mu
 
 
+    def check_if_basis_already_in_database(self, mu_train, tol_sol):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
+        # Include both file_name and tol_sol in the WHERE clause
+        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0
+
     def check_if_res_already_in_database(self, mu, tol_sol, tol_res, projection_type):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -135,7 +146,17 @@ class RomDatabase(object):
 
 
     def check_if_hrom_elems_and_weights_already_in_database(self, *args):#TODO implement the check on the elements and weights
-        return False
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
+        # Include both file_name and tol_sol in the WHERE clause
+        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0
+
+
 
 
     def add_FOM_to_database(self, parameters, file_name):
@@ -167,6 +188,26 @@ class RomDatabase(object):
         conn.close()
 
 
+    def add_Basis_to_database(self, mu_train, real_value):
+        print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
+
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train, real_value)
+        file_path = self.save_as_npy(mu_train, hashed_mu_train)  # Save numpy array and get file path
+
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+
+        # Debugging: Print the values before executing the SQL command
+        print(f"Inserting into LeftBasis: tol_sol={real_value}, file_name={hashed_mu_train}")
+
+        cursor.execute('INSERT INTO LeftBasis (tol_sol, file_name) VALUES (?, ?)',
+                    (real_value, str(hashed_mu_train)))
+        conn.commit()
+        conn.close()
+
+
+
     def add_ResidualProjected_to_database(self, parameters, file_name, tol_sol, tol_res, type_of_projection):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -175,6 +216,19 @@ class RomDatabase(object):
                        (parameters_str, type_of_projection, tol_sol, tol_res, file_name))
         conn.commit()
         conn.close()
+
+
+        #add_elements_and_weights_to_database(mu_train, tol_sol,tol_res, projection_type,z,w)
+    def add_elements_and_weights_to_database(self, mu_train, tol_sol,tol_res, projection_type,z,w):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
+        # Include both file_name and tol_sol in the WHERE clause
+        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0
 
     def serialize_mu(self, parameters):
         return json.dumps(parameters)
@@ -310,36 +364,6 @@ class RomDatabase(object):
 
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
 
-
-    def check_if_basis_already_in_database(self, mu_train, tol_sol):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
-        # Include both file_name and tol_sol in the WHERE clause
-        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0
-
-
-    def add_Basis_to_database(self, mu_train, real_value):
-        print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
-
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train, real_value)
-        file_path = self.save_as_npy(mu_train, hashed_mu_train)  # Save numpy array and get file path
-
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-
-        # Debugging: Print the values before executing the SQL command
-        print(f"Inserting into LeftBasis: tol_sol={real_value}, file_name={hashed_mu_train}")
-
-        cursor.execute('INSERT INTO LeftBasis (tol_sol, file_name) VALUES (?, ?)',
-                    (real_value, str(hashed_mu_train)))
-        conn.commit()
-        conn.close()
 
 
     def hash_mu_train(self, serialized_mu_train, real_value):

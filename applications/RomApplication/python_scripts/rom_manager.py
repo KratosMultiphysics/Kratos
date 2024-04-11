@@ -246,7 +246,7 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                file_path = self.save_as_npy(SnapshotsMatrix, hash_mu)
+                file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
                 self.data_base.add_FOM_to_database(serialized_mu, hash_mu)
                 print(f"Simulation saved to {file_path}")
             else:
@@ -367,18 +367,31 @@ class RomManager(object):
             self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
             if simulation is None:
                 simulation = self.InitializeDummySimulationForHromTrainingUtility()
-            simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = simulation.GetHROM_utility().candidate_ids)
-            simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
-            if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
+            else:
+                HROM_utility = simulation.GetHROM_utility()
+            HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = HROM_utility.candidate_ids)
+            HROM_utility.hyper_reduction_element_selector.Run()
+            if not HROM_utility.hyper_reduction_element_selector.success:
                 KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
                 #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-                simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
-                simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
-            simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
-            simulation.GetHROM_utility().CreateHRomModelParts()
+                HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
+                HROM_utility.hyper_reduction_element_selector.Run()
+                z = HROM_utility.hyper_reduction_element_selector.z
+                w = HROM_utility.hyper_reduction_element_selector.w
+            self.data_base.add_elements_and_weights_to_database(mu_train, tol_sol,tol_res, projection_type,z,w) #we'll store the elements and weights selected by the ECM
+            file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
+            file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
+            HROM_utility.AppendHRomWeightsToRomParameters()
+            HROM_utility.CreateHRomModelParts()
         else:
-            pass
-            #TODO make sure correct file is available for the simulations
+            if simulation is None:
+                simulation = self.InitializeDummySimulationForHromTrainingUtility()
+            else:
+                HROM_utility = simulation.GetHROM_utility()
+            HROM_utility.hyper_reduction_element_selector.w, HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_elements_and_weights(mu_train, tol_sol,tol_res,projection_type)
+            HROM_utility.AppendHRomWeightsToRomParameters()
+            HROM_utility.CreateHRomModelParts()
+            #TODO make sure correct file is available for the simulations. DONE HERE
 
     def __LaunchHROM(self, mu_train):
         """
@@ -589,7 +602,7 @@ class RomManager(object):
         analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
         simulation.Initialize()
-        return simulation
+        return simulation.GetHROM_utility()
 
 
 
