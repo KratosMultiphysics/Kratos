@@ -26,7 +26,7 @@ file(
 )
 
 add_library(KratosMappingMPICore SHARED ${KRATOS_MAPPING_APPLICATION_CORE})
-target_link_libraries(KratosMappingMPICore PUBLIC KratosMPICore KratosCore )
+target_link_libraries(KratosMappingMPICore PUBLIC KratosCore KratosMPICore )
 set_target_properties(KratosMappingMPICore PROPERTIES COMPILE_DEFINITIONS "MAPPING_MPI_APPLICATION=EXPORT,API")
 
 ## Python module

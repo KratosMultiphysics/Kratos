@@ -10,7 +10,7 @@ macro(kratos_add_gtests)
 	    include(GoogleTest)
 
 		if(KRATOS_ADD_GTEST_USE_MPI)
-			set(TESTING_MPI_UTILITIES "KratosMPICoreTestUtilities")
+			set(TESTING_MPI_UTILITIES "KratosMPICoreTestUtilities" ${MPI_LIBRARIES})
 		endif()
 	
 		add_executable("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_SOURCES})
