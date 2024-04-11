@@ -345,7 +345,7 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
     double& rValue
     )
 {
-    if (rThisVariable == DAMAGE) {
+    if (rThisVariable == DAMAGE || rThisVariable == LAMBDA_MAX) {
         rValue = mDamage;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
