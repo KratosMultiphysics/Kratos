@@ -17,8 +17,10 @@
 namespace Kratos
 {
 
+template class TransientThermalElement<2, 2>;
 template class TransientThermalElement<2, 3>;
 template class TransientThermalElement<2, 4>;
+template class TransientThermalElement<2, 5>;
 template class TransientThermalElement<2, 6>;
 template class TransientThermalElement<2, 8>;
 template class TransientThermalElement<2, 9>;

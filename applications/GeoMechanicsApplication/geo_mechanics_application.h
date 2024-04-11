@@ -456,6 +456,11 @@ private:
     const TransientThermalElement<3,20> mTransientThermalElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
     const TransientThermalElement<3,27> mTransientThermalElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
 
+    const TransientThermalElement<2, 2> mTransientThermalLineElement2D2N{ 0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+    const TransientThermalElement<2, 3> mTransientThermalLineElement2D3N{ 0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
+    const TransientThermalElement<2, 4> mTransientThermalLineElement2D4N{ 0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4))};
+    const TransientThermalElement<2, 5> mTransientThermalLineElement2D5N{ 0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5))};
+
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N{ 0, Kratos::make_shared< Point2D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
     const UPwForceCondition<3,1> mUPwForceCondition3D1N{ 0, Kratos::make_shared< Point3D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
