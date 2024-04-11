@@ -51,8 +51,7 @@ public:
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    /// Default Constructor
-    TransientPwInterfaceElement(IndexType NewId = 0)
+    explicit TransientPwInterfaceElement(IndexType NewId = 0)
         : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -82,7 +81,7 @@ public:
     {
     }
 
-    ~TransientPwInterfaceElement() override                                    = default;
+    ~TransientPwInterfaceElement()                                             = default;
     TransientPwInterfaceElement(const TransientPwInterfaceElement&)            = delete;
     TransientPwInterfaceElement& operator=(const TransientPwInterfaceElement&) = delete;
     TransientPwInterfaceElement(TransientPwInterfaceElement&&)                 = delete;
@@ -137,8 +136,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,
                                     const GeometryType&        Geom,
