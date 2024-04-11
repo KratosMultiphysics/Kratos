@@ -10,23 +10,18 @@
 //
 
 // External includes
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 // Project includes
 #include "structural_mechanics_fast_suite.h"
 
-int main(int argc, char* argv[]) 
-{
-    ::testing::InitGoogleTest(&argc, argv);
+namespace Kratos::Testing {
 
-    Kratos::Testing::mApplicationInitializerList.push_back([](std::vector<Kratos::KratosApplication::Pointer> & rRegisteredApplications, Kratos::Kernel & rKernel) {
-      if (!rKernel.IsImported("StructuralMechanicsApplication")) {
-        auto pApplication = std::make_shared<Kratos::KratosStructuralMechanicsApplication>();
-        rKernel.ImportApplication(pApplication);
-        rRegisteredApplications.push_back(std::move(pApplication));
-      }
-    });
-
-    return RUN_ALL_TESTS();
+KratosStructuralMechanicsFastSuite::KratosStructuralMechanicsFastSuite()
+    : KratosCoreFastSuite() {
+  mpStructuralMechanicsApp = std::make_shared<KratosStructuralMechanicsApplication>();
+  this->ImportApplicationIntoKernel(mpStructuralMechanicsApp);
 }
+
+} // namespace Kratos::Testing
