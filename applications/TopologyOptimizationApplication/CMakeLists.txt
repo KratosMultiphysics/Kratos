@@ -26,7 +26,7 @@ set( KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosTopologyOptimizationCore SHARED ${KRATOS_TOPOLOGY_OPTIMIZATION_APPLICATION_CORE})
-target_link_libraries(KratosTopologyOptimizationCore PRIVATE KratosCore KratosStructuralMechanicsCore)
+target_link_libraries(KratosTopologyOptimizationCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosTopologyOptimizationCore PROPERTIES COMPILE_DEFINITIONS "TOPOLOGY_OPTIMIZATION_APPLICATION=EXPORT,API")
 
 ###############################################################

@@ -94,9 +94,9 @@ add_definitions(${HDF5_DEFINITIONS})
 
 add_library(KratosHDF5Core SHARED ${KRATOS_HDF5_APPLICATION_CORE})
 if(USE_MPI)
-  target_link_libraries(KratosHDF5Core PUBLIC KratosCore KratosMPICore PRIVATE ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
+  target_link_libraries(KratosHDF5Core PUBLIC KratosCore KratosMPICore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
 else(USE_MPI)
-  target_link_libraries(KratosHDF5Core PUBLIC KratosCore PRIVATE ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
+  target_link_libraries(KratosHDF5Core PUBLIC KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
 endif(USE_MPI)
 set_target_properties(KratosHDF5Core PROPERTIES COMPILE_DEFINITIONS "HDF5_APPLICATION=EXPORT,API")
 

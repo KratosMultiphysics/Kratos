@@ -84,6 +84,7 @@ class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosStatisticsFastSuite : public KratosCoreFastSuite {};
 class KratosWindEngineeringFastSuite : public KratosCoreFastSuite {};
 class KratosMPMFastSuite : public KratosCoreFastSuite {};
+class KratosHDF5TestSuite : public KratosCoreFastSuite {};
 class KratosMappingApplicationMPITestSuite : public KratosCoreFastSuite {};
 
 KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
