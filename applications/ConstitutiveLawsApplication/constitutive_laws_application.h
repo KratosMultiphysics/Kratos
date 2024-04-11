@@ -71,6 +71,11 @@
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
 
+
+#include "custom_constitutive/small_strains/damage/orthotropic_plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/small_strains/damage/orthotropic_plane_stress_d_plus_d_minus_damage_masonry_2d_advanced.h"
+
+
 // Integrators
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_plasticity.h"
@@ -271,6 +276,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+
+    const OrthotropicDamageDPlusDMinusMasonry2DLaw mOrthotropicDamageDPlusDMinusPlaneStressMasonry2DLaw;
+    const OrthotropicDamageDPlusDMinusMasonry2DLawAdvanced mOrthotropicDamageDPlusDMinusPlaneStressMasonry2DLawAdvanced;
+
 
 
     // Damage and plasticity laws
