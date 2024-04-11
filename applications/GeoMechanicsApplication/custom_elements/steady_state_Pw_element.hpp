@@ -54,8 +54,7 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
     SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -78,8 +77,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwElement() override {}
+    ~SteadyStatePwElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
