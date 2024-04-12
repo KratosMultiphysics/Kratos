@@ -580,6 +580,72 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
     return new_element_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rNodeIds,
+    bool RetrieveSingleNeighbour)
+{
+    std::unordered_set<IndexType> new_entity_ids_set;
+
+    // Execute process to find neighboring entities
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    // Iterate over the given node IDs
+    for (const auto nodeId : rNodeIds) {
+        auto& r_node = rModelPart.GetNode(nodeId);
+
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            new_entity_ids_set.insert(r_elem.Id() - 1);
+            if (RetrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_element_ids(new_entity_ids_set.begin(), new_entity_ids_set.end());
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rNodeIds,
+    bool RetrieveSingleNeighbour)
+{
+    std::unordered_set<IndexType> new_condition_ids_set;
+
+    // Execute process to find neighboring entities
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    // Iterate over the given node IDs
+    for (const auto nodeId : rNodeIds) {
+        auto& r_node = rModelPart.GetNode(nodeId);
+
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_node.GetValue(NEIGHBOUR_CONDITIONS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_cond = r_neigh_elements[i];
+            new_condition_ids_set.insert(r_cond.Id() - 1);
+            if (RetrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_condition_ids(new_condition_ids_set.begin(), new_condition_ids_set.end());
+
+    return new_condition_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
     const ModelPart& rModelPartWithElementsToInclude,
     std::map<std::string, std::map<IndexType, double>>& rHRomWeights)

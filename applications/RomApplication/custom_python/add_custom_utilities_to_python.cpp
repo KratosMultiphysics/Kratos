@@ -55,7 +55,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetHRomConditionParentsIds", [](const ModelPart& rModelPart, const std::map<std::string, std::map<IndexType, double>>& rHRomWeights) {
                 return RomAuxiliaryUtilities::GetHRomConditionParentsIds(rModelPart, rHRomWeights);})
         .def_static("GetNodalNeighbouringElementIdsNotInHRom", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom)
-        .def_static("GetNodalNeighbouringElementIds", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIds)
+        .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, Kratos::ModelPart& rGivenModelPart) {
+                return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rGivenModelPart);})
+        .def_static("GetNodalNeighbouringElementIds", [](Kratos::ModelPart& rModelPart, const std::vector<Kratos::IndexType>& rNodeIds, bool retrieveSingleNeighbour) {
+                return Kratos::RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(rModelPart, rNodeIds, retrieveSingleNeighbour);})
+        .def_static("GetNodalNeighbouringConditionIds", &RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds)
         .def_static("GetConditionIdsNotInHRomModelPart", &RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart)
         .def_static("GetElementIdsNotInHRomModelPart", &RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
