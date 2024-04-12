@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosConstitutiveLawsF
 /**
 * Check the correct calculation of the shear modulus
 */
-KRATOS_TEST_CASE_IN_SUITE(CalculateSearModulus, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateSearModulus, KratosConstitutiveLawsFastSuite)
 {
     auto props = Properties(1);
     props.SetValue(YOUNG_MODULUS, 2.0E9);
