@@ -1,7 +1,15 @@
-import argparse
 import sys
+import argparse
 
-from KratosMultiphysics import mpi, Tester
+from KratosMultiphysics import mpi
+
+import os
+import sys
+import subprocess
+
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
 
 def main():
     parser = argparse.ArgumentParser()
