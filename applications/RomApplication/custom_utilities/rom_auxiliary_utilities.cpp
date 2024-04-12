@@ -137,8 +137,6 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithLists(const std::vector
     std::vector<IndexType> element_ids; // Set to store unique element IDs
     std::vector<IndexType> condition_ids; // Set to store unique element IDs
 
-    auto start = std::chrono::high_resolution_clock::now();
-
     // Reserve space in the vector to improve performance
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
     hrom_nodes_vect.reserve(rOriginModelPart.NumberOfNodes());
