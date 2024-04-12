@@ -161,11 +161,6 @@ class PetrovGalerkinTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-    def __GetPrettyFloat(self, number):
-        float_format = "{:.12f}"
-        pretty_number = float(float_format.format(number))
-        return pretty_number
-
     def __GetGalerkinBasis(self):
         if self.rom_format == "json":
             with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix(".json"), 'r') as f:
@@ -195,10 +190,3 @@ class PetrovGalerkinTrainingUtility(object):
             snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[0]]
         return snapshots_matrix
 
-
-    @classmethod
-    def __OrthogonalProjector(self, A, B):
-        # A - B @(B.T @ A)
-        BtA = B.T@A
-        A -= B @ BtA
-        return A
