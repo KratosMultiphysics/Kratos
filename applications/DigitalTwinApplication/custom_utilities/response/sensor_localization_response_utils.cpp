@@ -145,6 +145,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto Index) {
         const auto& r_mask_exp = rMasksList[Index]->GetExpression();
         double& value = *(r_expression.begin() + Index);
+        value = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             const double i_value = r_mask_exp.Evaluate(i_element, i_element, 0);
             double d_cluster_size_d_sensor_status = 0.0;
