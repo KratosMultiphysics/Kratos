@@ -132,24 +132,39 @@ class Commander(object):
         self.exitCode = 0
 
         # importing the apps such that they get registered for the cpp-tests
-        for application in applications:
-            import_module("KratosMultiphysics." + application)
+        for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
+            filename = os.fsdecode(test_suite)
+            print(f"Running tests for {filename} ...")
 
-        if verbosity == 0:
-            cpp_tests_verbosity = KM.Tester.Verbosity.QUITE
-        elif verbosity == 1:
-            cpp_tests_verbosity = KM.Tester.Verbosity.PROGRESS
-        else:
-            cpp_tests_verbosity = KM.Tester.Verbosity.TESTS_OUTPUTS
+            # Skip mpi tests
+            if "MPI" in filename:
+                pass
+            else:
+                # Run all the tests in the executable
+                self.process = subprocess.Popen([
+                    os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
+                ], stdout=subprocess.PIPE)
 
-        try:
-            KM.Tester.SetVerbosity(cpp_tests_verbosity)
-            self.exitCode = KM.Tester.RunAllTestCases()
-        except Exception as e:
-            print('[Warning]:', e, file=sys.stderr)
-            self.exitCode = 1
+                # Used instead of wait to "soft-block" the process and prevent deadlocks
+                # and capture the first exit code different from OK
+                try:
+                    # timeout should not be a problem for cpp, but we leave it just in case
+                    timer = int(90)
+                    process_stdout, process_stderr = self.process.communicate(timeout=timer)
+                except subprocess.TimeoutExpired:
+                    # Timeout reached
+                    self.process.kill()
+                    print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                    self.exitCode = 1
+                else:
+                    if process_stdout:
+                        print(process_stdout.decode('utf8'), file=sys.stdout)
+                    if process_stderr:
+                        print(process_stderr.decode('utf8'), file=sys.stderr)
 
-
+                # Running out of time in the tests will send the error code -15. We may want to skip
+                # that one in a future. Right now will throw everything different from 0.
+                self.exitCode = int(self.process.returncode != 0)
 
 def main():
     # Define the command
@@ -243,8 +258,10 @@ def main():
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
     testing_utils.PrintTestHeader("cpp")
-    with KratosUnittest.SupressConsoleOutput():
-        commander.RunCppTests(applications, args.verbosity)
+    
+    # with KratosUnittest.SupressConsoleOutput():
+    commander.RunCppTests(applications, args.verbosity)
+
     testing_utils.PrintTestFooter("cpp", commander.exitCode)
     exit_codes["cpp"] = commander.exitCode
 
