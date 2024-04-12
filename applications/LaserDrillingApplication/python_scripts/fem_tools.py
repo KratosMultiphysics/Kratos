@@ -163,25 +163,30 @@ class SurfaceFEMProjector:
     def CalculateEnergyOfFEMFunction(self, nodal_values):
         X = self.X
         n = self.n_elements
-        NDesc = self.NDesc
-        NAsc = self.NAsc
-
+        #NDesc = self.NDesc
+        #NAsc = self.NAsc
         total_energy = 0.0
 
         for i, u_value in enumerate(nodal_values):
-            x = symbols('x')
+            #x = symbols('x')
             U = u_value[0]
 
             if i == 0:
-                integrand = U * NDesc(i, x) * x
-                total_energy += integrate(integrand, (x, X[i], X[i+1]))
-            elif i == n:
-                integrand = U * NAsc(i, x) * x
-                total_energy += integrate(integrand, (x, X[i-1], X[i]))
+                #integrand = U * NDesc(i, x) * x
+                #total_energy += integrate(integrand, (x, X[i], X[i+1]))
+                total_energy += U * 1.0 / (X[i+1]-X[i]) * (0.1666666666666667 * X[i+1]*X[i+1]*X[i+1] - 0.5*X[i+1]*X[i]**2 + 0.3333333333333333333 * X[i]*X[i]*X[i])
+            elif i < n:
+                #integrand1 = U * NAsc(i, x) * x
+                #integrand2 = U * NDesc(i, x) * x
+                integrand1 = U * 1.0 / (X[i]-X[i-1]) * (0.3333333333333333333 * X[i]*X[i]*X[i] - 0.5*X[i-1]*X[i]**2 + 0.1666666666666667 * X[i-1]*X[i-1]*X[i-1])
+                integrand2 = U * 1.0 / (X[i+1]-X[i]) * (0.1666666666666667 * X[i+1]*X[i+1]*X[i+1] - 0.5*X[i+1]*X[i]**2 + 0.3333333333333333333 * X[i]*X[i]*X[i])
+                #total_energy += integrate(integrand1, (x, X[i-1], X[i])) + integrate(integrand2, (x, X[i], X[i+1]))
+                total_energy += integrand1 + integrand2
             else:
-                integrand1 = U * NAsc(i, x) * x
-                integrand2 = U * NDesc(i, x) * x
-                total_energy += integrate(integrand1, (x, X[i-1], X[i])) + integrate(integrand2, (x, X[i], X[i+1]))
+                #integrand = U * NAsc(i, x) * x
+                #total_energy += integrate(integrand, (x, X[i-1], X[i]))
+                total_energy += U * 1.0 / (X[i]-X[i-1]) * (0.3333333333333333333 * X[i]*X[i]*X[i] - 0.5*X[i-1]*X[i]**2 + 0.1666666666666667 * X[i-1]*X[i-1]*X[i-1])
+                
         return float(2.0 * np.pi * total_energy)
 
     def InterpolateFunctionAndNormalize(self, f): #, normalization_value):
