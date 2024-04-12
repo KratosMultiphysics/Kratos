@@ -185,7 +185,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
 
     const auto& r_elem_weights = HRomWeights["Elements"];
     const auto& r_cond_weights = HRomWeights["Conditions"];
-    
+
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
 
@@ -254,7 +254,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
             }
         }
     }
-    
+
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
@@ -495,6 +495,34 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
             parent_ids.push_back(r_neigh[0].Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
+
+    return parent_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rConditionIds)
+{
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    std::unordered_set<IndexType> parent_ids_set;
+    // Iterate over the given node IDs
+    for (const auto condId : rConditionIds) {
+        auto& r_cond = rModelPart.GetCondition(condId + 1);
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            parent_ids_set.insert(r_elem.Id() - 1);
+            break;
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> parent_ids(parent_ids_set.begin(), parent_ids_set.end());
 
     return parent_ids;
 }

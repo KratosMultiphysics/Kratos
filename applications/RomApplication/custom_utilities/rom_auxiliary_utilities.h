@@ -126,6 +126,21 @@ public:
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
+
+    /**
+     * @brief Finds the parent elements for specified condition IDs and decrements their IDs for zero-based indexing.
+     * This version executes a process to compute nodal element neighbours for the entire model part, ensuring
+     * that each condition's neighbours are up-to-date before retrieving parent element IDs.
+     *
+     * @param rModelPart Model part from which to find parent elements, which may be modified due to neighbour computation.
+     * @param rConditionIds A vector containing condition IDs for which parents will be identified.
+     * @return std::vector<IndexType> List of unique element IDs decremented by one (for zero-based indexing), corresponding to the parent elements.
+     */
+    static std::vector<IndexType> GetHRomConditionParentsIds(
+        ModelPart& rModelPart,
+        const std::vector<IndexType>& rConditionIds);
+
+
     /**
      * @brief Retrieve the decremented (-1 to account for numpy indexing) IDs of elements neighboring nodes in a given sub-model part but not present in HRom weights.
      *
@@ -266,20 +281,20 @@ public:
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
     /**
-     * @brief Obtain the JPhi elemental matrix for a particular element. 
+     * @brief Obtain the JPhi elemental matrix for a particular element.
      * JPhi represents the projection of the Jacobian onto the ROM_BASIS.
      * @param rJPhiElemental The matrix to store the result in. Must have the appropriate size already.
      * @param rDofs The set of degrees of freedom (DoFs) of the element.
      * @param rJPhi The JPhi matrix, from which rows are extracted according to the equation ID of each DoF.
-     * 
-     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a 
+     *
+     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a
      * corresponding row from the rJPhi matrix, which is then stored in the corresponding row of rJPhiElemental.
      */
     static void GetJPhiElemental(
         Matrix &rJPhiElemental,
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
-        
+
     ///@}
 
     private:
