@@ -294,7 +294,7 @@ double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
  * @brief This function computes the shear psi factor
  * @param rValues The constitutive law parameters
  */
-double CalculatePhi(const Properties& rProperties, const double L);
+KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) double CalculatePhi(const Properties& rProperties, const double L);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

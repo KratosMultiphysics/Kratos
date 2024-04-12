@@ -12,7 +12,7 @@
 
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "testing/testing.h"
+#include "geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
