@@ -14,7 +14,7 @@ macro(kratos_add_gtests)
 		endif()
 	
 		add_executable("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_SOURCES})
-		target_link_libraries("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_TARGET} KratosCoreTestUtilities "${TESTING_MPI_UTILITIES}" GTest::gtest_main GTest::gmock_main)
+		target_link_libraries("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_TARGET} KratosCoreTestUtilities "${TESTING_MPI_UTILITIES}" GTest::gmock_main)
 		set_target_properties("${KRATOS_ADD_GTEST_TARGET}Test" PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
 
 	    install(TARGETS ${KRATOS_ADD_GTEST_TARGET}Test DESTINATION test)

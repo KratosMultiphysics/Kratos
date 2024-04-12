@@ -445,37 +445,37 @@ namespace Kratos
     }
 
 // Template instantiation
-template double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<true>(const Element&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<false>(const Element&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<true>(const Element&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementPrandtlNumber<false>(const Element&);
 
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
 
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, true>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, false>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<false, true>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<false, false>(const Element&, const ElementSizeFunctionType&);
 
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, true>(const Element&, const ElementSizeFunctionType&);
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(const Element&, const ElementSizeFunctionType&);
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, true>(const Element&, const ElementSizeFunctionType&);
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, false>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, true>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, true>(const Element&, const ElementSizeFunctionType&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<false, false>(const Element&, const ElementSizeFunctionType&);
 
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, true>(const Element&, const ElementSizeFunctionType&, const double);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, false>(const Element&, const ElementSizeFunctionType&, const double);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<false, true>(const Element&, const ElementSizeFunctionType&, const double);
-template double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<false, false>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, true>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, false>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<false, true>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<false, false>(const Element&, const ElementSizeFunctionType&, const double);
 
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, true>(const Element&, const ElementSizeFunctionType&, const double);
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, false>(const Element&, const ElementSizeFunctionType&, const double);
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<false, true>(const Element&, const ElementSizeFunctionType&, const double);
-template double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<false, false>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, true>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, false>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<false, true>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) double FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<false, false>(const Element&, const ElementSizeFunctionType&, const double);
 
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, true>(const Element&, const ElementSizeFunctionType&, const double);
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, false>(const Element&, const ElementSizeFunctionType&, const double);
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<false, true>(const Element&, const ElementSizeFunctionType&, const double);
-template std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<false, false>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, true>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, false>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<false, true>(const Element&, const ElementSizeFunctionType&, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) std::pair<double,double> FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<false, false>(const Element&, const ElementSizeFunctionType&, const double);
 
 } // namespace Kratos.
