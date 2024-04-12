@@ -142,6 +142,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.T0 = self.settings['ambient_temperature'].GetDouble()
         self.kappa = self.conductivity / (self.rho * self.cp)
         self.ablation_energy_fraction = self.ionization_alpha
+        self.evaporation_energy_fraction = 1.0 - self.ionization_alpha        
         self.sigma = 0.5 * self.R_far
         self.K = 1 / (2 * self.sigma**2)
         self.C = self.ablation_energy_fraction * self.Q * self.K / (np.pi * (1 - np.exp(-self.K * self.R_far**2)))
@@ -172,11 +173,10 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.thermal_penetration_time = l_th_in_meters**2 / kappa_in_square_meters
 
         # Finite Elements
-        self.n_surface_elements = 100 # number of elements
+        self.n_surface_elements = 10 # number of elements
         self.sparse_option = True
         self.surface_nodes_Y_values = np.linspace(0.0, self.R_far, self.n_surface_elements + 1)
         self.surface_element_size = self.R_far / self.n_surface_elements
-        self.support_elements = [[] for i in range(self.n_surface_elements+1)]
 
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
@@ -211,6 +211,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.list_of_decomposed_nodes_coords = []
         self.list_of_decomposed_nodes_coords_X = []
         self.list_of_decomposed_nodes_coords_Y = []
+        self.list_of_lists_of_decomposed_nodes_X = []
+        self.list_of_lists_of_decomposed_nodes_Y = []
 
         if self.print_hdf5_and_gnuplot_files:
             self.SetUpResultsFiles()
@@ -227,7 +229,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         computed_energy_after_ablation = self.MonitorEnergy()
 
-        residual_heat = (1 - self.ionization_alpha) * self.Q
+        residual_heat = self.evaporation_energy_fraction * self.Q
 
         self.ResidualHeatStage()
 
@@ -280,14 +282,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             elem.SetValue(LaserDrillingApplication.PRE_EVAPORATION_TEMPERATURE, pre_evaporation_temperature)
 
     def ResidualHeatStage(self):
-        if 1 - self.ionization_alpha:
+        if self.evaporation_energy_fraction:
             self.projector = SurfaceFEMProjector(self.n_surface_elements, self.R_far, self.sparse_option) #, delta_coefficients)
             self.q_interp = self.projector.InterpolateFunctionAndNormalize(self.EnergyPerUnitArea1D) #, 1.0)
             #print("self.q_interp:", self.q_interp)
             if self.compute_vaporisation:
                 self.total_removed_energy = 0.0
                 self.first_evaporation_stage_done = False
-                self.max_vaporisation_layers = 1
+                self.max_vaporisation_layers = 20
                 self.vaporisation_layer_number = 1
                 self.some_elements_are_above_the_evap_temp = True
                 print("Removing elements by evaporation...")
@@ -359,7 +361,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.vaporisation_layer_number += 1
 
         #print('self.vaporisation_layer_number:', self.vaporisation_layer_number)
-        #('self.evap_elements_centers_Y:', self.evap_elements_centers_Y)
+        #print('self.evap_elements_centers_Y:', self.evap_elements_centers_Y)
         #print('self.evap_elements_enthalpies:', self.evap_elements_enthalpies)
 
         if not self.sparse_option:
@@ -374,31 +376,42 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         print('Total energy expected =', sum(self.evap_elements_enthalpies))
         print('Total energy calculated =', total_energy)
-
         #print("self.projector.A:", self.projector.A)
         #print("self.projector.b:", self.projector.b)
 
         import matplotlib.pyplot as plt
-
-        #plt.grid()
-        #plt.plot(self.projector.X, self.q_interp, color='red', marker='+')
-        #plt.plot(self.projector.X, self.u, color='blue', marker='o')
+        _, axis = plt.subplots(1, 2, figsize=(15,5))
+        axis[0].grid()
+        axis[0].plot(self.projector.X, self.q_interp, color='red', marker='+')
+        axis[0].plot(self.projector.X, self.u, color='blue', marker='o')
 
         self.q_interp -= self.u
         #print("self.q_interp:", self.q_interp)
         #print("self.u:", self.u)
 
+        # TODO: rethink this!
         for i, q in enumerate(self.q_interp):
             if q < 0.0:
                 self.q_interp[i] = 0.0
 
-        #plt.plot(self.projector.X, self.q_interp, color='black', marker='*')
-        #plt.plot(self.evap_elements_centers_Y, q_eval, color='green', marker='x')
-        #plt.legend(["fluence (interpolated)", "fluence (lost)", "fluence (remaining)"], loc="upper right")
-        #plt.show()
+        axis[0].plot(self.projector.X, self.q_interp, color='black', marker='*')
+        axis[0].legend(["fluence (interpolated)", "fluence (lost)", "fluence (remaining)"], loc="upper right")
+        axis[0].set_xlabel('radius (mm)')
+        axis[0].set_title("Energies (J/mm2)") 
 
         self.AddDecomposedNodesToSurfaceList()
         self.first_evaporation_stage_done = True
+
+        X = self.list_of_decomposed_nodes_coords_X
+        Y = self.list_of_decomposed_nodes_coords_Y
+        self.list_of_lists_of_decomposed_nodes_X.append(X)
+        self.list_of_lists_of_decomposed_nodes_Y.append(Y)
+        axis[1].grid()
+        for list_X, list_Y in zip(self.list_of_lists_of_decomposed_nodes_X, self.list_of_lists_of_decomposed_nodes_Y):
+            axis[1].plot(list_Y, -list_X)
+        axis[1].set_xlabel('radius (mm)')
+        axis[1].set_title("Ablation plus evaporation (mm)") 
+        plt.show()
 
         if self.vaporisation_layer_number <= self.max_vaporisation_layers:
             self.RetrievePreEvaporationTemperatureState()

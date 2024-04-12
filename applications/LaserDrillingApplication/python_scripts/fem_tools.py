@@ -127,7 +127,8 @@ class SurfaceFEMProjector:
 
     def FillUpDeltasRHS(self, evap_element_centers, support_elements, evap_enthalpies):
         n = self.n_elements
-        N = self.N        
+        N = self.N
+        self.b = np.zeros((n+1,1))
         b = self.b
 
         for i in range(n + 1):

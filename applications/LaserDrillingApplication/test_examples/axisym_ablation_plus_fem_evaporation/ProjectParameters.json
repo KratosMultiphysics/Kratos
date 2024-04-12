@@ -7,7 +7,7 @@
         "start_time"    : 0.0,
         "end_time"      : 2e-6,
         "echo_level"    : 0,
-        "energy"        : 1e-6,
+        "energy"        : 15e-6,
         "mask_aperture_diameter" : 0.025,
         "vaporisation_temperature" : 1000.0,
         "compute_vaporisation" : true,

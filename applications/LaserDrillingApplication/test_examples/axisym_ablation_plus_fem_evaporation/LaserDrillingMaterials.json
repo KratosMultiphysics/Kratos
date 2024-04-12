@@ -8,7 +8,7 @@
                 "CONDUCTIVITY"  : 3.00E-04,
                 "SPECIFIC_HEAT" : 1500.0,
                 "ENTHALPY": 4e5,
-                "IONIZATION_ALPHA": 0.0,
+                "IONIZATION_ALPHA": 0.95,
                 "THERMAL_DEPTH": 0.00033
             },
             "Tables"    : null
