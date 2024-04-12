@@ -260,8 +260,7 @@ class RomManager(object):
             BasisOutputProcess._PrintRomBasis(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_Basis_to_database(mu_train,tol_sol)
         else:
-            pass
-        self.data_base.make_sure_basis_is_right(hash_basis) # this will compare Right Basis with the hashed file, is right keep as is, if wrong replace it with the hashed one
+            self.data_base.make_sure_basis_is_right(hash_basis) # this will compare Right Basis with the hashed file, is right keep as is, if wrong replace it with the hashed one
         self.data_base.generate_database_summary_file()
 
         return 0
