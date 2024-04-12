@@ -1,14 +1,15 @@
+import os
+import sys
+import argparse
+import subprocess
+
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-from KratosMultiphysics.testing import utilities as testing_utils
-
-import sys, os
-import argparse
-import subprocess
-
 from importlib import import_module
+
+from KratosMultiphysics.testing import utilities as testing_utils
 
 class Commander(object):
     def __init__(self):
