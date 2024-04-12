@@ -288,8 +288,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                        VectorType& rRightHandSideVector,
                                                                        const ProcessInfo& CurrentProcessInfo,
-                                                                       const bool CalculateStiffnessMatrixFlag,
-                                                                       const bool CalculateResidualVectorFlag)
+                                                                       bool CalculateStiffnessMatrixFlag,
+                                                                       bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 

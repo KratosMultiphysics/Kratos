@@ -102,7 +102,7 @@ public:
     }
 
     /// Destructor
-    ~UpdatedLagrangianUPwDiffOrderElement() override {}
+    ~UpdatedLagrangianUPwDiffOrderElement() override = default;
 
     /**
      * @brief Creates a new element
@@ -209,8 +209,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
                                                  ElementVariables& rVariables,
@@ -264,18 +264,6 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UpdatedLagrangianUPwDiffOrderElement& operator=(const UpdatedLagrangianUPwDiffOrderElement& rOther);
-    /// Copy constructor.
-    // UpdatedLagrangianUPwDiffOrderElement(const UpdatedLagrangianUPwDiffOrderElement& rOther);
-    ///@}
-
 }; // Class UpdatedLagrangianUPwDiffOrderElement
 
 ///@}
