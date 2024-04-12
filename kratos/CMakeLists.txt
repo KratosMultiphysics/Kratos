@@ -73,9 +73,9 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
     add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
 
-    target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest_main GTest::gmock_main)
+    target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest GTest::gmock)
     set_target_properties(KratosCoreTestUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")
-    target_link_libraries(KratosCoreTest PUBLIC KratosCoreTestUtilities)
+    target_link_libraries(KratosCoreTest PUBLIC KratosCoreTestUtilities GTest::gmock_main)
     set_target_properties(KratosCoreTest PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
 
     install(TARGETS KratosCoreTestUtilities DESTINATION libs)
