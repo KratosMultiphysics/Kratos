@@ -112,6 +112,11 @@ class Commander(object):
         '''
         return application[6:-8] + "Application"
 
+    def MPITestToAppName(self, application):
+        ''' Converts the name of a test suit into an application
+        '''
+        return application[9:-8] + "Application"
+
     def RunTestSuit(self, application, applicationPath, path, level, verbose, command, timer):
         ''' Calls the script that will run the tests.
 
@@ -301,4 +306,39 @@ class Commander(object):
             if verbose > 1:
                 print('  expected file: "{}"'.format(test_script), file=sys.stderr, flush=True)
 
-    
+    def RunMPICppTests(self, applications, verbosity = 1):
+        ''' Calls the mpi cpp tests directly
+        '''
+
+        self.exitCode = 0
+
+        # Iterate over all executables that are not mpi dependant and execute them.
+        for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
+            filename = os.fsdecode(test_suite)
+            # Skip mpi tests
+            if "MPI" in filename and self.MPITestToAppName(filename) in applications:
+                # Run all the tests in the executable
+                self.process = subprocess.Popen([
+                    os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
+                ], stdout=subprocess.PIPE)
+
+                # Used instead of wait to "soft-block" the process and prevent deadlocks
+                # and capture the first exit code different from OK
+                try:
+                    # timeout should not be a problem for cpp, but we leave it just in case
+                    timer = int(90)
+                    process_stdout, process_stderr = self.process.communicate(timeout=timer)
+                except subprocess.TimeoutExpired:
+                    # Timeout reached
+                    self.process.kill()
+                    print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                    self.exitCode = 1
+                else:
+                    if process_stdout:
+                        print(process_stdout.decode('utf8'), file=sys.stdout)
+                    if process_stderr:
+                        print(process_stderr.decode('utf8'), file=sys.stderr)
+
+                # Running out of time in the tests will send the error code -15. We may want to skip
+                # that one in a future. Right now will throw everything different from 0.
+                self.exitCode = int(self.process.returncode != 0)
