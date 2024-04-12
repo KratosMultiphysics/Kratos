@@ -52,7 +52,7 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
     result(x, x) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XX] +
                    water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
 
-    if (mNumberOfDimensions == 2) {
+    if (mNumberOfDimensions >= 2) {
         const auto y  = static_cast<int>(indexThermalFlux::Y);
         result(x, y) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
         result(y, y) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YY] +
