@@ -102,6 +102,7 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        self.__objective.OutputGradientFields(self._optimization_problem, True)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()

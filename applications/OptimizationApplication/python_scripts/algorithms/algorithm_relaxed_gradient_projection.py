@@ -114,7 +114,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]', w_r: Kratos.Vector, w_c: Kratos.Vector) -> KratosOA.CollectiveExpression:
-        active_constraints_list = [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]        
+        active_constraints_list = [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
             search_direction = obj_grad * -1.0
@@ -209,6 +209,9 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        self.__objective.OutputGradientFields(self._optimization_problem, True)
+        for constraint in self.__constraints_list:
+            constraint.OutputGradientFields(self._optimization_problem, constraint.GetStandardizedValue() > 0.0)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()

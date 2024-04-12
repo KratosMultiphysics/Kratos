@@ -78,29 +78,9 @@ class StandardizedObjective(ResponseRoutine):
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
-
+    def CalculateStandardizedGradient(self) -> KratosOA.CollectiveExpression:
         with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-            gradient_collective_expression = self.CalculateGradient()
-            if save_field:
-                # save the physical gradients for post processing in unbuffered data container.
-                for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
-                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                        # cloning is a cheap operation, it only moves underlying pointers
-                        # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
-
-                # save the filtered gradients for post processing in unbuffered data container.
-                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
-                    if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                    # cloning is a cheap operation, it only moves underlying pointers
-                    # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
-
-        return gradient_collective_expression * self.__scaling
+            return self.CalculateGradient() * self.__scaling
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 0:
