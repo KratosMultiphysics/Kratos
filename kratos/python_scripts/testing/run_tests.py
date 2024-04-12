@@ -131,7 +131,7 @@ class Commander(object):
 
         self.exitCode = 0
 
-        # importing the apps such that they get registered for the cpp-tests
+        # Iterate over all executables that are not mpi dependant and execute them.
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
             filename = os.fsdecode(test_suite)
             print(f"Running tests for {filename} ...")
