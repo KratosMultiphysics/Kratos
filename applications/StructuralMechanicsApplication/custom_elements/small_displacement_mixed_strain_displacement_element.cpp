@@ -376,11 +376,11 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
 
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Gt(dim * n_nodes, n_nodes * strain_size);
+    Matrix K(dim * n_nodes, dim * n_nodes), Q(n_nodes * strain_size, dim * n_nodes),
+        M(n_nodes * strain_size, n_nodes * strain_size), G(dim * n_nodes, n_nodes * strain_size);
     noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Gt) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
+    noalias(Q) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
+    noalias(G) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
     Matrix D0(3, 3);
@@ -418,13 +418,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         // Contributions to the LHS
         noalias(K)  += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         // noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.N_epsilon);
-        // noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
+        // noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
         noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(D0, kinematic_variables.N_epsilon)));
-        noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(D0, kinematic_variables.B)));
-        noalias(Gt) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(D0, kinematic_variables.B)));
+        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
     }
     AssembleRHS(rRHS, RHSu, RHSe);
-    AssembleLHS(rLHS, K, G, M, Gt);
+    AssembleLHS(rLHS, K, Q, M, G);
 }
 
 /***********************************************************************************/
@@ -466,11 +466,11 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Gt(dim * n_nodes, n_nodes * strain_size);
+    Matrix K(dim * n_nodes, dim * n_nodes), Q(n_nodes * strain_size, dim * n_nodes),
+        M(n_nodes * strain_size, n_nodes * strain_size), G(dim * n_nodes, n_nodes * strain_size);
     noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Gt) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
+    noalias(Q) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
+    noalias(G) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
     Matrix D0(3, 3);
@@ -495,14 +495,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
         // Contributions to the LHS
         noalias(K)  += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         // noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.N_epsilon);
-        // noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
+        // noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
         noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(D0, kinematic_variables.N_epsilon)));
-        noalias(G)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(D0, kinematic_variables.B)));
+        noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(D0, kinematic_variables.B)));
 
-        noalias(Gt) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
 
     }
-    AssembleLHS(rLHS, K, G, M, Gt);
+    AssembleLHS(rLHS, K, Q, M, G);
 }
 
 /***********************************************************************************/
@@ -720,9 +720,9 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleRHS(
 void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     Matrix &rLHS,
     const Matrix &rK,
-    const Matrix &rG,
+    const Matrix &rQ,
     const Matrix &rM,
-    const Matrix &rGt)
+    const Matrix &rG)
 {
     const auto& r_geometry = GetGeometry();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
@@ -741,15 +741,15 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
         for (IndexType j = 0; j < rM.size2(); ++j)
             rLHS(i + displ_size, j + displ_size) = rM(i, j);
 
+    // Assemble Q
+    for (IndexType i = 0; i < rQ.size1(); ++i)
+        for (IndexType j = 0; j < rQ.size2(); ++j)
+            rLHS(i + displ_size, j) = rQ(i, j);
+
     // Assemble G
     for (IndexType i = 0; i < rG.size1(); ++i)
         for (IndexType j = 0; j < rG.size2(); ++j)
-            rLHS(i + displ_size, j) = rG(i, j);
-
-    // Assemble G transposed
-    for (IndexType i = 0; i < rGt.size1(); ++i)
-        for (IndexType j = 0; j < rGt.size2(); ++j)
-            rLHS(i, j + displ_size) = rGt(i, j);
+            rLHS(i, j + displ_size) = rG(i, j);
 
 }
 
