@@ -48,6 +48,9 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         # Initialize rom snapshots
         self.rom_snapshots = []
 
+        # Initialize cumulative rom state
+        self.cumulative_rom_state = None
+
         # Retrieve the user's preference for saving the ROM solution and ensure it's either 'total' or 'incremental'.
         self.snapshot_solution_type = settings["snapshot_solution_type"].GetString()
         if self.snapshot_solution_type not in ["total", "incremental"]:
@@ -98,7 +101,7 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         while self.__GetPrettyFloat(self.next_output) <= self.__GetPrettyFloat(current):
             self.next_output += self.snapshots_interval
 
-    def _PrintRomBasis(self):
+    def _PrintRomCoefficients(self):
         #Convert list to numpy
         self.rom_snapshots = numpy.array(self.rom_snapshots)
 
@@ -109,7 +112,7 @@ class SaveRomCoefficientsProcess(KratosMultiphysics.OutputProcess):
         numpy.save(self.rom_coefficients_output_folder / f"{self.rom_coefficients_output_name}.npy", self.rom_snapshots)
 
     def ExecuteFinalize(self):
-        self._PrintRomBasis()
+        self._PrintRomCoefficients()
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
