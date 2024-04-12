@@ -230,8 +230,7 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         if self.hrom_output_format == "numpy":
-            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights())) #TODO: Adapt SetHRomComputingModelPartWithNeighbours to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
-            # element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
+            element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -243,8 +242,7 @@ class HRomTrainingUtility(object):
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
             if self.hrom_output_format == "numpy":
-                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part) #TODO: Adapt SetHRomComputingModelPart to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
-                # KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
             elif self.hrom_output_format == "json":
                 KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part) #TODO: Adapt SetHRomComputingModelPart to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
         if self.echo_level > 0:
