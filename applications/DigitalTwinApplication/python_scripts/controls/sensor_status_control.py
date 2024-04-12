@@ -30,6 +30,7 @@ class SensorStatusControl(Control):
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names": [""],
             "initial_sensor_status"      : 0.5,
+            "penalty_factor"             : 3,
             "filter_settings"            : {},
             "output_all_fields"          : false,
             "beta_settings": {
@@ -45,6 +46,7 @@ class SensorStatusControl(Control):
         self.controlled_physical_variables = [KratosDT.SENSOR_STATUS]
         self.initial_sensor_status = parameters["initial_sensor_status"].GetDouble()
         self.output_all_fields = parameters["output_all_fields"].GetBool()
+        self.penalty_factor = parameters["penalty_factor"].GetInt()
 
         # beta settings
         beta_settings = parameters["beta_settings"]
@@ -83,7 +85,7 @@ class SensorStatusControl(Control):
                                                 [0, 1],
                                                 [0, 1],
                                                 self.beta,
-                                                1)
+                                                self.penalty_factor)
 
         # take the physical and control field the same
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
@@ -165,7 +167,7 @@ class SensorStatusControl(Control):
                                                 [0, 1],
                                                 [0, 1],
                                                 self.beta,
-                                                1)
+                                                self.penalty_factor)
         # now update physical field
         Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosDT.SENSOR_STATUS, False)
 
@@ -175,7 +177,7 @@ class SensorStatusControl(Control):
                                                 [0, 1],
                                                 [0, 1],
                                                 self.beta,
-                                                1)
+                                                self.penalty_factor)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
