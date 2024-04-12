@@ -101,8 +101,8 @@ class PetrovGalerkinTrainingUtility(object):
 
     def CalculateAndSaveBasis(self, snapshots_matrix = None):
         # Calculate the new basis and save
-        snapshots_basis = self.__CalculateResidualBasis(snapshots_matrix)
-        self.__AppendNewBasisToRomParameters(snapshots_basis)
+        snapshots_basis = self._CalculateResidualBasis(snapshots_matrix)
+        self._AppendNewBasisToRomParameters(snapshots_basis)
 
 
     @classmethod
@@ -118,7 +118,7 @@ class PetrovGalerkinTrainingUtility(object):
         }""")
         return default_settings
 
-    def __CalculateResidualBasis(self, snapshots_matrix):
+    def _CalculateResidualBasis(self, snapshots_matrix):
         if snapshots_matrix is None:
             snapshots_matrix = self._GetSnapshotsMatrix()
         u_left,s_left,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
@@ -135,7 +135,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         return u
 
-    def __AppendNewBasisToRomParameters(self, u):
+    def _AppendNewBasisToRomParameters(self, u):
         petrov_galerkin_number_of_rom_dofs= np.shape(u)[1]
         n_nodal_unknowns = len(self.rom_settings["nodal_unknowns"].GetStringArray())
         petrov_galerkin_nodal_modes = {}
