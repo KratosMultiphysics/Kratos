@@ -693,6 +693,7 @@ namespace Kratos {
         });
 
         RVEFinalizeSolutionStep();
+        RVEWriteForces(); // Temporary adhoc for posprocessing stress tensor of thermal expansion paper
 
         //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
         KRATOS_CATCH("")
@@ -3293,6 +3294,106 @@ namespace Kratos {
                      << mRVE_ConductivityTensorInner(1,0)
                      << std::endl;
       }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEWriteForces(void) {
+      ModelPart&   r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const int    step = r_process_info[TIME_STEPS];
+      const double dt   = r_process_info[DELTA_TIME];
+      const double time = r_process_info[TIME];
+      const double tol  = dt;
+
+      const int step00 = (0.1-tol) / dt;
+      const int step01 = (1.0-tol)  / dt;
+      const int step02 = (2.0-tol)  / dt;
+      const int step03 = (3.0-tol)  / dt;
+      const int step04 = (4.0-tol)  / dt;
+      const int step05 = (5.0-tol)  / dt;
+      const int step06 = (6.0-tol)  / dt;
+      const int step07 = (7.0-tol)  / dt;
+      const int step08 = (8.0-tol)  / dt;
+      const int step09 = (9.0-tol)  / dt;
+      const int step10 = (10.0-tol) / dt;
+      const int step11 = (11.0-tol) / dt;
+      const int step12 = (12.0-tol) / dt;
+      const int step13 = (13.0-tol) / dt;
+      const int step14 = (14.0-tol) / dt;
+      const int step15 = (15.0-tol) / dt;
+      const int step16 = (16.0-tol) / dt;
+      const int step17 = (17.0-tol) / dt;
+      const int step18 = (18.0-tol) / dt;
+      const int step19 = (19.0-tol) / dt;
+      const int step20 = (20.0-tol) / dt;
+
+      bool write = (step==step00 || step==step01 || step==step02 || step==step03 || step==step04 || step==step05 || step==step06 || step==step07 || step==step08 || step==step09 ||
+                    step==step10 || step==step11 || step==step12 || step==step13 || step==step14 || step==step15 || step==step16 || step==step17 || step==step18 || step==step19 || step==step20);
+      if (!write) return;
+
+      std::ofstream file;
+      const int file_time = round(time);
+      std::ostringstream oss;
+      oss << "rve_contact_forces_" << file_time << "s.txt";
+      std::string filename = oss.str();
+      file.open(filename, std::ios::out);
+
+      file << "ID1 R1 X1 Y1 ID2 R2 X2 Y2 F1 F2 (WALLS: ID2=0 R2=0 X2,Y2=CONTACT_POINT)" << std::endl;
+      file << "Time: ";
+      file << std::defaultfloat << time << std::endl;
+
+      
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        std::size_t id1 = mListOfSphericParticles[i]->Id();
+        const double r1 = mListOfSphericParticles[i]->GetRadius();
+        const double x1 = mListOfSphericParticles[i]->GetGeometry()[0][0];
+        const double y1 = mListOfSphericParticles[i]->GetGeometry()[0][1];
+
+        // Particle-particle
+        for (int j = 0; j < mListOfSphericParticles[i]->mNeighbourElements.size(); j++) {
+          std::size_t id2 = mListOfSphericParticles[i]->mNeighbourElements[j]->Id();
+          if (id2 <= id1) continue;
+
+          const double r2 = mListOfSphericParticles[i]->mNeighbourElements[j]->GetRadius();
+          const double x2 = mListOfSphericParticles[i]->mNeighbourElements[j]->GetGeometry()[0][0];
+          const double y2 = mListOfSphericParticles[i]->mNeighbourElements[j]->GetGeometry()[0][1];
+          array_1d<double, 3> f = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
+
+          file << std::defaultfloat << id1 << " ";
+          file << std::fixed << std::setprecision(15) << r1 << " " << x1 << " " << y1 << " ";
+          file << std::defaultfloat << id2 << " ";
+          file << std::fixed << std::setprecision(15) << r2 << " " << x2 << " " << y2 << " ";
+          file << std::fixed << std::setprecision(15) << f[0] << " " << f[1] << std::endl;
+        }
+
+        // Particle-wall
+        for (int j = 0; j < mListOfSphericParticles[i]->mNeighbourRigidFaces.size(); j++) {
+          DEMWall* p_wall = mListOfSphericParticles[i]->mNeighbourRigidFaces[j];
+          Condition::GeometryType& geom = p_wall->GetGeometry();
+          const double xw1 = geom[0][0];
+          const double yw1 = geom[0][1];
+          const double xw2 = geom[1][0];
+          const double yw2 = geom[1][1];
+          double x2, y2;
+
+          if (std::abs(xw2-xw1) > std::abs(yw2-yw1)) {
+            x2 = x1;
+            y2 = yw1;
+          }
+          else {
+            x2 = xw1;
+            y2 = y1;
+          }
+          array_1d<double, 3> f = mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce[j];
+
+          file << std::defaultfloat << id1 << " ";
+          file << std::fixed << std::setprecision(15) << r1 << " " << x1 << " " << y1 << " ";
+          file << std::defaultfloat << 0 << " ";
+          file << std::fixed << std::setprecision(15) << 0.0 << " " << x2 << " " << y2 << " ";
+          file << std::fixed << std::setprecision(15) << f[0] << " " << f[1] << std::endl;
+        }
+      }
+      file.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------

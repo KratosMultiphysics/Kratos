@@ -417,6 +417,7 @@ namespace Kratos {
 
         void RVEReadOldForces (void);
         void RVEWriteFiles    (void);
+        void RVEWriteForces   (void);
         void RVEOpenFiles     (void);
         void RVECloseFiles    (void);
 
