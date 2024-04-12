@@ -152,7 +152,7 @@ class RomDatabase(object):
         cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
         count = cursor.fetchone()[0]
         conn.close()
-        return count > 0
+        return count > 0 , hashed_mu_train
 
     def check_if_res_already_in_database(self, mu, tol_sol, tol_res, projection_type):
         conn = sqlite3.connect(self.database_name)
@@ -417,3 +417,18 @@ class RomDatabase(object):
         # Here, we assume mu_train's structure is consistent without needing sorting
         serialized_mu_train = json.dumps(mu_train, sort_keys=True)
         return serialized_mu_train
+
+
+    def make_sure_basis_is_right(self, hash_basis):
+
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+
+        data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
+        data_base_directory.mkdir(parents=True, exist_ok=True)
+        rom_directoy = Path(rom_output_folder_name)
+        rom_directoy.mkdir(parents=True, exist_ok=True)
+        currently_available_basis = np.load(rom_directoy / ('RightBasisMatrix.npy'))
+        basis_in_database = np.load(data_base_directory / (hash_basis + '.npy'))
+        are_identical = np.array_equal(currently_available_basis, basis_in_database)
+        if not are_identical:
+            np.save(rom_directoy / ('RightBasisMatrix.npy'), basis_in_database)

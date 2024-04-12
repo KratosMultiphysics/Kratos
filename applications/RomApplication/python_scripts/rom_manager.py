@@ -253,7 +253,7 @@ class RomManager(object):
                 print("Simulation for given parameters already in database.")
 
         tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        in_database =  self.data_base.check_if_basis_already_in_database(mu_train, tol_sol)
+        in_database, hash_basis =  self.data_base.check_if_basis_already_in_database(mu_train, tol_sol)
         if not in_database: #Check if basis exists already for current parameters
             if BasisOutputProcess is None:
                 BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
@@ -261,7 +261,7 @@ class RomManager(object):
             self.data_base.add_Basis_to_database(mu_train,tol_sol)
         else:
             pass
-
+        self.data_base.make_sure_basis_is_right(hash_basis) # this will compare Right Basis with the hashed file, is right keep as is, if wrong replace it with the hashed one
         self.data_base.generate_database_summary_file()
 
         return 0
@@ -389,11 +389,10 @@ class RomManager(object):
                 HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
             else:
                 HROM_utility = simulation.GetHROM_utility()
+            #doing this ensures the elements and weights npy files contained in the rom_data folder are the ones to use.i.e. they are not from old runs of the rom manager
             HROM_utility.hyper_reduction_element_selector.w, HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_elements_and_weights(hash_w ,hash_z)
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
-            #TODO make sure correct file is available for the simulations. DONE HERE
-
         self.data_base.generate_database_summary_file()
 
     def __LaunchHROM(self, mu_train):
