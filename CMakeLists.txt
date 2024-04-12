@@ -289,7 +289,13 @@ if(KRATOS_COLORED_OUTPUT MATCHES ON)
 endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 # Testing
-if(KRATOS_BUILD_TESTING MATCHES ON)   
+if(KRATOS_BUILD_TESTING MATCHES ON)
+  # retrieve a copy of the current directory's `COMPILE_OPTIONS`
+  get_directory_property(kratos_root_compile_options COMPILE_OPTIONS)
+
+  # Disable warnings (needed by centos. We should all love centos, it clearly needs some affection)
+  add_compile_options(-w)
+
   FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
@@ -300,6 +306,9 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   set(BUILD_SHARED_LIBS ON)
   FetchContent_MakeAvailable(googletest)
   enable_testing()
+
+  # restore the current directory's old `COMPILE_OPTIONS`
+  set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
 endif(KRATOS_BUILD_TESTING MATCHES ON) 
 
 ################### PYBIND11
