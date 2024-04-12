@@ -54,168 +54,168 @@ typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>
-array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, NumNodes> GetWakeDistances(const Element& rElement);
 
 template <int Dim, int NumNodes>
-BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, NumNodes> GetPotentialOnNormalElement(const Element& rElement);
 
 template <int Dim, int NumNodes>
-BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, 2 * NumNodes> GetPotentialOnWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
-BoundedVector<double, NumNodes> GetPotentialOnUpperWakeElement(
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, NumNodes> GetPotentialOnUpperWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
-BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) BoundedVector<double, NumNodes> GetPotentialOnLowerWakeElement(
     const Element& rElement, const array_1d<double, NumNodes>& rDistances);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, Dim> ComputeVelocityNormalElement(const Element& rElement);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, Dim> ComputeVelocityUpperWakeElement(const Element& rElement);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, Dim> ComputeVelocityLowerWakeElement(const Element& rElement);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputeVelocity(const Element& rElement);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, Dim> ComputeVelocity(const Element& rElement);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputePerturbedVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, Dim> ComputePerturbedVelocity(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-array_1d<double, Dim> ComputePerturbedVelocityLowerElement(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) array_1d<double, Dim> ComputePerturbedVelocityLowerElement(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeMaximumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
 
-double ComputeVacuumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
-
-template <int Dim, int NumNodes>
-double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeVacuumVelocitySquared(const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeVelocityMagnitude(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeClampedVelocitySquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeVelocityMagnitude(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputePerturbationIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationIncompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputePerturbationCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationCompressiblePressureCoefficient(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeLocalSpeedofSoundSquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeSquaredSpeedofSoundFactor(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalSpeedofSoundSquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeSquaredSpeedofSoundFactor(const double localVelocitySquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationLocalSpeedOfSound(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeLocalMachNumberSquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(const array_1d<double, Dim>& rVelocity, const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeLocalMachNumberSquared(const array_1d<double, Dim>& rVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDerivativeLocalMachSquaredWRTVelocitySquared(const array_1d<double, Dim>& rVelocity, const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindFactor(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputePerturbationLocalMachNumber(const Element& rElement, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double SelectMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactor(double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double SelectMaxUpwindFactor(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindFactorDerivativeWRTMachSquared(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) size_t ComputeUpwindFactorCase(array_1d<double, 3>& rUpwindFactorOptions);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindFactorDerivativeWRTVelocitySquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactorDerivativeWRTMachSquared(const double localMachNumberSquared,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeDensity(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindFactorDerivativeWRTVelocitySquared(const array_1d<double, Dim>& rVelocity,const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensity(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDensity(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeDensityDerivativeWRTVelocitySquared(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensity(const array_1d<double, Dim>& rCurrentVelocity, const array_1d<double, Dim>& rUpwindVelocity, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(const array_1d<double, Dim>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeDensityDerivativeWRTVelocitySquared(const double localMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating(const array_1d<double, Dim>& rCurrentVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(const array_1d<double, Dim>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating(const array_1d<double, Dim>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 
-bool CheckIfElementIsTrailingEdge(const Element& rElement);
+template <int Dim, int NumNodes>
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckIfElementIsCutByDistance(const BoundedVector<double, NumNodes>& rNodalDistances);
+
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckIfElementIsTrailingEdge(const Element& rElement);
 
 template <int Dim>
-void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void CheckIfWakeConditionsAreFulfilled(const ModelPart& rWakeModelPart, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
-bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckWakeCondition(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 
 template <int Dim, int NumNodes>
-void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetSortedIds(std::vector<size_t>& Ids, const GeometryType& rGeom);
 
 template <int Dim, int NumNodes>
-void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetNodeNeighborElementCandidates(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
 
 template<int Dim>
-Vector ComputeKuttaNormal(const double angle);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) Vector ComputeKuttaNormal(const double angle);
 
 template <class TContainerType>
-double CalculateArea(TContainerType& rContainer);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double CalculateArea(TContainerType& rContainer);
 
 template <int Dim, int NumNodes>
-void ComputePotentialJump(ModelPart& rWakeModelPart);
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void ComputePotentialJump(ModelPart& rWakeModelPart);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyTerm(const Element& rElement,
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyTerm(const Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-void AddPotentialGradientStabilizationTerm(Element& rElement,
+KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm(Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
