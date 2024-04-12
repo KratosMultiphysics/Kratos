@@ -49,5 +49,36 @@ public:
                RelativePermeability * PermeabilityUpdateFactor * IntegrationCoefficient;
     }
 
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(
+        const Matrix& rB, const Vector& rVoigtVector, const Vector& rNp, double BiotCoefficient, double BishopCoefficient, double IntegrationCoefficient)
+    {
+        return CalculateCouplingMatrix(rB, rVoigtVector, rNp, BiotCoefficient, BishopCoefficient,
+                                       IntegrationCoefficient);
+    }
+
+    static inline Matrix CalculateCouplingMatrix(const Matrix& rB,
+                                                 const Vector& rVoigtVector,
+                                                 const Vector& rNp,
+                                                 double        BiotCoefficient,
+                                                 double        BishopCoefficient,
+                                                 double        IntegrationCoefficient)
+    {
+        return PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient *
+               outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp) * IntegrationCoefficient;
+    }
+
+    template <unsigned int TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(
+        const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
+    {
+        return CalculateCompressibilityMatrix(rNp, BiotModulusInverse, IntegrationCoefficient);
+    }
+
+    static inline Matrix CalculateCompressibilityMatrix(const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
+    {
+        return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
+    }
+    
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

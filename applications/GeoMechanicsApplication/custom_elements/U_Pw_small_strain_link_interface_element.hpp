@@ -72,8 +72,7 @@ public:
     {
     }
 
-    // Destructor
-    ~UPwSmallStrainLinkInterfaceElement() override {}
+    ~UPwSmallStrainLinkInterfaceElement() = default;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

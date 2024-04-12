@@ -288,12 +288,9 @@ class HRomTrainingUtility(object):
         return default_settings
 
     def __CalculateResidualBasis(self):
-        # Set up the residual snapshots matrix
-        residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
-
-        # Calculate the randomized and truncated SVD of the residual snapshots
+        # Calculate the randomized and truncated SVD of the residual snapshots #TODO add other SVD options
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-            residuals_snapshot_matrix,
+            self._GetResidualsProjectedMatrix(),
             self.element_selection_svd_truncation_tolerance)
 
         return u
@@ -301,13 +298,7 @@ class HRomTrainingUtility(object):
 
 
     def _GetResidualsProjectedMatrix(self):
-        # Set up the residual snapshots matrix
-        n_steps = len(self.time_step_residual_matrix_container)
-        residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
-        for i in range(1,n_steps):
-            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
-        return residuals_snapshot_matrix
+        return np.block(self.time_step_residual_matrix_container)
 
 
 

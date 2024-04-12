@@ -132,6 +132,7 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
     @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
     def test_ComputeDistanceToSkin(self):
         """Test the computation of nodal distances to the skin in the model part."""
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.model_part.Nodes)
         # Define the settings for the distance calculation process
         settings = KratosMultiphysics.Parameters("""
         {
@@ -153,6 +154,36 @@ class TestCalculateNodalDistanceToSkinProcessCoarseSphere(KratosUnittest.TestCas
             distance = CalculateAnalyticalDistance(node)
             solution_distance = node.GetValue(KratosMultiphysics.DISTANCE)
             self.assertAlmostEqual(distance, solution_distance, delta=3.8e-2)
+
+    @KratosUnittest.skipIf(KratosMultiphysics.IsDistributedRun(), "This test is designed for serial runs only.")
+    def test_ComputeDistanceToSkinWithSavedDistanceInSkin(self):
+        """Test the computation of nodal distances to the skin in the model part. Case saving distances in the skin."""
+        # Define the settings for the distance calculation process
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "distance_database"         : "nodal_non_historical",
+            "save_max_distance_in_skin" : true,
+            "distance_variable"         : "DISTANCE",
+            "volume_model_part"         : "main_model_part",
+            "skin_model_part"           : "skin_model_part"
+        }""")
+        # Execute the distance calculation process
+        KratosMultiphysics.CalculateNodalDistanceToSkinProcess(self.current_model, settings).Execute()
+
+        ## DEBUG
+        # Uncomment to visualize output
+        #post_process_gid(self.model_part)
+        #post_process_vtk(self.current_model)
+
+        ## Check the calculated distances against analytical values
+        for node in self.model_part.Nodes:
+            distance = CalculateAnalyticalDistance(node)
+            solution_distance = node.GetValue(KratosMultiphysics.DISTANCE)
+            self.assertAlmostEqual(distance, solution_distance, delta=3.8e-2)
+        list_of_conditions = [1, 5, 8, 13, 19, 22, 32, 45, 54, 58, 66, 68, 70, 80, 83, 85, 99, 101, 103]
+        for cond in self.skin_model_part.Conditions:
+            if cond.Is(KratosMultiphysics.VISITED):
+                self.assertTrue(cond.Id in list_of_conditions)
 
 if __name__ == '__main__':
     # Configure logging level and start the test runner

@@ -88,14 +88,15 @@ void AddCustomFiltersToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    Detail::AddExplicitFilterUtils<ModelPart::NodesContainerType>(m, "NodeExplicitFilterUtils");
-    Detail::AddExplicitFilterUtils<ModelPart::ConditionsContainerType>(m, "ConditionExplicitFilterUtils");
-    Detail::AddExplicitFilterUtils<ModelPart::ElementsContainerType>(m, "ElementExplicitFilterUtils");
-
     // Add damping interface
     Detail::AddExplicitDamping<ModelPart::NodesContainerType>(m, "Node");
     Detail::AddExplicitDamping<ModelPart::ConditionsContainerType>(m, "Condition");
     Detail::AddExplicitDamping<ModelPart::ElementsContainerType>(m, "Element");
+
+    Detail::AddExplicitFilterUtils<ModelPart::NodesContainerType>(m, "NodeExplicitFilterUtils");
+    Detail::AddExplicitFilterUtils<ModelPart::ConditionsContainerType>(m, "ConditionExplicitFilterUtils");
+    Detail::AddExplicitFilterUtils<ModelPart::ElementsContainerType>(m, "ElementExplicitFilterUtils");
+
 }
 
 } // namespace Python.
