@@ -7,6 +7,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
@@ -30,6 +31,7 @@ class SensorStatusControl(Control):
             "controlled_model_part_names": [""],
             "initial_sensor_status"      : 0.5,
             "filter_settings"            : {},
+            "output_all_fields"          : false,
             "beta_settings": {
                 "initial_value": 5,
                 "max_value"    : 30,
@@ -42,6 +44,7 @@ class SensorStatusControl(Control):
 
         self.controlled_physical_variables = [KratosDT.SENSOR_STATUS]
         self.initial_sensor_status = parameters["initial_sensor_status"].GetDouble()
+        self.output_all_fields = parameters["output_all_fields"].GetBool()
 
         # beta settings
         beta_settings = parameters["beta_settings"]
@@ -63,20 +66,30 @@ class SensorStatusControl(Control):
         self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), KratosDT.SENSOR_STATUS, Kratos.Globals.DataLocation.NodeNonHistorical, parameters["filter_settings"])
 
     def Initialize(self) -> None:
-        self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-
-        # init model parts
         self.model_part = self.model_part_operation.GetModelPart()
 
-        # calculate phi from existing density
-        sensor_status = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(sensor_status, self.initial_sensor_status)
-        self.phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(sensor_status, [0, 1], [0, 1], self.beta, 1)
-        self.un_buffered_data.SetValue("phi", self.phi, overwrite=True)
-        self.__ApplySensorStatus()
+        self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
 
+        # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
+
+        sensor_status = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(sensor_status, self.initial_sensor_status)
+
+        # project backward the uniform physical control field and assign it to the control field
+        self.physical_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
+                                                sensor_status,
+                                                [0, 1],
+                                                [0, 1],
+                                                self.beta,
+                                                1)
+
+        # take the physical and control field the same
+        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+
+        # now update the physical thickness field
+        self._UpdateAndOutputFields(self.GetEmptyField())
 
     def Check(self) -> None:
         self.filter.Check()
@@ -93,7 +106,7 @@ class SensorStatusControl(Control):
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
-        return self.phi.Clone()
+        return self.control_phi_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
@@ -103,27 +116,35 @@ class SensorStatusControl(Control):
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. SENSOR_STATUS not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
         # first calculate the sensor status partial sensitivity of the response function
-        d_j_d_sensor_status= physical_gradient_variable_container_expression_map[KratosDT.SENSOR_STATUS]
+        physical_gradient = physical_gradient_variable_container_expression_map[KratosDT.SENSOR_STATUS]
 
-        # now calculate the total sensitivities of sensor_status w.r.t. phi
-        d_sensor_status_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.phi, [0, 1], [0, 1], self.beta, 1)
+        # multiply the physical sensitivity field with projection derivatives
+        projected_gradient = physical_gradient * self.projection_derivative_field
 
-        # now compute response function total sensitivity w.r.t. phi
-        d_j_d_phi = d_j_d_sensor_status * d_sensor_status_d_phi
+        # now filter the field
+        filtered_gradient = self.filter.BackwardFilterField(projected_gradient)
 
-        return self.filter.BackwardFilterField(d_j_d_phi)
+        return filtered_gradient
 
-    def Update(self, control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
+        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
 
-        if Kratos.Expression.Utils.NormL2(self.phi - control_field) > 1e-15:
-            self.phi = self.filter.ForwardFilterField(control_field)
-            self.un_buffered_data.SetValue("filtered_phi", self.phi.Clone(), overwrite=True)
+        update = new_control_field - self.control_phi_field
+        if Kratos.Expression.Utils.NormL2(update) > 1e-15:
+            with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
+                # update the control thickness field
+                self.control_phi_field = new_control_field
+                # now update the physical field
+                self._UpdateAndOutputFields(update)
 
-            self.__UpdateBeta()
+                self.filter.Update()
 
-            self.__ApplySensorStatus()
+                return True
+
+        self.__UpdateBeta()
+
+        return False
 
     def __UpdateBeta(self) -> None:
         if self.beta_adaptive:
@@ -133,7 +154,34 @@ class SensorStatusControl(Control):
                 self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
                 Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
 
-    def __ApplySensorStatus(self) -> None:
-        sensor_status =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.phi, [0, 1], [0, 1], self.beta, 1)
-        Kratos.Expression.VariableExpressionIO.Write(sensor_status, KratosDT.SENSOR_STATUS, False)
-        self.un_buffered_data.SetValue("SENSOR_STATUS", sensor_status.Clone(), overwrite=True)
+    def _UpdateAndOutputFields(self, control_phi_update: ContainerExpressionTypes) -> None:
+        # filter the control field
+        physical_phi_update = self.filter.ForwardFilterField(control_phi_update)
+        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + physical_phi_update)
+
+        # project forward the filtered thickness field
+        projected_sensor_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(
+                                                self.physical_phi_field,
+                                                [0, 1],
+                                                [0, 1],
+                                                self.beta,
+                                                1)
+        # now update physical field
+        Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosDT.SENSOR_STATUS, False)
+
+        # compute and stroe projection derivatives for consistent filtering of the sensitivities
+        self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
+                                                self.physical_phi_field,
+                                                [0, 1],
+                                                [0, 1],
+                                                self.beta,
+                                                1)
+
+        # now output the fields
+        un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
+        un_buffered_data.SetValue("sensor_status", projected_sensor_field.Clone(),overwrite=True)
+        if self.output_all_fields:
+            un_buffered_data.SetValue("physical_sensor_status_phi_update", physical_phi_update.Clone(), overwrite=True)
+            un_buffered_data.SetValue("control_sensor_status_phi", self.control_phi_field.Clone(), overwrite=True)
+            un_buffered_data.SetValue("physical_sensor_status_phi", self.physical_phi_field.Clone(), overwrite=True)
+            un_buffered_data.SetValue("sensor_status_projection_derivative", self.projection_derivative_field.Clone(), overwrite=True)
