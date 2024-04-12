@@ -25,28 +25,21 @@ file(
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
-add_library(KratosMappingMPICore SHARED ${KRATOS_MAPPING_APPLICATION_CORE})
-target_link_libraries(KratosMappingMPICore PUBLIC KratosCore KratosMPICore )
+add_library(KratosMappingMPICore SHARED ${KRATOS_MAPPING_MPI_EXTENSION_CORE_SOURCES})
+target_include_directories(KratosMappingMPICore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
+target_link_libraries(KratosMappingMPICore PUBLIC KratosMPICore KratosCore KratosMappingCore KratosTrilinosCore ${MPI_LIBRARIES} ${TRILINOS_LIBRARIES} )
 set_target_properties(KratosMappingMPICore PROPERTIES COMPILE_DEFINITIONS "MAPPING_MPI_APPLICATION=EXPORT,API")
 
 ## Python module
 pybind11_add_module( KratosMappingMPIExtension MODULE THIN_LTO ${KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
-target_include_directories(KratosMappingMPIExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
-target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingMPICore KratosTrilinosCore )
+target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingMPICore )
 set_target_properties( KratosMappingMPIExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosMappingMPIExtension PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
-
-if(CMAKE_UNITY_BUILD MATCHES ON)
-    ## These files are giving instantiation problems
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container_mpi.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory_mpi.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 ###############################################################################
 # changing the .dll suffix to .pyd
