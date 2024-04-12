@@ -183,7 +183,7 @@ class SensorStatusControl(Control):
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue("sensor_status", projected_sensor_field.Clone(),overwrite=True)
         if self.output_all_fields:
+            un_buffered_data.SetValue("sensor_status_physical_phi", self.physical_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_physical_phi_update", physical_phi_update.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_control_phi", self.control_phi_field.Clone(), overwrite=True)
-            un_buffered_data.SetValue("sensor_status_physical_phi", self.physical_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_projection_derivative", self.projection_derivative_field.Clone(), overwrite=True)
