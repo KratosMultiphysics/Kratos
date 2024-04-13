@@ -424,8 +424,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
         // noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.N_epsilon);
         // noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
+
         noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(Ds, kinematic_variables.N_epsilon)));
+        // const Matrix aux_2 = (1.0 - tau) * prod(constitutive_variables.D - Ds, kinematic_variables.N_epsilon);
+        // noalias(M)  -= (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  aux_2);
         noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(Ds, kinematic_variables.B)));
+        // const Matrix aux = tau * prod(constitutive_variables.D - Ds, kinematic_variables.B);
+        // noalias(Q)  -= w_gauss * prod(trans(kinematic_variables.N_epsilon),  aux);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
@@ -511,8 +516,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
 
         // noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.N_epsilon);
         // noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  kinematic_variables.B);
+
         noalias(M)  += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(Ds, kinematic_variables.N_epsilon)));
+        // const Matrix aux_2 = (1.0 - tau) * prod(constitutive_variables.D - Ds, kinematic_variables.N_epsilon);
+        // noalias(M)  -= (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  aux_2);
         noalias(Q)  += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon),  Matrix(prod(Ds, kinematic_variables.B)));
+        // const Matrix aux = tau * prod(constitutive_variables.D - Ds, kinematic_variables.B);
+        // noalias(Q)  -= w_gauss * prod(trans(kinematic_variables.N_epsilon),  aux);
 
 
     }
