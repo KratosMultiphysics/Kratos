@@ -6,6 +6,32 @@
 
 import numpy as np
 
+'''
+how to build a k-d tree?
+
+example:
+
+    points_list = []
+
+    for node in self.spheres_model_part.Nodes:
+        
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
+
+        points_list.append(((x, y, z), r))
+
+    self.kdtree = Kdtree()
+
+    self.kdtree.BuildKdtree(points_list)
+
+    target_point = (center_x, center_y, center_z)
+    resulted_nodes = []
+
+    resulted_nodes = self.kdtree.SearchKdtree(self.kdtree.Kdtree, target_point, radius, resulted_nodes)
+'''
+
 class KdtreeNode:
     def __init__(self, point, radius, left=None, right=None, axis=None):
         self.point = point
