@@ -85,6 +85,7 @@ protected:
         Vector NodalStrains;       // Strains stored at the nodes (strain DoFs) -> E
         Vector EquivalentStrain;   // Stabilized strain field E = (1-tau) N_e · E + tau Bu · U
         Vector SymmGradientDispl;  // Symmetric gradient of the nodal displacements: Bu·U
+        Vector NodalStrain;        // N_e · E
 
         /**
          * The default constructor
@@ -108,6 +109,7 @@ protected:
             NodalStrains = ZeroVector(NumberOfNodes * StrainSize);
             EquivalentStrain = ZeroVector(StrainSize);
             SymmGradientDispl = ZeroVector(StrainSize);
+            NodalStrain = ZeroVector(StrainSize);
             N_epsilon = ZeroMatrix(StrainSize, StrainSize * NumberOfNodes);
         }
     };

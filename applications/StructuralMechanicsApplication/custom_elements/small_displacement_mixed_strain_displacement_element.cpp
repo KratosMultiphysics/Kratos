@@ -845,6 +845,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     // Compute the symmetric gradient of the displacements
     noalias(rKinVariables.SymmGradientDispl) = prod(rKinVariables.B, rKinVariables.NodalDisplacements);
 
+    noalias(rKinVariables.NodalStrain) = prod(rKinVariables.N_epsilon, rKinVariables.NodalStrains);
+
     // Calculate the equivalent total strain
     CalculateEquivalentStrain(rKinVariables);
 
@@ -873,8 +875,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
 {
     const auto &r_props = GetProperties();
     const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
-    noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * prod(rKinVars.N_epsilon, rKinVars.NodalStrains) +
-        tau * prod(rKinVars.B, rKinVars.NodalDisplacements);
+    noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * rKinVars.NodalStrain + tau * rKinVars.SymmGradientDispl;
 }
 
 /***********************************************************************************/
