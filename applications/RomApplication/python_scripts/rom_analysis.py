@@ -95,7 +95,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
             # Add HROM Settings (e.g. hrom_settings)
-            self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddBool("store_non_converged_projected_residuals", self.rom_parameters["hrom_train"]["store_non_converged_projected_residuals"].GetBool()) if self.rom_parameters["store_non_converged_projected_residuals"].Has("store_non_converged_projected_residuals") else False
+            self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddBool("store_non_converged_projected_residuals", self.rom_parameters["hrom_settings"]["store_non_converged_projected_residuals"].GetBool()) if self.rom_parameters["hrom_settings"].Has("store_non_converged_projected_residuals") else False
 
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
