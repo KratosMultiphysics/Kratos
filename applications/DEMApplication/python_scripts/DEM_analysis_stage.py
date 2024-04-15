@@ -744,6 +744,7 @@ class DEMAnalysisStage(AnalysisStage):
             measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
             sphere_volume_inside_range = 0.0
             measured_porosity = 0.0
+            n = 0
 
             for node in self.spheres_model_part.Nodes:
                 
@@ -751,6 +752,48 @@ class DEMAnalysisStage(AnalysisStage):
                 x = node.X
                 y = node.Y
                 z = node.Z
+
+                center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_sphere_distance < (radius - r):
+
+                    sphere_volume_inside_range += 4/3 * math.pi * r * r * r
+                    n += 1
+
+                elif center_to_sphere_distance <= (radius + r):
+
+                    other_part_d = radius - (radius * radius + center_to_sphere_distance * center_to_sphere_distance - r * r) / (center_to_sphere_distance * 2)
+
+                    my_part_d = r - (r * r + center_to_sphere_distance * center_to_sphere_distance - radius * radius) / (center_to_sphere_distance * 2)
+                    
+                    cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
+                    
+                    sphere_volume_inside_range += cross_volume
+                    n += 1
+            
+            measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
+
+            print(n)
+
+            return measured_porosity
+        
+        if type == "porosity_kdtree":
+
+            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
+            sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
+
+            target_point = (center_x, center_y, center_z)
+            resulted_nodes = []
+
+            resulted_nodes = self.kdtree.SearchKdtree(self.kdtree.Kdtree, target_point, radius, resulted_nodes)
+            
+            for node in resulted_nodes:
+                
+                r = node[1]
+                x = node[0][0]
+                y = node[0][1]
+                z = node[0][2]
 
                 center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
 
