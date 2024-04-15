@@ -160,7 +160,7 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
         
-        print(self._GetSolver().GetComputingModelPart().GetNode(8450).GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR))
+        # print(self._GetSolver().GetComputingModelPart().GetNode(8450).GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR))
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
