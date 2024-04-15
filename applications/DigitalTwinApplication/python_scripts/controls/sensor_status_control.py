@@ -10,7 +10,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -31,7 +30,6 @@ class SensorStatusControl(Control):
             "controlled_model_part_names": [""],
             "initial_sensor_status"      : 0.5,
             "penalty_factor"             : 3,
-            "filter_settings"            : {},
             "output_all_fields"          : false,
             "beta_settings": {
                 "initial_value": 5,
@@ -64,17 +62,10 @@ class SensorStatusControl(Control):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
 
-        # filtering settings
-        self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), KratosDT.SENSOR_STATUS, Kratos.Globals.DataLocation.NodeNonHistorical, parameters["filter_settings"])
-
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-
-        # initialize the filter
-        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
-        self.filter.Initialize()
 
         sensor_status = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(sensor_status, self.initial_sensor_status)
@@ -87,17 +78,14 @@ class SensorStatusControl(Control):
                                                 self.beta,
                                                 self.penalty_factor)
 
-        # take the physical and control field the same
-        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
-
         # now update the physical thickness field
         self._UpdateAndOutputFields(self.GetEmptyField())
 
     def Check(self) -> None:
-        self.filter.Check()
+        pass
 
     def Finalize(self) -> None:
-        self.filter.Finalize()
+        pass
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return self.controlled_physical_variables
@@ -108,7 +96,7 @@ class SensorStatusControl(Control):
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi_field
+        return self.physical_phi_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
@@ -121,26 +109,17 @@ class SensorStatusControl(Control):
         physical_gradient = physical_gradient_variable_container_expression_map[KratosDT.SENSOR_STATUS]
 
         # multiply the physical sensitivity field with projection derivatives
-        projected_gradient = physical_gradient * self.projection_derivative_field
-
-        # now filter the field
-        filtered_gradient = self.filter.BackwardFilterField(projected_gradient)
-
-        return filtered_gradient
+        return physical_gradient * self.projection_derivative_field
 
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
 
-        update = new_control_field - self.control_phi_field
+        update = new_control_field - self.physical_phi_field
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
-                # update the control thickness field
-                self.control_phi_field = new_control_field
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
-
-                self.filter.Update()
 
                 return True
 
@@ -156,9 +135,7 @@ class SensorStatusControl(Control):
                 self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
                 Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
 
-    def _UpdateAndOutputFields(self, control_phi_update: ContainerExpressionTypes) -> None:
-        # filter the control field
-        physical_phi_update = self.filter.ForwardFilterField(control_phi_update)
+    def _UpdateAndOutputFields(self, physical_phi_update: ContainerExpressionTypes) -> None:
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + physical_phi_update)
 
         # project forward the filtered thickness field
@@ -185,5 +162,4 @@ class SensorStatusControl(Control):
         if self.output_all_fields:
             un_buffered_data.SetValue("sensor_status_physical_phi", self.physical_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_physical_phi_update", physical_phi_update.Clone(), overwrite=True)
-            un_buffered_data.SetValue("sensor_status_control_phi", self.control_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_projection_derivative", self.projection_derivative_field.Clone(), overwrite=True)
