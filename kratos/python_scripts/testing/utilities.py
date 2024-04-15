@@ -252,7 +252,7 @@ class Commander(object):
                 except subprocess.TimeoutExpired:
                     # Timeout reached
                     self.process.kill()
-                    print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                    print('[Error]: Tests for {} took too long. Process Killed.'.format(filename), file=sys.stderr)
                     self.exitCode = 1
                 else:
                     if process_stdout:
@@ -312,7 +312,7 @@ class Commander(object):
 
         self.exitCode = 0
 
-        # Iterate over all executables that are not mpi dependant and execute them.
+        # Iterate over all executables that are mpi dependant and execute them.
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
             filename = os.fsdecode(test_suite)
             # Skip mpi tests
@@ -331,7 +331,7 @@ class Commander(object):
                 except subprocess.TimeoutExpired:
                     # Timeout reached
                     self.process.kill()
-                    print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                    print('[Error]: Tests for {} took too long. Process Killed.'.format(filename), file=sys.stderr)
                     self.exitCode = 1
                 else:
                     if process_stdout:
