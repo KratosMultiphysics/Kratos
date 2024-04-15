@@ -185,7 +185,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
 
     const auto& r_elem_weights = HRomWeights["Elements"];
     const auto& r_cond_weights = HRomWeights["Conditions"];
-    
+
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
 
@@ -254,7 +254,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
             }
         }
     }
-    
+
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
@@ -790,5 +790,27 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
             noalias(row(rJPhiElemental, i)) = row(rJPhi, r_dof.EquationId());
         }
     }
+
+std::unordered_set<int> RomAuxiliaryUtilities::FindNearestNeighbors(
+    NodesPointerSetType& rMasterStructureNodes,
+    std::vector<Node::Pointer> nodesVector)
+{
+    KRATOS_TRY;
+
+    NodesPointerSetType::ContainerType& nodes_model_part = rMasterStructureNodes.GetContainer();
+    mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
+
+    std::unordered_set<int> nearestNodeIds; // Using unordered_set for unique node IDs
+
+    for (auto& p_current_node : nodesVector) {
+        NodeType::Pointer found_node = mpBins->SearchNearestPoint(*p_current_node);  // Search for nearest node
+        nearestNodeIds.insert(found_node->Id()); // Insert the found node's ID
+    }
+
+    return nearestNodeIds;
+
+    KRATOS_CATCH("");
+}
+
 
 } // namespace Kratos
