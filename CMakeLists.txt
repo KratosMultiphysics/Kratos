@@ -16,10 +16,14 @@ if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW)
 endif(POLICY CMP0022)
 
-# Find package based on <packagename>_ROOT variable
+# Find package based on <packagename>_ROOT variable (both policies are needed)
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif(POLICY CMP0074)
+
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif(POLICY CMP0144)
 
 # Lists
 if(POLICY CMP0057)
@@ -530,7 +534,14 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
+  # supress anoying warnings from trilinos due to not having the same package name as the lib name.
+  if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
+  endif()
   find_package(TRILINOS QUIET)
+  if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+    set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 0 CACHE INTERNAL "No dev warnings")
+  endif()
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
