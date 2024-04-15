@@ -136,14 +136,14 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
         std::vector<std::string> monotonic_constraints_list = mThisParameters["fatigue"]["monotonic_constraints_process_list"].GetStringArray();
         //Loop on the monotonic constraints list
         for (unsigned int i = 0; i < monotonic_constraints_list.size(); i++) {
-            for (unsigned int j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
-                std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
-                double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
-                double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+            for (unsigned int j = 0; j < mThisParameters["processes"]["loads_process_list"].size(); j++) {//Here is changed to account for load control
+                std::string model_part_name = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["model_part_name"].GetString();//Here is changed to account for load control
+                double model_part_start_time = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["interval"][0].GetDouble();//Here is changed to account for load control
+                double model_part_end_time = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["interval"][1].GetDouble();//Here is changed to account for load control
                 if (monotonic_constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !break_condition) {
                     break_condition = true;
                     //Checking if this is the first step of a new model part
-                    double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
+                    double model_part_start_time = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["interval"][0].GetDouble();//Here is changed to account for load control
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
                     }
@@ -159,15 +159,15 @@ void AdvanceInTimeHighCycleFatigueProcess::MonotonicOrCyclicLoad()
         std::vector<std::string> cyclic_constraints_list = mThisParameters["fatigue"]["cyclic_constraints_process_list"].GetStringArray();
         //Loop on the cyclic constraints list
         for (unsigned int i = 0; i < cyclic_constraints_list.size(); i++) {
-            for (unsigned int j = 0; j < mThisParameters["processes"]["constraints_process_list"].size(); j++) {
-                std::string model_part_name = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["model_part_name"].GetString();
-                double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
-                double model_part_end_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][1].GetDouble();
+            for (unsigned int j = 0; j < mThisParameters["processes"]["loads_process_list"].size(); j++) {//Here is changed to account for load control
+                std::string model_part_name = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["model_part_name"].GetString();//Here is changed to account for load control
+                double model_part_start_time = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["interval"][0].GetDouble();//Here is changed to account for load control
+                double model_part_end_time = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["interval"][1].GetDouble();//Here is changed to account for load control
                 if (cyclic_constraints_list[i] == model_part_name && time >= model_part_start_time && time <= model_part_end_time && !current_load_type) {
                     current_load_type = true;
 
                     //Checking if this is the first step of a new model part
-                    double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
+                    double model_part_start_time = mThisParameters["processes"]["loads_process_list"][j]["Parameters"]["interval"][0].GetDouble();//Here is changed to account for load control
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
                     }

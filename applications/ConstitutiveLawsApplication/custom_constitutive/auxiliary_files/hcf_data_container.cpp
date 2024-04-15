@@ -276,9 +276,9 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         const double pre_indicator = aux_sum / resultant_shear_stress;
 
         if (pre_indicator < 0.7) {
-            sign_factor = -1.0;
-        } else {
             sign_factor = 1.0;
+        } else {
+            sign_factor = -1.0;
         }
     }
     uniaxial_stress *= sign_factor;
