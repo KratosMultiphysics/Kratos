@@ -350,15 +350,9 @@ void LinearElastic3DLaw::CalculateStress( const Vector & rStrainVector,
       rStressVector.resize(rStrainVector.size(),false);
     noalias(rStressVector) = prod(rConstitutiveMatrix,rStrainVector);
 
-    //Check if the dimension of the problem and add initial stresses
-    if (rStressVector.size() == 3) {
-      const Element::GeometryType& geometry = rValues.GetElementGeometry();
-      PoroElementUtilities::AddInitialStresses2D(rStressVector, rValues, geometry);
-    } else if(rStressVector.size() == 6) {
-      const Element::GeometryType& geometry = rValues.GetElementGeometry();
-      PoroElementUtilities::AddInitialStresses3D(rStressVector, rValues, geometry);
-    }
-
+    //Add initial stresses
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    PoroElementUtilities::AddInitialStresses(rStressVector, rValues, geometry);
 
 }
 

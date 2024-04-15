@@ -391,11 +391,9 @@ void LinearElasticPlastic3DLaw::CalculateReturnMapping( FlowRule::RadialReturnVa
 {
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
 
-    //Check if the problem to solve is 2D and then, add initial stresses
-    if (rStressVector.size() == 3) {
-        const Element::GeometryType& geometry = rValues.GetElementGeometry();
-        PoroElementUtilities::AddInitialStresses2D(rStressVector, rValues, geometry);
-    }
+    //Add initial stresses
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    PoroElementUtilities::AddInitialStresses(rStressVector, rValues, geometry);
 
     noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
 
@@ -432,11 +430,9 @@ void LinearElasticPlastic3DLaw::UpdateInternalStateVariables( FlowRule::RadialRe
 {
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
     
-    //Check if the problem to solve is 2D and then, add initial stresses
-    if (rStressVector.size() == 3) {
-        const Element::GeometryType& geometry = rValues.GetElementGeometry();
-        PoroElementUtilities::AddInitialStresses2D(rStressVector, rValues, geometry);
-    }
+    //Add initial stresses
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    PoroElementUtilities::AddInitialStresses(rStressVector, rValues, geometry);
 
     noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
 
