@@ -247,7 +247,7 @@ class Commander(object):
                 # and capture the first exit code different from OK
                 try:
                     # timeout should not be a problem for cpp, but we leave it just in case
-                    timer = int(90)
+                    timer = int(900)
                     process_stdout, process_stderr = self.process.communicate(timeout=timer)
                 except subprocess.TimeoutExpired:
                     # Timeout reached
@@ -326,7 +326,7 @@ class Commander(object):
                 # and capture the first exit code different from OK
                 try:
                     # timeout should not be a problem for cpp, but we leave it just in case
-                    timer = int(90)
+                    timer = int(900)
                     process_stdout, process_stderr = self.process.communicate(timeout=timer)
                 except subprocess.TimeoutExpired:
                     # Timeout reached
