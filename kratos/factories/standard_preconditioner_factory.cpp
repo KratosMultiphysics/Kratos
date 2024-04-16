@@ -43,8 +43,10 @@ namespace Kratos
         static auto ILU0PreconditionerFactory= StandardPreconditionerFactory<SpaceType,LocalSpaceType,ILU0PreconditionerType>();
         static auto ILUPreconditionerFactory= StandardPreconditionerFactory<SpaceType,LocalSpaceType,ILUPreconditionerType>();
 
-        //registration of linear solvers
+        // Setting default register name
         KRATOS_SET_REGISTER_SOURCE("KratosMultiphysics");
+        
+        //registration of linear solvers
         KRATOS_REGISTER_PRECONDITIONER("none", PreconditionerFactory);
         KRATOS_REGISTER_PRECONDITIONER("diagonal", DiagonalPreconditionerFactory);
         KRATOS_REGISTER_PRECONDITIONER("ilu0", ILU0PreconditionerFactory);

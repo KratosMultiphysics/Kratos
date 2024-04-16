@@ -64,8 +64,10 @@ namespace Kratos
         static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
         static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
 
-        // Registration of linear solvers
+        // Setting default register name
         KRATOS_SET_REGISTER_SOURCE("KratosMultiphysics");
+        
+        // Registration of linear solvers
         // KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
         KRATOS_REGISTER_LINEAR_SOLVER("cg", CGSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("bicgstab", BICGSTABSolverFactory);
