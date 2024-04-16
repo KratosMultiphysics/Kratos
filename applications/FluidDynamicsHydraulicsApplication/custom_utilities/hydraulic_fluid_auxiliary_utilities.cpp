@@ -333,7 +333,7 @@ void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
 {
     // Obtain for each condition each neighbor condition
     block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){ rNode.SetValue(AUX_INDEX, 0); });
-    ModelPart::ConditionsContainerType &r_cond = rModelPart.Conditions();
+    auto &r_cond = rModelPart.Conditions();
     double angle_corner_rad = MaximumAngle / 180.0 * 3.14159; //
     double acceptable_cos = cos(angle_corner_rad);
     double max_height = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [&](NodeType &rNode){return rNode.Z();});
