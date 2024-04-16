@@ -90,6 +90,8 @@ void KratosMappingApplication::Register()
 
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
 
+    KRATOS_REGISTER_MODELER("IgaMappingGeometriesModeler", mIgaMappingGeometriesModeler);
+
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
     KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )
     KRATOS_REGISTER_VARIABLE( CURRENT_COORDINATES )

@@ -24,6 +24,7 @@
 #include "includes/kratos_application.h"
 #include "custom_searching/interface_object.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
+#include "custom_modelers/iga_mapping_geometries_modeler.h"
 
 namespace Kratos
 {
@@ -186,6 +187,8 @@ private:
     const InterfaceGeometryObject   mInterfaceGeometryObject;
 
     const MappingGeometriesModeler  mMappingGeometriesModeler;
+
+    const IgaMappingGeometriesModeler  mIgaMappingGeometriesModeler;
 
     ///@}
     ///@name Private Operators
