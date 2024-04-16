@@ -129,8 +129,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     /// Destructor.
     virtual ~KratosApplication() {
-        UnregisterCommonComponents();
-        UnregisterApplication();
+        // This must be commented until tests have been fixed.
+        // UnregisterCommonComponents();
+        // UnregisterApplication();
     }
 
     ///@}
