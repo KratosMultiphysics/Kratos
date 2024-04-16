@@ -29,7 +29,7 @@ class TestHromTrainingUtilityRom(KratosUnittest.TestCase):
             KratosMultiphysics.ModelPartIO("Expected_couette_flow_testHROM").ReadModelPart(cls.expected_model_part)
 
             cls.obtained_model_part = cls.model.CreateModelPart("obtained")
-            KratosMultiphysics.ModelPartIO("couette_flow_testHROM").ReadModelPart(cls.obtained_model_part)
+            KratosMultiphysics.ModelPartIO("../../../FluidDynamicsApplication/tests/CouetteFlowTest/couette_flow_testHROM").ReadModelPart(cls.obtained_model_part)
 
     def test_model_parts_and_numpy_arrays(self):
         # Testing Nodes in Main Model Part
@@ -83,7 +83,7 @@ class TestHromTrainingUtilityRom(KratosUnittest.TestCase):
 
         # Specific files and paths to delete
         specific_files = [
-            "couette_flow_testHROM.mdpa",
+            "../../../FluidDynamicsApplication/tests/CouetteFlowTest/couette_flow_testHROM.mdpa",
             "rom_data/HROM_ConditionIds.npy",
             "rom_data/HROM_ConditionWeights.npy",
             "rom_data/HROM_ElementIds.npy",
