@@ -159,7 +159,6 @@ void KratosIgaApplication::RegisterPreconditioners()
     using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
     using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-    using PreconditionerType = Preconditioner<SpaceType, LocalSpaceType>;
     using AdditiveSchwarzPreconditionerType = AdditiveSchwarzPreconditioner<SpaceType, LocalSpaceType>;
 
     static auto AdditiveSchwarzPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
