@@ -40,7 +40,7 @@ public:
     // Type definitions for tree-search
     using BucketType = Bucket<3, ModelPart::NodeType, std::vector<ModelPart::NodeType::Pointer>, ModelPart::NodeType::Pointer>;
 
-    using KDTree = Tree<KDTreePartition<BucketType>>;    
+    using KDTree = Tree<KDTreePartition<BucketType>>;
 
     ///@}
     ///@name Life cycle
@@ -73,7 +73,9 @@ private:
 
     const double mRadius;
 
-    KDTree::Pointer mpSearchTree;    
+    std::vector<ModelPart::NodeType::Pointer> mNodes;
+
+    KDTree::Pointer mpSearchTree;
 
     ///@}
 };

@@ -44,7 +44,12 @@ void SensorIsolationResponseUtils::Initialize()
 {
     KRATOS_TRY
 
-    mpSearchTree =  Kratos::make_shared<SensorIsolationResponseUtils::KDTree>(mpSensorModelPart->Nodes().ptr_begin(), mpSensorModelPart->Nodes().ptr_end(), 100);    
+    mNodes.resize(mpSensorModelPart->NumberOfNodes());
+    IndexPartition<IndexType>(mpSensorModelPart->NumberOfNodes()).for_each([&](const auto Index) {
+        mNodes[Index] = *(mpSensorModelPart->Nodes().ptr_begin() + Index);
+    });
+
+    mpSearchTree =  Kratos::make_shared<SensorIsolationResponseUtils::KDTree>(mNodes.begin(), mNodes.end(), 100);
 
     KRATOS_CATCH("")
 }
@@ -61,7 +66,7 @@ double SensorIsolationResponseUtils::CalculateValue()
 
         std::vector<ModelPart::NodeType::Pointer> mNeighbourEntityPoints;
         std::vector<double> mResultingSquaredDistances;
-    };    
+    };
 
     return block_for_each<SumReduction<double>>(mpSensorModelPart->Nodes(), KDTreeThreadLocalStorage(mMaxNumberOfNeighbors), [&](const auto& rNode, KDTreeThreadLocalStorage& rTLS){
         const auto number_of_neighbors = this->mpSearchTree->SearchInRadius(
@@ -83,7 +88,7 @@ double SensorIsolationResponseUtils::CalculateValue()
             }
         }
         return result;
-    });    
+    });
 }
 
 ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils::CalculateGradient()
@@ -100,7 +105,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils:
 
         std::vector<ModelPart::NodeType::Pointer> mNeighbourEntityPoints;
         std::vector<double> mResultingSquaredDistances;
-    };    
+    };
 
     auto p_expression = LiteralFlatExpression<double>::Create(mpSensorModelPart->NumberOfNodes(), {});
     IndexPartition<IndexType>(mpSensorModelPart->NumberOfNodes()).for_each([&p_expression](const auto Index) {
@@ -125,11 +130,11 @@ ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils:
                 AtomicAdd<double>(*(p_expression->begin() + rTLS.mNeighbourEntityPoints[i]->Id() - 1), 1.0);
             }
         }
-    });  
+    });
 
     ContainerExpression<ModelPart::NodesContainerType> result(*mpSensorModelPart);
     result.SetExpression(p_expression);
-    return result;  
+    return result;
 
     KRATOS_CATCH("");
 }
