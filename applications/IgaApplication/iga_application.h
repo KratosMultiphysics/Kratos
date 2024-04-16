@@ -73,6 +73,8 @@ public:
 
     void Register() override;
 
+    void RegisterPreconditioners();
+
     ///@}
     ///@name Input and output
     ///@{

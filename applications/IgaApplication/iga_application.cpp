@@ -9,8 +9,13 @@
 // External includes
 
 // Project includes
+#include "spaces/ublas_space.h"
+#include "factories/standard_preconditioner_factory.h"
+
 #include "iga_application.h"
 #include "iga_application_variables.h"
+
+#include "custom_solvers/additive_schwarz_preconditioner.h"
 
 namespace Kratos {
 
@@ -58,6 +63,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
                 << "            _| || |__| |/ ____ \\\n"
                 << "           |_____\\_____/_/    \\_\\\n"
                 << "Initializing KratosIgaApplication..." << std::endl;
+
+    RegisterPreconditioners();
 
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
@@ -145,6 +152,19 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
+}
+
+void KratosIgaApplication::RegisterPreconditioners() 
+{
+    using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+    using PreconditionerType = Preconditioner<SpaceType, LocalSpaceType>;
+    using AdditiveSchwarzPreconditionerType = AdditiveSchwarzPreconditioner<SpaceType, LocalSpaceType>;
+
+    static auto AdditiveSchwarzPreconditionerFactory = StandardPreconditionerFactory<SpaceType,LocalSpaceType,AdditiveSchwarzPreconditionerType>();
+
+    KRATOS_REGISTER_PRECONDITIONER("additive_schwarz", AdditiveSchwarzPreconditionerFactory);
 }
 
 }  // namespace Kratos
