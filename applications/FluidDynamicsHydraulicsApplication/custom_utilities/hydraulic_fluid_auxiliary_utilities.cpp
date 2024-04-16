@@ -349,7 +349,7 @@ void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
         const auto &r_face_normal = cond_it->GetValue(NORMAL);
         const double An = norm_2(face_normal);
         const auto &r_neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
-        const GeometryType &r_geom = cond_it->GetGeometry();
+        const auto &r_geom = cond_it->GetGeometry();
         auto edgelist = r_geom.GenerateEdges();
         for (unsigned int c_itr = 0; c_itr < neighb.size(); c_itr++){
             auto rCondition = neighb[c_itr];
