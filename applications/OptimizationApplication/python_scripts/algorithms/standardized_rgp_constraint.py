@@ -156,7 +156,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
                     self.CF -= 0.5
                     self.CF = max (self.CF, 1.0)
 
-        self.BS = self.BSF * max_delta
+        self.BS = max(self.BSF * max_delta, self.BS)
         # Update BSF if zig zaging
         if step > 3:
             if delta_values[0] * delta_values[1] < 0.0 and delta_values[1] * delta_values[2] < 0.0:

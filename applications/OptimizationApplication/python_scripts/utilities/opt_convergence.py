@@ -109,6 +109,8 @@ class AverageAbsoluteImprovement:
     def IsConverged(self) -> bool:
         iter = self.__optimization_problem.GetStep()
         self.conv = iter >= self.__max_iter
+        if self.conv:
+            return self.conv
 
         step = self.__optimization_problem.GetStep()
         print(step)

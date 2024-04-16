@@ -21,6 +21,7 @@
 
 // Application includes
 #include "custom_utilities/response/sensor_localization_response_utils.h"
+#include "custom_utilities/response/sensor_isolation_response_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utilities_to_python.h"
@@ -36,6 +37,13 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def("CalculateValue", &SensorLocalizationResponseUtils::CalculateValue, py::arg("list_of_masks"))
         .def("CalculateGradient", &SensorLocalizationResponseUtils::CalculateGradient, py::arg("list_of_masks"))
         ;
+
+    py::class_<SensorIsolationResponseUtils, SensorIsolationResponseUtils::Pointer>(m, "SensorIsolationResponseUtils")
+        .def(py::init<ModelPart&, const IndexType, const double>(), py::arg("sensor_model_part"), py::arg("max_number_of_neighbours"), py::arg("radius"))
+        .def("Initialize", &SensorIsolationResponseUtils::Initialize)
+        .def("CalculateValue", &SensorIsolationResponseUtils::CalculateValue)
+        .def("CalculateGradient", &SensorIsolationResponseUtils::CalculateGradient)
+        ;        
 }
 
 } // namespace Kratos::Python
