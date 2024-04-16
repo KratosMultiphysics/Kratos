@@ -172,6 +172,9 @@ public:
         BaseType::GetDofSet().swap(dof_array);
         BaseType::SetDofSetIsInitializedFlag(true);
 
+        // Initialize Rom Residuals Utility
+        BaseType::InitializeRomResidualsUtility(rModelPart, pScheme);
+
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
@@ -448,7 +451,7 @@ public:
             }
         }
 
-
+        // FIXME: This if is not doing anything as they both solve using a QR decomposition. Change this.
         if (mSolvingTechnique == "normal_equations"){
             BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
         }

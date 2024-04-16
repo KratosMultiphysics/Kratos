@@ -117,6 +117,14 @@ public:
     using DofPointerType = typename DofType::Pointer;
     using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
 
+    ///@name Public member variables
+    ///@{
+    bool mStoreNonConvergedProjectedResiduals = false;
+    Matrix mNonConvergedProjectedResiduals;
+    std::vector<std::string> mNodalUnknowns;
+    std::unique_ptr<RomResidualsUtility> mRomResidualsUtility;
+    ///@}
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -179,16 +187,8 @@ public:
         BaseBuilderAndSolverType::GetDofSet().swap(dof_array);
         BaseBuilderAndSolverType::SetDofSetIsInitializedFlag(true);
 
-        // Initialize Rom Residuals Utility
-        if (mStoreNonConvergedProjectedResiduals) {
-            Parameters ResidualsUtilityParameters;
-            int number_of_rom_dofs = static_cast<int>(mNumberOfRomModes);  // Convert size_t to int if necessary
-            ResidualsUtilityParameters.AddEmptyValue("number_of_rom_dofs").SetInt(number_of_rom_dofs);
-            ResidualsUtilityParameters.AddStringArray("nodal_unknowns", mNodalUnknowns);
-
-            mRomResidualsUtility = std::make_unique<RomResidualsUtility>(rModelPart, ResidualsUtilityParameters, pScheme);
-
-        }
+        // Function to initialize RomResidualsUtility
+        InitializeRomResidualsUtility(rModelPart, pScheme);
 
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseBuilderAndSolverType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
@@ -210,6 +210,19 @@ public:
         }
 #endif
         KRATOS_CATCH("");
+    }
+
+    void InitializeRomResidualsUtility(ModelPart& rModelPart, typename TSchemeType::Pointer pScheme) {
+        // Initialize Rom Residuals Utility
+        if (mStoreNonConvergedProjectedResiduals) {
+            Parameters ResidualsUtilityParameters;
+            int number_of_rom_dofs = static_cast<int>(mNumberOfRomModes);  // Convert size_t to int if necessary
+            ResidualsUtilityParameters.AddEmptyValue("number_of_rom_dofs").SetInt(number_of_rom_dofs);
+            ResidualsUtilityParameters.AddStringArray("nodal_unknowns", mNodalUnknowns);
+
+            mRomResidualsUtility = std::make_unique<RomResidualsUtility>(rModelPart, ResidualsUtilityParameters, pScheme);
+
+        }
     }
 
     void SetUpSystem(ModelPart &rModelPart) override
@@ -479,8 +492,6 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
-    bool mStoreNonConvergedProjectedResiduals = false;
-    Matrix mNonConvergedProjectedResiduals;
 
     ///@}
     ///@name Protected operators
@@ -887,8 +898,6 @@ private:
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
-    std::vector<std::string> mNodalUnknowns;
-    std::unique_ptr<RomResidualsUtility> mRomResidualsUtility;
 
     ///@}
     ///@name Private operations
