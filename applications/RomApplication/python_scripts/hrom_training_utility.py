@@ -166,6 +166,9 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
         if (self.projection_strategy=="galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+                if self.store_non_converged_projected_residuals:
+                    ncp_res_mat = np.array(self.solver._GetBuilderAndSolver().GetNonConvergedProjectedResiduals())
+                    res_mat = np.hstack((res_mat, ncp_res_mat))
         elif (self.projection_strategy=="lspg"):
                 jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
