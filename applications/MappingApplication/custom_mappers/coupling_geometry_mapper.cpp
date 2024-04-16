@@ -349,7 +349,7 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
     MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
-    mpMappingMatrix = Kratos::make_unique<typename SpaceType::MatrixType>(
+    mpMappingMatrix = Kratos::make_unique<typename MapperDefinitions::SparseSpaceType::MatrixType>(
         rConsistentInterfaceMatrix.size1(),
         rProjectedInterfaceMatrix.size2());
 
