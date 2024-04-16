@@ -90,17 +90,22 @@ double SensorLocalizationResponseUtils::CalculateValue(const std::vector<Contain
 
     const auto& r_mask_container = rMasksList.front()->GetContainer();
 
-    double summation, total_domain_size;
-    std::tie(summation, total_domain_size) = IndexPartition<IndexType>(r_mask_container.size()).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&](const auto Index) {
-        double cluster_size = 0.0;
+    // get the total domain size
+    const double local_domain_size = block_for_each<SumReduction<double>>(r_mask_container, [](const auto& rElement) {
+        return rElement.GetGeometry().DomainSize();
+    });
+    const double total_domain_size = rMasksList.front()->GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+
+    const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
+        double cluster_size_ratio = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            const double domain_size = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize();
-            cluster_size += domain_size * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
+            const double domain_size_ratio = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize() / total_domain_size;
+            cluster_size_ratio += domain_size_ratio * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
         }
-        return std::make_tuple(std::pow(cluster_size, mP), (r_mask_container.begin() + Index)->GetGeometry().DomainSize());
+        return std::pow(cluster_size_ratio, mP);
     });
 
-    return std::pow(summation, 1 / mP) / total_domain_size;
+    return std::pow(summation, 1 / mP);
 
     KRATOS_CATCH("");
 }
@@ -127,18 +132,22 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     Matrix cluster_differences;
     ComputeClusterDifference(cluster_differences, rMasksList);
 
-    // then compute the cluster sizes
-    std::vector<double> cluster_sizes(r_mask_container.size(), 0.0);
-    double summation, total_domain_size;
-    std::tie(summation, total_domain_size) = IndexPartition<IndexType>(r_mask_container.size()).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&](const auto Index) {
+    // get the total domain size
+    const double local_domain_size = block_for_each<SumReduction<double>>(r_mask_container, [](const auto& rElement) {
+        return rElement.GetGeometry().DomainSize();
+    });
+    const double total_domain_size = rMasksList.front()->GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+
+    std::vector<double> cluster_size_ratios(r_mask_container.size(), 0.0);
+    const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            const double domain_size = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize();
-            cluster_sizes[Index] += domain_size * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
+            const double domain_size_ratio = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize() / total_domain_size;
+            cluster_size_ratios[Index] += domain_size_ratio * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
         }
-        return std::make_tuple(std::pow(cluster_sizes[Index], mP), (r_mask_container.begin() + Index)->GetGeometry().DomainSize());
+        return std::pow(cluster_size_ratios[Index], mP);
     });
 
-    const double coeff = std::pow(summation, 1 / mP - 1) / (mP * total_domain_size);;
+    const double coeff = std::pow(summation, 1 / mP - 1);
 
     auto p_expression = LiteralFlatExpression<double>::Create(r_model_part.NumberOfNodes(), {});
     auto& r_expression = *p_expression;
@@ -148,14 +157,13 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
         value = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             const double i_value = r_mask_exp.Evaluate(i_element, i_element, 0);
-            double d_cluster_size_d_sensor_status = 0.0;
+            double d_cluster_size_ratio_d_sensor_status = 0.0;
             for (IndexType j_element = 0; j_element < r_mask_container.size(); ++j_element) {
-                const double domain_size = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize();
-                d_cluster_size_d_sensor_status -= domain_size * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * std::pow(i_value - r_mask_exp.Evaluate(j_element, j_element, 0), 2);
+                const double domain_size_ratio = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize() / total_domain_size;
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * std::pow(i_value - r_mask_exp.Evaluate(j_element, j_element, 0), 2);
             }
-            value += mP * std::pow(cluster_sizes[i_element], mP - 1) * d_cluster_size_d_sensor_status;
+            value += std::pow(cluster_size_ratios[i_element], mP - 1) * d_cluster_size_ratio_d_sensor_status;
         }
-
         value *= coeff;
     });
 
