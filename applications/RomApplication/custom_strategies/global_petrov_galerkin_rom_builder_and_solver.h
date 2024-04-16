@@ -193,7 +193,9 @@ public:
         KRATOS_CATCH("");
     }
 
-    void InitializeRomResidualsUtility(ModelPart& rModelPart, typename TSchemeType::Pointer pScheme) {
+    void InitializeRomResidualsUtility(ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme)
+    {
         // Initialize Rom Residuals Utility
         if (BaseType::mStoreNonConvergedProjectedResiduals) {
             Parameters ResidualsUtilityParameters;
