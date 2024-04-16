@@ -397,17 +397,17 @@ public:
     }
 
     // Function to convert Eigen matrix to Kratos matrix
-    Kratos::Matrix ConvertEigenToKratos(const EigenDynamicMatrix& eigenMatrix) {
-        std::size_t rows = eigenMatrix.rows();
-        std::size_t cols = eigenMatrix.cols();
-        Kratos::Matrix kratosMatrix(rows, cols);
+    Kratos::Matrix ConvertEigenToKratos(const EigenDynamicMatrix& rEigenMatrix) {
+        std::size_t rows = rEigenMatrix.rows();
+        std::size_t cols = rEigenMatrix.cols();
+        Kratos::Matrix kratos_matrix(rows, cols);
 
         for (std::size_t i = 0; i < rows; ++i) {
             for (std::size_t j = 0; j < cols; ++j) {
-                kratosMatrix(i, j) = eigenMatrix(i, j);
+                kratos_matrix(i, j) = rEigenMatrix(i, j);
             }
         }
-        return kratosMatrix;
+        return kratos_matrix;
     }
 
     void WriteReactionDataToMatrixMarket(
