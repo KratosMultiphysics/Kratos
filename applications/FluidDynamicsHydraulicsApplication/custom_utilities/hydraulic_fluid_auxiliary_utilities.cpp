@@ -343,7 +343,7 @@ void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
          rNode.Set(MARKER,true);
        }
     });
-    for (ModelPart::ConditionsContainerType::iterator cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++)
+    for (auto cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++)
     {
         // reference for area normal of the face
         const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
