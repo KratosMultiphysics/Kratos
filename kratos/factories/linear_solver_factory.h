@@ -151,10 +151,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-typedef TUblasSparseSpace<double> SparseType;
+typedef TUblasSparseSpace<double> SpaceType;
 typedef TUblasDenseSpace<double> LocalSpaceType;
 
-typedef LinearSolverFactory<SparseType,  LocalSpaceType> LinearSolverFactoryType;
+typedef LinearSolverFactory<SpaceType, LocalSpaceType> LinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
 
@@ -168,7 +168,7 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Linear
 typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
 typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
 
-typedef LinearSolverFactory<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverFactoryType;
+typedef LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType> ComplexLinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ComplexLinearSolverFactoryType>;
 
