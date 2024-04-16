@@ -47,6 +47,7 @@ class SensorDataModelPartController(ModelPartController):
                 sensor_io.Read(sensor)
                 location = sensor.GetLocation()
                 self.sensor_model_part.CreateNewNode(i + 1, location[0], location[1], location[2])
+                sensor.SetValue(KratosDT.SENSOR_ID, i + 1)
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return self.sensor_model_part
