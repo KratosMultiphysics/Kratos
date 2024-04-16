@@ -193,7 +193,14 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
     {
         "name" : "rom_builder_and_solver",
         "nodal_unknowns" : ["TEMPERATURE"],
-        "number_of_rom_dofs" : 2
+        "number_of_rom_dofs" : 2,
+        "rom_bns_settings" : {
+            "store_non_converged_projected_residuals": false,
+            "monotonicity_preserving": false,
+            "train_petrov_galerkin": false,
+            "solving_technique" : "normal_equations",
+            "basis_strategy" : "residuals"
+        }
     }
     )");
 
