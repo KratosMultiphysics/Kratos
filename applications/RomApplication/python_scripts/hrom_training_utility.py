@@ -179,7 +179,6 @@ class HRomTrainingUtility(object):
         if self.store_non_converged_projected_residuals:
             ncp_res_mat = np.array(self.solver._GetBuilderAndSolver().GetNonConvergedProjectedResiduals())
             res_mat = np.hstack((res_mat, ncp_res_mat))
-            print(res_mat.shape)
 
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
