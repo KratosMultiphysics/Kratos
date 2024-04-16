@@ -346,7 +346,7 @@ void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
     for (auto cond_it = r_cond.begin(); cond_it != r_cond.end(); cond_it++)
     {
         // reference for area normal of the face
-        const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
+        const auto &r_face_normal = cond_it->GetValue(NORMAL);
         double An = norm_2(face_normal);
         const GlobalPointersVector<Condition> &neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
         const GeometryType &r_geom = cond_it->GetGeometry();
