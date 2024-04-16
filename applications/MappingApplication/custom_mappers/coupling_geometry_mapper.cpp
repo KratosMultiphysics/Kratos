@@ -320,16 +320,16 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::EnforceConsistencyWithSc
     // Performs scaling of projected mapping entries as per eqn25 Wang2016
 
     // Get row sum vector of slave matrix
-    SparseSpaceType::VectorType unit_vector(SparseSpaceType::Size2(rInterfaceMatrixSlave));
-    SparseSpaceType::Set(unit_vector, 1.0);
-    SparseSpaceType::VectorType slave_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixSlave));
-    SparseSpaceType::Mult(rInterfaceMatrixSlave, unit_vector, slave_row_sums_vector);
+    MapperDefinitions::SparseSpaceType::VectorType unit_vector(MapperDefinitions::SparseSpaceType::Size2(rInterfaceMatrixSlave));
+    MapperDefinitions::SparseSpaceType::Set(unit_vector, 1.0);
+    MapperDefinitions::SparseSpaceType::VectorType slave_row_sums_vector(MapperDefinitions::SparseSpaceType::Size1(rInterfaceMatrixSlave));
+    MapperDefinitions::SparseSpaceType::Mult(rInterfaceMatrixSlave, unit_vector, slave_row_sums_vector);
 
     // Get row sum vector of projected matrix
-    unit_vector.resize(SparseSpaceType::Size2(rInterfaceMatrixProjected));
-    SparseSpaceType::Set(unit_vector, 1.0);
-    SparseSpaceType::VectorType projected_row_sums_vector(SparseSpaceType::Size1(rInterfaceMatrixProjected));
-    SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);
+    unit_vector.resize(MapperDefinitions::SparseSpaceType::Size2(rInterfaceMatrixProjected));
+    MapperDefinitions::SparseSpaceType::Set(unit_vector, 1.0);
+    MapperDefinitions::SparseSpaceType::VectorType projected_row_sums_vector(MapperDefinitions::SparseSpaceType::Size1(rInterfaceMatrixProjected));
+    MapperDefinitions::SparseSpaceType::Mult(rInterfaceMatrixProjected, unit_vector, projected_row_sums_vector);
 
     // Loop over sparse rows of projected matrix and correct entries if needed
     IndexType row_counter = 0;
@@ -349,7 +349,7 @@ template<class TSparseSpace, class TDenseSpace>
 void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrixWithSolver(
     MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix)
 {
-    mpMappingMatrix = Kratos::make_unique<typename SparseSpaceType::MatrixType>(
+    mpMappingMatrix = Kratos::make_unique<typename SpaceType::MatrixType>(
         rConsistentInterfaceMatrix.size1(),
         rProjectedInterfaceMatrix.size2());
 
