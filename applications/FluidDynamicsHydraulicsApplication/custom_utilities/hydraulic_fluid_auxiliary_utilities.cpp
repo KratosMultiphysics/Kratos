@@ -426,7 +426,7 @@ void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &r
     double neg_nodes = 0.0;
     double pos_nodes = 0.0;
     for (const auto &r_node : rElement.GetGeometry()){
-        double distance = r_node.FastGetSolutionStepValue(DISTANCE);
+        const double distance = r_node.FastGetSolutionStepValue(DISTANCE);
         if (distance > 0){
             pos_nodes += 1;
         }
