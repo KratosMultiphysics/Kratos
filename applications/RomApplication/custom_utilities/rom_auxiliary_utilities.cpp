@@ -516,7 +516,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_elem = r_neigh_elements[i];
-            parent_ids_set.insert(r_elem.Id() - 1);
+            parent_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
             break;
         }
     }
@@ -570,7 +570,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh.size(); ++i) {
             const auto& r_elem = r_neigh[i];
-            new_element_ids_set.insert(r_elem.Id() - 1);
+            new_element_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
 
@@ -600,7 +600,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_elem = r_neigh_elements[i];
-            new_entity_ids_set.insert(r_elem.Id() - 1);
+            new_entity_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
             if (RetrieveSingleNeighbour) {
                 break; // Break if only one neighbour should be retrieved
             }
@@ -633,7 +633,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
             const auto& r_cond = r_neigh_elements[i];
-            new_condition_ids_set.insert(r_cond.Id() - 1);
+            new_condition_ids_set.insert(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
             if (RetrieveSingleNeighbour) {
                 break; // Break if only one neighbour should be retrieved
             }
@@ -657,8 +657,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
         IndexType element_id = r_elem.Id();
 
         // Check if the element is already added
-        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) {
-            new_element_ids.push_back(element_id - 1);
+        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_element_ids.push_back(element_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
 
@@ -677,8 +677,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
         IndexType condition_id = r_cond.Id();
 
         // Check if the condition is already added
-        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
-            new_condition_ids.push_back(condition_id - 1);
+        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_condition_ids.push_back(condition_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
 
@@ -691,7 +691,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsInModelPart(
     std::vector<IndexType> element_ids;
 
     for (const auto& r_elem : rModelPart.Elements()) {
-        element_ids.push_back(r_elem.Id() - 1);
+        element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
     }
     return element_ids;
 }
@@ -702,7 +702,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsInModelPart(
     std::vector<IndexType> condition_ids;
 
     for (const auto& r_cond : rModelPart.Conditions()) {
-        condition_ids.push_back(r_cond.Id() - 1);
+        condition_ids.push_back(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
     }
     return condition_ids;
 }
@@ -765,7 +765,7 @@ void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
 
         // If minimum condition is missing, add the first condition as minimum one
         if (!has_minimum_condition) {
-            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE - 1
+            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1
         }
 
         // Recursively check the current modelpart submodelparts
