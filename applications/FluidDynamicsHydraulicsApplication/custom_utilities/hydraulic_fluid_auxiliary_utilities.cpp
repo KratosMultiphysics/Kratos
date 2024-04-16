@@ -327,7 +327,9 @@ void HydraulicFluidAuxiliaryUtilities::TurnOffGravityOnAirElements(ModelPart &rM
     });
 }
 
-void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(ModelPart &rModelPart, double MaximumAngle)
+void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
+    ModelPart &rModelPart,
+    const double MaximumAngle)
 {
     // Obtain for each condition each neighbor condition
     block_for_each(rModelPart.Nodes(), [&](NodeType &rNode){ rNode.SetValue(AUX_INDEX, 0); });
