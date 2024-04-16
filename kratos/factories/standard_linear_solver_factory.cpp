@@ -64,8 +64,9 @@ namespace Kratos
         static auto MonotonicityPreservingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,MonotonicityPreservingSolverType>();
         static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
 
-        //registration of linear solvers
-//         KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
+        // Registration of linear solvers
+        KRATOS_SET_REGISTER_SOURCE("KratosMultiphysics");
+        // KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
         KRATOS_REGISTER_LINEAR_SOLVER("cg", CGSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("bicgstab", BICGSTABSolverFactory);
         KRATOS_REGISTER_LINEAR_SOLVER("deflated_cg", DeflatedCGSolverFactory);
@@ -76,6 +77,21 @@ namespace Kratos
         KRATOS_REGISTER_LINEAR_SOLVER("scaling",ScalingSolverFactory );
         KRATOS_REGISTER_LINEAR_SOLVER("monotonicity_preserving",MonotonicityPreservingSolverFactory );
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("skyline_lu_complex", SkylineLUComplexSolverFactory);
+    };
 
+    void UnregisterLinearSolvers() 
+    {
+        using SpaceType = TUblasSparseSpace<double>;
+        using LocalSpaceType = TUblasDenseSpace<double>;
+
+        using LinearSolverFactoryType = LinearSolverFactory<SpaceType, LocalSpaceType>;
+
+        using ComplexSpaceType = TUblasSparseSpace<std::complex<double>>;
+        using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<double>>;
+
+        using ComplexLinearSolverFactoryType = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType>;
+
+        KratosComponents<LinearSolverFactoryType>::CleanKratosComponents("KratosMultiphysics");
+        KratosComponents<ComplexLinearSolverFactoryType>::CleanKratosComponents("KratosMultiphysics");
     };
 } // Namespace Kratos

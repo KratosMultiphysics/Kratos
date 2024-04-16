@@ -151,10 +151,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+typedef TUblasSparseSpace<double> SparseType;
+typedef TUblasDenseSpace<double> LocalSpaceType;
 
-typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
+typedef LinearSolverFactory<SparseType,  LocalSpaceType> LinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
 
@@ -162,12 +162,13 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Linear
 #undef KRATOS_REGISTER_LINEAR_SOLVER
 #endif
 #define KRATOS_REGISTER_LINEAR_SOLVER(name, reference) \
-    KratosComponents<LinearSolverFactoryType>::Add(name, reference);
+    KratosComponents<LinearSolverFactoryType>::Add(name, reference); \
+    KratosComponents<LinearSolverFactoryType>::AddSource(mApplicationName, name); \
 
-typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
-typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
+typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
+typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
 
-typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
+typedef LinearSolverFactory<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ComplexLinearSolverFactoryType>;
 
@@ -175,7 +176,8 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Comple
 #undef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
 #endif
 #define KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER(name, reference) \
-    KratosComponents<ComplexLinearSolverFactoryType>::Add(name, reference);
+    KratosComponents<ComplexLinearSolverFactoryType>::Add(name, reference); \
+    KratosComponents<ComplexLinearSolverFactoryType>::AddSource(mApplicationName, name); \
 
 
 }  // namespace Kratos.

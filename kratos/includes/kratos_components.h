@@ -58,6 +58,9 @@ public:
     /// The map type used to store the components // TODO: Replace std::map with faster alternative
     using ComponentsContainerType = std::map<std::string, const TComponentType*>;
 
+    /// The map type used to store the source of the components
+    using ComponentsSourcesContainerType = std::unordered_map<std::string, std::unordered_set<std::string>>;
+
     /// Component type
     using ValueType = typename ComponentsContainerType::value_type;
 
@@ -94,6 +97,25 @@ public:
     }
 
     /**
+     * @brief Adds the source of a component to the list of loaded components.
+     * @param rSrcName the name of the source who added the component
+     * @param rCmpName the name of the component to add
+     * @throws std::runtime_error if the same object name was already registered in the same origin
+     */
+    static void AddSource(const std::string& rSrcName, const std::string& rCmpName)
+    {
+        // Create the container if its the first component source added
+        if (msComponentsSources.find(rSrcName) == msComponentsSources.end()) {
+            msComponentsSources[rSrcName] = std::unordered_set<std::string>();
+        }
+
+        // Check if a different object was already registered with this name
+        auto it_comp =  msComponentsSources.find(rCmpName);
+        KRATOS_ERROR_IF(it_comp != msComponentsSources.end()) << "An object with name \"" << rCmpName << " has already been registered for " << rSrcName << std::endl;
+        msComponentsSources[rSrcName].insert(rCmpName);
+    }
+
+    /**
      * @brief Removes a component with the specified name.
      * @param rName The name of the component to remove.
      * @throws ErrorType If the component with the specified name does not exist.
@@ -102,6 +124,23 @@ public:
     {
         std::size_t num_erased = msComponents.erase(rName);
         KRATOS_ERROR_IF(num_erased == 0) << "Trying to remove inexistent component \"" << rName << "\"." << std::endl;
+    }
+
+    /**
+     * @brief Removes all component registered by the specified source and then removes the source itself.
+     * @param rSrcName The name of the component source to remove components from.
+     */
+    static void CleanKratosComponents(const std::string& rSrcName)
+    {
+        // If the component is not loaded, we don't try to unload it ( this prevents applications with the unregister function not implemented from crashing the core)
+        // if (msComponentsSources.find(rSrcName) != msComponentsSources.end()) {
+        for (auto & rCmpName: msComponentsSources[rSrcName]) {
+            KratosComponents<TComponentType>::Remove(rCmpName);
+        }
+        // }
+
+        // Finaly, remove the source from the components sources list
+        msComponentsSources.erase(rSrcName);
     }
 
     /**
@@ -196,7 +235,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents; /// Component container
+    static ComponentsContainerType        msComponents;         /// Component container
+    static ComponentsSourcesContainerType msComponentsSources;  /// Component sources
 
     ///@}
     ///@name Member Variables
@@ -262,8 +302,11 @@ public:
     /// The map type used to store the components // TODO: Replace std::map with faster alternative
     using ComponentsContainerType = std::map<std::string, VariableData*>;
 
+    /// The map type used to store the source of the components
+    using ComponentsSourcesContainerType = std::unordered_map<std::string, std::unordered_set<std::string>>;
+
     /// Component type
-    using ValueType = ComponentsContainerType::value_type;
+    using ValueType = typename ComponentsContainerType::value_type;
 
     ///@}
     ///@name Life Cycle
@@ -417,7 +460,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static ComponentsContainerType msComponents; /// Component container
+    static ComponentsContainerType        msComponents;           /// Component container
+    static ComponentsSourcesContainerType msComponentsSources;    /// Component sources
 
     ///@}
     ///@name Member Variables
@@ -469,6 +513,8 @@ private:
 
 template<class TComponentType>
 typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+template<class TComponentType> 
+typename KratosComponents<TComponentType>::ComponentsSourcesContainerType KratosComponents<TComponentType>::msComponentsSources;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int>>;

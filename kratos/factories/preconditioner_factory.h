@@ -150,10 +150,10 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@}
 
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+typedef TUblasSparseSpace<double> SpaceType;
+typedef TUblasDenseSpace<double> LocalSpaceType;
 
-typedef PreconditionerFactory<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryType;
+typedef PreconditionerFactory<SpaceType, LocalSpaceType> PreconditionerFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactoryType>;
 
@@ -161,7 +161,8 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Precon
 #undef KRATOS_REGISTER_PRECONDITIONER
 #endif
 #define KRATOS_REGISTER_PRECONDITIONER(name, reference) \
-    KratosComponents<PreconditionerFactoryType>::Add(name, reference);
+    KratosComponents<PreconditionerFactoryType>::Add(name, reference); \
+    KratosComponents<PreconditionerFactoryType>::AddSource(mApplicationName, name); \
 
 }  // namespace Kratos.
 

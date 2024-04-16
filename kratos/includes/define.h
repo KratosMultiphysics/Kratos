@@ -693,32 +693,42 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 //
 //-----------------------------------------------------------------
 
+#ifdef KRATOS_SET_REGISTER_SOURCE
+#undef KRATOS_SET_REGISTER_SOURCE
+#endif
+#define KRATOS_SET_REGISTER_SOURCE(name) \
+    std::string mApplicationName = name;
+
 #ifdef KRATOS_REGISTER_GEOMETRY
 #undef KRATOS_REGISTER_GEOMETRY
 #endif
 #define KRATOS_REGISTER_GEOMETRY(name, reference) \
     KratosComponents<Geometry<Node>>::Add(name, reference); \
+    KratosComponents<Geometry<Node>>::AddSource(mApplicationName, name); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_ELEMENT
 #undef KRATOS_REGISTER_ELEMENT
 #endif
 #define KRATOS_REGISTER_ELEMENT(name, reference) \
-    KratosComponents<Element >::Add(name, reference); \
+    KratosComponents<Element>::Add(name, reference); \
+    KratosComponents<Element>::AddSource(mApplicationName, name); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONDITION
 #undef KRATOS_REGISTER_CONDITION
 #endif
 #define KRATOS_REGISTER_CONDITION(name, reference) \
-    KratosComponents<Condition >::Add(name, reference); \
+    KratosComponents<Condition>::Add(name, reference); \
+    KratosComponents<Condition>::AddSource(mApplicationName, name); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTRAINT
 #undef KRATOS_REGISTER_CONSTRAINT
 #endif
 #define KRATOS_REGISTER_CONSTRAINT(name, reference) \
-    KratosComponents<MasterSlaveConstraint >::Add(name, reference); \
+    KratosComponents<MasterSlaveConstraint>::Add(name, reference); \
+    KratosComponents<MasterSlaveConstraint>::AddSource(mApplicationName, name); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_MODELER
@@ -726,13 +736,15 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_MODELER(name, reference) \
     KratosComponents<Modeler>::Add(name, reference); \
+    KratosComponents<Modeler>::AddSource(mApplicationName, name); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #undef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #endif
 #define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference) \
-    KratosComponents<ConstitutiveLaw >::Add(name, reference); \
+    KratosComponents<ConstitutiveLaw>::Add(name, reference); \
+    KratosComponents<ConstitutiveLaw>::AddSource(mApplicationName, name); \
     Serializer::Register(name, reference);
 
 #define KRATOS_DEPRECATED [[deprecated]]

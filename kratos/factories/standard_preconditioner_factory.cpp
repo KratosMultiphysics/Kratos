@@ -44,10 +44,21 @@ namespace Kratos
         static auto ILUPreconditionerFactory= StandardPreconditionerFactory<SpaceType,LocalSpaceType,ILUPreconditionerType>();
 
         //registration of linear solvers
+        KRATOS_SET_REGISTER_SOURCE("KratosMultiphysics");
         KRATOS_REGISTER_PRECONDITIONER("none", PreconditionerFactory);
         KRATOS_REGISTER_PRECONDITIONER("diagonal", DiagonalPreconditionerFactory);
         KRATOS_REGISTER_PRECONDITIONER("ilu0", ILU0PreconditionerFactory);
         KRATOS_REGISTER_PRECONDITIONER("ilu",ILUPreconditionerFactory );
+    };
+
+    void UnregisterPreconditioners() 
+    {
+        using SpaceType = TUblasSparseSpace<double>;
+        using LocalSpaceType = TUblasDenseSpace<double>;
+
+        using PreconditionerType = Preconditioner<SpaceType, LocalSpaceType>;
+
+        KratosComponents<PreconditionerType>::CleanKratosComponents("KratosMultiphysics");
     };
 } // Namespace Kratos
 
