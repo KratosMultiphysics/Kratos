@@ -24,8 +24,8 @@ namespace Kratos {
 
 template <
     class TSolverType,
-    class TSparseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
-    class TDenseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
+    class TSparseSpaceType = typename EigenSpaceType<typename TSolverType::Scalar>::Local,
+    class TDenseSpaceType = typename EigenSpaceType<typename TSolverType::Scalar>::Local,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDenseDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>

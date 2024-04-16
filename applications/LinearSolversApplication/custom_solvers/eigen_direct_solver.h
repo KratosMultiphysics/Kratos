@@ -26,17 +26,17 @@
 namespace Kratos {
 
 template <typename Scalar>
-struct SpaceType;
+struct EigenSpaceType;
 
 template <>
-struct SpaceType<double>
+struct EigenSpaceType<double>
 {
     using Global = UblasSpace<double, CompressedMatrix, Vector>;
     using Local = UblasSpace<double, Matrix, Vector>;
 };
 
 template <>
-struct SpaceType<std::complex<double>>
+struct EigenSpaceType<std::complex<double>>
 {
     using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector>;
     using Local = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
@@ -44,8 +44,8 @@ struct SpaceType<std::complex<double>>
 
 template <
     class TSolverType,
-    class TSparseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Global,
-    class TDenseSpaceType = typename SpaceType<typename TSolverType::Scalar>::Local,
+    class TSparseSpaceType = typename EigenSpaceType<typename TSolverType::Scalar>::Global,
+    class TDenseSpaceType = typename EigenSpaceType<typename TSolverType::Scalar>::Local,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>

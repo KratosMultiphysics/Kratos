@@ -53,8 +53,8 @@ void register_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
-    using GlobalSpace = typename SpaceType<typename SolverType::Scalar>::Global;
-    using LocalSpace = typename SpaceType<typename SolverType::Scalar>::Local;
+    using GlobalSpace = typename EigenSpaceType<typename SolverType::Scalar>::Global;
+    using LocalSpace = typename EigenSpaceType<typename SolverType::Scalar>::Local;
 
     using Type = EigenDirectSolver<SolverType>;
     using Holder = typename Type::Pointer;
@@ -72,7 +72,7 @@ void register_dense_solver(pybind11::module& m, const std::string& name)
 {
     namespace py = pybind11;
 
-    using LocalSpace = typename SpaceType<typename SolverType::Scalar>::Local;
+    using LocalSpace = typename EigenSpaceType<typename SolverType::Scalar>::Local;
 
     using Type = EigenDenseDirectSolver<SolverType>;
     using Holder = typename Type::Pointer;
@@ -89,7 +89,7 @@ void register_dense_eigenvalue_solver(pybind11::module& m, const std::string& na
 {
     namespace py = pybind11;
 
-    using LocalSpace = typename SpaceType<double>::Local;
+    using LocalSpace = typename EigenSpaceType<double>::Local;
 
     using Type = DenseEigenvalueSolver<>;
     using Holder = typename Type::Pointer;
