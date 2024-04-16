@@ -23,6 +23,13 @@ def CustomizeSimulation(cls, global_model, parameters):
     return CustomSimulation(global_model, parameters)
 
 
+general_rom_manager_parameters = KratosMultiphysics.Parameters("""{
+            "save_gid_output": false,
+            "save_vtk_output": false,
+            "projection_strategy": "galerkin"
+        }""")
+
+
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class TestStructuralRom(KratosUnittest.TestCase):
@@ -36,7 +43,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
         expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            rom_manager = RomManager(project_parameters_name=parameters_filename, CustomizeSimulation = CustomizeSimulation)
+            rom_manager = RomManager(project_parameters_name=parameters_filename, CustomizeSimulation = CustomizeSimulation, general_rom_manager_parameters=general_rom_manager_parameters)
             rom_manager.RunROM()
             # Check results
             expected_output = np.load(expected_output_filename)
