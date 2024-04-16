@@ -17,7 +17,7 @@
     },
     "hrom_settings": {
         "hrom_format": "numpy",
-        "svd_type": "numpy"
+        "svd_type": "numpy_svd"
     },
     "nodal_modes": {},
     "elements_and_weights": {}
