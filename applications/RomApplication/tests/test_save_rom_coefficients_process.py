@@ -9,7 +9,7 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
     import KratosMultiphysics.StructuralMechanicsApplication
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class TestStructuralRom(KratosUnittest.TestCase):
+class TestSaveRomCoefficientsProcess(KratosUnittest.TestCase):
 
     def testSaveRomCoefficientsProcess(self):
         self.work_folder = "structural_static_test_files/ROM/"
