@@ -134,6 +134,14 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
+    {
+        // 1D
+        rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
                                               const Element::PropertiesType& Prop)
     {

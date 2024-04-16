@@ -1,0 +1,411 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Mohamed Nabi
+//                   John van Esch
+//
+
+#pragma once
+
+#include "custom_constitutive/thermal_dispersion_law.h"
+#include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/dof_utilities.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/element.h"
+#include "includes/serializer.h"
+#include "custom_utilities/element_utilities.hpp"
+
+namespace Kratos
+{
+
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
+{
+public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwLineElement);
+
+    explicit TransientPwLineElement(IndexType NewId = 0) : Element(NewId) {}
+
+    TransientPwLineElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
+    {
+    }
+
+    TransientPwLineElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
+    {
+    }
+
+    Element::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
+    {
+        return make_intrusive<TransientPwLineElement>(NewId, GetGeometry().Create(rThisNodes), pProperties);
+    }
+
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return make_intrusive<TransientPwLineElement>(NewId, pGeom, pProperties);
+    }
+
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
+    {
+        rElementalDofList = GetDofs();
+    }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
+    {
+        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
+    }
+
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        GeometryType::ShapeFunctionsGradientsType dN_dX_container;
+        Vector                                    det_J_container;
+
+        GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+        dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
+        const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
+        const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
+        const auto compressibility_matrix = CalculateCompressibilityMatrix(integration_coefficients, rCurrentProcessInfo);
+
+        AddContributionsToLhsMatrix(rLeftHandSideMatrix, permeability_matrix, compressibility_matrix, rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT]);
+        AddContributionsToRhsVector(rRightHandSideVector, permeability_matrix, compressibility_matrix,
+                                    rCurrentProcessInfo, integration_coefficients);
+
+        KRATOS_CATCH("")
+    }
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override
+    {
+        switch (TNumNodes) {
+        case 2:
+        case 3:
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        case 4:
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        case 5:
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        default:
+            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
+                         << std::endl;
+        }
+    }
+
+    int Check(const ProcessInfo&) const override
+    {
+        KRATOS_TRY
+
+        CheckDomainSize();
+        CheckHasSolutionStepsDataFor(WATER_PRESSURE);
+        CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
+        CheckHasDofsFor(WATER_PRESSURE);
+        CheckProperties();
+        CheckForNonZeroZCoordinateIn2D();
+
+        KRATOS_CATCH("")
+
+        return 0;
+    }
+
+private:
+
+    std::vector<RetentionLaw::Pointer> mRetentionLawVector;
+
+    void CheckDomainSize() const
+    {
+        constexpr auto min_domain_size = 1.0e-15;
+        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
+            << "DomainSize smaller than " << min_domain_size << " for element " << Id() << std::endl;
+    }
+
+    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
+    {
+        for (const auto& node : GetGeometry()) {
+            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
+                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
+        }
+    }
+
+    void CheckHasDofsFor(const Variable<double>& rVariable) const
+    {
+        for (const auto& node : GetGeometry()) {
+            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
+                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
+                << std::endl;
+        }
+    }
+
+    void CheckProperties() const
+    {
+        CheckProperty(DENSITY_WATER);   // Where is density_solid etc.
+        CheckProperty(POROSITY);
+        CheckProperty(BULK_MODULUS_SOLID);
+        CheckProperty(BULK_MODULUS_FLUID);
+        CheckProperty(DYNAMIC_VISCOSITY);
+        CheckProperty(BIOT_COEFFICIENT);
+        CheckProperty(PERMEABILITY_XX);
+        CheckProperty(PERMEABILITY_YY);
+        CheckProperty(PERMEABILITY_XY);
+        if constexpr (TDim == 3) {
+            CheckProperty(PERMEABILITY_ZZ);
+            CheckProperty(PERMEABILITY_YZ);
+            CheckProperty(PERMEABILITY_ZX);
+        }
+    }
+
+    void CheckProperty(const Kratos::Variable<double>& rVariable) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
+            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
+        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
+            << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
+    }
+
+    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
+            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
+        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
+            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
+            << ") instead of (" << rName << ") at element " << Id() << std::endl;
+    }
+
+    void CheckForNonZeroZCoordinateIn2D() const
+    {
+        if constexpr (TDim == 2) {
+            const auto& r_geometry = GetGeometry();
+            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
+                                                  [](const auto& node) { return node.Z() != 0.0; });
+            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
+                << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+        }
+    }
+
+    static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
+                                            const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
+                                            double DtPressureCoefficient)
+    {
+        rLeftHandSideMatrix = rPermeabilityMatrix;
+        rLeftHandSideMatrix += (DtPressureCoefficient * rCompressibilityMatrix);
+    }
+
+    void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
+                                     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
+                                     const ProcessInfo& rCurrentProcessInfo,
+                                     const Vector& rIntegrationCoefficients) const
+    {
+        const auto compressibility_vector =
+            array_1d<double, TNumNodes>{-prod(rCompressibilityMatrix, GetNodalValuesOf(DT_WATER_PRESSURE))};
+        rRightHandSideVector = compressibility_vector;
+        const auto permeability_vector =
+            array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
+        rRightHandSideVector += permeability_vector;
+        const auto fluid_body_vector =
+            CalculateFluidBodyVector(rCurrentProcessInfo, rIntegrationCoefficients);
+        rRightHandSideVector += fluid_body_vector;
+    }
+
+    Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
+    {
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+
+        auto result = Vector{r_integration_points.size()};
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < r_integration_points.size(); ++integration_point_index) {
+            result[integration_point_index] = r_integration_points[integration_point_index].Weight() * rDetJContainer[integration_point_index];
+        }
+
+        return result;
+    }
+
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
+        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+        const Vector&                                    rIntegrationCoefficients,
+        const ProcessInfo&                               rCurrentProcessInfo) const
+    {
+        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        BoundedMatrix<double, 1, 1> constitutive_matrix;
+        const auto& r_properties = GetProperties();
+        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
+
+        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
+            result += -PORE_PRESSURE_SIGN_FACTOR / r_properties[DYNAMIC_VISCOSITY] *
+                      prod(rShapeFunctionGradients[integration_point_index], Temp) *
+                      RelativePermeability * rIntegrationCoefficients[integration_point_index];
+        }
+        return result;
+    }
+
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(const Vector& rIntegrationCoefficients,
+                                                                        const ProcessInfo& rCurrentProcessInfo) const
+    {
+        const auto&              r_properties = GetProperties();
+        RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
+        auto                     retention_law = RetentionLawFactory::Clone(r_properties);
+        const double             saturation    = retention_law->CalculateSaturation(parameters);
+
+        auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+        const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            const auto N = Vector{row(r_N_container, integration_point_index)};
+            double BiotModulusInverse = CalculateBiotModulusInverse(rCurrentProcessInfo, integration_point_index);
+            result += -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
+        }
+        return result;
+    }
+
+    array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
+    {
+        auto        result     = array_1d<double, TNumNodes>{};
+        const auto& r_geometry = GetGeometry();
+        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+            return node.FastGetSolutionStepValue(rNodalVariable);
+        });
+        return result;
+    }
+
+    //----------------------------------------------------------------------------------------
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        const PropertiesType& Prop    = this->GetProperties();
+        const GeometryType&   Geom    = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+
+        if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
+        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+            mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
+            mRetentionLawVector[i]->InitializeMaterial(
+                Prop, Geom, row(Geom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
+        }
+    }
+
+
+    double CalculateBiotModulusInverse(const ProcessInfo& rCurrentProcessInfo,
+                                   const unsigned int integration_point_index) const
+    {
+        const auto& r_properties = GetProperties();
+        const bool  hasBiotCoefficient = r_properties.Has(BIOT_COEFFICIENT);
+        double biot_coefficient = r_properties[BIOT_COEFFICIENT];
+        if (!hasBiotCoefficient) {
+            //    const double bulk_modulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
+            //    result = 1.0 - bulk_modulus / r_properties[BULK_MODULUS_SOLID];
+        }
+
+        double result = 0.0;
+
+        if (!r_properties[IGNORE_UNDRAINED]) {
+            result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] 
+                + r_properties[POROSITY] / r_properties[BULK_MODULUS_FLUID];
+        } 
+        else {
+            result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] 
+                + r_properties[POROSITY] / TINY;
+        }
+
+        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        double degree_of_saturation = mRetentionLawVector[integration_point_index]->CalculateSaturation(RetentionParameters);
+        double derivative_of_saturation = mRetentionLawVector[integration_point_index]->CalculateDerivativeOfSaturation(RetentionParameters);
+
+        result *= degree_of_saturation;
+        result -= derivative_of_saturation * r_properties[POROSITY];
+        return result;
+    }
+
+
+    double CalculateBulkModulus(const Matrix& rConstitutiveMatrix) const
+    {
+        const int IndexG = rConstitutiveMatrix.size1() - 1;
+        return rConstitutiveMatrix(0, 0) - (4.0 / 3.0) * rConstitutiveMatrix(IndexG, IndexG);
+    }
+
+
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            mRetentionLawVector[integration_point_index]->InitializeSolutionStep(RetentionParameters);
+        }
+    }
+    
+    
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            mRetentionLawVector[integration_point_index]->FinalizeSolutionStep(RetentionParameters);
+        }
+    }
+
+
+    array_1d<double, TNumNodes> CalculateFluidBodyVector(const ProcessInfo& rCurrentProcessInfo,
+                                                         const Vector& rIntegrationCoefficients) const
+    {
+        const auto& r_properties = GetProperties();
+        BoundedMatrix<double, 1, 1> constitutive_matrix;
+        GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
+
+        RetentionLaw::Parameters    RetentionParameters(GetProperties(), rCurrentProcessInfo);
+
+        array_1d<double, TNumNodes * TDim> VolumeAcceleration;
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(VolumeAcceleration, GetGeometry(), VOLUME_ACCELERATION);
+        array_1d<double, TDim> BodyAcceleration;
+        const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+        GeometryType::ShapeFunctionsGradientsType dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
+        array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+                BodyAcceleration, r_N_container, VolumeAcceleration, integration_point_index);
+            const auto N = Vector{row(r_N_container, integration_point_index)};
+            const BoundedMatrix<double, TNumNodes, 1> Temp = prod(dN_dX_container[integration_point_index], constitutive_matrix);
+            double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            fluid_body_vector += r_properties[DENSITY_WATER] / r_properties[DYNAMIC_VISCOSITY] * RelativePermeability 
+                * prod(Temp, BodyAcceleration) * rIntegrationCoefficients[integration_point_index];
+        }
+        return fluid_body_vector;
+    }
+
+    [[nodiscard]] DofsVectorType GetDofs() const
+    {
+        return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
+    }
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+    }
+};
+
+} // namespace Kratos
