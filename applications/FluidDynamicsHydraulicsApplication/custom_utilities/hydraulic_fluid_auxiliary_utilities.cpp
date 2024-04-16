@@ -347,7 +347,7 @@ void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(
     {
         // reference for area normal of the face
         const auto &r_face_normal = cond_it->GetValue(NORMAL);
-        double An = norm_2(face_normal);
+        const double An = norm_2(face_normal);
         const auto &r_neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
         const GeometryType &r_geom = cond_it->GetGeometry();
         auto edgelist = r_geom.GenerateEdges();
