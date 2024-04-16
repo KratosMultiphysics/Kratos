@@ -152,7 +152,9 @@ public:
      *
 
      */
-    static void CalculateArtificialViscosity(ModelPart &rModelPart, double LimiterCoefficient);
+    static void CalculateArtificialViscosity(
+        ModelPart &rModelPart,
+        const double LimiterCoefficient);
     ///@}
 
 private:
