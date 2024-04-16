@@ -8,24 +8,22 @@ from os import environ
 environ['OMP_NUM_THREADS'] = '4'
 
 starting_time = timer.time()
-n_elements = 10 # number of elements
+n_elements = 10 # number of FEM elements
 R_far = 1.0
 debug_mode = True
-n_evap_elements = n_elements
 H = 20
 sparse_option = True
-number_of_triangles = 110
+number_of_triangles = 110 # number of material elements
+n_evap_elements = number_of_triangles
 random.seed(42)
 
 #delta_coefficients = np.array([0.5 * R_far * ((i+1)%2) * random.random() * i / n_evap_elements for i in range(2 * n_evap_elements)])
 #evap_element_centers = np.array([0.5 * R_far * ((i+1)%2) * random.random() * i / n_evap_elements for i in range(2 * n_evap_elements)])
 #evap_enthalpies = np.array([r**2 for r in evap_element_centers])
-
 #evap_element_centers = np.array([0.25 * R_far * (i+1) / n_evap_elements for i in range(4 * n_evap_elements)])
-evap_element_centers = np.array([R_far * random.random() for i in range(number_of_triangles)])
-#print(evap_element_centers)
+
+evap_element_centers = np.array([R_far * random.random() for i in range(n_evap_elements)])
 evap_element_centers.sort()
-#print(evap_element_centers)
 
 elems_sides = R_far / len(evap_element_centers)
 

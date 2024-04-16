@@ -7,9 +7,11 @@
                 "DENSITY"       : 1.72E-06,
                 "CONDUCTIVITY"  : 3.00E-04,
                 "SPECIFIC_HEAT" : 1500.0,
-                "ENTHALPY": 4e5,
                 "IONIZATION_ALPHA": 0.95,
-                "THERMAL_DEPTH": 0.00033
+                "PENETRATION_DEPTH": 0.002148,
+                "ABLATION_THRESHOLD": 0.010667,
+                "THERMAL_DEPTH": 0.0007,
+                "ENTHALPY": 4e5
             },
             "Tables"    : null
         }
