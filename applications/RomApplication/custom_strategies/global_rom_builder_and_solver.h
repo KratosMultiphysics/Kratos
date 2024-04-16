@@ -806,6 +806,11 @@ protected:
         mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
 
+        // Store (append) Non-Converged Projected Residuals (HROM training)
+        if (mStoreNonConvergedProjectedResiduals) {
+            StoreAndAppendNonConvergedProjectedResiduals();
+        }
+
         KRATOS_CATCH("")
     }
 
@@ -821,18 +826,6 @@ protected:
         KRATOS_TRY
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
-
-        // Store (append) Non-Converged Projected Residuals
-        if (mStoreNonConvergedProjectedResiduals) {
-            Matrix current_non_converged_projected_residual = mRomResidualsUtility->GetProjectedResidualsOntoPhi();
-            if (mNonConvergedProjectedResiduals.size1() == 0 && mNonConvergedProjectedResiduals.size2() == 0) {
-                // Initialize the matrix with the first set of data
-                mNonConvergedProjectedResiduals = current_non_converged_projected_residual;
-            } else {
-                // Append the new data horizontally
-                AppendMatrixHorizontally(mNonConvergedProjectedResiduals, current_non_converged_projected_residual);
-            }
-        }
 
         const auto solving_timer = BuiltinTimer();
 
@@ -851,6 +844,22 @@ protected:
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    void StoreAndAppendNonConvergedProjectedResiduals() {
+        KRATOS_TRY
+
+        Matrix current_non_converged_projected_residual = mRomResidualsUtility->GetProjectedResidualsOntoPhi();
+
+        if (mNonConvergedProjectedResiduals.size1() == 0 && mNonConvergedProjectedResiduals.size2() == 0) {
+            // Initialize the matrix with the first set of data
+            mNonConvergedProjectedResiduals = current_non_converged_projected_residual;
+        } else {
+            // Append the new data horizontally
+            AppendMatrixHorizontally(mNonConvergedProjectedResiduals, current_non_converged_projected_residual);
+        }
 
         KRATOS_CATCH("")
     }

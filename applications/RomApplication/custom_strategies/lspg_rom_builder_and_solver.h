@@ -387,7 +387,27 @@ public:
             }
         }
 
+        // Store (append) Non-Converged Projected Residuals (HROM training)
+        if (BaseType::mStoreNonConvergedProjectedResiduals) {
+            Kratos::Matrix rA_times_mPhiGlobal = ConvertEigenToKratos(eigen_rA_times_mPhiGlobal);
+            StoreAndAppendNonConvergedProjectedResiduals(rA_times_mPhiGlobal);
+        }
+
         KRATOS_CATCH("")
+    }
+
+    // Function to convert Eigen matrix to Kratos matrix
+    Kratos::Matrix ConvertEigenToKratos(const EigenDynamicMatrix& eigenMatrix) {
+        std::size_t rows = eigenMatrix.rows();
+        std::size_t cols = eigenMatrix.cols();
+        Kratos::Matrix kratosMatrix(rows, cols);
+
+        for (std::size_t i = 0; i < rows; ++i) {
+            for (std::size_t j = 0; j < cols; ++j) {
+                kratosMatrix(i, j) = eigenMatrix(i, j);
+            }
+        }
+        return kratosMatrix;
     }
 
     void WriteReactionDataToMatrixMarket(
@@ -451,13 +471,7 @@ public:
             }
         }
 
-        // FIXME: This if is not doing anything as they both solve using a QR decomposition. Change this.
-        if (mSolvingTechnique == "normal_equations"){
-            BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
-        }
-        else if (mSolvingTechnique == "qr_decomposition"){
-            BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
-        }
+        BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
 
         KRATOS_CATCH("")
     }
@@ -719,6 +733,24 @@ protected:
         for (const auto& pair : unique_conditions_map) {
             mNeighbouringAndSelectedConditions.push_back(pair.second);
         }
+    }
+
+    void StoreAndAppendNonConvergedProjectedResiduals(
+        Matrix& rJPhi)
+    {
+        KRATOS_TRY
+
+        Matrix current_non_converged_projected_residual = BaseType::mRomResidualsUtility->GetProjectedResidualsOntoJPhi(rJPhi);
+
+        if (BaseType::mNonConvergedProjectedResiduals.size1() == 0 && BaseType::mNonConvergedProjectedResiduals.size2() == 0) {
+            // Initialize the matrix with the first set of data
+            BaseType::mNonConvergedProjectedResiduals = current_non_converged_projected_residual;
+        } else {
+            // Append the new data horizontally
+            BaseType::AppendMatrixHorizontally(BaseType::mNonConvergedProjectedResiduals, current_non_converged_projected_residual);
+        }
+
+        KRATOS_CATCH("")
     }
 
     ///@}
