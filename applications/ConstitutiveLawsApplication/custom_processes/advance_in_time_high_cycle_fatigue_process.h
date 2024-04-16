@@ -73,6 +73,12 @@ public:
 
     void Execute() override;
 
+
+    /**
+     * @brief This method checks which kind of load is being applied in the model in the current time
+     */
+    void CyclicLoad();
+
     /**
      * @brief This method computes the cycle time period per integration point
      * @param rCycleFound Bool variable indicating that a cycle has overcome at some integration point

@@ -34,7 +34,8 @@
 #include "custom_processes/set_cartesian_local_axes_process.h"
 #include "custom_processes/set_cylindrical_local_axes_process.h"
 #include "custom_processes/set_spherical_local_axes_process.h"
-#include "custom_processes/set_automated_initial_variable_process.h"
+#include "custom_processes/set_automated_initial_variable_process_cartesian.h"
+#include "custom_processes/set_automated_initial_variable_process_cylindrical.h"
 
 namespace Kratos::Python {
 
@@ -113,9 +114,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
-        
-    py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
-    .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<SetAutomatedInitialVariableProcessCartesian, SetAutomatedInitialVariableProcessCartesian::Pointer, Process>(m,"SetAutomatedInitialVariableProcessCartesian")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<SetAutomatedInitialVariableProcessCylindrical, SetAutomatedInitialVariableProcessCylindrical::Pointer, Process>(m,"SetAutomatedInitialVariableProcessCylindrical")
+        .def(py::init<ModelPart&, Parameters>());
 }
 
 }  // namespace Kratos::Python

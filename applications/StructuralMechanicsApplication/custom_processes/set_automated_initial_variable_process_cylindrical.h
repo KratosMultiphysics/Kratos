@@ -23,33 +23,33 @@ namespace Kratos
 {
 
 /**
- * @class SetAutomatedInitialVariableProcess
+ * @class SetAutomatedInitialVariableProcessCylindrical
  * @ingroup StructuralMechanicsApplication
  * @brief This class automotes the creation of the variables INITIAL_STRAIN_VECTOR and INITIAL_STRESS_VECTOR using tables imported from csv files
  * @author Luis Antonio Goncalves Junior
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariableProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariableProcessCylindrical
     : public Process
 {
 
 public:
 
-    static constexpr double tolerance         = 1.0e-6;
+    static constexpr double tolerance         = 4.0e-6;
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialVariableProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialVariableProcessCylindrical);
 
 
     /// Constructor
-    SetAutomatedInitialVariableProcess(
+    SetAutomatedInitialVariableProcessCylindrical(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
 
     /// Destructor
-    ~SetAutomatedInitialVariableProcess() override = default;
+    ~SetAutomatedInitialVariableProcessCylindrical() override = default;
 
     /**
      * @brief This function is designed for being called at the beginning of the computations
@@ -65,13 +65,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "SetAutomatedInitialVariableProcess";
+        return "SetAutomatedInitialVariableProcessCylindrical";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SetAutomatedInitialVariableProcess";
+        rOStream << "SetAutomatedInitialVariableProcessCylindrical";
     }
 
     /// Print object's data.
@@ -90,20 +90,20 @@ protected:
 private:
 
     /// Assignment operator.
-    SetAutomatedInitialVariableProcess& operator=(SetAutomatedInitialVariableProcess const& rOther);
+    SetAutomatedInitialVariableProcessCylindrical& operator=(SetAutomatedInitialVariableProcessCylindrical const& rOther);
 
     /// Copy constructor.
-    //SetAutomatedInitialVariableProcess(SetAutomatedInitialVariableProcess const& rOther);
+    //SetAutomatedInitialVariableProcessCylindrical(SetAutomatedInitialVariableProcessCylindrical const& rOther);
 
-}; // Class SetAutomatedInitialVariableProcess
+}; // Class SetAutomatedInitialVariableProcessCylindrical
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  SetAutomatedInitialVariableProcess& rThis);
+                                  SetAutomatedInitialVariableProcessCylindrical& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const SetAutomatedInitialVariableProcess& rThis)
+                                  const SetAutomatedInitialVariableProcessCylindrical& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
