@@ -44,7 +44,7 @@ class HydraulicFluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         theoretical_wetted_area= 0.5*(level_set_z)
         self.assertAlmostEqual(WettedArea, theoretical_wetted_area, 12)
   
-    def testCornerDetection(self):
+    def testFixCornerVelocity(self):
         corner_angle=10
         Kratos.NormalCalculationUtils().CalculateOnSimplex(self.model_part,3)
         Kratos.FindConditionsNeighboursProcess(self.model_part,3,3).Execute()
