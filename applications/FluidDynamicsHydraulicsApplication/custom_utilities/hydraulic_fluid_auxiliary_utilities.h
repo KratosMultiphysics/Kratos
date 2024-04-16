@@ -134,7 +134,9 @@ public:
      * @param  MaximumAngle Minimum angle for considering corner.
      */
 
-    static void FixCornerNodeVelocity(ModelPart &rModelPart, double MaximumAngle);
+    static void FixCornerNodeVelocity(
+        ModelPart &rModelPart,
+        const double MaximumAngle);
 
     /**
      * @brief The maximum water depth at the inlet is adjusted based on the maximum depth within the entire domain. 
