@@ -383,14 +383,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     noalias(G) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
-    Matrix D0(strain_size, strain_size);
-
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
         const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
 
         CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
             w_gauss *= r_props[THICKNESS];
@@ -400,8 +399,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
-
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
             const SizeType index = dim * i;
@@ -410,15 +407,15 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, kinematic_variables.NodalStrain - kinematic_variables.SymmGradientDispl)));
+        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Contributions to the LHS
         noalias(K) += tau * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
 
-        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.N_epsilon)));
-        noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(D0, kinematic_variables.B)));
+        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
+        noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
@@ -566,8 +563,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
-        mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, CONSTITUTIVE_MATRIX, D0);
-
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
             const SizeType index = dim * i;
@@ -576,7 +571,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(D0, kinematic_variables.NodalStrain - kinematic_variables.SymmGradientDispl)));
+        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
