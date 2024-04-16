@@ -62,7 +62,7 @@ class TestSaveRomCoefficientsProcess(KratosUnittest.TestCase):
             rom_coeffs_expected_output_name = "../../save_rom_coefficients_process_test_files/ExpectedOutputSaveRomCoefficientsProcess.npy"
             rom_coeffs_expected_output = np.load(rom_coeffs_expected_output_name)
 
-            self.assertMatrixAlmostEqual(rom_coeffs_obtained_output, rom_coeffs_expected_output)
+            self.assertMatrixAlmostEqual(KratosMultiphysics.Matrix(rom_coeffs_obtained_output), KratosMultiphysics.Matrix(rom_coeffs_expected_output))
 
 
 ##########################################################################################
