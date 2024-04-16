@@ -314,7 +314,7 @@ void HydraulicFluidAuxiliaryUtilities::TurnOffGravityOnAirElements(ModelPart &rM
     block_for_each(rModelPart.Elements(), [](Element &rElement){
         auto &r_geom = rElement.GetGeometry();
         Vector distances = ZeroVector(r_geom.PointsNumber());
-        Vector gravity = ZeroVector(3);
+        const Vector gravity = ZeroVector(3);
         for (unsigned int i_nodes = 0; i_nodes < r_geom.PointsNumber(); i_nodes++){
             distances[i_nodes] = r_geom[i_nodes].FastGetSolutionStepValue(DISTANCE);
         }
