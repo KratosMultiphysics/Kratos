@@ -402,6 +402,10 @@ public:
         KRATOS_CATCH("")
     }
 
+    const Kratos::Matrix& GetNonConvergedProjectedResiduals() {
+        return mNonConvergedProjectedResiduals;
+    }
+
     Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
