@@ -130,7 +130,15 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         return numpy.block(self.snapshots_data_list)
 
 
-    def _PrintRomBasis(self, snapshots_matrix):
+    def _ComputeSVD(self, snapshots_matrix):
+
+        # Calculate the randomized SVD of the snapshots matrix
+        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+
+        return u
+
+
+    def _PrintRomBasis(self, u):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
@@ -153,9 +161,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             rom_basis_dict["rom_manager"] = True
         rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
         n_nodal_unknowns = len(self.snapshot_variables_list)
-
-        # Calculate the randomized SVD of the snapshots matrix
-        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
 
         # Save the nodal basis
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
@@ -203,7 +208,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         self.n_nodal_unknowns = len(self.snapshot_variables_list)
 
         if not self.rom_manager:
-            self._PrintRomBasis(self._GetSnapshotsMatrix())
+            u = self._ComputeSVD(self._GetSnapshotsMatrix())
+            self._PrintRomBasis(u)
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
