@@ -2,13 +2,12 @@ import math
 
 import KratosMultiphysics as kratos
 from KratosMultiphysics import KratosUnittest
-from KratosMultiphysics.modeler_factory import KratosModelerFactory
+from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
 
 def run_modelers(model, settings):
-    factory = KratosModelerFactory()
-    list_of_modelers = factory.ConstructListOfModelers(
-        model, settings)
+    factory = KratosModelParametersFactory(model)
+    list_of_modelers = factory.ConstructListOfItems(settings)
 
     for modeler in list_of_modelers:
         modeler.SetupGeometryModel()
@@ -29,8 +28,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         model = kratos.Model()
 
         modelers_list = kratos.Parameters("""[{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "",
@@ -70,7 +69,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that elements, nodes and conditions were generated correctly
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 12 )
@@ -89,8 +88,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -123,14 +122,14 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        skin_model_part = model[modelers_list[0]["Parameters"]["input_model_part_name"].GetString()]
+        skin_model_part = model[modelers_list[0]["parameters"]["input_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(skin_model_part.Elements), 12 )
         self.assertEqual( len(skin_model_part.Nodes), 8 )
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 8 )
@@ -148,8 +147,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -182,14 +181,14 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        skin_model_part = model[modelers_list[0]["Parameters"]["input_model_part_name"].GetString()]
+        skin_model_part = model[modelers_list[0]["parameters"]["input_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(skin_model_part.Elements), 12 )
         self.assertEqual( len(skin_model_part.Nodes), 8 )
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 8 )
@@ -208,8 +207,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -241,14 +240,14 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        skin_model_part = model[modelers_list[0]["Parameters"]["input_model_part_name"].GetString()]
+        skin_model_part = model[modelers_list[0]["parameters"]["input_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(skin_model_part.Elements), 12 )
         self.assertEqual( len(skin_model_part.Nodes), 8 )
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 8 )
@@ -266,8 +265,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -300,14 +299,14 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        skin_model_part = model[modelers_list[0]["Parameters"]["input_model_part_name"].GetString()]
+        skin_model_part = model[modelers_list[0]["parameters"]["input_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(skin_model_part.Elements), 12 )
         self.assertEqual( len(skin_model_part.Nodes), 8 )
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 48 ) # 8 cells with 6 tetrahedra each
@@ -325,8 +324,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh_conditions",
@@ -360,7 +359,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 8 )
@@ -375,8 +374,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/un_connected_parts",
@@ -423,7 +422,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 6 )
@@ -445,8 +444,8 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/two_particles",
@@ -478,7 +477,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         ## create model
         model = kratos.Model()
 
-        skin_model_part_name = modelers_list[0]["Parameters"]["input_model_part_name"].GetString()
+        skin_model_part_name = modelers_list[0]["parameters"]["input_model_part_name"].GetString()
         skin_model_part = model.CreateModelPart(skin_model_part_name)
 
         skin_model_part.AddNodalSolutionStepVariable(kratos.RADIUS)
@@ -487,7 +486,7 @@ class TestVoxelMeshModeler(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
 
         # Check nb of node and elements
@@ -511,8 +510,8 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -547,7 +546,7 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 18 )
@@ -559,8 +558,8 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh_conditions",
@@ -596,7 +595,7 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 18 )
@@ -608,8 +607,8 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -645,7 +644,7 @@ class TestOpenStructureVoxelizer(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Elements), 1 )
@@ -659,8 +658,8 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -702,7 +701,7 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Conditions), 24 )
@@ -717,8 +716,8 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -760,7 +759,7 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Conditions), 8 )
@@ -774,8 +773,8 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
 
         modelers_list = kratos.Parameters("""
         [{
-            "modeler_name" : "VoxelMeshGeneratorModeler",
-            "Parameters" : {
+            "name" : "KratosMultiphysics.VoxelMeshGeneratorModeler",
+            "parameters" : {
                 "output_model_part_name" : "main_model_part",
                 "input_model_part_name" : "skin_model_part",
                 "mdpa_file_name" : "auxiliar_files_for_python_unittest/voxel_mesh_modeler/cube_skin_mesh",
@@ -816,7 +815,7 @@ class TestBoundaryConditionVoxelizer(KratosUnittest.TestCase):
         run_modelers(model, modelers_list)
 
         # Check that all element have deactivated in ExecuteBeforeSolutionLoop()
-        main_model_part = model[modelers_list[0]["Parameters"]["output_model_part_name"].GetString()]
+        main_model_part = model[modelers_list[0]["parameters"]["output_model_part_name"].GetString()]
 
         # Check nb of node and elements
         self.assertEqual( len(main_model_part.Conditions), 24 )
