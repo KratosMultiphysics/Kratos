@@ -1367,7 +1367,7 @@ class DEMAnalysisStage(AnalysisStage):
                 output_file_name = "number_of_contacts_y_z_of_size_" + str(side_length) +".txt"
                 np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction_2D_y_z, fmt='%d', delimiter=' ')
                 
-                return eigenvalues, second_invariant_of_deviatoric_tensor
+                return eigenvalues, second_invariant_of_deviatoric_tensor, measured_fabric_tensor
 
             else:
                 raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
