@@ -119,11 +119,11 @@ class TestSensorDistancePNormResponse(UnitTest.TestCase):
     def test_CalculateValue(self):
         value = 0.0
         # sensor 1,2
-        value += pow(0.0001 * 0.5 * 1.0, -2)
+        value +=  0.5 * 1.0 * pow(0.0001, -2)
         # sensor 1,4
-        value += pow(20 ** 0.5 * 0.5 * 0.5, -2)
+        value += 0.5 * 0.5 * pow(20 ** 0.5, -2)
         # sensor 2, 4
-        value += pow((3.9999 ** 2 + 4) ** 0.5 * 1.0 * 0.5, -2)
+        value += 1.0 * 0.5 * pow((3.9999 ** 2 + 4) ** 0.5, -2)
         value = pow(value, -1 / 2)
         self.assertAlmostEqual(self.response.CalculateValue(), value)
 
