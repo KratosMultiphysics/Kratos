@@ -326,6 +326,7 @@ class GeoMechanicalSolver(PythonSolver):
     def _add_displacement_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.INCREMENTAL_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
