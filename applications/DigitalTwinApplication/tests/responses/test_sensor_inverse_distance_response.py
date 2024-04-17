@@ -70,7 +70,7 @@ class TestSensorInverseDistanceResponse(UnitTest.TestCase):
                 "type"         : "displacement_sensor",
                 "name"         : "disp_x_2",
                 "value"        : 0,
-                "location"     : [3, 1, 0.0],
+                "location"     : [1.0001, 1, 0.0],
                 "direction"    : [1.0, 0.0, 0.0],
                 "weight"       : 1.0,
                 "variable_data": {}
@@ -80,7 +80,7 @@ class TestSensorInverseDistanceResponse(UnitTest.TestCase):
                 "type"         : "displacement_sensor",
                 "name"         : "disp_x_3",
                 "value"        : 0,
-                "location"     : [3, 3],
+                "location"     : [3, 3, 0],
                 "direction"    : [1.0, 1.0, 0.0],
                 "weight"       : 1.0,
                 "variable_data": {}
@@ -107,24 +107,17 @@ class TestSensorInverseDistanceResponse(UnitTest.TestCase):
             node: Kratos.Node = cls.sensor_model_part.CreateNewNode(i + 1, loc[0], loc[1], loc[2])
             node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 3) / 2)
 
-            elem_np = np.zeros(cls.mask_model_part.NumberOfElements())
-            for j in range(elem_np.shape[0]):
-                if j % (i + 2) == 0:
-                    elem_np[j] = 1
-            elem_exp = Kratos.Expression.ElementExpression(cls.mask_model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
-            sensor.AddElementExpression("mask_exp", elem_exp)
-
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
                 "sensors"
-            ]
+            ],
+            "p_coefficient": 2
         }""")
-        cls.response = SensorInverseDistanceResponse("test", cls.model, params, cls.optimization_problem)
+        cls.response = SensorInverseDistanceResponse("test", cls.model, params)
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 11.87583614191483)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.7077083111562166)
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()
