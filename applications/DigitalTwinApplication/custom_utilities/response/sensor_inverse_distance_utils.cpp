@@ -62,9 +62,13 @@ double SensorInverseDistanceResponseUtils::CalculateValue() const
     const double summation = IndexPartition<IndexType>(n).for_each<SumReduction<double>>([&](const auto i) {
         double value = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-        for (IndexType j = i + 1; j < n; ++j) {
-            const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-            value += std::exp(-mP * sensor_status_i * sensor_status_j * mDistances(i, j));
+        if (sensor_status_i > 1e-8) {
+            for (IndexType j = i + 1; j < n; ++j) {
+                const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
+                if (sensor_status_j > 1e-8) {
+                    value += std::exp(-mP * sensor_status_i * sensor_status_j * mDistances(i, j));
+                }
+            }
         }
         return value;
     });
@@ -83,9 +87,13 @@ ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceResponse
     const double summation = IndexPartition<IndexType>(n).for_each<SumReduction<double>>([&](const auto i) {
         double value = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-        for (IndexType j = i + 1; j < n; ++j) {
-            const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-            value += std::exp(-mP * sensor_status_i * sensor_status_j * mDistances(i, j));
+        if (sensor_status_i > 1e-8) {
+            for (IndexType j = i + 1; j < n; ++j) {
+                const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
+                if (sensor_status_j > 1e-8) {
+                    value += std::exp(-mP * sensor_status_i * sensor_status_j * mDistances(i, j));
+                }
+            }
         }
         return value;
     });
@@ -96,13 +104,19 @@ ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceResponse
         auto& value = *(p_expression->begin() + k);
         value = 0.0;
         const double sensor_status_k = (mpSensorModelPart->NodesBegin() + k)->GetValue(SENSOR_STATUS);
-        for (IndexType i = 0; i < k; ++i) {
-            const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-            value -= std::exp(-mP * sensor_status_i * sensor_status_k * mDistances(i, k)) * sensor_status_i * mDistances(i, k);
-        }
-        for (IndexType i = k + 1; i < n; ++i) {
-            const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-            value -= std::exp(-mP * sensor_status_i * sensor_status_k * mDistances(i, k)) * sensor_status_i * mDistances(i, k);
+        if (sensor_status_k > 1e-8) {
+            for (IndexType i = 0; i < k; ++i) {
+                const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
+                if (sensor_status_i > 1e-8) {
+                    value -= std::exp(-mP * sensor_status_i * sensor_status_k * mDistances(i, k)) * sensor_status_i * mDistances(i, k);
+                }
+            }
+            for (IndexType i = k + 1; i < n; ++i) {
+                const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
+                if (sensor_status_i > 1e-8) {
+                    value -= std::exp(-mP * sensor_status_i * sensor_status_k * mDistances(i, k)) * sensor_status_i * mDistances(i, k);
+                }
+            }
         }
         value /= summation;
     });

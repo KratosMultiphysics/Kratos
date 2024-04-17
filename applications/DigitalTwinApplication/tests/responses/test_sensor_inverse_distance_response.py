@@ -120,16 +120,10 @@ class TestSensorInverseDistanceResponse(UnitTest.TestCase):
         value = 0.0
         # sensor 1,2
         value += exp(-2 * 0.0001 * 0.5 * 1.0)
-        # sensor 1, 3
-        value += exp(0.0)
         # sensor 1,4
         value += exp(-2 * 20 ** 0.5 * 0.5 * 0.5)
-        # sensor 2, 3
-        value += exp(0.0)
         # sensor 2, 4
         value += exp(-2 * (3.9999 ** 2 + 4) ** 0.5 * 1.0 * 0.5)
-        # sensor 3, 4
-        value += exp(0.0)
         value = log(value) / 2
         self.assertAlmostEqual(self.response.CalculateValue(), value)
 
