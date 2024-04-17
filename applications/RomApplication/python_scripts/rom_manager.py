@@ -253,15 +253,16 @@ class RomManager(object):
             else:
                 print("Simulation for given parameters already in database.")
 
+        if BasisOutputProcess is None:
+            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess() #TODO not call unnecesarily
         tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        in_database, hash_basis =  self.data_base.check_if_basis_already_in_database(mu_train, tol_sol)
+        in_database, hash_basis =  self.data_base.check_if_left_basis_already_in_database(mu_train, tol_sol)
         if not in_database: #Check if basis exists already for current parameters
-            if BasisOutputProcess is None:
-                BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
-            self.data_base.add_Basis_to_database(mu_train,tol_sol)
+            u = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
+            BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
+            self.data_base.add_LeftBasis_to_database(u, mu_train,tol_sol)
         else:
-            self.data_base.make_sure_basis_is_right(hash_basis) # this will compare Right Basis with the hashed file, is right keep as is, if wrong replace it with the hashed one
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_left_basis(hash_basis)) #this updates the RomParameters.json
         self.data_base.generate_database_summary_file()
 
         return 0
@@ -294,7 +295,8 @@ class RomManager(object):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                self.data_base.add_ROM_to_database(serialized_mu, hash_mu, tol_sol)
+                projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+                self.data_base.add_ROM_to_database(serialized_mu, hash_mu, tol_sol,projection_type)
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
@@ -364,6 +366,7 @@ class RomManager(object):
 
         if not in_database:
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
+            #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
             self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
             if simulation is None:
@@ -424,7 +427,8 @@ class RomManager(object):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                self.data_base.add_HROM_to_database(serialized_mu, hash_mu, tol_sol, tol_res) #TODO differentiate between HROM and HHROM
+                projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+                self.data_base.add_HROM_to_database(serialized_mu, hash_mu, tol_sol, tol_res, projection_type) #TODO differentiate between HROM and HHROM
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")

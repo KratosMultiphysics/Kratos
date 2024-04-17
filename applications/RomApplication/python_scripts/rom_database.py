@@ -34,11 +34,11 @@ class RomDatabase(object):
             "FOM": '''CREATE TABLE IF NOT EXISTS FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
             "ROM": '''CREATE TABLE IF NOT EXISTS ROM
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
             "HROM": '''CREATE TABLE IF NOT EXISTS HROM
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "HHROM": '''CREATE TABLE IF NOT EXISTS HHROM
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
@@ -69,17 +69,19 @@ class RomDatabase(object):
         mu_str = '_'.join(map(str, mu))
         return hashlib.sha256(mu_str.encode()).hexdigest()
 
-    def hash_parameters_with_tol(self, mu, tol):
+
+
+    def hash_parameters_with_tol_and_projection(self, mu, tol, projection):
         # Convert the parameters list and the tolerance value to a string
         # Ensure the tolerance is converted to a string with consistent formatting
-        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}"  # Example with 10 decimal places
+        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_" + projection   # Example with 10 decimal places
         # Generate the hash
         return hashlib.sha256(mu_str.encode()).hexdigest()
 
 
-    def hash_parameters_with_tol_2_tols(self, mu, tol, tol2):
+    def hash_parameters_with_tol_2_tols(self, mu, tol, tol2, projection):
         # Convert the parameters list to a string and encode
-        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}"  # Convert both tol and tol2 to strings with consistent formatting
+        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}_" + projection  # Convert both tol and tol2 to strings with consistent formatting
         # Generate the hash of the combined string including both tolerance values
         return hashlib.sha256(mu_str.encode()).hexdigest()
 
@@ -126,7 +128,8 @@ class RomDatabase(object):
     def check_if_rom_already_in_database(self, mu, tol_sol):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        hash_mu = self.hash_parameters_with_tol(mu, tol_sol)
+        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        hash_mu = self.hash_parameters_with_tol_and_projection(mu, tol_sol, projection_type)
         cursor.execute('SELECT COUNT(*) FROM ROM WHERE file_name = ?', (hash_mu,))
         count = cursor.fetchone()[0]
         conn.close()
@@ -136,14 +139,15 @@ class RomDatabase(object):
     def check_if_hrom_already_in_database(self, mu, tol_sol, tol_res):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        hash_mu = self.hash_parameters_with_tol_2_tols(mu, tol_sol, tol_res)
+        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        hash_mu = self.hash_parameters_with_tol_2_tols(mu, tol_sol, tol_res, projection_type)
         cursor.execute('SELECT COUNT(*) FROM HROM WHERE file_name = ?', (hash_mu,))
         count = cursor.fetchone()[0]
         conn.close()
         return count > 0, hash_mu
 
 
-    def check_if_basis_already_in_database(self, mu_train, tol_sol):
+    def check_if_left_basis_already_in_database(self, mu_train, tol_sol):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
@@ -187,33 +191,32 @@ class RomDatabase(object):
         conn.commit()
         conn.close()
 
-    def add_ROM_to_database(self, parameters, file_name, tol_sol):
+    def add_ROM_to_database(self, parameters, file_name, tol_sol, projection):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO ROM (parameters, tol_sol , file_name) VALUES (?, ?, ?)',
-                       (parameters_str, tol_sol, file_name))
+        cursor.execute('INSERT INTO ROM (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+                       (parameters_str, tol_sol, projection, file_name))
         conn.commit()
         conn.close()
 
 
-    def add_HROM_to_database(self, parameters, file_name, tol_sol, tol_res):
+    def add_HROM_to_database(self, parameters, file_name, tol_sol, tol_res, projection):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO HROM (parameters, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?)',
-                       (parameters_str, tol_sol, tol_res, file_name))
+        cursor.execute('INSERT INTO HROM (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
+                       (parameters_str, tol_sol, tol_res, projection, file_name))
         conn.commit()
         conn.close()
 
 
-    def add_Basis_to_database(self, mu_train, real_value):
+    def add_LeftBasis_to_database(self, u,  mu_train, real_value):
         print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
 
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
         hashed_mu_train = self.hash_mu_train(serialized_mu_train, real_value)
-        file_path = self.save_as_npy(mu_train, hashed_mu_train)  # Save numpy array and get file path
-
+        file_path = self.save_as_npy(u , hashed_mu_train)  # Save numpy array and get file path
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
 
@@ -287,6 +290,9 @@ class RomDatabase(object):
                     for tol_sol, file_name in rows:
                         f.write(f"{tol_sol} | {file_name}\n")
 
+                elif table_name =="RightBasis":
+                    pass
+
                 elif table_name =="ResidualsProjected":
                     # Query the database for a limited number of entries from the current table
                     cursor.execute(f"SELECT parameters, tol_sol, tol_res, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
@@ -320,7 +326,7 @@ class RomDatabase(object):
                     else:
                         f.write("No data available.\n")
 
-                else:
+                elif  table_name=="FOM" :
 
                     # Query the database for a limited number of entries from the current table
                     cursor.execute(f"SELECT parameters, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
@@ -338,6 +344,26 @@ class RomDatabase(object):
                             params_dict = json.loads(json.loads(parameters))
                             params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
                             f.write(f"{params_str} | {file_name}\n")
+
+                else:
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT parameters, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+
+                    if rows:
+                        # Assuming the first row's parameters to figure out the headers
+                        sample_params = json.loads(json.loads(rows[0][0]))
+                        headers = list(sample_params.keys())
+                        f.write(" | ".join(headers) + " | type_of_projection | File Name (Hash)\n")
+                        f.write("-" * (len(headers) * 15) + "\n")
+
+                        # Write each row to the file
+                        for parameters, type_of_projection, file_name in rows:
+                            params_dict = json.loads(json.loads(parameters))
+                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
+                            f.write(f"{params_str} | {type_of_projection}| {file_name}\n")
+
+
                     else:
                         f.write("No data available.\n")
 
@@ -375,9 +401,9 @@ class RomDatabase(object):
             if table_name == 'FOM':
                 hash_mu = self.hash_parameters(serialized_mu)
             elif table_name == 'ROM':
-                hash_mu = self.hash_parameters_with_tol(serialized_mu, tol_sol)
+                hash_mu = self.hash_parameters_with_tol_and_projection(serialized_mu, tol_sol, projection_type)
             elif table_name == 'HROM':
-                hash_mu = self.hash_parameters_with_tol_2_tols(serialized_mu, tol_sol, tol_res)
+                hash_mu = self.hash_parameters_with_tol_2_tols(serialized_mu, tol_sol, tol_res, projection_type)
             elif table_name == 'ResidualsProjected':
                 hash_mu = self.hash_parameters_with_tol_2_tols_and_string(serialized_mu, tol_sol, tol_res, projection_type)
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
@@ -432,3 +458,12 @@ class RomDatabase(object):
         are_identical = np.array_equal(currently_available_basis, basis_in_database)
         if not are_identical:
             np.save(rom_directoy / ('RightBasisMatrix.npy'), basis_in_database)
+
+
+    def get_left_basis(self, hash_basis):
+
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
+        data_base_directory.mkdir(parents=True, exist_ok=True)
+
+        return np.load(data_base_directory / (hash_basis + '.npy'))
