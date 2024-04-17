@@ -712,7 +712,7 @@ class RomManager(object):
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
             "assembling_strategy": "global",            // "global", "elemental"
-            "save_gid_output": true,                    // false, true #if true, it must exits previously in the ProjectParameters.json
+            "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "output_name": "id",                         // "id" , "mu"
             "ROM":{

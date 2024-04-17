@@ -24,8 +24,6 @@ def CustomizeSimulation(cls, global_model, parameters):
 
 
 general_rom_manager_parameters = KratosMultiphysics.Parameters("""{
-            "save_gid_output": false,
-            "save_vtk_output": false,
             "projection_strategy": "lspg"
         }""")
 
