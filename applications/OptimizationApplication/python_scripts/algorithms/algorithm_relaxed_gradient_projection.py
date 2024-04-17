@@ -133,7 +133,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             for i in range(number_of_active_constraints):
                 # scaling constraints grad
                 norm = KratosOA.ExpressionUtils.NormInf(constr_grad[i])
-                if not math.isclose(obj_norm, 0.0, abs_tol=1e-16):
+                if not math.isclose(norm, 0.0, abs_tol=1e-16):
                     scaled_constr_grad.append( constr_grad[i] / norm )
                 else:
                     scaled_constr_grad.append( constr_grad[i] )
