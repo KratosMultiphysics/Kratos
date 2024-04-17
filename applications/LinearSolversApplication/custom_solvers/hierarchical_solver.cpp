@@ -725,16 +725,16 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
                             //}
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system] is in the coarse system
+                    } // for i_term in range(i_term_end)
 
-                        // Check whether the coarse DoF participates in an MPC, and record
-                        // data about its connectivities if it does.
-                        const auto it_slave_dof = rSlaveMap.find(i_coarse_dof_in_fine_system);
-                        if (it_slave_dof != it_slave_end) {
-                            it_slave_dof->second.second.emplace_back(&r_entity,
-                                                                     i_coarse_vertex,
-                                                                     i_node_dof);
-                        } // if it_slave_dof != rSlaveMap.end
-                    } // for i_node_dof in range(dofs_per_node)
+                    // Check whether the coarse DoF participates in an MPC, and record
+                    // data about its connectivities if it does.
+                    const auto it_slave_dof = rSlaveMap.find(i_coarse_dof_in_fine_system);
+                    if (it_slave_dof != it_slave_end) {
+                        it_slave_dof->second.second.emplace_back(&r_entity,
+                                                                 i_coarse_vertex,
+                                                                 i_node_dof);
+                    } // if it_slave_dof != rSlaveMap.end
                 } // for coefficient_pair in restriction_terms
             } // for i_coarse_vertex in restriction_coefficients.size()
 
