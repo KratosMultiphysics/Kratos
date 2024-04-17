@@ -22,7 +22,7 @@
 // Application includes
 #include "custom_utilities/response/sensor_localization_response_utils.h"
 #include "custom_utilities/response/sensor_isolation_response_utils.h"
-#include "custom_utilities/response/sensor_inverse_distance_utils.h"
+#include "custom_utilities/response/sensor_distance_p_norm_utils.h"
 #include "custom_utilities/response/sensor_cosine_distance_utils.h"
 
 // Include base h
@@ -47,11 +47,11 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def("CalculateGradient", &SensorIsolationResponseUtils::CalculateGradient)
         ;
 
-    py::class_<SensorInverseDistanceResponseUtils, SensorInverseDistanceResponseUtils::Pointer>(m, "SensorInverseDistanceResponseUtils")
+    py::class_<SensorDistancePNormResponseUtils, SensorDistancePNormResponseUtils::Pointer>(m, "SensorDistancePNormResponseUtils")
         .def(py::init<ModelPart&, const double>(), py::arg("sensor_model_part"), py::arg("p_coefficient"))
-        .def("Initialize", &SensorInverseDistanceResponseUtils::Initialize)
-        .def("CalculateValue", &SensorInverseDistanceResponseUtils::CalculateValue)
-        .def("CalculateGradient", &SensorInverseDistanceResponseUtils::CalculateGradient)
+        .def("Initialize", &SensorDistancePNormResponseUtils::Initialize)
+        .def("CalculateValue", &SensorDistancePNormResponseUtils::CalculateValue)
+        .def("CalculateGradient", &SensorDistancePNormResponseUtils::CalculateGradient)
         ;
 
     py::class_<SensorCosineDistanceResponseUtils, SensorCosineDistanceResponseUtils::Pointer>(m, "SensorCosineDistanceResponseUtils")
