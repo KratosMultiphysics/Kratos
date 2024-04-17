@@ -296,9 +296,9 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
 }
 
-void KratosApplication::UnregisterCommonComponents() 
+void KratosApplication::DeregisterCommonComponents() 
 {
-    std::cout << "Unregistering " << mApplicationName << std::endl;
+    std::cout << "Deregistering " << mApplicationName << std::endl;
 
     KratosComponents<Geometry<Node>>::CleanKratosComponents(mApplicationName);
     KratosComponents<Element>::CleanKratosComponents(mApplicationName);
@@ -308,9 +308,9 @@ void KratosApplication::UnregisterCommonComponents()
     KratosComponents<ConstitutiveLaw>::CleanKratosComponents(mApplicationName);
 }
 
-void KratosApplication::UnregisterApplication() {
-    UnregisterLinearSolvers();
-    UnregisterPreconditioners();
+void KratosApplication::DeregisterApplication() {
+    DeregisterLinearSolvers();
+    DeregisterPreconditioners();
 }
 
 }  // namespace Kratos.

@@ -81,7 +81,7 @@ namespace Kratos
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("skyline_lu_complex", SkylineLUComplexSolverFactory);
     };
 
-    void UnregisterLinearSolvers() 
+    void DeregisterLinearSolvers() 
     {
         using SpaceType = TUblasSparseSpace<double>;
         using LocalSpaceType = TUblasDenseSpace<double>;

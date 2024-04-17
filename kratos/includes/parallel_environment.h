@@ -174,7 +174,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Remove a DataCommunicator instance from the ParallelEnvironment.
     /** @param rName The name used to register the DataCommunicator within ParallelEnvironment.
      */
-    static void UnregisterDataCommunicator(
+    static void DeregisterDataCommunicator(
         const std::string& rName);
 
     ///@}
@@ -237,7 +237,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
         DataCommunicator::UniquePointer pPrototype,
         const bool Default = DoNotMakeDefault);
 
-    void UnregisterDataCommunicatorDetail(const std::string& Name);
+    void DeregisterDataCommunicatorDetail(const std::string& Name);
 
     DataCommunicator& GetDataCommunicatorDetail(const std::string& rName) const;
 

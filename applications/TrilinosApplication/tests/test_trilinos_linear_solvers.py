@@ -19,7 +19,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        KratosMultiphysics.ParallelEnvironment.UnregisterDataCommunicator(cls.data_comm_name)
+        KratosMultiphysics.ParallelEnvironment.DeregisterDataCommunicator(cls.data_comm_name)
 
     def _RunParametrized(self, my_params_string ):
         all_settings = KratosMultiphysics.Parameters( my_params_string )

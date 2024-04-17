@@ -16,7 +16,7 @@ class TestDataCommunicatorFactory(UnitTest.TestCase):
         if len(self.registered_comms) > 0:
             ParallelEnvironment.SetDefaultDataCommunicator(self.original_default)
             for comm_name in self.registered_comms:
-                ParallelEnvironment.UnregisterDataCommunicator(comm_name)
+                ParallelEnvironment.DeregisterDataCommunicator(comm_name)
 
     def markForCleanUp(self,comm_name):
         self.registered_comms.append(comm_name)

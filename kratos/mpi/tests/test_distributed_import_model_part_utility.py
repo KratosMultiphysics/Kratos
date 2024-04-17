@@ -44,7 +44,7 @@ class TestDistributedImportModelPartUtility(KratosUnittest.TestCase):
             ranks = [i for i in range(1,size)]
             data_comm_name = "AllExceptFirst"
             sub_comm = DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks, data_comm_name)
-            self.addCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name)
+            self.addCleanup(KM.ParallelEnvironment.DeregisterDataCommunicator, data_comm_name)
 
             settings["model_import_settings"].AddEmptyValue("data_communicator_name").SetString(data_comm_name)
 

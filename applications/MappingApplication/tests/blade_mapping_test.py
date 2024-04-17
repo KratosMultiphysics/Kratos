@@ -143,7 +143,7 @@ class BladeMappingTestsSerialModelPart(BladeMappingTests):
     def ReadModelParts(cls):
         data_comm_name_rank_0 = "OnlyRank0"
         cls.sub_comm_rank_0 = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, [0], data_comm_name_rank_0)
-        cls.addClassCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name_rank_0)
+        cls.addClassCleanup(KM.ParallelEnvironment.DeregisterDataCommunicator, data_comm_name_rank_0)
 
         if default_data_comm.Rank() == 0:
             testing_utils.ReadSerialModelPart(cls.input_file_origin, cls.model_part_origin) # structure
@@ -177,7 +177,7 @@ class BladeMappingTestsLessRanksModelPart(BladeMappingTests):
         ranks_structure = cls.GetRanksForStructure()
         data_comm_name = "structure_comm"
         cls.sub_comm_structure = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks_structure, data_comm_name)
-        cls.addClassCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name)
+        cls.addClassCleanup(KM.ParallelEnvironment.DeregisterDataCommunicator, data_comm_name)
 
         importer_settings = KM.Parameters("""{
             "model_import_settings": {

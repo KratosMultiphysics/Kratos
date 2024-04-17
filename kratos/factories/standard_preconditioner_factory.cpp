@@ -53,7 +53,7 @@ namespace Kratos
         KRATOS_REGISTER_PRECONDITIONER("ilu",ILUPreconditionerFactory );
     };
 
-    void UnregisterPreconditioners() 
+    void DeregisterPreconditioners() 
     {
         using SpaceType = TUblasSparseSpace<double>;
         using LocalSpaceType = TUblasDenseSpace<double>;

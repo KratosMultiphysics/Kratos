@@ -120,10 +120,10 @@ void ParallelEnvironment::RegisterDataCommunicator(
     env.RegisterDataCommunicatorDetail(Name, std::move(pPrototype), Default);
 }
 
-void ParallelEnvironment::UnregisterDataCommunicator(const std::string& Name)
+void ParallelEnvironment::DeregisterDataCommunicator(const std::string& Name)
 {
     ParallelEnvironment& env = GetInstance();
-    env.UnregisterDataCommunicatorDetail(Name);
+    env.DeregisterDataCommunicatorDetail(Name);
 }
 
 bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
@@ -306,7 +306,7 @@ void ParallelEnvironment::RegisterDataCommunicatorDetail(
     }
 }
 
-void ParallelEnvironment::UnregisterDataCommunicatorDetail(const std::string& Name)
+void ParallelEnvironment::DeregisterDataCommunicatorDetail(const std::string& Name)
 {
     KRATOS_ERROR_IF(Name == mDefaultCommunicator->first)
     << "Trying to unregister the default DataCommunicator \"" << Name

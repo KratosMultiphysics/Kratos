@@ -130,8 +130,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     /// Destructor.
     virtual ~KratosApplication() {
         // This must be commented until tests have been fixed.
-        // UnregisterCommonComponents();
-        // UnregisterApplication();
+        // DeregisterCommonComponents();
+        // DeregisterApplication();
     }
 
     ///@}
@@ -156,13 +156,13 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
      * - Modelers
      * - ConstitutiveLaws
      */
-    void UnregisterCommonComponents();
+    void DeregisterCommonComponents();
 
     /**
      * @brief This method is used to unregister specific application components.
      * @details This method is used to unregister specific application components.
      */
-    virtual void UnregisterApplication();
+    virtual void DeregisterApplication();
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
