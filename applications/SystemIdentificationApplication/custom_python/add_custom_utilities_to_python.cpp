@@ -38,9 +38,9 @@ void AddSmoothClamper(
     using smooth_clamper_type = SmoothClamper<TContainerType>;
     py::class_<smooth_clamper_type, typename smooth_clamper_type::Pointer>(m, (rName + "SmoothClamper").c_str())
         .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
-        .def("Clamp", &smooth_clamper_type::Clamp, py::arg("x_expression"))
-        .def("ClampDerivative", &smooth_clamper_type::ClampDerivative, py::arg("x_expression"))
-        .def("InverseClamp", &smooth_clamper_type::InverseClamp, py::arg("y_expression"))
+        .def("ProjectForward", &smooth_clamper_type::ProjectForward, py::arg("x_expression"))
+        .def("CalculateForwardProjectionGradient", &smooth_clamper_type::CalculateForwardProjectionGradient, py::arg("x_expression"))
+        .def("ProjectBackward", &smooth_clamper_type::ProjectBackward, py::arg("y_expression"))
         ;
 }
 

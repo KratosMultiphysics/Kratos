@@ -53,7 +53,7 @@ public:
      * @param rX                                    Input expression in input space.
      * @return ContainerExpression<TContainerType>  Clamped output expression in clamped space.
      */
-    ContainerExpression<TContainerType> Clamp(const ContainerExpression<TContainerType>& rX) const;
+    ContainerExpression<TContainerType> ProjectForward(const ContainerExpression<TContainerType>& rX) const;
 
     /**
      * @brief Compute the derivative dy/dx at given X for clamping.
@@ -62,14 +62,14 @@ public:
      * @param rX                                    Input expression in input space.
      * @return ContainerExpression<TContainerType>  Output expression with dY/dX.
      */
-    ContainerExpression<TContainerType> ClampDerivative(const ContainerExpression<TContainerType>& rX) const;
+    ContainerExpression<TContainerType> CalculateForwardProjectionGradient(const ContainerExpression<TContainerType>& rX) const;
 
     /**
      * @brief Computes the X given Y.
      * @param rY                                    Input expression in clamped space.
      * @return ContainerExpression<TContainerType>  Output expression in input space.
      */
-    ContainerExpression<TContainerType> InverseClamp(const ContainerExpression<TContainerType>& rY) const;
+    ContainerExpression<TContainerType> ProjectBackward(const ContainerExpression<TContainerType>& rY) const;
 
     ///@}
 

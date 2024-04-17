@@ -23,7 +23,7 @@ class TestSmoothClamper(UnitTest.TestCase):
         cls.clamper = KratosSI.NodeSmoothClamper(-10, 10)
 
     def test_Clamp(self) -> None:
-        y = self.clamper.Clamp(self.x_exp).Evaluate()
+        y = self.clamper.ProjectForward(self.x_exp).Evaluate()
         for i, y_i in enumerate(y):
             if self.x[i] < 0.0:
                 self.assertEqual(y_i, -10.0)
@@ -32,17 +32,17 @@ class TestSmoothClamper(UnitTest.TestCase):
         self.assertAlmostEqual(np.linalg.norm(y), 91.57361915207677)
 
     def test_InverseClamp(self) -> None:
-        y = self.clamper.Clamp(self.x_exp)
-        x = self.clamper.InverseClamp(y).Evaluate()
+        y = self.clamper.ProjectForward(self.x_exp)
+        x = self.clamper.ProjectBackward(y).Evaluate()
 
         x_clamped = np.clip(self.x_exp.Evaluate(), 0, 1)
         self.assertAlmostEqual(np.linalg.norm(x - x_clamped), 0.0)
 
     def test_ClampDerivative(self) -> None:
         delta = 1e-8
-        y_ref = self.clamper.Clamp(self.x_exp).Evaluate()
-        y = self.clamper.Clamp(self.x_exp + delta).Evaluate()
-        dy_dx = self.clamper.ClampDerivative(self.x_exp).Evaluate()
+        y_ref = self.clamper.ProjectForward(self.x_exp).Evaluate()
+        y = self.clamper.ProjectForward(self.x_exp + delta).Evaluate()
+        dy_dx = self.clamper.CalculateForwardProjectionGradient(self.x_exp).Evaluate()
 
         for i, dy_dx in enumerate(dy_dx):
             self.assertAlmostEqual(dy_dx, (y[i] - y_ref[i]) / delta, 5)

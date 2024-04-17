@@ -1,3 +1,4 @@
+import math
 from typing import Optional
 
 import KratosMultiphysics as Kratos
@@ -109,12 +110,12 @@ class MaterialPropertiesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.InverseClamp(physical_field)
+        self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
-        self.physical_phi_derivative_field = self.clamper.ClampDerivative(self.physical_phi_field)
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -160,9 +161,8 @@ class MaterialPropertiesControl(Control):
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        # first clip the control field to max and mins
         update = new_control_field - self.control_phi_field
-        if Kratos.Expression.Utils.NormL2(update) > 1e-15:
+        if not math.isclose(Kratos.Expression.Utils.NormL2(update), 0.0, abs_tol=1e-16):
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
                 self.control_phi_field = new_control_field
@@ -179,15 +179,15 @@ class MaterialPropertiesControl(Control):
         filtered_phi_field_update = self.filter.ForwardFilterField(update)
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
 
-        # project forward the filtered thickness field
-        physical_field = self.clamper.Clamp(self.physical_phi_field)
+        # project forward the filtered thickness field to get clamped physical field
+        physical_field = self.clamper.ProjectForward(self.physical_phi_field)
 
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.ClampDerivative(self.physical_phi_field)
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

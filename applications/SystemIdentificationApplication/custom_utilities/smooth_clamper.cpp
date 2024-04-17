@@ -40,7 +40,7 @@ SmoothClamper<TContainerType>::SmoothClamper(
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::Clamp(const ContainerExpression<TContainerType>& rInput) const
+ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForward(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
@@ -79,7 +79,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::Clamp(const C
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ClampDerivative(const ContainerExpression<TContainerType>& rInput) const
+ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
@@ -118,7 +118,7 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ClampDerivati
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::InverseClamp(const ContainerExpression<TContainerType>& rInput) const
+ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackward(const ContainerExpression<TContainerType>& rInput) const
 {
     KRATOS_TRY
 
