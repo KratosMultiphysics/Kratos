@@ -86,7 +86,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-
+        self.ComputeErrors(mu_train)
 
 
     def Test(self, mu_test=[None]):
