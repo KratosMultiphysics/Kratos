@@ -22,6 +22,7 @@
 // Application includes
 #include "custom_utilities/response/sensor_localization_response_utils.h"
 #include "custom_utilities/response/sensor_isolation_response_utils.h"
+#include "custom_utilities/response/sensor_inverse_distance_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utilities_to_python.h"
@@ -43,7 +44,14 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &SensorIsolationResponseUtils::Initialize)
         .def("CalculateValue", &SensorIsolationResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorIsolationResponseUtils::CalculateGradient)
-        ;        
+        ;
+
+    py::class_<SensorInverseDistanceResponseUtils, SensorInverseDistanceResponseUtils::Pointer>(m, "SensorInverseDistanceResponseUtils")
+        .def(py::init<ModelPart&, const double>(), py::arg("sensor_model_part"), py::arg("p_coefficient"))
+        .def("Initialize", &SensorInverseDistanceResponseUtils::Initialize)
+        .def("CalculateValue", &SensorInverseDistanceResponseUtils::CalculateValue)
+        .def("CalculateGradient", &SensorInverseDistanceResponseUtils::CalculateGradient)
+        ;
 }
 
 } // namespace Kratos::Python
