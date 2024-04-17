@@ -112,23 +112,10 @@ class DamageDetectionResponse(ResponseFunction):
             # first run the primal analysis.
             exec_policy.Execute()
 
-            list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = []
-            with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
-                csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
-                measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
-
-                for measured_row in csv_measurement_stream:
-                    measured_sensor_name = measured_row[measured_name_index].strip()
-                    measured_value = float(measured_row[measured_value_index])
-                    sensor =  self.__GetSensor(measured_sensor_name)
-                    list_of_sensors.append(sensor)
-                    sensor.SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+            self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
 
             result += test_case_weight * self.adjoint_analysis.GetResponseFunction().CalculateValue(exec_policy.GetAnalysisModelPart())
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Computed \"{exec_policy.GetName()}\".")
-
-            for sensor in list_of_sensors:
-                sensor.SetValue(KratosDT.SENSOR_ERROR, abs(sensor.GetValue(KratosDT.SENSOR_MEASURED_VALUE) - sensor.GetSensorValue()))
 
         return result
 
@@ -141,14 +128,7 @@ class DamageDetectionResponse(ResponseFunction):
         # now compute sensitivities for each test scenario
         for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
             # read and replace the measurement data for each test scenario
-            with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
-                csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
-                measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
-
-                for measured_row in csv_measurement_stream:
-                    measured_sensor_name = measured_row[measured_name_index].strip()
-                    measured_value = float(measured_row[measured_value_index])
-                    self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+            self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
 
             # run a single adjoint for each test scenario
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
@@ -170,6 +150,17 @@ class DamageDetectionResponse(ResponseFunction):
         name_index = headers.index("name")
         value_index = headers.index("value")
         return name_index, value_index
+
+    def __SetSensorMeasuredValue(self, sensor_measurement_data_file_name: str) -> None:
+        with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
+            csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
+            measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
+
+            for measured_row in csv_measurement_stream:
+                measured_sensor_name = measured_row[measured_name_index].strip()
+                measured_value = float(measured_row[measured_value_index])
+                self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
