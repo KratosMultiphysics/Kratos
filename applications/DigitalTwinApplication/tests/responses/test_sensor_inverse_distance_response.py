@@ -1,4 +1,4 @@
-import numpy as np
+from math import exp, log
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -117,7 +117,21 @@ class TestSensorInverseDistanceResponse(UnitTest.TestCase):
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.7077083111562166)
+        value = 0.0
+        # sensor 1,2
+        value += exp(-2 * 0.0001 * 0.5 * 1.0)
+        # sensor 1, 3
+        value += exp(0.0)
+        # sensor 1,4
+        value += exp(-2 * 20 ** 0.5 * 0.5 * 0.5)
+        # sensor 2, 3
+        value += exp(0.0)
+        # sensor 2, 4
+        value += exp(-2 * (3.9999 ** 2 + 4) ** 0.5 * 1.0 * 0.5)
+        # sensor 3, 4
+        value += exp(0.0)
+        value = log(value) / 2
+        self.assertAlmostEqual(self.response.CalculateValue(), value)
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()
