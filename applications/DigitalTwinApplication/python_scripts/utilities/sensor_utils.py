@@ -52,6 +52,8 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
         if sensor_type_name == "displacement_sensor":
             name = parameters["name"].GetString()
             loc = parameters["location"].GetVector()
+            if loc.Size() != 3:
+                raise RuntimeError(f"The location should have 3 components.")
             loc = Kratos.Point(loc[0], loc[1], loc[2])
             weight = parameters["weight"].GetDouble()
             direction = parameters["direction"].GetVector()
@@ -62,6 +64,8 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
         elif sensor_type_name == "strain_sensor":
             name = parameters["name"].GetString()
             loc = parameters["location"].GetVector()
+            if loc.Size() != 3:
+                raise RuntimeError(f"The location should have 3 components.")
             loc = Kratos.Point(loc[0], loc[1], loc[2])
             weight = parameters["weight"].GetDouble()
             strain_variable: Kratos.MatrixVariable = Kratos.KratosGlobals.GetVariable(parameters["strain_variable"].GetString())
