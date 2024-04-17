@@ -149,7 +149,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  AxisymUpdatedLagrangianUJElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  AxisymUpdatedLagrangianUJElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -171,14 +171,6 @@ namespace Kratos
             KRATOS_THROW_ERROR( std::invalid_argument, "JACOBIAN has Key zero! (check if the application is correctly registered", "" )
 
 
-      if ( this->GetProperties().Has(THICKNESS) ) {
-	      double thickness = this->GetProperties()[THICKNESS];
-	      if ( thickness <= 0.0) {
-		      this->GetProperties()[THICKNESS] = 1.0;
-	      }
-      } else {
-	     this->GetProperties()[THICKNESS] = 1.0;
-      }
 
       return correct;
 
@@ -189,11 +181,11 @@ namespace Kratos
    //************* STARTING - ENDING  METHODS
    //************************************************************************************
    //************************************************************************************
-   void AxisymUpdatedLagrangianUJElement::Initialize()
+   void AxisymUpdatedLagrangianUJElement::Initialize(const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
-      UpdatedLagrangianUJElement::Initialize();
+      UpdatedLagrangianUJElement::Initialize(rCurrentProcessInfo);
 
       SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -1112,7 +1104,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
    //************************************************************************************
    //************************************************************************************
    // Calculate mass matrix. copied from AxisymUpdatedLagrangianUPElement
-   void AxisymUpdatedLagrangianUJElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUJElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -1231,7 +1223,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       // COMPUTE THE EFFECT OF THE INTERPOLATION, LETS SEE
       std::vector< Matrix > EECCInverseDefGrad;
       ProcessInfo SomeProcessInfo;
-      this->GetValueOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
     if(  EECCInverseDefGrad[0].size1() == 0)
         return;
       Matrix EECCInverseBig = EECCInverseDefGrad[0];
