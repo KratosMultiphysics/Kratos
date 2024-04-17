@@ -73,6 +73,7 @@ class RomManager(object):
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
                 self.__LaunchTrainPG(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "PG")
+                self.__LaunchROM(mu_train)
 
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
