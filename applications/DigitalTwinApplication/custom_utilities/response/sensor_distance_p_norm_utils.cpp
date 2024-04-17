@@ -46,8 +46,11 @@ void SensorDistancePNormResponseUtils::Initialize()
 
     IndexPartition<IndexType>(n).for_each([&](const auto i) {
         for (IndexType j = i + 1; j < n; ++j) {
-            mDistances(i, j) = norm_2((mpSensorModelPart->NodesBegin() + i)->Coordinates() - (mpSensorModelPart->NodesBegin() + j)->Coordinates());
-            mDistances(j, i) = mDistances(i, j);
+            const auto distance = norm_2((mpSensorModelPart->NodesBegin() + i)->Coordinates() - (mpSensorModelPart->NodesBegin() + j)->Coordinates());
+            if (distance > std::numeric_limits<double>::epsilon()) {
+                mDistances(i, j) = std::pow(distance, mP);
+                mDistances(j, i) = mDistances(i, j);
+            }
         }
     });
 
@@ -63,15 +66,10 @@ double SensorDistancePNormResponseUtils::CalculateValue() const
     const double summation = IndexPartition<IndexType>(n).for_each<SumReduction<double>>([&](const auto i) {
         double value = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-        if (sensor_status_i > mSensorInActiveThreshold) {
             for (IndexType j = i + 1; j < n; ++j) {
                 const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-                const double distance = mDistances(i, j);
-                if (sensor_status_j > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
-                    value += std::pow(sensor_status_i * sensor_status_j * distance, mP);
-                }
+                value += sensor_status_i * sensor_status_j * mDistances(i, j);
             }
-        }
         return value;
     });
 
@@ -89,15 +87,10 @@ ContainerExpression<ModelPart::NodesContainerType> SensorDistancePNormResponseUt
     const double summation = IndexPartition<IndexType>(n).for_each<SumReduction<double>>([&](const auto i) {
         double value = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-        if (sensor_status_i > mSensorInActiveThreshold) {
             for (IndexType j = i + 1; j < n; ++j) {
                 const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-                const double distance = mDistances(i, j);
-                if (sensor_status_j > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
-                    value += std::pow(sensor_status_i * sensor_status_j * distance, mP);
-                }
+                value += sensor_status_i * sensor_status_j * mDistances(i, j);
             }
-        }
         return value;
     });
 
@@ -108,22 +101,13 @@ ContainerExpression<ModelPart::NodesContainerType> SensorDistancePNormResponseUt
     IndexPartition<IndexType>(n).for_each([&](const auto k) {
         auto& value = *(p_expression->begin() + k);
         value = 0.0;
-        const double sensor_status_k = (mpSensorModelPart->NodesBegin() + k)->GetValue(SENSOR_STATUS);
-        if (sensor_status_k > mSensorInActiveThreshold) {
-            for (IndexType i = 0; i < k; ++i) {
-                const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-                const double distance = mDistances(i, k);
-                if (sensor_status_i > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
-                    value += mP * std::pow(sensor_status_i * sensor_status_k * distance, mP - 1) * sensor_status_i * distance;
-                }
-            }
-            for (IndexType i = k + 1; i < n; ++i) {
-                const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-                const double distance = mDistances(i, k);
-                if (sensor_status_i > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
-                    value += mP * std::pow(sensor_status_i * sensor_status_k * distance, mP - 1) * sensor_status_i * distance;
-                }
-            }
+        for (IndexType i = 0; i < k; ++i) {
+            const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
+            value += sensor_status_i * mDistances(i, k);
+        }
+        for (IndexType i = k + 1; i < n; ++i) {
+            const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
+            value += sensor_status_i *  mDistances(i, k);
         }
         value *= coeff;
     });
