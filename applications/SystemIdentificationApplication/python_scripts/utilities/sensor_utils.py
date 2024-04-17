@@ -3,7 +3,7 @@ from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import SupportedValueUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import SupportedVariableUnionType
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetParameterToKratosValuesConverter
@@ -11,7 +11,7 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils imp
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpressionType
 
-def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosDT.Sensors.Sensor]':
+def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':
     """Get list of sensors from given parameters.
 
     This generates list of sensors from given list of parameters. Each parameter
@@ -22,17 +22,17 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
         list_of_parameters (list[Kratos.Parameters]): List of parameters.
 
     Returns:
-        list[KratosDT.Sensors.Sensor]: List of sensors generated.
+        list[KratosSI.Sensors.Sensor]: List of sensors generated.
     """
     point_locator = Kratos.BruteForcePointLocator(model_part)
 
-    dict_of_sensor_types: 'dict[str, typing.Type[KratosDT.Sensors.Sensor]]' = {}
-    for sensor_type_name in dir(KratosDT.Sensors):
-        sensor_type = getattr(KratosDT.Sensors, sensor_type_name)
-        if sensor_type_name.endswith("Sensor") and issubclass(sensor_type, KratosDT.Sensors.Sensor):
+    dict_of_sensor_types: 'dict[str, typing.Type[KratosSI.Sensors.Sensor]]' = {}
+    for sensor_type_name in dir(KratosSI.Sensors):
+        sensor_type = getattr(KratosSI.Sensors, sensor_type_name)
+        if sensor_type_name.endswith("Sensor") and issubclass(sensor_type, KratosSI.Sensors.Sensor):
             dict_of_sensor_types[Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(sensor_type_name)] = sensor_type
 
-    list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = []
+    list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
     shape_funcs = Kratos.Vector()
     for parameters in list_of_parameters:
         if not parameters.Has("type"):
@@ -50,7 +50,7 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             weight = parameters["weight"].GetDouble()
             direction = parameters["direction"].GetVector()
             elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
-            sensor = KratosDT.Sensors.DisplacementSensor(name, loc, direction, model_part.GetElement(elem_id), weight)
+            sensor = KratosSI.Sensors.DisplacementSensor(name, loc, direction, model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
         elif sensor_type_name == "strain_sensor":
@@ -61,24 +61,24 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             strain_variable: Kratos.MatrixVariable = Kratos.KratosGlobals.GetVariable(parameters["strain_variable"].GetString())
             strain_type = parameters["strain_type"].GetString()
             if strain_type == "strain_xx":
-                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_XX
+                strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_XX
             elif strain_type == "strain_yy":
-                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_YY
+                strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_YY
             elif strain_type == "strain_zz":
-                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_ZZ
+                strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_ZZ
             elif strain_type == "strain_xy":
-                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_XY
+                strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_XY
             elif strain_type == "strain_xz":
-                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_XZ
+                strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_XZ
             elif strain_type == "strain_yz":
-                strain_type_value = KratosDT.Sensors.StrainSensor.STRAIN_YZ
+                strain_type_value = KratosSI.Sensors.StrainSensor.STRAIN_YZ
             elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
-            sensor = KratosDT.Sensors.StrainSensor(name, loc, strain_variable, strain_type_value, model_part.GetElement(elem_id), weight)
+            sensor = KratosSI.Sensors.StrainSensor(name, loc, strain_variable, strain_type_value, model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
     return list_of_sensors
 
-def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosDT.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
+def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosSI.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
     """Writes data in the list_of_sensors to CSV file.
 
     This method writes data from all the list_of_sensors to the CSV file. The columns of the
@@ -150,11 +150,11 @@ def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosDT
 
             file_output.write("\n")
 
-def AddSensorVariableData(sensor: KratosDT.Sensors.Sensor, variable_data: Kratos.Parameters) -> None:
+def AddSensorVariableData(sensor: KratosSI.Sensors.Sensor, variable_data: Kratos.Parameters) -> None:
     """Adds sensor variable data.
 
     Args:
-        sensor (KratosDT.Sensors.Sensor): Sensor to add data.
+        sensor (KratosSI.Sensors.Sensor): Sensor to add data.
         variable_data (Kratos.Parameters): Parameters containing variable data.
     """
     for var_name, var_value in variable_data.items():

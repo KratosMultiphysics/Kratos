@@ -1,6 +1,6 @@
 from math import sqrt
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStruct
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -82,7 +82,7 @@ class TestDisplacementSensor(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosDT.SENSOR_ELEMENT_ID))
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for i, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)
@@ -203,7 +203,7 @@ class TestStrainSensor(UnitTest.TestCase):
             ref_value = self.ref_values[i]
             delta = 1e-5
 
-            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosDT.SENSOR_ELEMENT_ID))
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetValue(KratosSI.SENSOR_ELEMENT_ID))
             sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for i, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_X, node.GetSolutionStepValue(Kratos.DISPLACEMENT_X) + delta)

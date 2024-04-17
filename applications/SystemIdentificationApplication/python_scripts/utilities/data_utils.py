@@ -1,12 +1,12 @@
 import typing
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 SensorViewUnionType = typing.Union[
-                            KratosDT.Sensors.NodalSensorView,
-                            KratosDT.Sensors.ConditionSensorView,
-                            KratosDT.Sensors.ElementSensorView
+                            KratosSI.Sensors.NodalSensorView,
+                            KratosSI.Sensors.ConditionSensorView,
+                            KratosSI.Sensors.ElementSensorView
                         ]
 
 SupportedVariableUnionType = typing.Union[

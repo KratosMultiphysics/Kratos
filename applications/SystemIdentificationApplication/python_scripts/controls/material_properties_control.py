@@ -2,7 +2,7 @@ from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -84,7 +84,7 @@ class MaterialPropertiesControl(Control):
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
-        self.clamper = KratosDT.ElementSmoothClamper(control_variable_bounds[0], control_variable_bounds[1])
+        self.clamper = KratosSI.ElementSmoothClamper(control_variable_bounds[0], control_variable_bounds[1])
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -99,7 +99,7 @@ class MaterialPropertiesControl(Control):
                     raise RuntimeError(f"Trying to create element specific properties for {self.adjoint_model_part.FullName()} which already has element specific properties.")
 
                 # now assign the properties of primal to the adjoint model parts
-                KratosDT.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
+                KratosSI.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
                 KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
 
         # initialize the filter

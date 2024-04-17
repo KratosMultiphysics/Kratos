@@ -1,7 +1,7 @@
 import typing
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_adjoint_static_solver import StructuralMechanicsAdjointStaticSolver
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionDataLocation
@@ -38,7 +38,7 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.sensitivity_builder.UpdateSensitivities()
 
-    def SetSensor(self, sensor: KratosDT.Sensors.Sensor) -> None:
+    def SetSensor(self, sensor: KratosSI.Sensors.Sensor) -> None:
         self.sensitivity_builder.SetResponseFunction(sensor)
         self._GetScheme().SetResponseFunction(sensor)
         if not self.sensitivity_builder_initialized:

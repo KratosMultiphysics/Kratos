@@ -1,7 +1,7 @@
 from pathlib import Path
 import typing
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import PrintSensorListToCSV
@@ -46,7 +46,7 @@ class SensorOutputProcess(Kratos.OutputProcess):
         self.output_file_name = Path(settings["output_file_name"].GetString())
         self.optimization_problem = optimization_problem
 
-        self.list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = []
+        self.list_of_sensors: 'list[KratosSI.Sensors.Sensor]' = []
         if optimization_problem is None:
             self.initialized_sensors = True
             self.compute_sensor_value = True

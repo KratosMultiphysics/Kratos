@@ -1,6 +1,6 @@
 import numpy as np
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 class TestSmoothClamper(UnitTest.TestCase):
@@ -20,7 +20,7 @@ class TestSmoothClamper(UnitTest.TestCase):
         cls.x_exp = Kratos.Expression.NodalExpression(cls.model_part)
         Kratos.Expression.VariableExpressionIO.Read(cls.x_exp, Kratos.PRESSURE, False)
         cls.x = cls.x_exp.Evaluate()
-        cls.clamper = KratosDT.NodeSmoothClamper(-10, 10)
+        cls.clamper = KratosSI.NodeSmoothClamper(-10, 10)
 
     def test_Clamp(self) -> None:
         y = self.clamper.Clamp(self.x_exp).Evaluate()
