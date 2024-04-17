@@ -80,7 +80,7 @@ class TestSensorStatusControl(UnitTest.TestCase):
                 "type"         : "displacement_sensor",
                 "name"         : "disp_x_3",
                 "value"        : 0,
-                "location"     : [3, 3],
+                "location"     : [3, 3, 0],
                 "direction"    : [1.0, 1.0, 0.0],
                 "weight"       : 1.0,
                 "variable_data": {}
@@ -107,13 +107,6 @@ class TestSensorStatusControl(UnitTest.TestCase):
         params = Kratos.Parameters("""{
             "controlled_model_part_names": ["sensors"],
             "initial_sensor_status"      : 0.5,
-            "filter_settings"            : {
-                "filter_type": "explicit_filter",
-                "filter_radius_settings":{
-                    "filter_radius_type": "constant",
-                    "filter_radius"     : 1e-8
-                }
-            },
             "beta_settings": {
                 "initial_value": 5,
                 "max_value"    : 30,
@@ -147,16 +140,18 @@ class TestSensorStatusControl(UnitTest.TestCase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(sensor_status - ref_sensor_status), 0.0)
 
         control_field *= 2.0
+        for i in range(50):
+            self.optimization_problem.AdvanceStep()
         self.control.Update(control_field)
         self.assertAlmostEqual(current_beta * 1.05, self.control.beta)
         Kratos.Expression.VariableExpressionIO.Read(sensor_status, KratosDT.SENSOR_STATUS, False)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(sensor_status), 1.9895597486128833)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(sensor_status), 1.0)
 
     def test_MapGradient(self):
         sensitivity_field = Kratos.Expression.NodalExpression(self.sensor_model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(sensitivity_field, 2.0)
         mapped_gradient = self.control.MapGradient({KratosDT.SENSOR_STATUS: sensitivity_field})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 10.0)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 12.37796844095402)
 
     @classmethod
     def tearDownClass(cls) -> None:

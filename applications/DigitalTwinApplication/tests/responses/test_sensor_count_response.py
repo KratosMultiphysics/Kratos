@@ -78,7 +78,7 @@ class TestSensorCountResponse(UnitTest.TestCase):
                 "type"         : "displacement_sensor",
                 "name"         : "disp_x_3",
                 "value"        : 0,
-                "location"     : [3, 3],
+                "location"     : [3, 3, 0],
                 "direction"    : [1.0, 1.0, 0.0],
                 "weight"       : 1.0,
                 "variable_data": {}
