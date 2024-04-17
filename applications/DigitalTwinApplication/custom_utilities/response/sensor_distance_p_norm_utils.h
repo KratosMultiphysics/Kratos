@@ -25,19 +25,19 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class SensorInverseDistanceResponseUtils
+class SensorDistancePNormResponseUtils
 {
 public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SensorInverseDistanceResponseUtils);
+    KRATOS_CLASS_POINTER_DEFINITION(SensorDistancePNormResponseUtils);
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    SensorInverseDistanceResponseUtils(
+    SensorDistancePNormResponseUtils(
         ModelPart& rSensorModelPart,
         const double P);
 
@@ -62,6 +62,8 @@ private:
     double mP;
 
     Matrix mDistances;
+
+    static constexpr double mSensorInActiveThreshold = 1e-8;
 
     ///@}
 };

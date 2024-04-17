@@ -11,6 +11,7 @@
 
 // System includes
 #include <cmath>
+#include <limits>
 
 // External includes
 
@@ -23,11 +24,11 @@
 #include "digital_twin_application_variables.h"
 
 // Include base h
-#include "sensor_inverse_distance_utils.h"
+#include "sensor_distance_p_norm_utils.h"
 
 namespace Kratos {
 
-SensorInverseDistanceResponseUtils::SensorInverseDistanceResponseUtils(
+SensorDistancePNormResponseUtils::SensorDistancePNormResponseUtils(
     ModelPart& rSensorModelPart,
     const double P)
     : mpSensorModelPart(&rSensorModelPart),
@@ -35,7 +36,7 @@ SensorInverseDistanceResponseUtils::SensorInverseDistanceResponseUtils(
 {
 }
 
-void SensorInverseDistanceResponseUtils::Initialize()
+void SensorDistancePNormResponseUtils::Initialize()
 {
     KRATOS_TRY
 
@@ -53,7 +54,7 @@ void SensorInverseDistanceResponseUtils::Initialize()
     KRATOS_CATCH("");
 }
 
-double SensorInverseDistanceResponseUtils::CalculateValue() const
+double SensorDistancePNormResponseUtils::CalculateValue() const
 {
     KRATOS_TRY
 
@@ -62,23 +63,24 @@ double SensorInverseDistanceResponseUtils::CalculateValue() const
     const double summation = IndexPartition<IndexType>(n).for_each<SumReduction<double>>([&](const auto i) {
         double value = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-        if (sensor_status_i > 1e-8) {
+        if (sensor_status_i > mSensorInActiveThreshold) {
             for (IndexType j = i + 1; j < n; ++j) {
                 const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-                if (sensor_status_j > 1e-8) {
-                    value += std::exp(-mP * sensor_status_i * sensor_status_j * mDistances(i, j));
+                const double distance = mDistances(i, j);
+                if (sensor_status_j > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
+                    value += std::pow(sensor_status_i * sensor_status_j * distance, mP);
                 }
             }
         }
         return value;
     });
 
-    return std::log(summation) / mP;
+    return std::pow(summation, 1 / mP);
 
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceResponseUtils::CalculateGradient() const
+ContainerExpression<ModelPart::NodesContainerType> SensorDistancePNormResponseUtils::CalculateGradient() const
 {
     KRATOS_TRY
 
@@ -87,16 +89,19 @@ ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceResponse
     const double summation = IndexPartition<IndexType>(n).for_each<SumReduction<double>>([&](const auto i) {
         double value = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-        if (sensor_status_i > 1e-8) {
+        if (sensor_status_i > mSensorInActiveThreshold) {
             for (IndexType j = i + 1; j < n; ++j) {
                 const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-                if (sensor_status_j > 1e-8) {
-                    value += std::exp(-mP * sensor_status_i * sensor_status_j * mDistances(i, j));
+                const double distance = mDistances(i, j);
+                if (sensor_status_j > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
+                    value += std::pow(sensor_status_i * sensor_status_j * distance, mP);
                 }
             }
         }
         return value;
     });
+
+    const double coeff = std::pow(summation, 1 / mP - 1) / mP;
 
     auto p_expression = LiteralFlatExpression<double>::Create(n, {});
 
@@ -104,21 +109,23 @@ ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceResponse
         auto& value = *(p_expression->begin() + k);
         value = 0.0;
         const double sensor_status_k = (mpSensorModelPart->NodesBegin() + k)->GetValue(SENSOR_STATUS);
-        if (sensor_status_k > 1e-8) {
+        if (sensor_status_k > mSensorInActiveThreshold) {
             for (IndexType i = 0; i < k; ++i) {
                 const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-                if (sensor_status_i > 1e-8) {
-                    value -= std::exp(-mP * sensor_status_i * sensor_status_k * mDistances(i, k)) * sensor_status_i * mDistances(i, k);
+                const double distance = mDistances(i, k);
+                if (sensor_status_i > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
+                    value += mP * std::pow(sensor_status_i * sensor_status_k * distance, mP - 1) * sensor_status_i * distance;
                 }
             }
             for (IndexType i = k + 1; i < n; ++i) {
                 const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-                if (sensor_status_i > 1e-8) {
-                    value -= std::exp(-mP * sensor_status_i * sensor_status_k * mDistances(i, k)) * sensor_status_i * mDistances(i, k);
+                const double distance = mDistances(i, k);
+                if (sensor_status_i > mSensorInActiveThreshold && distance >= std::numeric_limits<double>::min()) {
+                    value += mP * std::pow(sensor_status_i * sensor_status_k * distance, mP - 1) * sensor_status_i * distance;
                 }
             }
         }
-        value /= summation;
+        value *= coeff;
     });
 
     ContainerExpression<ModelPart::NodesContainerType> result(*mpSensorModelPart);
