@@ -15,7 +15,8 @@ class SensorPlacementOutputProcess(Kratos.OutputProcess):
         default_settings = Kratos.Parameters("""{
             "model_part_name"        : "PLEASE_PROVIDE_A_MODEL_PART_NAME",
             "output_file_name"       : "",
-            "sensor_status_threshold": 0.6
+            "sensor_status_threshold": 0.6,
+            "output_every_step"      : false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -23,11 +24,19 @@ class SensorPlacementOutputProcess(Kratos.OutputProcess):
         self.model_part = model[settings["model_part_name"].GetString()]
         self.output_file_name = settings["output_file_name"].GetString()
         self.sensor_status_threshold = settings["sensor_status_threshold"].GetDouble()
+        self.output_every_step = settings["output_every_step"].GetBool()
+
         self.optimization_problem = optimization_problem
+
+    def IsOutputStep(self) -> bool:
+        return self.output_every_step
 
     def PrintOutput(self) -> None:
         output_file = Path(self.output_file_name.replace("<step>", str(self.optimization_problem.GetStep())))
-        output_file.parent.mkdir(exist_ok=True, parents=True)
+        sensor_data = ComponentDataView("sensor", self.optimization_problem)
+        PrintSensorListToJson(output_file, [sensor_data.GetUnBufferedData()["list_of_sensors"][i] for i, node in enumerate(self.model_part.Nodes) if node.GetValue(KratosDT.SENSOR_STATUS) > self.sensor_status_threshold])
 
+    def ExecuteFinalize(self) -> None:
+        output_file = Path(self.output_file_name.replace("<step>", "final"))
         sensor_data = ComponentDataView("sensor", self.optimization_problem)
         PrintSensorListToJson(output_file, [sensor_data.GetUnBufferedData()["list_of_sensors"][i] for i, node in enumerate(self.model_part.Nodes) if node.GetValue(KratosDT.SENSOR_STATUS) > self.sensor_status_threshold])

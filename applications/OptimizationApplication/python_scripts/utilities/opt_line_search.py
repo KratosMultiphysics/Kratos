@@ -151,7 +151,7 @@ class QNBBStep(BBStep):
                 yy = y[i] * y[i]
                 yd = y[i] * d[i]
                 if math.isclose(yy, 0.0, abs_tol=1e-16):
-                    self.step_numpy[i] = self._max_step
+                    self.step_numpy[i] = self._max_step / norm
                 else:
                     self.step_numpy[i] = abs( yd / yy )
                 if self.step_numpy[i] > self._max_step / norm:

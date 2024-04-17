@@ -9,6 +9,7 @@ import test_mask_utils
 import responses.test_sensor_coverage_response
 import responses.test_sensor_count_response
 import responses.test_sensor_localization_response
+import responses.test_sensor_inverse_distance_response
 import test_sensor_data_model_part_controller
 import controls.test_sensor_status_control
 
@@ -24,6 +25,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_coverage_response.TestSensorCoverageResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_count_response.TestSensorCountResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_localization_response.TestSensorLocalizationResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_inverse_distance_response.TestSensorInverseDistanceResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_data_model_part_controller.TestSensorDataModelPartController]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_sensor_status_control.TestSensorStatusControl]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification.TestSystemIdentification]))
