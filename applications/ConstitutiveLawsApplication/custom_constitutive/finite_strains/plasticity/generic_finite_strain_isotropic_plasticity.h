@@ -315,7 +315,8 @@ protected:
      */
     void CalculateTangentTensor(
         ConstitutiveLaw::Parameters &rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure,
+        const Vector& rPlasticStrain
         );
 
     ///@}
