@@ -411,8 +411,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        const double tau_u = r_props[TORSIONAL_INERTIA]; // 1.0 / r_props[YOUNG_MODULUS];
         noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
+        const double tau_u = r_props[TORSIONAL_INERTIA]; // 1.0 / r_props[YOUNG_MODULUS];
         const Vector aux1 = prod(trans(kinematic_variables.B), stress_h);
         const Vector aux2 = prod(kinematic_variables.B, aux1);
         const Vector aux3 = prod(trans(kinematic_variables.N_epsilon), aux2);
@@ -531,7 +531,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
     const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
-    const int tangent_estimation = r_props.Has(TANGENT_OPERATOR_ESTIMATION) ? r_props[TANGENT_OPERATOR_ESTIMATION] : 2;
 
 
     // Check RHS size
@@ -561,7 +560,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
-    Matrix D0(strain_size, strain_size);
 
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
