@@ -1,14 +1,14 @@
-from math import exp, log
+from math import pow
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DigitalTwinApplication as KratosDT
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.DigitalTwinApplication.utilities.sensor_utils import GetSensors
-from KratosMultiphysics.DigitalTwinApplication.responses.sensor_inverse_distance_response import SensorInverseDistanceResponse
+from KratosMultiphysics.DigitalTwinApplication.responses.sensor_distance_p_norm_response import SensorDistancePNormResponse
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
-class TestSensorInverseDistanceResponse(UnitTest.TestCase):
+class TestSensorDistancePNormResponse(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """
@@ -111,20 +111,20 @@ class TestSensorInverseDistanceResponse(UnitTest.TestCase):
             "evaluated_model_part_names" : [
                 "sensors"
             ],
-            "p_coefficient": 2
+            "p_coefficient": -2
         }""")
-        cls.response = SensorInverseDistanceResponse("test", cls.model, params)
+        cls.response = SensorDistancePNormResponse("test", cls.model, params)
         cls.response.Initialize()
 
     def test_CalculateValue(self):
         value = 0.0
         # sensor 1,2
-        value += exp(-2 * 0.0001 * 0.5 * 1.0)
+        value += pow(0.0001 * 0.5 * 1.0, -2)
         # sensor 1,4
-        value += exp(-2 * 20 ** 0.5 * 0.5 * 0.5)
+        value += pow(20 ** 0.5 * 0.5 * 0.5, -2)
         # sensor 2, 4
-        value += exp(-2 * (3.9999 ** 2 + 4) ** 0.5 * 1.0 * 0.5)
-        value = log(value) / 2
+        value += pow((3.9999 ** 2 + 4) ** 0.5 * 1.0 * 0.5, -2)
+        value = pow(value, -1 / 2)
         self.assertAlmostEqual(self.response.CalculateValue(), value)
 
     def test_CalculateGradient(self):
