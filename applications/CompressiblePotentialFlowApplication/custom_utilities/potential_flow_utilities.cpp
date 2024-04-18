@@ -1290,7 +1290,7 @@ template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwin
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(const array_1d<double, 2>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckIfElementIsCutByDistance<2, 3>(const BoundedVector<double, 3>& rNodalDistances);
-template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void CheckIfWakeConditionsAreFulfilled<2>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
@@ -1337,12 +1337,12 @@ template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwin
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<3,4>(const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<3,4>(const array_1d<double, 3>& rUpwindVelocity, const double currentMachNumberSquared, const double upwindMachNumberSquared, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckIfElementIsCutByDistance<3, 4>(const BoundedVector<double, 4>& rNodalDistances);
-template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void  KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void  CheckIfWakeConditionsAreFulfilled<3>(const ModelPart&, const double& rTolerance, const int& rEchoLevel);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) bool CheckWakeCondition<3, 4>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetSortedIds<3, 4>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void GetNodeNeighborElementCandidates<3, 4>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
-template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
-template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double CalculateArea<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType& rContainer);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) double CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationRHS<2, 3>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
@@ -1351,7 +1351,7 @@ template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaCondit
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddKuttaConditionPenaltyPerturbationLHS<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
-template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<3,4>(ModelPart& rWakeModelPart);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
+template KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) void ComputePotentialJump<3,4>(ModelPart& rWakeModelPart);
 } // namespace PotentialFlow
 } // namespace Kratos
