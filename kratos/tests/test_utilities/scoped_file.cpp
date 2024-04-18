@@ -12,7 +12,7 @@
 
 
 // Project includes
-#include "testing/scoped_file.h"
+#include "tests/test_utilities/scoped_file.h"
 
 
 namespace Kratos::Testing {

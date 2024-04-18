@@ -29,5 +29,5 @@ int main(int argc, char* argv[])
       }
     });
 
-    return Kratos::Testing::GTestMain::InitializeMPIKernel(argc, argv);
+    return Kratos::Testing::MPIGTestMain::InitializeMPIKernel(argc, argv);
 }
