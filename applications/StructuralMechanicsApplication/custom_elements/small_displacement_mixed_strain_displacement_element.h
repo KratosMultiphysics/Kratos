@@ -442,7 +442,6 @@ protected:
      */
     virtual void SetConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
-        Vector& rStrainVector,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
@@ -460,7 +459,6 @@ protected:
      */
     virtual void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables,
-        Vector& rStrainVector,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
@@ -640,7 +638,7 @@ private:
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
 
             // Set the constitutive variables
-            SetConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
+            SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
 
             // Calculate the output value
             rOutput[i_gauss] = mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, rVariable, rOutput[i_gauss]);

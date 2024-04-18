@@ -257,8 +257,10 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(con
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
+            noalias(this_constitutive_variables.StrainVector) = this_kinematic_variables.EquivalentStrain;
+
             // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_kinematic_variables.EquivalentStrain, this_constitutive_variables, cl_values, point_number, r_integration_points);
+            SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, r_integration_points);
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->InitializeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
@@ -315,8 +317,10 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(const
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
+            noalias(this_constitutive_variables.StrainVector) = this_kinematic_variables.EquivalentStrain;
+
             // Compute constitutive law variables
-            SetConstitutiveVariables(this_kinematic_variables, this_kinematic_variables.EquivalentStrain, this_constitutive_variables, cl_values, point_number, r_integration_points);
+            SetConstitutiveVariables(this_kinematic_variables,  this_constitutive_variables, cl_values, point_number, r_integration_points);
 
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
@@ -401,8 +405,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
         // Calculate the constitutive response with the equivalent stabilized strain
-        CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
-            cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
@@ -568,7 +571,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
         // Calculate the constitutive response with the equivalent stabilized strain
-        CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables,
+        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables,
             cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Now we add the body forces
@@ -760,7 +763,6 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
 
 void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
-    Vector& rStrainVector,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
@@ -781,7 +783,6 @@ void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
-    Vector& rStrainVector,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
@@ -790,7 +791,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateConstitutiveVaria
     ) const
 {
     // Set the constitutive variables
-    SetConstitutiveVariables(rThisKinematicVariables, rStrainVector, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); // Here the calculations are actually done
@@ -975,14 +976,15 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Calculate kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+            noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
             // Call the constitutive law to update material variables
             if (rVariable == CAUCHY_STRESS_VECTOR) {
                 // Compute material response
-                CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+                CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
             } else {
                 // Compute material response
-                CalculateConstitutiveVariables(kinematic_variables, kinematic_variables.EquivalentStrain, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
+                CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
             }
 
             // Check sizes and save the output stress
