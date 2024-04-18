@@ -252,7 +252,6 @@ private:
         const auto&              r_properties = GetProperties();
         RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
         auto                     retention_law = RetentionLawFactory::Clone(r_properties);
-        const double             saturation    = retention_law->CalculateSaturation(parameters);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -362,7 +361,7 @@ private:
         GeometryType::JacobiansType J_container;
         J_container.resize(NumGPoints,false);
         for (unsigned int i = 0; i < NumGPoints; ++i) {
-            ((J_container)[i]).resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
+            J_container[i].resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
         }
         GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
 
