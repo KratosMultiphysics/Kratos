@@ -653,6 +653,7 @@ namespace Kratos:: Python
             .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
             .def("SetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
             .def("GetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
+            .def("GetIntermediateSolutionsMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetIntermediateSolutionsMatrix)
             ;
 
         // ARC-LENGTH

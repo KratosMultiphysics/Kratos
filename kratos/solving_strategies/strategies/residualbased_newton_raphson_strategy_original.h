@@ -17,7 +17,6 @@
 #include <iostream>
 
 // External includes
-#include "../applications/CompressiblePotentialFlowApplication/compressible_potential_flow_application_variables.h"
 
 // Project includes
 #include "includes/define.h"
@@ -460,10 +459,6 @@ class ResidualBasedNewtonRaphsonStrategy
         Clear();
     }
 
-
-    std::vector<Vector> Solutions;
-    Matrix IntermediateSolutionMatrix;
-
     /**
      * @brief Set method for the time scheme
      * @param pScheme The pointer to the time scheme considered
@@ -605,7 +600,6 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
-        mpConvergenceCriteria->SetEchoLevel(Level);
     }
 
     //*********************************************************************************
@@ -884,27 +878,6 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
-    Vector GetCurrentSolution(
-        ModelPart &rModelPart
-    ) {
-        int NumberOfNodes = rModelPart.NumberOfNodes();
-        int number_of_dos_per_node = 2;
-        Vector a = ZeroVector(NumberOfNodes*number_of_dos_per_node);
-        //KRATOS_WATCH(NumberOfNodes)
-        for (Node& node : rModelPart.Nodes()){
-            a((node.Id()-1)*number_of_dos_per_node) = node.GetSolutionStepValue(KratosComponents< Variable<double> >::Get( "AUXILIARY_VELOCITY_POTENTIAL" ));
-            a((node.Id()*number_of_dos_per_node-1))  = node.GetSolutionStepValue(KratosComponents< Variable<double> >::Get( "VELOCITY_POTENTIAL" ));
-            //a((node.Id()*number_of_dos_per_node-1)) = node.GetSolutionStepValue(VELOCITY_POTENTIAL);
-        }
-        //KRATOS_WATCH(a)
-        return a;
-    }
-
-
-    Matrix GetIntermediateSolutionsMatrix(){
-        return IntermediateSolutionMatrix;
-    }
-
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -954,7 +927,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
-        
+
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(rb);
@@ -964,11 +937,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
             is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
-
-        Vector first = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
-        Solutions.push_back(first);
-        auto current_convergence_ratio = r_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0) << "Convergence ratio: " << r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] << std::endl;
 
         //Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false &&
@@ -1041,16 +1009,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
                 is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
             }
-
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0) << "Convergence ratio: " << r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] << std::endl;
-
-            if (r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] <= current_convergence_ratio/10) {
-                Vector intermediate_snapshot = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
-                Solutions.push_back(intermediate_snapshot);
-                current_convergence_ratio = r_model_part.GetProcessInfo()[CONVERGENCE_RATIO];
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0) << "New snapshot added " << std::endl;
-            }
-        
         }
 
         //plots a warning if the maximum number of iterations is exceeded
@@ -1080,19 +1038,6 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
-        Vector converged = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
-        Solutions.push_back(converged);
-
-        IntermediateSolutionMatrix = ZeroMatrix( r_model_part.NumberOfNodes()*2, Solutions.size() ); //hard-coded 2 dofs per node
-
-        //hard-coded 2 dofs per node
-        for (std::size_t i = 0; i < Solutions.size(); ++i) {
-            for (std::size_t j = 0; j < r_model_part.NumberOfNodes()*2; ++j) {
-                IntermediateSolutionMatrix(j, i) = Solutions[i](j);
-            }
-        }
-
-        Solutions.clear();
         return is_converged;
     }
 

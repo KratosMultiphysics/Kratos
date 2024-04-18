@@ -30,8 +30,12 @@
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
+#include "custom_strategies/pod_lspg_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
+#include "custom_strategies/pod_global_rom_builder_and_solver.h"
 #include "custom_strategies/global_petrov_galerkin_rom_builder_and_solver.h"
 
 //linear solvers
@@ -87,6 +91,47 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
+    typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
+    
+    py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetNumberOfNNLayers", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
+    .def("SetPhiMatrices", &AnnPromGlobalROMBuilderAndSolverType::SetPhiMatrices)
+    .def("SetReferenceSnapshot", &AnnPromGlobalROMBuilderAndSolverType::SetReferenceSnapshot)
+    // .def("InitializeLastItDecoderOutAndGradientsAndAuxiliaries", &AnnPromGlobalROMBuilderAndSolverType::InitializeLastItDecoderOutAndGradientsAndAuxiliaries)
+    // .def("SetTestMatrix", &AnnPromGlobalROMBuilderAndSolverType::SetTestMatrix)
+    // .def("SetTestVector", &AnnPromGlobalROMBuilderAndSolverType::SetTestVector)
+    ;
+
+    typedef PODGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> PODGlobalROMBuilderAndSolverType;
+    
+    py::class_<PODGlobalROMBuilderAndSolverType, typename PODGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "PODGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &PODGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    ;
+
+    typedef PODLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> PODLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+
+    py::class_<PODLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename PODLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, PODGlobalROMBuilderAndSolverType>(m, "PODLeastSquaresPetrovGalerkinROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("BuildAndApplyDirichletConditions", &PODLeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildAndApplyDirichletConditions)
+    .def("GetRightROMBasis", &PODLeastSquaresPetrovGalerkinROMBuilderAndSolverType::GetRightROMBasis)
+    ;
+
+    typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+    
+    py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetNumberOfNNLayers", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
+    .def("SetPhiMatrices", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetPhiMatrices)
+    .def("SetReferenceSnapshot", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetReferenceSnapshot)
+    // .def("PrintDecoderGradient", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::printDecoderGradient)
+    // .def("PrintX", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::printX)
+    ;
 
 }
 

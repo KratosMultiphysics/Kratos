@@ -180,53 +180,101 @@ public:
     {
         KRATOS_TRY
 
-        // Update the upwind factor constant and critical mach
-        if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] < rUpdateTransonicTolerance &&
-            rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1                       &&
-            updated_values == false){
+        // if (updated_values == false){
+
+        //     // We need to update MACH value for each node given the initial values
+        //     this->FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
+        //     double mach_1   = 0.0;
+        //     double mach_2   = 0.0;
+
+        //     if (rUpdateCriticalMach < 0.0)
+        //     {
+        //         // Compute nonal MACH values
+        //         const std::vector<std::string> variable_array = {"MACH"};
+        //         ComputeNodalValueProcess ComputeNodalValueProcess(rModelPart, variable_array);
+        //         ComputeNodalValueProcess.Execute();
+
+        //         // Select only the body model part
+        //         auto& r_model = rModelPart.GetRootModelPart();
+        //         auto& r_model_part = r_model.GetSubModelPart(rModelPartName);
+        //         const int n_nodes = r_model_part.NumberOfNodes();
+
+        //         // Search the biggest MACH value
+        //         IndexPartition<std::size_t>(n_nodes).for_each([&](std::size_t index)
+        //         {
+        //             const auto it_node = r_model_part.NodesBegin() + index;
+        //             const auto r_mach = it_node->GetValue(MACH);
+        //             if (mach_1 < r_mach) mach_1 = r_mach;
+        //         });
+                
+        //         if (mach_1 > 0.99)
+        //         {
+        //             mach_2 = std::sqrt(((1.4-1)*std::pow(mach_1,2)+2)/(2*1.4*std::pow(mach_1,2)-(1.4-1))) * 1.2;
+        //             if (mach_2 > 0.99) mach_2 = 0.99;    
+        //         }
+                
+        //         rModelPart.GetProcessInfo()[CRITICAL_MACH] = mach_2;
+        //     } else
+        //     {
+        //         rModelPart.GetProcessInfo()[CRITICAL_MACH] = rUpdateCriticalMach;
+        //     }
+
+        //     if (rUpdateUpwindFactorConstant > 0.0)
+        //     {
+        //         rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = rUpdateUpwindFactorConstant;
+        //     }
+
+        //     updated_values = true;
+        // }
+
+        // // Update the upwind factor constant and critical mach
+        // if (rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] < rUpdateTransonicTolerance &&
+        //     rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1                       &&
+        //     updated_values == false){
             
-            double mach_1   = 0.0;
-            double mach_2   = 0.0;
+        //     double mach_1   = 0.0;
+        //     double mach_2   = 0.0;
 
-            if (rUpdateCriticalMach < 0.0)
-            {
-                // Compute nonal MACH values
-                const std::vector<std::string> variable_array = {"MACH"};
-                ComputeNodalValueProcess ComputeNodalValueProcess(rModelPart, variable_array);
-                ComputeNodalValueProcess.Execute();
+        //     if (rUpdateCriticalMach < 0.0)
+        //     {
+        //         // Compute nonal MACH values
+        //         const std::vector<std::string> variable_array = {"MACH"};
+        //         ComputeNodalValueProcess ComputeNodalValueProcess(rModelPart, variable_array);
+        //         ComputeNodalValueProcess.Execute();
 
-                // Select only the body model part
-                auto& r_model = rModelPart.GetRootModelPart();
-                auto& r_model_part = r_model.GetSubModelPart(rModelPartName);
-                const int n_nodes = r_model_part.NumberOfNodes();
+        //         // Select only the body model part
+        //         auto& r_model = rModelPart.GetRootModelPart();
+        //         auto& r_model_part = r_model.GetSubModelPart(rModelPartName);
+        //         const int n_nodes = r_model_part.NumberOfNodes();
 
-                // Search the biggest MACH value
-                IndexPartition<std::size_t>(n_nodes).for_each([&](std::size_t index)
-                {
-                    const auto it_node = r_model_part.NodesBegin() + index;
-                    const auto r_mach = it_node->GetValue(MACH);
-                    if (mach_1 < r_mach) mach_1 = r_mach;
-                });
+        //         // Search the biggest MACH value
+        //         IndexPartition<std::size_t>(n_nodes).for_each([&](std::size_t index)
+        //         {
+        //             const auto it_node = r_model_part.NodesBegin() + index;
+        //             const auto r_mach = it_node->GetValue(MACH);
+        //             if (mach_1 < r_mach) mach_1 = r_mach;
+        //         });
                 
-                if (mach_1 > 0.99)
-                {
-                    mach_2 = std::sqrt(((1.4-1)*std::pow(mach_1,2)+2)/(2*1.4*std::pow(mach_1,2)-(1.4-1))) * 1.2;
-                    if (mach_2 > 0.99) mach_2 = 0.99;    
-                }
+        //         if (mach_1 > 0.99)
+        //         {
+        //             mach_2 = std::sqrt(((1.4-1)*std::pow(mach_1,2)+2)/(2*1.4*std::pow(mach_1,2)-(1.4-1))) * 1.2;
+        //             if (mach_2 > 0.99) mach_2 = 0.99;    
+        //         }
                 
-                rModelPart.GetProcessInfo()[CRITICAL_MACH] = mach_2;
-            } else
-            {
-                rModelPart.GetProcessInfo()[CRITICAL_MACH] = rUpdateCriticalMach;
-            }
+        //         rModelPart.GetProcessInfo()[CRITICAL_MACH] = mach_2;
+        //     } else
+        //     {
+        //         rModelPart.GetProcessInfo()[CRITICAL_MACH] = rUpdateCriticalMach;
+        //     }
 
-            if (rUpdateUpwindFactorConstant > 0.0)
-            {
-                rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = rUpdateUpwindFactorConstant;
-            }
+        //     if (rUpdateUpwindFactorConstant > 0.0)
+        //     {
+        //         rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = rUpdateUpwindFactorConstant;
+        //     }
 
-            updated_values = true;
-        }
+        //     updated_values = true;
+        // }
 
         // Initialize non-linear iteration for all of the elements, conditions and constraints
         EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
