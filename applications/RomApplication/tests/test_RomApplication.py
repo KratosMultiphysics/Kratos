@@ -20,6 +20,7 @@ from test_fluid_pg_rom import TestFluidPGRom
 from test_thermal_pg_rom import TestThermalPGRom
 from test_structural_pg_rom import TestStructuralPGRom
 from test_monotonicity_preserving_rom import TestMonotonicityPreservingRom
+from test_save_rom_coefficients_process import TestSaveRomCoefficientsProcess
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -55,6 +56,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMonotonicityPreservingRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSaveRomCoefficientsProcess]))
 
     # - testNightly
     nightlySuite = suites['nightly']
