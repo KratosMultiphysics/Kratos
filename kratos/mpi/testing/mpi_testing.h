@@ -39,60 +39,21 @@ namespace Kratos::Testing
 */
 class KratosMpiTestEnv : public ::testing::Environment 
 {
-    protected:
+    public:
         ~KratosMpiTestEnv() override {}
 
-        void SetUp() override {
-            // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
-            ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator::Create(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
-
-            // Register the MPICommunicator to be used as factory for the communicator.
-            ParallelEnvironment::RegisterCommunicatorFactory<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName) -> Communicator::UniquePointer {
-                KRATOS_ERROR_IF_NOT(ParallelEnvironment::HasDataCommunicator(rDataCommunicatorName)) << "Asking for an unregistered \'" << rDataCommunicatorName <<  "\' data communicator." << std::endl;
-                const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator(rDataCommunicatorName);
-                KRATOS_ERROR_IF_NOT(r_data_communicator.IsDistributed()) << "Trying to create an MPI communicator with the non-distributed \'" << rDataCommunicatorName << "\'. data communicator" << std::endl;
-                return Kratos::make_unique<MPICommunicator>(&(rModelPart.GetNodalSolutionStepVariablesList()), r_data_communicator);
-            });
-
-            // Register the MPICommunicator to be used as factory for the communicator.
-            ParallelEnvironment::RegisterCommunicatorFactory<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator) -> Communicator::UniquePointer {
-                KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPI communicator with a non-distributed data communicator." << std::endl;
-                return Kratos::make_unique<MPICommunicator>(&(rModelPart.GetNodalSolutionStepVariablesList()), rDataCommunicator);
-            });
-
-            // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
-            ParallelEnvironment::RegisterFillCommunicatorFactory<const std::string>([](ModelPart& rModelPart, const std::string& rDataCommunicatorName) -> FillCommunicator::Pointer {
-                KRATOS_ERROR_IF_NOT(ParallelEnvironment::HasDataCommunicator(rDataCommunicatorName)) << "Asking for an unregistered \'" << rDataCommunicatorName <<  "\' data communicator." << std::endl;
-                const auto& r_data_communicator = ParallelEnvironment::GetDataCommunicator(rDataCommunicatorName);
-                KRATOS_ERROR_IF_NOT(r_data_communicator.IsDistributed()) << "Trying to create an MPI communicator with the non-distributed \'" << rDataCommunicatorName << "\'. data communicator" << std::endl;
-                return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, r_data_communicator);
-            });
-
-            // Register the ParallelFillCommunicator to be used as factory for the parallel communicators fill.
-            ParallelEnvironment::RegisterFillCommunicatorFactory<const DataCommunicator>([](ModelPart& rModelPart, const DataCommunicator& rDataCommunicator) -> FillCommunicator::Pointer {
-                KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an MPI communicator with a non-distributed data communicator." << std::endl;
-                return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, rDataCommunicator);
-            });
-        }
-
-        void TearDown() override {
-            int has_failure = ::testing::Test::HasFailure();
-
-            // Synchronize the failre status
-            MPI_Allreduce(MPI_IN_PLACE, &has_failure, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-
-            // If any of the processes has issued a failure, fail the whole tests
-            if (has_failure) {
-                KRATOS_FAIL();
-            }
-        }
+        void SetUp() override;
+        void TearDown() override;
 };
 
 /*
  * Suite for the mpi testing environment (mKernel(true))
 */
-class KratosMPICoreFastSuite : public ::testing::Test 
+class KratosMPICoreFastSuite : public KratosCoreFastSuite
 {
+    public:
+        void TearDown() override;
+
     protected:
         KratosMPICoreFastSuite(): mKernel(true) {}
         ~KratosMPICoreFastSuite() {}
@@ -147,11 +108,14 @@ class MPIGTestMain {
             // Add our listener
             listeners.Append(listener);
 
+            // Run the tests ( we cannt use RUN_ALL_TESTS() in the return clause because we need to finalize MPI first but after having had the tests run)
+            auto testing_resut = RUN_ALL_TESTS();
+
             // Finalize MPI
             MPI_Finalize();
 
             // Run the tests
-            return RUN_ALL_TESTS();
+            return testing_resut;
         }
 };
 
