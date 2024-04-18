@@ -72,6 +72,7 @@ public:
             NewEndState = RunCycleLoop(NewEndState);
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
+            mStrategyWrapper->ComputeIncrementalDisplacementField();
             mStrategyWrapper->OutputProcess();
             result.emplace_back(NewEndState);
         }

@@ -232,6 +232,26 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expected_total_displacement);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& model_part       = CreateDummyModelPart(model);
+    auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(model_part);
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(INCREMENTAL_DISPLACEMENT);
+
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+
+    const auto displacement_start_time_step = array_1d<double, 3>{3.0, 2.0, 1.0};
+    const auto displacement_end_time_step   = array_1d<double, 3>{6.0, 4.0, 2.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT,1) = displacement_start_time_step;
+    p_node->GetSolutionStepValue(DISPLACEMENT,0) = displacement_end_time_step;
+    strategy_wrapper.ComputeIncrementalDisplacementField();
+
+    const auto expected_incremental_displacement = array_1d<double, 3>{ displacement_end_time_step - displacement_start_time_step};
+    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(INCREMENTAL_DISPLACEMENT), expected_incremental_displacement);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosition, KratosGeoMechanicsFastSuite)
 {
     Model model;

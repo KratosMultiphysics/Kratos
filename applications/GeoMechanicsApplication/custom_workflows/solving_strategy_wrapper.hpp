@@ -120,6 +120,14 @@ public:
         }
     }
 
+    void ComputeIncrementalDisplacementField() override
+    {
+        for (auto& node : mrModelPart.Nodes()) {
+            node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT) =
+                node.GetSolutionStepValue(DISPLACEMENT, 0) - node.GetSolutionStepValue(DISPLACEMENT, 1);
+        }
+    }
+
     void OutputProcess() override
     {
         if (mWriter) {
@@ -134,16 +142,13 @@ public:
     {
         return mpStrategy->SolveSolutionStep() ? TimeStepEndState::ConvergenceState::converged
                                                : TimeStepEndState::ConvergenceState::non_converged;
-        ;
     }
 
     void FinalizeSolutionStep() override { return mpStrategy->FinalizeSolutionStep(); }
 
     void FinalizeOutput() override
     {
-        if (mWriter) {
-            mWriter->FinalizeResults();
-        }
+        if (mWriter) mWriter->FinalizeResults();
     }
 
 private:
