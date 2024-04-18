@@ -43,4 +43,10 @@ const VoxelMesherOperation::CartesianMeshColors& VoxelMesherOperation::GetMeshCo
     return mrModeler.mColors;
 }
 
+
+std::size_t VoxelMesherOperation::CalculateCenterOfElementPosition(double Coordinate, int ThisDimension) const
+{
+    return mrModeler.mColors.CalculateCenterOfElementPosition(Coordinate, ThisDimension);
+}
+
 }

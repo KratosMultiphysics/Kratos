@@ -52,6 +52,8 @@ protected:
 
     const CartesianMeshColors& GetMeshColors() const;
 
+    std::size_t CalculateCenterOfElementPosition(double Coordinate, int ThisDimension) const;
+
 };
 
 }
