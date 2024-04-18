@@ -72,7 +72,8 @@ The selected lambda function is then applied to calculate the distances for all 
     "skin_model_part"           : "",
     "distance_database"         : "nodal_historical",
     "save_max_distance_in_skin" : false,
-    "distance_variable"         : "DISTANCE"
+    "distance_variable"         : "DISTANCE",
+    "skin_distance_variable"    : "DISTANCE"
 }
 ```
 
@@ -90,3 +91,6 @@ This flag indicates if the distance is going to be saved in the skin. By default
 
 ##### `distance_variable`
 Denotes the variable for applying the process, with `DISTANCE` set as the default value.
+
+##### `skin_distance_variable`
+Denotes the variable sved into the skin if `save_max_distance_in_skin` is active, with `DISTANCE` set as the default value.
