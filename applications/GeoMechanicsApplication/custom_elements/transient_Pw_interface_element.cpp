@@ -12,7 +12,9 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_interface_element.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -23,8 +25,8 @@ Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType 
                                                                       NodesArrayType const& ThisNodes,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new TransientPwInterfaceElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new TransientPwInterfaceElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -32,7 +34,8 @@ Element::Pointer TransientPwInterfaceElement<TDim, TNumNodes>::Create(IndexType 
                                                                       GeometryType::Pointer pGeom,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new TransientPwInterfaceElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new TransientPwInterfaceElement(NewId, pGeom, pProperties,
+                                                            this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -439,8 +442,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
                                                                 const ProcessInfo& CurrentProcessInfo,
-                                                                const bool CalculateStiffnessMatrixFlag,
-                                                                const bool CalculateResidualVectorFlag)
+                                                                bool CalculateStiffnessMatrixFlag,
+                                                                bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -578,12 +581,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse *
-        outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }
@@ -594,15 +596,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
-
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.PMatrix);
+    rLeftHandSideMatrix += rVariables.PPMatrix;
 
     KRATOS_CATCH("")
 }
@@ -629,14 +628,14 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                  outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth *
-                                  rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.DtPressureVector);
+    noalias(rVariables.PVector) =
+        -1.0 * prod(rVariables.PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 
     KRATOS_CATCH("")
 }
@@ -649,15 +648,15 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
 
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-                                  rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
+                                   rVariables.RelativePermeability *
+                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
+                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PMatrix, rVariables.PressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 
     KRATOS_CATCH("")
 }
@@ -677,47 +676,23 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
                                   prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
+    rRightHandSideVector += rVariables.PVector;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,
-                                                              const ProcessInfo& rCurrentProcessInfo) const
+                                                              const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rElementalDofList.size() != N_DOF) rElementalDofList.resize(N_DOF);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-
-    KRATOS_CATCH("")
+    rElementalDofList = GetDofs();
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                    const ProcessInfo& rCurrentProcessInfo) const
+                                                                    const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int  N_DOF = this->GetNumberOfDOF();
-
-    if (rResult.size() != N_DOF) rResult.resize(N_DOF, false);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-    }
-
-    KRATOS_CATCH("")
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -729,6 +704,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetValuesVector(Vector& rValu
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -746,6 +722,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vec
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -763,6 +740,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 
     if (rValues.size() != N_DOF) rValues.resize(N_DOF, false);
 
+    // Why are we constructing a zero vector here?
     unsigned int index = 0;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rValues[index++] = 0.0;
@@ -775,6 +753,12 @@ template <unsigned int TDim, unsigned int TNumNodes>
 unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType TransientPwInterfaceElement<TDim, TNumNodes>::GetDofs() const
+{
+    return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
 }
 
 template class TransientPwInterfaceElement<2, 4>;

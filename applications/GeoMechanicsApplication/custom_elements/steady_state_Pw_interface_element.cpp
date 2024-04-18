@@ -22,7 +22,7 @@ Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexTyp
                                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SteadyStatePwInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ Element::Pointer SteadyStatePwInterfaceElement<TDim, TNumNodes>::Create(IndexTyp
                                                                         GeometryType::Pointer pGeom,
                                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwInterfaceElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SteadyStatePwInterfaceElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -115,8 +116,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                   VectorType& rRightHandSideVector,
                                                                   const ProcessInfo& CurrentProcessInfo,
-                                                                  const bool CalculateStiffnessMatrixFlag,
-                                                                  const bool CalculateResidualVectorFlag)
+                                                                  bool CalculateStiffnessMatrixFlag,
+                                                                  bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 

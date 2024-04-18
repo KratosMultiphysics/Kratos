@@ -24,8 +24,8 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
                                                                      NodesArrayType const& ThisNodes,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SteadyStatePwPipingElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwPipingElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType  
                                                                      GeometryType::Pointer pGeom,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties,
+                                                           this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -178,8 +179,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo,
-                                                               const bool CalculateStiffnessMatrixFlag,
-                                                               const bool CalculateResidualVectorFlag)
+                                                               bool CalculateStiffnessMatrixFlag,
+                                                               bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
     // Previous definitions

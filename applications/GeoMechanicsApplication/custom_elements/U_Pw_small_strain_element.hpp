@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -51,20 +51,23 @@ public:
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainElement(IndexType                          NewId,
+                          GeometryType::Pointer              pGeometry,
+                          PropertiesType::Pointer            pProperties,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -190,10 +193,10 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes>               PPMatrix;
         Matrix                                                    UVoigtMatrix;
         BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
         array_1d<double, TNumNodes * TDim>                        UVector;
@@ -237,14 +240,7 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateCompressibilityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                                const ElementVariables& rVariables) const;
-
     virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
-    virtual void CalculatePermeabilityMatrix(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                             BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                             const ElementVariables& rVariables) const;
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -264,8 +260,7 @@ protected:
 
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TDim>&      rPDimMatrix,
-                                           BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
+    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                            array_1d<double, TNumNodes>&                 rPVector,
                                            const ElementVariables& rVariables) const;
 

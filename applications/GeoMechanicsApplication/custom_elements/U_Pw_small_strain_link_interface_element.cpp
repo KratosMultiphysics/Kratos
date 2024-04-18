@@ -22,7 +22,7 @@ Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainLinkInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -288,8 +288,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                        VectorType& rRightHandSideVector,
                                                                        const ProcessInfo& CurrentProcessInfo,
-                                                                       const bool CalculateStiffnessMatrixFlag,
-                                                                       const bool CalculateResidualVectorFlag)
+                                                                       bool CalculateStiffnessMatrixFlag,
+                                                                       bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
