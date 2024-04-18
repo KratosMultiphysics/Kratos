@@ -277,15 +277,15 @@ private:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        const PropertiesType& Prop    = this->GetProperties();
-        const GeometryType&   Geom    = this->GetGeometry();
-        const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
 
-        if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
+        if (mRetentionLawVector.size() != number_integration_points) {
+            mRetentionLawVector.resize(number_integration_points);
+        }
         for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            mRetentionLawVector[i] = RetentionLawFactory::Clone(Prop);
+            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
             mRetentionLawVector[i]->InitializeMaterial(
-                Prop, Geom, row(Geom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
+                GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
         }
     }
 
@@ -294,15 +294,9 @@ private:
                                    const unsigned int integration_point_index) const
     {
         const auto& r_properties = GetProperties();
-        const bool  hasBiotCoefficient = r_properties.Has(BIOT_COEFFICIENT);
         double biot_coefficient = r_properties[BIOT_COEFFICIENT];
-        if (!hasBiotCoefficient) {
-            //    const double bulk_modulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
-            //    result = 1.0 - bulk_modulus / r_properties[BULK_MODULUS_SOLID];
-        }
 
         double result = 0.0;
-
         if (!r_properties[IGNORE_UNDRAINED]) {
             result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] 
                 + r_properties[POROSITY] / r_properties[BULK_MODULUS_FLUID];
@@ -319,13 +313,6 @@ private:
         result *= degree_of_saturation;
         result -= derivative_of_saturation * r_properties[POROSITY];
         return result;
-    }
-
-
-    double CalculateBulkModulus(const Matrix& rConstitutiveMatrix) const
-    {
-        const int IndexG = rConstitutiveMatrix.size1() - 1;
-        return rConstitutiveMatrix(0, 0) - (4.0 / 3.0) * rConstitutiveMatrix(IndexG, IndexG);
     }
 
 
@@ -409,7 +396,6 @@ private:
         }
         return result;
     }
-
 
 
     [[nodiscard]] DofsVectorType GetDofs() const
