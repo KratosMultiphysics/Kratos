@@ -232,6 +232,16 @@ protected:
     ///@{
 
     /**
+     * @brief This function builds the strain matrix from the shape function derivatives.
+     *
+     * @param rDN_DX matrix of shape function derivatives at all cloud points
+     * @param rB B_matrix/ strain matrix
+     */
+    void CalculateStrainMatrix(
+        const Matrix& rDN_DX,
+        Matrix& rB);
+
+    /**
      * This function computes the penalty coefficient for the Nitsche normal imposition (penalization and stabilization)
      * @param rN the current Gauss pt. shape functions vector
      * @param TODO
