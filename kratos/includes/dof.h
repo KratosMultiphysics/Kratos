@@ -18,6 +18,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <bitset>
 
 // External includes
 
@@ -85,7 +86,7 @@ This class enables the system to work with different set of dofs and also
 represents the Dirichlet condition assigned to each dof.
 */
 template<class TDataType>
-class Dof : public Flags {
+class Dof{
 public:
     ///@name Type Definitions
     ///@{
@@ -120,7 +121,8 @@ public:
     template<class TVariableType>
     Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable)
-        : Flags(),
+        : mIsFixed(false),
+          mIsActive(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
@@ -130,7 +132,8 @@ public:
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
             << "in the list of variables" << std::endl;
 
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable);
     }
 
     /** Constructor. This constructor takes the same input
@@ -158,7 +161,8 @@ public:
     Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
-        : Flags(),
+        : mIsFixed(false),
+          mIsActive(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
@@ -172,12 +176,14 @@ public:
             << "The Reaction-Variable " << rThisReaction.Name() << " is not "
             << "in the list of variables" << std::endl;
 
-        mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(&rThisVariable, &rThisReaction);
     }
 
     //This default constructor is needed for serializer
-    Dof()
-        : Flags(),
+    Dof() noexcept
+        : mIsFixed(false),
+          mIsActive(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mIndex(),
@@ -187,19 +193,14 @@ public:
     }
 
     /// Copy constructor.
-    Dof(Dof const& rOther) = default;
-
-
-    /// Destructor.
-    ~Dof() {}
-
+    Dof(Dof const& rOther) noexcept = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    Dof& operator=(Dof const& rOther) = default;
+    Dof& operator=(Dof const& rOther) noexcept = default;
 
     template<class TVariableType>
     typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
@@ -239,34 +240,40 @@ public:
 
     TDataType& GetSolutionStepValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetVariable(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
     TDataType const& GetSolutionStepValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(GetVariable(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetVariable(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
     template<class TVariableType>
     typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
     {
-        return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
     template<class TVariableType>
     typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0) const
     {
-        return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
     TDataType& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(GetReaction(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetReaction(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
 
     TDataType const& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(GetReaction(), mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return GetReference(GetReaction(), p_nodal_data->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
 
     ///@}
@@ -275,32 +282,37 @@ public:
 
     IndexType Id() const
     {
-        return mpNodalData->GetId();
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetId();
     }
 
     IndexType GetId() const
     {
-        return mpNodalData->GetId();
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetId();
     }
 
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
     {
-        return mpNodalData->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().GetVariablesList().GetDofVariable(mIndex);
     }
 
     /** Returns reaction variable of this degree of freedom. */
     const VariableData& GetReaction() const
     {
-        auto p_reaction = mpNodalData->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        auto p_reaction = p_nodal_data->GetSolutionStepData().GetVariablesList().pGetDofReaction(mIndex);
         return (p_reaction == nullptr) ? msNone : *p_reaction;
     }
 
     template<class TReactionType>
     void SetReaction(TReactionType const& rReaction)
     {
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
         mReactionType = DofTrait<TDataType, TReactionType>::Id;
-        mpNodalData->GetSolutionStepData().pGetVariablesList()->SetDofReaction(&rReaction, mIndex);
+        p_nodal_data->GetSolutionStepData().pGetVariablesList()->SetDofReaction(&rReaction, mIndex);
     }
 
     /** Return the Equation Id related to this degree eof freedom.
@@ -321,36 +333,77 @@ public:
      */
     void FixDof()
     {
-        this->Set(FIXED);
+        mIsFixed=true;
     }
 
     /** Frees the degree of freedom
      */
     void FreeDof()
     {
-        this->Set(FIXED, false);
+        mIsFixed=false;
+    }
+
+    /// @brief Mark this @p Dof active.
+    /// @details A @p Dof is active if it is present in the linear system that
+    ///          a @ref BuilderAndSolver built, and has a valid equation ID
+    ///          accessible at @ref Dof::EquationId.
+    void Activate() noexcept
+    {
+        mIsActive = true;
+    }
+
+    /// @brief Mark this @p Dof inactive.
+    /// @details A @p Dof is inactive if the @ref BuilderAndSolver did not use it during the
+    ///          assembly of the linear system, in which case @ref Dof::EquationId is invalid.
+    void Deactivate() noexcept
+    {
+        mIsActive = false;
+    }
+
+    void Set(Flags flags)
+    {
+        KRATOS_TRY
+        auto [dof_flags, clean_pointer] = DofFlags::Decompose(mpNodalData);
+        dof_flags.Set(flags);
+        mpNodalData = dof_flags.Compose(clean_pointer);
+        KRATOS_CATCH("")
+    }
+
+    void Set(Flags flags, bool value)
+    {
+        KRATOS_TRY
+        auto [dof_flags, clean_pointer] = DofFlags::Decompose(mpNodalData);
+        value ? dof_flags.Set(flags) : dof_flags.Unset(flags);
+        mpNodalData = dof_flags.Compose(clean_pointer);
+        KRATOS_CATCH("")
     }
 
     SolutionStepsDataContainerType* GetSolutionStepsData()
     {
-        return &(mpNodalData->GetSolutionStepData());
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return &p_nodal_data->GetSolutionStepData();
     }
 
     void SetNodalData(NodalData* pNewNodalData)
     {
+        auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
         auto p_variable = &GetVariable();
-        auto p_reaction = mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
-        mpNodalData = pNewNodalData;
+        auto p_reaction = p_nodal_data->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex);
+        p_nodal_data = pNewNodalData;
+
         if(p_reaction != nullptr){
-            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
+            mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable, p_reaction);
         } else{
-            mIndex = mpNodalData->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
+            mIndex = p_nodal_data->GetSolutionStepData().pGetVariablesList()->AddDof(p_variable);
         }
+
+        mpNodalData = dof_flags.Compose(p_nodal_data);
     }
 
     bool HasReaction() const
     {
-        return (mpNodalData->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex) != nullptr);
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return p_nodal_data->GetSolutionStepData().pGetVariablesList()->pGetDofReaction(mIndex) != nullptr;
     }
 
     ///@}
@@ -359,7 +412,7 @@ public:
 
     bool IsFixed() const
     {
-        return this->Is(FIXED);
+        return mIsFixed;
     }
 
 
@@ -368,13 +421,33 @@ public:
         return !IsFixed();
     }
 
+    /// @brief Indicates whether the @p Dof is present in the system that the @ref BuilderAndSolver assembled.
+    /// @details A @p Dof is active if it is present in the linear system that
+    ///          a @ref BuilderAndSolver built, and has a valid equation ID
+    ///          accessible at @ref Dof::EquationId.
+    ///          On the other hand, a @p Dof is inactive if the @ref BuilderAndSolver did not
+    ///          use it during the assembly of the linear system, in which case @ref Dof::EquationId
+    ///          is invalid.
+    bool IsActive() const noexcept
+    {
+        return mIsActive;
+    }
+
+    bool Is(Flags flags) const
+    {
+        KRATOS_TRY
+        [[maybe_unused]] const auto [dof_flags, p_nodal_data] = DofFlags::Decompose(mpNodalData);
+        return dof_flags.Is(flags);
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
 
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
         std::stringstream buffer;
 
@@ -387,13 +460,13 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -410,15 +483,146 @@ public:
 
     ///@}
 private:
+    /// @brief 3-bit-wide bit array that hides its data in the 3 least significant bits of a pointer.
+    /// @details List of supported flags:
+    ///          - @ref MASTER                                      (0b001)
+    ///          - @ref SLAVE                                       (0b010)
+    ///          - there is space for one extra flag to support.    (0b100)
+    class DofFlags
+    {
+    private:
+        static constexpr std::size_t msMask = 0b111ul;
+
+    public:
+        /// @brief A pointer with access restricted to @ref DofFlags.
+        /// @details This class is meant to catch attempts to dereference pointers
+        ///          that were manipulated by @ref DofFlags at compile time.
+        template <class T>
+        class DirtyPointer
+        {
+        public:
+            DirtyPointer() noexcept = default;
+
+            explicit DirtyPointer(T* Pointer) noexcept : mPointer(Pointer) {}
+
+            void save(Serializer& rSerializer) const
+            {
+                rSerializer.save("Pointer", mPointer);
+            }
+
+            void load(Serializer& rSerializer)
+            {
+                rSerializer.load("Pointer", mPointer);
+            }
+
+        private:
+            friend class DofFlags;
+
+            T* mPointer;
+        };
+
+        //constexpr static DofFlags LAST_SUPPORTED_FLAG_GOES_HERE = 0b100;
+
+        /// @brief Default constructor that unsets all flags.
+        constexpr DofFlags() noexcept : mData(0) {}
+
+        /// @brief Convert a @ref Flags instance to @ref DofFlags.
+        /// @throws if any unsupported flags are set.
+        /// @details @see Dof for more information on supported flags.
+        explicit DofFlags(Flags flags)
+            : mData(0b000)
+        {
+            mData |= flags.Is(MASTER);
+            mData |= flags.Is(SLAVE) << 1;
+            //mData |= flags.Is(LAST_SUPPORTED_FLAG_GOES_HERE) << 2;
+
+            // Check whether any flag is set other than
+            // the supported ones, and throw if there are.
+            flags.Set(MASTER, false);
+            flags.Set(SLAVE, false);
+            KRATOS_ERROR_IF(flags) << "unsupported flags set in " << flags;
+        }
+
+        /// @brief Break up a dirty pointer into a clean one and the @p DofFlags that corrupted it.
+        /// @details @p DirtyPointer is assumed to be a pointer to an instance of @p T (whose alignment
+        ///          is at least 8), but with the 3 least significant bits corrupted. The corrupted bits
+        ///          should contain the data for a @p DofFlags instance. This function extracts the last
+        ///          3 bits and returns the resulting @p DofFlags, as well as the @b valid pointer to @p T
+        ///          (last 3 bits are unset). The resulting valid pointer can be safely dereferenced.
+        /// @note Use @ref DofFlags::Compose to recover the original dirty pointer.
+        template <class T>
+        static constexpr std::pair<DofFlags,T*> Decompose(DirtyPointer<T> Dirty) noexcept
+        {
+            static_assert(1 << 3 <= std::alignment_of_v<T>);
+            DofFlags flags(Data(reinterpret_cast<std::size_t>(Dirty.mPointer) & msMask));
+            T* clean_pointer = reinterpret_cast<T*>(reinterpret_cast<std::size_t>(Dirty.mPointer) & ~msMask);
+            return std::make_pair(flags, clean_pointer);
+        }
+
+        /// @brief Inject the 3 bits of data in this @p DofFlags into the 3 least significant bits of the provided pointer.
+        /// @note Use @ref DofFlags::Decompose to recover the original valid pointer.
+        /// @warning The returned pointer should not be dereferenced directly. Use @ref DofFlags::Decompose to recover the
+        ///          original pointer.
+        template <class T>
+        constexpr DirtyPointer<T> Compose(T* CleanPointer) const
+        {
+            static_assert(1 << 3 <= std::alignment_of_v<T>);
+            KRATOS_ERROR_IF(reinterpret_cast<std::size_t>(CleanPointer) & msMask)
+                << "the provided pointer is not valid " << CleanPointer;
+            T* dirty_pointer = reinterpret_cast<T*>(reinterpret_cast<std::size_t>(CleanPointer) | mData.to_ulong());
+            return DirtyPointer<T>(dirty_pointer);
+        }
+
+        constexpr bool Is(DofFlags Other) const noexcept
+        {
+            return (mData & Other.mData).any();
+        }
+
+        bool Is(Flags flags) const
+        {
+            KRATOS_TRY
+            return this->Is(DofFlags(flags));
+            KRATOS_CATCH("")
+        }
+
+        void Set(Flags flags)
+        {
+            KRATOS_TRY
+            DofFlags supported_flags(flags);
+            mData = mData | supported_flags.mData;
+            KRATOS_CATCH("")
+        }
+
+        void Unset(Flags flags)
+        {
+            KRATOS_TRY
+            DofFlags supported_flags(flags);
+            mData = mData & ~supported_flags.mData;
+            KRATOS_CATCH("")
+        }
+
+    private:
+        using Data = std::bitset<3>;
+
+        explicit constexpr DofFlags(Data data) noexcept : mData(data) {}
+
+        Data mData;
+    }; // class DofFlags
+
     ///@name Static Member Variables
     ///@{
 
     static const Variable<TDataType> msNone;
-    static constexpr int msIsFixedPosition = 63;
 
     ///@}
     ///@name Member Variables
     ///@{
+
+    /** True is is fixed */
+    int mIsFixed : 1;
+
+    /// @copydoc Dof::IsActive
+    int mIsActive : 1;
 
     int mVariableType : 4;
 
@@ -430,7 +634,7 @@ private:
     EquationIdType mEquationId : 48;
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
-    NodalData* mpNodalData;
+    typename DofFlags::template DirtyPointer<NodalData> mpNodalData;
 
     ///@}
     ///@name Private Operators
@@ -467,9 +671,10 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const
     {
-        rSerializer.save("Flags", static_cast<Flags>(*this));
+        rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
+        rSerializer.save("IsActive", static_cast<bool>(mIsActive));
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
         rSerializer.save("NodalData", mpNodalData);
         rSerializer.save("VariableType", static_cast<int>(mVariableType));
@@ -478,12 +683,14 @@ private:
 
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer)
     {
-        std::string name;
-        Flags flags;
-        rSerializer.load("Flags", flags);
-        static_cast<Flags&>(*this) = flags;
+        bool is_fixed;
+        rSerializer.load("IsFixed", is_fixed);
+        mIsFixed=is_fixed;
+        bool is_active;
+        rSerializer.load("IsActive", is_active);
+        mIsActive = is_active;
         EquationIdType equation_id;
         rSerializer.load("EquationId", equation_id);
         mEquationId = equation_id;
