@@ -406,32 +406,20 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                 const auto& r_node_dofs = r_geometry[i_node].GetDofs();
 
                 // The node is a slave => mark all its DoFs constrained in the fine system
-                if (r_geometry[i_node].Is(SLAVE)) {
-                    for (const auto& rp_dof : r_node_dofs) {
-                        const std::size_t i_fine_dof = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
-
-                        // Flag the DoF as part of the coarse system
-                        rCoarseMask[i_fine_dof] = DofCategory::Constrained;
-                    }
-                }
-
-                // If the node is not a slave, flag it as part of the coarse system
-                // or constrained if it's fixed
-                else /*r_geometry[i_node].Is(SLAVE)*/ {
-                    for (const auto& rp_dof : r_node_dofs) {
-                        const std::size_t i_fine_dof = rp_dof->EquationId();
-                        KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
-
-                        // Flag the DoF as part of the coarse system (unless it's constrained)
-                        rCoarseMask[i_fine_dof] = rp_dof->IsFree() ? DofCategory::Coarse : DofCategory::Constrained;
-                    }
-                } // if the node is not flagged SLAVE
+                for (const auto& rp_dof : r_node_dofs) {
+                    if (!rp_dof->IsActive()) continue;
+                    const std::size_t i_fine_dof = rp_dof->EquationId();
+                    KRATOS_DEBUG_ERROR_IF_NOT(i_fine_dof < TSparseSpace::Size1(rA));
+                    rCoarseMask[i_fine_dof] = rp_dof->IsFixed() || rp_dof->Is(SLAVE)
+                                              ? DofCategory::Constrained
+                                              : DofCategory::Coarse;
+                } // for rp_dof in r_node_dofs
             } // for i_node in range(coarse_node_count)
 
             for (std::size_t i_node=coarse_node_count; i_node<r_geometry.size(); ++i_node) {
                 const auto& r_node_dofs = r_geometry[i_node].GetDofs();
                 for (const auto& rp_dof : r_node_dofs) {
+                    if (!rp_dof->IsActive()) continue;
                     const std::size_t i_fine_dof = rp_dof->EquationId();
                     rCoarseMask[i_fine_dof] = DofCategory::Fine;
                 }
@@ -454,9 +442,9 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                 << "DoF " << r_dof.EquationId() << " has no corresponding node in "
                 << rModelPart.Name() << std::endl;
 
-            if (it_node->Is(SLAVE)) {
+            if (r_dof.Is(SLAVE)) {
                 rCoarseMask[r_dof.EquationId()] = DofCategory::Constrained;
-            } else if (it_node->Is(MASTER) && rCoarseMask[r_dof.EquationId()] != DofCategory::Fine) {
+            } else if (r_dof.Is(MASTER)) {
                 rCoarseMask[r_dof.EquationId()] = DofCategory::Coarse;
             }
         }
@@ -694,12 +682,12 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                 const auto& r_coarse_node_dofs = r_fine_geometry[i_coarse_vertex].GetDofs();
 
                 for (std::size_t i_node_dof=0ul; i_node_dof<dofs_per_node; ++i_node_dof) {
+                    if (!r_coarse_node_dofs[i_node_dof]->IsActive()) continue;
                     const std::size_t i_coarse_dof_in_fine_system = r_coarse_node_dofs[i_node_dof]->EquationId();
 
                     // If the coarse DoF is constrained by a Dirichlet condition,
                     // no fine vertices should be added to the restiction operator.
-                    const std::size_t i_term_end = r_coarse_node_dofs[i_node_dof]->IsFixed() || r_fine_geometry[i_coarse_vertex].Is(SLAVE)
-                                                   ? 1 : r_restriction_terms.size();
+                    const std::size_t i_term_end = r_coarse_node_dofs[i_node_dof]->IsFixed() ? 1 : r_restriction_terms.size();
 
                     for (std::size_t i_term=0ul; i_term<i_term_end; ++i_term) {
                         const auto& r_fine_coefficient_pair = r_restriction_terms[i_term];
@@ -715,15 +703,13 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             if (is_slave) {
                                 // The DoF is a slave, so its master should take its place
                                 // in the restriction operator.
-                                for (auto master_and_coefficient : it_slave->second.first) {
-                                    const auto i_master = master_and_coefficient.first;
-                                    const auto mpc_coefficient = master_and_coefficient.second;
+                                for (auto [i_master, mpc_coefficient] : it_slave->second.first) {
                                     rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), r_fine_coefficient_pair.second * mpc_coefficient);
                                 }
-                            } //else {
+                            } else {
                                 // The DoF is not a slave, so it can be added to the restriction map
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
-                            //}
+                            }
                         } // if rCoarseDofMask[i_coarse_dof_in_fine_system] is in the coarse system
                     } // for i_term in range(i_term_end)
 
@@ -806,6 +792,8 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                         }
                     } // for i_fine_vertex, restriction_coefficient in r_restriction_terms
                 } else /*i_slave_vertex < restriction_coefficients.size()*/ {
+                    // The slave DoF belongs to a node that is not part of the coarse system,
+                    // so it cannot have further connected nodes.
                     /// @todo what about the restriction coefficient itself? (@matekelemen)
                     const auto restriction_coefficient = slave_coefficient;
                     /// @todo find out why i_slave_dof always evaluates to 0 in this case (@matekelemen)
