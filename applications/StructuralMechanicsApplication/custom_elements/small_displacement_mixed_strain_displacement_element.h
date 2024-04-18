@@ -506,15 +506,15 @@ protected:
 
     /**
      * @brief This method assembles the contributions to the LHS from the u and E parts
-     * LHS = | K , Gt |
+     * LHS = | K , Q |
      *       | G ,  M |
      */
     void AssembleLHS(
         Matrix &rLHS,
         const Matrix &rK,
-        const Matrix &rG,
+        const Matrix &rQ,
         const Matrix &rM,
-        const Matrix &rGt);
+        const Matrix &rG);
 
     ///@}
     ///@name Protected  Access
