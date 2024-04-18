@@ -80,6 +80,11 @@ void LinearMasterSlaveConstraint::Apply(const ProcessInfo& rCurrentProcessInfo)
     Vector master_dofs_values(mMasterDofsVector.size());
 
     for (IndexType i = 0; i < mMasterDofsVector.size(); ++i) {
+        KRATOS_ERROR_IF(mMasterDofsVector[i]->Is(SLAVE))
+            << "Dof " << mMasterDofsVector[i]->Id()
+            << " was already a SLAVE when LinearMasterSlaveConstraint "
+            << this->Id() << " tried to set MASTER on it";
+        mMasterDofsVector[i]->Set(MASTER);
         master_dofs_values[i] = mMasterDofsVector[i]->GetSolutionStepValue();
     }
 
@@ -91,6 +96,11 @@ void LinearMasterSlaveConstraint::Apply(const ProcessInfo& rCurrentProcessInfo)
         }
 
         AtomicAdd(mSlaveDofsVector[i]->GetSolutionStepValue(), aux);
+        KRATOS_ERROR_IF(mSlaveDofsVector[i]->Is(MASTER))
+            << "Dof " << mSlaveDofsVector[i]->Id()
+            << " was already a MASTER when LinearMasterSlaveConstraint "
+            << this->Id() << " tried to set SLAVE on it";
+        mSlaveDofsVector[i]->Set(SLAVE);
     }
 }
 
