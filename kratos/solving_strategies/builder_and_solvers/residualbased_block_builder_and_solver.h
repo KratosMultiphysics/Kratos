@@ -840,6 +840,7 @@ public:
         IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&, this](std::size_t Index){
             typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
             dof_iterator->SetEquationId(Index);
+            dof_iterator->Activate();
         });
     }
 
