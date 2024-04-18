@@ -167,6 +167,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorPartialPartitions, Krat
     } else {
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(r_default_comm.GetSubDataCommunicator(ranks_wrong, name_data_comm), "The rank " + std::to_string(current_rank) + " does not participate in the existing data communicator " + name_data_comm + " despite being in the provided rank list");
     }
+
+    // Cleanup subdatacommunicators leftovers
+    ParallelEnvironment::UnregisterDataCommunicator(name_data_comm);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, KratosMPICoreFastSuite)
