@@ -256,13 +256,13 @@ class RomManager(object):
         if BasisOutputProcess is None:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess() #TODO not call unnecesarily
         tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        in_database, hash_basis =  self.data_base.check_if_left_basis_already_in_database(mu_train, tol_sol)
+        in_database, hash_basis =  self.data_base.check_if_right_basis_already_in_database(mu_train, tol_sol)
         if not in_database: #Check if basis exists already for current parameters
             u = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
             BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
-            self.data_base.add_LeftBasis_to_database(u, mu_train,tol_sol)
+            self.data_base.add_RightBasis_to_database(u, mu_train,tol_sol)
         else:
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_left_basis(hash_basis)) #this updates the RomParameters.json
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_right_basis(hash_basis)) #this updates the RomParameters.json
         self.data_base.generate_database_summary_file()
 
         return 0
@@ -312,20 +312,51 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        PetrovGalerkinTrainMatrix = []
+        PetrovGalerkinTrainingUtility = None
         for Id, mu in enumerate(mu_train):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreNoResults(parameters_copy)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            PetrovGalerkinTrainMatrix.append(simulation.GetPetrovGalerkinTrainUtility()._GetSnapshotsMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
-        simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
+            mu_dict = self.data_base.FOM_make_mu_dictionary(mu)
+            serialized_mu = self.data_base.serialize_mu(mu_dict)
+            tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
+            pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
+            pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
+            pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
+            pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
+            pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
+            in_database, hash_mu = self.data_base.check_if_petrov_galerkin_already_in_database(serialized_mu,tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreNoResults(parameters_copy)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
+                pretrov_galerkin_matrix = PetrovGalerkinTrainingUtility._GetSnapshotsMatrix() #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
+                file_path = self.data_base.save_as_npy(pretrov_galerkin_matrix, hash_mu)
+                self.data_base.add_petrov_galerkin_to_database(serialized_mu, hash_mu, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+                print(f"Simulation saved to {file_path}")
+            else:
+                print("Simulation for given parameters already in database.")
+        if PetrovGalerkinTrainingUtility is None:
+            PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility()
+        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
+
+
+        in_database, hash_basis =  self.data_base.check_if_left_basis_already_in_database(mu_train, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+        if not in_database:
+            snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="PetrovGalerkinSnapshots")
+            u = PetrovGalerkinTrainingUtility._CalculateResidualBasis(snapshots_matrix)
+            PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(u)
+            self.data_base.add_LeftBasis_to_database(u, mu_train,tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+        else:
+            PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_left_basis(hash_basis)) #this updates the RomParameters.json
+        self.data_base.generate_database_summary_file()
+
+        return 0
+
 
 
     def __LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
@@ -610,6 +641,17 @@ class RomManager(object):
         simulation.Initialize()
         return simulation.GetHROM_utility()
 
+
+    def InitializeDummySimulationForPetrovGalerkinTrainingUtility(self):
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        parameters = self._AddBasisCreationToProjectParameters(parameters)
+        parameters = self._StoreNoResults(parameters)
+        model = KratosMultiphysics.Model()
+        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation.Initialize()
+        return simulation.GetPetrovGalerkinTrainUtility()
 
 
     def _AddHromParametersToRomParameters(self,f):

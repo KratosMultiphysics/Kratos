@@ -29,6 +29,7 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
 
+
         # Updated table definitions including new tables
         table_definitions = {
             "FOM": '''CREATE TABLE IF NOT EXISTS FOM
@@ -39,10 +40,12 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "HHROM": '''CREATE TABLE IF NOT EXISTS HHROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
-            "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
+            "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
+            "PetrovGalerkinSnapshots": '''CREATE TABLE IF NOT EXISTS PetrovGalerkinSnapshots
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
             "ResidualsProjected": '''CREATE TABLE IF NOT EXISTS ResidualsProjected
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "HROM_Elements": '''CREATE TABLE IF NOT EXISTS HROM_Elements
@@ -50,6 +53,9 @@ class RomDatabase(object):
             "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)'''
         }
+
+
+        self.table_names = table_definitions.keys()
 
         # Create each table using its definition
         for table_name, table_sql in table_definitions.items():
@@ -115,6 +121,20 @@ class RomDatabase(object):
         return hashlib.sha256(combined_str_z.encode()).hexdigest(), hashlib.sha256(combined_str_w.encode()).hexdigest()
 
 
+    def hash_parameters_with_6_params(self, mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
+
+        combined_str = '_'.join(map(str, mu)) + f"_{tol_sol:.10f}_" + pg_data1_str + "_" + str(pg_data2_bool) + f"_{pg_data3_double:.10f}_" + pg_data4_str + "_" + str(pg_data5_bool)
+        # Generate the hash of the combined string
+        return hashlib.sha256(combined_str.encode()).hexdigest()
+
+    def hash_mu_train_with_6_params(self, serialized_mu_train, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
+
+        combined_str = serialized_mu_train + f"_{tol_sol:.10f}_" + pg_data1_str + "_" + str(pg_data2_bool) + f"_{pg_data3_double:.10f}_" + pg_data4_str + "_" + str(pg_data5_bool)
+
+        return hashlib.sha256(combined_str.encode()).hexdigest()
+
+
+
     def check_if_mu_already_in_database(self, mu):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -147,16 +167,42 @@ class RomDatabase(object):
         return count > 0, hash_mu
 
 
-    def check_if_left_basis_already_in_database(self, mu_train, tol_sol):
+    def check_if_right_basis_already_in_database(self, mu_train, tol_sol):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
         hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
         # Include both file_name and tol_sol in the WHERE clause
+        cursor.execute('SELECT COUNT(*) FROM RightBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0 , hashed_mu_train
+
+
+    def check_if_left_basis_already_in_database(self, mu_train, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train_with_6_params(serialized_mu_train, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+        # Include both file_name and tol_sol in the WHERE clause
         cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
         count = cursor.fetchone()[0]
         conn.close()
         return count > 0 , hashed_mu_train
+
+
+    def check_if_petrov_galerkin_already_in_database(self, mu, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        hash_mu = self.hash_parameters_with_6_params(mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+        cursor.execute('SELECT COUNT(*) FROM PetrovGalerkinSnapshots WHERE file_name = ?', (hash_mu,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count > 0, hash_mu
+
+
+
 
     def check_if_res_already_in_database(self, mu, tol_sol, tol_res, projection_type):
         conn = sqlite3.connect(self.database_name)
@@ -211,7 +257,7 @@ class RomDatabase(object):
         conn.close()
 
 
-    def add_LeftBasis_to_database(self, u,  mu_train, real_value):
+    def add_RightBasis_to_database(self, u,  mu_train, real_value):
         print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
 
         serialized_mu_train = self.serialize_entire_mu_train(mu_train)
@@ -221,12 +267,39 @@ class RomDatabase(object):
         cursor = conn.cursor()
 
         # Debugging: Print the values before executing the SQL command
-        print(f"Inserting into LeftBasis: tol_sol={real_value}, file_name={hashed_mu_train}")
+        print(f"Inserting into RightBasis: tol_sol={real_value}, file_name={hashed_mu_train}")
 
-        cursor.execute('INSERT INTO LeftBasis (tol_sol, file_name) VALUES (?, ?)',
+        cursor.execute('INSERT INTO RightBasis (tol_sol, file_name) VALUES (?, ?)',
                     (real_value, str(hashed_mu_train)))
         conn.commit()
         conn.close()
+
+
+
+    def add_LeftBasis_to_database(self, u, mu_train,tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
+
+        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
+        hashed_mu_train = self.hash_mu_train_with_6_params(serialized_mu_train, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+
+        file_path = self.save_as_npy(u , hashed_mu_train)  # Save numpy array and get file path
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+
+        cursor.execute('INSERT INTO LeftBasis (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, hashed_mu_train))
+        conn.commit()
+        conn.close()
+
+
+    def add_petrov_galerkin_to_database(self, mu,file_name, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        parameters_str = self.serialize_mu(mu)
+        cursor.execute('INSERT INTO PetrovGalerkinSnapshots (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                       (parameters_str, tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
+        conn.commit()
+        conn.close()
+
 
 
 
@@ -263,7 +336,7 @@ class RomDatabase(object):
 
 
     def generate_database_summary_file(self):
-        table_names = ["FOM", "ROM", "HROM", "HHROM","LeftBasis", "RightBasis", "ResidualsProjected","HROM_Elements","HROM_Weights"]
+        #table_names = ["FOM", "ROM", "HROM", "HHROM","RightBasis", "LeftBasis", "ResidualsProjected","HROM_Elements","HROM_Weights"]
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         directory = Path(rom_output_folder_name)
         directory.mkdir(parents=True, exist_ok=True)
@@ -274,24 +347,52 @@ class RomDatabase(object):
             conn = sqlite3.connect(self.database_name)
             cursor = conn.cursor()
 
-            for table_name in table_names:
+            for table_name in self.table_names:
                 f.write(f"\nTable Name: {table_name}\n")
                 f.write("-" * (10 + len(table_name)) + "\n")
 
-                if table_name =="LeftBasis":
+                if table_name =="RightBasis":
 
                     # Query the database for a limited number of entries from the current table
                     cursor.execute(f"SELECT tol_sol, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
                     rows = cursor.fetchall()
 
-                    f.write(" | tol_sol | File Name (Hash)\n")
+                    f.write("  tol_sol | File Name (Hash)\n")
                     f.write("-" * 15 + "\n")
                     # Write each row to the file
                     for tol_sol, file_name in rows:
                         f.write(f"{tol_sol} | {file_name}\n")
 
-                elif table_name =="RightBasis":
-                    pass
+                elif table_name =="LeftBasis":
+
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name  FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+
+                    if rows:
+                        f.write(" tol_sol | basis_stratey |  include_phi  |  tol_pg  |  solving_technique  |  monotocinity  |  File Name (Hash)\n")
+                        f.write("-" * (7 * 15) + "\n")
+                        for tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name in rows:
+                            f.write(f"{tol_sol} |  {pg_data1_str} | {pg_data2_bool} | {pg_data3_double} | {pg_data4_str} | {pg_data5_bool} | {file_name}\n")
+
+
+                elif table_name =="PetrovGalerkinSnapshots":
+
+                    # Query the database for a limited number of entries from the current table
+                    cursor.execute(f"SELECT parameters, tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name  FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
+                    rows = cursor.fetchall()
+                    if rows:
+                        # Assuming the first row's parameters to figure out the headers
+                        sample_params = json.loads(json.loads(rows[0][0]))
+                        headers = list(sample_params.keys())
+                        f.write(" | ".join(headers) + " tol_sol | basis_stratey |  include_phi  |  tol_pg  |  solving_technique  |  monotocinity  |  File Name (Hash)\n")
+                        f.write("-" * ((len(headers)+7) * 15) + "\n")
+                        # Write each row to the file
+                        for parameters,tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name in rows:
+                            params_dict = json.loads(json.loads(parameters))
+                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
+                            f.write(f"{params_str} {tol_sol} | {pg_data2_bool} |  {pg_data2_bool}  |  {pg_data4_str}  |  {pg_data4_str}  |  {pg_data5_bool}  |  {file_name}\n")
+
 
                 elif table_name =="ResidualsProjected":
                     # Query the database for a limited number of entries from the current table
@@ -379,7 +480,7 @@ class RomDatabase(object):
                 self.mu_names.append(f'generic_name_{i}')
         return dict(zip(self.mu_names , mu))
 
-    def LeftBasis_make_dictionary(self, mu):
+    def RightBasis_make_dictionary(self, mu):
         keys = ["hashed_name", "svd_tol_solution"]
         return dict(zip(keys, mu))
 
@@ -396,6 +497,11 @@ class RomDatabase(object):
         tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
         tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
         projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
+        pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
+        pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
+        pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
+        pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
         for mu in mu_list_unique:
             serialized_mu = self.serialize_mu(self.FOM_make_mu_dictionary(mu))
             if table_name == 'FOM':
@@ -406,6 +512,8 @@ class RomDatabase(object):
                 hash_mu = self.hash_parameters_with_tol_2_tols(serialized_mu, tol_sol, tol_res, projection_type)
             elif table_name == 'ResidualsProjected':
                 hash_mu = self.hash_parameters_with_tol_2_tols_and_string(serialized_mu, tol_sol, tol_res, projection_type)
+            elif table_name == 'PetrovGalerkinSnapshots':
+                hash_mu = self.hash_parameters_with_6_params(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
             result = cursor.fetchone()
 
@@ -453,14 +561,23 @@ class RomDatabase(object):
         data_base_directory.mkdir(parents=True, exist_ok=True)
         rom_directoy = Path(rom_output_folder_name)
         rom_directoy.mkdir(parents=True, exist_ok=True)
-        currently_available_basis = np.load(rom_directoy / ('RightBasisMatrix.npy'))
+        currently_available_basis = np.load(rom_directoy / ('LeftBasisMatrix.npy'))
         basis_in_database = np.load(data_base_directory / (hash_basis + '.npy'))
         are_identical = np.array_equal(currently_available_basis, basis_in_database)
         if not are_identical:
-            np.save(rom_directoy / ('RightBasisMatrix.npy'), basis_in_database)
+            np.save(rom_directoy / ('LeftBasisMatrix.npy'), basis_in_database)
 
 
     def get_left_basis(self, hash_basis):
+
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
+        data_base_directory.mkdir(parents=True, exist_ok=True)
+
+        return np.load(data_base_directory / (hash_basis + '.npy'))
+
+
+    def get_right_basis(self, hash_basis):
 
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
         data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
