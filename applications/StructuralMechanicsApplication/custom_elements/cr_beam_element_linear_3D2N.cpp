@@ -51,52 +51,88 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
 
 CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
 
-void CrBeamElementLinear3D2N::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
+    void CrBeamElementLinear3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+		KRATOS_TRY
 
-    KRATOS_TRY
-    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+            if (Has(SEMI_RIGID_NODE_IDS)) {
 
-    Vector nodal_deformation = ZeroVector(msElementSize);
-    GetValuesVector(nodal_deformation);
-    rRightHandSideVector = ZeroVector(msElementSize);
-    rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
+                // create integer list
+                Vector semi_rigid_node_id_input = GetValue(SEMI_RIGID_NODE_IDS);
+                std::vector<int> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
+                for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
+                    semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
+                }
 
-    // add bodyforces
-    rRightHandSideVector += CalculateBodyForces();
-    KRATOS_CATCH("")
-}
+                auto r_geometry = GetGeometry();
+                std::vector<IndexType> node_ids = { r_geometry[0].Id(), r_geometry[1].Id() };
 
-void CrBeamElementLinear3D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    rRightHandSideVector = ZeroVector(msElementSize);
+                // check if any of the element node ids is in the semi rigid node list
+                for (IndexType node_id : node_ids) {
+                    if (std::find(semi_rigid_node_id_list.begin(), semi_rigid_node_id_list.end(), node_id) != semi_rigid_node_id_list.end()) {
+                        mContainsSemiRigidNode = true;
+                    }
+                }
+            }
 
-    Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
-    CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
-    Vector nodal_deformation = ZeroVector(msElementSize);
-    GetValuesVector(nodal_deformation);
-    rRightHandSideVector = ZeroVector(msElementSize);
-    noalias(rRightHandSideVector) -=
-        prod(left_hand_side_matrix, nodal_deformation);
+			CrBeamElement3D2N::Initialize(rCurrentProcessInfo);
 
-    // add bodyforces
-    noalias(rRightHandSideVector) += CalculateBodyForces();
-    KRATOS_CATCH("")
-}
+		KRATOS_CATCH("")
+	}
 
-void CrBeamElementLinear3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
+    void CrBeamElementLinear3D2N::CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
 
-    KRATOS_TRY;
-    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
-        CalculateInitialLocalCS();
-    rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
+        KRATOS_TRY
+            CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+        Vector nodal_deformation = ZeroVector(msElementSize);
+        GetValuesVector(nodal_deformation);
+        rRightHandSideVector = ZeroVector(msElementSize);
+        rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
+
+        // add bodyforces
+        rRightHandSideVector += CalculateBodyForces();
+        KRATOS_CATCH("")
+    }
+
+    void CrBeamElementLinear3D2N::CalculateRightHandSide(
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        rRightHandSideVector = ZeroVector(msElementSize);
+
+        Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
+        CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
+        Vector nodal_deformation = ZeroVector(msElementSize);
+        GetValuesVector(nodal_deformation);
+        rRightHandSideVector = ZeroVector(msElementSize);
+        noalias(rRightHandSideVector) -=
+            prod(left_hand_side_matrix, nodal_deformation);
+
+        // add bodyforces
+        noalias(rRightHandSideVector) += CalculateBodyForces();
+        KRATOS_CATCH("")
+    }
+
+    void CrBeamElementLinear3D2N::CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    {
+
+        KRATOS_TRY;
+        BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
+            CalculateInitialLocalCS();
+        rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
+        noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
+
+        // reduce rigidity 
+        if (mContainsSemiRigidNode) {
+			BoundedMatrix<double, msElementSize, msElementSize> rigidity_reduction_matrix = ZeroMatrix(msElementSize, msElementSize);
+			CalculateRigidityReductionMatrix(rigidity_reduction_matrix);
+			rLeftHandSideMatrix = element_prod(rLeftHandSideMatrix, rigidity_reduction_matrix);
+		}
 
     //// start static condensation
     if (Has(CONDENSED_DOF_LIST)) {
@@ -296,6 +332,124 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
 
     KRATOS_CATCH("");
 }
+
+
+void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
+    BoundedMatrix<double, msElementSize, msElementSize>& rRigidityReductionMatrix) const
+{
+	KRATOS_TRY
+
+
+	rRigidityReductionMatrix = ZeroMatrix(msElementSize, msElementSize);
+	const double E = GetProperties()[YOUNG_MODULUS];
+	const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+
+
+	const double Iy = GetProperties()[I22];
+	const double Iz = GetProperties()[I33];
+
+    IndexType node_id_1 = GetGeometry()[0].Id();
+    IndexType node_id_2 = GetGeometry()[1].Id();
+
+    Vector semi_rigid_node_id_input = GetValue(SEMI_RIGID_NODE_IDS);
+
+    std::vector<int> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
+    for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
+		semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
+	}
+
+    auto r_geometry = GetGeometry();
+    std::vector<IndexType> node_ids = { r_geometry[0].Id(), r_geometry[1].Id() };
+
+    // check if any of the element node ids is in the semi rigid node list
+    
+    double rotational_stiffness_y_1 = std::numeric_limits<double>::infinity();
+    double rotational_stiffness_z_1 = std::numeric_limits<double>::infinity();
+    double rotational_stiffness_y_2 = std::numeric_limits<double>::infinity();
+    double rotational_stiffness_z_2 = std::numeric_limits<double>::infinity();
+
+    for (int i = 0; i < semi_rigid_node_id_list.size(); i++) {
+        if (r_geometry[0].Id() == semi_rigid_node_id_list[i]) {
+            rotational_stiffness_y_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i]/2;
+            rotational_stiffness_z_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i]/2;
+
+        }
+        if (r_geometry[1].Id() == semi_rigid_node_id_list[i]) {
+            rotational_stiffness_y_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i]/2;
+            rotational_stiffness_z_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i]/2;
+        }
+    }
+
+	// set fixity factors
+    const double alpha1_yy = (rotational_stiffness_z_1 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_1 * L)) : 0.0;
+    const double alpha2_yy = (rotational_stiffness_z_2 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_2 * L)) : 0.0;
+
+    const double alpha1_zz = (rotational_stiffness_y_1 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_1 * L)) : 0.0;
+    const double alpha2_zz = (rotational_stiffness_y_2 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_2 * L)) : 0.0;
+
+
+    // normal
+	rRigidityReductionMatrix(0, 0) = 1;
+    rRigidityReductionMatrix(0, 6) = 1;
+    rRigidityReductionMatrix(6, 6) = 1;
+    rRigidityReductionMatrix(6, 0) = 1;
+
+    // yy
+	rRigidityReductionMatrix(1, 1) = (alpha1_yy + alpha2_yy +alpha1_yy*alpha2_yy) / (4 - alpha1_yy - alpha2_yy);
+    rRigidityReductionMatrix(7, 7) = rRigidityReductionMatrix(1, 1);
+    rRigidityReductionMatrix(1, 7) = rRigidityReductionMatrix(1, 1);
+    rRigidityReductionMatrix(7, 1) = rRigidityReductionMatrix(1, 1);
+	
+    // zz
+    rRigidityReductionMatrix(2, 2) = (alpha1_zz + alpha2_zz + alpha1_zz * alpha2_zz) / (4 - alpha1_zz - alpha2_zz);
+    rRigidityReductionMatrix(8, 8) = rRigidityReductionMatrix(2, 2);
+    rRigidityReductionMatrix(2, 8) = rRigidityReductionMatrix(2, 2);
+    rRigidityReductionMatrix(8, 2) = rRigidityReductionMatrix(2, 2);
+
+    // tortion
+    rRigidityReductionMatrix(3, 3) = 1;
+    rRigidityReductionMatrix(9, 9) = 1;
+
+    // yy 1,2 - rot z 1
+    rRigidityReductionMatrix(1, 5) = (2 * alpha1_yy + alpha1_yy * alpha2_yy) / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(5, 1) = rRigidityReductionMatrix(1, 5);
+    rRigidityReductionMatrix(5, 7) = rRigidityReductionMatrix(1, 5);
+    rRigidityReductionMatrix(7, 5) = rRigidityReductionMatrix(1, 5);
+
+    // zz 1,2 - rot y 1
+	rRigidityReductionMatrix(2, 4) = (2 * alpha1_zz + alpha1_zz * alpha2_zz) / (4 - alpha1_zz * alpha2_zz);
+    rRigidityReductionMatrix(4, 2) = rRigidityReductionMatrix(2, 4);
+    rRigidityReductionMatrix(4, 8) = rRigidityReductionMatrix(2, 4);
+    rRigidityReductionMatrix(8, 4) = rRigidityReductionMatrix(2, 4);
+
+    // yy 1,2 - rot z 2
+    rRigidityReductionMatrix(1, 11) = (2 * alpha2_yy + alpha1_yy * alpha2_yy) / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(11, 1) = rRigidityReductionMatrix(1, 11);
+    rRigidityReductionMatrix(11, 7) = rRigidityReductionMatrix(1, 11);
+    rRigidityReductionMatrix(7, 11) = rRigidityReductionMatrix(1, 11);
+
+    // zz 1,2 - rot y 2
+    rRigidityReductionMatrix(2, 10) = (2 * alpha2_zz + alpha1_zz * alpha2_zz) / (4 - alpha1_zz * alpha2_zz);
+    rRigidityReductionMatrix(10, 2) = rRigidityReductionMatrix(2, 10);
+    rRigidityReductionMatrix(10, 8) = rRigidityReductionMatrix(2, 10);
+    rRigidityReductionMatrix(8, 10) = rRigidityReductionMatrix(2, 10);
+
+    // rot z 1,2 
+    rRigidityReductionMatrix(5, 5) = 3 * alpha1_yy / (4 - alpha1_yy - alpha2_yy);
+    rRigidityReductionMatrix(11, 11) = 3 * alpha2_yy / (4 - alpha1_yy - alpha2_yy);
+    rRigidityReductionMatrix(5, 11) = 3 * alpha1_yy / (4 - alpha1_yy - alpha2_yy);
+    rRigidityReductionMatrix(11, 5) = rRigidityReductionMatrix(5, 11);
+
+    // rot y 1, 2
+    rRigidityReductionMatrix(4, 4) = 3 * alpha1_zz / (4 - alpha1_zz - alpha2_zz);
+    rRigidityReductionMatrix(10, 10) = 3 * alpha2_zz / (4 - alpha1_zz - alpha2_zz);
+    rRigidityReductionMatrix(4, 10) = 3 * alpha1_zz / (4 - alpha1_zz - alpha2_zz);
+    rRigidityReductionMatrix(10, 4) = rRigidityReductionMatrix(4, 10);
+
+    KRATOS_CATCH("");
+
+}
+
 
 void CrBeamElementLinear3D2N::save(Serializer& rSerializer) const
 {

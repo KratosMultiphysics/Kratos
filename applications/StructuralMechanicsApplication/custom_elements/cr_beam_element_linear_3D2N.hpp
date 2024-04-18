@@ -70,6 +70,8 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -106,6 +108,11 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
+
+    bool mContainsSemiRigidNode = false;
+
+    void CalculateRigidityReductionMatrix(
+		BoundedMatrix<double, msElementSize, msElementSize>& rReductionMatrix) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
