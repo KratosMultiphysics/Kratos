@@ -22,25 +22,29 @@
 namespace Kratos::Testing 
 {
 
-KratosTestEnv::KratosTestEnv() {
-    std::cout << "KratosTestEnv::KratosTestEnv" << std::endl;
-}
-
-void KratosCoreFastSuite::SetUp() { 
-    std::cout.rdbuf(mStreamBuffer.rdbuf());
-    std::cerr.rdbuf(mStreamBuffer.rdbuf());   
-}
-
-void KratosCoreFastSuite::TearDown() { 
-
-}
-
 void KratosTestEnv::SetUp() {
     std::cout << "KratosTestEnv::SetUp" << std::endl;
 }
 
 void KratosTestEnv::TearDown() {
     std::cout << "KratosTestEnv::TearDown" << std::endl;
+}
+
+KratosTestEnv::KratosTestEnv() {
+    std::cout << "KratosTestEnv::KratosTestEnv" << std::endl;
+}
+
+void KratosCoreFastSuite::SetUp() { 
+    mCoutBuffer = std::cout.rdbuf();
+    mCerrBuffer = std::cerr.rdbuf();
+
+    std::cout.rdbuf(mStream.rdbuf());
+    std::cerr.rdbuf(mStream.rdbuf());   
+}
+
+void KratosCoreFastSuite::TearDown() { 
+    std::cout.rdbuf(mCoutBuffer);
+    std::cerr.rdbuf(mCerrBuffer); 
 }
 
 DataCommunicator& GetDefaultDataCommunicator()
