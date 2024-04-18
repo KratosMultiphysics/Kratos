@@ -372,7 +372,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes), f(dim * n_nodes);
+    Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
 
