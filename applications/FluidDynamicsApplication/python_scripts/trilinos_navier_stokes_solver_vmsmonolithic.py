@@ -15,7 +15,7 @@ from KratosMultiphysics.mpi.distributed_import_model_part_utility import Distrib
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
-class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
+class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings):
         # Call the serial base class constructor

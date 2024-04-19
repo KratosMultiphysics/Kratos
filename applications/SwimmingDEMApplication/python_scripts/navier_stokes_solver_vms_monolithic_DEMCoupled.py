@@ -115,7 +115,7 @@ class StabilizedFormulationDEMCoupled(NavierMonolithic.StabilizedFormulation):
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithicDEM(model, custom_settings)
 
-class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesSolverMonolithic):
+class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesMonolithicSolver):
 
     def GetDefaultParameters(cls):
 

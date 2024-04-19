@@ -135,7 +135,7 @@ class StabilizedFormulation(object):
 
         dynamic_beta = settings["adjust_beta_dynamically"].GetBool()
         if dynamic_beta:
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesSolverVMSMonolithic","FIC with dynamic beta not yet implemented, using provided beta as a constant value")
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesMonolithicSolver","FIC with dynamic beta not yet implemented, using provided beta as a constant value")
         else:
             self.element_name = "FIC"
         self.condition_name = "NavierStokesWallCondition"
