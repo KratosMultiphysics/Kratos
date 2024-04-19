@@ -2,7 +2,7 @@ import importlib
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
@@ -97,7 +97,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
             # Create the ROM solver
-            return new_python_solvers_wrapper_rom.CreateSolver(
+            return python_solvers_wrapper_rom.CreateSolver(
                 self.model,
                 self.project_parameters)
 
