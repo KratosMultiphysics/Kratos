@@ -34,6 +34,13 @@ class ConnectivityPreservingModelPartController(ModelPartController):
             source_model_part = self.model[transformation_settings["source_model_part_name"].GetString()]
             destination_model_part_name: str = transformation_settings["destination_model_part_name"].GetString()
             if not self.model.HasModelPart(destination_model_part_name):
+                # now check what parents already exists. If exists, then they should have the same variables list
+                model_part_names = destination_model_part_name.split(".")
+                for i, _ in enumerate(model_part_names):
+                    current_model_part_name = ".".join(model_part_names[:i+1])
+                    if self.model.HasModelPart(current_model_part_name) and not KratosOA.OptimizationUtils.IsSolutionStepVariablesListSame(self.model[current_model_part_name], source_model_part):
+                        raise RuntimeError(f"The solution step variables list mismatch in {source_model_part.FullName()} and {current_model_part_name}")
+
                 destination_model_part = self.model.CreateModelPart(destination_model_part_name)
                 KratosOA.OptimizationUtils.CopySolutionStepVariablesList(destination_model_part, source_model_part)
                 current_model_part = destination_model_part
