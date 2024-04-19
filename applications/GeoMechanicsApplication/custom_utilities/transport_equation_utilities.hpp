@@ -102,12 +102,8 @@ public:
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
 
-        // ElementVariables Variables;
-        // this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-        //  from InitializeElementVariables
         Matrix nu_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
         Matrix np_container = rpPressureGeometry->ShapeFunctionsValues(IntegrationMethod);
-        Vector vector_Nu(number_U_nodes);
         Vector Np(number_P_nodes);
         Vector pressure_vector =
             GeoTransportEquationUtilities::GetSolutionVector(number_P_nodes, rGeom, WATER_PRESSURE);
@@ -118,77 +114,43 @@ public:
         Matrix mass_matrix_contribution = ZeroMatrix(block_element_size, block_element_size);
 
         // Defining shape functions and the determinant of the jacobian at all integration points
-
         // Loop over integration points
         Matrix Nu                 = ZeroMatrix(dimension, number_U_nodes * dimension);
         Matrix aux_density_matrix = ZeroMatrix(dimension, number_U_nodes * dimension);
         Matrix density_matrix     = ZeroMatrix(dimension, dimension);
 
         for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
-            double det_J_initial_configuration;
+            noalias(Np) = row(np_container, g_point);
+            Matrix J0;
+            Matrix inv_J0;
+            GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
+            const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[g_point];
+            double        det_J_initial_configuration;
+            MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
             Matrix dNu_dX_initial_configuration;
-            // compute element kinematics (Np, gradNpT, |J|, B)
-            // this->CalculateKinematics(Variables, g_point);
-            {
-                // Setting the vector of shape functions and the matrix of the shape functions global gradients
-                noalias(vector_Nu) = row(nu_container, g_point); // it was Variables.Nu
-                noalias(Np)        = row(np_container, g_point);
-
-                // noalias(DNu_DX) = DNu_DXContainer[g_point];
-                // noalias(DNp_DX) = DNp_DXContainer[g_point];
-
-                // Compute the deformation matrix B
-                // this->CalculateBMatrix(B, DNu_DX, Nu);
-
-                // detJ = rVariables.detJuContainer[g_point];
-
-                Matrix J0;
-                Matrix inv_J0;
-
-                // this->CalculateDerivativesOnInitialConfiguration(
-                //     det_J_initial_configuration, J0, inv_J0, dNu_dX_initial_configuration, g_point);
-                //  double& detJ, Matrix& J0, Matrix& inv_J0, Matrix& DNu_DX0, unsigned int g_point) const
-                {
-                    GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
-                    const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[g_point];
-                    MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
-                    GeometryUtils::ShapeFunctionsGradients(dN_De, inv_J0, dNu_dX_initial_configuration);
-                }
-            }
+            GeometryUtils::ShapeFunctionsGradients(dN_De, inv_J0, dNu_dX_initial_configuration);
 
             // calculating weighting coefficient for integration
             const double integration_coefficient_initial_configuration =
-                //    this->CalculateIntegrationCoefficient(IntegrationPoints, g_point, det_J_initial_configuration);
                 mpStressStatePolicy->CalculateIntegrationCoefficient(
                     integration_points[g_point], det_J_initial_configuration, rGeom);
 
-            // CalculateRetentionResponse(Variables, RetentionParameters, g_point);
-            //  void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables& rVariables,
-            //                                                                  RetentionLaw::Parameters& rRetentionParameters,
-            //                                                                  unsigned int g_point)
-            //{
-            const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                Np, pressure_vector); // it needs rVariables.Np, rVariables.pressure_vector
-            // SetRetentionParameters(rVariables, RetentionParameters);
+            const double fluid_pressure =
+                GeoTransportEquationUtilities::CalculateFluidPressure(Np, pressure_vector);
             {
                 RetentionParameters.SetFluidPressure(fluid_pressure);
             }
 
             const double degree_of_saturation =
-                rRetentionLawVector[g_point]->CalculateSaturation(RetentionParameters); // it needs fluid_pressure
-            // DerivativeOfSaturation = mRetentionLawVector[g_point]->CalculateDerivativeOfSaturation(RetentionParameters);
-            // RelativePermeability = mRetentionLawVector[g_point]->CalculateRelativePermeability(RetentionParameters);
-            // BishopCoefficient = mRetentionLawVector[g_point]->CalculateBishopCoefficient(RetentionParameters);
-            //}
+                rRetentionLawVector[g_point]->CalculateSaturation(RetentionParameters);
 
-            // this->CalculateSoilDensity(Variables);
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
 
             // Setting the shape function matrix
             SizeType index = 0;
             for (SizeType i = 0; i < number_U_nodes; ++i) {
-                for (SizeType iDim = 0; iDim < dimension; ++iDim) {
-                    Nu(iDim, index++) = vector_Nu(i);
+                for (SizeType i_dim = 0; i_dim < dimension; ++i_dim) {
+                    Nu(i_dim, index++) = nu_container(g_point, i);
                 }
             }
 
