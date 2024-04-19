@@ -24,14 +24,14 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## SystemIdentification python interface sources
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
-add_library(KratosDigitalTwinCore SHARED ${KRATOS_DIGITAL_TWIN_APPLICATION_CORE} ${KRATOS_DIGITAL_TWIN_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosDigitalTwinCore PUBLIC KratosCore)
-set_target_properties(KratosDigitalTwinCore PROPERTIES COMPILE_DEFINITIONS "DIGITAL_TWIN_APPLICATION=EXPORT,API")
+add_library(KratosSystemIdentificationCore SHARED ${KRATOS_DIGITAL_TWIN_APPLICATION_CORE} ${KRATOS_DIGITAL_TWIN_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosSystemIdentificationCore PUBLIC KratosCore)
+set_target_properties(KratosSystemIdentificationCore PROPERTIES COMPILE_DEFINITIONS "DIGITAL_TWIN_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosSystemIdentificationApplication MODULE THIN_LTO ${KRATOS_DIGITAL_TWIN_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosSystemIdentificationApplication PRIVATE KratosDigitalTwinCore)
+target_link_libraries(KratosSystemIdentificationApplication PRIVATE KratosSystemIdentificationCore)
 set_target_properties(KratosSystemIdentificationApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
@@ -65,9 +65,9 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosDigitalTwinCore DESTINATION libs )
+install(TARGETS KratosSystemIdentificationCore DESTINATION libs )
 install(TARGETS KratosSystemIdentificationApplication DESTINATION libs )
 
 # Define custom targets
-set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDigitalTwinCore" PARENT_SCOPE)
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosSystemIdentificationCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosSystemIdentificationApplication" PARENT_SCOPE)
