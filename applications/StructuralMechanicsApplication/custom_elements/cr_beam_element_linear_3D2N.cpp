@@ -380,13 +380,15 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
         }
     }
 
-	// set fixity factors
+	// set fixity factors, 0 is no fixity, i.e. a hinge; 1 is completely fixed, the resulting stiffness matrix will remain unchanged
     const double alpha1_yy = (rotational_stiffness_z_1 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_1 * L)) : 0.0;
     const double alpha2_yy = (rotational_stiffness_z_2 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_2 * L)) : 0.0;
 
     const double alpha1_zz = (rotational_stiffness_y_1 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_1 * L)) : 0.0;
     const double alpha2_zz = (rotational_stiffness_y_2 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_2 * L)) : 0.0;
 
+    const double yy_denominator = (4 - alpha1_yy * alpha2_yy);
+    const double zz_denominator = (4 - alpha1_zz * alpha2_zz);
 
     // normal
 	rRigidityReductionMatrix(0, 0) = 1;
@@ -395,13 +397,13 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     rRigidityReductionMatrix(6, 0) = 1;
 
     // yy
-	rRigidityReductionMatrix(1, 1) = (alpha1_yy + alpha2_yy +alpha1_yy*alpha2_yy) / (4 - alpha1_yy - alpha2_yy);
+	rRigidityReductionMatrix(1, 1) = (alpha1_yy + alpha2_yy +alpha1_yy*alpha2_yy) / yy_denominator;
     rRigidityReductionMatrix(7, 7) = rRigidityReductionMatrix(1, 1);
     rRigidityReductionMatrix(1, 7) = rRigidityReductionMatrix(1, 1);
     rRigidityReductionMatrix(7, 1) = rRigidityReductionMatrix(1, 1);
 	
     // zz
-    rRigidityReductionMatrix(2, 2) = (alpha1_zz + alpha2_zz + alpha1_zz * alpha2_zz) / (4 - alpha1_zz - alpha2_zz);
+    rRigidityReductionMatrix(2, 2) = (alpha1_zz + alpha2_zz + alpha1_zz * alpha2_zz) / zz_denominator;
     rRigidityReductionMatrix(8, 8) = rRigidityReductionMatrix(2, 2);
     rRigidityReductionMatrix(2, 8) = rRigidityReductionMatrix(2, 2);
     rRigidityReductionMatrix(8, 2) = rRigidityReductionMatrix(2, 2);
@@ -411,39 +413,39 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     rRigidityReductionMatrix(9, 9) = 1;
 
     // yy 1,2 - rot z 1
-    rRigidityReductionMatrix(1, 5) = (2 * alpha1_yy + alpha1_yy * alpha2_yy) / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(1, 5) = (2 * alpha1_yy + alpha1_yy * alpha2_yy) / yy_denominator;
     rRigidityReductionMatrix(5, 1) = rRigidityReductionMatrix(1, 5);
     rRigidityReductionMatrix(5, 7) = rRigidityReductionMatrix(1, 5);
     rRigidityReductionMatrix(7, 5) = rRigidityReductionMatrix(1, 5);
 
     // zz 1,2 - rot y 1
-	rRigidityReductionMatrix(2, 4) = (2 * alpha1_zz + alpha1_zz * alpha2_zz) / (4 - alpha1_zz * alpha2_zz);
+	rRigidityReductionMatrix(2, 4) = (2 * alpha1_zz + alpha1_zz * alpha2_zz) / zz_denominator;
     rRigidityReductionMatrix(4, 2) = rRigidityReductionMatrix(2, 4);
     rRigidityReductionMatrix(4, 8) = rRigidityReductionMatrix(2, 4);
     rRigidityReductionMatrix(8, 4) = rRigidityReductionMatrix(2, 4);
 
     // yy 1,2 - rot z 2
-    rRigidityReductionMatrix(1, 11) = (2 * alpha2_yy + alpha1_yy * alpha2_yy) / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(1, 11) = (2 * alpha2_yy + alpha1_yy * alpha2_yy) / yy_denominator;
     rRigidityReductionMatrix(11, 1) = rRigidityReductionMatrix(1, 11);
     rRigidityReductionMatrix(11, 7) = rRigidityReductionMatrix(1, 11);
     rRigidityReductionMatrix(7, 11) = rRigidityReductionMatrix(1, 11);
 
     // zz 1,2 - rot y 2
-    rRigidityReductionMatrix(2, 10) = (2 * alpha2_zz + alpha1_zz * alpha2_zz) / (4 - alpha1_zz * alpha2_zz);
+    rRigidityReductionMatrix(2, 10) = (2 * alpha2_zz + alpha1_zz * alpha2_zz) / zz_denominator;
     rRigidityReductionMatrix(10, 2) = rRigidityReductionMatrix(2, 10);
     rRigidityReductionMatrix(10, 8) = rRigidityReductionMatrix(2, 10);
     rRigidityReductionMatrix(8, 10) = rRigidityReductionMatrix(2, 10);
 
     // rot z 1,2 
-    rRigidityReductionMatrix(5, 5) = 3 * alpha1_yy / (4 - alpha1_yy * alpha2_yy);
-    rRigidityReductionMatrix(11, 11) = 3 * alpha2_yy / (4 - alpha1_yy * alpha2_yy);
-    rRigidityReductionMatrix(5, 11) = 3 * alpha1_yy * alpha2_yy / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(5, 5) = 3 * alpha1_yy / yy_denominator;
+    rRigidityReductionMatrix(11, 11) = 3 * alpha2_yy / yy_denominator;
+    rRigidityReductionMatrix(5, 11) = 3 * alpha1_yy * alpha2_yy / yy_denominator;
     rRigidityReductionMatrix(11, 5) = rRigidityReductionMatrix(5, 11);
 
     // rot y 1, 2
-    rRigidityReductionMatrix(4, 4) = 3 * alpha1_zz / (4 - alpha1_zz * alpha2_zz);
-    rRigidityReductionMatrix(10, 10) = 3 * alpha2_zz / (4 - alpha1_zz * alpha2_zz);
-    rRigidityReductionMatrix(4, 10) = 3 * alpha1_zz * alpha2_zz / (4 - alpha1_zz * alpha2_zz);
+    rRigidityReductionMatrix(4, 4) = 3 * alpha1_zz / zz_denominator;
+    rRigidityReductionMatrix(10, 10) = 3 * alpha2_zz / zz_denominator;
+    rRigidityReductionMatrix(4, 10) = 3 * alpha1_zz * alpha2_zz / zz_denominator;
     rRigidityReductionMatrix(10, 4) = rRigidityReductionMatrix(4, 10);
 
     KRATOS_CATCH("");
