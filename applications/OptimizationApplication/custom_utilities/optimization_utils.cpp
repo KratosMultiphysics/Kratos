@@ -138,6 +138,13 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
+bool OptimizationUtils::IsSolutionStepVariablesListSame(
+    const ModelPart& rModelPart1,
+    const ModelPart& rModelPart2)
+{
+    return rModelPart1.GetNodalSolutionStepVariablesList() == rModelPart2.GetNodalSolutionStepVariablesList();
+}
+
 std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
     Model& rModel,
     Parameters Settings)

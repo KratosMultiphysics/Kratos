@@ -93,6 +93,10 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
+    static bool IsSolutionStepVariablesListSame(
+        const ModelPart& rModelPart1,
+        const ModelPart& rModelPart2);
+
     static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,
         Parameters Settings);
