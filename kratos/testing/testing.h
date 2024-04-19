@@ -196,7 +196,7 @@ class ConfigurableEventListener : public ::testing::TestEventListener
         }
 };
 
-class KratosTestEnv : public ::testing::Environment 
+class KRATOS_API(KRATOS_TEST_UTILS) KratosTestEnv : public ::testing::Environment 
 {
     public:
         KratosTestEnv();
@@ -238,7 +238,7 @@ class GTestMain {
  * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
  * Its called this way to that all tests belong to a existing kernel fixture
 */
-class KratosCoreFastSuite : public ::testing::Test 
+class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test 
 {
     public:
         void SetUp() override;
