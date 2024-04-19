@@ -1250,11 +1250,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
-
-    noalias(rVariables.UPMatrix) =
-        PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
@@ -1389,11 +1387,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
-
     noalias(rVariables.UPMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                     rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+                     rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix, rVariables.PressureVector);
 

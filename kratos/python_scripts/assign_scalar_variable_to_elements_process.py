@@ -58,4 +58,4 @@ class AssignScalarVariableToElementsProcess(assign_scalar_variable_to_entities_p
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignScalarVariableToElementsProcess, self).__init__(Model, settings)
+        super().__init__(Model, settings)
