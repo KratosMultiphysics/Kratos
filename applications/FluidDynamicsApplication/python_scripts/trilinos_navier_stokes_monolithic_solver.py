@@ -13,19 +13,19 @@ from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vms
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
-    return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
+    return TrilinosNavierStokesMonolithicSolver(model, custom_settings)
 
-class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesMonolithicSolver):
+class TrilinosNavierStokesMonolithicSolver(navier_stokes_solver_vmsmonolithic.NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings):
         # Call the serial base class constructor
         super().__init__(model,custom_settings)
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of TrilinosNavierStokesSolverMonolithic finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of TrilinosNavierStokesMonolithicSolver finished.")
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(TrilinosNavierStokesSolverMonolithic, self).AddVariables()
+        super().AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
@@ -43,7 +43,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
     def PrepareModelPart(self):
         # Call the base solver to do the PrepareModelPart
         # Note that his also calls the PrepareModelPart of the turbulence model
-        super(TrilinosNavierStokesSolverMonolithic, self).PrepareModelPart()
+        super().PrepareModelPart()
 
         # Create the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
