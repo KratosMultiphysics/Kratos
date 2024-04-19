@@ -346,6 +346,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
     const double tau = GetStabilizationFactor();
+    const double lambda = GetScalingFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
@@ -402,7 +403,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         if (dim == 2 && r_props.Has(THICKNESS))
             w_gauss *= r_props[THICKNESS];
 
-        noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
+        noalias(constitutive_variables.StrainVector) = kinematic_variables.NodalStrain;
 
         // Calculate the constitutive response with the equivalent stabilized strain
         CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
@@ -415,14 +416,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
-        noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
+        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(constitutive_variables.D, kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain)));
+        noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), Vector(prod(constitutive_variables.D, kinematic_variables.EquivalentStrain)));        
 
         // Contributions to the LHS
         noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(M) += (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
-        noalias(G) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
+        noalias(M) += (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(G) += (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
@@ -523,7 +524,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
     const double tau = GetStabilizationFactor();
-
+    const double lambda = GetScalingFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
@@ -568,10 +569,10 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         if (dim == 2 && r_props.Has(THICKNESS))
             w_gauss *= r_props[THICKNESS];
         
-        noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
+        noalias(constitutive_variables.StrainVector) = kinematic_variables.NodalStrain;
 
         // Calculate the constitutive response with the equivalent stabilized strain
-        CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
+        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
@@ -581,8 +582,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
-        noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
+        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(constitutive_variables.D, kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain)));
+        noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), Vector(prod(constitutive_variables.D, kinematic_variables.EquivalentStrain)));        
     }
     AssembleRHS(rRHS, RHSu, RHSe);
 }
