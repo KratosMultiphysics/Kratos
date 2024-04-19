@@ -34,6 +34,7 @@
 /* Application includes */
 #include "rom_application_variables.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
+#include "custom_utilities/rom_residuals_utility.h"
 
 namespace Kratos
 {
@@ -116,6 +117,14 @@ public:
     using DofPointerType = typename DofType::Pointer;
     using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
 
+    ///@name Public member variables
+    ///@{
+    bool mStoreNonConvergedProjectedResiduals = false;
+    Matrix mNonConvergedProjectedResiduals;
+    std::vector<std::string> mNodalUnknowns;
+    std::unique_ptr<RomResidualsUtility> mRomResidualsUtility;
+    ///@}
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -178,6 +187,9 @@ public:
         BaseBuilderAndSolverType::GetDofSet().swap(dof_array);
         BaseBuilderAndSolverType::SetDofSetIsInitializedFlag(true);
 
+        // Function to initialize RomResidualsUtility
+        InitializeRomResidualsUtility(rModelPart, pScheme);
+
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseBuilderAndSolverType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseBuilderAndSolverType::GetDofSet().size() << std::endl;
@@ -198,6 +210,19 @@ public:
         }
 #endif
         KRATOS_CATCH("");
+    }
+
+    void InitializeRomResidualsUtility(ModelPart& rModelPart, typename TSchemeType::Pointer pScheme) {
+        // Initialize Rom Residuals Utility
+        if (mStoreNonConvergedProjectedResiduals) {
+            Parameters ResidualsUtilityParameters;
+            int number_of_rom_dofs = static_cast<int>(mNumberOfRomModes);  // Convert size_t to int if necessary
+            ResidualsUtilityParameters.AddEmptyValue("number_of_rom_dofs").SetInt(number_of_rom_dofs);
+            ResidualsUtilityParameters.AddStringArray("nodal_unknowns", mNodalUnknowns);
+
+            mRomResidualsUtility = std::make_unique<RomResidualsUtility>(rModelPart, ResidualsUtilityParameters, pScheme);
+
+        }
     }
 
     void SetUpSystem(ModelPart &rModelPart) override
@@ -332,6 +357,9 @@ public:
         // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
+
+        // Clear and resize mNonConvergedProjectedResiduals to zero dimensions
+        mNonConvergedProjectedResiduals.resize(0, 0, false);
     }
 
 
@@ -387,6 +415,10 @@ public:
         KRATOS_CATCH("")
     }
 
+    const Kratos::Matrix& GetNonConvergedProjectedResiduals() {
+        return mNonConvergedProjectedResiduals;
+    }
+
     Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
@@ -395,7 +427,8 @@ public:
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
             "rom_bns_settings" : {
-                "monotonicity_preserving": false
+                "monotonicity_preserving": false,
+                "store_non_converged_projected_residuals": false
             }
         })");
         default_parameters.AddMissingParameters(BaseBuilderAndSolverType::GetDefaultParameters());
@@ -476,6 +509,8 @@ protected:
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
         mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
+        mStoreNonConvergedProjectedResiduals = ThisParameters["rom_bns_settings"]["store_non_converged_projected_residuals"].GetBool();
+        mNodalUnknowns = ThisParameters["nodal_unknowns"].GetStringArray();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -771,6 +806,11 @@ protected:
         mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
 
+        // Store (append) Non-Converged Projected Residuals (HROM training)
+        if (mStoreNonConvergedProjectedResiduals) {
+            StoreAndAppendNonConvergedProjectedResiduals();
+        }
+
         KRATOS_CATCH("")
     }
 
@@ -807,6 +847,45 @@ protected:
 
         KRATOS_CATCH("")
     }
+
+    void StoreAndAppendNonConvergedProjectedResiduals() {
+        KRATOS_TRY
+
+        Matrix current_non_converged_projected_residual = mRomResidualsUtility->GetProjectedResidualsOntoPhi();
+
+        if (mNonConvergedProjectedResiduals.size1() == 0 && mNonConvergedProjectedResiduals.size2() == 0) {
+            // Initialize the matrix with the first set of data
+            mNonConvergedProjectedResiduals = current_non_converged_projected_residual;
+        } else {
+            // Append the new data horizontally
+            AppendMatrixHorizontally(mNonConvergedProjectedResiduals, current_non_converged_projected_residual);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void AppendMatrixHorizontally(Kratos::Matrix& rOriginal, const Kratos::Matrix& rToAppend) {
+        // Store original size
+        std::size_t original_rows = rOriginal.size1();
+        std::size_t original_cols = rOriginal.size2();
+        std::size_t append_rows = rToAppend.size1();
+        std::size_t append_cols = rToAppend.size2();
+
+        // Ensure the matrices can be appended row-wise
+        KRATOS_ERROR_IF(original_rows != append_rows) << "Row dimensions must match to append matrices horizontally. Original rows: "
+                                                    << original_rows << ", Append rows: " << append_rows << std::endl;
+
+        // Resize original matrix to hold both
+        rOriginal.resize(original_rows, original_cols + append_cols, true); // 'true' keeps the existing elements
+
+        // Copy rToAppend into the newly allocated space
+        for (std::size_t i = 0; i < append_rows; ++i) {
+            for (std::size_t j = 0; j < append_cols; ++j) {
+                rOriginal(i, original_cols + j) = rToAppend(i, j);
+            }
+        }
+    }
+
 
     ///@}
     ///@name Protected access

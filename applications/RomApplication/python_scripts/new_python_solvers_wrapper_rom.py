@@ -51,16 +51,24 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     # Note that an auxiliary Kratos model is also created to avoid creating the main_model_part in the prototype class instance
     #TODO: We could do the same exercise as we do in the stage (module_name to ClassName equal to ModuleName if we standarize the solver names)
     aux_solver_settings = solver_settings.Clone()
-    aux_solver_settings.RemoveValue("rom_settings")
-    aux_solver_settings.RemoveValue("projection_strategy")
-    aux_solver_settings.RemoveValue("assembling_strategy")
-    aux_solver_settings.RemoveValue("monotonicity_preserving")
+    # List of settings keys to remove
+    keys_to_remove = [
+        "rom_settings", "projection_strategy", "assembling_strategy", "monotonicity_preserving"
+    ]
+
+    # Use the utility function to remove multiple settings
+    RemoveSettings(aux_solver_settings, keys_to_remove)
     aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
 
     # Create the ROM solver from the base solver
     rom_solver_instance = rom_solver.CreateSolver(type(aux_base_solver_instance), model, solver_settings)
 
     return rom_solver_instance
+
+def RemoveSettings(settings, keys_to_remove):
+    for key in keys_to_remove:
+        if settings.Has(key):
+            settings.RemoveValue(key)
 
 def CreateSolver(model, custom_settings):
 

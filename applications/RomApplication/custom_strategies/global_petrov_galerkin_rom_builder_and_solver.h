@@ -143,6 +143,73 @@ public:
     ///@name Operations
     ///@{
 
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart) override
+    {
+        KRATOS_TRY;
+
+        KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+
+        // Get model part data
+        if (BaseType::mHromWeightsInitialized == false) {
+            BaseType::InitializeHROMWeights(rModelPart);
+        }
+
+        auto dof_queue = BaseType::ExtractDofSet(pScheme, rModelPart);
+
+        // Fill a sorted auxiliary array of with the DOFs set
+        KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        auto dof_array = BaseType::SortAndRemoveDuplicateDofs(dof_queue);
+
+        // Update base builder and solver DOFs array and set corresponding flag
+        BaseBuilderAndSolverType::GetDofSet().swap(dof_array);
+        BaseBuilderAndSolverType::SetDofSetIsInitializedFlag(true);
+
+        // Function to initialize RomResidualsUtility
+        InitializeRomResidualsUtility(rModelPart, pScheme);
+
+        // Throw an exception if there are no DOFs involved in the analysis
+        KRATOS_ERROR_IF(BaseBuilderAndSolverType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
+        KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseBuilderAndSolverType::GetDofSet().size() << std::endl;
+        KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
+
+#ifdef KRATOS_DEBUG
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        if (BaseBuilderAndSolverType::GetCalculateReactionsFlag())
+        {
+            for (const auto& r_dof: BaseBuilderAndSolverType::GetDofSet())
+            {
+                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+                    << "Reaction variable not set for the following :\n"
+                    << "Node : " << r_dof.Id() << '\n'
+                    << "Dof  : " << r_dof      << '\n'
+                    << "Not possible to calculate reactions." << std::endl;
+            }
+        }
+#endif
+        KRATOS_CATCH("");
+    }
+
+    void InitializeRomResidualsUtility(ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme)
+    {
+        // Initialize Rom Residuals Utility
+        if (BaseType::mStoreNonConvergedProjectedResiduals) {
+            Parameters ResidualsUtilityParameters;
+            int number_of_rom_dofs = static_cast<int>(BaseType::GetNumberOfROMModes());  // Convert size_t to int if necessary
+            int petrov_galerkin_number_of_rom_dofs = static_cast<int>(mNumberOfPetrovGalerkinRomModes);  // Convert size_t to int if necessary
+            ResidualsUtilityParameters.AddEmptyValue("number_of_rom_dofs").SetInt(number_of_rom_dofs);
+            ResidualsUtilityParameters.AddEmptyValue("petrov_galerkin_number_of_rom_dofs").SetInt(petrov_galerkin_number_of_rom_dofs);
+            ResidualsUtilityParameters.AddStringArray("nodal_unknowns", BaseType::mNodalUnknowns);
+
+            BaseType::mRomResidualsUtility = std::make_unique<RomResidualsUtility>(rModelPart, ResidualsUtilityParameters, pScheme);
+
+        }
+    }
+
     /**
      * Builds and projects the reduced system of equations
      */
@@ -220,6 +287,27 @@ public:
         // Compute the matrix multiplication
         mEigenRomA = eigen_mPsiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
         mEigenRomB = eigen_mPsiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+
+        // Store (append) Non-Converged Projected Residuals (HROM training)
+        if (BaseType::mStoreNonConvergedProjectedResiduals) {
+            StoreAndAppendNonConvergedProjectedResiduals();
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void StoreAndAppendNonConvergedProjectedResiduals() {
+        KRATOS_TRY
+
+        Matrix current_non_converged_projected_residual = BaseType::mRomResidualsUtility->GetProjectedResidualsOntoPsi();
+
+        if (BaseType::mNonConvergedProjectedResiduals.size1() == 0 && BaseType::mNonConvergedProjectedResiduals.size2() == 0) {
+            // Initialize the matrix with the first set of data
+            BaseType::mNonConvergedProjectedResiduals = current_non_converged_projected_residual;
+        } else {
+            // Append the new data horizontally
+            BaseType::AppendMatrixHorizontally(BaseType::mNonConvergedProjectedResiduals, current_non_converged_projected_residual);
+        }
 
         KRATOS_CATCH("")
     }

@@ -48,6 +48,7 @@ class HRomTrainingUtility(object):
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
         self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
         self.constraint_sum_weights =  settings["constraint_sum_weights"].GetBool()
+        self.store_non_converged_projected_residuals = settings["store_non_converged_projected_residuals"].GetBool()
 
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
@@ -174,6 +175,11 @@ class HRomTrainingUtility(object):
             err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
             raise Exception(err_msg)
 
+        # Append non converged projected residuals
+        if self.store_non_converged_projected_residuals:
+            ncp_res_mat = np.array(self.solver._GetBuilderAndSolver().GetNonConvergedProjectedResiduals())
+            res_mat = np.hstack((res_mat, ncp_res_mat))
+
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
@@ -283,7 +289,8 @@ class HRomTrainingUtility(object):
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": false,
-            "constraint_sum_weights": true
+            "constraint_sum_weights": true,
+            "store_non_converged_projected_residuals": false
         }""")
         return default_settings
 

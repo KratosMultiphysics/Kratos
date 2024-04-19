@@ -25,7 +25,9 @@ def CreateSolver(cls, model, custom_settings):
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs": 0,
-                    "rom_bns_settings": {}
+                    "rom_bns_settings": {
+                        "store_non_converged_projected_residuals": false
+                    }
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
