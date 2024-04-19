@@ -1267,7 +1267,10 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 2 * (world_size + 1));
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 2 * (world_size + 1));
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 16 + 14 * (world_size - 1));
+
+        // 16 + 14 * (world_size - 1) stands for the size of the system wiothout constraints
+        //       6 * (world_size - 1) represents de constraints contrirbutions
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 16 + 14 * (world_size - 1) + 6 * (world_size - 1));
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3};
@@ -1356,7 +1359,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 8);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 8);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 32);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 36);
 
         // Values to check
         auto p_prop = r_model_part.pGetProperties(1);
@@ -1426,7 +1429,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 8);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 8);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 38);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 48);
 
         // Values to check
         auto p_prop = r_model_part.pGetProperties(1);
@@ -1496,7 +1499,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 12);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 12);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 43);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 66);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1564,7 +1567,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 12);
         KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 12);
-        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 39);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 44);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
