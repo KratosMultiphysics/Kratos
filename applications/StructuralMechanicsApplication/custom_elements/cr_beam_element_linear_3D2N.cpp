@@ -55,10 +55,10 @@ CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
     {
 		KRATOS_TRY
 
-            if (Has(SEMI_RIGID_NODE_IDS)) {
+            if (this->GetProperties().Has(SEMI_RIGID_NODE_IDS)) {
 
                 // create integer list
-                Vector semi_rigid_node_id_input = GetValue(SEMI_RIGID_NODE_IDS);
+                Vector semi_rigid_node_id_input = this->GetProperties()[SEMI_RIGID_NODE_IDS];
                 std::vector<int> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
                 for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
                     semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
@@ -351,7 +351,7 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     IndexType node_id_1 = GetGeometry()[0].Id();
     IndexType node_id_2 = GetGeometry()[1].Id();
 
-    Vector semi_rigid_node_id_input = GetValue(SEMI_RIGID_NODE_IDS);
+    Vector semi_rigid_node_id_input = GetProperties()(SEMI_RIGID_NODE_IDS);
 
     std::vector<int> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
     for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
@@ -435,15 +435,15 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     rRigidityReductionMatrix(8, 10) = rRigidityReductionMatrix(2, 10);
 
     // rot z 1,2 
-    rRigidityReductionMatrix(5, 5) = 3 * alpha1_yy / (4 - alpha1_yy - alpha2_yy);
-    rRigidityReductionMatrix(11, 11) = 3 * alpha2_yy / (4 - alpha1_yy - alpha2_yy);
-    rRigidityReductionMatrix(5, 11) = 3 * alpha1_yy / (4 - alpha1_yy - alpha2_yy);
+    rRigidityReductionMatrix(5, 5) = 3 * alpha1_yy / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(11, 11) = 3 * alpha2_yy / (4 - alpha1_yy * alpha2_yy);
+    rRigidityReductionMatrix(5, 11) = 3 * alpha1_yy * alpha2_yy / (4 - alpha1_yy * alpha2_yy);
     rRigidityReductionMatrix(11, 5) = rRigidityReductionMatrix(5, 11);
 
     // rot y 1, 2
-    rRigidityReductionMatrix(4, 4) = 3 * alpha1_zz / (4 - alpha1_zz - alpha2_zz);
-    rRigidityReductionMatrix(10, 10) = 3 * alpha2_zz / (4 - alpha1_zz - alpha2_zz);
-    rRigidityReductionMatrix(4, 10) = 3 * alpha1_zz / (4 - alpha1_zz - alpha2_zz);
+    rRigidityReductionMatrix(4, 4) = 3 * alpha1_zz / (4 - alpha1_zz * alpha2_zz);
+    rRigidityReductionMatrix(10, 10) = 3 * alpha2_zz / (4 - alpha1_zz * alpha2_zz);
+    rRigidityReductionMatrix(4, 10) = 3 * alpha1_zz * alpha2_zz / (4 - alpha1_zz * alpha2_zz);
     rRigidityReductionMatrix(10, 4) = rRigidityReductionMatrix(4, 10);
 
     KRATOS_CATCH("");
