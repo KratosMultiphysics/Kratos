@@ -7,7 +7,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
-class StabilizedFormulation(object):
+class StabilizedFormulation:
     """Helper class to define stabilization-dependent parameters."""
     def __init__(self,settings):
         self.element_name = None
