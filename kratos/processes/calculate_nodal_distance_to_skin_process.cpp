@@ -80,6 +80,7 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
     // Assign distance variable
     mpDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["distance_variable"].GetString());
     mpSkinDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["skin_distance_variable"].GetString());
+    mIdVisitedFlag = KratosComponents<Flags>::Get(ThisParameters["visited_skin_flag"].GetString());
 
     // Check it is serial
     KRATOS_ERROR_IF(mrVolumeModelPart.IsDistributed()) << "Distributed computation still not supported. Please update implementation as soon as MPI search is merged. See https://github.com/KratosMultiphysics/Kratos/pull/11719" << std::endl;
@@ -116,7 +117,7 @@ void CalculateNodalDistanceToSkinProcess::Execute()
             auto p_result = result.Get().get();
             if (p_result->GetValue(r_skin_variable) < value) {
                 p_result->SetValue(r_skin_variable, value);
-                p_result->Set(VISITED);
+                p_result->Set(mIdVisitedFlag);
             }
             p_variable_retriever->GetValue(rNode, r_variable) = value;
         }
@@ -163,7 +164,8 @@ const Parameters CalculateNodalDistanceToSkinProcess::GetDefaultParameters() con
         "distance_database"         : "nodal_historical",
         "save_max_distance_in_skin" : false,
         "distance_variable"         : "DISTANCE",
-        "skin_distance_variable"    : "DISTANCE"
+        "skin_distance_variable"    : "DISTANCE",
+        "visited_skin_flag"         : "VISITED"
     })");
     return default_parameters;
 }
