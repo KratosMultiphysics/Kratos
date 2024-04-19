@@ -28,10 +28,12 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 for name in self.project_parameters["output_processes"].keys():
                     if name=="rom_output":
                         rom_output_parameters = self.project_parameters["output_processes"]["rom_output"]
-                        if rom_output_parameters[0]["Parameters"].Has("rom_basis_output_name"):
-                            self.rom_basis_output_name = rom_output_parameters[0]["Parameters"]["rom_basis_output_name"].GetString()
-                        if rom_output_parameters[0]["Parameters"].Has("rom_basis_output_folder"):
-                            self.rom_basis_output_folder = rom_output_parameters[0]["Parameters"]["rom_basis_output_folder"].GetString()
+                        for parameter_set in rom_output_parameters:
+                            if parameter_set["python_module"].GetString() == "calculate_rom_basis_output_process":
+                                if parameter_set["Parameters"].Has("rom_basis_output_name"):
+                                    self.rom_basis_output_name = parameter_set["Parameters"]["rom_basis_output_name"].GetString()
+                                if parameter_set["Parameters"].Has("rom_basis_output_folder"):
+                                    self.rom_basis_output_folder = parameter_set["Parameters"]["rom_basis_output_folder"].GetString()
             self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
