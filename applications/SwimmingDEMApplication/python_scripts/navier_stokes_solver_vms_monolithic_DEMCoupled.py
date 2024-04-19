@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 # Import applications
-from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic as NavierMonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_monolithic_solver as NavierMonolithic
 
 # Import base class file
 from KratosMultiphysics.SwimmingDEMApplication.fluid_DEM_coupling_solver import FluidDEMSolver

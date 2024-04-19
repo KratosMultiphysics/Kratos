@@ -9,13 +9,13 @@ from KratosMultiphysics.FluidDynamicsApplication import TrilinosExtension as Tri
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic
+from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_monolithic_solver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 def CreateSolver(model, custom_settings):
     return TrilinosNavierStokesMonolithicSolver(model, custom_settings)
 
-class TrilinosNavierStokesMonolithicSolver(navier_stokes_solver_vmsmonolithic.NavierStokesMonolithicSolver):
+class TrilinosNavierStokesMonolithicSolver(navier_stokes_monolithic_solver.NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings):
         # Call the serial base class constructor
