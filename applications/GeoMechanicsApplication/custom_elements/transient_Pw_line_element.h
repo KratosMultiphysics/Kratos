@@ -294,7 +294,7 @@ private:
                                    const unsigned int integration_point_index) const
     {
         const auto& r_properties = GetProperties();
-        double biot_coefficient = r_properties[BIOT_COEFFICIENT];
+        const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
         double result = 0.0;
         if (!r_properties[IGNORE_UNDRAINED]) {
@@ -344,10 +344,10 @@ private:
         const ProcessInfo& rCurrentProcessInfo,
         const Vector& rIntegrationCoefficients) const
     {
-        unsigned int NumGPoints = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container;
-        J_container.resize(NumGPoints,false);
-        for (unsigned int i = 0; i < NumGPoints; ++i) {
+        J_container.resize(number_integration_points, false);
+        for (std::size_t i = 0; i < number_integration_points; ++i) {
             J_container[i].resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
         }
         GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
