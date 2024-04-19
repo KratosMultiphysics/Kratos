@@ -429,87 +429,6 @@ void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType&        r
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const GeometryType&                             rGeom     = GetGeometry();
-    const SizeType                                  Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType                                  NumUNodes = rGeom.PointsNumber();
-    const SizeType                                  BlockElementSize = NumUNodes * Dim;
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-
-    Matrix MassMatrixContribution = ZeroMatrix(BlockElementSize, BlockElementSize);
-
-    // Defining shape functions and the determinant of the jacobian at all integration points
-
-    // Loop over integration points
-    Matrix Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix DensityMatrix    = ZeroMatrix(Dim, Dim);
-
-    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B)
-        this->CalculateKinematics(Variables, GPoint);
-
-        // calculating weighting coefficient for integration
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        this->CalculateSoilDensity(Variables);
-
-        // Setting the shape function matrix
-        SizeType Index = 0;
-        for (SizeType i = 0; i < NumUNodes; ++i) {
-            for (SizeType iDim = 0; iDim < Dim; ++iDim) {
-                Nu(iDim, Index++) = Variables.Nu(i);
-            }
-        }
-
-        GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
-
-        noalias(AuxDensityMatrix) = prod(DensityMatrix, Nu);
-
-        // Adding contribution to Mass matrix
-        noalias(MassMatrixContribution) +=
-            prod(trans(Nu), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration;
-    }
-
-    // Distribute mass block matrix into the elemental matrix
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = BlockElementSize + NumPNodes;
-
-    if (rMassMatrix.size1() != ElementSize || rMassMatrix.size2() != ElementSize)
-        rMassMatrix.resize(ElementSize, ElementSize, false);
-    noalias(rMassMatrix) = ZeroMatrix(ElementSize, ElementSize);
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        SizeType Index_i = i * Dim;
-
-        for (SizeType j = 0; j < NumUNodes; ++j) {
-            SizeType Index_j = j * Dim;
-            for (SizeType idim = 0; idim < Dim; ++idim) {
-                for (SizeType jdim = 0; jdim < Dim; ++jdim) {
-                    rMassMatrix(Index_i + idim, Index_j + jdim) +=
-                        MassMatrixContribution(Index_i + idim, Index_j + jdim);
-                }
-            }
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -522,12 +441,8 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
-
-    // Compute Mass Matrix
-    MatrixType MassMatrix(ElementSize, ElementSize);
-
-    // this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-    MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix(
+    
+    MatrixType MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix(
         this->GetGeometry(), mpPressureGeometry, this->GetIntegrationMethod(), mpStressStatePolicy,
         mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
