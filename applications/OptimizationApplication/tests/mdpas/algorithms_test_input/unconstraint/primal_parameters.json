@@ -17,7 +17,7 @@
             "input_filename": "Structure"
         },
         "material_import_settings": {
-            "materials_filename": "StructuralMaterials.json"
+            "materials_filename": "../../../mdpas/algorithms_test_input/unconstraint/StructuralMaterials.json"
         },
         "time_stepping": {
             "time_step": 1.0
