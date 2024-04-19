@@ -35,7 +35,7 @@ namespace Kratos::Testing {
 /** This class contains the auxiliary functions used in the application tests.
  * Note that this class must never be included outside the Kratos::Testing namespace.
 */
-class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ConvectionDiffusionTestingUtilities
+class ConvectionDiffusionTestingUtilities
 {
 public:
     ///@name Type Definitions
