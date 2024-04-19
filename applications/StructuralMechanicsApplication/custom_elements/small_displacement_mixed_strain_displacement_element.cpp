@@ -345,7 +345,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
+    const double tau = GetStabilizationFactor();
 
     // Check RHS size
     if (rRHS.size() != matrix_size) {
@@ -443,7 +443,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     // const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     // const SizeType block_size  = dim + strain_size;
     // const SizeType matrix_size = block_size * n_nodes;
-    // const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
+    // const double tau = GetStabilizationFactor();
     // const int tangent_estimation = r_props.Has(TANGENT_OPERATOR_ESTIMATION) ? r_props[TANGENT_OPERATOR_ESTIMATION] : 2;
 
     // // Check LHS size
@@ -522,7 +522,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
+    const double tau = GetStabilizationFactor();
 
 
     // Check RHS size
@@ -845,13 +845,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
 
     // Calculate the equivalent total strain
     CalculateEquivalentStrain(rKinVariables);
-
-    // KRATOS_WATCH("****")
-    // KRATOS_WATCH(rKinVariables.EquivalentStrain)
-    // KRATOS_WATCH(rKinVariables.NodalStrain)
-    // KRATOS_WATCH(rKinVariables.SymmGradientDispl)
-    // KRATOS_WATCH("****")
-
 }
 
 /***********************************************************************************/
@@ -876,7 +869,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateEquivalentStrain(
     KinematicVariables& rKinVars) const
 {
     const auto &r_props = GetProperties();
-    const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor;
+    const double tau = GetStabilizationFactor();
     noalias(rKinVars.EquivalentStrain) = (1.0 - tau) * rKinVars.NodalStrain + tau * rKinVars.SymmGradientDispl;
 }
 

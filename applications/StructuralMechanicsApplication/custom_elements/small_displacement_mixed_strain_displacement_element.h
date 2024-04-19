@@ -433,6 +433,24 @@ protected:
     virtual bool UseElementProvidedStrain() const;
 
     /**
+     * @brief This method returns the stabilization factor tau according to the FE size
+     */
+    const double GetStabilizationFactor() const
+    {
+        const auto &r_props = GetProperties();
+        const auto &r_geom = GetGeometry();
+        const SizeType dim = r_geom.WorkingSpaceDimension();
+        const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor; // tau is c / L0
+        double l_char;
+        if (dim == 2) {
+            l_char = std::sqrt(r_geom.Area());
+        } else {
+            l_char = std::cbrt(r_geom.Volume());
+        }
+        return l_char * tau;
+    }
+
+    /**
      * @brief This functions updates the data structure passed to the CL
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
