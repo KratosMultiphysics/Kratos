@@ -93,9 +93,9 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
-    static bool IsSolutionStepVariablesListSame(
-        const ModelPart& rModelPart1,
-        const ModelPart& rModelPart2);
+    static bool IsSolutionStepVariablesListASubSet(
+        const ModelPart& rMainSetModelPart,
+        const ModelPart& rSubSetModelPart);
 
     static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,

@@ -138,11 +138,16 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
 }
 
-bool OptimizationUtils::IsSolutionStepVariablesListSame(
-    const ModelPart& rModelPart1,
-    const ModelPart& rModelPart2)
+bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
+    const ModelPart& rMainSetModelPart,
+    const ModelPart& rSubSetModelPart)
 {
-    return rModelPart1.GetNodalSolutionStepVariablesList() == rModelPart2.GetNodalSolutionStepVariablesList();
+    for (const auto& r_sub_variable : rSubSetModelPart.GetNodalSolutionStepVariablesList()) {
+        if (!rMainSetModelPart.GetNodalSolutionStepVariablesList().Has(r_sub_variable)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
