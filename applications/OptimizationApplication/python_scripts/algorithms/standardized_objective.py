@@ -116,6 +116,7 @@ class StandardizedObjective(ResponseRoutine):
             "name": self.GetResponseName(),
             "type": self.__objective_type,
             "value": self.GetValue(),
+            "std_value": self.GetStandardizedValue(),
             "abs_change": self.GetAbsoluteChange(),
             "rel_change [%]": self.GetRelativeChange() * 100.0
         }

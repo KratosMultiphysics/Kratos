@@ -25,43 +25,40 @@ namespace Kratos
 class ModelPart;
 class Parameters;
 
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyNormalLoadTableProcess : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyNormalLoadTableProcess);
 
-    ApplyNormalLoadTableProcess(ModelPart&        rModelPart,
-                                const Parameters& rProcessSettings);
+    ApplyNormalLoadTableProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
     ~ApplyNormalLoadTableProcess() override;
 
-    ApplyNormalLoadTableProcess(const ApplyNormalLoadTableProcess&) = delete;
+    ApplyNormalLoadTableProcess(const ApplyNormalLoadTableProcess&)            = delete;
     ApplyNormalLoadTableProcess& operator=(const ApplyNormalLoadTableProcess&) = delete;
 
-    void ExecuteInitialize() override;
-    void ExecuteInitializeSolutionStep() override;
+    void        ExecuteInitialize() override;
+    void        ExecuteInitializeSolutionStep() override;
     std::string Info() const override;
 
 private:
-    void MakeInternalProcesses(const Parameters & rProcessSettings);
-    void MakeProcessForNormalComponent(const Parameters & rProcessSettings);
-    void MakeProcessForTangentialComponent(const Parameters & rProcessSettings);
-    void MakeProcessForUniformFluidPressureType(const Parameters & rProcessSettings,
+    void MakeInternalProcesses(const Parameters& rProcessSettings);
+    void MakeProcessForNormalComponent(const Parameters& rProcessSettings);
+    void MakeProcessForTangentialComponent(const Parameters& rProcessSettings);
+    void MakeProcessForUniformFluidPressureType(const Parameters& rProcessSettings,
                                                 const std::vector<std::string>& NamesOfSettingsToCopy);
-    void MakeProcessForHydrostaticFluidPressureType(const Parameters & rProcessSettings,
+    void MakeProcessForHydrostaticFluidPressureType(const Parameters&        rProcessSettings,
                                                     std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticLineFluidPressureType(const Parameters & rProcessSettings,
+    void MakeProcessForPhreaticLineFluidPressureType(const Parameters& rProcessSettings,
                                                      std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForPhreaticSurfaceFluidPressureType(const Parameters & rProcessSettings,
+    void MakeProcessForPhreaticSurfaceFluidPressureType(const Parameters& rProcessSettings,
                                                         std::vector<std::string> NamesOfSettingsToCopy);
-    bool IsNormalComponentActive(const Parameters & rProcessSettings) const;
-    bool IsTangentialComponentActive(const Parameters & rProcessSettings) const;
-    bool IsComponentActive(const Parameters & rProcessSettings, int componentNumber) const;
+    bool IsNormalComponentActive(const Parameters& rProcessSettings) const;
+    bool IsTangentialComponentActive(const Parameters& rProcessSettings) const;
+    bool IsComponentActive(const Parameters& rProcessSettings, int componentNumber) const;
 
-
-    ModelPart& mrModelPart;
+    ModelPart&                            mrModelPart;
     std::vector<std::unique_ptr<Process>> mProcesses;
 };
 
-}
+} // namespace Kratos
