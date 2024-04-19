@@ -191,6 +191,42 @@ class TestConnectivityPreservingModelPartController(kratos_unittest.TestCase):
                 }
             ]
         }""")
+        ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
+        self.__CheckModelParts(sub_model_part, model["destination.sub_source"])
+
+    def test_Duplication6(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("source")
+        model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+
+        model_part.CreateNewNode(1, 0, 0, 0)
+        model_part.CreateNewNode(2, 1, 0, 0)
+        model_part.CreateNewNode(3, 1, 1, 0)
+        model_part.CreateNewNode(4, 0, 1, 0)
+
+        properties = model_part.CreateNewProperties(1)
+        model_part.CreateNewElement("Element3D3N", 1, [1, 2, 3], properties)
+        model_part.CreateNewElement("Element3D3N", 2, [1, 3, 4], properties)
+
+        sub_model_part = model_part.CreateSubModelPart("sub_source")
+        sub_model_part.AddElements([2])
+        sub_model_part.AddNodes([1, 3, 4])
+
+        dest_model_part = model.CreateModelPart("destination")
+        dest_model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+
+        parameters = Kratos.Parameters("""{
+            "transformation_settings": [
+                {
+                    "source_model_part_name"     : "source.sub_source",
+                    "destination_model_part_name": "destination.sub_source",
+                    "destination_element_name"   : "HelmholtzSurfaceElement3D3N",
+                    "destination_condition_name" : ""
+                }
+            ]
+        }""")
+
         with self.assertRaises(RuntimeError):
             ConnectivityPreservingModelPartController(model, parameters).ImportModelPart()
 
