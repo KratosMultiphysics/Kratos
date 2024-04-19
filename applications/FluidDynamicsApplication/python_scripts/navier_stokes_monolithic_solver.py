@@ -186,9 +186,9 @@ class StabilizedFormulation(object):
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
 
 def CreateSolver(model, custom_settings):
-    return NavierStokesSolverMonolithic(model, custom_settings)
+    return NavierStokesMonolithicSolver(model, custom_settings)
 
-class NavierStokesSolverMonolithic(FluidSolver):
+class NavierStokesMonolithicSolver(FluidSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -243,54 +243,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_flag": false
         }""")
 
-        default_settings.AddMissingParameters(super(NavierStokesSolverMonolithic, cls).GetDefaultParameters())
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
-    def _BackwardsCompatibilityHelper(self,settings):
-        ## Backwards compatibility -- deprecation warnings
-        if settings.Has("stabilization"):
-            msg  = "Input JSON data contains deprecated setting \'stabilization\'.\n"
-            msg += "Please rename it to \'formulation\' (and rename \'stabilization/formulation\' to \'formulation/element_type\' if it exists).\n"
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            settings.AddValue("formulation", settings["stabilization"])
-            settings.RemoveValue("stabilization")
-            settings["formulation"].AddValue("element_type", settings["formulation"]["formulation"])
-            settings["formulation"].RemoveValue("formulation")
-
-        if settings.Has("oss_switch"):
-            msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
-            msg += "Please define \'formulation/element_type\' (set it to \'vms\')\n"
-            msg += "and set \'formulation/use_orthogonal_subscales\' (bool) instead."
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            if not settings.Has("formulation"):
-                settings.AddValue("formulation",KratosMultiphysics.Parameters(r'{"element_type":"vms"}'))
-            settings["formulation"].AddEmptyValue("use_orthogonal_subscales")
-            settings["formulation"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
-            settings.RemoveValue("oss_switch")
-
-        if settings.Has("dynamic_tau"):
-            msg  = "Input JSON data contains deprecated setting \'dynamic_tau\' (float).\n"
-            msg += "Please define \'formulation/element_type\' (set it to \'vms\') and \n"
-            msg += "set \'formulation/dynamic_tau\' (float) instead."
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            if not settings.Has("formulation"):
-                settings.AddValue("formulation",KratosMultiphysics.Parameters(r'{"element_type":"vms"}'))
-            settings["formulation"].AddEmptyValue("dynamic_tau")
-            settings["formulation"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
-            settings.RemoveValue("dynamic_tau")
-
-        if settings.Has("turbulence_model") and settings["turbulence_model"].IsString():
-            if settings["turbulence_model"].GetString().lower()!="none":
-                msg = "Ignoring deprecated \"turbulence_model\" (string) setting."
-                KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            settings.RemoveValue("turbulence_model")
-
-        return settings
-
-
     def __init__(self, model, custom_settings):
-        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
-        super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
+        super().__init__(model,custom_settings)
 
         # Set up the auxiliary class with the formulation settings
         self._SetFormulation()
@@ -298,7 +255,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         # Update the default buffer size according to the selected time scheme
         self._SetTimeSchemeBufferSize()
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithic finished.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesMonolithicSolver finished.")
 
     def AddVariables(self):
         ## Add base class variables
