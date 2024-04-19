@@ -35,12 +35,21 @@ The mathematical definition is:
 $$Q = \int_\Omega B^T \alpha \xi m N_p d\Omega$$
 where $B$ is the B-matrix, $\alpha$ is the Biot-alpha (relation between pressure and displacements, material parameter), $\xi$ is the Bishop coefficient, $m$ is the Voigt-vector ($[1,1,1,0,0,0]$) and $N_p$ is the pressure shape function.
 
+### Mass Matrix (M)
+
+The mathematical definition is:
+$$M = \int_\Omega N_{u}^T \rho N_u d\Omega$$
+
+Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density matrix that holds density for all directions.
+
 
 File transport_equation_utilities.hpp includes 
 
 -  CalculatePermeabilityMatrix function
 -  CalculateCompressibilityMatrix function
 -  CalculateCouplingMatrix function
+-  CalculateMassMatrix function
+-  CalculateSoilDensity function
 
 
 ## Stress strain utilities
