@@ -448,8 +448,7 @@ protected:
         } else {
             l_char = std::cbrt(r_geom.Volume());
         }
-        // return l_char * tau / L0;
-        return 0.1;
+        return l_char * tau / L0;
     }
 
     /**

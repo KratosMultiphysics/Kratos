@@ -212,8 +212,7 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLeng
         if(aux_value > radius) radius = aux_value;
     }
 
-    // return std::sqrt(radius);
-    return 2.0 * 0.0008;
+    return std::sqrt(radius);
 }
 
 /***********************************************************************************/
