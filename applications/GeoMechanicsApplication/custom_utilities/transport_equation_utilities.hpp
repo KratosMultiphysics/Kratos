@@ -104,7 +104,6 @@ public:
 
         Matrix nu_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
         Matrix np_container = rpPressureGeometry->ShapeFunctionsValues(IntegrationMethod);
-        Vector Np(number_P_nodes);
         Vector pressure_vector =
             GeoTransportEquationUtilities::GetSolutionVector(number_P_nodes, rGeom, WATER_PRESSURE);
 
@@ -120,7 +119,6 @@ public:
         Matrix density_matrix     = ZeroMatrix(dimension, dimension);
 
         for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
-            noalias(Np) = row(np_container, g_point);
             Matrix J0;
             Matrix inv_J0;
             GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
@@ -135,11 +133,9 @@ public:
                 mpStressStatePolicy->CalculateIntegrationCoefficient(
                     integration_points[g_point], det_J_initial_configuration, rGeom);
 
-            const double fluid_pressure =
-                GeoTransportEquationUtilities::CalculateFluidPressure(Np, pressure_vector);
-            {
-                RetentionParameters.SetFluidPressure(fluid_pressure);
-            }
+            const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+                row(np_container, g_point), pressure_vector);
+            RetentionParameters.SetFluidPressure(fluid_pressure);
 
             const double degree_of_saturation =
                 rRetentionLawVector[g_point]->CalculateSaturation(RetentionParameters);
