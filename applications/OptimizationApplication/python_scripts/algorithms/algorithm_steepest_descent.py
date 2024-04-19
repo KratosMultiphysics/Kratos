@@ -55,32 +55,32 @@ class AlgorithmSteepestDescent(Algorithm):
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
-        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
-        self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
+        self.convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
+        self.line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
-        self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
-        self.__control_field = None
-        self.__obj_val = None
+        self.objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self.control_field = None
+        self.obj_val = None
 
     def GetMinimumBufferSize(self) -> int:
         return 2
 
     def Check(self):
         self.master_control.Check()
-        self.__objective.Check()
+        self.objective.Check()
 
     @time_decorator()
     def Initialize(self):
         self.converged = False
-        self.__obj_val = None
+        self.obj_val = None
         self.master_control.Initialize()
-        self.__objective.Initialize()
-        self.__control_field = self.master_control.GetControlField()
+        self.objective.Initialize()
+        self._control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     def Finalize(self):
         self.master_control.Finalize()
-        self.__objective.Finalize()
+        self._objective.Finalize()
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
@@ -97,12 +97,12 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self.__control_field += update
+        self._control_field += update
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
-        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
-        self.__objective.OutputGradientFields(self._optimization_problem, True)
+        self.algorithm_data.GetBufferedData()["control_field"] = self._control_field.Clone()
+        self.objective.OutputGradientFields(self._optimization_problem, True)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
@@ -111,7 +111,7 @@ class AlgorithmSteepestDescent(Algorithm):
         return self.__obj_val
 
     def GetCurrentControlField(self):
-        return self.__control_field
+        return self._control_field
 
     @time_decorator()
     def Solve(self):
@@ -119,18 +119,18 @@ class AlgorithmSteepestDescent(Algorithm):
             with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
                 self._InitializeIteration()
 
-                self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-                obj_info = self.__objective.GetInfo()
+                self.obj_val = self.objective.CalculateStandardizedValue(self._control_field)
+                obj_info = self.objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
 
-                obj_grad = self.__objective.CalculateStandardizedGradient()
+                obj_grad = self.objective.CalculateStandardizedGradient()
 
                 self.ComputeSearchDirection(obj_grad)
 
-                alpha = self.__line_search_method.ComputeStep()
+                alpha = self.line_search_method.ComputeStep()
 
                 self.ComputeControlUpdate(alpha)
 
@@ -140,7 +140,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                self.converged = self.convergence_criteria.IsConverged()
 
                 self._optimization_problem.AdvanceStep()
 
@@ -148,6 +148,6 @@ class AlgorithmSteepestDescent(Algorithm):
 
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:
-            return self.__obj_val
+            return self.obj_val
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")

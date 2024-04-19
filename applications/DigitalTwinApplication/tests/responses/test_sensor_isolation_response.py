@@ -107,9 +107,9 @@ class TestSensorIsolationResponse(UnitTest.TestCase):
             node: Kratos.Node = cls.sensor_model_part.CreateNewNode(i + 1, loc[0], loc[1], loc[2])
 
         cls.sensor_model_part.GetNode(1).SetValue(KratosDT.SENSOR_STATUS, 1)            
-        cls.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 0.8)            
-        cls.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 0.7)            
-        cls.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 0.6)            
+        cls.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 0.7)            
+        cls.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 0.5)            
+        cls.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 0.2)            
 
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
@@ -121,7 +121,7 @@ class TestSensorIsolationResponse(UnitTest.TestCase):
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 2.1)
+        self.assertAlmostEqual(self.response.CalculateValue(), 2.94)
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()

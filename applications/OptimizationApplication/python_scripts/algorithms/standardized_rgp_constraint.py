@@ -231,7 +231,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
         return self.GetStandardizedValue(step_index) * is_violated
 
     def GetRelativeViolation(self, step_index: int = 0) -> float:
-        return self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else None
+        return self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else 0.0
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 1:
@@ -252,6 +252,6 @@ class StandardizedRGPConstraint(ResponseRoutine):
             "abs_change": self.GetAbsoluteChange(),
             "abs_violation": self.GetAbsoluteViolation(),
             "rel_change [%]": self.GetRelativeChange() * 100.0,
-            "rel_violation [%]": self.GetRelativeViolation() * 100.0
+            "rel_violation [%]": self.GetRelativeViolation() * 100.0 if not self.GetReferenceValue() == 0.0 else str(None)
         }
         return info

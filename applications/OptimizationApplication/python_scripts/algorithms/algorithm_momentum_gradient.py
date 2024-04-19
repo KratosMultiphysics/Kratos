@@ -3,14 +3,12 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
-
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-    return AlgorithmNesterovAcceleratedGradient(model, parameters, optimization_problem)
+    return AlgorithmMomentumGradient(model, parameters, optimization_problem)
 
-class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
+class AlgorithmMomentumGradient(AlgorithmSteepestDescent):
     """
         Nesterov Accelerated Gradient method to solve unconstrainted optimization problems.
         The implementation is based on https://paperswithcode.com/method/nesterov-accelerated-gradient
@@ -44,45 +42,11 @@ class AlgorithmNesterovAcceleratedGradient(AlgorithmSteepestDescent):
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
         update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
         # add momentum to the correction update to compute new momentum point.
-
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update + self.prev_update * self.eta 
-        self.prev_update = update + self.prev_update * self.eta 
+        if self.prev_update:
+            self.algorithm_data.GetBufferedData()["control_field_update"] = update + self.prev_update * self.eta
+            self.prev_update = update + self.prev_update * self.eta
+        else:
+            self.algorithm_data.GetBufferedData()["control_field_update"] = update
+            self.prev_update = update
 
         self.prev_update = KratosOA.ExpressionUtils.Collapse(self.prev_update)
-
-    @time_decorator()
-    def Solve(self):
-        self.prev_update = self._control_field * 0.0
-        while not self.converged:
-            with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
-                self._InitializeIteration()
-                self.__obj_val = self.objective.CalculateStandardizedValue(self._control_field)
-                obj_info = self.objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
-                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
-                if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
-
-                
-                mom_control_field = self._control_field + self.prev_update * self.eta
-                self.objective.CalculateStandardizedValue(mom_control_field)
-
-                obj_grad = self.objective.CalculateStandardizedGradient()
-
-                self.ComputeSearchDirection(obj_grad)
-
-                alpha = self.line_search_method.ComputeStep()
-
-                self.ComputeControlUpdate(alpha)
-
-                self._FinalizeIteration()
-
-                self.Output()
-
-                self.UpdateControl()
-
-                self.converged = self.convergence_criteria.IsConverged()
-
-                self._optimization_problem.AdvanceStep()
-
-        return self.converged
