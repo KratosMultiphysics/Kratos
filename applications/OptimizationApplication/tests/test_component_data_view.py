@@ -49,5 +49,4 @@ class TestComponentDataView(kratos_unittest.TestCase):
         self.assertEqual(temp_response_data.GetUnBufferedData(), unbuffered_data)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

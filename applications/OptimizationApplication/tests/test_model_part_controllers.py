@@ -59,5 +59,4 @@ class TestMdpaModelPartController(kratos_unittest.TestCase):
             DeleteFileIfExisting("quads_with_nodal_values.time")
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

@@ -135,5 +135,4 @@ class TestMassterControl(kratos_unittest.TestCase):
         self.assertTrue(all(updated_status.values()))
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

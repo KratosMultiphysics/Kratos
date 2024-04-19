@@ -33,6 +33,5 @@ class TestGradientProjectionAnalysis(KratosUnittest.TestCase):
             DeleteFileIfExisting("Structure.time")
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.main()
 

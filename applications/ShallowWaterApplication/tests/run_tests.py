@@ -22,7 +22,6 @@ cpp_verbosity = {
 }
 
 def run_cpp_tests():
-    KratosMultiphysics.Tester.SetVerbosity(cpp_verbosity[args.verbosity])
     if args.cpp_test:
         KratosMultiphysics.Tester.RunTestCases(args.cpp_test)
     else:

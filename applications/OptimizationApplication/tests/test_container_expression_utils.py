@@ -360,5 +360,4 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         self.assertEqual(KratosOA.ExpressionUtils.InnerProduct(collective_1, collective_1), Kratos.Expression.Utils.InnerProduct(a, a) + Kratos.Expression.Utils.InnerProduct(b, b))
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

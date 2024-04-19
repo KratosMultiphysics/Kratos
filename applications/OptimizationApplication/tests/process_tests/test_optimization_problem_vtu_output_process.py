@@ -185,5 +185,4 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             }""")).Execute()
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

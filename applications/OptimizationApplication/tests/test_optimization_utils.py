@@ -68,5 +68,4 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         self.assertEqual(values[1], [self.model.GetModelPart("test.sub_2")])
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()

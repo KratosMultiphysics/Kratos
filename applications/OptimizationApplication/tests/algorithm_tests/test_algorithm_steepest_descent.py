@@ -94,5 +94,4 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase):
         self.assertVectorAlmostEqual(self.algorithm.GetCurrentControlField().Evaluate(), [1.85, 3.7])
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()
