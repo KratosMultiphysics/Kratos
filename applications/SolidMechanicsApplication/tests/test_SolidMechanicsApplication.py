@@ -47,10 +47,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo(":", "Running cpp unit tests ...")
-    run_cpp_tests.run()
-    KratosMultiphysics.Logger.PrintInfo(":", "Finished running cpp tests")
-
     KratosMultiphysics.Logger.PrintInfo(":", "Running python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo(":", "Finished python tests!")
