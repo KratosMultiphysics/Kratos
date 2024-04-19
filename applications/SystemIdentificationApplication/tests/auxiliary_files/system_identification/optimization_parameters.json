@@ -97,7 +97,7 @@
             "echo_level": 0,
             "line_search": {
                 "type": "const_step",
-                "init_step": 1e+8,
+                "init_step": 0.01,
                 "gradient_scaling": "inf_norm"
             },
             "conv_settings": {
