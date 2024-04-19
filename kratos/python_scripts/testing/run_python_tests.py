@@ -1,7 +1,6 @@
 import os
 import sys
 import argparse
-import subprocess
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -98,15 +97,6 @@ def main():
 
         testing_utils.PrintTestFooter(application, commander.exitCode)
         exit_codes[application] = commander.exitCode
-
-    # Run the cpp tests (does the same as run_cpp_tests.py)
-    testing_utils.PrintTestHeader("cpp")
-    
-    # with KratosUnittest.SupressConsoleOutput():
-    commander.RunCppTests(applications, args.verbosity)
-
-    testing_utils.PrintTestFooter("cpp", commander.exitCode)
-    exit_codes["cpp"] = commander.exitCode
 
     testing_utils.PrintTestSummary(exit_codes)
     sys.exit(max(exit_codes.values()))
