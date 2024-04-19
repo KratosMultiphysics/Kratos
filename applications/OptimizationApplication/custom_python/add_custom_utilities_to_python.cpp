@@ -190,7 +190,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ElementsContainerType>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
-        .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
+        .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList, py::arg("destination_model_part"), py::arg("origin_model_part"))
+        .def("IsSolutionStepVariablesListASubSet", &OptimizationUtils::IsSolutionStepVariablesListASubSet, py::arg("main_set_model_part"), py::arg("sub_set_model_part"))
         .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
             py::arg("model"),
             py::arg("parameters"),
