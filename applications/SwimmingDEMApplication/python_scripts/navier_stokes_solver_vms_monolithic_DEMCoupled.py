@@ -185,7 +185,6 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         """
         self._validate_settings_in_baseclass=True
         self.dimension = custom_settings["domain_size"].GetInt()
-        custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithicDEM,self).__init__(model, custom_settings)
 
         # Set up the auxiliary class with the formulation settings
