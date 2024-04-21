@@ -196,17 +196,15 @@ class MechanicalSolver(PythonSolver):
         return 2
 
     def AddDofs(self):
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-
         # Append formulation-related DOFs and reactions
-        dofs_and_reactions_to_add = [["DISPLACEMENT_X", "REACTION_X"],
-                                     ["DISPLACEMENT_Y", "REACTION_Y"],
-                                     ["DISPLACEMENT_Z", "REACTION_Z"]][:domain_size]
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_X", "REACTION_X"])
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_Y", "REACTION_Y"])
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_Z", "REACTION_Z"])
         if self.settings["rotation_dofs"].GetBool():
-
-            dofs_and_reactions_to_add += [["ROTATION_X", "REACTION_MOMENT_X"],
-                                          ["ROTATION_Y", "REACTION_MOMENT_Y"],
-                                          ["ROTATION_Z", "REACTION_MOMENT_Z"]][:domain_size]
+            dofs_and_reactions_to_add.append(["ROTATION_X", "REACTION_MOMENT_X"])
+            dofs_and_reactions_to_add.append(["ROTATION_Y", "REACTION_MOMENT_Y"])
+            dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
         if self.settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
         if self.settings["displacement_control"].GetBool():
@@ -242,7 +240,7 @@ class MechanicalSolver(PythonSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
-
+        
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
