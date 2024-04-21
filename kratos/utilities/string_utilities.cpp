@@ -182,14 +182,18 @@ std::string Trim(
     return TrimLeft(TrimRight(rInputString, RemoveNullChar), RemoveNullChar);
 }
 
+std::function<bool(std::string::value_type)> TrimChar(const bool RemoveNullChar)
+{
+    if (RemoveNullChar) {
+        return [](auto character) {
+            return std::isspace(character) || character == '\0';
+        };
+    }
 
-const auto trim_space_and_null_char = [](std::string::value_type character) -> bool {
-    return std::isspace(character) || character == '\0';
-};
-
-const auto trim_space = [](std::string::value_type character) -> bool {
-    return std::isspace(character);
-};
+    return [](auto character) {
+        return std::isspace(character);
+    };
+}
 
 std::string TrimLeft(
     const std::string& rInputString,
@@ -197,10 +201,10 @@ std::string TrimLeft(
 {
     std::string output_string(rInputString);
 
-    const auto trim_char = RemoveNullChar ? trim_space_and_null_char : trim_space;
+    const auto trim_char = TrimChar(RemoveNullChar);
 
     output_string.erase(output_string.begin(), std::find_if(output_string.begin(), output_string.end(),
-            [&trim_char](std::string::value_type ch) {return !trim_char(ch);}
+            [trim_char](std::string::value_type ch) {return !trim_char(ch);}
         )
     );
 
@@ -212,11 +216,10 @@ std::string TrimRight(
     const bool RemoveNullChar)
 {
     std::string output_string(rInputString);
-
-    const auto trim_char = RemoveNullChar ? trim_space_and_null_char : trim_space;
+    const auto trim_char = TrimChar(RemoveNullChar);
 
     output_string.erase(std::find_if(output_string.rbegin(), output_string.rend(),
-            [&trim_char](std::string::value_type ch) {return !trim_char(ch);}
+            [trim_char](std::string::value_type ch) {return !trim_char(ch);}
         ).base(), output_string.end()
     );
 
