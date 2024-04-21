@@ -427,6 +427,10 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
         noalias(M) += (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(secant_matrix, kinematic_variables.N_epsilon)));
         noalias(G) += (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(secant_matrix, kinematic_variables.B)));
+
+        const Matrix aux = constitutive_variables.D - secant_matrix;
+        noalias(M) += (tau - 1.0) * (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(aux, kinematic_variables.N_epsilon)));
+        noalias(G) += (1.0 - tau) * tau * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(aux, kinematic_variables.B)));
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
