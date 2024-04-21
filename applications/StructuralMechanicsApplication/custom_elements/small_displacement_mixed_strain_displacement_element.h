@@ -441,14 +441,18 @@ protected:
         const auto &r_geom = GetGeometry();
         const SizeType dim = r_geom.WorkingSpaceDimension();
         const double tau = r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : default_stabilization_factor; // tau is c / L0
-        const double L0 = r_props[CHARACTERISTIC_LENGTH_MULTIPLIER];
-        double l_char;
-        if (dim == 2) {
-            l_char = std::sqrt(r_geom.Area() / 4.0);
+        if (r_props.Has(CHARACTERISTIC_LENGTH_MULTIPLIER)) {
+            const double L0 = r_props[CHARACTERISTIC_LENGTH_MULTIPLIER];
+            double l_char;
+            if (dim == 2) {
+                l_char = 0.5 * std::sqrt(r_geom.Area());
+            } else {
+                l_char = 0.5 * std::cbrt(r_geom.Volume());
+            }
+            return l_char * tau / L0;
         } else {
-            l_char = std::cbrt(r_geom.Volume());
+            return tau;
         }
-        return l_char * tau / L0;
     }
 
     /**
