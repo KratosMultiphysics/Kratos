@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <tuple>
 
 // External includes
 
@@ -61,21 +62,22 @@ KRATOS_TEST_CASE_IN_SUITE(ConvertSnakeCaseToCamelCase, KratosCoreFastSuite)
         }                                                       \
         catch (...) {}
 
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("Test"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("tesT"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("te__st"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("__te_st"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("test__"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("te st"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase(" test"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("test "))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("*nullptr"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("core/stringutils"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("c-s"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("-cs"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("cs-"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("ph@"))
-    KRATOS_EXPECT_THROWS(StringUtilities::ConvertSnakeCaseToCamelCase("#include"))
+    // deliberately ignoring [[nodiscard]] as it is not relevant for this test
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("Test"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("tesT"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("te__st"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("__te_st"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("test__"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("te st"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase(" test"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("test "))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("*nullptr"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("core/stringutils"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("c-s"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("-cs"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("cs-"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("ph@"))
+    KRATOS_EXPECT_THROWS(std::ignore = StringUtilities::ConvertSnakeCaseToCamelCase("#include"))
 
     #undef KRATOS_EXPECT_THROWS
 }
