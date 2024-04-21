@@ -25,6 +25,8 @@
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
+#include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
+
 
 namespace Kratos::Python {
 
@@ -62,6 +64,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< UserProvidedLinearElasticLaw<3>, typename UserProvidedLinearElasticLaw<3>::Pointer, ConstitutiveLaw >
     (m, "UserProvidedLinearElastic3DLaw").def(py::init<>() )
+    ;
+
+    py::class_< TimoshenkoBeamElasticConstitutiveLaw, typename TimoshenkoBeamElasticConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "TimoshenkoBeamElasticConstitutiveLaw").def(py::init<>() )
     ;
 }
 

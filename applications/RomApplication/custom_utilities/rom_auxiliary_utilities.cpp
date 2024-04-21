@@ -185,7 +185,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
 
     const auto& r_elem_weights = HRomWeights["Elements"];
     const auto& r_cond_weights = HRomWeights["Conditions"];
-    
+
     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
 
@@ -254,7 +254,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
             }
         }
     }
-    
+
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
@@ -499,6 +499,34 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rConditionIds)
+{
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    std::unordered_set<IndexType> parent_ids_set;
+    // Iterate over the given node IDs
+    for (const auto condId : rConditionIds) {
+        auto& r_cond = rModelPart.GetCondition(condId + 1);
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            parent_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            break;
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> parent_ids(parent_ids_set.begin(), parent_ids_set.end());
+
+    return parent_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom(
     ModelPart& rModelPart,
     ModelPart& rGivenModelPart,
@@ -542,7 +570,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
         // Add the neighbour elements to new_element_ids_set
         for (size_t i = 0; i < r_neigh.size(); ++i) {
             const auto& r_elem = r_neigh[i];
-            new_element_ids_set.insert(r_elem.Id() - 1);
+            new_element_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
 
@@ -550,6 +578,72 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
     std::vector<IndexType> new_element_ids(new_element_ids_set.begin(), new_element_ids_set.end());
 
     return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rNodeIds,
+    bool RetrieveSingleNeighbour)
+{
+    std::unordered_set<IndexType> new_entity_ids_set;
+
+    // Execute process to find neighboring entities
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    // Iterate over the given node IDs
+    for (const auto nodeId : rNodeIds) {
+        auto& r_node = rModelPart.GetNode(nodeId);
+
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_elem = r_neigh_elements[i];
+            new_entity_ids_set.insert(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            if (RetrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_element_ids(new_entity_ids_set.begin(), new_entity_ids_set.end());
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringConditionIds(
+    ModelPart& rModelPart,
+    const std::vector<IndexType>& rNodeIds,
+    bool RetrieveSingleNeighbour)
+{
+    std::unordered_set<IndexType> new_condition_ids_set;
+
+    // Execute process to find neighboring entities
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    // Iterate over the given node IDs
+    for (const auto nodeId : rNodeIds) {
+        auto& r_node = rModelPart.GetNode(nodeId);
+
+        // Add neighboring elements' IDs to the set
+        const auto& r_neigh_elements = r_node.GetValue(NEIGHBOUR_CONDITIONS);
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh_elements.size(); ++i) {
+            const auto& r_cond = r_neigh_elements[i];
+            new_condition_ids_set.insert(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            if (RetrieveSingleNeighbour) {
+                break; // Break if only one neighbour should be retrieved
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_condition_ids(new_condition_ids_set.begin(), new_condition_ids_set.end());
+
+    return new_condition_ids;
 }
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
@@ -563,8 +657,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
         IndexType element_id = r_elem.Id();
 
         // Check if the element is already added
-        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) {
-            new_element_ids.push_back(element_id - 1);
+        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_element_ids.push_back(element_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
 
@@ -583,8 +677,8 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
         IndexType condition_id = r_cond.Id();
 
         // Check if the condition is already added
-        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
-            new_condition_ids.push_back(condition_id - 1);
+        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            new_condition_ids.push_back(condition_id - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         }
     }
 
@@ -597,7 +691,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsInModelPart(
     std::vector<IndexType> element_ids;
 
     for (const auto& r_elem : rModelPart.Elements()) {
-        element_ids.push_back(r_elem.Id() - 1);
+        element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
     }
     return element_ids;
 }
@@ -608,7 +702,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsInModelPart(
     std::vector<IndexType> condition_ids;
 
     for (const auto& r_cond : rModelPart.Conditions()) {
-        condition_ids.push_back(r_cond.Id() - 1);
+        condition_ids.push_back(r_cond.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
     }
     return condition_ids;
 }
@@ -671,7 +765,7 @@ void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
 
         // If minimum condition is missing, add the first condition as minimum one
         if (!has_minimum_condition) {
-            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE - 1
+            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1
         }
 
         // Recursively check the current modelpart submodelparts

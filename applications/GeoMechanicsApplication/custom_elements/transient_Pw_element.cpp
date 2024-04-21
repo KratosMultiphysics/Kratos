@@ -541,10 +541,11 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 {
     KRATOS_TRY;
 
-    this->CalculateCompressibilityMatrix(rVariables.PPMatrix, rVariables);
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PPMatrix;
+    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("");
 }

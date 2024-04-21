@@ -139,7 +139,7 @@ namespace Kratos
 
 
 
-   void AxisymUpdatedLagrangianUJWwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUJWwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -159,7 +159,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJWwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUJWwPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       unsigned int element_size          = number_of_nodes * 6;
@@ -258,7 +258,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  AxisymUpdatedLagrangianUJWwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  AxisymUpdatedLagrangianUJWwPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -279,47 +279,6 @@ namespace Kratos
             if ( PRESSURE.Key() == 0 )
                KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
-                  double WaterBulk = 1e+7;
-      if ( GetProperties().Has(WATER_BULK_MODULUS)  ) {
-         WaterBulk = GetProperties()[WATER_BULK_MODULUS];
-      } else if ( rCurrentProcessInfo.Has(WATER_BULK_MODULUS) ) {
-         WaterBulk = rCurrentProcessInfo[WATER_BULK_MODULUS];
-      }
-      GetProperties().SetValue(WATER_BULK_MODULUS, WaterBulk);
-
-      double Permeability = 1e-5;
-      if ( GetProperties().Has(PERMEABILITY)  ) {
-         Permeability = GetProperties()[PERMEABILITY];
-      } else if ( rCurrentProcessInfo.Has(PERMEABILITY) ) {
-         Permeability = rCurrentProcessInfo[PERMEABILITY];
-      }
-      GetProperties().SetValue(PERMEABILITY, Permeability);
-
-      double density = 0.0;
-      if ( GetProperties().Has(DENSITY)  ) {
-         density = GetProperties()[DENSITY];
-      } else if ( rCurrentProcessInfo.Has(DENSITY) ) {
-         density = rCurrentProcessInfo[DENSITY];
-      }
-      GetProperties().SetValue(DENSITY, density);
-
-      double density_water = 0.0;
-      if ( GetProperties().Has(DENSITY_WATER)  ) {
-         density_water = GetProperties()[DENSITY_WATER];
-      } else if ( rCurrentProcessInfo.Has(DENSITY_WATER) ) {
-         density_water = rCurrentProcessInfo[DENSITY_WATER];
-      }
-      GetProperties().SetValue(DENSITY_WATER, density_water);
-
-      double initial_porosity = 0.3;
-      if ( GetProperties().Has(INITIAL_POROSITY) ) {
-         initial_porosity = GetProperties()[INITIAL_POROSITY];
-      } else if ( rCurrentProcessInfo.Has(INITIAL_POROSITY) ) {
-         initial_porosity = rCurrentProcessInfo[INITIAL_POROSITY];
-      }
-      if ( initial_porosity < 1e-5)
-         initial_porosity = 0.3;
-      GetProperties().SetValue( INITIAL_POROSITY, initial_porosity);
 
 
       return correct;
@@ -766,7 +725,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Mass matrix
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -847,7 +806,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -1006,7 +965,7 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo;
       std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {

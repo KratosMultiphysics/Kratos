@@ -153,7 +153,7 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {
@@ -231,7 +231,7 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {

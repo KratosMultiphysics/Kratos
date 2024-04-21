@@ -1250,11 +1250,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
-
-    noalias(rVariables.UPMatrix) =
-        PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
@@ -1272,28 +1270,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityMatrix(
-    BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix, const ElementVariables& rVariables) const
-{
-    KRATOS_TRY
-
-    noalias(rPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient *
-                        rVariables.BiotModulusInverse * outer_prod(rVariables.Np, rVariables.Np) *
-                        rVariables.IntegrationCoefficient;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
                                                                                   ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    this->CalculateCompressibilityMatrix(rVariables.PPMatrix, rVariables);
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(
+        rLeftHandSideMatrix, rVariables.PPMatrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("")
 }
@@ -1400,11 +1387,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.B), rVariables.VoigtVector);
-
     noalias(rVariables.UPMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                     rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+                     rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix, rVariables.PressureVector);
 
@@ -1431,8 +1417,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(
 {
     KRATOS_TRY
 
-    noalias(rPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                        outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+    noalias(rPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     noalias(rPVector) = -prod(rPMatrix, rVariables.DtPressureVector);
 
@@ -1464,7 +1450,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
     rPermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
-    
+
     noalias(rPVector) = -prod(rPermeabilityMatrix, rVariables.PressureVector);
 
     KRATOS_CATCH("")
