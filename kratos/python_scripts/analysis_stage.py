@@ -161,11 +161,11 @@ class AnalysisStage(object):
             process.ExecuteFinalizeSolutionStep()
         
         # print(self._GetSolver().GetComputingModelPart().GetNode(8450).GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR))
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            e = node.GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR)
-            node.SetValue(SMApp.AXIAL_FORCE, e[0])
-            node.SetValue(SMApp.SHEAR_FORCE, e[1])
-            node.SetValue(SMApp.BENDING_MOMENT, e[3])
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #     e = node.GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR)
+        #     node.SetValue(SMApp.AXIAL_FORCE, e[0])
+        #     node.SetValue(SMApp.SHEAR_FORCE, e[1])
+        #     node.SetValue(SMApp.BENDING_MOMENT, e[3])
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
