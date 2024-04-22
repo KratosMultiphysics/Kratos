@@ -90,7 +90,7 @@ public:
     static Matrix CalculateMassMatrix(const Geometry<Node>&                     rGeom,
                                       const Geometry<Node>::Pointer&            rpPressureGeometry,
                                       const GeometryData::IntegrationMethod     IntegrationMethod,
-                                      const std::unique_ptr<StressStatePolicy>& mpStressStatePolicy,
+                                      std::unique_ptr<StressStatePolicy> const& mpStressStatePolicy,
                                       std::vector<RetentionLaw::Pointer>&       rRetentionLawVector,
                                       const Properties&                         rProp,
                                       const ProcessInfo&                        rCurrentProcessInfo)
@@ -146,7 +146,8 @@ public:
             SizeType index = 0;
             for (SizeType i = 0; i < number_U_nodes; ++i) {
                 for (SizeType i_dim = 0; i_dim < dimension; ++i_dim) {
-                    Nu(i_dim, index++) = nu_container(g_point, i);
+                    Nu(i_dim, index) = nu_container(g_point, i);
+                    index++;
                 }
             }
 
@@ -163,17 +164,9 @@ public:
         const SizeType element_size = block_element_size + number_P_nodes;
         Matrix         mass_matrix  = ZeroMatrix(element_size, element_size);
 
-        for (SizeType i = 0; i < number_U_nodes; ++i) {
-            SizeType index_i = i * dimension;
-
-            for (SizeType j = 0; j < number_U_nodes; ++j) {
-                SizeType index_j = j * dimension;
-                for (SizeType idim = 0; idim < dimension; ++idim) {
-                    for (SizeType jdim = 0; jdim < dimension; ++jdim) {
-                        mass_matrix(index_i + idim, index_j + jdim) +=
-                            mass_matrix_contribution(index_i + idim, index_j + jdim);
-                    }
-                }
+        for (SizeType i = 0; i < number_U_nodes * dimension; ++i) {
+            for (SizeType j = 0; j < number_U_nodes * dimension; ++j) {
+                mass_matrix(i, j) += mass_matrix_contribution(i, j);
             }
         }
         return mass_matrix;
