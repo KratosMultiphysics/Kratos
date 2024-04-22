@@ -236,8 +236,8 @@ private:
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            BoundedMatrix<double, TDim, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
-            result += -PORE_PRESSURE_SIGN_FACTOR / r_properties[DYNAMIC_VISCOSITY] *
+            BoundedMatrix<double, 1, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
+            result += -1.0 / r_properties[DYNAMIC_VISCOSITY] *
                       prod(rShapeFunctionGradients[integration_point_index], Temp) *
                       RelativePermeability * rIntegrationCoefficients[integration_point_index];
         }
@@ -259,7 +259,7 @@ private:
              ++integration_point_index) {
             const auto N = Vector{row(r_N_container, integration_point_index)};
             double BiotModulusInverse = CalculateBiotModulusInverse(rCurrentProcessInfo, integration_point_index);
-            result += -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
+            result += -BiotModulusInverse * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
         }
         return result;
     }
