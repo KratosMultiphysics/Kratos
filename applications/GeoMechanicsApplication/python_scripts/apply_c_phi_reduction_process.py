@@ -23,5 +23,8 @@ class ApplyCPhiReductionProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         self.process.ExecuteInitializeSolutionStep()
 
+    def ExecuteFinalizeSolutionStep(self):
+        self.process.ExecuteFinalizeSolutionStep()
+
     def ExecuteFinalize(self):
         self.process.ExecuteFinalize()

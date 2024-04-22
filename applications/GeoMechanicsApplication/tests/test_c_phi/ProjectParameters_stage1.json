@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "test_quad_4n",
         "start_time":           0.0,
-        "end_time":             10.0,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -19,12 +19,12 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":            1.0
+            "time_step":            0.1
         },
         "buffer_size":                        2,
         "echo_level":                         1,
         "clear_storage":                      false,
-        "compute_reactions":                  true,
+        "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
@@ -74,7 +74,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_quad_4n",
+                "output_name": "test_quad_4n_stage1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -91,7 +91,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS"]
+                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","STATE_VARIABLE_1"]
                     },
                     "point_data_configuration":  []
                 }
@@ -123,13 +123,6 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    },{
-        "python_module": "apply_c_phi_reduction_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyCPhiReductionProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Soil_drained-auto-1"
-        }
     }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
@@ -140,7 +133,7 @@
             "variable_name":   "LINE_LOAD",
             "active":          [true,true,true],
             "value":           [0.0,-10000,0.0],
-            "table":           [0,0,0]
+            "table":           [0,1,0]
         }
     }]
     }

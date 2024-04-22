@@ -11,6 +11,7 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "stub_linear_elastic_law.h"
@@ -57,7 +58,8 @@ ModelPart& PrepareCPhiTestModelPart(Model& rModel)
     return result;
 }
 
-void CheckReducedCPhi(ModelPart& rModelPart, double COrig, double PhiOrig, double ReductionFactor){
+void CheckReducedCPhi(ModelPart& rModelPart, double COrig, double PhiOrig, double ReductionFactor)
+{
     block_for_each(rModelPart.Elements(), [COrig, PhiOrig, ReductionFactor](Element& rElement) {
         auto element_properties     = rElement.GetProperties();
         auto umat_properties_vector = element_properties.GetValue(UMAT_PARAMETERS);
@@ -68,10 +70,9 @@ void CheckReducedCPhi(ModelPart& rModelPart, double COrig, double PhiOrig, doubl
 
         double phi_rad = MathUtils<>::DegreesToRadians(PhiOrig);
         double tan_phi = std::tan(phi_rad);
-        KRATOS_EXPECT_DOUBLE_EQ(
-            std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))), ReductionFactor * tan_phi);
+        KRATOS_EXPECT_DOUBLE_EQ(std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))),
+                                ReductionFactor * tan_phi);
     });
-
 }
 } // namespace
 
@@ -84,6 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
 
     ApplyCPhiReductionProcess process{r_model_part, {}};
     process.ExecuteInitializeSolutionStep();
+
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.9);
 }
 
@@ -94,6 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
 
     ApplyCPhiReductionProcess process{r_model_part, {}};
     process.ExecuteInitializeSolutionStep();
+    process.ExecuteFinalizeSolutionStep();
     process.ExecuteInitializeSolutionStep();
 
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.8);

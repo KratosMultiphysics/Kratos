@@ -20,6 +20,7 @@
 
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
@@ -48,7 +49,16 @@ public:
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY
-        mReductionFactor -= mReductionIncrement;
+
+        // Recognize whether a step is restarted. If so, try again with a smaller reduction increment.
+        const bool restarted_step = mrModelPart.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1;
+        if (restarted_step) mReductionIncrement *= 0.5;
+        mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
+        KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
+            << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor " << 1. / mReductionFactor
+            << ") Previous reduction = " << mPreviousReductionFactor
+            << " Reduction increment = " << mReductionIncrement
+            << std::endl;
 
         double    phi                = 0.;
         double    reduced_phi        = 0.;
@@ -70,24 +80,15 @@ public:
                     << ")" << std::endl;
             }
             set_C_Phi_At_Element(rElement, reduced_phi, reduced_c);
-
-            // Back compute strain from resident element Cauchy stress, E = UMAT_PARAMETERS[0], nu = UMAT_PARAMETERS[1]
-            // ComputeElementRHSContribution(rElement);
-
-            // Compute RHS ( the unbalance ) from resident Cauchy stress and stress based on reduced C and Phi
         });
         KRATOS_CATCH("")
     }
 
     void ExecuteFinalizeSolutionStep() override
     {
-        bool cycle = false;
-        if (cycle) {
-            mReductionFactor = mPreviousReductionFactor;
-            mReductionIncrement *= 0.5;
-        } else {
-            mPreviousReductionFactor = mReductionFactor;
-        }
+        mPreviousReductionFactor = mReductionFactor;
+        KRATOS_INFO("ApplyCPhiReductionProcess::ExecuteFinalizeSolutionStep")
+            << "Reached safety factor sofar = " << 1.0 / mReductionFactor << std::endl;
     }
 
     void ExecuteFinalize() override
@@ -154,7 +155,6 @@ private:
                 KRATOS_ERROR << "undefined INDEX_OF_UMAT_C_PARAMETER: "
                              << part_properties[INDEX_OF_UMAT_C_PARAMETER] << std::endl;
             }
-            // needs more checking?
             c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
             if (c < 0.) KRATOS_ERROR << "Cohesion C out of range: " << c << std::endl;
         } else {
@@ -184,31 +184,6 @@ private:
         return nu;
     }
 
-    Matrix FormElasticConstitutiveTensor(const double young, const double poisson) const
-    {
-        Matrix       C  = zero_matrix(VOIGT_SIZE_2D_PLANE_STRAIN, VOIGT_SIZE_2D_PLANE_STRAIN);
-        const double c0 = young / ((1.0 + poisson) * (1.0 - 2.0 * poisson));
-        const double c1 = (1.0 - poisson) * c0;
-        const double c2 = c0 * poisson;
-        const double c3 = (0.5 - poisson) * c0;
-
-        C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
-        C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
-        C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-        C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_XX) = c2;
-        C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_YY) = c1;
-        C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-        C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_XX) = c2;
-        C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
-        C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
-
-        C(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
-
-        return C;
-    }
-
     void set_C_Phi_At_Element(Element& rElement, const double reduced_phi, const double reduced_c) const
     {
         // Get C/Phi material properties of this element
@@ -232,58 +207,6 @@ private:
         // Adds new properties to the element
         p_new_prop->SetValue(rVar, Value);
         rElement.SetProperties(p_new_prop);
-    }
-
-    void ComputeElementRHSContribution(Element& rElement)
-    {
-        Element::PropertiesType& rProp   = rElement.GetProperties();
-        const double             young   = GetAndCheckYoung(rProp);
-        const double             poisson = GetAndCheckPoisson(rProp);
-        Matrix                   c       = FormElasticConstitutiveTensor(young, poisson);
-        Matrix                   c_inverse;
-        double                   det_c = 0.;
-        MathUtils<double>::InvertMatrix(c, c_inverse, det_c);
-
-        // Get element stress vectors
-        const ProcessInfo& rCurrentProcessInfo = this->mrModelPart.GetProcessInfo();
-        std::vector<ConstitutiveLaw::StressVectorType> rCurrentStressVectors;
-        rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rCurrentStressVectors, rCurrentProcessInfo);
-
-        // walk the integration points
-        using NodeType            = Node;
-        using GeometryType        = Geometry<NodeType>;
-        const GeometryType& rGeom = rElement.GetGeometry();
-
-        // access to the constitutive law:
-
-        // Definition of variables     dit is het hele vervelende protected struct met dingen gedefinieerd voor bijv. het smallstrainUPwDiffOrderElement
-        // ElementVariables Variables;
-        // rElement.InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-        // Loop over integration points
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-            rGeom.IntegrationPoints(rElement.GetIntegrationMethod());
-        const IndexType number_of_integration_points = IntegrationPoints.size();
-        for (IndexType integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-            Vector back_strain        = prod(c_inverse, rCurrentStressVectors[integration_point]);
-            auto   p_constitutive_law = rProp[CONSTITUTIVE_LAW]->Clone();
-            // Voer BackStrain aan constitutive law voor een gereduceerde spanning
-            //    deze constitutive heeft de gereduceerde C en Phi en geen rekhistorie
-            // set gauss points variables to constitutive law parameters
-            // this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-            // in het small_strain_U_Pw_diff_order element zit dit op regel 1423 als
-            // compute constitutive stresses
-            // ConstitutiveParameters.SetStressVector(mStressVector[integration_point]);
-            // mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            // B ( Sig_current - Sig_reduced ) dV, tel op bij element RHS
-            //    dit zit in CalculateAndAddStiffnessForce van de Geo continuum elementen
-        }
-        // tel element RHS op bij system RHS via de equationId's van het element
     }
 };
 

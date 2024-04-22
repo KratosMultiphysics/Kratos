@@ -2,6 +2,10 @@
 Begin Properties 1
 End Properties
 
+Begin Table 1 TIME LINE_LOAD_Y
+  0.0 0.0
+  1.0 -10000
+End Table
 
 Begin Nodes
   1  0.0000000000 1.0000000000 0.0000000000
@@ -87,6 +91,7 @@ End SubModelPart
 
 Begin SubModelPart Line_Load-auto-1
   Begin SubModelPartTables
+    1
   End SubModelPartTables
   Begin SubModelPartNodes
     1
