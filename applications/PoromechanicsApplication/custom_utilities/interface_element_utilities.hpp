@@ -267,6 +267,139 @@ public:
         rStressVector[1] += LocalInitialStress[1];
 
     }
+
+    //----------------------------------------------------------------------------------------
+
+    // Utility to compute the 6x6 rotation matrix to rotate the stresses from global to local
+    // The derivation is taken from Cook - Concepts and applications of FEA - Page 274
+    static inline void ObtainRotationMatrix(BoundedMatrix<double,6,6>& RotationMatrixInterface, const Element::GeometryType& Geom)
+    {
+        // Define mid-plane points
+        array_1d<double, 3> pmid0;
+        array_1d<double, 3> pmid1;
+        array_1d<double, 3> pmid2;
+
+        // Differentiate between prisms and heaxhedra and define the coordinates of the mid-plane
+        const unsigned int number_of_nodes = Geom.size();
+        if (number_of_nodes == 6) {
+            noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
+            noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + Geom.GetPoint( 4 ));
+            noalias(pmid2) = 0.5 * (Geom.GetPoint( 2 ) + Geom.GetPoint( 5 ));
+        } else if (number_of_nodes == 8) {
+            noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 4 ));
+            noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + Geom.GetPoint( 5 ));
+            noalias(pmid2) = 0.5 * (Geom.GetPoint( 2 ) + Geom.GetPoint( 6 ));
+        }
+
+        // Unitary vector in local x direction
+        array_1d<double, 3> Vx;
+        noalias(Vx) = pmid1 - pmid0;
+        double inv_norm = 1.0/norm_2(Vx);
+        Vx[0] *= inv_norm; // l1
+        Vx[1] *= inv_norm; // l2
+        Vx[2] *= inv_norm; // l3
+
+        // Unitary vector in local z direction
+        array_1d<double, 3> Vy;
+        noalias(Vy) = pmid2 - pmid0;
+        array_1d<double, 3> Vz;
+        MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+        inv_norm = 1.0/norm_2(Vz);
+        Vz[0] *= inv_norm; // n1
+        Vz[1] *= inv_norm; // n2
+        Vz[2] *= inv_norm; // n3
+
+        // Unitary vector in local y direction
+        MathUtils<double>::CrossProduct(Vy, Vz, Vx); // Vy = [m1, m2, m3]
+
+        // Create the inverse of the tranpose matrix as described in Eq. (8.2-8)
+        Matrix T11(3,3);
+        T11(0,0) = Vx[0]*Vx[0];
+        T11(1,0) = Vx[1]*Vx[1];
+        T11(2,0) = Vx[2]*Vx[2];
+        T11(0,1) = Vy[0]*Vy[0];
+        T11(1,1) = Vy[1]*Vy[1];
+        T11(2,1) = Vy[2]*Vy[2];
+        T11(0,2) = Vz[0]*Vz[0];
+        T11(1,2) = Vz[1]*Vz[2];
+        T11(2,2) = Vz[2]*Vz[2];
+
+        Matrix T12(3,3);
+        T12(0,0) = Vx[0]*Vy[0];
+        T12(1,0) = Vx[1]*Vy[1];
+        T12(2,0) = Vx[2]*Vy[2];
+        T12(0,1) = Vy[0]*Vz[0];
+        T12(1,1) = Vy[1]*Vz[1];
+        T12(2,1) = Vy[2]*Vz[2];
+        T12(0,2) = Vz[0]*Vx[0];
+        T12(1,2) = Vz[0]*Vx[1];
+        T12(2,2) = Vz[0]*Vx[2];
+
+        Matrix T21(3,3);
+        T21(0,0) = 2*Vx[0]*Vx[1];
+        T21(1,0) = 2*Vx[1]*Vx[2];
+        T21(2,0) = 2*Vx[2]*Vx[0];
+        T21(0,1) = 2*Vy[0]*Vy[1];
+        T21(1,1) = 2*Vy[1]*Vy[2];
+        T21(2,1) = 2*Vy[2]*Vy[0];
+        T21(0,2) = 2*Vz[0]*Vz[1];
+        T21(1,2) = 2*Vz[1]*Vz[2];
+        T21(2,2) = 2*Vz[2]*Vz[0];
+
+        Matrix T22(3,3);
+        T22(0,0) = Vx[0]*Vy[1] + Vx[1]*Vy[0];
+        T22(1,0) = Vx[1]*Vy[2] + Vx[2]*Vy[1];
+        T22(2,0) = Vx[2]*Vy[0] + Vx[0]*Vy[2];
+        T22(0,1) = Vy[0]*Vz[1] + Vy[1]*Vz[0];
+        T22(1,1) = Vy[1]*Vz[2] + Vy[2]*Vz[1];
+        T22(2,1) = Vy[2]*Vz[0] + Vy[0]*Vz[2];
+        T22(0,2) = Vz[0]*Vx[1] + Vz[1]*Vx[0];
+        T22(1,2) = Vz[1]*Vx[2] + Vz[2]*Vx[1];
+        T22(2,2) = Vz[2]*Vx[0] + Vz[0]*Vx[2];
+
+        // Assign the values to the final Rotation Matrix
+        RotationMatrixInterface(0,0) = T11(0,0);
+        RotationMatrixInterface(1,0) = T11(1,0);
+        RotationMatrixInterface(2,0) = T11(2,0);
+        RotationMatrixInterface(0,2) = T11(0,1);
+        RotationMatrixInterface(1,1) = T11(1,1);
+        RotationMatrixInterface(2,2) = T11(2,1);
+        RotationMatrixInterface(0,2) = T11(0,2);
+        RotationMatrixInterface(2,2) = T11(1,2);
+        RotationMatrixInterface(2,2) = T11(2,2);
+
+        RotationMatrixInterface(0,3) = 2*T12(0,0);
+        RotationMatrixInterface(1,3) = 2*T12(1,0);
+        RotationMatrixInterface(2,3) = 2*T12(2,0);
+        RotationMatrixInterface(0,4) = 2*T12(0,1);
+        RotationMatrixInterface(1,4) = 2*T12(1,1);
+        RotationMatrixInterface(2,4) = 2*T12(2,1);
+        RotationMatrixInterface(0,5) = 2*T12(0,2);
+        RotationMatrixInterface(1,5) = 2*T12(1,2);
+        RotationMatrixInterface(2,5) = 2*T12(2,2);
+
+        RotationMatrixInterface(3,0) = 0.5*T21(0,0);
+        RotationMatrixInterface(4,0) = 0.5*T21(1,0);
+        RotationMatrixInterface(5,0) = 0.5*T21(2,0);
+        RotationMatrixInterface(3,1) = 0.5*T21(0,1);
+        RotationMatrixInterface(4,1) = 0.5*T21(1,1);
+        RotationMatrixInterface(5,1) = 0.5*T21(2,1);
+        RotationMatrixInterface(3,2) = 0.5*T21(0,2);
+        RotationMatrixInterface(4,2) = 0.5*T21(1,2);
+        RotationMatrixInterface(5,2) = 0.5*T21(2,2);
+
+        RotationMatrixInterface(3,3) = T22(0,0);
+        RotationMatrixInterface(4,3) = T22(1,0);
+        RotationMatrixInterface(5,3) = T22(2,0);
+        RotationMatrixInterface(3,4) = T22(0,1);
+        RotationMatrixInterface(4,4) = T22(1,1);
+        RotationMatrixInterface(5,4) = T22(2,1);
+        RotationMatrixInterface(3,5) = T22(0,2);
+        RotationMatrixInterface(4,5) = T22(1,2);
+        RotationMatrixInterface(5,5) = T22(2,2);
+
+    }
+
 }; /* Class InterfaceElementUtilities*/
 } /* namespace Kratos.*/
 
