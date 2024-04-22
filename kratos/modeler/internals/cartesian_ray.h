@@ -10,17 +10,13 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_INTERNALS_CARTESIAN_RAY_H_INCLUDED )
-#define  KRATOS_INTERNALS_CARTESIAN_RAY_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -405,7 +401,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 } // namespace Internals
 
 }  // namespace Kratos.
-
-#endif // KRATOS_INTERNALS_CARTESIAN_RAY_H_INCLUDED  defined
-
 

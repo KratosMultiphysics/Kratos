@@ -12,6 +12,11 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/kratos_parameters.h"
 #include "modeler/voxel_mesh_generator_modeler.h"
 #include "modeler/internals/cartesian_mesh_colors.h"

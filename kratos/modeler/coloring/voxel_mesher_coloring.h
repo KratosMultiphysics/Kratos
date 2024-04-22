@@ -12,6 +12,11 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "geometries/geometry_data.h"
 #include "includes/kratos_parameters.h"
 

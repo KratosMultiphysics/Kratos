@@ -1,14 +1,25 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//
+
 // System includes
 #include <limits>
 
 // External includes
 
-// kratos includes
+// Project includes
 #include "testing/testing.h"
 #include "includes/kratos_application.h"
 #include "includes/kernel.h"
 
-// Application includes
 #include "modeler/voxel_mesh_generator_modeler.h"
 #include "modeler/key_plane_generation/key_plane_generation_factory.h"
 

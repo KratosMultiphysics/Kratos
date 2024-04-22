@@ -23,7 +23,6 @@
 #include "internals/cartesian_mesh_colors.h"
 #include "internals/skin_intersection.h"
 
-
 namespace Kratos
 {
 

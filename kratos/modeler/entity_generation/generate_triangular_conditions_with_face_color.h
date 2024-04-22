@@ -12,6 +12,11 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "voxel_mesher_entity_generation.h"
 
 namespace Kratos {

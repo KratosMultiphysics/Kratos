@@ -1,4 +1,20 @@
-// Kratos includes
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
@@ -7,11 +23,8 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/timer.h"
 #include "spatial_containers/geometrical_objects_bins.h"
-
-// AMS includes
 #include "utilities/model_part_utils.h"
 
-// Application includes
 #include "voxel_mesh_generator_modeler.h"
 #include "coloring/voxel_mesher_coloring_factory.h"
 #include "key_plane_generation/key_plane_generation_factory.h"

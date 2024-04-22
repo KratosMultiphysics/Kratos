@@ -12,9 +12,13 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "geometries/geometry.h"
 #include "includes/dem_variables.h"
-
 #include "voxel_mesher_coloring.h"
 
 namespace Kratos {

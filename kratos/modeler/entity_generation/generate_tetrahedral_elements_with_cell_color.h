@@ -12,9 +12,14 @@
 
 #pragma once
 
-#include "voxel_mesher_entity_generation.h"
+// System includes
 
+// External includes
+
+// Project includes
 #include "geometries/tetrahedra_3d_4.h"
+
+#include "voxel_mesher_entity_generation.h"
 
 namespace Kratos {
 

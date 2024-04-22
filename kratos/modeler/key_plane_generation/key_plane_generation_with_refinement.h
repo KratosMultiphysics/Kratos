@@ -12,6 +12,11 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "key_plane_generation.h"
 
 namespace Kratos {

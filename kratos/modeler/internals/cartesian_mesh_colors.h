@@ -10,9 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_INTERNALS_CARTESIAN_MESH_COLORS_H_INCLUDED )
-#define  KRATOS_INTERNALS_CARTESIAN_MESH_COLORS_H_INCLUDED
-
+#pragma once
 
 
 // System includes
@@ -20,16 +18,12 @@
 #include <iostream>
 #include <algorithm>
 
-
 // External includes
-
 
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "modeler/internals/cartesian_ray.h"
-
-
 
 namespace Kratos
 {
@@ -815,5 +809,3 @@ namespace Kratos
     };
   }
 }  // namespace Kratos.
-
-#endif // KRATOS_INTERNALS_CARTESIAN_MESH_COLORS_H_INCLUDED  defined
