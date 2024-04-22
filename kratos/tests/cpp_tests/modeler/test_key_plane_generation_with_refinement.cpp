@@ -116,8 +116,8 @@ End SubModelPart
     output_file.close();
 
     // Fill the output .mdpa file
-    ModelPartIO* model_part_io_write = new ModelPartIO(output_file_name, IO::WRITE);
-    model_part_io_write->WriteModelPart(model_part_0);
+    ModelPartIO model_part_io_write(output_file_name, IO::WRITE);
+    model_part_io_write.WriteModelPart(model_part_0);
 }
 } // namespace
 
@@ -126,7 +126,6 @@ KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorModelerWithRefinement, KratosCoreFas
     using namespace Kratos;
 
 	WriteCubeSkinMeshMdpaFile();
-    std::cout << "Helloooo";
 
     Parameters mesher_parameters(R"(
     {
