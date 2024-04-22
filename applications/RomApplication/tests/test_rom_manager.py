@@ -4,12 +4,8 @@ import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-#from unittest.mock import patch, MagicMock
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
-
-
-
-
+import json
 
 
 
@@ -67,6 +63,121 @@ class TestRomManager(KratosUnittest.TestCase):
             rom_manager_object._ChangeRomFlags(flag_change)
         err_msg = f'Unknown flag "unavailable_flag" change for RomParameters.json'
         self.assertIn(err_msg, str(context.exception))
+
+
+
+    def test_flag_changes(self):
+
+        original_rom_parameters = 'test_rom_manager/RomParameters_test.json'
+        with open(original_rom_parameters, 'r') as file:
+            data = json.load(file)
+        rom_parameters_to_erase = 'test_rom_manager/RomParameters_test_to_erase.json'
+        with open(rom_parameters_to_erase, 'w') as file:
+            json.dump(data, file, indent=4)
+
+        parameters = KratosMultiphysics.Parameters("""{
+            "ROM":{
+                "rom_basis_output_name": "RomParameters_test_to_erase",
+                "rom_basis_output_folder": "test_rom_manager"
+            }
+        }""")
+        rom_manager_object = RomManager(general_rom_manager_parameters=parameters)
+        flag_change = 'GalerkinROM'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'galerkin')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], False)
+            # what to do with self._SetGalerkinBnSParameters()
+
+        flag_change = 'trainHROMGalerkin'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'galerkin')
+            self.assertEqual(data['train_hrom'], True)
+            self.assertEqual(data['run_hrom'], False)
+            # what to do with self._SetGalerkinBnSParameters()
+
+        flag_change = 'runHROMGalerkin'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'galerkin')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], True)
+            # what to do with self._SetGalerkinBnSParameters()
+
+        flag_change = 'lspg'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'lspg')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], False)
+            # what to do with self._SetLSPGBnSParameters()
+
+        flag_change = 'trainHROMLSPG'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'lspg')
+            self.assertEqual(data['train_hrom'], True)
+            self.assertEqual(data['run_hrom'], False)
+            # what to do with self._SetLSPGBnSParameters()
+
+        flag_change = 'runHROMLSPG'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'lspg')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], True)
+            # what to do with self._SetLSPGBnSParameters()
+
+        flag_change = 'TrainPG'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'lspg')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], False)
+            self.assertEqual(data["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'], True)
+            # what to do with self._SetLSPGBnSParameters()
+
+        flag_change = 'PG'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'petrov_galerkin')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], False)
+            # what to do with self._SetPetrovGalerkinBnSParameters()
+
+        flag_change = 'trainHROMPetrovGalerkin'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'petrov_galerkin')
+            self.assertEqual(data['train_hrom'], True)
+            self.assertEqual(data['run_hrom'], False)
+            # what to do with self._SetPetrovGalerkinBnSParameters()
+
+        flag_change = 'runHROMPetrovGalerkin'
+        rom_manager_object._ChangeRomFlags(flag_change)
+        with open(rom_parameters_to_erase, 'r') as file:
+            data = json.load(file)
+            self.assertEqual(data['projection_strategy'], 'petrov_galerkin')
+            self.assertEqual(data['train_hrom'], False)
+            self.assertEqual(data['run_hrom'], True)
+            # what to do with self._SetPetrovGalerkinBnSParameters()
+
+
+    def tearDown(self):
+        rom_parameters_to_erase = 'test_rom_manager/RomParameters_test_to_erase.json'
+        if os.path.exists(rom_parameters_to_erase):
+            os.remove(rom_parameters_to_erase)
 
 
 if __name__ == '__main__':
