@@ -232,46 +232,59 @@ protected:
     ///@{
 
     /**
-     * @brief This function builds the strain matrix from the shape function derivatives.
-     *
+     * @brief This function builds the strain matrix from the shape function derivatives utilizing voigt notation.
      * @param rDN_DX matrix of shape function derivatives at all cloud points
+     * @param NumNodes number of nodes of the geometry (cloud points)
      * @param rB B_matrix/ strain matrix
      */
     void CalculateStrainMatrix(
         const Matrix& rDN_DX,
+        const std::size_t NumNodes,
         Matrix& rB);
 
     /**
      * This function computes the penalty coefficient for the Nitsche normal imposition (penalization and stabilization)
      * @param rN the current Gauss pt. shape functions vector
-     * @param TODO
+     * @param DeltaTime time step
+     * @param Penalty Nitsche penalty coefficient (gamma)
+     * @param ParentSize size/ volume of the parent element
+     * @param EffectiveViscosity effective viscosity
      * @return double The normal penalty coefficient value
      */
     double ComputeSlipNormalPenaltyCoefficient(
         const Vector& rN,
         const double DeltaTime,
         const double Penalty,
-        const double ParentSize) const;
+        const double ParentSize,
+        const double EffectiveViscosity) const;
 
     /**
      * This function computes the penalty coefficients for the Nitsche tangential imposition
-     * @param TODO
+     * @param SlipLength slip length for Navier-slip (zero for no-slip)
+     * @param Penalty Nitsche penalty coefficient (gamma)
+     * @param ParentSize size/ volume of the parent element
+     * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
         const double SlipLength,
         const double Penalty,
-        const double ParentSize) const;
+        const double ParentSize,
+        const double EffectiveViscosity) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche tangential imposition
-     * @param TODO
+     * @param SlipLength slip length for Navier-slip (zero for no-slip)
+     * @param Penalty Nitsche penalty coefficient (gamma)
+     * @param ParentSize size/ volume of the parent element
+     * @param EffectiveViscosity effective viscosity
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
         const double SlipLength,
         const double Penalty,
-        const double ParentSize) const;
+        const double ParentSize,
+        const double EffectiveViscosity) const;
 
     ///@}
     ///@name Protected  Access
