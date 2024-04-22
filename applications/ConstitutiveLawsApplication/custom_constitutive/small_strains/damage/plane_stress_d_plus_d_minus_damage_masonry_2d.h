@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -155,6 +156,25 @@ public:
 	double& GetValue(
 		const Variable<double>& rThisVariable,
 		double& rValue) override;
+
+    Matrix GetTransformationMatrix(const Properties &rMaterialProperties)
+    {
+        const double a11 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_11];
+        const double a12 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_12];
+        const double a13 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_13];
+        const double a21 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_21];
+        const double a22 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_22];
+        const double a23 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_23];
+        const double a31 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_31];
+        const double a32 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_32];
+        const double a33 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_33];
+
+        Matrix T(3, 3);
+        T(0,0) = a11;		T(0,1) = a12;		T(0,2) = a13;
+        T(1,0) = a21;		T(1,1) = a22;		T(1,2) = a23;
+        T(2,0) = a31;		T(2,1) = a32;		T(2,2) = a33;
+        return T;
+    }
 
 	/**
 	* returns the value of a specified variable

@@ -290,21 +290,6 @@ void DamageDPlusDMinusMasonry2DLaw::FinalizeSolutionStep(
 	const Vector& rShapeFunctionsValues,
 	const ProcessInfo& rCurrentProcessInfo)
 {
-	// Begin IMPLEX Integration - Only if switched on
-	if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
-		ThresholdTension 		= TemporaryImplicitThresholdTension;
-		ThresholdCompression 	= TemporaryImplicitThresholdTCompression;
-
-		// move from n to n-1
-		PreviousThresholdTension  		= CurrentThresholdTension;
-		PreviousThresholdCompression  	= CurrentThresholdCompression;
-		PreviousDeltaTime 				= CurrentDeltaTime;
-	}
-	// End IMPLEX Integration
-
-	// save converged values
-	CurrentThresholdTension 		= ThresholdTension;
-	CurrentThresholdCompression 	= ThresholdCompression;
 
 }
 /***********************************************************************************/
@@ -336,14 +321,20 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	const ProcessInfo&  pinfo = rValues.GetProcessInfo();
 	const GeometryType& geom  = rValues.GetElementGeometry();
 	const Properties&   props = rValues.GetMaterialProperties();
+	Matrix r_tangent_tensor = rValues.GetConstitutiveMatrix();
 
 	const Vector& StrainVector   	= rValues.GetStrainVector();
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
+	Matrix T(3, 3);
+	noalias(T) = GetTransformationMatrix(rValues.GetMaterialProperties());
+    const Vector strain_iso = prod(T, StrainVector);
+
 	CalculationData data;
 	this->InitializeCalculationData(props, geom, pinfo, data);
 
-	this->CalculateMaterialResponseInternal(StrainVector, PredictiveStressVector, data, props);
+	this->CalculateMaterialResponseInternal(strain_iso, PredictiveStressVector, data, props);
+	PredictiveStressVector = prod(trans(T), PredictiveStressVector);
 
 	bool is_damaging_tension = false;
 	bool is_damaging_compression = false;
@@ -352,11 +343,12 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	// Computation of the Constitutive Tensor
 	if (rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
 		if(is_damaging_tension || is_damaging_compression) {
-			this->CalculateTangentTensor(rValues, StrainVector, PredictiveStressVector, data, props);
+			this->CalculateTangentTensor(rValues, strain_iso, PredictiveStressVector, data, props);
 		}
 		else {
 			this->CalculateSecantTensor(rValues, data);
 		}
+		r_tangent_tensor = prod(trans(T), Matrix(prod(r_tangent_tensor, T)));
 	}
 }
 
@@ -386,6 +378,21 @@ void DamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponseKirchhoff (
 void DamageDPlusDMinusMasonry2DLaw::FinalizeMaterialResponseCauchy (
 	Parameters& rValues)
 {
+	// Begin IMPLEX Integration - Only if switched on
+	if (rValues.GetMaterialProperties()[INTEGRATION_IMPLEX] != 0){
+		ThresholdTension 		= TemporaryImplicitThresholdTension;
+		ThresholdCompression 	= TemporaryImplicitThresholdTCompression;
+
+		// move from n to n-1
+		PreviousThresholdTension  		= CurrentThresholdTension;
+		PreviousThresholdCompression  	= CurrentThresholdCompression;
+		PreviousDeltaTime 				= CurrentDeltaTime;
+	}
+	// End IMPLEX Integration
+
+	// save converged values
+	CurrentThresholdTension 		= ThresholdTension;
+	CurrentThresholdCompression 	= ThresholdCompression;
 }
 /***********************************************************************************/
 /***********************************************************************************/

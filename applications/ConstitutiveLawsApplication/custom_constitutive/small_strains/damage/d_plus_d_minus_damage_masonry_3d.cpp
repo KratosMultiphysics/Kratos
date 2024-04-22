@@ -57,7 +57,6 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
 
     // Integrate Stress Damage
     Vector& integrated_stress_vector = rValues.GetStressVector();
-    array_1d<double, VoigtSize> auxiliary_integrated_stress_vector = integrated_stress_vector;
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -68,6 +67,10 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
+
+    Matrix T;
+    noalias(T) = GetTransformationMatrix(rValues.GetMaterialProperties());
+    const Vector strain_iso = prod(T, r_strain_vector);
 
     // Elastic Matrix
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
@@ -88,7 +91,7 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
         damage_parameters.DamageCompression    = this->GetCompressionDamage();
 
         // S0 = C0:E
-        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, strain_iso);
 
         // Perform the separation of the Stress in tension and compression
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
@@ -111,9 +114,12 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
                 this->CalculateTangentTensor(rValues);
             } else { // Secant matrix
                 this->CalculateSecantTensor(rValues, r_tangent_tensor);
+                r_tangent_tensor = prod(trans(T), Matrix(prod(r_tangent_tensor, T)));
             }
         }
         this->CalculateIntegratedStressVector(integrated_stress_vector, damage_parameters, rValues);
+        integrated_stress_vector = prod(trans(T), integrated_stress_vector);
+
     }
     KRATOS_CATCH("")
 }
@@ -254,32 +260,36 @@ void DamageDPlusDMinusMasonry3DLaw::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    this->SetTensionDamage(this->GetNonConvTensionDamage());
-    this->SetTensionThreshold(this->GetNonConvTensionThreshold());
 
-    this->SetCompressionDamage(this->GetNonConvCompressionDamage());
-    this->SetCompressionThreshold(this->GetNonConvCompressionThreshold());
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    this->SetTensionDamage(this->GetNonConvTensionDamage());
+    this->SetTensionThreshold(this->GetNonConvTensionThreshold());
+
+    this->SetCompressionDamage(this->GetNonConvCompressionDamage());
+    this->SetCompressionThreshold(this->GetNonConvCompressionThreshold());
 }
 /***********************************************************************************/
 /***********************************************************************************/
