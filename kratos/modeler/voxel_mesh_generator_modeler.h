@@ -167,7 +167,7 @@ private:
             return mNumberOfDivisions;
         }
 
-        bool IsInitialized()
+        bool IsInitialized() const
         {
             return mNumberOfDivisions[0] && mNumberOfDivisions[1] && mNumberOfDivisions[2];
         }
