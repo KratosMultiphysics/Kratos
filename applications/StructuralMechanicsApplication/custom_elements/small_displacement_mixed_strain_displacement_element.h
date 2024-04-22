@@ -445,11 +445,12 @@ protected:
             const double L0 = r_props[CHARACTERISTIC_LENGTH_MULTIPLIER];
             double l_char;
             if (dim == 2) {
-                l_char = 0.5 * std::sqrt(r_geom.Area());
+                l_char = std::sqrt(r_geom.Area());
             } else {
-                l_char = 0.5 * std::cbrt(r_geom.Volume());
+                l_char = std::cbrt(r_geom.Volume());
             }
-            return l_char * tau / L0;
+            const double factor = l_char * tau / L0;
+            return (factor > 1.0) ? 1.0 : factor;
         } else {
             return tau;
         }
