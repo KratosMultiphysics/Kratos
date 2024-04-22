@@ -3,8 +3,8 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import StabilizedFormulation
-from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver import StabilizedFormulation
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver import NavierStokesMonolithicSolver
 
 class StabilizedStokesFormulation(StabilizedFormulation):
     """
@@ -63,7 +63,7 @@ class StabilizedStokesFormulation(StabilizedFormulation):
 def CreateSolver(main_model_part, custom_settings):
     return StokesSolverMonolithic(main_model_part, custom_settings)
 
-class StokesSolverMonolithic(NavierStokesSolverMonolithic):
+class StokesSolverMonolithic(NavierStokesMonolithicSolver):
     """
     Monolithic Stokes formulations solver.
 
