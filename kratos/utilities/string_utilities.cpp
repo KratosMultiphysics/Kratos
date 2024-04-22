@@ -175,4 +175,55 @@ std::string ReplaceAllSubstrings(
     return output_string;
 }
 
+std::string Trim(
+    const std::string& rInputString,
+    const bool RemoveNullChar)
+{
+    return TrimLeft(TrimRight(rInputString, RemoveNullChar), RemoveNullChar);
+}
+
+std::function<bool(std::string::value_type)> TrimChar(const bool RemoveNullChar)
+{
+    if (RemoveNullChar) {
+        return [](auto character) {
+            return std::isspace(character) || character == '\0';
+        };
+    }
+
+    return [](auto character) {
+        return std::isspace(character);
+    };
+}
+
+std::string TrimLeft(
+    const std::string& rInputString,
+    const bool RemoveNullChar)
+{
+    std::string output_string(rInputString);
+
+    const auto trim_char = TrimChar(RemoveNullChar);
+
+    output_string.erase(output_string.begin(), std::find_if(output_string.begin(), output_string.end(),
+            [trim_char](std::string::value_type ch) {return !trim_char(ch);}
+        )
+    );
+
+    return output_string;
+}
+
+std::string TrimRight(
+    const std::string& rInputString,
+    const bool RemoveNullChar)
+{
+    std::string output_string(rInputString);
+    const auto trim_char = TrimChar(RemoveNullChar);
+
+    output_string.erase(std::find_if(output_string.rbegin(), output_string.rend(),
+            [trim_char](std::string::value_type ch) {return !trim_char(ch);}
+        ).base(), output_string.end()
+    );
+
+    return output_string;
+}
+
 } // namespace Kratos::StringUtilities
