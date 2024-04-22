@@ -27,8 +27,8 @@
 namespace Kratos::Testing
 {
 /**
-* Checks the correct work of the SPR metric process
-* Test triangle
+* This test case verifies the functionality of the FindNodalNeighboursProcess for a 2D triangular mesh.
+* It checks that the process correctly identifies the number of nodal neighbours and neighbouring elements for each node.
 */
 KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess1, KratosCoreFastSuite)
 {
@@ -64,8 +64,8 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess1, KratosCoreFastSuite)
 }
 
 /**
-* Checks the correct work of the nodal SPR compute
-* Test tetrahedra
+* This test case verifies the functionality of the FindNodalNeighboursProcess for a 3D tetrahedral mesh.
+* It ensures that the process correctly computes the number of nodal neighbours and neighbouring elements for each node.
 */
 KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2, KratosCoreFastSuite)
 {
@@ -119,8 +119,47 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2, KratosCoreFastSuite)
 }
 
 /**
-* Checks the correct work of the nodal SPR compute
-* Test Triangle
+* This test case verifies the functionality of the FindNodalNeighboursProcess for a 3D triangles mesh.
+* It ensures that the process correctly computes the number of nodal neighbours and neighbouring elements for each node.
+*/
+KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess3, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
+
+    auto& process_info = r_model_part.GetProcessInfo();
+    process_info[STEP] = 1;
+    process_info[NL_ITERATION_NUMBER] = 1;
+
+    CppTestsUtilities::CreateSphereTriangularMesh(r_model_part, "SurfaceCondition3D3N", 1.0);
+
+    FindNodalNeighboursProcess process(r_model_part);
+    process.Execute();
+
+    // With conditions 0 is expected
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_EQ(r_node.GetValue(NEIGHBOUR_NODES).size(), 0);
+        KRATOS_EXPECT_EQ(r_node.GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    }
+
+    // Create elements with the same geometry as conditions
+    for (auto& r_cond : r_model_part.Conditions()) {
+        r_model_part.CreateNewElement("Element3D3N", r_cond.Id(), r_cond.GetGeometry(), r_cond.pGetProperties());
+    }
+
+    // Re-execute the process
+    process.Execute();
+
+    // Check the neighbours greater than 0
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_EXPECT_GT(r_node.GetValue(NEIGHBOUR_NODES).size(), 0);
+        KRATOS_EXPECT_GT(r_node.GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    }
+}
+
+/**
+* This test case examines the functionality of the FindNodalNeighboursProcess specifically for nodal condition neighbours in a 2D triangular mesh.
+* It validates that the process accurately computes the number of neighbouring nodes for each condition node.
 */
 KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2_Conditions, KratosCoreFastSuite)
 {
