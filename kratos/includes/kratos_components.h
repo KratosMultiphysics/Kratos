@@ -133,7 +133,6 @@ public:
     static void CleanKratosComponents(const std::string& rSrcName)
     {
         // If the component is not loaded, we don't try to unload it ( this prevents applications with the unregister function not implemented from crashing the core)
-        // if (msComponentsSources.find(rSrcName) != msComponentsSources.end()) {
         for (auto & rCmpName: msComponentsSources[rSrcName]) {
             KratosComponents<TComponentType>::Remove(rCmpName);
         }
