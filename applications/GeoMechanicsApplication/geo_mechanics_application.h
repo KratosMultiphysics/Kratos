@@ -293,6 +293,8 @@ private:
     const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{ 0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)) };
     const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{ 0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)) };
     const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{ 0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)) };
+    const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{ 0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
+    const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{ 0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3))};
 
     const TransientPwInterfaceElement<2,4> mTransientPwInterfaceElement2D4N{ 0, Kratos::make_shared< QuadrilateralInterface2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)), std::make_unique<PlaneStrainStressState>() };
     const TransientPwInterfaceElement<3,6> mTransientPwInterfaceElement3D6N{ 0, Kratos::make_shared< PrismInterface3D6         <NodeType> >(Element::GeometryType::PointsArrayType(6)), std::make_unique<ThreeDimensionalStressState>() };

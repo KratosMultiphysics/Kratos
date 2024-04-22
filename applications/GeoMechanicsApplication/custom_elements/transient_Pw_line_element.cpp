@@ -21,5 +21,7 @@ template class TransientPwLineElement<2, 2>;
 template class TransientPwLineElement<2, 3>;
 template class TransientPwLineElement<2, 4>;
 template class TransientPwLineElement<2, 5>;
+template class TransientPwLineElement<3, 2>;
+template class TransientPwLineElement<3, 3>;
 
 } // Namespace Kratos

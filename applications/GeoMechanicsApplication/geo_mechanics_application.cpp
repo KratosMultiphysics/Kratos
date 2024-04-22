@@ -53,6 +53,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D3N", mTransientPwLineElement2D3N)
     KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D4N", mTransientPwLineElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D5N", mTransientPwLineElement2D5N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement3D2N", mTransientPwLineElement3D2N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement3D3N", mTransientPwLineElement3D3N)
 
     KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement2D4N", mTransientPwInterfaceElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D6N", mTransientPwInterfaceElement3D6N)

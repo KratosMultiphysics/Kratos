@@ -72,6 +72,34 @@ class KratosGeoMechanicsTransientPressureLineElementTests(KratosUnittest.TestCas
         simulation = test_helper.run_kratos(file_path)
         pressure = test_helper.get_water_pressure(simulation)
         self.assertAlmostEqual(self.etalon_value1, pressure[2])
+        
+    def test_oblique_line_element3D2N(self):
+        test_name = 'test_oblique_line_element3D2N'
+        file_path = test_helper.get_file_path(os.path.join('test_pressure_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        pressure = test_helper.get_water_pressure(simulation)
+        self.assertAlmostEqual(self.etalon_value1, pressure[2])
 
+    def test_oblique_line_element3D3N(self):
+        test_name = 'test_oblique_line_element3D3N'
+        file_path = test_helper.get_file_path(os.path.join('test_pressure_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        pressure = test_helper.get_water_pressure(simulation)
+        self.assertAlmostEqual(self.etalon_value1, pressure[2])
+
+    def test_vertical_line_element3D2N(self):
+        test_name = 'test_vertical_line_element3D2N'
+        file_path = test_helper.get_file_path(os.path.join('test_pressure_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        pressure = test_helper.get_water_pressure(simulation)
+        self.assertAlmostEqual(self.etalon_value1, pressure[2])
+        
+    def test_vertical_line_element3D3N(self):
+        test_name = 'test_vertical_line_element3D3N'
+        file_path = test_helper.get_file_path(os.path.join('test_pressure_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        pressure = test_helper.get_water_pressure(simulation)
+        self.assertAlmostEqual(self.etalon_value1, pressure[2])
+        
 if __name__ == '__main__':
     KratosUnittest.main()
