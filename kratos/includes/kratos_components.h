@@ -110,8 +110,8 @@ public:
         }
 
         // Check if a different object was already registered with this name
-        auto it_comp =  msComponentsSources.find(rCmpName);
-        KRATOS_ERROR_IF(it_comp != msComponentsSources.end()) << "An object with name \"" << rCmpName << " has already been registered for " << rSrcName << std::endl;
+        auto it_comp =  msComponentsSources[rSrcName].find(rCmpName);
+        KRATOS_ERROR_IF(it_comp != msComponentsSources[rSrcName].end()) << "An object with name \"" << rCmpName << " has already been registered for " << rSrcName << std::endl;
         msComponentsSources[rSrcName].insert(rCmpName);
     }
 
