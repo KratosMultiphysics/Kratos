@@ -298,7 +298,7 @@ void KratosApplication::RegisterKratosCore() {
 
 void KratosApplication::DeregisterCommonComponents() 
 {
-    std::cout << "Deregistering " << mApplicationName << std::endl;
+    KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
 
     KratosComponents<Geometry<Node>>::CleanKratosComponents(mApplicationName);
     KratosComponents<Element>::CleanKratosComponents(mApplicationName);
