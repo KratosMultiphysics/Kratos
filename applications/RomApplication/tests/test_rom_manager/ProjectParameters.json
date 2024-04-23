@@ -130,5 +130,5 @@
             }
         }]
     },
-    "analysis_stage"   : "KratosMultiphysics.analysis_stage"
+    "analysis_stage"   : "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
 }
