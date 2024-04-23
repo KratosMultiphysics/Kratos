@@ -133,7 +133,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             for i, active_constraint in enumerate(active_constraints_list):
                 # scaling constraints grad
                 norm = KratosOA.ExpressionUtils.NormInf(constr_grad[i])
-                if not math.isclose(obj_norm, 0.0, abs_tol=1e-16):
+                if not math.isclose(norm, 0.0, abs_tol=1e-16):
                     scaled_constr_grad.append( constr_grad[i] / norm )
                 else:
                     scaled_constr_grad.append( constr_grad[i] )
@@ -145,27 +145,27 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(scaled_constr_grad[i], scaled_constr_grad[j])
                     ntn[j, i] = ntn[i, j]
 
-                # get the inverse of ntn
-                ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
+            # get the inverse of ntn
+            ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
 
-                # create the identity matrix
-                identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
-                for i in range(number_of_active_constraints):
-                    identity_matrix[i, i] = 1.0
+            # create the identity matrix
+            identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
+            for i in range(number_of_active_constraints):
+                identity_matrix[i, i] = 1.0
 
-                # solve for inverse of ntn
-                self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
+            # solve for inverse of ntn
+            self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
 
-                lagrangian_multiplier = ntn_inverse * CollectiveListCollectiveProduct(scaled_constr_grad, scalled_obj_grad)
-                for i in range(number_of_active_constraints):
-                    if lagrangian_multiplier[i] > 0.0:
-                        lagrangian_multiplier[i] = 0.0
-                    else:
-                        lagrangian_multiplier[i] *= w_r[i]
-                projected_direction = - (scalled_obj_grad - CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
-                correction = - CollectiveListVectorProduct(scaled_constr_grad, w_c)
-                search_direction = projected_direction + correction
+            lagrangian_multiplier = ntn_inverse * CollectiveListCollectiveProduct(scaled_constr_grad, scalled_obj_grad)
+            for i in range(number_of_active_constraints):
+                if lagrangian_multiplier[i] > 0.0:
+                    lagrangian_multiplier[i] = 0.0
+                else:
+                    lagrangian_multiplier[i] *= w_r[i]
+            projected_direction = - (scalled_obj_grad - CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
+            correction = - CollectiveListVectorProduct(scaled_constr_grad, w_c)
+            search_direction = projected_direction + correction
         self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("correction", correction.Clone(), overwrite=True)
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction.Clone(), overwrite=True)

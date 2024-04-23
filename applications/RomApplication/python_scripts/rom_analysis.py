@@ -2,7 +2,7 @@ import importlib
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
@@ -28,10 +28,12 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 for name in self.project_parameters["output_processes"].keys():
                     if name=="rom_output":
                         rom_output_parameters = self.project_parameters["output_processes"]["rom_output"]
-                        if rom_output_parameters[0]["Parameters"].Has("rom_basis_output_name"):
-                            self.rom_basis_output_name = rom_output_parameters[0]["Parameters"]["rom_basis_output_name"].GetString()
-                        if rom_output_parameters[0]["Parameters"].Has("rom_basis_output_folder"):
-                            self.rom_basis_output_folder = rom_output_parameters[0]["Parameters"]["rom_basis_output_folder"].GetString()
+                        for parameter_set in rom_output_parameters:
+                            if parameter_set["python_module"].GetString() == "calculate_rom_basis_output_process":
+                                if parameter_set["Parameters"].Has("rom_basis_output_name"):
+                                    self.rom_basis_output_name = parameter_set["Parameters"]["rom_basis_output_name"].GetString()
+                                if parameter_set["Parameters"].Has("rom_basis_output_folder"):
+                                    self.rom_basis_output_folder = parameter_set["Parameters"]["rom_basis_output_folder"].GetString()
             self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
@@ -95,7 +97,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
             # Create the ROM solver
-            return new_python_solvers_wrapper_rom.CreateSolver(
+            return python_solvers_wrapper_rom.CreateSolver(
                 self.model,
                 self.project_parameters)
 
