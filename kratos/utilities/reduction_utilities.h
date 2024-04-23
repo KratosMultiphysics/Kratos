@@ -286,7 +286,7 @@ public:
     void LocalReduce(const std::pair<bool, TDataType> ValuePair)
     {
         if (ValuePair.first) {
-            mValue.push_back(ValuePair.second);
+            this->mValue.push_back(ValuePair.second);
         }
     }
 };
