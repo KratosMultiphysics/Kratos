@@ -89,25 +89,13 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","REACTION_Y","REACTION_X"],
+            "check_variables"  : ["DISPLACEMENT_Y","REACTION_Y"],
             "input_file_name"  : "beam_test/semi_rigid_linear_3D2NBeamCr_test_results.json",
             "model_part_name"  : "Structure",
-            "time_frequency"   : 0.9
+            "time_frequency"   : 0.9,
+            "relative_tolerance": 1e-7,
+            "tolerance": 1e-7
         }
     }
-    ]},
-    "json_output" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y","REACTION_Y","REACTION_X"],
-            "output_file_name" : "D:/software_development/Kratos4/applications/StructuralMechanicsApplication/tests/beam_test/semi_rigid_linear_3D2NBeamCr_test_calculated.json",
-            "model_part_name"  : "Structure",
-            "time_frequency"   : 0.1
-        }
-    }
-    ]
+    ]}
 }

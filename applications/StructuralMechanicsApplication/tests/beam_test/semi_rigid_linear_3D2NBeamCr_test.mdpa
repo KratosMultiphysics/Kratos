@@ -31,7 +31,7 @@ Begin Elements CrLinearBeamElement3D2N// GUI group identifier: structure
 End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: neumann
-1 0 11
+1 0 6
 End Conditions
 
 Begin SubModelPart Parts_structure // Group structure // Subtree Parts
@@ -66,6 +66,7 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_dirichletXYZ // Group dirichletXYZ // Subtree DISPLACEMENT
     Begin SubModelPartNodes
         1
+		11
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -75,6 +76,7 @@ End SubModelPart
 Begin SubModelPart ROTATION_dirrot // Group dirrot // Subtree ROTATION
     Begin SubModelPartNodes
     1
+	11
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements
@@ -118,7 +120,7 @@ Begin SubModelPart DISPLACEMENT_allnodes // Group allnodes // Subtree DISPLACEME
 End SubModelPart
 Begin SubModelPart PointLoad3D_neumann // Group neumann // Subtree PointLoad3D
     Begin SubModelPartNodes
-       11
+       6
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements

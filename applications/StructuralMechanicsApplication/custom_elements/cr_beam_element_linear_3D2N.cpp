@@ -59,7 +59,7 @@ CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
 
                 // create integer list
                 Vector semi_rigid_node_id_input = this->GetProperties()[SEMI_RIGID_NODE_IDS];
-                std::vector<int> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
+                std::vector<IndexType> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
                 for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
                     semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
                 }
@@ -348,12 +348,9 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
 	const double Iy = GetProperties()[I22];
 	const double Iz = GetProperties()[I33];
 
-    IndexType node_id_1 = GetGeometry()[0].Id();
-    IndexType node_id_2 = GetGeometry()[1].Id();
-
     Vector semi_rigid_node_id_input = GetProperties()(SEMI_RIGID_NODE_IDS);
 
-    std::vector<int> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
+    std::vector<IndexType> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
     for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
 		semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
 	}
@@ -368,7 +365,7 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     double rotational_stiffness_y_2 = std::numeric_limits<double>::infinity();
     double rotational_stiffness_z_2 = std::numeric_limits<double>::infinity();
 
-    for (int i = 0; i < semi_rigid_node_id_list.size(); i++) {
+    for (SizeType i = 0; i < semi_rigid_node_id_list.size(); i++) {
         if (r_geometry[0].Id() == semi_rigid_node_id_list[i]) {
             rotational_stiffness_y_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i]/2;
             rotational_stiffness_z_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i]/2;
@@ -455,11 +452,13 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
 
 void CrBeamElementLinear3D2N::save(Serializer& rSerializer) const
 {
+    rSerializer.save("mContainsSemiRigidNode", mContainsSemiRigidNode);
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N);
 }
 
 void CrBeamElementLinear3D2N::load(Serializer& rSerializer)
 {
+    rSerializer.load("mContainsSemiRigidNode", mContainsSemiRigidNode);
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N);
 }
 
