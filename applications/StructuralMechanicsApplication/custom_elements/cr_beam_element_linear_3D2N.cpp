@@ -57,6 +57,15 @@ void CrBeamElementLinear3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     if (this->GetProperties().Has(SEMI_RIGID_NODE_IDS)) {
 
+        KRATOS_ERROR_IF_NOT(this->GetProperties().Has(SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2)) << 
+            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2 must be set when SEMI_RIGID_NODE_IDS is used\n";
+        KRATOS_ERROR_IF_NOT(this->GetProperties().Has(SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3)) << 
+            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3 must be set when SEMI_RIGID_NODE_IDS is used\n";
+        KRATOS_ERROR_IF_NOT(this->GetProperties()[SEMI_RIGID_NODE_IDS].size() == this->GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2].size()) << 
+            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2 must have equal size as SEMI_RIGID_NODE_IDS\n";
+        KRATOS_ERROR_IF_NOT(this->GetProperties()[SEMI_RIGID_NODE_IDS].size() == this->GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3].size()) <<
+            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3 must have equal size as SEMI_RIGID_NODE_IDS\n";
+
         // create integer list
         Vector semi_rigid_node_id_input = this->GetProperties()[SEMI_RIGID_NODE_IDS];
         std::vector<IndexType> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
