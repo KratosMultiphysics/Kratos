@@ -49,7 +49,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
     )
-    kratos_add_gtests(TARGET KratosConvectionDiffusionCore SOURCES "${KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES}")
+    kratos_add_gtests(TARGET KratosConvectionDiffusionCore SOURCES "${KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################

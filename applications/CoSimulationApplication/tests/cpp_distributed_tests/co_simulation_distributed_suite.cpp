@@ -14,12 +14,12 @@
 #include <gtest/gtest.h>
 
 // Project includes
-#include "co_simulation_fast_suite.h"
+#include "co_simulation_distributed_suite.h"
 
 namespace Kratos::Testing {
 
-KratosCoSimulationFastSuite::KratosCoSimulationFastSuite()
-    : KratosCoreFastSuite() {
+KratosCoSimulationMPIFastSuite::KratosCoSimulationMPIFastSuite()
+    : KratosMPICoreFastSuite() {
   mpCoSimulationApp = std::make_shared<KratosCoSimulationApplication>();
   this->ImportApplicationIntoKernel(mpCoSimulationApp);
 }

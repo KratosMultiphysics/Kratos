@@ -283,7 +283,6 @@ class CompressiblePotentialApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosConstitutiveLawsFastSuite : public KratosCoreFastSuite {};
 class KratosContactStructuralMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosConvectionDiffusionFastSuite : public KratosCoreFastSuite {};
-class KratosCosimulationFastSuite : public KratosCoreFastSuite {};
 class KratosCSharpWrapperApplicationFastSuite : public KratosCoreFastSuite {};
 class ExaquteSandboxApplicationFastSuite : public KratosCoreFastSuite {};
 class FluidDynamicsBiomedicalApplicationFastSuite : public KratosCoreFastSuite {};
@@ -305,7 +304,6 @@ class ShallowWaterApplicationFastSuite : public KratosCoreFastSuite {};
 
 // TODO: those should be in its own mpi suite
 class KratosMappingApplicationMPITestSuite : public KratosCoreFastSuite {};
-class KratosCosimulationMPIFastSuite : public KratosCoreFastSuite {};
 
 KRATOS_API(KRATOS_TEST_UTILS) DataCommunicator& GetDefaultDataCommunicator();
 

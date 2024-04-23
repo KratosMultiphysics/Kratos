@@ -9,19 +9,19 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-// External includes
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#pragma once
 
-// Project includes
-#include "co_simulation_fast_suite.h"
+#include "co_simulation_application.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
-KratosCoSimulationFastSuite::KratosCoSimulationFastSuite()
-    : KratosCoreFastSuite() {
-  mpCoSimulationApp = std::make_shared<KratosCoSimulationApplication>();
-  this->ImportApplicationIntoKernel(mpCoSimulationApp);
-}
+class KratosCoSimulationMPIFastSuite : public KratosMPICoreFastSuite {
+public:
+  KratosCoSimulationMPIFastSuite();
+
+private:
+  KratosCoSimulationApplication::Pointer mpCoSimulationApp;
+};
 
 } // namespace Kratos::Testing

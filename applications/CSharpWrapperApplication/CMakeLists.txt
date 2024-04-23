@@ -31,7 +31,7 @@ set(KRATOS_WRAPPER_SOURCES_CORE
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_WRAPPER_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    kratos_add_gtests(TARGET KratosCSharpWrapperCore SOURCES "${KRATOS_WRAPPER_TESTING_SOURCES}")
+    kratos_add_gtests(TARGET KratosCSharpWrapperCore SOURCES "${KRATOS_WRAPPER_TESTING_SOURCES}" USE_CUSTOM_MAIN)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## generate variables with the sources

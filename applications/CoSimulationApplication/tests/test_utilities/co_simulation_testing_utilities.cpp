@@ -15,7 +15,7 @@
 
 // Project includes
 #include "co_simulation_application_variables.h"
-#include "co_simulation_testing_utilities.h"
+#include "tests/test_utilities/co_simulation_testing_utilities.h"
 
 
 namespace Kratos {
