@@ -28,6 +28,7 @@ namespace
 }
 
     RegistryItem* Registry::mspRootRegistryItem = nullptr;
+    std::string   Registry::mCurrentSource = "all";
 
     RegistryItem& Registry::GetItem(std::string const& rItemFullName)
     {
@@ -78,6 +79,16 @@ namespace
         else{
             KRATOS_ERROR << "The item \"" << rItemFullName << "\" is not found in the registry. The item \"" << p_current_item->Name() << "\" does not have \"" << r_item_name << "\"" << std::endl;
         }
+    }
+
+    void Registry::SetCurrentSource(std::string const & rCurrentSource)
+    {
+        mCurrentSource = rCurrentSource;
+    }
+
+    std::string Registry::GetCurrentSource()
+    {
+        return mCurrentSource;
     }
 
     std::size_t Registry::size()

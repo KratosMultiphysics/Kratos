@@ -116,7 +116,16 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpModelers(KratosComponents<Modeler>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
-      mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {}
+      mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName())) {
+        
+        Registry::SetCurrentSource(mApplicationName);
+
+        for (auto component : {"geometries", "elements", "conditions", "constraints", "modelers", "constitutive_laws"}) {
+            if (!Registry::HasItem(std::string(component))) {
+                Registry::AddItem<RegistryItem>(std::string(component)+"."+mApplicationName);
+            }
+        }
+      }
 
 void KratosApplication::RegisterKratosCore() {
 
@@ -295,4 +304,31 @@ void KratosApplication::RegisterKratosCore() {
     // Register ConstitutiveLaw BaseClass
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
 }
+
+void KratosApplication::DeregisterCommonComponents() 
+{
+    KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
+
+    auto deregister_detail = [&](std::string const & rComponentName, auto remove_detail) {
+        auto path = std::string(rComponentName)+"."+mApplicationName;
+        std::cout << "Deregistering " << path << " components" << std::endl;
+        for (auto & key : Registry::GetItem(path)) {
+            std::cout << "\t" << key.first << std::endl;
+            remove_detail(key.first);
+        }
+    };
+
+    deregister_detail("geometries", [](std::string const & key){ KratosComponents<Geometry<Node>>::Remove(key);});
+    deregister_detail("elements", [](std::string const & key){ KratosComponents<Element>::Remove(key);});
+    deregister_detail("conditions", [](std::string const & key){ KratosComponents<Condition>::Remove(key);});
+    deregister_detail("constraints", [](std::string const & key){ KratosComponents<MasterSlaveConstraint>::Remove(key);});
+    deregister_detail("modelers", [](std::string const & key){ KratosComponents<Modeler>::Remove(key);});
+    deregister_detail("constitutive_laws", [](std::string const & key){ KratosComponents<ConstitutiveLaw>::Remove(key);});
+}
+
+void KratosApplication::DeregisterApplication() {
+    // DeregisterLinearSolvers();
+    // DeregisterPreconditioners();
+}
+
 }  // namespace Kratos.
