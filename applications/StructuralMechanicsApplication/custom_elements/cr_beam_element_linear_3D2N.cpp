@@ -86,7 +86,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 {
 
     KRATOS_TRY
-        CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);
@@ -145,13 +145,13 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
                 dofList);
     }
     //// end static condensation
-    
+
     BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
         ZeroMatrix(msElementSize);
     aux_matrix = prod(transformation_matrix, rLeftHandSideMatrix);
     noalias(rLeftHandSideMatrix) =
         prod(aux_matrix, Matrix(trans(transformation_matrix)));
-    
+
     KRATOS_CATCH("")
 }
 
