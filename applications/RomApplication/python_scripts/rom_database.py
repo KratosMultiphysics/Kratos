@@ -1,8 +1,21 @@
+import KratosMultiphysics
 import sqlite3
 import hashlib
 import json
 from pathlib import Path
 import numpy as np
+try:
+    import pandas as pd
+    from xlsxwriter import Workbook
+    missing_pandas = False
+    missing_xlsxwriter = False
+except ImportError as e:
+    if 'pandas' in str(e):
+        missing_pandas = True
+        missing_xlsxwriter = True
+    elif 'xlsxwriter' in str(e):
+        missing_xlsxwriter = True
+        missing_pandas = False
 
 class RomDatabase(object):
 
@@ -335,144 +348,6 @@ class RomDatabase(object):
         return file_path
 
 
-    def generate_database_summary_file(self):
-        #table_names = ["FOM", "ROM", "HROM", "HHROM","RightBasis", "LeftBasis", "ResidualsProjected","HROM_Elements","HROM_Weights"]
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name)
-        directory.mkdir(parents=True, exist_ok=True)
-        summary_path = directory / "rom_database_summary.dat"
-        number_of_samples_to_include_in_summary = 5  # Adjust as needed
-
-        with summary_path.open('w') as f:
-            conn = sqlite3.connect(self.database_name)
-            cursor = conn.cursor()
-
-            for table_name in self.table_names:
-                f.write(f"\nTable Name: {table_name}\n")
-                f.write("-" * (10 + len(table_name)) + "\n")
-
-                if table_name =="RightBasis":
-
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT tol_sol, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-
-                    f.write("  tol_sol | File Name (Hash)\n")
-                    f.write("-" * 15 + "\n")
-                    # Write each row to the file
-                    for tol_sol, file_name in rows:
-                        f.write(f"{tol_sol} | {file_name}\n")
-
-                elif table_name =="LeftBasis":
-
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name  FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-
-                    if rows:
-                        f.write(" tol_sol | basis_stratey |  include_phi  |  tol_pg  |  solving_technique  |  monotocinity  |  File Name (Hash)\n")
-                        f.write("-" * (7 * 15) + "\n")
-                        for tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name in rows:
-                            f.write(f"{tol_sol} |  {pg_data1_str} | {pg_data2_bool} | {pg_data3_double} | {pg_data4_str} | {pg_data5_bool} | {file_name}\n")
-
-
-                elif table_name =="PetrovGalerkinSnapshots":
-
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT parameters, tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name  FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-                    if rows:
-                        # Assuming the first row's parameters to figure out the headers
-                        sample_params = json.loads(json.loads(rows[0][0]))
-                        headers = list(sample_params.keys())
-                        f.write(" | ".join(headers) + " tol_sol | basis_stratey |  include_phi  |  tol_pg  |  solving_technique  |  monotocinity  |  File Name (Hash)\n")
-                        f.write("-" * ((len(headers)+7) * 15) + "\n")
-                        # Write each row to the file
-                        for parameters,tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name in rows:
-                            params_dict = json.loads(json.loads(parameters))
-                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
-                            f.write(f"{params_str} {tol_sol} | {pg_data2_bool} |  {pg_data2_bool}  |  {pg_data4_str}  |  {pg_data4_str}  |  {pg_data5_bool}  |  {file_name}\n")
-
-
-                elif table_name =="ResidualsProjected":
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT parameters, tol_sol, tol_res, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-
-                    if rows:
-                        # Assuming the first row's parameters to figure out the headers
-                        sample_params = json.loads(json.loads(rows[0][0]))
-                        headers = list(sample_params.keys())
-                        f.write(" | ".join(headers) + " |   tol_sol   |  tol_res  |   Projection type  |   File Name (Hash)\n")
-                        f.write("-" * ((len(headers)+4) * 15) + "\n")
-                        # Write each row to the file
-                        for parameters, tol_sol, tol_res, type_of_projection, file_name in rows:
-                            params_dict = json.loads(json.loads(parameters))
-                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
-                            f.write(f"{params_str} | {tol_sol} | {tol_res} | {type_of_projection} | {file_name}\n")
-                    else:
-                        f.write("No data available.\n")
-
-                elif table_name=="HROM_Elements" or table_name=="HROM_Weights":
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT tol_sol, tol_res, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-
-                    if rows:
-                        f.write(" tol_sol   |  tol_res  |   Projection type  |   File Name (Hash)\n")
-                        f.write("-" * (4 * 15) + "\n")
-                        # Write each row to the file
-                        for tol_sol, tol_res, type_of_projection, file_name in rows:
-                            f.write(f" {tol_sol} | {tol_res} | {type_of_projection} | {file_name}\n")
-                    else:
-                        f.write("No data available.\n")
-
-                elif  table_name=="FOM" :
-
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT parameters, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-
-                    if rows:
-                        # Assuming the first row's parameters to figure out the headers
-                        sample_params = json.loads(json.loads(rows[0][0]))
-                        headers = list(sample_params.keys())
-                        f.write(" | ".join(headers) + " | File Name (Hash)\n")
-                        f.write("-" * (len(headers) * 15) + "\n")
-
-                        # Write each row to the file
-                        for parameters, file_name in rows:
-                            params_dict = json.loads(json.loads(parameters))
-                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
-                            f.write(f"{params_str} | {file_name}\n")
-
-                else:
-                    # Query the database for a limited number of entries from the current table
-                    cursor.execute(f"SELECT parameters, type_of_projection, file_name FROM {table_name} LIMIT ?", (number_of_samples_to_include_in_summary,))
-                    rows = cursor.fetchall()
-
-                    if rows:
-                        # Assuming the first row's parameters to figure out the headers
-                        sample_params = json.loads(json.loads(rows[0][0]))
-                        headers = list(sample_params.keys())
-                        f.write(" | ".join(headers) + " | type_of_projection | File Name (Hash)\n")
-                        f.write("-" * (len(headers) * 15) + "\n")
-
-                        # Write each row to the file
-                        for parameters, type_of_projection, file_name in rows:
-                            params_dict = json.loads(json.loads(parameters))
-                            params_str = " | ".join(f"{params_dict.get(name, ''):.3f}" for name in headers)
-                            f.write(f"{params_str} | {type_of_projection}| {file_name}\n")
-
-
-                    else:
-                        f.write("No data available.\n")
-
-            print(f"Summary file generated at {summary_path}")
-
-        conn.close()
-
-
     def FOM_make_mu_dictionary(self, mu):
         if self.mu_names is None:
             self.mu_names = []
@@ -584,3 +459,39 @@ class RomDatabase(object):
         data_base_directory.mkdir(parents=True, exist_ok=True)
 
         return np.load(data_base_directory / (hash_basis + '.npy'))
+
+
+    def generate_excel(self, full_tables = False, number_of_terms=5):
+        if missing_pandas == True:
+            KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," pandas library not installed. No excel file generated")
+        if missing_xlsxwriter == True:
+            KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," xlsxwriter library not installed. No excel file generated")
+        if missing_pandas==False and missing_xlsxwriter==False:
+            conn = sqlite3.connect(self.database_name)
+            # Query the database for table names
+            query = "SELECT name FROM sqlite_master WHERE type='table';"
+            tables = pd.read_sql_query(query, conn)
+
+            if full_tables==False:
+                output_folder = './Summary.xlsx'
+            elif full_tables==True:
+                output_folder = './DataBaseCompleteDump.xlsx'
+            output_file_path = Path(output_folder)
+
+            with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
+                for table_name in tables['name']:
+                    if full_tables==True:
+                        df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+                    else:
+                        df = pd.read_sql_query(f"SELECT * FROM {table_name}  LIMIT {number_of_terms}", conn)
+                    df.to_excel(writer, sheet_name=table_name, index=False)
+                    print(f"Exported {table_name} to Excel sheet.")
+            conn.close()
+            print(f"Data exported to Excel file {output_file_path} successfully.")
+
+    def generate_database_summary(self):
+        number_of_terms = 5 #TODO user-defined
+        self.generate_excel(full_tables=False, number_of_terms=number_of_terms)
+
+    def dump_database_as_excel(self):
+        self.generate_excel(full_tables=True)

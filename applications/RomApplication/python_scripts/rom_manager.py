@@ -263,7 +263,7 @@ class RomManager(object):
             self.data_base.add_RightBasis_to_database(u, mu_train,tol_sol)
         else:
             BasisOutputProcess._PrintRomBasis(self.data_base.get_right_basis(hash_basis)) #this updates the RomParameters.json
-        self.data_base.generate_database_summary_file()
+        self.data_base.generate_database_summary()
 
         return 0
 
@@ -301,7 +301,7 @@ class RomManager(object):
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.data_base.generate_database_summary_file()
+        self.data_base.generate_database_summary()
 
         return 0
 
@@ -353,7 +353,7 @@ class RomManager(object):
             self.data_base.add_LeftBasis_to_database(u, mu_train,tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
         else:
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_left_basis(hash_basis)) #this updates the RomParameters.json
-        self.data_base.generate_database_summary_file()
+        self.data_base.generate_database_summary()
 
         return 0
 
@@ -391,7 +391,7 @@ class RomManager(object):
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.data_base.generate_database_summary_file()
+        self.data_base.generate_database_summary()
 
         in_database, hash_z, hash_w =  self.data_base.check_if_hrom_elems_and_weights_already_in_database(mu_train, tol_sol,tol_res, projection_type)
 
@@ -427,7 +427,7 @@ class RomManager(object):
             HROM_utility.hyper_reduction_element_selector.w, HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_elements_and_weights(hash_w ,hash_z)
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
-        self.data_base.generate_database_summary_file()
+        self.data_base.generate_database_summary()
 
     def __LaunchHROM(self, mu_train):
         """
@@ -464,7 +464,7 @@ class RomManager(object):
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.data_base.generate_database_summary_file()
+        self.data_base.generate_database_summary()
 
         return 0
 
