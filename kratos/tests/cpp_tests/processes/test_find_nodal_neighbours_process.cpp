@@ -152,6 +152,17 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess3, KratosCoreFastSuite)
         KRATOS_EXPECT_EQ(retrieved_neighbour_nodes[i], neighbour_nodes[i]);
     }
     KRATOS_EXPECT_EQ(it_node_begin->GetValue(NEIGHBOUR_NODES).size(), 8);
+    const std::vector<std::size_t> neighbour_elements = {11, 16, 23, 49, 50, 54, 72, 74};
+    auto& r_neighbour_elements = it_node_begin->GetValue(NEIGHBOUR_ELEMENTS);
+    std::vector<std::size_t> retrieved_neighbour_elements;
+    retrieved_neighbour_elements.reserve(r_neighbour_elements.size());
+    for (auto& r_neighbour_element : r_neighbour_elements) {
+        retrieved_neighbour_elements.push_back(r_neighbour_element.Id());
+    }
+    std::sort(retrieved_neighbour_elements.begin(), retrieved_neighbour_elements.end());
+    for (std::size_t i = 0; i < neighbour_elements.size(); ++i) {
+        KRATOS_EXPECT_EQ(retrieved_neighbour_elements[i], neighbour_elements[i]);
+    }
     KRATOS_EXPECT_EQ(it_node_begin->GetValue(NEIGHBOUR_ELEMENTS).size(), 8);
 
     // Check the neighbours greater than 0
