@@ -17,6 +17,7 @@ except ImportError as e:
         missing_xlsxwriter = True
         missing_pandas = False
 
+
 class RomDatabase(object):
 
     def __init__(self, general_rom_manager_parameters, rom_training_parameters, hrom_training_parameters, mu_names):
@@ -354,10 +355,6 @@ class RomDatabase(object):
             for i in range(len(mu)):
                 self.mu_names.append(f'generic_name_{i}')
         return dict(zip(self.mu_names , mu))
-
-    def RightBasis_make_dictionary(self, mu):
-        keys = ["hashed_name", "svd_tol_solution"]
-        return dict(zip(keys, mu))
 
 
     def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM'):
