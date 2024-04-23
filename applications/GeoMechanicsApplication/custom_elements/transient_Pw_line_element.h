@@ -19,6 +19,7 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -232,10 +233,10 @@ private:
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             const double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            BoundedMatrix<double, 1, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
-            result += -1.0 / r_properties[DYNAMIC_VISCOSITY] *
-                      prod(rShapeFunctionGradients[integration_point_index], Temp) *
-                      RelativePermeability * rIntegrationCoefficients[integration_point_index];
+            double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+            result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+                rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
+                RelativePermeability, 1.0, rIntegrationCoefficients[integration_point_index]);
         }
         return result;
     }
@@ -255,7 +256,8 @@ private:
              ++integration_point_index) {
             const auto N = Vector{row(r_N_container, integration_point_index)};
             const double BiotModulusInverse = CalculateBiotModulusInverse(rCurrentProcessInfo, integration_point_index);
-            result += -BiotModulusInverse * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
+            result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix<TNumNodes>(
+                N, BiotModulusInverse, rIntegrationCoefficients[integration_point_index]);
         }
         return result;
     }
@@ -332,11 +334,11 @@ private:
 
     array_1d<double, TNumNodes> CalculateFluidBodyVector(
         const Matrix& r_N_container,
-        const GeometryType::ShapeFunctionsGradientsType& dN_dX_container,
+        const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const ProcessInfo& rCurrentProcessInfo,
         const Vector& rIntegrationCoefficients) const
     {
-        std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         GeometryType::JacobiansType J_container;
         J_container.resize(number_integration_points, false);
         for (std::size_t i = 0; i < number_integration_points; ++i) {
@@ -350,26 +352,26 @@ private:
 
         RetentionLaw::Parameters    RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
-        array_1d<double, TNumNodes * TDim> VolumeAcceleration;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(VolumeAcceleration, GetGeometry(), VOLUME_ACCELERATION);
-        array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TNumNodes * TDim> volume_acceleration;
+        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
+        array_1d<double, TDim> body_acceleration;
 
         array_1d<double, TNumNodes> fluid_body_vector = ZeroVector(TNumNodes);
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                BodyAcceleration, r_N_container, VolumeAcceleration, integration_point_index);
+                body_acceleration, r_N_container, volume_acceleration, integration_point_index);
 
             array_1d<double, TDim> tangent_vector = CalculateTangentialElementUnitVectorOnIntegrationPoint(integration_point_index, J_container);
             array_1d<double, 1> projected_gravity = ZeroVector(1);
-            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, BodyAcceleration);
+            projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
 
             const auto N = Vector{row(r_N_container, integration_point_index)};
-            const BoundedMatrix<double, TNumNodes, 1> Temp = prod(dN_dX_container[integration_point_index], constitutive_matrix);
             double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector += r_properties[DENSITY_WATER] / r_properties[DYNAMIC_VISCOSITY] * RelativePermeability 
-                * prod(Temp, projected_gravity) * rIntegrationCoefficients[integration_point_index];
+                * prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
+                rIntegrationCoefficients[integration_point_index];
         }
         return fluid_body_vector;
     }
