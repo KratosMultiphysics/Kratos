@@ -153,6 +153,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
+            "auxiliary_dofs_list" : [],
+            "auxiliary_reaction_list" : [],
             "assign_neighbour_elements_to_conditions" : true
         }
         """)
@@ -254,8 +256,6 @@ class ConvectionDiffusionSolver(PythonSolver):
         if _CheckIsDistributed():
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
-
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
@@ -317,7 +317,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+            # Ho commentato "ReplaceElementsAndConditionsProcess"
+            # KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False

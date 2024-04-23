@@ -11,6 +11,7 @@
 
 // Project includes
 #include "iga_modeler.h"
+#include "spatial_containers/bins_dynamic.h"
 
 
 namespace Kratos
@@ -37,6 +38,102 @@ namespace Kratos
             cad_model_part,
             analysis_model_part,
             iga_physics_parameters);
+
+        const std::vector<std::string> sub_model_part_names = analysis_model_part.GetSubModelPartNames();
+
+        // Number of element_condition_list (Elements or Conditions), at the end are all the Gauss Points
+        const int numberOfEntities = iga_physics_parameters["element_condition_list"].size();   
+
+        for (IndexType i = 0; i < numberOfEntities; i++) {
+            std::string sub_model_part_name = iga_physics_parameters["element_condition_list"][i]["iga_model_part"].GetString();
+            // Get the sub_model_part. Example "SBM_Support_outer"
+            ModelPart& sub_model_part = analysis_model_part.GetSubModelPart(sub_model_part_name);
+
+            if (iga_physics_parameters["element_condition_list"][i]["parameters"].Has("variables")) {
+                for (IndexType i_var = 0; i_var < iga_physics_parameters["element_condition_list"][i]["parameters"]["variables"].size(); i_var++){
+                    // Get the variable. Example "HEAT_FLUX"
+                    std::string variable_name = iga_physics_parameters["element_condition_list"][i]["parameters"]["variables"][i_var]["variable_name"].GetString();
+                    std::vector<std::string> variable_name_array;
+                    std::vector<std::string> values_string;
+                    std::vector<std::string> components_array = {"_X","_Y","_Z"};
+                    bool isScalarValue = iga_physics_parameters["element_condition_list"][i]["parameters"]["variables"][i_var]["value"].IsString();
+                    if (isScalarValue == 1 ) {
+                        values_string.push_back(iga_physics_parameters["element_condition_list"][i]["parameters"]["variables"][i_var]["value"].GetString()); 
+                        variable_name_array.push_back(variable_name) ;
+                    } else {
+                        const int numberOfComponents = iga_physics_parameters["element_condition_list"][i]["parameters"]["variables"][i_var]["value"].size();
+                        for (IndexType i_component = 0; i_component < numberOfComponents; i_component++ ) {
+                            values_string.push_back(iga_physics_parameters["element_condition_list"][i]["parameters"]["variables"][i_var]["value"][i_component].GetString());
+                            std::string component_variable_name = variable_name+components_array[i_component];
+                            variable_name_array.push_back(component_variable_name) ;
+                        }  
+                    }  
+                    for (IndexType i_component = 0; i_component < values_string.size(); i_component++) {   
+                        // Define the function to be parsed      
+                        Kratos::unique_ptr<GenericFunctionUtility> evalFunction = Kratos::make_unique<GenericFunctionUtility>(values_string[i_component]);
+                        const std::string component_variable_name = variable_name_array[i_component];
+                        if (sub_model_part.Elements().size() > 0) {
+                            for (auto i_element = sub_model_part.ElementsBegin(); i_element != sub_model_part.ElementsEnd(); i_element++) {
+                                const double x = i_element->GetGeometry().Center().X();
+                                const double y = i_element->GetGeometry().Center().Y();
+                                const double z = i_element->GetGeometry().Center().Z();
+                                const double value = evalFunction->CallFunction(x, y, z, 0);
+                                if (component_variable_name == "HEAT_FLUX") {
+                                    i_element->SetValue(HEAT_FLUX, value);
+                                } else if (component_variable_name == "VELOCITY_X") {
+                                    i_element->SetValue(VELOCITY_X, value);
+                                } else if (component_variable_name == "VELOCITY_Y") {
+                                    i_element->SetValue(VELOCITY_Y, value);
+                                } else if (component_variable_name == "VELOCITY_Z") {
+                                    i_element->SetValue(VELOCITY_Z, value);
+                                } else if (component_variable_name == "BODY_FORCE_X") {
+                                    i_element->SetValue(BODY_FORCE_X, value);
+                                } else if (component_variable_name == "BODY_FORCE_Y") {
+                                    i_element->SetValue(BODY_FORCE_Y, value);
+                                } else if (component_variable_name == "BODY_FORCE_Z") {
+                                    i_element->SetValue(BODY_FORCE_Z, value);
+                                } else {
+                                    KRATOS_ERROR << "No name found" ;
+                                }
+                            }
+                        }
+                        else if (sub_model_part.Conditions().size() > 0) {
+                            for (auto i_cond = sub_model_part.ConditionsBegin(); i_cond != sub_model_part.ConditionsEnd(); i_cond++) {
+                                const double x = i_cond->GetGeometry().Center().X();
+                                const double y = i_cond->GetGeometry().Center().Y();
+                                const double z = i_cond->GetGeometry().Center().Z();
+                                const double value = evalFunction->CallFunction(x, y, z, 0);
+                                if (component_variable_name == "TEMPERATURE") {
+                                    i_cond->SetValue(TEMPERATURE, value);
+                                } else if (component_variable_name == "FACE_HEAT_FLUX") {
+                                    i_cond->SetValue(FACE_HEAT_FLUX, value);
+                                } else if (component_variable_name == "VELOCITY_X") {
+                                    i_cond->SetValue(VELOCITY_X, value);
+                                } else if (component_variable_name == "VELOCITY_Y") {
+                                    i_cond->SetValue(VELOCITY_Y, value);
+                                } else if (component_variable_name == "VELOCITY_Z") {
+                                    i_cond->SetValue(VELOCITY_Z, value);
+                                } else if (component_variable_name == "DISPLACEMENT_X") {
+                                    i_cond->SetValue(DISPLACEMENT_X, value);
+                                } else if (component_variable_name == "DISPLACEMENT_Y") {
+                                    i_cond->SetValue(DISPLACEMENT_Y, value);
+                                } else if (component_variable_name == "DISPLACEMENT_Z") {
+                                    i_cond->SetValue(DISPLACEMENT_Z, value);
+                                } else if (component_variable_name == "FORCE_X") {
+                                    i_cond->SetValue(FORCE_X, value);
+                                } else if (component_variable_name == "FORCE_Y") {
+                                    i_cond->SetValue(FORCE_Y, value);
+                                } else if (component_variable_name == "FORCE_Z") {
+                                    i_cond->SetValue(FORCE_Z, value);
+                                } else {
+                                    KRATOS_ERROR << "No name found" ;
+                                }
+                            } 
+                        } else {KRATOS_ERROR << "Iga Modeler: No Condition or Elements defined" ;}
+                    }
+                }
+            }
+        }
     }
 
     ///@}
@@ -134,6 +231,59 @@ namespace Kratos
             << " for " << rGeometryList.size() << " geometries"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
+        
+        // MODIFIED SBM
+        using PointType = Node;
+        using PointTypePointer = Node::Pointer;
+        using PointVector = std::vector<PointType::Pointer>;
+        using PointIterator = std::vector<PointType::Pointer>::iterator;
+        using DistanceVector = std::vector<double>;
+        using DistanceIterator = std::vector<double>::iterator;
+        using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+        using PointerType = DynamicBins::PointerType;
+        
+
+        PointVector points;
+        // ModelPart& skin_model_part;
+        ModelPart& skin_model_part_in = mpModel->HasModelPart("skin_model_part_in")
+                ? mpModel->GetModelPart("skin_model_part_in")
+                : mpModel->CreateModelPart("skin_model_part_in");
+        ModelPart& skin_model_part_out = mpModel->HasModelPart("skin_model_part_out")
+                ? mpModel->GetModelPart("skin_model_part_out")
+                : mpModel->CreateModelPart("skin_model_part_out");
+
+        bool is_inner;     
+        bool is_SBM = false;
+        Vector meshSizes_uv(2);
+        Vector parameterExternalCoordinates;
+        if (name.substr(0, 3) == "SBM") {
+            is_inner = rParameters["is_inner"].GetBool();
+            if (is_inner) { // INNER
+                for (auto &i_cond : skin_model_part_in.Conditions()) {
+                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+                }
+            } 
+            else { // OUTER
+                for (auto &i_cond : skin_model_part_out.Conditions()) {
+                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+                }
+            }
+
+            meshSizes_uv = mpModel->GetModelPart("surrogate_model_part_inner").GetProcessInfo().GetValue(MARKER_MESHES);
+            parameterExternalCoordinates = mpModel->GetModelPart("surrogate_model_part_inner").GetProcessInfo().GetValue(LOAD_MESHES);
+            is_SBM = true;
+        }
+        DynamicBins testBins(points.begin(), points.end());
+        
+        
+        double meshSize = meshSizes_uv[0];
+        if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
+        const double radius = sqrt(2)*(meshSize); 
+        // const double radius = 30*(meshSize);
+        const int numberOfResults = 1e6; 
+        ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
+        std::vector<double> list_of_distances(numberOfResults);
+            
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
@@ -185,10 +335,71 @@ namespace Kratos
                 SizeType id = 1;
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                std::vector<int> listIdClosestCondition(geometries.size());
 
-                this->CreateConditions(
-                    geometries.ptr_begin(), geometries.ptr_end(),
-                    rModelPart, name, id, PropertiesPointerType());
+                Point gaussPoint = geometries[0].Center(); 
+
+                bool isOnExternalParameterSpace = false;         
+                if (is_SBM) {isOnExternalParameterSpace = CheckIsOnExternalParameterSpace(gaussPoint, parameterExternalCoordinates); }
+                if (name.substr(0, 3) == "SBM"  && !isOnExternalParameterSpace) { 
+                    for (auto j= 0; j < geometries.size() ; j++) {  
+
+                        Point gaussPoint = geometries[j].Center(); 
+                        
+                        PointerType pointToSearch = PointerType(new PointType(10000, gaussPoint.X(), gaussPoint.Y(), gaussPoint.Z()));
+
+                        // OLD SEARCH (not working well- maybe in the future)
+                        // PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch);
+                        // listIdClosestCondition[j] = nearestPoint->Id();
+
+                        int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+
+                        double minimum_distance=1e10;
+                        int nearestNodeId;
+                        for (uint i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                            double new_distance = list_of_distances[i_distance];   
+                            if (new_distance < minimum_distance) { 
+                                minimum_distance = new_distance;
+                                nearestNodeId = i_distance;
+                                }
+                        }
+
+                        if (obtainedResults == 0) {
+                             KRATOS_WATCH('0 POINTS FOUND: EXIT')
+                             KRATOS_WATCH(pointToSearch)
+                             exit(0);}
+
+                        
+                        listIdClosestCondition[j] = Results[nearestNodeId]->Id();
+                    }
+                    if (is_inner) {
+                        this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, skin_model_part_in, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
+                    }
+                    else{
+                        this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, skin_model_part_out, listIdClosestCondition, name, id, PropertiesPointerType(), is_inner);
+                    }
+                } else if (isOnExternalParameterSpace){
+                    std::string nameBodyFittedCondition;
+                    // The name of the condition starts with "SBM", need to check which type is it: Laplacian, ConvDiff, ...
+                    if (name.substr(0, 7) == "Support") {
+                        nameBodyFittedCondition = name;
+                    } else {
+                        std::string type = name.substr(3, name.length() - 12); // Get the central part between "SBM" and "Condition"
+                        nameBodyFittedCondition = "Support" + type + "Condition";
+                    }
+                    this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, nameBodyFittedCondition, id, PropertiesPointerType());
+                }
+                else {
+                    this->CreateConditions(
+                        geometries.ptr_begin(), geometries.ptr_end(),
+                        rModelPart, name, id, PropertiesPointerType());
+                }
             }
             else {
                 KRATOS_ERROR << "\"type\" does not exist: " << type
@@ -206,12 +417,48 @@ namespace Kratos
         ModelPart& rModelPart,
         const Parameters rParameters) const
     {
+
+        static int starting_brep_ids;
+
         if (rParameters.Has("brep_id")) {
             rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_id"].GetInt()));
         }
         if (rParameters.Has("brep_ids")) {
             for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i) {
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_ids"][i].GetInt()));
+            }
+            // int lastIndex
+            starting_brep_ids = rParameters["brep_ids"][rParameters["brep_ids"].size()-1].GetInt() + 1;
+            /// MODIFIED________________
+            std::string conditionName = rParameters["iga_model_part"].GetString();
+            if (conditionName.rfind("SBM", 0) == 0) { 
+                // OUTER
+                ModelPart& surrogateModelPart_outer = mpModel->GetModelPart("surrogate_model_part_outer");
+                uint sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
+                for (SizeType j = 0; j < sizeSurrogateLoop_outer-1; ++j) {
+                    // Add the brep_ids of the internal boundary for SBMLaplacianCondition
+                    rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                    starting_brep_ids++;
+                }
+            }
+        }
+        else {
+            // INNER
+            ModelPart& surrogateModelPart_inner = mpModel->GetModelPart("surrogate_model_part_inner");
+            uint sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
+
+            for (uint iel = 1; iel < surrogateModelPart_inner.Elements().size()+1; iel++) {
+                // Each element in the surrogate_model_part represents a surrogate boundary loop. First "node" is the initial ID of the first surrogate node and
+                // the second "node" is the last surrogate node of that loop. (We have done this in the case we have multiple surrogate boundaries and 1 model part)
+                Node& firstSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
+                Node& lastSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
+                uint sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+
+                for (SizeType j = 0; j < sizeSurrogateLoop; ++j) {
+                    // Add the brep_ids of the internal boundary for SBMLaplacianCondition
+                    rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                    starting_brep_ids++;
+                }
             }
         }
         if (rParameters.Has("brep_name")) {
@@ -222,7 +469,6 @@ namespace Kratos
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_names"][i].GetString()));
             }
         }
-
         KRATOS_ERROR_IF(rGeometryList.size() == 0)
             << "Empty geometry list. Either \"brep_id\", \"brep_ids\", \"brep_name\" or \"brep_names\" are the possible options." << std::endl;
     }
@@ -261,6 +507,56 @@ namespace Kratos
         }
 
         rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
+    }
+
+    void IgaModeler::CreateConditions(
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+        ModelPart& rModelPart,
+        ModelPart& rSkinModelPart,
+        std::vector<int>& listIdClosestCondition,
+        std::string& rConditionName,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        bool isInner) const
+    {
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(rConditionName);
+
+        ModelPart::ConditionsContainerType new_condition_list;
+
+        KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
+            << "Creating conditions of type " << rConditionName
+            << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
+
+        int countListClosestCondition = 0;
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
+        {
+            new_condition_list.push_back(
+                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+
+            int condId = listIdClosestCondition[countListClosestCondition];
+
+            Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
+            int condId2;  
+            if (condId == 1) { condId2 = rSkinModelPart.Conditions().size();}
+            else {condId2 = condId-1;}
+            Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+
+            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
+            if (isInner) {
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+            } else {
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+            }
+            for (SizeType i = 0; i < (*it)->size(); ++i) {
+                // These are the control points associated with the basis functions involved in the condition we are creating
+                rModelPart.AddNode((*it)->pGetPoint(i));
+            }
+            rIdCounter++;
+            countListClosestCondition++;
+        }
+
+        rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
 
     void IgaModeler::CreateConditions(
@@ -424,6 +720,25 @@ namespace Kratos
                 }
             }
         }
+    }
+
+    bool IgaModeler::CheckIsOnExternalParameterSpace(Point point, Vector parameters_external_coordinates) const 
+    {
+        double tolerance = 1e-14;
+        double u_initial = parameters_external_coordinates[0];
+        double v_initial = parameters_external_coordinates[1];
+        double u_final   = parameters_external_coordinates[2];
+        double v_final   = parameters_external_coordinates[3];
+        
+        if (std::abs(point[0]-u_initial) < tolerance || std::abs(point[1]-v_initial) < tolerance || 
+            std::abs(point[0]-u_final  ) < tolerance || std::abs(point[1]-v_final  ) < tolerance) 
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
+    
     }
 
     ///@}

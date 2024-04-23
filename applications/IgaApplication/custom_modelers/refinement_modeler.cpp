@@ -73,6 +73,29 @@ namespace Kratos
                     ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n))
                     : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
 
+                KRATOS_WATCH('Refinement Local')
+                // MODIFIED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                Vector box_refinement_u_v_min_max;
+                double delta_u_refined;
+                double delta_v_refined; 
+                if (rParameters["local_refinement_parameters"]["do_you_want_to_refine_inner"].GetBool()) {
+                    box_refinement_u_v_min_max = r_model_part.GetProcessInfo().GetValue(MARKER_MESHES);
+
+                    int nb_per_span_u = rParameters["parameters"]["insert_nb_per_span_u"].GetInt();
+                    int nb_per_span_v = rParameters["parameters"]["insert_nb_per_span_v"].GetInt();
+                    const int nb_per_span_u_refined = (nb_per_span_u+1) * rParameters["local_refinement_parameters"]["how_many_times_refine_inner"].GetInt()-1;
+                    const int nb_per_span_v_refined = (nb_per_span_v+1) * rParameters["local_refinement_parameters"]["how_many_times_refine_inner"].GetInt()-1;
+
+                    std::vector<double> spans_local_space_u;
+                    p_nurbs_surface->SpansLocalSpace(spans_local_space_u, 0);
+                    std::vector<double> spans_local_space_v;
+                    p_nurbs_surface->SpansLocalSpace(spans_local_space_v, 1);
+                    
+                    delta_u_refined = (spans_local_space_u[1] - spans_local_space_u[0]) / (nb_per_span_u_refined + 1);
+                    delta_v_refined = (spans_local_space_v[1] - spans_local_space_v[0]) / (nb_per_span_v_refined + 1);
+                }
+
+
                 if (rParameters["parameters"].Has("increase_degree_u")) {
                     SizeType increase_degree_u = rParameters["parameters"]["increase_degree_u"].GetInt();
 
@@ -163,17 +186,42 @@ namespace Kratos
                         p_nurbs_surface->SpansLocalSpace(spans_local_space, 0);
 
                         std::vector<double> knots_to_insert_u;
-                        for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
-                            const double delta_u = (spans_local_space[i + 1] - spans_local_space[i]) / (nb_per_span_u + 1);
-                            for (IndexType j = 1; j < nb_per_span_u + 1; ++j) {
-                                knots_to_insert_u.push_back(spans_local_space[i] + delta_u * j);
+
+                        if (rParameters["local_refinement_parameters"]["do_you_want_to_refine_inner"].GetBool()) {
+                            for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
+                                const double delta_u = (spans_local_space[i + 1] - spans_local_space[i]) / (nb_per_span_u + 1);
+                                for (IndexType j = 1; j < nb_per_span_u + 1; ++j) {
+                                    double u_local = spans_local_space[i] + delta_u*j;
+                                    if ( (u_local > box_refinement_u_v_min_max[0] 
+                                            || std::abs(u_local - box_refinement_u_v_min_max[0]) < 1e-13 )
+                                            && u_local < box_refinement_u_v_min_max[1]) {
+                                        u_local = box_refinement_u_v_min_max[0];
+                                        while (u_local < box_refinement_u_v_min_max[1]) {
+                                            knots_to_insert_u.push_back(u_local);
+                                            u_local += delta_u_refined;
+                                        }
+                                        if (std::abs(knots_to_insert_u[knots_to_insert_u.size()-1] - box_refinement_u_v_min_max[1]) > 1e-13){
+                                            knots_to_insert_u.push_back(box_refinement_u_v_min_max[1]);
+                                        }
+                                        j = ((u_local - spans_local_space[i]) / delta_u) +1; 
+                                        // if (std::abs(spans_local_space[i] + delta_u*j - u_local) < 1e-13) { j++;}
+                                    }
+                                    knots_to_insert_u.push_back(spans_local_space[i] + delta_u * j);
+                                }
+                            }
+                        } else {
+                            for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
+                                const double delta_u = (spans_local_space[i + 1] - spans_local_space[i]) / (nb_per_span_u + 1);
+                                for (IndexType j = 1; j < nb_per_span_u + 1; ++j) {
+                                    knots_to_insert_u.push_back(spans_local_space[i] + delta_u * j);
+                                }
                             }
                         }
-
                         KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
                             << "Refining nurbs surface #" << p_nurbs_surface->Id() << " by inserting knots in u: "
                             << knots_to_insert_u << std::endl;
 
+                        KRATOS_WATCH(knots_to_insert_u)
                         PointerVector<NodeType> PointsRefined;
                         Vector KnotsURefined;
                         Vector WeightsRefined;
@@ -212,12 +260,38 @@ namespace Kratos
                     p_nurbs_surface->SpansLocalSpace(spans_local_space, 1);
 
                     std::vector<double> knots_to_insert_v;
-                    for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
-                        const double delta_v = (spans_local_space[i + 1] - spans_local_space[i]) / (nb_per_span_v + 1);
-                        for (IndexType j = 1; j < nb_per_span_v + 1; ++j) {
-                            knots_to_insert_v.push_back(spans_local_space[i] + delta_v * j);
+
+                    if (rParameters["local_refinement_parameters"]["do_you_want_to_refine_inner"].GetBool()) {
+                        for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
+                            const double delta_v = (spans_local_space[i + 1] - spans_local_space[i]) / (nb_per_span_v + 1);
+                            for (IndexType j = 1; j < nb_per_span_v + 1; ++j) {
+                                double v_local = spans_local_space[i] + delta_v*j;
+                                if ( (v_local > box_refinement_u_v_min_max[2] 
+                                        || std::abs(v_local - box_refinement_u_v_min_max[2]) < 1e-13 )
+                                        && v_local < box_refinement_u_v_min_max[3]) {
+                                    v_local = box_refinement_u_v_min_max[2];
+                                    while (v_local < box_refinement_u_v_min_max[3]) {
+                                        knots_to_insert_v.push_back(v_local);
+                                        v_local += delta_v_refined;
+                                    }
+                                    if (std::abs(knots_to_insert_v[knots_to_insert_v.size()-1] - box_refinement_u_v_min_max[3]) > 1e-13){
+                                        knots_to_insert_v.push_back(box_refinement_u_v_min_max[3]);
+                                    }
+                                    j = ((v_local - spans_local_space[i]) / delta_v) +1; 
+                                    // if (std::abs(spans_local_space[i] + delta_v*j - v_local) < 1e-13) { j++;}
+                                }
+                                knots_to_insert_v.push_back(spans_local_space[i] + delta_v * j);
+                            }
+                        }
+                    } else {
+                        for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
+                            const double delta_v = (spans_local_space[i + 1] - spans_local_space[i]) / (nb_per_span_v + 1);
+                            for (IndexType j = 1; j < nb_per_span_v + 1; ++j) {
+                                knots_to_insert_v.push_back(spans_local_space[i] + delta_v * j);
+                            }
                         }
                     }
+                    // KRATOS_WATCH(knots_to_insert_v)
 
                     KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
                         << "Refining nurbs surface #" << p_nurbs_surface->Id() << " by inserting knots in v: "

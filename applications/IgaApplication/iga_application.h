@@ -24,6 +24,8 @@
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
+#include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/conv_diff_IGA_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -35,6 +37,12 @@
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
+#include "custom_conditions/support_laplacian_condition.h"
+#include "custom_conditions/support_conv_diff_condition.h"
+#include "custom_conditions/sbm_laplacian_condition.h"
+#include "custom_conditions/sbm_laplacian_neumann_condition.h"
+#include "custom_conditions/sbm_support_lagrange_condition.h"
+#include "custom_conditions/support_laplacian_lagrange_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -119,6 +127,8 @@ private:
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
+    const LaplacianIGAElement mLaplacianIGAElement;
+    const ConvDiffIGAElement mConvDiffIGAElement; 
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -130,6 +140,12 @@ private:
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
+    const SupportLaplacianCondition mSupportLaplacianCondition;
+    const SupportConvDiffCondition mSupportConvDiffCondition;
+    const SBMLaplacianCondition mSBMLaplacianCondition;
+    const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
+    const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
+    const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

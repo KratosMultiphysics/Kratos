@@ -36,6 +36,9 @@
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
 
+#include "utilities/nurbs_utilities/new_utility.h"
+#include "utilities/condition_number_utility.h"
+
 namespace Kratos
 {
 
@@ -125,6 +128,9 @@ public:
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
+    // ConditionNumberUtilityPointerType pConditionNumberUtility = nullptr
+    using ConditionNumberUtilityPointerType = ConditionNumberUtility::Pointer;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -223,7 +229,7 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -253,7 +259,19 @@ public:
             }
         }
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
+        // // CONDITION NUMBER
+        // ConditionNumberUtility mpConditionNumberUtility;
+        // const double condition_number = mpConditionNumberUtility.GetConditionNumber(A);
+        // const double minimum_eigenvalue = mpConditionNumberUtility.GetMinimumEigenvalue(A);
+
+        // std::ofstream outputFile("txt_files/Condition_numbers.txt", std::ios::app);
+        // outputFile << minimum_eigenvalue << "  " << condition_number << "\n";
+        // outputFile.close();
+        // KRATOS_WATCH(minimum_eigenvalue)
+        // KRATOS_WATCH(condition_number)
+
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building" << std::endl;
 
@@ -502,6 +520,7 @@ public:
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");

@@ -29,6 +29,7 @@
 #include "custom_processes/rotate_region_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
+#include "processes/find_surrogate_nodes_process.h"
 
 namespace Kratos
 {

@@ -156,6 +156,12 @@ public:
         return GetConditionNumber(rInputMatrix, mpEigenSolverMax, mpEigenSolverMin);
     }
 
+    double GetMinimumEigenvalue(SparseMatrixType& rInputMatrix)
+    {
+        KRATOS_ERROR_IF(mpEigenSolverMax == nullptr || mpEigenSolverMin == nullptr) << "ERROR:: PLEASE DEFINE THE EigenSolvers" << std::endl;
+        return GetMinimumEigenvalue(rInputMatrix, mpEigenSolverMax, mpEigenSolverMin);
+    }
+
     /**
      * @brief This function computes using the inverse power method the minimal eigenvalue
      * @param rInputMatrix The matrix to compute the eigenvalue
@@ -185,12 +191,35 @@ public:
         pEigenSolverMin->Solve(rInputMatrix, identity_matrix, eigen_values, eigen_vectors);
         const double min_lambda = eigen_values[0];
 
-        KRATOS_ERROR_IF(min_lambda < std::numeric_limits<double>::epsilon()) << "ERROR:: NOT POSSIBLE TO COMPUTE CONDITION NUMBER. ZERO EIGENVALUE" << std::endl;
-
+        // DA TOGLIERE abs !! 
+        // KRATOS_ERROR_IF(abs(min_lambda) < std::numeric_limits<double>::epsilon()) << "ERROR:: NOT POSSIBLE TO COMPUTE CONDITION NUMBER. ZERO EIGENVALUE" << std::endl;
         const double condition_number = std::abs(max_lambda)/std::abs(min_lambda);
 
         return condition_number;
     }
+
+    double GetMinimumEigenvalue(
+        SparseMatrixType& rInputMatrix,
+        LinearSolverType::Pointer pEigenSolverMax,
+        LinearSolverType::Pointer pEigenSolverMin
+        )
+    {
+        // The eigen system
+        DenseVectorType eigen_values;
+        DenseMatrixType eigen_vectors;
+
+        const SizeType size_matrix = rInputMatrix.size1();
+
+        SparseMatrixType identity_matrix(size_matrix, size_matrix);
+        for (IndexType i = 0; i < size_matrix; ++i)
+            identity_matrix.push_back(i, i, 1.0);
+
+        pEigenSolverMin->Solve(rInputMatrix, identity_matrix, eigen_values, eigen_vectors);
+        const double min_lambda = eigen_values[0];
+
+        return min_lambda;
+    }
+
 
     ///@}
     ///@name Access

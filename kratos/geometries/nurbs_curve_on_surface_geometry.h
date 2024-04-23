@@ -370,7 +370,7 @@ public:
     ///@}
     ///@name Jacobian
     ///@{
-
+    
     double DeterminantOfJacobian(
         const CoordinatesArrayType& rPoint) const override
     {
@@ -449,8 +449,13 @@ public:
             shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
         }
 
+        std::vector<CoordinatesArrayType> global_space_first(2);
+        std::vector<CoordinatesArrayType> global_space_second(2);
+        mpNurbsCurve->GlobalSpaceDerivatives(global_space_first,rIntegrationPoints[0],1);  // i = 0
+        mpNurbsCurve->GlobalSpaceDerivatives(global_space_second,rIntegrationPoints[1],1); // i = 1
+
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
-        {
+        {    
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
             mpNurbsCurve->GlobalSpaceDerivatives(
                 global_space_derivatives,
@@ -463,9 +468,66 @@ public:
                     global_space_derivatives[0][0], global_space_derivatives[0][1]);
             }
             else {
-                shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
-                    global_space_derivatives[0][0], global_space_derivatives[0][1]);
+                // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
+                std::ifstream file("txt_files/input_data.txt");
+                std::string line;
+                int SBM_technique;
+                std::getline(file, line);
+                std::getline(file, line); // Read the second line
+                SBM_technique = std::stoi(line);
+                file.close();
+
+                // MODIFIED
+                bool is_surrogate_boundary = true; 
+                const double threshold = 1e-14 ;
+                // At this point all the true are boundary GPs
+                if (std::abs(global_space_derivatives[0][0]-mpNurbsSurface->KnotsU()[0]) < threshold) {is_surrogate_boundary = false;} // External boundary
+                if (std::abs(global_space_derivatives[0][0]-mpNurbsSurface->KnotsU()[mpNurbsSurface->KnotsU().size()-1]) < threshold) {is_surrogate_boundary = false;} // External boundary
+                if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[0]) < threshold) {is_surrogate_boundary = false;} // External boundary
+                if (std::abs(global_space_derivatives[0][1]-mpNurbsSurface->KnotsV()[mpNurbsSurface->KnotsV().size()-1]) < threshold) {is_surrogate_boundary = false;} // External boundary
+                
+                if (SBM_technique==1) {is_surrogate_boundary=false;}
+
+                // If it is 1 -> the current GP is a surrogate GP otherwise it is an external GP
+                if (is_surrogate_boundary) {
+                    // KRATOS_WATCH('SURROGATE BOUNDARY GP')
+                    IndexType SpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), global_space_derivatives[0][0]);
+                    IndexType SpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), global_space_derivatives[0][1]);
+
+                    // Understand if the knot-boundary is along U or V
+                    bool gp_is_along_U;
+                    if (std::abs(global_space_first[0][0] - global_space_second[0][0]) < threshold) {
+                        gp_is_along_U = true;
+                    }
+                    else {gp_is_along_U = false; }
+
+                    if (gp_is_along_U && global_space_first[0][1] > global_space_second[0][1]) {
+                        // Is decreasing along y -> At 1 at SpanU
+                        SpanU++;
+                    }
+                    if (!gp_is_along_U && global_space_first[0][0] < global_space_second[0][0]) {
+                        // Is increasing along x -> At 1 at SpanU
+                        SpanV++;
+                    }
+
+                    shape_function_container.ComputeBSplineShapeFunctionValuesAtSpan(
+                        mpNurbsSurface->KnotsU(),
+                        mpNurbsSurface->KnotsV(),
+                        SpanU,
+                        SpanV,
+                        global_space_derivatives[0][0],
+                        global_space_derivatives[0][1]);
+
+                    // shape_function_container.ComputeBSplineShapeFunctionValues(
+                    //     mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
+                    //     global_space_derivatives[0][0], global_space_derivatives[0][1]);
+                }
+                else {
+                    // 'EXTERNAL GP'
+                    shape_function_container.ComputeBSplineShapeFunctionValues(
+                        mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(),
+                        global_space_derivatives[0][0], global_space_derivatives[0][1]);
+                }
             }
 
             /// Get List of Control Points

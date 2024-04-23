@@ -35,6 +35,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Steady solver
         elif (solver_type == "stationary" or solver_type == "Stationary"):
             solver_module_name = "convection_diffusion_stationary_solver"
+        elif (solver_type == "iga_stationary" or solver_type == "IGA_Stationary"):
+            solver_module_name = "IGA_convection_diffusion_stationary_solver"
         # Steady embedded (CutFEM) solver
         elif solver_type == "stationary_embedded":
             solver_module_name = "convection_diffusion_stationary_embedded_solver"

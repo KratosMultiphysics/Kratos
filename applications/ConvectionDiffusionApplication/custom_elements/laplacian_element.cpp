@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -130,10 +131,19 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     // RHS = ExtForces - K*temp;
     for (unsigned int i = 0; i < number_of_points; i++)
         temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-
+    
     //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
+    // for (unsigned int i = 0; i < number_of_points; i++) {
+    //     if (r_geometry[i].Is(BOUNDARY)) {
+    //         for (unsigned int l = 0; l < number_of_points; l++) {
+    //             rLeftHandSideMatrix(i,l) = 0.0 ;
+    //             rLeftHandSideMatrix(l,i) = 0.0 ;
+    //         }
+    //         // rRightHandSideVector(i) = 0.0 ;
+    //         KRATOS_WATCH(rRightHandSideVector(i) )
+    //     }
+    // }
 
     KRATOS_CATCH("")
 }

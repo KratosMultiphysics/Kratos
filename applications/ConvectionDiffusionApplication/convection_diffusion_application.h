@@ -30,6 +30,8 @@
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/laplacian_shifted_boundary_element.h"
+#include "custom_elements/conv_diff_shifted_boundary_element.h"
 #include "custom_elements/mixed_laplacian_element.h"
 #include "custom_elements/embedded_laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"

@@ -14,7 +14,7 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
 
         # Create the import destination model part
         # It is mandatory to do this when the modeler is instantiated to have the model part created before the solvers add the variables
-        model_part_name = self.settings["model_part_name"].GetString()
+        model_part_name = self.settings["model_part_name"].GetString()        
         if not model_part_name:
             err_msg = "Missing 'model_part_name' in input settings. This is where the imported model part is to be stored."
             raise Exception(err_msg)
@@ -24,6 +24,14 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
 
+        # Import the model part data
+        # Note that at this point solvers must have already added the variables to the nodal variable data
+        input_type = "mdpa"
+        KratosMultiphysics.SingleImportModelPart.Import(
+            self.model_part,
+            self.settings,
+            input_type)
+
     def PrepareGeometryModel(self):
         super().PrepareGeometryModel()
 
@@ -32,11 +40,11 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
 
         # Import the model part data
         # Note that at this point solvers must have already added the variables to the nodal variable data
-        input_type = "mdpa"
-        KratosMultiphysics.SingleImportModelPart.Import(
-            self.model_part,
-            self.settings,
-            input_type)
+        # input_type = "mdpa"
+        # KratosMultiphysics.SingleImportModelPart.Import(
+        #     self.model_part,
+        #     self.settings,
+        #     input_type)
 
     @classmethod
     def __GetDefaultSettings(cls):

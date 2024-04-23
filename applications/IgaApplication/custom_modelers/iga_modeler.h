@@ -24,6 +24,7 @@
 #include "includes/define.h"
 
 #include "integration/integration_info.h"
+#include "utilities/function_parser_utility.h"
 
 namespace Kratos
 {
@@ -173,6 +174,18 @@ private:
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const;
 
+    /// Creates conditions from geometries
+    void CreateConditions(
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+        ModelPart& rDestinationModelPart,
+        ModelPart& rSkinModelPart,
+        std::vector<int>& listIdClosestCondition,
+        std::string& rConditionName,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        bool isInner) const;
+
     ///@}
     ///@name Get Points at Boundaries
     ///@{
@@ -190,6 +203,8 @@ private:
 
     Parameters ReadParamatersFile(
         const std::string& rDataFileName) const;
+
+    bool CheckIsOnExternalParameterSpace(Point point, Vector parameterExternalCoordinates) const;
 
     ///@}
     ///@name Serializer

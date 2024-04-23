@@ -366,6 +366,94 @@ private:
             }
         }
 
+        /// MODIFIED
+        std::ifstream infile("txt_files/true_points.txt");
+        bool file_true_points_exists = true ;
+        if (file_true_points_exists==true){
+            
+            // Get the name of the Snake file
+            std::ifstream inputfile("txt_files/input_data.txt");
+            std::string line;
+            std::getline(inputfile, line);  std::getline(inputfile, line); // Skip first and second lines
+            std::getline(inputfile, line); // Read the third line
+            std::string filename = line;
+            inputfile.close();
+
+            std::ifstream file("txt_files/" + filename + ".txt"); 
+
+            double x, y;
+            std::vector<double> coordinates_x;
+            std::vector<double> coordinates_y;
+            while (file >> x >> y) {            
+                coordinates_x.push_back(x);
+                coordinates_y.push_back(y);
+            }
+            file.close();
+
+            std::vector<NurbsCurveGeometry<2, PointerVector<Point>>::Pointer> trimming_curves_GPT;
+            for (std::size_t i = 0; i < coordinates_x.size(); ++i) {
+                Vector active_range_knot_vector = ZeroVector(2);
+                
+                Point::Pointer point1 = Kratos::make_shared<Point>(coordinates_x[i], coordinates_y[i], 0.0);
+                Point::Pointer point2 = Kratos::make_shared<Point>(
+                    coordinates_x[(i + 1) % coordinates_x.size()],  // Wrap around for the last point
+                    coordinates_y[(i + 1) % coordinates_y.size()],  // Wrap around for the last point
+                    0.0);
+                // Compute the knot vector needed
+                if (coordinates_x[(i + 1) % coordinates_x.size()]==coordinates_x[i]) {
+                    active_range_knot_vector[0] = coordinates_y[i];
+                    active_range_knot_vector[1] = coordinates_y[(i + 1) % coordinates_y.size()];
+                }
+                else {
+                    active_range_knot_vector[0] = coordinates_x[i];
+                    active_range_knot_vector[1] = coordinates_x[(i + 1) % coordinates_x.size()];
+                }
+                //// Order the active_range_knot_vector
+                if (active_range_knot_vector[0] > active_range_knot_vector[1]) {
+                    double temp = active_range_knot_vector[1];
+                    active_range_knot_vector[1] = active_range_knot_vector[0] ;
+                    active_range_knot_vector[0] = temp ;
+                }
+                NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve = AddInternalTrimmingShiftedBoundary_Nico(point1, point2, active_range_knot_vector);
+                trimming_curves_GPT.push_back(p_trimming_curve);
+            }
+
+            // How can I avoid this artificiality?
+            int Id_brep_curve_on_surface = 4 ;
+            BrepCurveOnSurfaceLoopType trimming_brep_curve_vector(coordinates_x.size());
+
+            for (std::size_t i = 0; i < trimming_curves_GPT.size(); ++i) {
+                Vector active_range_vector = ZeroVector(2);
+                if (coordinates_x[(i + 1) % coordinates_x.size()]==coordinates_x[i]) {
+                    active_range_vector[0] = coordinates_y[i];
+                    active_range_vector[1] = coordinates_y[(i + 1) % coordinates_x.size()];
+                }
+                else {
+                    active_range_vector[0] = coordinates_x[i];
+                    active_range_vector[1] = coordinates_x[(i + 1) % coordinates_x.size()];
+                }
+                bool curve_direction = true;
+
+                // Metti sempre in ordine crescente
+                if (active_range_vector[0] > active_range_vector[1]) {
+                    double temp = active_range_vector[1];
+                    active_range_vector[1] = active_range_vector[0] ;
+                    active_range_vector[0] = temp ;
+                }
+
+                NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
+
+                auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+                    pNurbsSurface, trimming_curves_GPT[i], brep_active_range, curve_direction);
+                p_brep_curve_on_surface->SetId(Id_brep_curve_on_surface + i);
+                trimming_brep_curve_vector[i] = p_brep_curve_on_surface ;
+            }
+            auto trimming_curves(trimming_brep_curve_vector);
+
+            inner_loops.resize(inner_loops.size() + 1);
+            inner_loops[inner_loops.size() - 1] = trimming_curves;
+        }
+
         return std::make_tuple(outer_loops, inner_loops);
     }
 
@@ -404,6 +492,51 @@ private:
         for (IndexType i = 0; i < rParameters.size(); i++)
         {
             ReadBrepEdge(rParameters[i], rModelPart, EchoLevel);
+        }
+
+        /// MODIFIED
+        std::ifstream infile("txt_files/true_points.txt");
+        bool file_true_points_exists = true ; // infile.good(); 
+        if (file_true_points_exists==true){
+            
+            // Leggo i control_points da file esterno, solo per coordinates_x.size() ??
+            // Get the name of the Snake file
+            std::ifstream inputfile("txt_files/input_data.txt");
+            std::string line;
+            std::getline(inputfile, line);  std::getline(inputfile, line); // Skip first and second lines
+            std::getline(inputfile, line); // Read the third line
+            std::string filename = line;
+            inputfile.close();
+
+            std::ifstream file("txt_files/" + filename + ".txt"); 
+
+            double x, y;
+            std::vector<double> coordinates_x;
+            std::vector<double> coordinates_y;
+            while (file >> x >> y) {            
+                coordinates_x.push_back(x);
+                coordinates_y.push_back(y);
+            }
+            file.close();
+
+            //// Create the edge entities associated through the trim_index
+            int starting_trim_index = 4 ;
+            int starting_brep_id_edge = 7 ;
+            int num_iterations = coordinates_x.size() ;
+            for (int i = 0; i < num_iterations; ++i) {
+                int trim_index = starting_trim_index + i;
+                int brep_id_edge = starting_brep_id_edge + i;
+                
+                Parameters geometryParameters = Parameters(R"(
+                    {
+                        "brep_id": 2,
+                        "relative_direction": true,
+                        "trim_index": )" + std::to_string(trim_index) + R"(,
+                        "brep_id_edge": )" + std::to_string(brep_id_edge) + R"(
+                    })");
+                
+                ReadBrepEdgeBrepCurveOnSurface_Nico(geometryParameters, rModelPart);
+            }
         }
     }
 
@@ -501,6 +634,28 @@ private:
             p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
         SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
+        rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
+    }
+
+    //// MODIFIED
+    static void ReadBrepEdgeBrepCurveOnSurface_Nico(
+        Parameters & geometryParameters,
+        ModelPart & rModelPart)
+    {
+        GeometryPointerType p_geometry = GetGeometry(geometryParameters, rModelPart) ;  
+        GeometryPointerType p_brep_trim = p_geometry->pGetGeometryPart(geometryParameters["trim_index"].GetInt());
+
+        auto p_brep_curve_on_surface = dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_trim);
+
+        bool relative_direction = true;
+        auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
+
+        auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
+        auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
+            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
+
+        // SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface); // Is this important?
+        p_bre_edge_brep_curve_on_surface->SetId(geometryParameters["brep_id_edge"].GetInt());
 
         rModelPart.AddGeometry(p_bre_edge_brep_curve_on_surface);
     }
@@ -959,6 +1114,29 @@ private:
 
     Parameters mCadJsonParameters;
     int mEchoLevel;
+
+    //// MODIFIED
+    static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer AddInternalTrimmingShiftedBoundary_Nico(
+        Point::Pointer point1, Point::Pointer point2, Vector active_range_knot_vector)
+        {
+            // Create the data for the trimming curves
+            PointerVector<Point> control_points;
+            control_points.push_back(point1);
+            control_points.push_back(point2);
+            int polynomial_degree = 1; // probably correct
+            Vector knot_vector = ZeroVector(4) ;
+            knot_vector[0] = active_range_knot_vector[0] ;
+            knot_vector[1] = active_range_knot_vector[0] ;
+            knot_vector[2] = active_range_knot_vector[1] ;
+            knot_vector[3] = active_range_knot_vector[1] ;
+            // Create the trimming curves
+            typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve(
+                new NurbsCurveGeometry<2, PointerVector<Point>>(
+                    control_points,
+                    polynomial_degree,
+                    knot_vector));   
+            return p_trimming_curve;
+        }
 
     ///@}
 }; // Class CadJsonInput
