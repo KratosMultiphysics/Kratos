@@ -202,7 +202,7 @@ private:
     ///@{
 
     /// This initializes de internal cartesian mesh data structure to be used for coloring
-    void PraparingTheInternalDataStructure();
+    void PreparingTheInternalDataStructure();
 
     /// Goes over the coloring array and apply them to the internal data structure
     void ApplyColoring(Parameters ColoringParameters, int OutsideColor);

@@ -93,7 +93,7 @@ void VoxelMeshGeneratorModeler::SetupModelPart()
     KRATOS_INFO("Modeler") << "Key Planes generated" << std::endl;
 
     KRATOS_INFO("Modeler") << "Preparing Internal Data Structure" << std::endl;
-    PraparingTheInternalDataStructure();
+    PreparingTheInternalDataStructure();
     KRATOS_INFO("Modeler") << "Internal Data Structure prepared" << std::endl;
 
     if(mParameters.Has("coloring_settings_list")){
@@ -146,7 +146,7 @@ ModelPart& VoxelMeshGeneratorModeler::ReadModelParts(){
 }
 
 
-void VoxelMeshGeneratorModeler::PraparingTheInternalDataStructure(){
+void VoxelMeshGeneratorModeler::PreparingTheInternalDataStructure(){
     mColors.SetCoordinates(mKeyPlanes[0], mKeyPlanes[1], mKeyPlanes[2]);
     mMeshingData.SetNumberOfDivisions(mKeyPlanes[0].size(), mKeyPlanes[1].size(), mKeyPlanes[2].size());
 
