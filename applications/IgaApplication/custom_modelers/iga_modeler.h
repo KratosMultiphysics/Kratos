@@ -24,6 +24,7 @@
 #include "includes/define.h"
 
 #include "integration/integration_info.h"
+#include "utilities/function_parser_utility.h"
 
 namespace Kratos
 {

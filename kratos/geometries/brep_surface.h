@@ -28,6 +28,9 @@
 // trimming integration
 #include "utilities/geometry_utilities/brep_trimming_utilities.h"
 
+// SBM integration
+#include "utilities/geometry_utilities/brep_sbm_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Classes
@@ -112,6 +115,22 @@ public:
         , mOuterLoopArray(BrepOuterLoopArray)
         , mInnerLoopArray(BrepInnerLoopArray)
         , mIsTrimmed(IsTrimmed)
+    {
+    }
+
+    // Constructor for SBM
+    /// Constructor for trimmed patch
+    BrepSurface(
+        typename NurbsSurfaceType::Pointer pSurface, 
+        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
+        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+        ModelPart& rSurrogateModelPart_inner, ModelPart& rSurrogateModelPart_outer)
+        : BaseType(PointsArrayType(), &msGeometryData)
+        , mpNurbsSurface(pSurface) 
+        , mOuterLoopArray(BrepOuterLoopArray)
+        , mInnerLoopArray(BrepInnerLoopArray)
+        , mpSurrogateModelPart_inner(&rSurrogateModelPart_inner)
+        , mpSurrogateModelPart_outer(&rSurrogateModelPart_outer)
     {
     }
 
@@ -433,23 +452,49 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
-    {
-        if (!mIsTrimmed) {
-            mpNurbsSurface->CreateIntegrationPoints(
-                rIntegrationPoints, rIntegrationInfo);
+    {   
+        // IN ORDER TO CHECK IF YOU ARE USING TRIM OR SBM APPROACH
+        std::ifstream file("txt_files/input_data.txt");
+        std::string line;
+        int SBM_technique;
+        std::getline(file, line);
+        std::getline(file, line); // Read the second line
+        SBM_technique = std::stoi(line);
+        file.close();
+        // (SBM_technique == 0) 
+        if (SBM_technique == 1) {
+            if (!mIsTrimmed) {
+                mpNurbsSurface->CreateIntegrationPoints(
+                    rIntegrationPoints, rIntegrationInfo);
+            }
+            else
+            {
+                std::vector<double> spans_u;
+                std::vector<double> spans_v;
+                mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+                mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+
+                BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+                    rIntegrationPoints,
+                    mOuterLoopArray, mInnerLoopArray,
+                    spans_u, spans_v,
+                    rIntegrationInfo);
+            }
         }
-        else
-        {
+        else {
+            KRATOS_WATCH('CreateBrepSurfaceSBMIntegrationPoints');
             std::vector<double> spans_u;
             std::vector<double> spans_v;
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
+            BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints(
                 rIntegrationPoints,
-                mOuterLoopArray, mInnerLoopArray,
                 spans_u, spans_v,
+                *mpSurrogateModelPart_inner, 
+                *mpSurrogateModelPart_outer,
                 rIntegrationInfo);
+            KRATOS_WATCH('End CreateBrepSurfaceSBMIntegrationPoints');
         }
     }
 
@@ -473,12 +518,14 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
+        KRATOS_WATCH('CreateQuadraturePointGeometries')
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
+        KRATOS_WATCH('End CreateQuadraturePointGeometries')
     }
 
     ///@}
@@ -561,6 +608,10 @@ private:
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
+
+    ModelPart* mpSurrogateModelPart_inner = nullptr;
+    ModelPart* mpSurrogateModelPart_outer = nullptr;
+
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.

@@ -16,11 +16,11 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/support_penalty_laplacian_condition.h"
+#include "custom_conditions/support_conv_diff_condition.h"
 
 namespace Kratos
 {
-    void SupportPenaltyLaplacianCondition::CalculateAll(
+    void SupportConvDiffCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -102,10 +102,12 @@ namespace Kratos
             
             Matrix H = ZeroMatrix(1, number_of_nodes);
             Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
+            Vector DN_dot_n_vector = ZeroVector(number_of_nodes);
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                H(0, i)            = N(point_number, i);
-                DN_dot_n(0, i)     = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
+                H(0, i)                = N(point_number, i);
+                DN_dot_n(0, i)         = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
+                DN_dot_n_vector(i)     = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
             }
 
             // Differential area
@@ -117,14 +119,29 @@ namespace Kratos
             if (Guglielmo_innovation == -1.0) {
                 penalty_integration = 0.0;
             }
+            // double tau = 0.0 ;
+            // // laplacian N
+            // Matrix laplacian_of_H = ZeroMatrix(1, number_of_nodes);
+            // Matrix gradient_of_laplacian_of_H_dot_n = ZeroMatrix(1, number_of_nodes);
+            // const Matrix DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, 0, r_geometry.GetDefaultIntegrationMethod());
+            // const Matrix DDDN_DDDe = r_geometry.ShapeFunctionDerivatives(3, 0, r_geometry.GetDefaultIntegrationMethod());
+            // for(unsigned int i=0; i<number_of_nodes; i++) {
+            //         laplacian_of_H(0, i)                    = DDN_DDe(i,0) + DDN_DDe(i,2) ;
+            //         gradient_of_laplacian_of_H_dot_n(0, i)  = (DDDN_DDDe(i,0) + DDDN_DDDe(i,2)) * normal_physical_space[0] + 
+            //                                                   (DDDN_DDDe(i,1) + DDDN_DDDe(i,3)) * normal_physical_space[1] ;
+            // }
 
             // Assembly
             noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
             // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
             noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            // Of the Dirichlet BCs -(GRAD_w* n,u) 
+            // Of the Dirichlet BCs -(GRAD_w * n,u) 
             noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-
+            // ________________________________________________________________________________________________________________________________________
+            // // Convection Additional Terms
+            // noalias(rLeftHandSideMatrix) -=  tau * prod(trans(H), DN_dot_n)                          * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
+            // noalias(rLeftHandSideMatrix) +=  tau * prod(trans(DN_dot_n), laplacian_of_H)             * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
+            // noalias(rLeftHandSideMatrix) -=  tau * prod(trans(H), gradient_of_laplacian_of_H_dot_n ) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
 
 
             if (CalculateResidualVectorFlag) {
@@ -132,8 +149,8 @@ namespace Kratos
                 // double& temperature = this->GetValue(TEMPERATURE) ;
 
                 // double temperature = GP_parameter_coord[0]-GP_parameter_coord[1];
-                // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]+GP_parameter_coord[1]*GP_parameter_coord[1];
-                double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]); // CAMBIA!!!!
+                double temperature = GP_parameter_coord[0]*GP_parameter_coord[0] + GP_parameter_coord[1]*GP_parameter_coord[1];
+                // double temperature = sin(GP_parameter_coord[0]) * sinh(GP_parameter_coord[1]); // CAMBIA!!!!
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0] + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] ;
                 // double temperature = GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0]*GP_parameter_coord[0]  + GP_parameter_coord[1]*GP_parameter_coord[1]*GP_parameter_coord[1] *GP_parameter_coord[1] ;
                 
@@ -143,11 +160,12 @@ namespace Kratos
                     
                     u_D[i] = - temperature;
                 }
-                // exit(0);
                 noalias(rRightHandSideVector) += prod(prod(trans(H), H), u_D) * penalty_integration;
                 // Of the Dirichlet BCs
-                noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
-
+                noalias(rRightHandSideVector) += Guglielmo_innovation * DN_dot_n_vector * (-temperature) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
+                // // Convection Additional Terms
+                // noalias(rRightHandSideVector) -= tau *                  DN_dot_n_vector * (-temperature) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
+                // noalias(rRightHandSideVector) += tau *               prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
 
                 Vector temp(number_of_nodes);
                 // RHS = ExtForces - K*temp;
@@ -168,14 +186,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    int SupportPenaltyLaplacianCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SupportConvDiffCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
-            << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
+            << "No penalty factor (PENALTY_FACTOR) defined in property of SupportConvDiffCondition" << std::endl;
         return 0;
     }
 
-    void SupportPenaltyLaplacianCondition::EquationIdVector(
+    void SupportConvDiffCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -193,7 +211,7 @@ namespace Kratos
         }
     }
 
-    void SupportPenaltyLaplacianCondition::GetDofList(
+    void SupportConvDiffCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const

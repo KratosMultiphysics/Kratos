@@ -131,19 +131,21 @@ namespace Kratos
 
             normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
             
-            // Guglielmo innovaction
-            double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
+            // Collins, Lozinsky & Scovazzi innovation
+            double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
                                                 // = -1 -> Free-penalty approach
-            if (Guglielmo_innovation < 0.0) {
+            if (penalty == -1.0) {
                 penalty_integration = 0.0;
+                Guglielmo_innovation = -1.0;
             }
 
-            
             Matrix H = ZeroMatrix(1, number_of_nodes);
+            Vector H_vec = ZeroVector(number_of_nodes);
             Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
             Matrix DN_dot_n_parameter = ZeroMatrix(1, number_of_nodes);
 
             Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+            Vector H_sum_vec = ZeroVector(number_of_nodes);
 
             // Compute all the derivatives of the basis functions involved
             std::vector<Matrix> nShapeFunctionDerivatives;
@@ -154,6 +156,7 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 H(0, i)               = N(point_number, i);
+                H_vec(i)              = N(point_number, i);
                 DN_dot_n(0, i)        = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
                 double H_taylor_term = 0.0; // Reset for each node
                 for (int n = 1; n <= basisFunctionsOrder; n++) {
@@ -167,6 +170,7 @@ namespace Kratos
                     }
                 }
                 H_sum(0,i) = H_taylor_term + H(0,i);
+                H_sum_vec(i) = H_taylor_term + H(0,i);
             }
 
             // Assembly
@@ -200,7 +204,8 @@ namespace Kratos
                     // u_D[i] = (temper - temperature);
                     u_D[i] = -temperature ;
                 }
-                noalias(rRightHandSideVector) -= prod(prod(trans(H_sum), H), u_D) * penalty_integration;
+                // noalias(rRightHandSideVector) -= prod(prod(trans(H_sum), H), u_D) * penalty_integration;
+                noalias(rRightHandSideVector) -= H_sum_vec * (-temperature) * penalty_integration;
                 // Dirichlet BCs
                 noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
 

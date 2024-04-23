@@ -212,12 +212,12 @@ namespace Kratos
                 triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[0];
                 triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[1];
 
-                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-5)
+                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-14)
                     triangles.push_back(triangle);
-                // else
-                // {
-                //     std::cout << "triangle with zero area" << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
-                // }
+                else
+                {
+                    std::cout << "triangle with zero area" << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
+                }
                 if (bestvertex > (diagonal.index1 + 1)) {
                     newdiagonal.index1 = diagonal.index1;
                     newdiagonal.index2 = bestvertex;

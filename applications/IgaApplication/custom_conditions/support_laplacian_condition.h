@@ -8,8 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SUPPORT_PENALTY_LAPLACIAN_CONDITION_H_INCLUDED )
-#define  KRATOS_SUPPORT_PENALTY_LAPLACIAN_CONDITION_H_INCLUDED
+#if !defined(KRATOS_SUPPORT_LAPLACIAN_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_LAPLACIAN_CONDITION_H_INCLUDED
 
 
 // System includes
@@ -24,15 +24,15 @@
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SupportPenaltyLaplacianCondition
+    class SupportLaplacianCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer definition of SupportPenaltyLaplacianCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportPenaltyLaplacianCondition);
+        /// Counted pointer definition of SupportLaplacianCondition
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportLaplacianCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -43,14 +43,14 @@ namespace Kratos
         ///@{
 
         /// Constructor with Id and geometry
-        SupportPenaltyLaplacianCondition(
+        SupportLaplacianCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SupportPenaltyLaplacianCondition(
+        SupportLaplacianCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -58,11 +58,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SupportPenaltyLaplacianCondition() : Condition()
+        SupportLaplacianCondition() : Condition()
         {};
 
         /// Destructor
-        virtual ~SupportPenaltyLaplacianCondition() override
+        virtual ~SupportLaplacianCondition() override
         {};
 
         ///@}
@@ -76,7 +76,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SupportPenaltyLaplacianCondition>(
+            return Kratos::make_intrusive<SupportLaplacianCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -87,7 +87,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SupportPenaltyLaplacianCondition>(
+            return Kratos::make_intrusive<SupportLaplacianCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -211,14 +211,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SupportPenaltyLaplacianCondition\" #" << Id();
+            buffer << "\"SupportLaplacianCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SupportPenaltyLaplacianCondition\" #" << Id();
+            rOStream << "\"SupportLaplacianCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -247,7 +247,7 @@ namespace Kratos
 
         ///@}
 
-    }; // Class SupportPenaltyLaplacianCondition
+    }; // Class SupportLaplacianCondition
 
 }  // namespace Kratos.
 

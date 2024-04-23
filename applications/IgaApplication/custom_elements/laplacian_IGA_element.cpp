@@ -121,9 +121,8 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     Vector nodal_conductivity(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
-        heat_flux_local[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_volume_source_var);
+        heat_flux_local[node_element] = this->GetValue(HEAT_FLUX);
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
-        // heat_flux_local[node_element] = -0.0 ; 
     }
 
 

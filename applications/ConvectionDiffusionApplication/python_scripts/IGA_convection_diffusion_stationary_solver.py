@@ -20,8 +20,8 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
     file_name = os.path.join(directory, "true_points.txt")
     if os.path.exists(file_name):
         os.remove(file_name)
-    name_mdpa_true_boundary = "mdpa_files/Weird_shape1"
-    # name_mdpa_true_boundary = "mdpa_files/Weird_shape3" 
+    # name_mdpa_true_boundary = "mdpa_files/Weird_shape2"
+    name_mdpa_true_boundary = "mdpa_files/Weird_shape3.." 
     file_mdpa_exists = os.path.isfile(os.path.join(name_mdpa_true_boundary + ".mdpa"))
     
     if (file_mdpa_exists) :
@@ -151,11 +151,11 @@ class IGAConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         plt.scatter(free_node_x2, free_node_y2, marker='x', color='green', label='Free Nodes')
         
         count = 0
-        for i in range(len(dof)) :
-            plt.annotate(str(dof[i]), (free_node_x[i], free_node_y[i]), textcoords="offset points", xytext=(0,10), ha='center')
+        # for i in range(len(dof)) :
+        #     plt.annotate(str(dof[i]), (free_node_x[i], free_node_y[i]), textcoords="offset points", xytext=(0,10), ha='center')
 
-        for i in range(len(dof2)) :
-            plt.annotate(str(dof2[i]), (free_node_x2[i], free_node_y2[i]), textcoords="offset points", color='green', xytext=(0,8), ha='center')
+        # for i in range(len(dof2)) :
+        #     plt.annotate(str(dof2[i]), (free_node_x2[i], free_node_y2[i]), textcoords="offset points", color='green', xytext=(0,8), ha='center')
      
         # Read the refinements.iga.json
         with open('refinements.iga.json', 'r') as file:

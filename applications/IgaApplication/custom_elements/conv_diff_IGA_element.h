@@ -139,6 +139,8 @@ protected:
 
     double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
 
+    double CalculateTauHigherOrder(const ElementVariables& rVariables, double norm_vel, double h, int p);
+
     // Member Variables
 
 

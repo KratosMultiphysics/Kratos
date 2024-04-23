@@ -110,7 +110,7 @@ public:
 
     void CreateTheSnakeCoordinates(Vector& knot_vector_u, Vector& knot_vector_v, double& knot_step_u, double& knot_step_v, const Parameters refinements_parameters, ModelPart& surrogate_model_part_inner, ModelPart& surrogate_model_part_outer);
 
-    void SnakeStep(std::vector<std::vector<std::vector<int>>> &knot_spans_available, int idMatrixKnotSpansAvailable, int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_v_1st_point,int knot_span_v_2nd_point, double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, double& knot_step_u, double& knot_step_v);
+    void SnakeStep(ModelPart& skin_model_part, std::vector<std::vector<std::vector<int>>> &knot_spans_available, int idMatrixKnotSpansAvailable, int knot_span_u_1st_point, int knot_span_u_2nd_point, int knot_span_v_1st_point,int knot_span_v_2nd_point, double& x_true_boundary1, double& x_true_boundary2, double& y_true_boundary1, double& y_true_boundary2, double& knot_step_u, double& knot_step_v);
 
     ///@}
 

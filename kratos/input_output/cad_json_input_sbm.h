@@ -275,12 +275,23 @@ private:
 
         //     rModelPart.AddGeometry(p_brep_surface);
         // }
+
+        //// CLIPPER
+        // auto p_brep_surface =
+        //     Kratos::make_shared<BrepSurfaceType>(
+        //         p_surface,
+        //         outer_loops,
+        //         inner_loops,
+        //         is_trimmed);
+
+        // WITHOUT CLIPPER
         auto p_brep_surface =
             Kratos::make_shared<BrepSurfaceType>(
-                p_surface,
+                p_surface, 
                 outer_loops,
                 inner_loops,
-                is_trimmed);
+                rSurrogateModelPart_inner,
+                rSurrogateModelPart_outer);
 
         /// Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
