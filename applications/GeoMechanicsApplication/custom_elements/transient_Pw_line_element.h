@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -190,8 +189,7 @@ private:
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
                                             double DtPressureCoefficient)
     {
-        rLeftHandSideMatrix = rPermeabilityMatrix;
-        rLeftHandSideMatrix += (DtPressureCoefficient * rCompressibilityMatrix);
+        rLeftHandSideMatrix = rPermeabilityMatrix + DtPressureCoefficient * rCompressibilityMatrix;
     }
 
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
@@ -201,11 +199,9 @@ private:
     {
         const auto compressibility_vector =
             array_1d<double, TNumNodes>{-prod(rCompressibilityMatrix, GetNodalValuesOf(DT_WATER_PRESSURE))};
-        rRightHandSideVector = compressibility_vector;
         const auto permeability_vector =
             array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
-        rRightHandSideVector += permeability_vector;
-        rRightHandSideVector += fluid_body_vector;
+        rRightHandSideVector = compressibility_vector + permeability_vector + fluid_body_vector;
     }
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
@@ -235,7 +231,7 @@ private:
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-            double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
+            const double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             BoundedMatrix<double, 1, TNumNodes> Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
             result += -1.0 / r_properties[DYNAMIC_VISCOSITY] *
                       prod(rShapeFunctionGradients[integration_point_index], Temp) *
@@ -258,7 +254,7 @@ private:
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             const auto N = Vector{row(r_N_container, integration_point_index)};
-            double BiotModulusInverse = CalculateBiotModulusInverse(rCurrentProcessInfo, integration_point_index);
+            const double BiotModulusInverse = CalculateBiotModulusInverse(rCurrentProcessInfo, integration_point_index);
             result += -BiotModulusInverse * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
         }
         return result;
@@ -307,8 +303,8 @@ private:
         }
 
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
-        double degree_of_saturation = mRetentionLawVector[integration_point_index]->CalculateSaturation(RetentionParameters);
-        double derivative_of_saturation = mRetentionLawVector[integration_point_index]->CalculateDerivativeOfSaturation(RetentionParameters);
+        const double degree_of_saturation = mRetentionLawVector[integration_point_index]->CalculateSaturation(RetentionParameters);
+        const double derivative_of_saturation = mRetentionLawVector[integration_point_index]->CalculateDerivativeOfSaturation(RetentionParameters);
 
         result *= degree_of_saturation;
         result -= derivative_of_saturation * r_properties[POROSITY];
@@ -319,10 +315,8 @@ private:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            mRetentionLawVector[integration_point_index]->InitializeSolutionStep(RetentionParameters);
+        for (auto retention_law : mRetentionLawVector) {
+            retention_law->InitializeSolutionStep(RetentionParameters);
         }
     }
     
@@ -330,10 +324,8 @@ private:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-             ++integration_point_index) {
-            mRetentionLawVector[integration_point_index]->FinalizeSolutionStep(RetentionParameters);
+        for (auto retention_law : mRetentionLawVector) {
+            retention_law->FinalizeSolutionStep(RetentionParameters);
         }
     }
 
