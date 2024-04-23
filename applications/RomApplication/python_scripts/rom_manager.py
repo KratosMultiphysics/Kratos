@@ -252,7 +252,8 @@ class RomManager(object):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
-        BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
+        u = BasisOutputProcess._ComputeSVD(SnapshotsMatrix)
+        BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
 
         return SnapshotsMatrix
 
