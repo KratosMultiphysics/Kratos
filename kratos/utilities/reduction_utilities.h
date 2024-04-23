@@ -301,8 +301,6 @@ template<class TDataType, class TReturnType = std::vector<TDataType>>
 class FilteredAccumReduction : public AccumReduction<TDataType, TReturnType>
 {
 public:
-    using BaseType = AccumReduction<TDataType, TReturnType>; ///< Alias for the base class.
-
     /**
      * @brief Performs a non-thread-safe reduction by adding a value to the accumulation only if a specified condition is true.
      * @param ValuePair A pair consisting of a boolean (the condition) and the value to be potentially added.
@@ -310,7 +308,7 @@ public:
     void LocalReduce(const std::pair<bool, TDataType> ValuePair)
     {
         if (ValuePair.first) {
-            BaseType::mValue.push_back(ValuePair.second);
+            this->mValue.push_back(ValuePair.second);
         }
     }
 };
