@@ -35,10 +35,6 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess1, KratosCoreFastSuite)
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
 
-    auto& process_info = r_model_part.GetProcessInfo();
-    process_info[STEP] = 1;
-    process_info[NL_ITERATION_NUMBER] = 1;
-
     CppTestsUtilities::Create2DGeometry(r_model_part, "Element2D3N");
 
     FindNodalNeighboursProcess process(r_model_part);
@@ -71,10 +67,6 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
-
-    auto& process_info = r_model_part.GetProcessInfo();
-    process_info[STEP] = 1;
-    process_info[NL_ITERATION_NUMBER] = 1;
 
     CppTestsUtilities::Create3DGeometry(r_model_part, "Element3D4N");
 
@@ -127,10 +119,6 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess3, KratosCoreFastSuite)
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
 
-    auto& process_info = r_model_part.GetProcessInfo();
-    process_info[STEP] = 1;
-    process_info[NL_ITERATION_NUMBER] = 1;
-
     CppTestsUtilities::CreateSphereTriangularMesh(r_model_part, "SurfaceCondition3D3N", 1.0);
 
     FindNodalNeighboursProcess process(r_model_part);
@@ -165,10 +153,6 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess2_Conditions, KratosCoreFast
 {
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main",2);
-
-    auto& process_info = r_model_part.GetProcessInfo();
-    process_info[STEP] = 1;
-    process_info[NL_ITERATION_NUMBER] = 1;
 
     CppTestsUtilities::Create2DGeometry(r_model_part, "SurfaceCondition3D3N", true, false);
 
