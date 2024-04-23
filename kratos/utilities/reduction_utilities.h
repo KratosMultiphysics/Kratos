@@ -278,6 +278,19 @@ public:
     }
 };
 
+template<class TDataType, class TReturnType = std::vector<TDataType>>
+class FilteredAccumReduction : public AccumReduction<TDataType, TReturnType>
+{
+public:
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const std::pair<bool, TDataType> ValuePair)
+    {
+        if (ValuePair.first) {
+            mValue.push_back(ValuePair.second);
+        }
+    }
+};
+
 template<class MapType>
 class MapReduction
 {
