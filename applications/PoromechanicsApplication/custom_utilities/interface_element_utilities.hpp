@@ -223,7 +223,7 @@ public:
         noalias(LocalInitialStress) = ZeroVector(dimension);
 
         // Contribution of each of the nodal values to the corresponding GP
-        for (unsigned int i = 0; i < number_of_nodes; i++) {
+        for (unsigned int i=0; i < number_of_nodes; i++) {
             const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
             for(unsigned int j=0; j < dimension; j++) {
                 for(unsigned int k=0; k < dimension; k++) {
@@ -251,7 +251,8 @@ public:
         Vx[1] *= inv_norm_x; // sin
 
         // Define and assign the rotation matrix
-        Matrix RotationInterface(dimension,strainSize);
+        BoundedMatrix<double,dimension,strainSize> RotationInterface;
+        noalias(RotationInterface) = ZeroMatrix(dimension,strainSize);
         RotationInterface(0,0) = -Vx[1]*Vx[0];
         RotationInterface(0,1) = Vx[1]*Vx[0];
         RotationInterface(0,2) = Vx[0]*Vx[0] - Vx[1]*Vx[1];
@@ -265,6 +266,56 @@ public:
         // Update the stress vector
         rStressVector[0] += LocalInitialStress[0];
         rStressVector[1] += LocalInitialStress[1];
+
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void AddInitialInterfaceStresses3D(Vector& rStressVector,
+                                                        ConstitutiveLaw::Parameters& rValues,
+                                                        const Element::GeometryType& geometry)
+    {
+        // Obtain necessary variables
+        const Vector& N = rValues.GetShapeFunctionsValues();
+        const unsigned int number_of_nodes = geometry.size();
+        const unsigned int dimension = 3;
+        const unsigned int strainSize = 6;
+
+        // Create components to initialise the stresses
+        Vector nodal_initial_stress_vector(strainSize);
+        Matrix nodal_initial_stress_tensor(dimension, dimension);
+        Vector gp_initial_stress_vector(strainSize);
+        noalias(gp_initial_stress_vector) = ZeroVector(strainSize);
+        Vector LocalInitialStress(strainSize);
+        noalias(LocalInitialStress) = ZeroVector(strainSize);
+
+        // Contribution of each of the nodal values to the corresponding GP
+        for (unsigned int i=0; i < number_of_nodes; i++) {
+            const Matrix& r_initial_stress_tensor = geometry[i].GetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            for (unsigned int j=0; j < dimension; j++) {
+                for (unsigned int k=0; k < dimension; k++) {
+                    nodal_initial_stress_tensor(j,k) = r_initial_stress_tensor(j,k);
+                }
+            }
+            noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
+
+            for (unsigned int j=0; j < strainSize; j++) {
+                gp_initial_stress_vector[j] += N[i] * nodal_initial_stress_vector[j];
+            }
+        }
+
+        // Create and obtain the rotation matrix
+        BoundedMatrix<double,strainSize,strainSize> RotationMatrixInterface;
+        noalias(RotationMatrixInterface) = ZeroMatrix(strainSize, strainSize);
+        ObtainRotationMatrix(RotationMatrixInterface, geometry);
+
+        // Rotate the stresses by multiplying the nodal stress by the rotation matrix
+        noalias(LocalInitialStress) = prod(RotationMatrixInterface, trans(gp_initial_stress_vector));
+        
+        // Assign the corresponding values to the stress vector
+        rStressVector[0] += LocalInitialStress[0];
+        rStressVector[1] += LocalInitialStress[1];
+        rStressVector[2] += LocalInitialStress[2];
 
     }
 
@@ -313,7 +364,7 @@ public:
         MathUtils<double>::CrossProduct(Vy, Vz, Vx); // Vy = [m1, m2, m3]
 
         // Create the inverse of the tranpose matrix as described in Eq. (8.2-8)
-        Matrix T11(3,3);
+        BoundedMatrix<double,3,3> T11;
         T11(0,0) = Vx[0]*Vx[0];
         T11(1,0) = Vx[1]*Vx[1];
         T11(2,0) = Vx[2]*Vx[2];
@@ -321,10 +372,10 @@ public:
         T11(1,1) = Vy[1]*Vy[1];
         T11(2,1) = Vy[2]*Vy[2];
         T11(0,2) = Vz[0]*Vz[0];
-        T11(1,2) = Vz[1]*Vz[2];
+        T11(1,2) = Vz[1]*Vz[1];
         T11(2,2) = Vz[2]*Vz[2];
 
-        Matrix T12(3,3);
+        BoundedMatrix<double,3,3> T12;
         T12(0,0) = Vx[0]*Vy[0];
         T12(1,0) = Vx[1]*Vy[1];
         T12(2,0) = Vx[2]*Vy[2];
@@ -332,10 +383,10 @@ public:
         T12(1,1) = Vy[1]*Vz[1];
         T12(2,1) = Vy[2]*Vz[2];
         T12(0,2) = Vz[0]*Vx[0];
-        T12(1,2) = Vz[0]*Vx[1];
-        T12(2,2) = Vz[0]*Vx[2];
+        T12(1,2) = Vz[1]*Vx[1];
+        T12(2,2) = Vz[2]*Vx[2];
 
-        Matrix T21(3,3);
+        BoundedMatrix<double,3,3> T21;
         T21(0,0) = 2*Vx[0]*Vx[1];
         T21(1,0) = 2*Vx[1]*Vx[2];
         T21(2,0) = 2*Vx[2]*Vx[0];
@@ -346,7 +397,7 @@ public:
         T21(1,2) = 2*Vz[1]*Vz[2];
         T21(2,2) = 2*Vz[2]*Vz[0];
 
-        Matrix T22(3,3);
+        BoundedMatrix<double,3,3> T22;
         T22(0,0) = Vx[0]*Vy[1] + Vx[1]*Vy[0];
         T22(1,0) = Vx[1]*Vy[2] + Vx[2]*Vy[1];
         T22(2,0) = Vx[2]*Vy[0] + Vx[0]*Vy[2];
