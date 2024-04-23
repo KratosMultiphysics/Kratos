@@ -224,6 +224,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D3N", mTransientThermalLineElement2D3N)
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D4N", mTransientThermalLineElement2D4N)
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D5N", mTransientThermalLineElement2D5N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement3D2N", mTransientThermalLineElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement3D3N", mTransientThermalLineElement3D3N)
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)

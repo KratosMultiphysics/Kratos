@@ -26,6 +26,8 @@ template class TransientThermalElement<2, 8>;
 template class TransientThermalElement<2, 9>;
 template class TransientThermalElement<2, 10>;
 template class TransientThermalElement<2, 15>;
+template class TransientThermalElement<3, 2>;
+template class TransientThermalElement<3, 3>;
 template class TransientThermalElement<3, 4>;
 template class TransientThermalElement<3, 8>;
 template class TransientThermalElement<3, 10>;
