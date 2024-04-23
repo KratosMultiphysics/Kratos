@@ -138,6 +138,22 @@ KRATOS_TEST_CASE_IN_SUITE(FindNodalNeighboursProcess3, KratosCoreFastSuite)
     // Re-execute the process
     process.Execute();
 
+    // Check the neighbours in first node
+    auto it_node_begin = r_model_part.NodesBegin();
+    const std::vector<std::size_t> neighbour_nodes = {2, 3, 4, 5, 6, 7, 9, 11};
+    auto& r_neighbour_nodes = it_node_begin->GetValue(NEIGHBOUR_NODES);
+    std::vector<std::size_t> retrieved_neighbour_nodes;
+    retrieved_neighbour_nodes.reserve(r_neighbour_nodes.size());
+    for (auto& r_neighbour_node : r_neighbour_nodes) {
+        retrieved_neighbour_nodes.push_back(r_neighbour_node.Id());
+    }
+    std::sort(retrieved_neighbour_nodes.begin(), retrieved_neighbour_nodes.end());
+    for (std::size_t i = 0; i < neighbour_nodes.size(); ++i) {
+        KRATOS_EXPECT_EQ(retrieved_neighbour_nodes[i], neighbour_nodes[i]);
+    }
+    KRATOS_EXPECT_EQ(it_node_begin->GetValue(NEIGHBOUR_NODES).size(), 8);
+    KRATOS_EXPECT_EQ(it_node_begin->GetValue(NEIGHBOUR_ELEMENTS).size(), 8);
+
     // Check the neighbours greater than 0
     for (auto& r_node : r_model_part.Nodes()) {
         KRATOS_EXPECT_GT(r_node.GetValue(NEIGHBOUR_NODES).size(), 0);
