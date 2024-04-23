@@ -51,8 +51,7 @@ public:
         KRATOS_TRY
 
         // Recognize whether a step is restarted. If so, try again with a smaller reduction increment.
-        const bool restarted_step = mrModelPart.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1;
-        if (restarted_step) mReductionIncrement *= 0.5;
+        if (mrModelPart.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1) mReductionIncrement *= 0.5;
         mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
         KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
             << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor " << 1. / mReductionFactor
