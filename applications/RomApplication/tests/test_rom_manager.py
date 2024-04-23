@@ -57,7 +57,7 @@ class TestRomManager(KratosUnittest.TestCase):
         self.assertListEqual(rom_manager_object.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray(), ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"])
 
 
-
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def test_orchestration(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
 
