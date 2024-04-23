@@ -254,8 +254,8 @@ template<class TDataType, class TReturnType = std::vector<TDataType>>
 class AccumReduction
 {
 public:
-    typedef TDataType   value_type;
-    typedef TReturnType return_type;
+    using value_type = TDataType;
+    using return_type = TReturnType;
 
     TReturnType mValue = TReturnType(); // deliberately making the member value public, to allow one to change it as needed
 
@@ -282,11 +282,13 @@ template<class TDataType, class TReturnType = std::vector<TDataType>>
 class FilteredAccumReduction : public AccumReduction<TDataType, TReturnType>
 {
 public:
+    using BaseType = AccumReduction<TDataType, TReturnType>;
+
     /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const std::pair<bool, TDataType> ValuePair)
     {
         if (ValuePair.first) {
-            mValue.push_back(ValuePair.second);
+            BaseType::mValue.push_back(ValuePair.second);
         }
     }
 };
