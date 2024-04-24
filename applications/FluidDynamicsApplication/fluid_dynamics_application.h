@@ -452,7 +452,8 @@ private:
     /// Shifted Boundary element and condition
     const ShiftedBoundaryFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<2,3> > > mShiftedBoundaryWeaklyCompressibleNavierStokes2D3N;
     const ShiftedBoundaryFluidElement< WeaklyCompressibleNavierStokes< WeaklyCompressibleNavierStokesData<3,4> > > mShiftedBoundaryWeaklyCompressibleNavierStokes3D4N;
-    const ShiftedBoundaryWallCondition mShiftedBoundaryWallCondition;
+    const ShiftedBoundaryWallCondition<2> mShiftedBoundaryWallCondition2D;
+    const ShiftedBoundaryWallCondition<3> mShiftedBoundaryWallCondition3D;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

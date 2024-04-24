@@ -158,7 +158,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     // Shifted Boundary element and condition
     mShiftedBoundaryWeaklyCompressibleNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mShiftedBoundaryWeaklyCompressibleNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-    mShiftedBoundaryWallCondition(0, Element::GeometryType::Pointer(new Geometry<Node>())),
+    mShiftedBoundaryWallCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node>())),
+    mShiftedBoundaryWallCondition3D(0, Element::GeometryType::Pointer(new Geometry<Node>())),
     // Fluid adjoint elements
     mVMSAdjointElement2D(0,Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mVMSAdjointElement3D(0,Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -427,7 +428,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("TwoFluidNavierStokesWallCondition3D3N", mTwoFluidNavierStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition2D2N", mEmbeddedAusasNavierStokesWallCondition2D);
     KRATOS_REGISTER_CONDITION("EmbeddedAusasNavierStokesWallCondition3D3N", mEmbeddedAusasNavierStokesWallCondition3D);
-    KRATOS_REGISTER_CONDITION("ShiftedBoundaryWallCondition", mShiftedBoundaryWallCondition);
+    KRATOS_REGISTER_CONDITION("ShiftedBoundaryWallCondition2D", mShiftedBoundaryWallCondition2D);
+    KRATOS_REGISTER_CONDITION("ShiftedBoundaryWallCondition3D", mShiftedBoundaryWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D", mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("StokesWallCondition3D4N", mStokesWallCondition3D4N);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D", mFSPeriodicCondition2D);
