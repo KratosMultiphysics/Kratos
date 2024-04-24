@@ -290,10 +290,9 @@ protected:
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
-    void         ResetHydraulicDischarge();
-    void         CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
-    void         CalculateSoilGamma(ElementVariables& rVariables);
-    virtual void CalculateSoilDensity(ElementVariables& rVariables);
+    void ResetHydraulicDischarge();
+    void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
+    void CalculateSoilGamma(ElementVariables& rVariables);
 
     virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
                                                          ElementVariables& rVariables,

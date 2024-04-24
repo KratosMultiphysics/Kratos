@@ -86,7 +86,7 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
@@ -302,8 +302,6 @@ protected:
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
-
-    void CalculateSoilDensity(ElementVariables& rVariables);
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 

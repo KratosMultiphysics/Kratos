@@ -42,6 +42,11 @@ $$M = \int_\Omega N_{u}^T \rho N_u d\Omega$$
 
 Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density matrix that holds density for all directions.
 
+### Soil density
+
+The soil density is calculated as
+$$\rho= S_r \Phi \rho_w + \Phi \rho_s$$
+where $S_r$ is the degree of saturation, $\Phi$ is the porosity, $\rho_w$ is the water density, $\rho_s$ is the solid density. 
 
 File transport_equation_utilities.hpp includes 
 
