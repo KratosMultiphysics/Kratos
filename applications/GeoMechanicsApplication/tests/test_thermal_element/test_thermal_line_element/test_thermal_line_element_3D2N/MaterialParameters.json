@@ -4,7 +4,7 @@
     "properties_id"                        : 1,
     "Material" : {
       "constitutive_law": {
-        "name"                             : "GeoThermalDispersion2DLaw" 
+        "name"                             : "GeoThermalDispersion3DLaw" 
       },                                     
       "Variables" : {                         
         "DENSITY_SOLID"                    : 2650.0,
@@ -15,13 +15,7 @@
         "SPECIFIC_HEAT_CAPACITY_SOLID"     : 400.0,
         "SPECIFIC_HEAT_CAPACITY_WATER"     : 379.5,
         "THERMAL_CONDUCTIVITY_SOLID_XX"    : 2.65,
-        "THERMAL_CONDUCTIVITY_SOLID_YY"    : 2.65,
-        "THERMAL_CONDUCTIVITY_SOLID_XY"    : 0.0,
         "THERMAL_CONDUCTIVITY_WATER"       : 4800,
-        "SOLID_COMPRESSIBILITY"            : 1.0,
-        "PERMEABILITY_XX"                  : 4.5e-13,
-        "PERMEABILITY_YY"                  : 4.5e-13,
-        "PERMEABILITY_XY"                  : 0.0,
         "DYNAMIC_VISCOSITY"                : 0.001
       },
       "Tables": {}
