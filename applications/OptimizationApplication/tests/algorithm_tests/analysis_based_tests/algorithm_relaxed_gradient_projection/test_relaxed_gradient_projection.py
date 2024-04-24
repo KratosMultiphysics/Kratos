@@ -27,6 +27,27 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
                 "relative_tolerance"    : 1e-6
             }""")).Execute()
 
+        algorithm = analysis.GetAlgorithm()
+        active_constraints = algorithm.GetConstraintsList()
+        constraint = active_constraints[0]
+        control_field = algorithm.GetCurrentControlField()
+        value = constraint.CalculateStandardizedValue(control_field)
+        w = constraint.ComputeW()
+        self.assertAlmostEqual(w, 0.5846445074821367)
+        value = constraint.CalculateStandardizedValue(control_field * 2)
+        constraint.UpdateBufferSize()
+        w = constraint.ComputeW()
+        self.assertAlmostEqual(w, 0.4990816394777207)
+        self.assertAlmostEqual(w, 0.4990816394777207)
+        self.assertAlmostEqual(constraint.BSF, 2.0)
+        self.assertAlmostEqual(constraint.BSF_init, 2.0)
+        self.assertAlmostEqual(constraint.CBV, 0.0)
+        self.assertAlmostEqual(constraint.BS, 8203642.493, 3)
+        self.assertAlmostEqual(constraint.max_w_c, 10)
+        self.assertAlmostEqual(constraint.CF, 1)
+
+        
+
     @classmethod
     def tearDownClass(cls) -> None:
         with KratosUnittest.WorkFolderScope(".", __file__):
