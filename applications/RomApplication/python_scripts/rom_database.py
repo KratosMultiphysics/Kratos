@@ -391,12 +391,8 @@ class RomDatabase(object):
 
 
     def get_elements_and_weights(self, hash_w , hash_z):
-
-        file_path = self.npys_directory / (hash_z + '.npy')
-        z = np.load(file_path)
-        file_path = self.npys_directory / (hash_w + '.npy')
-        w = np.load(file_path)
-
+        z = np.load(self.npys_directory / (hash_z + '.npy'))
+        w = np.load(self.npys_directory / (hash_w + '.npy'))
         return w, z
 
 
