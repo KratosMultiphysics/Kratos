@@ -262,7 +262,7 @@ class RomManager(object):
             BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_RightBasis_to_database(u, mu_train,tol_sol)
         else:
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_right_basis(hash_basis)) #this updates the RomParameters.json
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
         self.data_base.generate_database_summary()
 
         return 0
@@ -352,7 +352,7 @@ class RomManager(object):
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(u)
             self.data_base.add_LeftBasis_to_database(u, mu_train,tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
         else:
-            PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_left_basis(hash_basis)) #this updates the RomParameters.json
+            PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
         self.data_base.generate_database_summary()
 
         return 0

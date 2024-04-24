@@ -381,9 +381,7 @@ class RomDatabase(object):
             result = cursor.fetchone()
 
             if result:
-                file_name = result[0]
-                file_path = self.npys_directory / (file_name + '.npy')
-                SnapshotsMatrix.append(np.load(file_path))
+                SnapshotsMatrix.append(self.get_single_numpy_from_database(result[0]))
             else:
                 print(f"No entry found for hash {hash_mu}")
 
@@ -413,12 +411,8 @@ class RomDatabase(object):
         return serialized_mu_train
 
 
-    def get_left_basis(self, hash_basis):
-        return np.load(self.npys_directory / (hash_basis + '.npy'))
-
-
-    def get_right_basis(self, hash_basis):
-        return np.load(self.npys_directory / (hash_basis + '.npy'))
+    def get_single_numpy_from_database(self, hashed_name):
+        return np.load(self.npys_directory / (hashed_name + '.npy'))
 
 
     def generate_excel(self, full_tables = False, number_of_terms=5):
