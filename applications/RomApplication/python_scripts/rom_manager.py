@@ -24,7 +24,7 @@ class RomManager(object):
         self.UpdateProjectParameters = UpdateProjectParameters
         self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
         self.SetUpQuantityOfInterestContainers()
-        self.data_base = RomDatabase(self.general_rom_manager_parameters, self.rom_training_parameters, self.hrom_training_parameters, mu_names)
+        self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
 
 
     def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=True, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):

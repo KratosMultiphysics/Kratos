@@ -20,29 +20,26 @@ except ImportError as e:
 
 class RomDatabase(object):
 
-    def __init__(self, general_rom_manager_parameters, rom_training_parameters, hrom_training_parameters, mu_names):
-        self.database_name = "rom_database_sqlite3.db" #TODO This should be made user-defined. Use the same for FOM ROM HROM HHROM??
-
-
-        self.mu_names = mu_names
-        # A single list with the name of each parameter to be used (for reference) in the database, e.g. ["alpha", "permeability", "mach"].
-        # self.mu_names are expected to match the position and the number of inputs in the lists mu_train, mu_test, mu_run
-
+    def __init__(self, general_rom_manager_parameters, mu_names, database_name = "rom_database.db"):
         self.general_rom_manager_parameters = general_rom_manager_parameters
-        self.rom_training_parameters = rom_training_parameters
-        self.hrom_training_parameters = hrom_training_parameters
+        self.database_root_directory = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() + "/rom_database"  )
+        self.database_name = self.database_root_directory / database_name
+        self.npys_directory = self.database_root_directory / "npy_files"
+        self.xlsx_directory = self.database_root_directory / "xlsx_files"
+        self.create_directories([self.database_root_directory, self.npys_directory, self.xlsx_directory])
+        self.mu_names = mu_names   # A single list with the name of each parameter to be used (for reference) in the database, e.g. ["alpha", "permeability", "mach"].
+                                   # self.mu_names are expected to match the position and the number of inputs in the lists mu_train, mu_test, mu_run
         self.set_up_or_get_data_base()
 
 
+    def create_directories(self, directories):
+        for directory in directories:
+            directory.mkdir(parents=True, exist_ok=True)
+
 
     def set_up_or_get_data_base(self):
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name)
-        directory.mkdir(parents=True, exist_ok=True)
-        self.database_name = directory / "rom_database.db"  # Adjust the database file name as needed
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-
 
         # Updated table definitions including new tables
         table_definitions = {
@@ -341,10 +338,7 @@ class RomDatabase(object):
 
 
     def save_as_npy(self, result, hash_mu):
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name) / 'rom_database'  #TODO hardcoded names here
-        file_path = directory / f"{hash_mu}.npy"
-        directory.mkdir(parents=True, exist_ok=True)
+        file_path = self.npys_directory / f"{hash_mu}.npy"
         np.save(file_path, result)
         return file_path
 
@@ -360,14 +354,11 @@ class RomDatabase(object):
     def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM'):
         unique_tuples = set(tuple(item) for item in mu_list)
         mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_lust
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
-        directory.mkdir(parents=True, exist_ok=True)
         SnapshotsMatrix = []
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
+        tol_sol = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
+        tol_res =  self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
         projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
         pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
         pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
@@ -391,7 +382,7 @@ class RomDatabase(object):
 
             if result:
                 file_name = result[0]
-                file_path = directory / (file_name + '.npy')
+                file_path = self.npys_directory / (file_name + '.npy')
                 SnapshotsMatrix.append(np.load(file_path))
             else:
                 print(f"No entry found for hash {hash_mu}")
@@ -403,12 +394,9 @@ class RomDatabase(object):
 
     def get_elements_and_weights(self, hash_w , hash_z):
 
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
-        directory.mkdir(parents=True, exist_ok=True)
-        file_path = directory / (hash_z + '.npy')
+        file_path = self.npys_directory / (hash_z + '.npy')
         z = np.load(file_path)
-        file_path = directory / (hash_w + '.npy')
+        file_path = self.npys_directory / (hash_w + '.npy')
         w = np.load(file_path)
 
         return w, z
@@ -425,37 +413,12 @@ class RomDatabase(object):
         return serialized_mu_train
 
 
-    def make_sure_basis_is_right(self, hash_basis):
-
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-
-        data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
-        data_base_directory.mkdir(parents=True, exist_ok=True)
-        rom_directoy = Path(rom_output_folder_name)
-        rom_directoy.mkdir(parents=True, exist_ok=True)
-        currently_available_basis = np.load(rom_directoy / ('LeftBasisMatrix.npy'))
-        basis_in_database = np.load(data_base_directory / (hash_basis + '.npy'))
-        are_identical = np.array_equal(currently_available_basis, basis_in_database)
-        if not are_identical:
-            np.save(rom_directoy / ('LeftBasisMatrix.npy'), basis_in_database)
-
-
     def get_left_basis(self, hash_basis):
-
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
-        data_base_directory.mkdir(parents=True, exist_ok=True)
-
-        return np.load(data_base_directory / (hash_basis + '.npy'))
+        return np.load(self.npys_directory / (hash_basis + '.npy'))
 
 
     def get_right_basis(self, hash_basis):
-
-        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        data_base_directory = Path(rom_output_folder_name) / 'rom_database' #TODO hardcoded names here
-        data_base_directory.mkdir(parents=True, exist_ok=True)
-
-        return np.load(data_base_directory / (hash_basis + '.npy'))
+        return np.load(self.npys_directory / (hash_basis + '.npy'))
 
 
     def generate_excel(self, full_tables = False, number_of_terms=5):
@@ -470,10 +433,9 @@ class RomDatabase(object):
             tables = pd.read_sql_query(query, conn)
 
             if full_tables==False:
-                output_folder = './Summary.xlsx'
+                output_file_path = self.xlsx_directory / 'Summary.xlsx'
             elif full_tables==True:
-                output_folder = './DataBaseCompleteDump.xlsx'
-            output_file_path = Path(output_folder)
+                output_file_path = self.xlsx_directory / 'DataBaseCompleteDump.xlsx'
 
             with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
                 for table_name in tables['name']:
