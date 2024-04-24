@@ -942,6 +942,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 {
     KRATOS_TRY
 
+    MatrixType MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix(
+        this->GetNumberOfDOF(), this->GetGeometry(), this->GetIntegrationMethod(),
+        this->GetStressStatePolicy(), mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
+    /*
     const IndexType N_DOF = this->GetNumberOfDOF();
 
     if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
@@ -985,7 +989,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
         // Adding contribution to Mass matrix
         GeoElementUtilities::AssembleUUBlockMatrix(
             rMassMatrix, prod(trans(Nut), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration);
-    }
+    }*/
 
     KRATOS_CATCH("")
 }
