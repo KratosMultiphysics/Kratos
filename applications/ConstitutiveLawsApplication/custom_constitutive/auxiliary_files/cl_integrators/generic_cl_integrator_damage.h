@@ -125,7 +125,8 @@ class GenericConstitutiveLawIntegratorDamage
         double& rDamage,
         double& rThreshold,
         ConstitutiveLaw::Parameters& rValues,
-        const double CharacteristicLength
+        const double CharacteristicLength,
+        const double InitialThreshold 
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -146,7 +147,7 @@ class GenericConstitutiveLawIntegratorDamage
             CalculateHardeningDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
         case static_cast<int>(SofteningType::CurveFittingDamage):
-            CalculateCurveFittingDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
+            CalculateCurveFittingDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage, InitialThreshold);
             break;
         default:
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
@@ -263,18 +264,64 @@ class GenericConstitutiveLawIntegratorDamage
         const double DamageParameter,
         const double CharacteristicLength,
         ConstitutiveLaw::Parameters& rValues,
-        double& rDamage
+        double& rDamage,
+        const double InitialThreshold
         )
     {
         const Properties &r_mat_props = rValues.GetMaterialProperties();
-        const double fracture_energy = r_mat_props[FRACTURE_ENERGY];
-        const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
+        double r_fracture_energy = r_mat_props[FRACTURE_ENERGY];
+        double r_volumetric_fracture_energy = r_fracture_energy / CharacteristicLength;
         const double yield_stress = r_mat_props[YIELD_STRESS];
         const double E = r_mat_props[YOUNG_MODULUS];
-        const Vector& strain_damage_curve = r_mat_props[STRAIN_DAMAGE_CURVE]; //Strain points of the fitting curve
-        const Vector& stress_damage_curve = r_mat_props[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
-        const SizeType curve_points = strain_damage_curve.size() - 1;
+        Vector strain_damage_curve = r_mat_props[STRAIN_DAMAGE_CURVE]; //Strain points of the fitting curve
+        Vector stress_damage_curve = r_mat_props[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
+        SizeType curve_points = strain_damage_curve.size() - 1;
+        double plastic_dissipation = 0.0;
 
+        if (InitialThreshold > yield_stress){
+            
+            SizeType aux_curve_points;
+            IndexType j = 1;
+            Vector aux_strain_damage_curve;
+            Vector aux_stress_damage_curve;
+            
+            for (IndexType i = 1; i <= curve_points; ++i) {
+                if (stress_damage_curve[i] < InitialThreshold){
+                    plastic_dissipation += (0.5 / r_volumetric_fracture_energy) * ((stress_damage_curve[i] + stress_damage_curve[i-1]) * (strain_damage_curve[i] - strain_damage_curve[i-1]) 
+                             - (std::pow(stress_damage_curve[i], 2.0) - std::pow(stress_damage_curve[i-1], 2.0)) * (strain_damage_curve[0] / stress_damage_curve[0]));
+
+                } else if (stress_damage_curve[i-1] < InitialThreshold && InitialThreshold < stress_damage_curve[i]){
+                    plastic_dissipation += (0.5 / r_volumetric_fracture_energy) * (std::pow(InitialThreshold, 2.0) - std::pow(stress_damage_curve[i-1], 2.0))
+                             * ((strain_damage_curve[i] - strain_damage_curve[i-1]) / (stress_damage_curve[i] - stress_damage_curve[i-1]) - (strain_damage_curve[0] / stress_damage_curve[0]));                                
+                    r_volumetric_fracture_energy -= plastic_dissipation * r_volumetric_fracture_energy;
+                    r_fracture_energy = r_volumetric_fracture_energy * CharacteristicLength;           
+                    
+                    aux_curve_points = curve_points - i + 2;
+
+                    aux_strain_damage_curve = ZeroVector(aux_curve_points);
+                    aux_stress_damage_curve = ZeroVector(aux_curve_points);
+
+                    aux_strain_damage_curve[0] = InitialThreshold / E;
+                    aux_stress_damage_curve[0] = InitialThreshold;   
+
+                } else {
+                    aux_strain_damage_curve[j] = strain_damage_curve[i-1];
+                    aux_stress_damage_curve[j] = stress_damage_curve[i-1];
+                    ++j;
+                }
+            }
+    
+            aux_strain_damage_curve[j] = strain_damage_curve[curve_points];
+            aux_stress_damage_curve[j] = stress_damage_curve[curve_points];
+
+            strain_damage_curve.resize(aux_strain_damage_curve.size(), false);
+            stress_damage_curve.resize(aux_strain_damage_curve.size(), false);
+
+            strain_damage_curve = aux_strain_damage_curve;
+            stress_damage_curve = aux_stress_damage_curve;
+            curve_points = aux_curve_points - 1;
+        }
+        
         //Fracture energy required to cover the first region of the curve defined by points
         double volumentric_fracture_energy_first_region = 0.5 * std::pow(yield_stress, 2.0) / E; //Fracture energy corresponding to the elastic regime
         for (IndexType i = 1; i <= curve_points; ++i) {
@@ -283,7 +330,7 @@ class GenericConstitutiveLawIntegratorDamage
             const double irreversibility_damage_check = (stress_damage_curve[i] - stress_damage_curve[i-1]) / (strain_damage_curve[i] - strain_damage_curve[i-1]);
             KRATOS_ERROR_IF(irreversibility_damage_check > E)<< "The defined S-E curve induces negative damage at region " << i << std::endl;
         }
-        KRATOS_ERROR_IF(volumentric_fracture_energy_first_region > volumetric_fracture_energy) << "The Fracture Energy is too low: " << fracture_energy << std::endl;
+        KRATOS_ERROR_IF(volumentric_fracture_energy_first_region > r_volumetric_fracture_energy) << "The Fracture Energy is too low: " << r_fracture_energy << std::endl;
 
         const double predictive_stress_end_first_region = strain_damage_curve[curve_points] * E;
         if (UniaxialStress < predictive_stress_end_first_region){ //First region: point-by-point definition with linear interpolation
@@ -296,7 +343,7 @@ class GenericConstitutiveLawIntegratorDamage
                 }
             }
         } else { //Second region: exponential definition to consume the remaining fracture energy
-            const double volumentric_fracture_energy_second_region = volumetric_fracture_energy - volumentric_fracture_energy_first_region;
+            const double volumentric_fracture_energy_second_region = r_volumetric_fracture_energy - volumentric_fracture_energy_first_region;
             rDamage = 1.0 - stress_damage_curve[curve_points] / UniaxialStress * std::exp(stress_damage_curve[curve_points] * (strain_damage_curve[curve_points] * E - UniaxialStress) / (E * volumentric_fracture_energy_second_region));
 		}
     }

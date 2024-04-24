@@ -203,6 +203,19 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief This is to be called at the very beginning of the calculation
+     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues
+        ) override;
+
+    /**
      * returns whether this constitutive Law has specified variable
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -408,10 +421,12 @@ private:
     ///@{
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector& toStressVector) {mStressVector = toStressVector;}
+    void SetInitialThreshold(double toInitialThreshold) { mInitialTherhold = toInitialThreshold; }
     ///@}
     ///@name Member Variables
     ///@{
     double mReferenceDamage = 0.0; // Damage parameter used to compute B0 in the low cycle regime (maximum predictive stress great or equal to the Uts)
+    bool mReferenceDamageIndicator = true; // Indicates when the reference damage is to be applied or updated
     double mFatigueReductionFactor = 1.0; // Fatigue reduction factor
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mPreviousMaxStress = 0.0; // Previous maximun stress detected in the current cycle
@@ -419,10 +434,7 @@ private:
     double mMaxStress = 0.0; // Maximun stress detected in the current cycle
     double mMinStress = 0.0; // Minimum stress detected in the current cycle
     unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
-    unsigned int mNumberOfCyclesLocal = 1; // Equivalent number of cycles for the current cyclic load
-    unsigned int mReferenceNumberOfCycles = 1e15; // Equivalent number of cycles for the current cyclic load
-    bool mExponentialPhaseDetected = false; // Detects the IP subjected to the low cycle regime (maximum predictive great or equal to the Uts) 
-    bool mRegularPhaseDetected = false; // Detects the IP subjected to the high cycle regime (maximum predictive great or equal to the Uts) 
+    unsigned int mNumberOfCyclesLocal = 1; // Local number of cycles in the whole analysis
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize); // Stress tensor
     bool mFirstMaxDetected = true; // First maximum's indicator in the current cycle
@@ -437,7 +449,8 @@ private:
     double mCyclesToFailure = 1.0e15; // Nf. Required for the advancing process
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
     double mPeriod = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
-    double mUniaxialResidualStress = 0.0; // Uniaxial stress computed from the initial stress
+    double mInitialTherhold = 0.0; // Initial damage threshold
+    double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
 
     ///@}
     ///@name Private Operators
@@ -459,6 +472,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("ReferenceDamage", mReferenceDamage);
+        rSerializer.save("ReferenceDamageIndicator", mReferenceDamageIndicator);
         rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.save("PreviousStresses", mPreviousStresses);
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
@@ -467,9 +481,6 @@ private:
         rSerializer.save("MinStress", mMinStress);
         rSerializer.save("NumberOfCyclesGlobal", mNumberOfCyclesGlobal);
         rSerializer.save("NumberOfCyclesLocal", mNumberOfCyclesLocal);
-        rSerializer.save("ReferenceNumberOfCycles", mReferenceNumberOfCycles);
-        rSerializer.save("ExponentialPhaseDetected", mExponentialPhaseDetected);
-        rSerializer.save("RegularPhaseDetected", mRegularPhaseDetected);
         rSerializer.save("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.save("StressVector", mStressVector);
         rSerializer.save("FirstMaxDetected", mFirstMaxDetected);
@@ -484,13 +495,15 @@ private:
         rSerializer.save("CyclesToFailure", mCyclesToFailure);
         rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.save("Period", mPeriod);
-        rSerializer.save("UniaxialResidualStress", mUniaxialResidualStress);
+        rSerializer.save("InitialTherhold", mInitialTherhold);
+        rSerializer.save("RelaxationFactor", mRelaxationFactor);
     }
 
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("ReferenceDamage", mReferenceDamage);
+        rSerializer.load("ReferenceDamageIndicator", mReferenceDamageIndicator);
         rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.load("PreviousStresses", mPreviousStresses);
         rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
@@ -499,9 +512,6 @@ private:
         rSerializer.load("MinStress", mMinStress);
         rSerializer.load("NumberOfCyclesGlobal", mNumberOfCyclesGlobal);
         rSerializer.load("NumberOfCyclesLocal", mNumberOfCyclesLocal);
-        rSerializer.load("ReferenceNumberOfCycles", mReferenceNumberOfCycles);
-        rSerializer.load("ExponentialPhaseDetected", mExponentialPhaseDetected);
-        rSerializer.load("RegularPhaseDetected", mRegularPhaseDetected);
         rSerializer.load("FatigueReductionParameter", mFatigueReductionParameter);
         rSerializer.load("StressVector", mStressVector);
         rSerializer.load("FirstMaxDetected", mFirstMaxDetected);
@@ -516,7 +526,8 @@ private:
         rSerializer.load("CyclesToFailure", mCyclesToFailure);
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
-        rSerializer.load("UniaxialResidualStress", mUniaxialResidualStress);
+        rSerializer.load("InitialTherhold", mInitialTherhold);
+        rSerializer.load("RelaxationFactor", mRelaxationFactor);
     }
     ///@}
 

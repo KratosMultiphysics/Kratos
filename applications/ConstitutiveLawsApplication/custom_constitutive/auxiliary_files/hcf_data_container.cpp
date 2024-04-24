@@ -34,9 +34,11 @@ void HCFDataContainer::CalculateSminAndSmax(const double CurrentStress,
                         HCFDataContainer::FatigueVariables &rFatigueVariables)
 {
     HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
+                                                                        rFatigueVariables.PreviousStresses,
                                                                         rFatigueVariables.MaxStress,
                                                                         rFatigueVariables.MinStress,
-                                                                        rFatigueVariables.PreviousStresses,
+                                                                        rFatigueVariables.FirstMaxIndicator,
+                                                                        rFatigueVariables.FirstMinIndicator,
                                                                         rFatigueVariables.MaxIndicator,
                                                                         rFatigueVariables.MinIndicator);
     const Vector& r_aux_stresses = mPreviousStresses;
@@ -116,18 +118,18 @@ void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialPar
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
-{
-    HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rMaterialParameters,
-                                                                                    rFatigueVariables.MaxStress,
-                                                                                    rFatigueVariables.LocalNumberOfCycles,
-                                                                                    rFatigueVariables.GlobalNumberOfCycles,
-                                                                                    rFatigueVariables.B0,
-                                                                                    rFatigueVariables.Sth,
-                                                                                    rFatigueVariables.Alphat,
-                                                                                    rFatigueVariables.FatigueReductionFactor,
-                                                                                    rFatigueVariables.WohlerStress);
-}
+// void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
+// {
+//     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rMaterialParameters,
+//                                                                                     rFatigueVariables.MaxStress,
+//                                                                                     rFatigueVariables.LocalNumberOfCycles,
+//                                                                                     rFatigueVariables.GlobalNumberOfCycles,
+//                                                                                     rFatigueVariables.B0,
+//                                                                                     rFatigueVariables.Sth,
+//                                                                                     rFatigueVariables.Alphat,
+//                                                                                     rFatigueVariables.FatigueReductionFactor,
+//                                                                                     rFatigueVariables.WohlerStress);
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -146,7 +148,7 @@ void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVaria
     rFatigueVariables.LocalNumberOfCycles = mNumberOfCyclesLocal;
     rFatigueVariables.PreviousMaxStress = mPreviousMaxStress;
     rFatigueVariables.PreviousMinStress = mPreviousMinStress;
-    rFatigueVariables.WohlerStress = mWohlerStress;
+    // rFatigueVariables.WohlerStress = mWohlerStress;
     rFatigueVariables.NewCycle = false;
     rFatigueVariables.Sth = mThresholdStress;
     rFatigueVariables.CyclesToFailure = mCyclesToFailure;
@@ -168,7 +170,7 @@ void HCFDataContainer::UpdateFatigueVariables(HCFDataContainer::FatigueVariables
     mPreviousMinStress = rFatigueVariables.PreviousMinStress;
     mPreviousStresses = rFatigueVariables.PreviousStresses;
     mFatigueReductionFactor = rFatigueVariables.FatigueReductionFactor;
-    mWohlerStress = rFatigueVariables.WohlerStress;
+    // mWohlerStress = rFatigueVariables.WohlerStress;
     mThresholdStress = rFatigueVariables.Sth;
     mReversionFactorRelativeError = rFatigueVariables.ReversionFactorRelativeError;
     mMaxStressRelativeError = rFatigueVariables.MaxStressRelativeError;
@@ -189,7 +191,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
 
     rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
-    rFatigueVariables.DamageActivation = rCurrentProcessInfo.Has(DAMAGE_ACTIVATION) ? rCurrentProcessInfo[DAMAGE_ACTIVATION] : false;
+    rFatigueVariables.NoLinearityActivation = rCurrentProcessInfo.Has(NO_LINEARITY_ACTIVATION) ? rCurrentProcessInfo[NO_LINEARITY_ACTIVATION] : false;
 
     if (rFatigueVariables.MaxIndicator && rFatigueVariables.MinIndicator) {
         rFatigueVariables.PreviousReversionFactor = CalculateReversionFactor(rFatigueVariables.PreviousMaxStress, rFatigueVariables.PreviousMinStress);
@@ -206,7 +208,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         }
         rFatigueVariables.MaxStressRelativeError = std::abs((rFatigueVariables.MaxStress - rFatigueVariables.PreviousMaxStress) / rFatigueVariables.MaxStress);
 
-        if (!rFatigueVariables.DamageActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > tolerance || rFatigueVariables.MaxStressRelativeError > tolerance)) {
+        if (!rFatigueVariables.NoLinearityActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > tolerance || rFatigueVariables.MaxStressRelativeError > tolerance)) {
             rFatigueVariables.LocalNumberOfCycles = std::trunc(std::pow(10, std::pow(-(std::log(rFatigueVariables.FatigueReductionFactor) / rFatigueVariables.B0), 1.0 / (betaf * betaf)))) + 1;
         }
 
@@ -219,18 +221,18 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         rFatigueVariables.PreviousMinStress = rFatigueVariables.MinStress;
         mCyclesToFailure = rFatigueVariables.CyclesToFailure;
 
-        if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
-            CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
-        }
+        // if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
+        //     CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
+        // }
     }
     if (rFatigueVariables.AdvanceStrategyApplied) {
     rFatigueVariables.ReversionFactor = CalculateReversionFactor(rFatigueVariables.MaxStress, rFatigueVariables.MinStress);
 
     CalculateFatigueParameters(rMaterialProperties, rFatigueVariables);
 
-    if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
-        CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
-    }
+    // if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
+    //     CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
+    // }
     }
 }
 

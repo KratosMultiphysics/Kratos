@@ -122,8 +122,9 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             }
         } else { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            const double initial_threshold = 0.0;
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length, initial_threshold);
 
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
@@ -256,8 +257,9 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
 
         if (F >= threshold_tolerance) { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            const double initial_threshold = 0.0;
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, mDamage, mThreshold, rValues, characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, mDamage, mThreshold, rValues, characteristic_length, initial_threshold);
             mThreshold = uniaxial_stress;
         }
     }
