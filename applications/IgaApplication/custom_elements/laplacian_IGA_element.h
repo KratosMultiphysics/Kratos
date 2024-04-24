@@ -133,7 +133,7 @@ public:
 
     //     MatrixType left_hand_side_matrix;
 
-    //     KRATOS_WATCH('RHS1')
+    //     KRATOS_WATCH("RHS1")
         
     //     // CalculateAll(left_hand_side_matrix, rRightHandSideVector,
     //     //     rCurrentProcessInfo, false, true);
@@ -146,7 +146,7 @@ public:
     //     MatrixType& rLeftHandSideMatrix,
     //     const ProcessInfo& rCurrentProcessInfo) override
     // {
-    //     KRATOS_WATCH('LHS0')
+    //     KRATOS_WATCH("LHS0")
     //     const SizeType number_of_nodes = GetGeometry().size();
     //     const SizeType mat_size = number_of_nodes * 3;
 
@@ -159,7 +159,7 @@ public:
     //     // CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
     //     //     rCurrentProcessInfo, true, false);
         
-    //     KRATOS_WATCH('LHS1')
+    //     KRATOS_WATCH("LHS1')
 
     //     VectorType temp(0);
     //     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);

@@ -450,7 +450,7 @@ namespace Kratos
         VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         MatrixType LeftHandSide;
-        KRATOS_WATCH('LefthandSIDE \n \n')
+        KRATOS_WATCH("LefthandSIDE \n \n")
         this->CalculateLocalSystem(LeftHandSide,rRightHandSideVector,rCurrentProcessInfo);
     }
 

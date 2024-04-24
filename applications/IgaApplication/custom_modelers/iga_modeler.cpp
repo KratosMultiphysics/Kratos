@@ -356,7 +356,7 @@ namespace Kratos
 
                         double minimum_distance=1e10;
                         int nearestNodeId;
-                        for (uint i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                        for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
                             double new_distance = list_of_distances[i_distance];   
                             if (new_distance < minimum_distance) { 
                                 minimum_distance = new_distance;
@@ -365,7 +365,7 @@ namespace Kratos
                         }
 
                         if (obtainedResults == 0) {
-                             KRATOS_WATCH('0 POINTS FOUND: EXIT')
+                             KRATOS_WATCH("0 POINTS FOUND: EXIT")
                              KRATOS_WATCH(pointToSearch)
                              exit(0);}
 
@@ -434,7 +434,7 @@ namespace Kratos
             if (conditionName.rfind("SBM", 0) == 0) { 
                 // OUTER
                 ModelPart& surrogateModelPart_outer = mpModel->GetModelPart("surrogate_model_part_outer");
-                uint sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
+                int sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
                 for (SizeType j = 0; j < sizeSurrogateLoop_outer-1; ++j) {
                     // Add the brep_ids of the internal boundary for SBMLaplacianCondition
                     rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
@@ -445,14 +445,14 @@ namespace Kratos
         else {
             // INNER
             ModelPart& surrogateModelPart_inner = mpModel->GetModelPart("surrogate_model_part_inner");
-            uint sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
+            int sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
 
-            for (uint iel = 1; iel < surrogateModelPart_inner.Elements().size()+1; iel++) {
+            for (int iel = 1; iel < surrogateModelPart_inner.Elements().size()+1; iel++) {
                 // Each element in the surrogate_model_part represents a surrogate boundary loop. First "node" is the initial ID of the first surrogate node and
                 // the second "node" is the last surrogate node of that loop. (We have done this in the case we have multiple surrogate boundaries and 1 model part)
                 Node& firstSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
                 Node& lastSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
-                uint sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+                int sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
 
                 for (SizeType j = 0; j < sizeSurrogateLoop; ++j) {
                     // Add the brep_ids of the internal boundary for SBMLaplacianCondition

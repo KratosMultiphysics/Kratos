@@ -2102,7 +2102,7 @@ void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
         // Modified in order to let it works also when there is no any true_boundary. (Need to modify)
         // std::ifstream infile("txt_files/true_points.txt");
         // bool file_true_points_exists = infile.good(); 
-        // KRATOS_WATCH('ciaoooo')
+        // KRATOS_WATCH("ciaoooo")
         // KRATOS_WATCH(file_true_points_exists)
         // KRATOS_WATCH(ThisSubModelPartName)
         // if (file_true_points_exists==true){

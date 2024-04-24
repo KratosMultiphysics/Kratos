@@ -273,7 +273,7 @@ namespace Kratos
         // Read lambda parameters: 0.0 -> External,  0.5 -> Optimal
         const double lambda_inner = mParameters["sbm_parameters"]["lambda_inner"].GetDouble();
         KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Inner-> MarkKnotSpansAvailable" << std::endl;
-        for (uint i = 0; i < numberOfInnerLoops; i++) {
+        for (int i = 0; i < numberOfInnerLoops; i++) {
             int idInnerLoop = i;
             // Mark the knot_spans_available's for inner and outer loops
             MarkKnotSpansAvailable(knot_spans_available_inner, idInnerLoop, testBins_in, initial_skin_model_part_in, lambda_inner, insert_nb_per_span_u_refined_in, insert_nb_per_span_v_refined_in, knot_step_u_refined_in, knot_step_v_refined_in);
@@ -410,8 +410,8 @@ namespace Kratos
             }
         }
         if (!isSplitted) {
-            // uint idNode1 = skin_model_part.Nodes().size();
-            // uint idNode2 = idNode1+1;
+            // int idNode1 = skin_model_part.Nodes().size();
+            // int idNode2 = idNode1+1;
             // skin_model_part.CreateNewNode(idNode2, x_true_boundary2, y_true_boundary2, 0.0);
             // Properties::Pointer p_cond_prop = skin_model_part.pGetProperties(0);
             // IndexType idSnakeNode = skin_model_part.Nodes().size()+1;
@@ -419,8 +419,8 @@ namespace Kratos
             // skin_model_part.AddCondition(p_cond);
 
             // Create at least two conditions for each skin condition
-            uint idNode1 = skin_model_part.Nodes().size();
-            uint idNode2 = idNode1+1;
+            auto idNode1 = skin_model_part.Nodes().size();
+            auto idNode2 = idNode1+1;
             skin_model_part.CreateNewNode(idNode2, (x_true_boundary1+x_true_boundary2 ) / 2, (y_true_boundary1+y_true_boundary2 ) / 2, 0.0);
             skin_model_part.CreateNewNode(idNode2+1, x_true_boundary2, y_true_boundary2, 0.0);
             Properties::Pointer p_cond_prop = skin_model_part.pGetProperties(0);
@@ -450,14 +450,14 @@ namespace Kratos
         // int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
         // double minimum_distance=1e10;
         // int nearestNodeId;
-        // for (uint i_distance = 0; i_distance < obtainedResults; i_distance++) {
+        // for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
         //     double new_distance = list_of_distances[i_distance];   
         //     if (new_distance < minimum_distance) { 
         //         minimum_distance = new_distance;
         //         nearestNodeId = i_distance;
         //         }
         // }
-        // if (obtainedResults == 0) { KRATOS_WATCH('0 POINTS FOUND: EXIT');  exit(0);}
+        // if (obtainedResults == 0) { KRATOS_WATCH("0 POINTS FOUND: EXIT");  exit(0);}
         // int id1 = Results[nearestNodeId]->Id();
         // _________________________________________________________________________________________________________________________________
         
@@ -631,7 +631,7 @@ namespace Kratos
             if (direction == 2) {I++ ; }
             if (direction == 3) {J-- ; }
             if (knot_spans_available[idMatrix][J][I] == 1) {
-                // KRATOS_WATCH('trovato, sinistra') 
+                // KRATOS_WATCH("trovato, sinistra") 
                 direction = direction - 1;
                 if (direction == -1) {direction = 3;}
             }
@@ -644,7 +644,7 @@ namespace Kratos
                 // KRATOS_WATCH(I)
                 // KRATOS_WATCH(J)
                 if (knot_spans_available[idMatrix][J][I] == 1) {
-                    // KRATOS_WATCH('trovato, dritto')
+                    // KRATOS_WATCH("trovato, dritto")
 
                     // Stiamo andando a Dritti! -> Non scrivo nulla e muovo (i,j)
                     if (direction == 0) {j++ ; }
@@ -670,7 +670,7 @@ namespace Kratos
                     if (direction == 3) {I++ ; J++ ;}
 
                     if (knot_spans_available[idMatrix][J][I] == 1) {
-                        // KRATOS_WATCH('trovato, destra')
+                        // KRATOS_WATCH("trovato, destra")
 
                         // Stiamo andando a DX! -> Prima passo dritto, poi stampo, poi passo a destra (i,j), poi scrivo di nuovo
                         if (direction == 0) {j++ ; }
@@ -699,7 +699,7 @@ namespace Kratos
                         if (direction == 4) {direction = 0;}
                     }
                     else { // Super special case of "isolated" knot span to be circumnavigated
-                        // KRATOS_WATCH('Super special case of "isolated" knot span')
+                        // KRATOS_WATCH("Super special case of "isolated" knot span")
                         is_special_case = 0;
                         // Resetto e muovo (I,J) "indietro"
                         if (direction == 0) {I-- ; J-- ;} 
@@ -751,7 +751,7 @@ namespace Kratos
                             if (direction == 4) {direction = 0;}
                             if (direction == 5) {direction = 1;}
                         }
-                        else{ KRATOS_WATCH('errore nello Snakes Coordinates'); 
+                        else{ KRATOS_WATCH("errore nello Snakes Coordinates"); 
                             // exit(0);
                             }  
                     }
@@ -778,7 +778,7 @@ namespace Kratos
         surrogate_model_part_inner.CreateNewElement("Element2D2N", surrogate_model_part_inner.Elements().size()+1, elem_nodes, p_cond_prop);
 
         outputFile.close();
-        KRATOS_WATCH('Snake process has finished')
+        KRATOS_WATCH("Snake process has finished")
     }
 
 
@@ -855,8 +855,8 @@ namespace Kratos
         //-------------------
         std::vector<std::vector<int>> knot_spans_available_extended(insert_nb_per_span_v+1+2, std::vector<int>(insert_nb_per_span_u+1+2));
 
-        for (uint i = 0; i < knot_spans_available[idMatrix].size(); i++){
-            for (uint j = 0; j<knot_spans_available[idMatrix][0].size(); j++) {
+        for (int i = 0; i < knot_spans_available[idMatrix].size(); i++){
+            for (int j = 0; j<knot_spans_available[idMatrix][0].size(); j++) {
                 knot_spans_available_extended[i+1][j+1] = knot_spans_available[idMatrix][i][j]; 
             }
         }  
@@ -899,7 +899,7 @@ namespace Kratos
             if (direction == 2) {I++ ; }
             if (direction == 3) {J-- ; }
             if (knot_spans_available_extended[J][I] == 1) {
-                // KRATOS_WATCH('trovato, sinistra') 
+                // KRATOS_WATCH("trovato, sinistra") 
                 direction = direction - 1;
                 if (direction == -1) {direction = 3;}
             }
@@ -912,7 +912,7 @@ namespace Kratos
                 // KRATOS_WATCH(I)
                 // KRATOS_WATCH(J)
                 if (knot_spans_available_extended[J][I] == 1) {
-                    // KRATOS_WATCH('trovato, dritto')
+                    // KRATOS_WATCH("trovato, dritto")
 
                     // Stiamo andando a Dritti! -> Non scrivo nulla e muovo (i,j)
                     if (direction == 0) {j++ ; }
@@ -938,7 +938,7 @@ namespace Kratos
                     if (direction == 3) {I++ ; J++ ;}
 
                     if (knot_spans_available_extended[J][I] == 1) {
-                        // KRATOS_WATCH('trovato, destra')
+                        // KRATOS_WATCH("trovato, destra")
 
                         // Stiamo andando a DX! -> Prima passo dritto, poi stampo, poi passo a destra (i,j), poi scrivo di nuovo
                         if (direction == 0) {j++ ; }
@@ -967,7 +967,7 @@ namespace Kratos
                         if (direction == 4) {direction = 0;}
                     }
                     else { // Super special case of "isolated" knot span to be circumnavigated
-                        // KRATOS_WATCH('Super special case of "isolated" knot span')
+                        // KRATOS_WATCH("Super special case of "isolated" knot span")
                         is_special_case = 0;
                         // Resetto e muovo (I,J) "indietro"
                         if (direction == 0) {I-- ; J-- ;} 
@@ -1015,7 +1015,7 @@ namespace Kratos
                             if (direction == 4) {direction = 0;}
                             if (direction == 5) {direction = 1;}
                         }
-                        else{ KRATOS_WATCH('errore nello Snakes Coordinates'); 
+                        else{ KRATOS_WATCH("errore nello Snakes Coordinates"); 
                             exit(0);
                             }  
                     }
@@ -1051,7 +1051,7 @@ namespace Kratos
         outputFile << knot_vector_u[i] << " " << knot_vector_v[j] << std::endl;
 
         outputFile.close();
-        KRATOS_WATCH('Snake process has finished')
+        KRATOS_WATCH("Snake process has finished")
     }
 
 

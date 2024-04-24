@@ -490,7 +490,7 @@ public:
 
                 // If it is 1 -> the current GP is a surrogate GP otherwise it is an external GP
                 if (is_surrogate_boundary) {
-                    // KRATOS_WATCH('SURROGATE BOUNDARY GP')
+                    // KRATOS_WATCH("SURROGATE BOUNDARY GP")
                     IndexType SpanU = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->KnotsU(), global_space_derivatives[0][0]);
                     IndexType SpanV = NurbsUtilities::GetLowerSpan(mpNurbsSurface->PolynomialDegreeV(), mpNurbsSurface->KnotsV(), global_space_derivatives[0][1]);
 

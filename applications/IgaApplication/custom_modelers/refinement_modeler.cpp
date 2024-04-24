@@ -73,7 +73,7 @@ namespace Kratos
                     ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n))
                     : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
 
-                KRATOS_WATCH('Refinement Local')
+                KRATOS_WATCH("Refinement Local")
                 // MODIFIED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 Vector box_refinement_u_v_min_max;
                 double delta_u_refined;

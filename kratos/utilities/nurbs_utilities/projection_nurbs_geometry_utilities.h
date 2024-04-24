@@ -77,12 +77,12 @@ public:
             // Compute the distance vector between the point and its
             // projection on the curve
             distance_vector = rProjectedPointGlobalCoordinates - rPointGlobalCoordinatesCoordinates;
-            if (norm_2(distance_vector) < Acc)
+            if (norm_2(distance_vector) < Acc) // Acc
                 return true;
 
             // Compute the residual
             residual = inner_prod(distance_vector, derivatives[1]);
-            if (std::abs(residual) < Acc)
+            if (std::abs(residual) < Acc) // Acc
                 return true;
 
             // Compute the increment
@@ -92,7 +92,7 @@ public:
             rProjectedPointLocalCoordinates[0] -= delta_t;
 
             // Check if the increment is too small and if yes return true
-            if (norm_2(delta_t * derivatives[1]) < Acc)
+            if (norm_2(delta_t * derivatives[1]) < Acc) // Acc
                 return true;
 
             // Check if the parameter gets out of its interval of definition and if so clamp it

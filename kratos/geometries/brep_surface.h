@@ -482,7 +482,7 @@ public:
             }
         }
         else {
-            KRATOS_WATCH('CreateBrepSurfaceSBMIntegrationPoints');
+            KRATOS_WATCH("CreateBrepSurfaceSBMIntegrationPoints");
             std::vector<double> spans_u;
             std::vector<double> spans_v;
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
@@ -494,7 +494,7 @@ public:
                 *mpSurrogateModelPart_inner, 
                 *mpSurrogateModelPart_outer,
                 rIntegrationInfo);
-            KRATOS_WATCH('End CreateBrepSurfaceSBMIntegrationPoints');
+            KRATOS_WATCH("End CreateBrepSurfaceSBMIntegrationPoints");
         }
     }
 
@@ -518,14 +518,14 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        KRATOS_WATCH('CreateQuadraturePointGeometries')
+        KRATOS_WATCH("CreateQuadraturePointGeometries")
         mpNurbsSurface->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
-        KRATOS_WATCH('End CreateQuadraturePointGeometries')
+        KRATOS_WATCH("End CreateQuadraturePointGeometries")
     }
 
     ///@}

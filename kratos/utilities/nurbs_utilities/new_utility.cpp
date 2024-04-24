@@ -24,7 +24,7 @@ namespace Kratos
 
     void NewUtility::PrintSomething()
     {
-        KRATOS_WATCH('caio')
+        KRATOS_WATCH("caio")
     }
 
     std::vector<int> NewUtility::CreateBinaryArray(std::size_t length)

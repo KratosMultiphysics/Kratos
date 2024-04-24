@@ -285,14 +285,17 @@ void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProces
     {
         double output_solution_step_value = r_geometry[i].GetSolutionStepValue(r_unknown_var);
         rOutput += r_N(0, i) * output_solution_step_value;
-    }        
+    } 
 
-    std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
-    if (output_file.is_open()) {
+    #pragma omp critical
+    {
+        std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
+        if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
         output_file << rOutput << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << integration_points[0].Weight() << std::endl;
         output_file.close();
-    }
+        }   
+    }  
 }
 
 void LaplacianIGAElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

@@ -25,6 +25,8 @@
 
 #include "utilities/tessellation_utilities/curve_tessellation.h"
 #include "includes/node.h"
+#include "utilities/nnls.h"
+#include "utilities/polynomial_fitting_utilities.h"
 
 namespace Kratos
 {
@@ -86,11 +88,7 @@ namespace Kratos
             //     triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[1];
             //     triangles.push_back(triangle);
             //     return;
-            // }
-
-            // if(norm_2(abs(polygon[polygon.size()]-polygon[0])) < 1e-9){
-            //     std::cout<<"I am here"<<std::endl;
-            // }
+            // } // this only store one triangle instead of two
 
             array_1d<double, 2> p1, p2, p3, p4;
             double p0_x, p0_y, pn_x, pn_y, dpx, dpy;
@@ -105,6 +103,9 @@ namespace Kratos
             IndexType n = polygon.size();
             std::vector< Clipper2Lib::Point64 > const& points = polygon;
 
+            // KRATOS_WATCH(n)
+
+            //in case of 3 points
             p0_x = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor)[0];
             p0_y = BrepTrimmingUtilities::IntPointToDoublePoint(points[0], factor)[1];
             pn_x = BrepTrimmingUtilities::IntPointToDoublePoint(points[n - 1], factor)[0];
@@ -114,6 +115,9 @@ namespace Kratos
             if(sqrt((dpx*dpx+dpy*dpy)) < 1e-9){
                 n = n - 1;
             }
+
+            // KRATOS_WATCH(n)
+
             matrix<DPState> dpstates(n, n);
 
             //init states and visibility
@@ -212,7 +216,7 @@ namespace Kratos
                 triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[0];
                 triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(points[diagonal.index2], factor)[1];
 
-                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-14)
+                if (BrepTrimmingUtilities::GetAreaOfTriangle(triangle) > 1e-8)
                     triangles.push_back(triangle);
                 else
                 {
@@ -335,6 +339,26 @@ namespace Kratos
         }
 
         ///@}
+        
+        //Computes constant terms of moment fitting equation via area integration points.
+        static void ComputeConstantTerms(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
+        //Start point elimination algorihtm. Final quadrature rule is stored in rElement.
+        static double PointElimination(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            IntegrationPointsArrayType& rElementNewIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
+        //Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
+        static double MomentFitting(
+            Vector& rConstantTerms, IntegrationPointsArrayType& rElementIntegrationPoints,
+            double U0, double U1, double V0, double V1,
+            IntegrationInfo& rIntegrationInfo);
+
     };
     ///@} // Kratos Classes
 } // namespace Kratos.

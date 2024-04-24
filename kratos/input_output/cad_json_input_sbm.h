@@ -404,10 +404,10 @@ private:
         }
 
         //********************************************** INNER
-        uint sizeSurrogateLoop = rSurrogateModelPart_inner.Nodes().size();
+        int sizeSurrogateLoop = rSurrogateModelPart_inner.Nodes().size();
         std::vector<double> surrogatecoord_x(sizeSurrogateLoop);
         std::vector<double> surrogatecoord_y(sizeSurrogateLoop);
-        uint countSurrogateLoop = 0;
+        int countSurrogateLoop = 0;
         for (auto i_node = rSurrogateModelPart_inner.NodesBegin(); i_node != rSurrogateModelPart_inner.NodesEnd(); i_node++) {
             surrogatecoord_x[countSurrogateLoop] = i_node->X();
             surrogatecoord_y[countSurrogateLoop] = i_node->Y();
@@ -500,10 +500,10 @@ private:
         // //********************************************** 
         // //*OUTER
         // //********************************************** 
-        uint sizeSurrogateLoop_outer = rSurrogateModelPart_outer.Nodes().size();
+        int sizeSurrogateLoop_outer = rSurrogateModelPart_outer.Nodes().size();
         std::vector<double> surrogatecoord_x_outer(sizeSurrogateLoop_outer);
         std::vector<double> surrogatecoord_y_outer(sizeSurrogateLoop_outer);
-        uint countSurrogateLoop_outer = 0;
+        int countSurrogateLoop_outer = 0;
         for (auto i_node = rSurrogateModelPart_outer.NodesEnd()-1; i_node != rSurrogateModelPart_outer.NodesBegin()-1; i_node--) {
             surrogatecoord_x_outer[countSurrogateLoop_outer] = i_node->X();
             surrogatecoord_y_outer[countSurrogateLoop_outer] = i_node->Y();
@@ -577,14 +577,14 @@ private:
 
 
         //********************************************** INNER
-        // uint sizeSurrogateLoop = rSurrogateModelPart_inner.Nodes().size();
+        // int sizeSurrogateLoop = rSurrogateModelPart_inner.Nodes().size();
 
         for (int iel = 1; iel < rSurrogateModelPart_inner.Elements().size()+1; iel++) {
             int firstSurrogateNodeId = rSurrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0].Id(); // Element 1 because is the only surrogate loop
             int lastSurrogateNodeId = rSurrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1].Id();  // Element 1 because is the only surrogate loop
-            uint sizeSurrogateLoop = lastSurrogateNodeId - firstSurrogateNodeId + 1;
+            int sizeSurrogateLoop = lastSurrogateNodeId - firstSurrogateNodeId + 1;
 
-            uint countSurrogateLoop = 0;
+            int countSurrogateLoop = 0;
             std::vector<double> surrogatecoord_x(sizeSurrogateLoop);
             std::vector<double> surrogatecoord_y(sizeSurrogateLoop);
             for (int id_node = firstSurrogateNodeId; id_node < lastSurrogateNodeId+1; id_node++) {
@@ -704,12 +704,12 @@ private:
         if (rSurrogateModelPart_outer.Nodes().size() > 0) {
             Node& firstSurrogateNode_outer = rSurrogateModelPart_outer.pGetElement(1)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
             Node& lastSurrogateNode_outer = rSurrogateModelPart_outer.pGetElement(1)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
-            uint sizeSurrogateLoop_outer = lastSurrogateNode_outer.Id() - firstSurrogateNode_outer.Id() + 1;
+            int sizeSurrogateLoop_outer = lastSurrogateNode_outer.Id() - firstSurrogateNode_outer.Id() + 1;
 
             //// Create the edge entities associated through the trim_index
             trim_index = 0;
             brep_id_edge = 3;
-            for (uint i = 0; i < sizeSurrogateLoop_outer; ++i) {
+            for (int i = 0; i < sizeSurrogateLoop_outer; ++i) {
                             
                 Parameters geometryParameters = Parameters(R"(
                     {
@@ -733,14 +733,14 @@ private:
         }
 
         if (rSurrogateModelPart_inner.Nodes().size() > 0) {
-            for (uint iel = 1; iel < rSurrogateModelPart_inner.Elements().size()+1; iel++) {
+            for (int iel = 1; iel < rSurrogateModelPart_inner.Elements().size()+1; iel++) {
                 // Each element in the surrogate_model_part represents a surrogate boundary loop. First "node" is the initial ID of the first surrogate node and
                 // the second "node" is the last surrogate node of that loop. (We have done this in the case we have multiple surrogate boundaries and 1 model part)
                 Node& firstSurrogateNode = rSurrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
                 Node& lastSurrogateNode = rSurrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
-                uint sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+                int sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
 
-                for (uint i = 0; i < sizeSurrogateLoop; ++i) {
+                for (int i = 0; i < sizeSurrogateLoop; ++i) {
                                 
                     Parameters geometryParameters = Parameters(R"(
                         {

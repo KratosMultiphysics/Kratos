@@ -110,7 +110,7 @@ class SpectraSymGEigsShiftSolver
 
         OpType op(a, b);
         BOpType Bop(b);
-        const int ncv = 3 * nroot;  // TODO find a good value
+        const int ncv = 3 * nroot; // nroot+1;  // TODO find a good value
         Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, nroot, ncv, shift);
 
         eigs.init();

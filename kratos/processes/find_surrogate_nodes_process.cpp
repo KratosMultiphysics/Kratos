@@ -424,6 +424,6 @@ namespace Kratos
 	// template<std::size_t TDim>
 	// void FindSurrogateNodesProcess<TDim>::FindSurrogateNodes()
 	// {
-	// 	KRATOS_WATCH('CIAO.....')
+	// 	KRATOS_WATCH("CIAO.....")
 	// }
 }  // namespace Kratos.

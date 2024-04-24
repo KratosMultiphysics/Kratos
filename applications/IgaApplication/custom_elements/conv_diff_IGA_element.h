@@ -36,7 +36,7 @@ namespace Kratos
 
 ///formulation described in https://docs.google.com/document/d/13a_zGLj6xORDuLgoOG5LwHI6BwShvfO166opZ815zLY/edit?usp=sharing
 
-class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ConvDiffIGAElement
+class KRATOS_API(IGA_APPLICATION) ConvDiffIGAElement
     : public Element
 {
 public:
