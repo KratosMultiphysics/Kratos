@@ -51,43 +51,6 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
 
 CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
 
-void CrBeamElementLinear3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if (this->GetProperties().Has(SEMI_RIGID_NODE_IDS)) {
-
-        KRATOS_ERROR_IF_NOT(this->GetProperties().Has(SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2)) << 
-            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2 must be set when SEMI_RIGID_NODE_IDS is used\n";
-        KRATOS_ERROR_IF_NOT(this->GetProperties().Has(SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3)) << 
-            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3 must be set when SEMI_RIGID_NODE_IDS is used\n";
-        KRATOS_ERROR_IF_NOT(this->GetProperties()[SEMI_RIGID_NODE_IDS].size() == this->GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2].size()) << 
-            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2 must have equal size as SEMI_RIGID_NODE_IDS\n";
-        KRATOS_ERROR_IF_NOT(this->GetProperties()[SEMI_RIGID_NODE_IDS].size() == this->GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3].size()) <<
-            "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3 must have equal size as SEMI_RIGID_NODE_IDS\n";
-
-        // create integer list
-        Vector semi_rigid_node_id_input = this->GetProperties()[SEMI_RIGID_NODE_IDS];
-        std::vector<IndexType> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
-        for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
-            semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
-        }
-
-        auto r_geometry = GetGeometry();
-        std::vector<IndexType> node_ids = { r_geometry[0].Id(), r_geometry[1].Id() };
-
-        // check if any of the element node ids is in the semi rigid node list
-        for (IndexType node_id : node_ids) {
-            if (std::find(semi_rigid_node_id_list.begin(), semi_rigid_node_id_list.end(), node_id) != semi_rigid_node_id_list.end()) {
-                mContainsSemiRigidNode = true;
-            }
-        }
-    }
-
-    CrBeamElement3D2N::Initialize(rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
 
 void CrBeamElementLinear3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
@@ -136,13 +99,19 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
     rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
     noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
 
-    // reduce rigidity 
-    if (mContainsSemiRigidNode) {
-        BoundedMatrix<double, msElementSize, msElementSize> rigidity_reduction_matrix = ZeroMatrix(msElementSize, msElementSize);
-        CalculateRigidityReductionMatrix(rigidity_reduction_matrix);
-        rLeftHandSideMatrix = element_prod(rLeftHandSideMatrix, rigidity_reduction_matrix);
-    }
 
+    const GeometryType& r_geometry = GetGeometry();
+
+    // reduce rigidity if required
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        if (r_geometry[i].Has(ROTATIONAL_STIFFNESS_AXIS_2) || r_geometry[i].Has(ROTATIONAL_STIFFNESS_AXIS_3)) {
+            BoundedMatrix<double, msElementSize, msElementSize> rigidity_reduction_matrix = ZeroMatrix(msElementSize, msElementSize);
+            CalculateRigidityReductionMatrix(rigidity_reduction_matrix);
+            rLeftHandSideMatrix = element_prod(rLeftHandSideMatrix, rigidity_reduction_matrix);
+            break;
+        }
+    }
+    
     //// start static condensation
     if (Has(CONDENSED_DOF_LIST)) {
         Vector dof_list_input = GetValue(CONDENSED_DOF_LIST);
@@ -357,41 +326,33 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
 
-    Vector semi_rigid_node_id_input = GetProperties()(SEMI_RIGID_NODE_IDS);
-
-    std::vector<IndexType> semi_rigid_node_id_list(semi_rigid_node_id_input.size());
-    for (SizeType i = 0; i < semi_rigid_node_id_input.size(); ++i) {
-        semi_rigid_node_id_list[i] = semi_rigid_node_id_input[i];
-    }
-
-    auto r_geometry = GetGeometry();
-    std::vector<IndexType> node_ids = { r_geometry[0].Id(), r_geometry[1].Id() };
-
-    // check if any of the element node ids is in the semi rigid node list
+    const GeometryType& r_geometry = GetGeometry();
     
-    double rotational_stiffness_y_1 = std::numeric_limits<double>::infinity();
-    double rotational_stiffness_z_1 = std::numeric_limits<double>::infinity();
-    double rotational_stiffness_y_2 = std::numeric_limits<double>::infinity();
-    double rotational_stiffness_z_2 = std::numeric_limits<double>::infinity();
+    // inititalise fixity factors as completely fixed
+    double alpha1_yy = 1;
+    double alpha2_yy = 1;
 
-    for (SizeType i = 0; i < semi_rigid_node_id_list.size(); i++) {
-        if (r_geometry[0].Id() == semi_rigid_node_id_list[i]) {
-            rotational_stiffness_y_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i];
-            rotational_stiffness_z_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i];
-
-        }
-        if (r_geometry[1].Id() == semi_rigid_node_id_list[i]) {
-            rotational_stiffness_y_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i];
-            rotational_stiffness_z_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i];
-        }
-    }
+    double alpha1_zz = 1;
+    double alpha2_zz = 1;
 
     // set fixity factors, 0 is no fixity, i.e. a hinge; 1 is completely fixed, the resulting stiffness matrix will remain unchanged
-    const double alpha1_yy = (rotational_stiffness_z_1 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_1 * L)) : 0.0;
-    const double alpha2_yy = (rotational_stiffness_z_2 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_2 * L)) : 0.0;
+    if (r_geometry[0].Has(ROTATIONAL_STIFFNESS_AXIS_2)) {
+        const double rotational_stiffness_y_1 = r_geometry[0].GetValue(ROTATIONAL_STIFFNESS_AXIS_2);
+        alpha1_zz = (rotational_stiffness_y_1 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_1 * L)) : 0.0;
+    }
+    if (r_geometry[1].Has(ROTATIONAL_STIFFNESS_AXIS_2)) {
+        const double rotational_stiffness_y_2 = r_geometry[1].GetValue(ROTATIONAL_STIFFNESS_AXIS_2);
+        alpha2_zz = (rotational_stiffness_y_2 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_2 * L)) : 0.0;
+    }
+    if (r_geometry[0].Has(ROTATIONAL_STIFFNESS_AXIS_3)) {
+        const double rotational_stiffness_z_1 = r_geometry[0].GetValue(ROTATIONAL_STIFFNESS_AXIS_3);
+        alpha1_yy = (rotational_stiffness_z_1 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_1 * L)) : 0.0;
 
-    const double alpha1_zz = (rotational_stiffness_y_1 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_1 * L)) : 0.0;
-    const double alpha2_zz = (rotational_stiffness_y_2 > 0) ? 1 / (1 + 3 * E * Iy / (rotational_stiffness_y_2 * L)) : 0.0;
+    }
+    if (r_geometry[1].Has(ROTATIONAL_STIFFNESS_AXIS_3)) {
+        const double rotational_stiffness_z_2 = r_geometry[1].GetValue(ROTATIONAL_STIFFNESS_AXIS_3);
+        alpha2_yy = (rotational_stiffness_z_2 > 0) ? 1 / (1 + 3 * E * Iz / (rotational_stiffness_z_2 * L)) : 0.0;
+    }
 
     const double yy_denominator = (4 - alpha1_yy * alpha2_yy);
     const double zz_denominator = (4 - alpha1_zz * alpha2_zz);
@@ -456,19 +417,6 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
 
     KRATOS_CATCH("");
 
-}
-
-
-void CrBeamElementLinear3D2N::save(Serializer& rSerializer) const
-{
-    rSerializer.save("mContainsSemiRigidNode", mContainsSemiRigidNode);
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N);
-}
-
-void CrBeamElementLinear3D2N::load(Serializer& rSerializer)
-{
-    rSerializer.load("mContainsSemiRigidNode", mContainsSemiRigidNode);
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N);
 }
 
 } // namespace Kratos.

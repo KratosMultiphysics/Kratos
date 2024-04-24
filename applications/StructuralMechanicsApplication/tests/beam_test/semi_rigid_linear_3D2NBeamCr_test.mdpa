@@ -34,6 +34,16 @@ Begin Conditions PointLoadCondition3D1N// GUI group identifier: neumann
 1 0 6
 End Conditions
 
+
+Begin SubModelPart Parts_semi_rigid_hinge
+    Begin SubModelPartNodes
+       6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
 Begin SubModelPart Parts_structure // Group structure // Subtree Parts
     Begin SubModelPartNodes
         1

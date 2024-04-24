@@ -69,6 +69,28 @@
             "constrained"	  : [true,true,true],
             "value"           : [0.0,0.0,0.0]
         }
+    },{
+        "python_module" : "assign_scalar_variable_to_entities_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableToEntitiesProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.Parts_semi_rigid_hinge",
+            "variable_name"   : "ROTATIONAL_STIFFNESS_AXIS_2",
+            "value"           : 0.0,
+            "entities"        : ["nodes"]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_to_entities_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableToEntitiesProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.Parts_semi_rigid_hinge",
+            "variable_name"   : "ROTATIONAL_STIFFNESS_AXIS_3",
+            "value"           : 1.0e7,
+            "entities"        : ["nodes"]
+        }
     }],
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
