@@ -259,9 +259,9 @@ private:
         const Vector&                                    rIntegrationCoefficients,
         const ProcessInfo&                               rCurrentProcessInfo) const
     {
-        std::size_t NumberOfDimensions = GetGeometry().LocalSpaceDimension();
+        const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
 
-        GeoThermalDispersionLaw law{NumberOfDimensions};
+        GeoThermalDispersionLaw law{number_of_dimensions};
         const auto constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
