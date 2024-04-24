@@ -26,12 +26,16 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-// KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
-[[maybe_unused]] void TestSettlement()
+KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
+//[[maybe_unused]] void TestSettlement()
 {
     const auto working_directory = std::filesystem::path{
         "./applications/GeoMechanicsApplication/tests/"
         "test_settlement_workflow"};
+
+    std::ofstream stream;
+    stream.open("./applications/GeoMechanicsApplication/tests/test_settlement_workflow/test_output.txt", std::ios_base::out);
+    auto log_callback = [&stream](const char* output){stream << output;};
 
     auto settlement = CustomWorkflowFactory::CreateKratosGeoSettlement();
     for (int i = 0; i < 4; ++i)
@@ -39,7 +43,7 @@ namespace Kratos::Testing
         const auto project_file =
             "ProjectParameters_stage" + std::to_string(i + 1) + ".json";
         const int status = settlement->RunStage(
-            working_directory, project_file, &flow_stubs::emptyLog,
+            working_directory, project_file, log_callback,
             &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
         const std::string original_file =

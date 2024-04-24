@@ -116,9 +116,6 @@ class UPwSolver(GeoSolver):
             node.AddDof(KratosGeo.TOTAL_DISPLACEMENT_X)
             node.AddDof(KratosGeo.TOTAL_DISPLACEMENT_Y)
             node.AddDof(KratosGeo.TOTAL_DISPLACEMENT_Z)
-            node.AddDof(KratosGeo.INCREMENTAL_DISPLACEMENT_X)
-            node.AddDof(KratosGeo.INCREMENTAL_DISPLACEMENT_Y)
-            node.AddDof(KratosGeo.INCREMENTAL_DISPLACEMENT_Z)
 
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)

@@ -51,23 +51,13 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         return "GeoMechanics Analysis"
 
     def _CalculateTotalDisplacement(self,node, old_total_displacement):
-        """
-        Calculates total displacement
-        :param node:
-        :return:
-        """
         stage_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
         total_displacement = old_total_displacement + stage_displacement
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def _CalculateIncrementalDisplacement(self, node):
-        """
-        Calculates incremental displacement
-        :param node:
-        :return:
-        """
-        incremental_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0) - \
-                                   node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1)
+        incremental_displacement = (node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0) -
+                                   node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1))
         node.SetSolutionStepValue(KratosGeo.INCREMENTAL_DISPLACEMENT, incremental_displacement)
 
 
