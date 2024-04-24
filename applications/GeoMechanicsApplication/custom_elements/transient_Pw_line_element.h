@@ -210,11 +210,10 @@ private:
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
-        for (unsigned int integration_point_index = 0;
-             integration_point_index < r_integration_points.size(); ++integration_point_index) {
-            result[integration_point_index] = r_integration_points[integration_point_index].Weight() * rDetJContainer[integration_point_index];
-        }
-
+        std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
+                       result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
+                           return rIntegrationPoint.Weight() * rDetJ;
+                       });
         return result;
     }
 
@@ -366,7 +365,6 @@ private:
             array_1d<double, TDim> tangent_vector = CalculateTangentialElementUnitVectorOnIntegrationPoint(integration_point_index, J_container);
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-
             const auto N = Vector{row(r_N_container, integration_point_index)};
             double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector += r_properties[DENSITY_WATER] / r_properties[DYNAMIC_VISCOSITY] * RelativePermeability 

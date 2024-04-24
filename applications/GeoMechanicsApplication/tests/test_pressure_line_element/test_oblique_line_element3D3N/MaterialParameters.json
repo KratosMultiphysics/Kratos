@@ -4,7 +4,7 @@
     "properties_id"                        : 1,
     "Material" : { 
       "constitutive_law" : {
-        "name"                             : "GeoLinearElasticPlaneStrain2DLaw"
+        "name"                             : "LinearElasticK03DLaw"
       },
       "Variables" : {
         "IGNORE_UNDRAINED"                 : false,
