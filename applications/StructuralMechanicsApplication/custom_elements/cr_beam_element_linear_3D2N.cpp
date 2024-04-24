@@ -376,13 +376,13 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
 
     for (SizeType i = 0; i < semi_rigid_node_id_list.size(); i++) {
         if (r_geometry[0].Id() == semi_rigid_node_id_list[i]) {
-            rotational_stiffness_y_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i]/2;
-            rotational_stiffness_z_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i]/2;
+            rotational_stiffness_y_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i];
+            rotational_stiffness_z_1 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i];
 
         }
         if (r_geometry[1].Id() == semi_rigid_node_id_list[i]) {
-            rotational_stiffness_y_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i]/2;
-            rotational_stiffness_z_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i]/2;
+            rotational_stiffness_y_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2][i];
+            rotational_stiffness_z_2 = GetProperties()[SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3][i];
         }
     }
 
@@ -403,7 +403,7 @@ void CrBeamElementLinear3D2N::CalculateRigidityReductionMatrix(
     rRigidityReductionMatrix(6, 0) = 1;
 
     // yy
-    rRigidityReductionMatrix(1, 1) = (alpha1_yy + alpha2_yy +alpha1_yy*alpha2_yy) / yy_denominator;
+    rRigidityReductionMatrix(1, 1) = (alpha1_yy + alpha2_yy + alpha1_yy * alpha2_yy) / yy_denominator;
     rRigidityReductionMatrix(7, 7) = rRigidityReductionMatrix(1, 1);
     rRigidityReductionMatrix(1, 7) = rRigidityReductionMatrix(1, 1);
     rRigidityReductionMatrix(7, 1) = rRigidityReductionMatrix(1, 1);

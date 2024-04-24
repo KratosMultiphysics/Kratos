@@ -15,7 +15,7 @@
                 "I22"               : 1e-5,
                 "I33"               : 1e-5,
                 "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_2": [0e0],
-                "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3": [0e0],
+                "SEMI_RIGID_ROTATIONAL_STIFFNESS_VECTOR_AXIS_3": [1e7],
                 "SEMI_RIGID_NODE_IDS": [6]
             },
             "Tables"           : {}
