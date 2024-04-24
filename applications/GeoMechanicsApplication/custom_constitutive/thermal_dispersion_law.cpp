@@ -58,17 +58,15 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
         result(y, y) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YY] +
                        water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
         result(y, x) = result(x, y);
-    }
-
-    if (mNumberOfDimensions == 3) {
-        const auto y = static_cast<int>(indexThermalFlux::Y);
-        const auto z = static_cast<int>(indexThermalFlux::Z);
-        result(y, z) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YZ];
-        result(z, x) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XZ];
-        result(z, z) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_ZZ] +
-                       water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
-        result(z, y) = result(y, z);
-        result(x, z) = result(z, x);
+        if (mNumberOfDimensions == 3) {
+            const auto z = static_cast<int>(indexThermalFlux::Z);
+            result(y, z) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YZ];
+            result(z, x) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XZ];
+            result(z, z) = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_ZZ] +
+                           water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
+            result(z, y) = result(y, z);
+            result(x, z) = result(z, x);
+        }
     }
 
     return result;
