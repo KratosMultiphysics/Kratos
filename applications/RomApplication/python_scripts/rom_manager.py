@@ -31,7 +31,6 @@ class RomManager(object):
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         #######################
         ######  Galerkin ######
-        #TODO where to accept the flags to save snapshots???
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in training_stages):
                 self.__LaunchTrainROM(mu_train)
@@ -96,16 +95,13 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.__LaunchTestFOM(mu_test)
+                self.__LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.__LaunchTestROM(mu_test)
-                self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
-
+                self.__LaunchTestROM(mu_test)
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.__LaunchTestHROM(mu_test)
-                self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.__LaunchTestHROM(mu_test)
 
         #######################
 
@@ -113,14 +109,12 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.__LaunchTestFOM(mu_test)
+                self.__LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.__LaunchTestROM(mu_test)
-                self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                self.__LaunchTestROM(mu_test)
             if any(item == "HROM" for item in testing_stages):
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                hrom_snapshots = self.__LaunchTestHROM(mu_test)
-                self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.__LaunchTestHROM(mu_test)
         #######################################
 
 
@@ -128,19 +122,18 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.__LaunchTestFOM(mu_test)
+                self.__LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.__LaunchTestROM(mu_test)
-                self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                self.__LaunchTestROM(mu_test)
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.__LaunchTestHROM(mu_test)
-                self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                self.__LaunchTestHROM(mu_test)
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
+        self.ComputeErrors(mu_test, 'Test')
 
 
     def RunFOM(self, mu_run=[None]):
@@ -187,23 +180,29 @@ class RomManager(object):
 
 
 
-    def ComputeErrors(self, mu_list):
-        fom_snapshots = None
+    def ComputeErrors(self, mu_list, case="Fit"):
+        fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'FOM_{case}')
+        if case=="Fit":
+            stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        elif case=="Test":
+            stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+        stages = {"ROM", "HROM"} & set(stages)  # Ensures only "ROM" or "HROM" if present
         rom_snapshots = None
-        training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
-        if any(item == "ROM" for item in training_stages):
-            if fom_snapshots is None:
-                fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
-            rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='ROM')
-            self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
-        if any(item == "HROM" for item in training_stages):
-            if fom_snapshots is None:
-                fom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='FOM')
-            if rom_snapshots is None:
-                rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='ROM')
-            hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name='HROM')
-            self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots)/ np.linalg.norm(rom_snapshots)
-            self.FOMvsHROM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+        hrom_snapshots = None
+        if "ROM" in stages:
+            rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM_{case}')
+            error_rom_fom = np.linalg.norm(fom_snapshots - rom_snapshots) / np.linalg.norm(fom_snapshots)
+            setattr(self, f'ROMvsFOM_{case}', error_rom_fom)
+        if "HROM" in stages:
+            if rom_snapshots is None:  # Only fetch if not already fetched
+                rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM_{case}')
+            hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM_{case}')
+            error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
+            setattr(self, f'ROMvsHROM_{case}', error_rom_hrom)
+            setattr(self, f'FOMvsHROM_{case}', error_fom_hrom)
+
+
 
 
     def PrintErrors(self):
@@ -211,13 +210,13 @@ class RomManager(object):
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
-            print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
+            print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_Fit)
         if any(item == "HROM" for item in training_stages):
-            print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
+            print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_Fit)
         if any(item == "ROM" for item in testing_stages):
-            print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
+            print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_Test)
         if any(item == "HROM" for item in testing_stages):
-            print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
+            print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_Test)
 
 
     def __LaunchTrainROM(self, mu_train):
@@ -231,7 +230,7 @@ class RomManager(object):
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             BasisOutputProcess = None
             for Id, mu in enumerate(mu_train):
-                in_database, _ = self.data_base.check_if_in_database("FOM", mu)
+                in_database, _ = self.data_base.check_if_in_database("FOM_Fit", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -247,7 +246,7 @@ class RomManager(object):
                         if isinstance(process, CalculateRomBasisOutputProcess):
                             BasisOutputProcess = process
                     SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                    self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
+                    self.data_base.add_to_database("FOM_Fit", mu, SnapshotsMatrix)
             if BasisOutputProcess is None:
                 BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             u = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
@@ -268,7 +267,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
-            in_database, _ = self.data_base.check_if_in_database("ROM", mu)
+            in_database, _ = self.data_base.check_if_in_database("ROM_Fit", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -284,7 +283,7 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
+                self.data_base.add_to_database("ROM_Fit", mu, SnapshotsMatrix )
 
         self.GenerateDatabaseSummary()
 
@@ -393,7 +392,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
-            in_database, _ = self.data_base.check_if_in_database("HROM", mu)
+            in_database, _ = self.data_base.check_if_in_database("HROM_Fit", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
@@ -409,7 +408,7 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
+                self.data_base.add_to_database("HROM_Fit", mu, SnapshotsMatrix)
 
         self.GenerateDatabaseSummary()
 
@@ -423,26 +422,23 @@ class RomManager(object):
         # FIXME We must include a method to retrive solutions in the nodes and stop using the CalculateRomBasisOutputProcess to stote snapshots
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Test',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Test_FOM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
-
-
-        return SnapshotsMatrix
+            in_database, _ = self.data_base.check_if_in_database("FOM_Test", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Test',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                self.QoI_Test_FOM.append(simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                self.data_base.add_to_database("FOM_Test", mu, BasisOutputProcess._GetSnapshotsMatrix() ) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
 
 
     def __LaunchTestROM(self, mu_test):
@@ -452,25 +448,23 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Test',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Test_ROM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
-
-        return SnapshotsMatrix
+            in_database, _ = self.data_base.check_if_in_database("ROM_Test", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+                parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Test',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                self.QoI_Test_ROM.append(simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                self.data_base.add_to_database("ROM_Test", mu, BasisOutputProcess._GetSnapshotsMatrix() ) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
 
 
 
@@ -481,25 +475,24 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-            parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Test',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Test_HROM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
+            in_database, _ = self.data_base.check_if_in_database("HROM_Test", mu)
+            if not in_database:
+                parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+                parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Test',mu,Id)
+                materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+                self.UpdateMaterialParametersFile(materials_file_name, mu)
+                model = KratosMultiphysics.Model()
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                simulation.Run()
+                self.QoI_Test_HROM.append(simulation.GetFinalData())
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                self.data_base.add_to_database("HROM_Test", mu, BasisOutputProcess._GetSnapshotsMatrix() ) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
 
-        return SnapshotsMatrix
 
 
     def __LaunchRunFOM(self, mu_run):

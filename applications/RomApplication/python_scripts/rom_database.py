@@ -41,13 +41,17 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         table_definitions = {
-            "FOM": '''CREATE TABLE IF NOT EXISTS FOM
+            "FOM_Fit": '''CREATE TABLE IF NOT EXISTS FOM_Fit
                         (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
-            "ROM": '''CREATE TABLE IF NOT EXISTS ROM
+            "ROM_Fit": '''CREATE TABLE IF NOT EXISTS ROM_Fit
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
-            "HROM": '''CREATE TABLE IF NOT EXISTS HROM
+            "HROM_Fit": '''CREATE TABLE IF NOT EXISTS HROM_Fit
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
-            "HHROM": '''CREATE TABLE IF NOT EXISTS HHROM
+            "FOM_Test": '''CREATE TABLE IF NOT EXISTS FOM_Test
+                        (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
+            "ROM_Test": '''CREATE TABLE IF NOT EXISTS ROM_Test
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
+            "HROM_Test": '''CREATE TABLE IF NOT EXISTS HROM_Test
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
@@ -86,24 +90,33 @@ class RomDatabase(object):
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
         tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool = self.get_curret_params()
-        if table_name == 'FOM':
-            hash_mu = self.hash_parameters(serialized_mu)
-        elif table_name == 'ROM':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type)
-        elif table_name == 'HROM':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,'HROM')
+        if table_name == 'FOM_Fit':
+            hash_mu = self.hash_parameters(serialized_mu, table_name)
+        elif table_name == 'ROM_Fit':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type,table_name)
+        elif table_name == 'HROM_Fit':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
+        elif table_name == 'FOM_Test':
+            hash_mu = self.hash_parameters(serialized_mu, table_name)
+        elif table_name == 'ROM_Test':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, table_name)
+        elif table_name == 'HROM_Test':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         elif table_name == 'ResidualsProjected':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,'ResidualsProjected')
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         elif table_name == 'PetrovGalerkinSnapshots':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,'PetrovGalerkinSnapshots')
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == 'RightBasis':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol)
         elif table_name == 'LeftBasis':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,'LeftBasis')
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == "HROM_Elements":
-            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, 'z')
+            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type,table_name)
         elif table_name == "HROM_Weights":
-            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, 'w')
+            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type,table_name)
+        else:
+            err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
+            raise Exception(err_msg)
 
         return hash_mu, serialized_mu
 
@@ -139,34 +152,43 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
 
-        if table_name == 'FOM':
-            cursor.execute('INSERT INTO FOM (parameters, file_name) VALUES (?, ?)',
+        if table_name == 'FOM_Fit':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
                         (serialized_mu, file_name))
-        elif table_name == 'ROM':
-            cursor.execute('INSERT INTO ROM (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+        elif table_name == 'ROM_Fit':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (serialized_mu, tol_sol, projection_type, file_name))
-        elif table_name == 'HROM':
-            cursor.execute('INSERT INTO HROM (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
+        elif table_name == 'HROM_Fit':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, tol_res, projection_type, file_name))
+        elif table_name == 'FOM_Test':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
+                        (serialized_mu, file_name))
+        elif table_name == 'ROM_Test':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, projection_type, file_name))
+        elif table_name == 'HROM_Test':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
                         (serialized_mu, tol_sol, tol_res, projection_type, file_name))
         elif table_name == 'ResidualsProjected':
-            cursor.execute('INSERT INTO ResidualsProjected (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
+            cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
                         (serialized_mu, projection_type, tol_sol, tol_res, file_name))
         elif table_name == 'PetrovGalerkinSnapshots':
-            cursor.execute('INSERT INTO PetrovGalerkinSnapshots (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                         (serialized_mu, tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
         elif table_name == 'RightBasis':
-            cursor.execute('INSERT INTO RightBasis (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
         elif table_name == 'LeftBasis':
-            cursor.execute('INSERT INTO LeftBasis (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
                         (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
         elif table_name == 'HROM_Elements':
-            cursor.execute('INSERT INTO HROM_Elements (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (tol_sol, tol_res, projection_type, file_name))
         elif table_name == 'HROM_Weights':
-            cursor.execute('INSERT INTO HROM_Weights  (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (tol_sol, tol_res, projection_type, file_name))
         else:
-            err_msg = f'Error: table_name: {table_name} not available. Available options are: {self.table_names}'
+            err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
             raise Exception(err_msg)
 
         conn.commit()
@@ -208,7 +230,7 @@ class RomDatabase(object):
         return dict(zip(self.mu_names , mu))
 
 
-    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM'):
+    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM_Fit'):
         unique_tuples = set(tuple(item) for item in mu_list)
         mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_lust
         SnapshotsMatrix = []
