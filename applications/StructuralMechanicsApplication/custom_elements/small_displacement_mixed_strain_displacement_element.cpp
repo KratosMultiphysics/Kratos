@@ -194,7 +194,7 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(const ProcessIn
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
 
         // Constitutive Law Vector initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size()) {
@@ -251,7 +251,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(con
         cl_values.SetStressVector(this_constitutive_variables.StressVector);
         cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+        const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
@@ -311,7 +311,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(const
         cl_values.SetStressVector(this_constitutive_variables.StressVector);
         cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        const auto &r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+        const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
@@ -378,8 +378,8 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const SizeType n_gauss = r_integration_points.size();
 
     Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
     noalias(RHSu) = ZeroVector(dim * n_nodes);
@@ -392,8 +392,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
     noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
 
-    Matrix secant_matrix(strain_size, strain_size);
-
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
@@ -408,8 +406,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
         // Calculate the constitutive response with the equivalent stabilized strain
-        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-        mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, SECANT_CONSTITUTIVE_MATRIX, secant_matrix);
+        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
@@ -419,18 +416,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(secant_matrix, kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain)));
+        noalias(RHSe) -= GetScalingFactor() * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Contributions to the LHS
         noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(M) += (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(secant_matrix, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(secant_matrix, kinematic_variables.B)));
-
-        const Matrix aux = constitutive_variables.D - secant_matrix;
-        noalias(M) += (tau - 1.0) * (tau - 1.0) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(aux, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau) * tau * w_gauss * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(aux, kinematic_variables.B)));
+        noalias(M) += GetScalingFactor() * (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
+        noalias(G) += GetScalingFactor() * (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
@@ -443,74 +436,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo)
 {
-    const auto& r_geometry = GetGeometry();
-    auto &r_props    = GetProperties();
-    const SizeType dim     = r_geometry.WorkingSpaceDimension();
-    const SizeType n_nodes = r_geometry.PointsNumber();
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-    const SizeType block_size  = dim + strain_size;
-    const SizeType matrix_size = block_size * n_nodes;
-    const double tau = GetStabilizationFactor();
-    const double lambda = GetScalingFactor();
 
-    // Check LHS size
-    if (rLHS.size1() != matrix_size || rLHS.size2() != matrix_size) {
-        rLHS.resize(matrix_size, matrix_size, false);
-    }
-    noalias(rLHS) = ZeroMatrix(matrix_size, matrix_size);
-
-    // Create the kinematics container and fill the nodal data
-    KinematicVariables kinematic_variables(strain_size, dim, n_nodes);
-
-    // Compute U and E
-    GetNodalDoFsVectors(kinematic_variables.NodalDisplacements, kinematic_variables.NodalStrains);
-
-    // Create the constitutive variables and values containers
-    ConstitutiveVariables constitutive_variables(strain_size);
-    ConstitutiveLaw::Parameters cons_law_values(r_geometry, r_props, rProcessInfo);
-    auto& r_cl_options = cons_law_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    cons_law_values.SetStrainVector(constitutive_variables.StrainVector);
-    cons_law_values.SetStressVector(constitutive_variables.StrainVector);
-    cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
-
-    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
-
-    Matrix K(dim * n_nodes, dim * n_nodes), G(n_nodes * strain_size, dim * n_nodes),
-        M(n_nodes * strain_size, n_nodes * strain_size), Q(dim * n_nodes, n_nodes * strain_size);
-    noalias(K) = ZeroMatrix(dim * n_nodes, dim * n_nodes);
-    noalias(G) = ZeroMatrix(n_nodes * strain_size, dim * n_nodes);
-    noalias(Q) = ZeroMatrix(dim * n_nodes, n_nodes * strain_size);
-    noalias(M) = ZeroMatrix(n_nodes * strain_size, n_nodes * strain_size);
-
-    // IP loop
-    for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
-
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
-
-        double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
-        if (dim == 2 && r_props.Has(THICKNESS))
-            w_gauss *= r_props[THICKNESS];
-
-        noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
-
-        // Calculate the constitutive response with the equivalent stabilized strain
-        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-
-
-        // Contributions to the LHS
-        noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(M) += (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-    }
-    AssembleLHS(rLHS, K, Q, M, G);
 }
 
 /***********************************************************************************/
@@ -555,13 +481,12 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const SizeType n_gauss = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
-    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const SizeType n_gauss = r_integration_points.size();
 
     Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
-    Matrix secant_matrix(strain_size, strain_size);
 
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
@@ -577,8 +502,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
         // Calculate the constitutive response with the equivalent stabilized strain
-        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_geometry.IntegrationPoints(GetIntegrationMethod()), ConstitutiveLaw::StressMeasure_Cauchy);
-        mConstitutiveLawVector[i_gauss]->CalculateValue(cons_law_values, SECANT_CONSTITUTIVE_MATRIX, secant_matrix);
+        CalculateConstitutiveVariables(kinematic_variables,  constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Now we add the body forces
         for (IndexType i = 0; i < n_nodes; ++i) {
@@ -588,7 +512,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), Vector(prod(secant_matrix, kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain)));
+        noalias(RHSe) -= GetScalingFactor() * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
@@ -767,7 +691,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    const QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType& IntegrationPoints
     ) const
 {
     // Here we essentially set the input parameters
@@ -787,7 +711,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateConstitutiveVaria
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType& IntegrationPoints,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const
 {
@@ -823,7 +747,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = r_geometry.IntegrationPoints(rIntegrationMethod);
+    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
 
     // Shape functions
     rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
@@ -917,7 +841,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
 
     const SizeType n_gauss = r_integration_points.size();
 
@@ -945,7 +869,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
+    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
 
     const SizeType n_gauss = r_integration_points.size();
     if (rOutput.size() != n_gauss) {
