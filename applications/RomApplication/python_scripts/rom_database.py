@@ -40,8 +40,6 @@ class RomDatabase(object):
     def set_up_or_get_data_base(self):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-
-        # Updated table definitions including new tables
         table_definitions = {
             "FOM": '''CREATE TABLE IF NOT EXISTS FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
@@ -64,11 +62,7 @@ class RomDatabase(object):
             "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)'''
         }
-
-
         self.table_names = table_definitions.keys()
-
-        # Create each table using its definition
         for table_name, table_sql in table_definitions.items():
             try:
                 cursor.execute(table_sql)
@@ -76,261 +70,119 @@ class RomDatabase(object):
                 print(f"Table {table_name} created successfully.")
             except sqlite3.OperationalError as e:
                 print(f"Error creating table {table_name}: {e}")
-
-        # Close the database connection
         conn.close()
 
 
-    def hash_parameters(self, mu):
-        # Convert parameters list to a string and encode
-        mu_str = '_'.join(map(str, mu))
-        return hashlib.sha256(mu_str.encode()).hexdigest()
+    def hash_parameters(self, *args):
+        params_str = '_'.join(str(arg) if isinstance(arg, str) else f"{arg:.10f}" if isinstance(arg, float) else str(arg) for arg in args)
+        return hashlib.sha256(params_str.encode()).hexdigest()
+
+    def get_hashed_mu_for_table(self, table_name, mu):
+        if self.identify_list_type(mu)=="mu":
+            serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
+        elif self.identify_list_type(mu)=="complete_mu":
+            serialized_mu = self.serialize_entire_mu_train(mu)
+        else:
+            error
+        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool = self.get_curret_params()
+        if table_name == 'FOM':
+            hash_mu = self.hash_parameters(serialized_mu)
+        elif table_name == 'ROM':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type)
+        elif table_name == 'HROM':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,'HROM')
+        elif table_name == 'ResidualsProjected':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,'ResidualsProjected')
+        elif table_name == 'PetrovGalerkinSnapshots':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,'PetrovGalerkinSnapshots')
+        elif table_name == 'RightBasis':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol)
+        elif table_name == 'LeftBasis':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,'LeftBasis')
+        elif table_name == "HROM_Elements":
+            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, 'z')
+        elif table_name == "HROM_Weights":
+            hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type, 'w')
+
+        return hash_mu, serialized_mu
 
 
-
-    def hash_parameters_with_tol_and_projection(self, mu, tol, projection):
-        # Convert the parameters list and the tolerance value to a string
-        # Ensure the tolerance is converted to a string with consistent formatting
-        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_" + projection   # Example with 10 decimal places
-        # Generate the hash
-        return hashlib.sha256(mu_str.encode()).hexdigest()
-
-
-    def hash_parameters_with_tol_2_tols(self, mu, tol, tol2, projection):
-        # Convert the parameters list to a string and encode
-        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}_" + projection  # Convert both tol and tol2 to strings with consistent formatting
-        # Generate the hash of the combined string including both tolerance values
-        return hashlib.sha256(mu_str.encode()).hexdigest()
-
-    def hash_parameters_with_tol_2_tols_and_string(self, mu, tol, tol2, projection):
-        # Convert the parameters list to a string and encode
-        mu_str = '_'.join(map(str, mu)) + f"_{tol:.10f}_{tol2:.10f}_" +  projection # Convert both tol and tol2 to strings with consistent formatting
-        # Generate the hash of the combined string including both tolerance values
-        return hashlib.sha256(mu_str.encode()).hexdigest()
-
-
-    def hash_mu_train(self, serialized_mu_train, real_value):
-        """
-        Generates a hash for the serialized mu_train, including a real value in the hash.
-        """
-        # Concatenate the serialized mu_train with the real_value (converted to string) for hashing
-        # Ensure real_value is converted to a string with consistent formatting
-        combined_str = f"{serialized_mu_train}_{real_value:.10f}"  # Example with 10 decimal places
-        # Generate the hash of the combined string
-        return hashlib.sha256(combined_str.encode()).hexdigest()
-
-
-    def hash_mu_train_with_3_parms(self, serialized_mu_train, tol_sol,tol_res,projection_type):
-        """
-        Generates a hash for the serialized mu_train, including a real value in the hash.
-        """
-        # Concatenate the serialized mu_train with the real_value (converted to string) for hashing
-        # Ensure real_value is converted to a string with consistent formatting
-        combined_str_z = f"{serialized_mu_train}_{tol_sol:.10f}_{tol_res:.10f}_{projection_type}_z"  # Example with 10 decimal places
-        combined_str_w = f"{serialized_mu_train}_{tol_sol:.10f}_{tol_res:.10f}_{projection_type}_w"  # Example with 10 decimal places
-        # Generate the hash of the combined string
-        return hashlib.sha256(combined_str_z.encode()).hexdigest(), hashlib.sha256(combined_str_w.encode()).hexdigest()
-
-
-    def hash_parameters_with_6_params(self, mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
-
-        combined_str = '_'.join(map(str, mu)) + f"_{tol_sol:.10f}_" + pg_data1_str + "_" + str(pg_data2_bool) + f"_{pg_data3_double:.10f}_" + pg_data4_str + "_" + str(pg_data5_bool)
-        # Generate the hash of the combined string
-        return hashlib.sha256(combined_str.encode()).hexdigest()
-
-    def hash_mu_train_with_6_params(self, serialized_mu_train, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
-
-        combined_str = serialized_mu_train + f"_{tol_sol:.10f}_" + pg_data1_str + "_" + str(pg_data2_bool) + f"_{pg_data3_double:.10f}_" + pg_data4_str + "_" + str(pg_data5_bool)
-
-        return hashlib.sha256(combined_str.encode()).hexdigest()
-
-
-
-    def check_if_mu_already_in_database(self, mu):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        hash_mu = self.hash_parameters(mu)
-        cursor.execute('SELECT COUNT(*) FROM FOM WHERE file_name = ?', (hash_mu,))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0, hash_mu
-
-
-    def check_if_rom_already_in_database(self, mu, tol_sol):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
+    def get_curret_params(self):
+        tol_sol = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
+        tol_res =  self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
         projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        hash_mu = self.hash_parameters_with_tol_and_projection(mu, tol_sol, projection_type)
-        cursor.execute('SELECT COUNT(*) FROM ROM WHERE file_name = ?', (hash_mu,))
+        pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
+        pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
+        pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
+        pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
+        pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
+        return tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool
+
+
+
+    def check_if_in_database(self, table_name, mu):
+        file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
         count = cursor.fetchone()[0]
         conn.close()
-        return count > 0, hash_mu
+        return count > 0, file_name
 
 
-    def check_if_hrom_already_in_database(self, mu, tol_sol, tol_res):
+
+    def add_to_database(self, table_name, mu ):
+        file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
+        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool = self.get_curret_params()
+
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        hash_mu = self.hash_parameters_with_tol_2_tols(mu, tol_sol, tol_res, projection_type)
-        cursor.execute('SELECT COUNT(*) FROM HROM WHERE file_name = ?', (hash_mu,))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0, hash_mu
 
+        if table_name == 'FOM':
+            cursor.execute('INSERT INTO FOM (parameters, file_name) VALUES (?, ?)',
+                        (serialized_mu, file_name))
+        elif table_name == 'ROM':
+            cursor.execute('INSERT INTO ROM (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, projection_type, file_name))
+        elif table_name == 'HROM':
+            cursor.execute('INSERT INTO HROM (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, tol_res, projection_type, file_name))
+        elif table_name == 'ResidualsProjected':
+            cursor.execute('INSERT INTO ResidualsProjected (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
+                        (serialized_mu, projection_type, tol_sol, tol_res, file_name))
+        elif table_name == 'PetrovGalerkinSnapshots':
+            cursor.execute('INSERT INTO PetrovGalerkinSnapshots (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
+        elif table_name == 'RightBasis':
+            cursor.execute('INSERT INTO RightBasis (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
+        elif table_name == 'LeftBasis':
+            cursor.execute('INSERT INTO LeftBasis (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, serialized_mu))
+        elif table_name == 'HROM_Elements':
+            cursor.execute('INSERT INTO HROM_Elements (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)',
+                        (file_name, tol_sol, tol_res, projection_type))
+        elif table_name == 'HROM_Weights':
+            cursor.execute('INSERT INTO HROM_Weights  (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)',
+                        (file_name, tol_sol, tol_res, projection_type))
+        else:
+            error
 
-    def check_if_right_basis_already_in_database(self, mu_train, tol_sol):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train, tol_sol)
-        # Include both file_name and tol_sol in the WHERE clause
-        cursor.execute('SELECT COUNT(*) FROM RightBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0 , hashed_mu_train
-
-
-    def check_if_left_basis_already_in_database(self, mu_train, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train_with_6_params(serialized_mu_train, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
-        # Include both file_name and tol_sol in the WHERE clause
-        cursor.execute('SELECT COUNT(*) FROM LeftBasis WHERE file_name = ? AND tol_sol = ?', (hashed_mu_train, tol_sol))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0 , hashed_mu_train
-
-
-    def check_if_petrov_galerkin_already_in_database(self, mu, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        hash_mu = self.hash_parameters_with_6_params(mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
-        cursor.execute('SELECT COUNT(*) FROM PetrovGalerkinSnapshots WHERE file_name = ?', (hash_mu,))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0, hash_mu
-
-
-
-
-    def check_if_res_already_in_database(self, mu, tol_sol, tol_res, projection_type):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        hash_mu = self.hash_parameters_with_tol_2_tols_and_string(mu, tol_sol, tol_res, projection_type)
-        cursor.execute('SELECT COUNT(*) FROM ResidualsProjected WHERE file_name = ?', (hash_mu,))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0, hash_mu
-
-
-    def check_if_hrom_elems_and_weights_already_in_database(self, mu_train, tol_sol, tol_res, projection_type):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_z, hashed_w = self.hash_mu_train_with_3_parms(serialized_mu_train, tol_sol,tol_res,projection_type)
-        # Include both file_name and tol_sol in the WHERE clause
-        cursor.execute('SELECT COUNT(*) FROM HROM_Elements WHERE file_name = ?', (hashed_z,))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count > 0, hashed_z, hashed_w
-
-
-
-
-    def add_FOM_to_database(self, parameters, file_name):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO FOM (parameters, file_name) VALUES (?, ?)',
-                       (parameters_str, file_name))
-        conn.commit()
-        conn.close()
-
-    def add_ROM_to_database(self, parameters, file_name, tol_sol, projection):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO ROM (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
-                       (parameters_str, tol_sol, projection, file_name))
         conn.commit()
         conn.close()
 
 
-    def add_HROM_to_database(self, parameters, file_name, tol_sol, tol_res, projection):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO HROM (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
-                       (parameters_str, tol_sol, tol_res, projection, file_name))
-        conn.commit()
-        conn.close()
+    def identify_list_type(self, lst):
+        if not lst:
+            return "Empty list"
+        if isinstance(lst[0], list):
+            if any(isinstance(subitem, list) for item in lst for subitem in item):
+                return "Invalid structure - nested lists found"
+            return "complete_mu"
+        else:
+            if any(isinstance(item, list) for item in lst):
+                return "Invalid structure - mixed types"
+            return "mu"
 
-
-    def add_RightBasis_to_database(self, u,  mu_train, real_value):
-        print(f"Attempting to add tol_sol with value: {real_value}")  # Debugging line
-
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train(serialized_mu_train, real_value)
-        file_path = self.save_as_npy(u , hashed_mu_train)  # Save numpy array and get file path
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-
-        # Debugging: Print the values before executing the SQL command
-        print(f"Inserting into RightBasis: tol_sol={real_value}, file_name={hashed_mu_train}")
-
-        cursor.execute('INSERT INTO RightBasis (tol_sol, file_name) VALUES (?, ?)',
-                    (real_value, str(hashed_mu_train)))
-        conn.commit()
-        conn.close()
-
-
-
-    def add_LeftBasis_to_database(self, u, mu_train,tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
-
-        serialized_mu_train = self.serialize_entire_mu_train(mu_train)
-        hashed_mu_train = self.hash_mu_train_with_6_params(serialized_mu_train, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
-
-        file_path = self.save_as_npy(u , hashed_mu_train)  # Save numpy array and get file path
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-
-        cursor.execute('INSERT INTO LeftBasis (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, hashed_mu_train))
-        conn.commit()
-        conn.close()
-
-
-    def add_petrov_galerkin_to_database(self, mu,file_name, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        parameters_str = self.serialize_mu(mu)
-        cursor.execute('INSERT INTO PetrovGalerkinSnapshots (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                       (parameters_str, tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
-        conn.commit()
-        conn.close()
-
-
-
-
-    def add_ResidualProjected_to_database(self, parameters, file_name, tol_sol, tol_res, type_of_projection):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        parameters_str = self.serialize_mu(parameters)
-        cursor.execute('INSERT INTO ResidualsProjected (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
-                       (parameters_str, type_of_projection, tol_sol, tol_res, file_name))
-        conn.commit()
-        conn.close()
-
-
-    def add_elements_and_weights_to_database(self, tol_sol,tol_res, projection_type,z,w):
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO HROM_Elements (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)', (z, tol_sol, tol_res, projection_type))
-        cursor.execute('INSERT INTO HROM_Weights  (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)', (w, tol_sol, tol_res, projection_type))
-        conn.commit()
-        conn.close()
 
 
     def serialize_mu(self, parameters):
@@ -343,7 +195,7 @@ class RomDatabase(object):
         return file_path
 
 
-    def FOM_make_mu_dictionary(self, mu):
+    def make_mu_dictionary(self, mu):
         if self.mu_names is None:
             self.mu_names = []
             for i in range(len(mu)):
@@ -357,43 +209,16 @@ class RomDatabase(object):
         SnapshotsMatrix = []
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
-        tol_sol = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
-        tol_res =  self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
-        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
-        pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
-        pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
-        pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
-        pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
         for mu in mu_list_unique:
-            serialized_mu = self.serialize_mu(self.FOM_make_mu_dictionary(mu))
-            if table_name == 'FOM':
-                hash_mu = self.hash_parameters(serialized_mu)
-            elif table_name == 'ROM':
-                hash_mu = self.hash_parameters_with_tol_and_projection(serialized_mu, tol_sol, projection_type)
-            elif table_name == 'HROM':
-                hash_mu = self.hash_parameters_with_tol_2_tols(serialized_mu, tol_sol, tol_res, projection_type)
-            elif table_name == 'ResidualsProjected':
-                hash_mu = self.hash_parameters_with_tol_2_tols_and_string(serialized_mu, tol_sol, tol_res, projection_type)
-            elif table_name == 'PetrovGalerkinSnapshots':
-                hash_mu = self.hash_parameters_with_6_params(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
-            cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,)) # Query the database for the file name using the hash
+            hash_mu, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
+            cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
             result = cursor.fetchone()
-
             if result:
                 SnapshotsMatrix.append(self.get_single_numpy_from_database(result[0]))
             else:
                 print(f"No entry found for hash {hash_mu}")
-
         conn.close()
-
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
-
-
-    def get_elements_and_weights(self, hash_w , hash_z):
-        z = np.load(self.npys_directory / (hash_z + '.npy'))
-        w = np.load(self.npys_directory / (hash_w + '.npy'))
-        return w, z
 
 
 
@@ -401,8 +226,6 @@ class RomDatabase(object):
         """
         Serializes the entire mu_train list of lists into a string.
         """
-        # Ensure consistent serialization by sorting sublists if needed
-        # Here, we assume mu_train's structure is consistent without needing sorting
         serialized_mu_train = json.dumps(mu_train, sort_keys=True)
         return serialized_mu_train
 
@@ -418,15 +241,12 @@ class RomDatabase(object):
             KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," xlsxwriter library not installed. No excel file generated")
         if missing_pandas==False and missing_xlsxwriter==False:
             conn = sqlite3.connect(self.database_name)
-            # Query the database for table names
             query = "SELECT name FROM sqlite_master WHERE type='table';"
             tables = pd.read_sql_query(query, conn)
-
             if full_tables==False:
                 output_file_path = self.xlsx_directory / 'Summary.xlsx'
             elif full_tables==True:
                 output_file_path = self.xlsx_directory / 'DataBaseCompleteDump.xlsx'
-
             with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
                 for table_name in tables['name']:
                     if full_tables==True:

@@ -14,7 +14,6 @@ class RomManager(object):
         #FIXME:
         # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
-        # - We must use the Hyper-Reduced model part for the HROM simulations. (The one in which we have eliminated the non selected elements and conditions)
         # - Not yet paralellised with COMPSs
         self.project_parameters_name = project_parameters_name
         self.general_rom_manager_parameters = general_rom_manager_parameters
@@ -229,9 +228,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
-            mu_dict = self.data_base.FOM_make_mu_dictionary(mu)
-            serialized_mu = self.data_base.serialize_mu(mu_dict)
-            in_database, hash_mu = self.data_base.check_if_mu_already_in_database(serialized_mu)
+            in_database, hash_mu = self.data_base.check_if_in_database("FOM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -248,22 +245,22 @@ class RomManager(object):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                self.data_base.add_FOM_to_database(serialized_mu, hash_mu)
+                self.data_base.add_to_database("FOM", mu )
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
 
         if BasisOutputProcess is None:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess() #TODO not call unnecesarily
-        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        in_database, hash_basis =  self.data_base.check_if_right_basis_already_in_database(mu_train, tol_sol)
+        in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database: #Check if basis exists already for current parameters
             u = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
             BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
-            self.data_base.add_RightBasis_to_database(u, mu_train,tol_sol)
+            self.data_base.add_to_database("RightBasis", hash_basis )
+            file_path = self.data_base.save_as_npy(u, hash_basis)
         else:
             BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
-        self.data_base.generate_database_summary()
+        self.GenerateDatabaseSummary()
 
         return 0
 
@@ -274,11 +271,8 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
-        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
         for Id, mu in enumerate(mu_train):
-            mu_dict = self.data_base.FOM_make_mu_dictionary(mu)
-            serialized_mu = self.data_base.serialize_mu(mu_dict)
-            in_database, hash_mu = self.data_base.check_if_rom_already_in_database(serialized_mu, tol_sol)
+            in_database, hash_mu = self.data_base.check_if_in_database("ROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -295,13 +289,12 @@ class RomManager(object):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
-                self.data_base.add_ROM_to_database(serialized_mu, hash_mu, tol_sol,projection_type)
+                self.data_base.add_to_database("ROM", mu )
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.data_base.generate_database_summary()
+        self.GenerateDatabaseSummary()
 
         return 0
 
@@ -314,15 +307,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         PetrovGalerkinTrainingUtility = None
         for Id, mu in enumerate(mu_train):
-            mu_dict = self.data_base.FOM_make_mu_dictionary(mu)
-            serialized_mu = self.data_base.serialize_mu(mu_dict)
-            tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-            pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
-            pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
-            pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
-            pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
-            pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
-            in_database, hash_mu = self.data_base.check_if_petrov_galerkin_already_in_database(serialized_mu,tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+            in_database, hash_mu = self.data_base.check_if_in_database("PetrovGalerkinSnapshots", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
@@ -336,24 +321,21 @@ class RomManager(object):
                 PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
                 pretrov_galerkin_matrix = PetrovGalerkinTrainingUtility._GetSnapshotsMatrix() #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
                 file_path = self.data_base.save_as_npy(pretrov_galerkin_matrix, hash_mu)
-                self.data_base.add_petrov_galerkin_to_database(serialized_mu, hash_mu, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+                self.data_base.add_to_database("PetrovGalerkinSnapshots", mu )
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
         if PetrovGalerkinTrainingUtility is None:
             PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility()
-        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-
-
-        in_database, hash_basis =  self.data_base.check_if_left_basis_already_in_database(mu_train, tol_sol,pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+        in_database, hash_basis =  self.data_base.check_if_in_database("LeftBasis", mu_train)
         if not in_database:
             snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="PetrovGalerkinSnapshots")
             u = PetrovGalerkinTrainingUtility._CalculateResidualBasis(snapshots_matrix)
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(u)
-            self.data_base.add_LeftBasis_to_database(u, mu_train,tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool)
+            self.data_base.add_to_database("LeftBasis", mu_train )
         else:
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
-        self.data_base.generate_database_summary()
+        self.GenerateDatabaseSummary()
 
         return 0
 
@@ -365,14 +347,9 @@ class RomManager(object):
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
-        projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
         simulation = None
         for mu in mu_train:
-            mu_dict = self.data_base.FOM_make_mu_dictionary(mu)
-            serialized_mu = self.data_base.serialize_mu(mu_dict)
-            in_database, hash_mu = self.data_base.check_if_res_already_in_database(serialized_mu, tol_sol, tol_res, projection_type)
+            in_database, hash_mu = self.data_base.check_if_in_database("ResidualsProjected", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
@@ -383,19 +360,18 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
-
                 ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                 file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
-                self.data_base.add_ResidualProjected_to_database(serialized_mu, hash_mu, tol_sol, tol_res, projection_type)
+                self.data_base.add_to_database("ResidualsProjected", mu )
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.data_base.generate_database_summary()
+        self.GenerateDatabaseSummary()
 
-        in_database, hash_z, hash_w =  self.data_base.check_if_hrom_elems_and_weights_already_in_database(mu_train, tol_sol,tol_res, projection_type)
-
-        if not in_database:
+        in_database_elems, hash_z =  self.data_base.check_if_in_database("HROM_Elements", mu_train)
+        in_database_weights, hash_w =  self.data_base.check_if_in_database("HROM_Weights", mu_train)
+        if not in_database_elems and not in_database_weights: #if one of the two is there but not the other, the database is corrupted
             RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
             #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
             u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
@@ -413,7 +389,8 @@ class RomManager(object):
                 HROM_utility.hyper_reduction_element_selector.Run()
             z = HROM_utility.hyper_reduction_element_selector.z
             w = HROM_utility.hyper_reduction_element_selector.w
-            self.data_base.add_elements_and_weights_to_database(tol_sol,tol_res, projection_type,hash_z,hash_w) #we'll store the elements and weights selected by the ECM
+            self.data_base.add_to_database("HROM_Elements", mu_train )
+            self.data_base.add_to_database("HROM_Weights", mu_train )
             self.data_base.save_as_npy(np.squeeze(w), hash_w)
             self.data_base.save_as_npy(np.squeeze(z), hash_z)
             HROM_utility.AppendHRomWeightsToRomParameters()
@@ -424,10 +401,11 @@ class RomManager(object):
             else:
                 HROM_utility = simulation.GetHROM_utility()
             #doing this ensures the elements and weights npy files contained in the rom_data folder are the ones to use.i.e. they are not from old runs of the rom manager
-            HROM_utility.hyper_reduction_element_selector.w, HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_elements_and_weights(hash_w ,hash_z)
+            HROM_utility.hyper_reduction_element_selector.w = self.data_base.get_single_numpy_from_database(hash_w)
+            HROM_utility.hyper_reduction_element_selector.z = self.data_base.get_single_numpy_from_database(hash_z)
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
-        self.data_base.generate_database_summary()
+        self.GenerateDatabaseSummary()
 
     def __LaunchHROM(self, mu_train):
         """
@@ -436,12 +414,8 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
-        tol_sol = self.rom_training_parameters["Parameters"]["svd_truncation_tolerance"].GetDouble()
-        tol_res =  self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
         for Id, mu in enumerate(mu_train):
-            mu_dict = self.data_base.FOM_make_mu_dictionary(mu)
-            serialized_mu = self.data_base.serialize_mu(mu_dict)
-            in_database, hash_mu = self.data_base.check_if_hrom_already_in_database(serialized_mu, tol_sol, tol_res)
+            in_database, hash_mu = self.data_base.check_if_in_database("HROM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
@@ -458,13 +432,12 @@ class RomManager(object):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
-                self.data_base.add_HROM_to_database(serialized_mu, hash_mu, tol_sol, tol_res, projection_type) #TODO differentiate between HROM and HHROM
+                self.data_base.add_to_database("HROM", mu )
                 print(f"Simulation saved to {file_path}")
             else:
                 print("Simulation for given parameters already in database.")
 
-        self.data_base.generate_database_summary()
+        self.GenerateDatabaseSummary()
 
         return 0
 
@@ -979,3 +952,8 @@ class RomManager(object):
         return rom_bns_settings
 
 
+    def GenerateDatabaseSummary(self):
+        self.data_base.generate_database_summary()
+
+    def GenerateDatabaseCompleteDump(self):
+        self.data_base.dump_database_as_excel()
