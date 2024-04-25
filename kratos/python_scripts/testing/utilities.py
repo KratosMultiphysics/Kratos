@@ -4,8 +4,10 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics import KratosUnittest
 
 # python imports
-import sys, os
+import os
+import sys
 import subprocess
+
 from pathlib import Path
 
 
@@ -257,7 +259,7 @@ class Commander(object):
                 # and capture the first exit code different from OK
                 try:
                     # timeout should not be a problem for cpp, but we leave it just in case
-                    timer = int(900)
+                    timer = int(180)
                     process_stdout, process_stderr = self.process.communicate(timeout=timer)
                 except subprocess.TimeoutExpired:
                     # Timeout reached
@@ -346,19 +348,16 @@ class Commander(object):
                 PrintTestHeader("cpp")
                 
                 # Run all the tests in the executable
-                self.process = subprocess.Popen([
-                    mpi_command, 
-                    mpi_flags, 
-                    num_processes_flag, 
-                    str(num_processes), 
-                    os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
-                ], stdout=subprocess.PIPE)
+                self.process = subprocess.Popen(
+                    filter(None, [mpi_command, mpi_flags, num_processes_flag, str(num_processes), os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)]),
+                    stdout=subprocess.PIPE
+                )
 
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
                 # and capture the first exit code different from OK
                 try:
                     # timeout should not be a problem for cpp, but we leave it just in case
-                    timer = int(900)
+                    timer = int(180)
                     process_stdout, process_stderr = self.process.communicate(timeout=timer)
                 except subprocess.TimeoutExpired:
                     # Timeout reached
