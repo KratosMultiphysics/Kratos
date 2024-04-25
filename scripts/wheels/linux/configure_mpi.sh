@@ -68,6 +68,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
+-DMAKE_TRILINOS_OPTIONAL                                               \
 -DCMAKE_C_COMPILER=gcc                                                 \
 -DCMAKE_CXX_COMPILER=g++                                               \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
