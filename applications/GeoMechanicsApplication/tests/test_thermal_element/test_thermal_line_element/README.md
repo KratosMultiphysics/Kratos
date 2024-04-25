@@ -5,7 +5,7 @@
 **Source files:** [Thermal line element with fixed temperature](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_thermal_line_element)
 
 ## Case Specification
-In this thermal test case, a 3 m deep soil is considered, with everywhere set to 0 degrees then a sudden jump at the top and bottom boundary temperatures are given. These are -10 degrees at bottom and 100 degrees at the top boundaries. The simulation spans 1000 days to allow for a transition from an exponential to a linear temperature profile between the two sides. This test is conducted for various configurations, including 2D2N, 2D3N, 2D4N, 2D5N, 3D2N and 3D3N line elements. The temperature distribution along the depth is then evaluated with its own result.
+In this thermal test case, a 3 m deep soil is considered, with everywhere set to 0 $\mathrm{[^\circ C]}$ then a sudden jump at the top and bottom boundary temperatures are given. These are -10 $\mathrm{[^\circ C]}$ at bottom and 100 $\mathrm{[^\circ C]}$ at the top boundaries. The simulation spans 1000 days to allow for a transition from an exponential to a linear temperature profile between the two sides. This test is conducted for various configurations, including 2D2N, 2D3N, 2D4N, 2D5N, 3D2N and 3D3N line elements. The temperature distribution along the depth is then evaluated with its own result.
 The boundary conditions are shown below:
 
 <img src="../documentation_data/test_thermal_line_element.svg" alt="Visualization of the Boundary conditions" title="Visualization of the Boundary conditions" width="600">
