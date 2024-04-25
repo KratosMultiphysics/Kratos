@@ -744,7 +744,6 @@ class DEMAnalysisStage(AnalysisStage):
             measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
             sphere_volume_inside_range = 0.0
             measured_porosity = 0.0
-            n = 0
 
             for node in self.spheres_model_part.Nodes:
                 
@@ -758,7 +757,6 @@ class DEMAnalysisStage(AnalysisStage):
                 if center_to_sphere_distance < (radius - r):
 
                     sphere_volume_inside_range += 4/3 * math.pi * r * r * r
-                    n += 1
 
                 elif center_to_sphere_distance <= (radius + r):
 
@@ -769,11 +767,8 @@ class DEMAnalysisStage(AnalysisStage):
                     cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
                     
                     sphere_volume_inside_range += cross_volume
-                    n += 1
             
             measured_porosity = 1.0 - (sphere_volume_inside_range / measure_sphere_volume)
-
-            print(n)
 
             return measured_porosity
         
