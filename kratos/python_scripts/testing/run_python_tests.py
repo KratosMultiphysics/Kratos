@@ -2,8 +2,6 @@ import os
 import sys
 import argparse
 
-import KratosMultiphysics as KM
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.testing import utilities as testing_utils
@@ -15,11 +13,7 @@ def main():
     # List of application
     applications = kratos_utils.GetListOfAvailableApplications()
 
-    # Keep the worst exit code
-    exit_code = 0
-
-    # Parse Commandline
-    # parse command line options
+    # Parse command line options
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-c', '--command', default=cmd, help="Use the provided command to launch test cases. If not provided, the default \'python\' executable is used")
@@ -61,45 +55,15 @@ def main():
     # Create the commands
     commander = testing_utils.Commander()
 
-    exit_codes = {}
+    # Run the tests
+    commander.RunPythonTests(applications, args.level, args.verbosity, cmd, signalTime)
 
-    # KratosCore must always be runned
-    testing_utils.PrintTestHeader("KratosCore")
+    # Exit message
+    testing_utils.PrintTestSummary(commander.exitCodes)
 
-    with KratosUnittest.SupressConsoleOutput():
-        commander.RunTestSuit(
-            'KratosCore',
-            'kratos',
-            os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),
-            args.level,
-            args.verbosity,
-            cmd,
-            signalTime
-        )
+    # Propagate exit code and end
+    sys.exit(max(commander.exitCodes.values()))
 
-    testing_utils.PrintTestFooter("KratosCore", commander.exitCode)
-    exit_codes["KratosCore"] = commander.exitCode
-
-    # Run the tests for the rest of the Applications
-    for application in applications:
-        testing_utils.PrintTestHeader(application)
-
-        with KratosUnittest.SupressConsoleOutput():
-            commander.RunTestSuit(
-                application,
-                application,
-                KM.KratosPaths.kratos_applications+'/',
-                args.level,
-                args.verbosity,
-                cmd,
-                signalTime
-            )
-
-        testing_utils.PrintTestFooter(application, commander.exitCode)
-        exit_codes[application] = commander.exitCode
-
-    testing_utils.PrintTestSummary(exit_codes)
-    sys.exit(max(exit_codes.values()))
 
 if __name__ == "__main__":
     main()

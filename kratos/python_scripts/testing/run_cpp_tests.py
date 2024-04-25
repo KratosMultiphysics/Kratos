@@ -1,9 +1,7 @@
 import os
 import sys
 import argparse
-import subprocess
 
-import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.testing import utilities as testing_utils
@@ -15,11 +13,7 @@ def main():
     # List of application
     applications = kratos_utils.GetListOfAvailableApplications()
 
-    # Keep the worst exit code
-    exit_code = 0
-
-    # Parse Commandline
-    # parse command line options
+    # Parse command line options
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-c', '--command', default=cmd, help="Use the provided command to launch test cases. If not provided, the default \'python\' executable is used")
@@ -60,21 +54,16 @@ def main():
 
     # Create the commands
     commander = testing_utils.Commander()
-
-    exit_codes = {}
-
-    # Run the cpp tests (does the same as run_cpp_tests.py)
-    testing_utils.PrintTestHeader("KratosCore")
-    testing_utils.PrintTestHeader("cpp")
     
-    # with KratosUnittest.SupressConsoleOutput():
+    # Run the tests
     commander.RunCppTests(applications, args.verbosity)
 
-    testing_utils.PrintTestFooter("cpp", commander.exitCode)
-    exit_codes["cpp"] = commander.exitCode
+    # Exit message
+    testing_utils.PrintTestSummary(commander.exitCodes)
 
-    testing_utils.PrintTestSummary(exit_codes)
-    sys.exit(max(exit_codes.values()))
+    # Propagate exit code and end
+    sys.exit(max(commander.exitCodes.values()))
+
 
 if __name__ == "__main__":
     main()

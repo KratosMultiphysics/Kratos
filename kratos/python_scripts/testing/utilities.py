@@ -105,7 +105,6 @@ def PrintTestSummary(exit_codes):
 class Commander(object):
     def __init__(self):
         self.process = None
-        self.exitCode = 0
 
     def TestToAppName(self, application):
         ''' Converts the name of a test suit into an application
@@ -115,18 +114,15 @@ class Commander(object):
     def MPITestToAppName(self, application):
         ''' Converts the name of a test suit into an application
         '''
-        return application[9:-8] + "Application"
+        return application.replace("MPI","")[6:-8] + "Application"
 
-    def RunTestSuit(self, application, applicationPath, path, level, verbose, command, timer):
+    def RunPythonTests(self, applications, level, verbose, command, timer):
         ''' Calls the script that will run the tests.
 
         Input
         -----
-        application: string
-            Name of the application that will be tested.
-
-        path: string
-            Absoulte path with the location of the application.
+        application: list of strings
+            Name of the ap.
 
         level: string
             minimum level of the test that will be run if possible.
@@ -143,101 +139,115 @@ class Commander(object):
 
         '''
 
-        self.exitCode = 0
-        appNormalizedPath = applicationPath.lower().replace('_', '')
+        self.exitCodes = {}
+        fullApplicationList = kratos_utils.GetListOfAvailableApplications()
 
-        possiblePaths = [
-            {'Found': p, 'FoundNormalized': p.split('/')[-1].lower().replace('_', ''), 'Expected': applicationPath, 'ExpectedNormalized': appNormalizedPath} for p in os.listdir(path) if p.split('/')[-1].lower().replace('_', '') == appNormalizedPath
-        ]
+        # If no applications are selected by the user, run all applications
+        if not applications:
+            applications = fullApplicationList
 
-        if len(possiblePaths) < 1:
-            if verbose > 0:
-                print(
-                    '[Warning]: No directory found for {}'.format(
-                        application),
-                    file=sys.stderr)
-                sys.stderr.flush()
-        elif len(possiblePaths) > 1:
-            if verbose > 0:
-                print('Unable to determine correct path for {}'.format(application), file=sys.stderr)
-                print(
-                    'Please try to follow the standard naming convention \'FooApplication\' Snake-Capital string  without symbols.',
-                    file=sys.stderr)
-            if verbose > 1:
-                print('Several possible options were found:', file=sys.stderr)
-                for p in possiblePaths:
-                    print('\t', p, file=sys.stderr)
-        else:
-            script = path+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
-            print(script, file=sys.stderr)
+        # Iterate over the list of all applications an execute the ones selected by the user
+        for application in fullApplicationList:
+            if application in applications:
+                appNormalizedPath = application.lower().replace('_', '')
 
-            if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
-                print(
-                    '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convention.'.format(
-                        possiblePaths[0]['Found'],
-                        possiblePaths[0]['Expected']),
-                    file=sys.stderr)
+                possiblePaths = [
+                    {'Found': p, 'FoundNormalized': p.split('/')[-1].lower().replace('_', ''), 'Expected': application, 'ExpectedNormalized': appNormalizedPath} for p in os.listdir(Kratos.KratosPaths.kratos_applications) if p.split('/')[-1].lower().replace('_', '') == appNormalizedPath
+                ]
 
-            if os.path.isfile(script):
-                try:
-                    self.process = subprocess.Popen([
-                        command,
-                        script,
-                        '-l'+level,
-                        '-v'+str(verbose)
-                    ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(script)))
-                except OSError:
-                    # Command does not exist
-                    print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)
-                    self.exitCode = 1
-                except ValueError:
-                    # Command does exist, but the arguments are invalid (It sohuld never enter here. Just to be safe)
-                    print('[Error]: Invalid arguments when calling {} {} {} {}'.format(command, script, '-l'+level, '-v'+str(verbose)), file=sys.stderr)
-                    self.exitCode = 1
+                if len(possiblePaths) < 1:
+                    if verbose > 0:
+                        print(
+                            '[Warning]: No directory found for {}'.format(
+                                application),
+                            file=sys.stderr)
+                        sys.stderr.flush()
+                elif len(possiblePaths) > 1:
+                    if verbose > 0:
+                        print('Unable to determine correct path for {}'.format(application), file=sys.stderr)
+                        print(
+                            'Please try to follow the standard naming convention \'FooApplication\' Snake-Capital string  without symbols.',
+                            file=sys.stderr)
+                    if verbose > 1:
+                        print('Several possible options were found:', file=sys.stderr)
+                        for p in possiblePaths:
+                            print('\t', p, file=sys.stderr)
                 else:
-                    # Used instead of wait to "soft-block" the process and prevent deadlocks
-                    # and capture the first exit code different from OK
-                    try:
-                        process_stdout, process_stderr = self.process.communicate(timeout=timer)
-                    except subprocess.TimeoutExpired:
-                        # Timeout reached
-                        self.process.kill()
-                        print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
-                        self.exitCode = 1
-                    else:
-                        if process_stdout:
-                            print(process_stdout.decode('ascii'), file=sys.stdout)
-                        if process_stderr:
-                            print(process_stderr.decode('ascii'), file=sys.stderr)
+                    script = Kratos.KratosPaths.kratos_applications+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
+                    print(script, file=sys.stderr)
 
-                    # Running out of time in the tests will send the error code -15. We may want to skip
-                    # that one in a future. Right now will throw everything different from 0.
-                    self.exitCode = int(self.process.returncode != 0)
-            else:
-                if verbose > 0:
-                    print(
-                        '[Warning]: No test script found for {}'.format(
-                            application),
-                        file=sys.stderr)
-                    sys.stderr.flush()
-                if verbose > 1:
-                    print(
-                        '  expected file: "{}"'.format(
-                            script),
-                        file=sys.stderr)
-                    sys.stderr.flush()
+                    if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
+                        print(
+                            '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convention.'.format(
+                                possiblePaths[0]['Found'],
+                                possiblePaths[0]['Expected']),
+                            file=sys.stderr)
+
+                    if os.path.isfile(script):
+                        try:
+                            self.process = subprocess.Popen([
+                                command,
+                                script,
+                                '-l'+level,
+                                '-v'+str(verbose)
+                            ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(script)))
+                        except OSError:
+                            # Command does not exist
+                            print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)
+                            self.exitCodes[application] = 1
+                        except ValueError:
+                            # Command does exist, but the arguments are invalid (It sohuld never enter here. Just to be safe)
+                            print('[Error]: Invalid arguments when calling {} {} {} {}'.format(command, script, '-l'+level, '-v'+str(verbose)), file=sys.stderr)
+                            self.exitCodes[application] = 1
+                        else:
+                            # Used instead of wait to "soft-block" the process and prevent deadlocks
+                            # and capture the first exit code different from OK
+                            try:
+                                process_stdout, process_stderr = self.process.communicate(timeout=timer)
+                            except subprocess.TimeoutExpired:
+                                # Timeout reached
+                                self.process.kill()
+                                print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                                self.exitCodes[application] = 1
+                            else:
+                                if process_stdout:
+                                    print(process_stdout.decode('ascii'), file=sys.stdout)
+                                if process_stderr:
+                                    print(process_stderr.decode('ascii'), file=sys.stderr)
+
+                            # Running out of time in the tests will send the error code -15. We may want to skip
+                            # that one in a future. Right now will throw everything different from 0.
+                            self.exitCodes[application] = int(self.process.returncode != 0)
+                    else:
+                        if verbose > 0:
+                            print(
+                                '[Warning]: No test script found for {}'.format(
+                                    application),
+                                file=sys.stderr)
+                            sys.stderr.flush()
+                        if verbose > 1:
+                            print(
+                                '  expected file: "{}"'.format(
+                                    script),
+                                file=sys.stderr)
+                            sys.stderr.flush()
 
     def RunCppTests(self, applications, verbosity = 1):
         ''' Calls the cpp tests directly
         '''
 
-        self.exitCode = 0
+        self.exitCodes = {}
 
         # Iterate over all executables that are not mpi dependant and execute them.
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
             filename = os.fsdecode(test_suite)
+
             # Skip mpi tests
-            if "MPI" not in filename and self.TestToAppName(filename) in applications:
+            if ("MPI" not in filename and self.TestToAppName(filename) in applications) or filename == "KratosCoreTest":
+
+                # Print test header
+                PrintTestHeader(filename)
+                
                 # Run all the tests in the executable
                 self.process = subprocess.Popen([
                     os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
@@ -253,72 +263,94 @@ class Commander(object):
                     # Timeout reached
                     self.process.kill()
                     print('[Error]: Tests for {} took too long. Process Killed.'.format(filename), file=sys.stderr)
-                    self.exitCode = 1
+                    self.exitCodes[test_suite] = 1
                 else:
                     if process_stdout:
                         print(process_stdout.decode('utf8'), file=sys.stdout)
                     if process_stderr:
                         print(process_stderr.decode('utf8'), file=sys.stderr)
 
+                # Exit message
+                PrintTestFooter(filename, self.process.returncode)
+
                 # Running out of time in the tests will send the error code -15. We may want to skip
                 # that one in a future. Right now will throw everything different from 0.
-                self.exitCode = int(self.process.returncode != 0)
+                self.exitCodes[test_suite] = int(self.process.returncode != 0)
 
-    def RunMPITestSuit(self, application, path, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
+    def RunMPIPythonTests(self, applications, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
-        self.exitCode = 0
+        self.exitCodes = {}
+        fullApplicationList = kratos_utils.GetListOfAvailableApplications()
 
-        test_script = path / Path("tests") / Path("test_{}.py".format(application))
+        # If no applications are selected by the user, run all applications
+        if not applications:
+            applications = fullApplicationList
 
-        if Path.is_file(test_script):
-            full_command = "{} {} {} {} {} {} --using-mpi -v{} -l{}".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script, verbose, level)
-            try:
-                self.process = subprocess.Popen([
-                    full_command
-                ], shell=True,
-                   stdout=subprocess.PIPE,
-                   cwd=os.path.dirname(os.path.abspath(str(test_script))))
-            except:
-                print('[Error]: Unable to execute "{}"'.format(full_command), file=sys.stderr)
-                self.exitCode = 1
-            else:
-                # Used instead of wait to "soft-block" the process and prevent deadlocks
-                # and capture the first exit code different from OK
-                try:
-                    process_stdout, process_stderr = self.process.communicate(timeout=timer)
-                except subprocess.TimeoutExpired:
-                    # Timeout reached
-                    self.process.kill()
-                    print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
-                    self.exitCode = 1
+        # Iterate over the list of all applications an execute the ones selected by the user
+        for application in fullApplicationList:
+            if application in applications:
+
+                test_script = Path(Kratos.KratosPaths.kratos_applications) / application / Path("tests") / Path("test_{}.py".format(application + "_mpi"))
+
+                print(application, test_script, Path.is_file(test_script))
+
+                if Path.is_file(test_script):
+                    full_command = "{} {} {} {} {} {} --using-mpi -v{} -l{}".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script, verbose, level)
+                    try:
+                        self.process = subprocess.Popen([
+                            full_command
+                        ], shell=True,
+                        stdout=subprocess.PIPE,
+                        cwd=os.path.dirname(os.path.abspath(str(test_script))))
+                    except:
+                        print('[Error]: Unable to execute "{}"'.format(full_command), file=sys.stderr)
+                        self.exitCodes[application] = 1
+                    else:
+                        # Used instead of wait to "soft-block" the process and prevent deadlocks
+                        # and capture the first exit code different from OK
+                        try:
+                            process_stdout, process_stderr = self.process.communicate(timeout=timer)
+                        except subprocess.TimeoutExpired:
+                            # Timeout reached
+                            self.process.kill()
+                            print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
+                            self.exitCodes[application] = 1
+                        else:
+                            if process_stdout:
+                                print(process_stdout.decode('ascii'), file=sys.stdout)
+                            if process_stderr:
+                                print(process_stderr.decode('ascii'), file=sys.stderr)
+
+                        # Running out of time in the tests will send the error code -15. We may want to skip
+                        # that one in a future. Right now will throw everything different from 0.
+                        self.exitCodes[application] = int(self.process.returncode != 0)
                 else:
-                    if process_stdout:
-                        print(process_stdout.decode('ascii'), file=sys.stdout)
-                    if process_stderr:
-                        print(process_stderr.decode('ascii'), file=sys.stderr)
+                    if verbose > 0:
+                        print('[Warning]: No test script found for {}'.format(application), file=sys.stderr, flush=True)
+                    if verbose > 1:
+                        print('  expected file: "{}"'.format(test_script), file=sys.stderr, flush=True)
 
-                # Running out of time in the tests will send the error code -15. We may want to skip
-                # that one in a future. Right now will throw everything different from 0.
-                self.exitCode = int(self.process.returncode != 0)
-        else:
-            if verbose > 0:
-                print('[Warning]: No test script found for {}'.format(application), file=sys.stderr, flush=True)
-            if verbose > 1:
-                print('  expected file: "{}"'.format(test_script), file=sys.stderr, flush=True)
-
-    def RunMPICppTests(self, applications, verbosity = 1):
+    def RunMPICppTests(self, applications, verbosity, mpi_command, mpi_flags, num_processes_flag, num_processes):
         ''' Calls the mpi cpp tests directly
         '''
 
-        self.exitCode = 0
+        self.exitCodes = {}
 
         # Iterate over all executables that are mpi dependant and execute them.
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
             filename = os.fsdecode(test_suite)
-            # Skip mpi tests
-            if "MPI" in filename and self.MPITestToAppName(filename) in applications:
+            
+            # Skip non-mpi tests
+            if ("MPI" in filename and self.MPITestToAppName(filename) in applications) or filename == "KratosMPICoreTest":
+                PrintTestHeader(test_suite)
+                PrintTestHeader("cpp")
+                
                 # Run all the tests in the executable
                 self.process = subprocess.Popen([
+                    mpi_command, 
+                    mpi_flags, 
+                    num_processes_flag, 
+                    str(num_processes), 
                     os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
                 ], stdout=subprocess.PIPE)
 
@@ -332,7 +364,7 @@ class Commander(object):
                     # Timeout reached
                     self.process.kill()
                     print('[Error]: Tests for {} took too long. Process Killed.'.format(filename), file=sys.stderr)
-                    self.exitCode = 1
+                    self.exitCodes[test_suite] = 1
                 else:
                     if process_stdout:
                         print(process_stdout.decode('utf8'), file=sys.stdout)
@@ -341,4 +373,4 @@ class Commander(object):
 
                 # Running out of time in the tests will send the error code -15. We may want to skip
                 # that one in a future. Right now will throw everything different from 0.
-                self.exitCode = int(self.process.returncode != 0)
+                self.exitCodes[test_suite]  = int(self.process.returncode != 0)
