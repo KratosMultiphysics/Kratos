@@ -321,6 +321,7 @@ class RomManager(object):
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(u)
             self.data_base.add_to_database("LeftBasis", mu_train, u )
         else:
+            PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility()
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
 
         self.GenerateDatabaseSummary()

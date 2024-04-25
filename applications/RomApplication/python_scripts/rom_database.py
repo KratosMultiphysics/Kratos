@@ -83,7 +83,8 @@ class RomDatabase(object):
         elif self.identify_list_type(mu)=="complete_mu":
             serialized_mu = self.serialize_entire_mu_train(mu)
         else:
-            error
+            err_msg = f'Error: {self.identify_list_type(mu)}'
+            raise Exception(err_msg)
         tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool = self.get_curret_params()
         if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu)
@@ -165,7 +166,8 @@ class RomDatabase(object):
             cursor.execute('INSERT INTO HROM_Weights  (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (tol_sol, tol_res, projection_type, file_name))
         else:
-            error
+            err_msg = f'Error: table_name: {table_name} not available. Available options are: {self.table_names}'
+            raise Exception(err_msg)
 
         conn.commit()
         conn.close()
