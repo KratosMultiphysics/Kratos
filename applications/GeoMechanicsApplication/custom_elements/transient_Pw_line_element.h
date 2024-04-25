@@ -196,13 +196,13 @@ private:
     void AddContributionsToRhsVector(VectorType& rRightHandSideVector,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rCompressibilityMatrix,
-                                     const array_1d<double, TNumNodes>& fluid_body_vector) const
+                                     const array_1d<double, TNumNodes>& rFluidBodyVector) const
     {
         const auto compressibility_vector =
             array_1d<double, TNumNodes>{-prod(rCompressibilityMatrix, GetNodalValuesOf(DT_WATER_PRESSURE))};
         const auto permeability_vector =
             array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
-        rRightHandSideVector = compressibility_vector + permeability_vector + fluid_body_vector;
+        rRightHandSideVector = compressibility_vector + permeability_vector + rFluidBodyVector;
     }
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
@@ -241,7 +241,7 @@ private:
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(
-        const Matrix& r_N_container,
+        const Matrix& rNContainer,
         const Vector& rIntegrationCoefficients,
         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -253,7 +253,7 @@ private:
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-            const auto N = Vector{row(r_N_container, integration_point_index)};
+            const auto N = Vector{row(rNContainer, integration_point_index)};
             const double BiotModulusInverse = CalculateBiotModulusInverse(rCurrentProcessInfo, integration_point_index);
             result += GeoTransportEquationUtilities::CalculateCompressibilityMatrix<TNumNodes>(
                 N, BiotModulusInverse, rIntegrationCoefficients[integration_point_index]);
@@ -288,7 +288,7 @@ private:
 
 
     double CalculateBiotModulusInverse(const ProcessInfo& rCurrentProcessInfo,
-                                   const unsigned int integration_point_index) const
+                                       const unsigned int integrationPointIndex) const
     {
         const auto& r_properties = GetProperties();
         const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
@@ -304,8 +304,8 @@ private:
         }
 
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
-        const double degree_of_saturation = mRetentionLawVector[integration_point_index]->CalculateSaturation(RetentionParameters);
-        const double derivative_of_saturation = mRetentionLawVector[integration_point_index]->CalculateDerivativeOfSaturation(RetentionParameters);
+        const double degree_of_saturation = mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
+        const double derivative_of_saturation = mRetentionLawVector[integrationPointIndex]->CalculateDerivativeOfSaturation(RetentionParameters);
 
         result *= degree_of_saturation;
         result -= derivative_of_saturation * r_properties[POROSITY];
@@ -332,7 +332,7 @@ private:
 
 
     array_1d<double, TNumNodes> CalculateFluidBodyVector(
-        const Matrix& r_N_container,
+        const Matrix& rNContainer,
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const ProcessInfo& rCurrentProcessInfo,
         const Vector& rIntegrationCoefficients) const
@@ -349,7 +349,7 @@ private:
         BoundedMatrix<double, 1, 1> constitutive_matrix;
         GeoElementUtilities::FillPermeabilityMatrix(constitutive_matrix, r_properties);
 
-        RetentionLaw::Parameters    RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
         array_1d<double, TNumNodes * TDim> volume_acceleration;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
@@ -360,12 +360,12 @@ private:
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                body_acceleration, r_N_container, volume_acceleration, integration_point_index);
+                body_acceleration, rNContainer, volume_acceleration, integration_point_index);
 
             array_1d<double, TDim> tangent_vector = CalculateTangentialElementUnitVectorOnIntegrationPoint(integration_point_index, J_container);
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
-            const auto N = Vector{row(r_N_container, integration_point_index)};
+            const auto N = Vector{row(rNContainer, integration_point_index)};
             double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
             fluid_body_vector += r_properties[DENSITY_WATER] / r_properties[DYNAMIC_VISCOSITY] * RelativePermeability 
                 * prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
@@ -376,15 +376,15 @@ private:
 
 
     array_1d<double, TDim> CalculateTangentialElementUnitVectorOnIntegrationPoint(
-        const unsigned int integration_point_index,
-        const GeometryType::JacobiansType& r_J_container) const
+        const unsigned int integrationPointIndex,
+        const GeometryType::JacobiansType& rJContainer) const
     {
         array_1d<double, TDim> result;
         if constexpr (TDim == 2) {
-            result = column(r_J_container[integration_point_index], 0);
+            result = column(rJContainer[integrationPointIndex], 0);
         } 
         else if constexpr (TDim == 3) {
-            MathUtils<double>::CrossProduct(result, column(r_J_container[integration_point_index], 0), column(r_J_container[integration_point_index], 1));
+            MathUtils<double>::CrossProduct(result, column(rJContainer[integrationPointIndex], 0), column(rJContainer[integrationPointIndex], 1));
         }
         return result;
     }
