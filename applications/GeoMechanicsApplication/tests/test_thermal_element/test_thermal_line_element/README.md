@@ -15,3 +15,9 @@ The boundary conditions are shown below:
 The picture below illustrates the temperature contours resulting from the simulation (as an example the 2D3N test is shown below).
 
 <img src="../documentation_data/test_thermal_line_element_2D3N_result.png" alt="Temperature along the depth at the last time step" title="Temperature along the depth at the last time step" width="600">
+
+These results are associated with the final time step after the solution reaches a steady state. The analytical solution is:
+
+$T = \frac{110}{3} y + 100$
+
+In this test case, the result at node number 3 at location $y = -2$ is compared with the analytical solution. The value of the temperature at node 3 is "26.333333..." 
