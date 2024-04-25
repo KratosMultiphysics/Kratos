@@ -128,6 +128,21 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessInfo&
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
+                                                                       const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    // Resizing mass matrix
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
+    noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

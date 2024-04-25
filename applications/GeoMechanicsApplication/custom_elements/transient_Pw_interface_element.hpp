@@ -106,7 +106,9 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-    
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

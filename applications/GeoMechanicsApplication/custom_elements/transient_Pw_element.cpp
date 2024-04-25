@@ -54,6 +54,22 @@ void TransientPwElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType&
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
+                                                              const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int N_DOF = this->GetNumberOfDOF();
+
+    // Resizing mass matrix
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
+    noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
+
+    KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix,
                                                                  const ProcessInfo& rCurrentProcessInfo)
 {
