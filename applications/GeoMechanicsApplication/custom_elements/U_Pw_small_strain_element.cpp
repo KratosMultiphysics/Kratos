@@ -942,7 +942,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 {
     KRATOS_TRY
 
-    MatrixType MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix<TDim, TNumNodes>(
+    rMassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix<TDim, TNumNodes>(
         this->GetNumberOfDOF(), this->GetGeometry(), this->GetIntegrationMethod(),
         this->GetStressStatePolicy(), mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
