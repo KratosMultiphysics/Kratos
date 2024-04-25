@@ -213,9 +213,9 @@ class Commander(object):
                                 self.exitCodes[application] = 1
                             else:
                                 if process_stdout:
-                                    print(process_stdout.decode('ascii'), file=sys.stdout)
+                                    print(process_stdout.decode('utf8'), file=sys.stdout)
                                 if process_stderr:
-                                    print(process_stderr.decode('ascii'), file=sys.stderr)
+                                    print(process_stderr.decode('utf8'), file=sys.stderr)
 
                             # Running out of time in the tests will send the error code -15. We may want to skip
                             # that one in a future. Right now will throw everything different from 0.
@@ -319,9 +319,9 @@ class Commander(object):
                             self.exitCodes[application] = 1
                         else:
                             if process_stdout:
-                                print(process_stdout.decode('ascii'), file=sys.stdout)
+                                print(process_stdout.decode('utf8'), file=sys.stdout)
                             if process_stderr:
-                                print(process_stderr.decode('ascii'), file=sys.stderr)
+                                print(process_stderr.decode('utf8'), file=sys.stderr)
 
                         # Running out of time in the tests will send the error code -15. We may want to skip
                         # that one in a future. Right now will throw everything different from 0.
