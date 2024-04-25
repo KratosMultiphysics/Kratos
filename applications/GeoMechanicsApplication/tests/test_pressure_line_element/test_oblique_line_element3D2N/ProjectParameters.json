@@ -10,13 +10,13 @@
   "solver_settings" : {
     "solver_type"                        : "Pw",
     "model_part_name"                    : "PorousDomain",
-    "domain_size"                        : 2,
+    "domain_size"                        : 3,
     "model_import_settings" : {
       "input_type"                       : "mdpa",
       "input_filename"                   : "test_oblique_line_element3D2N"
     },
     "material_import_settings" : {
-      "materials_filename"               : "MaterialParameters.json"
+      "materials_filename"               : "../Common/MaterialParameters3D.json"
     },
     "time_stepping" : {
       "time_step"                        : 3.600,

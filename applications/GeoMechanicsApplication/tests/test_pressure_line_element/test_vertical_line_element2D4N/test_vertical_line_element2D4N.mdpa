@@ -86,19 +86,6 @@ Begin SubModelPart top
 End SubModelPart
 
 
-Begin SubModelPart bottom
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    4
-  End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
-End SubModelPart
-
-
 Begin SubModelPart Gravity
   Begin SubModelPartTables
   End SubModelPartTables

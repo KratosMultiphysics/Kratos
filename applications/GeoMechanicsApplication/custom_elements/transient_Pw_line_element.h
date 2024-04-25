@@ -160,7 +160,7 @@ private:
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
+            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
         KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
             << rVariable.Name() << " has an invalid value at element " << Id() << std::endl;
     }
@@ -168,7 +168,7 @@ private:
     void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the thermal element's properties" << std::endl;
+            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
         KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
             << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
             << ") instead of (" << rName << ") at element " << Id() << std::endl;
@@ -293,15 +293,12 @@ private:
         const auto& r_properties = GetProperties();
         const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
-        double result = 0.0;
+        double bulk_fluid = TINY;
         if (!r_properties[IGNORE_UNDRAINED]) {
-            result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] 
-                + r_properties[POROSITY] / r_properties[BULK_MODULUS_FLUID];
+            bulk_fluid = r_properties[BULK_MODULUS_FLUID];
         } 
-        else {
-            result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] 
-                + r_properties[POROSITY] / TINY;
-        }
+        double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
+                        r_properties[POROSITY] / bulk_fluid;
 
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
         const double degree_of_saturation = mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
@@ -362,31 +359,16 @@ private:
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
 
-            array_1d<double, TDim> tangent_vector = CalculateTangentialElementUnitVectorOnIntegrationPoint(integration_point_index, J_container);
+            array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
             const auto N = Vector{row(rNContainer, integration_point_index)};
             double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            fluid_body_vector += r_properties[DENSITY_WATER] / r_properties[DYNAMIC_VISCOSITY] * RelativePermeability 
+            fluid_body_vector += r_properties[DENSITY_WATER] * RelativePermeability 
                 * prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
-                rIntegrationCoefficients[integration_point_index];
+                rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return fluid_body_vector;
-    }
-
-
-    array_1d<double, TDim> CalculateTangentialElementUnitVectorOnIntegrationPoint(
-        const unsigned int integrationPointIndex,
-        const GeometryType::JacobiansType& rJContainer) const
-    {
-        array_1d<double, TDim> result;
-        if constexpr (TDim == 2) {
-            result = column(rJContainer[integrationPointIndex], 0);
-        } 
-        else if constexpr (TDim == 3) {
-            MathUtils<double>::CrossProduct(result, column(rJContainer[integrationPointIndex], 0), column(rJContainer[integrationPointIndex], 1));
-        }
-        return result;
     }
 
 
