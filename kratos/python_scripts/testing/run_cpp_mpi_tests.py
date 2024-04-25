@@ -62,6 +62,9 @@ def main():
     # Run the cpp tests for mpi
     commander.RunMPICppTests(applications, args.verbosity, args.mpi_command, args.mpi_flags, args.num_processes_flag, args.processes)
 
+    # Exit message
+    testing_utils.PrintTestSummary(commander.exitCodes)
+
     # Propagate exit code and end
     sys.exit(max(commander.exitCodes.values()))
 
