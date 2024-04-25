@@ -594,7 +594,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi -n 2
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
@@ -603,7 +603,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi -n 3
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
@@ -612,7 +612,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi -n 4
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
@@ -697,7 +697,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi -n 2
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
 
     - name: Running MPI C++ tests (3 Cores)
       shell: bash
@@ -706,7 +706,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi -n 3
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
 
     - name: Running MPI C++ tests (4 Cores)
       shell: bash
@@ -715,7 +715,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi -n 4
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
