@@ -119,29 +119,12 @@ public:
         Matrix density_matrix     = ZeroMatrix(dimension, dimension);
 
         for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
-            Matrix J0;
-            Matrix inv_J0;
-            // content of CalculateDerivativesOnInitialConfiguration
-            GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
-            const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[g_point];
-            double        det_J_initial_configuration;
-            MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
-            Matrix dNu_dX_initial_configuration;
-            GeometryUtils::ShapeFunctionsGradients(dN_De, inv_J0, dNu_dX_initial_configuration);
-
-            // calculating weighting coefficient for integration
-            const double integration_coefficient_initial_configuration =
-                rStressStatePolicy.CalculateIntegrationCoefficient(
-                    integration_points[g_point], det_J_initial_configuration, rGeom);
-            // content of CalculateRetentionResponse
-            const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                row(np_container, g_point), pressure_vector);
-            RetentionParameters.SetFluidPressure(fluid_pressure);
-
-            const double degree_of_saturation =
-                rRetentionLawVector[g_point]->CalculateSaturation(RetentionParameters);
+            const double degree_of_saturation = CalculateDegreeOfSaturation(
+                g_point, np_container, pressure_vector, RetentionParameters, rRetentionLawVector);
 
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
+
+            GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
 
             // Setting the shape function matrix
             SizeType index = 0;
@@ -151,12 +134,12 @@ public:
                     index++;
                 }
             }
-
-            GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
-
             noalias(aux_density_matrix) = prod(density_matrix, Nu);
 
             // Adding contribution to Mass matrix
+            const double integration_coefficient_initial_configuration =
+                CalculateIntegrationCoefficientInitialConfiguration(
+                    g_point, rGeom, integration_points, IntegrationMethod, rStressStatePolicy);
             noalias(mass_matrix_contribution) +=
                 prod(trans(Nu), aux_density_matrix) * integration_coefficient_initial_configuration;
         }
@@ -221,42 +204,56 @@ public:
         Matrix                            mass_matrix    = ZeroMatrix(N_DOF, N_DOF);
 
         for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
-            GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_t, N_container, g_point);
-
-            Matrix J0;
-            Matrix inv_J0;
-            // content of CalculateDerivativesOnInitialConfiguration
-            GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
-            const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[g_point];
-            double        det_J_initial_configuration;
-            MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
-            Matrix dNu_dX_initial_configuration;
-            GeometryUtils::ShapeFunctionsGradients(dN_De, inv_J0, dNu_dX_initial_configuration);
-
-            // Calculating weighting coefficient for integration
-            const double integration_coefficient_initial_configuration =
-                rStressStatePolicy.CalculateIntegrationCoefficient(
-                    integration_points[g_point], det_J_initial_configuration, rGeom);
-
-            const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                row(N_container, g_point), pressure_vector);
-            RetentionParameters.SetFluidPressure(fluid_pressure);
-
-            const double degree_of_saturation =
-                rRetentionLawVector[g_point]->CalculateSaturation(RetentionParameters);
+            const double degree_of_saturation = CalculateDegreeOfSaturation(
+                g_point, N_container, pressure_vector, RetentionParameters, rRetentionLawVector);
 
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
 
             GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
-
+            GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_t, N_container, g_point);
             noalias(aux_density_matrix) = prod(density_matrix, nu_t);
 
             // Adding contribution to Mass matrix
+            const double integration_coefficient_initial_configuration =
+                CalculateIntegrationCoefficientInitialConfiguration(
+                    g_point, rGeom, integration_points, IntegrationMethod, rStressStatePolicy);
             GeoElementUtilities::AssembleUUBlockMatrix(
                 mass_matrix, prod(trans(nu_t), aux_density_matrix) * integration_coefficient_initial_configuration);
         }
         return mass_matrix;
     }
 
+    static double CalculateIntegrationCoefficientInitialConfiguration(
+        unsigned int                                      GPoint,
+        const Geometry<Node>&                             rGeom,
+        const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
+        const GeometryData::IntegrationMethod             IntegrationMethod,
+        const StressStatePolicy&                          rStressStatePolicy)
+    {
+        Matrix J0;
+        Matrix inv_J0;
+        GeometryUtils::JacobianOnInitialConfiguration(rGeom, rIntegrationPoints[GPoint], J0);
+        const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[GPoint];
+        double        det_J_initial_configuration;
+        MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
+        Matrix dNu_dX_initial_configuration;
+        GeometryUtils::ShapeFunctionsGradients(dN_De, inv_J0, dNu_dX_initial_configuration);
+
+        return rStressStatePolicy.CalculateIntegrationCoefficient(
+            rIntegrationPoints[GPoint], det_J_initial_configuration, rGeom);
+    }
+
+    static double CalculateDegreeOfSaturation(unsigned int              GPoint,
+                                              const Matrix&             rNContainer,
+                                              const Vector&             rPressureVector,
+                                              RetentionLaw::Parameters& rRetentionParameters,
+                                              const std::vector<RetentionLaw::Pointer>& rRetentionLawVector)
+    {
+        const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+            row(rNContainer, GPoint), rPressureVector);
+        rRetentionParameters.SetFluidPressure(fluid_pressure);
+
+        return rRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
+    }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
