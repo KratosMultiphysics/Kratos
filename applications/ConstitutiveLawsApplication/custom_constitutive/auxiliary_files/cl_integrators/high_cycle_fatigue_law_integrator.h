@@ -244,6 +244,7 @@ public:
      * @param DamageThreshold Damage threshold
      * @param ReferenceNumberOfCycles Number of cycle at EFred begins the calculation
      * @param rMaterialParameters Material properties.
+     * @param rElementGeometry Element geometry.
      * @param rB0 Internal variable of the fatigue model.
      * @param rSth Endurance limit of the fatigue model.
      * @param rAlphat Internal variable of the fatigue model.
@@ -255,6 +256,7 @@ public:
                                             const double ReversionFactor,
                                             double Threshold,
                                             const Properties& rMaterialParameters,
+                                            const ConstitutiveLaw::GeometryType& rElementGeometry,
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
@@ -265,9 +267,11 @@ public:
 
         // Reduction factors applied to the fatigue limit
         double const k_resisual_stress = (1 - UniaxialResidualStress / UltimateStress);
+        double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
+                     * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = k_resisual_stress* (r_fatigue_coefficients[0] * UltimateStress);
+        const double Se = k_resisual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
@@ -275,7 +279,6 @@ public:
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
-        const double MonotonicReductionFactorSmoothness = r_fatigue_coefficients[8];
 
         if (std::abs(ReversionFactor) < 1.0) {
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
