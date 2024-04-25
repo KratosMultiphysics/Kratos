@@ -97,7 +97,7 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self._control_field += update
+        self._control_field = KratosOA.ExpressionUtils.Collapse(self._control_field + update)
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
