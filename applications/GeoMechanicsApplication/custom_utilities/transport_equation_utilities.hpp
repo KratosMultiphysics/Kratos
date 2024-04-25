@@ -90,7 +90,7 @@ public:
     static Matrix CalculateMassMatrixDiffOrder(const Geometry<Node>&          rGeom,
                                                const Geometry<Node>::Pointer& rpPressureGeometry,
                                                const GeometryData::IntegrationMethod IntegrationMethod,
-                                               std::unique_ptr<StressStatePolicy> const& rStressStatePolicy,
+                                               const StressStatePolicy& rStressStatePolicy,
                                                const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
                                                const Properties&  rProp,
                                                const ProcessInfo& rCurrentProcessInfo)
@@ -131,7 +131,7 @@ public:
 
             // calculating weighting coefficient for integration
             const double integration_coefficient_initial_configuration =
-                rStressStatePolicy->CalculateIntegrationCoefficient(
+                rStressStatePolicy.CalculateIntegrationCoefficient(
                     integration_points[g_point], det_J_initial_configuration, rGeom);
             // content of CalculateRetentionResponse
             const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
