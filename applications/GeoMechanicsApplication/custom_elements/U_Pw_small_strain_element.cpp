@@ -942,54 +942,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 {
     KRATOS_TRY
 
-    MatrixType MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix(
+    MatrixType MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix<TDim, TNumNodes>(
         this->GetNumberOfDOF(), this->GetGeometry(), this->GetIntegrationMethod(),
         this->GetStressStatePolicy(), mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
-    /*
-    const IndexType N_DOF = this->GetNumberOfDOF();
-
-    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
-    noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
-
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        this->GetGeometry().IntegrationPoints(this->mThisIntegrationMethod);
-    const IndexType NumGPoints = IntegrationPoints.size();
-
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-
-    // Defining shape functions at all integration points
-    // Defining necessary variables
-    BoundedMatrix<double, TDim, TNumNodes * TDim> Nut = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TNumNodes * TDim> AuxDensityMatrix = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TDim> DensityMatrix = ZeroMatrix(TDim, TDim);
-
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nut, Variables.NContainer, GPoint);
-
-        Matrix J0, InvJ0, DNu_DX0;
-        this->CalculateDerivativesOnInitialConfiguration(Variables.detJInitialConfiguration, J0,
-                                                         InvJ0, DNu_DX0, GPoint);
-
-        // Calculating weighting coefficient for integration
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        this->CalculateSoilDensity(Variables);
-
-        GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
-
-        noalias(AuxDensityMatrix) = prod(DensityMatrix, Nut);
-
-        // Adding contribution to Mass matrix
-        GeoElementUtilities::AssembleUUBlockMatrix(
-            rMassMatrix, prod(trans(Nut), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration);
-    }*/
 
     KRATOS_CATCH("")
 }

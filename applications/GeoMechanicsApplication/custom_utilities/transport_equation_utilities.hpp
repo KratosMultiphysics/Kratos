@@ -193,6 +193,7 @@ public:
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
+    template <unsigned int TDim, unsigned int TNumNodes>
     static Matrix CalculateMassMatrix(unsigned int                              N_DOF,
                                       const Geometry<Node>&                     rGeom,
                                       const GeometryData::IntegrationMethod     IntegrationMethod,
@@ -201,27 +202,27 @@ public:
                                       const Properties&                         rProp,
                                       const ProcessInfo&                        rCurrentProcessInfo)
     {
-        const SizeType                                    dimension = rGeom.WorkingSpaceDimension();
-        const SizeType                                    number_U_nodes = rGeom.PointsNumber();
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
         const unsigned int number_G_points = integration_points.size();
 
-        Matrix nc_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
+        Matrix N_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
         Vector pressure_vector =
-            GeoTransportEquationUtilities::GetSolutionVector(number_U_nodes, rGeom, WATER_PRESSURE);
+            GeoTransportEquationUtilities::GetSolutionVector(TNumNodes, rGeom, WATER_PRESSURE);
 
         // Create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
 
         // Defining shape functions at all integration points
         // Defining necessary variables
-        Matrix nu_t               = ZeroMatrix(dimension, number_U_nodes * dimension);
-        Matrix aux_density_matrix = ZeroMatrix(dimension, number_U_nodes * dimension);
-        Matrix density_matrix     = ZeroMatrix(dimension, dimension);
-        Matrix mass_matrix        = ZeroMatrix(N_DOF, N_DOF);
+        BoundedMatrix<double, TDim, TNumNodes * TDim> nu_t = ZeroMatrix(TDim, TNumNodes * TDim);
+        BoundedMatrix<double, TDim, TNumNodes * TDim> aux_density_matrix = ZeroMatrix(TDim, TNumNodes * TDim);
+        BoundedMatrix<double, TDim, TDim> density_matrix = ZeroMatrix(TDim, TDim);
+        Matrix                            mass_matrix    = ZeroMatrix(N_DOF, N_DOF);
 
         for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
+            GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_t, N_container, g_point);
+
             Matrix J0;
             Matrix inv_J0;
             // content of CalculateDerivativesOnInitialConfiguration
@@ -238,7 +239,7 @@ public:
                     integration_points[g_point], det_J_initial_configuration, rGeom);
 
             const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                row(nc_container, g_point), pressure_vector);
+                row(N_container, g_point), pressure_vector);
             RetentionParameters.SetFluidPressure(fluid_pressure);
 
             const double degree_of_saturation =
