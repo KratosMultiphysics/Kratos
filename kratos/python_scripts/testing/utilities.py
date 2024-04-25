@@ -119,31 +119,35 @@ class Commander(object):
         '''
         return application.replace("MPI","")[6:-8] + "Application"
     
-    def _RunTest(self, test_suit_name, level, verbose, command, timer, workin_dir=os.getcwd()):
+    def _RunTest(self, test_suit_name, command, timer, working_dir=os.getcwd()):
         # Print test header
         PrintTestHeader(test_suit_name)
 
-        self.process = subprocess.Popen(
-            command,
-            cwd=workin_dir, stdout=subprocess.PIPE
-        )
-
-        # Used instead of wait to "soft-block" the process and prevent deadlocks
-        # and capture the first exit code different from OK
         try:
-            # timeout should not be a problem for cpp, but we leave it just in case
-            timer = int(180)
-            process_stdout, process_stderr = self.process.communicate(timeout=timer)
-        except subprocess.TimeoutExpired:
-            # Timeout reached
-            self.process.kill()
-            print('[Error]: Tests for {} took too long. Process Killed.'.format(test_suit_name), file=sys.stderr)
+            self.process = subprocess.Popen(command, cwd=working_dir, stdout=subprocess.PIPE)
+        except OSError:
+            print(f'[Error]: Unable to execute "{command}"', file=sys.stderr)
+            self.exitCodes[test_suit_name] = 1
+        except ValueError:
+            # Command does exist, but the arguments are invalid (It sohuld never enter here. Just to be safe)
+            print(f'[Error]: Invalid arguments when calling "{command}"', file=sys.stderr)
             self.exitCodes[test_suit_name] = 1
         else:
-            if process_stdout:
-                print(process_stdout.decode('utf8'), file=sys.stdout, flush=True)
-            if process_stderr:
-                print(process_stderr.decode('utf8'), file=sys.stderr, flush=True)
+            # Used instead of wait to "soft-block" the process and prevent deadlocks
+            # and capture the first exit code different from OK
+            try:
+                # Pipe the output of the process until the timer is reached
+                process_stdout, process_stderr = self.process.communicate(timeout=timer)
+            except subprocess.TimeoutExpired:
+                # Timeout reached
+                self.process.kill()
+                print(f'[Error]: Tests for {test_suit_name} took too long. Process Killed.', file=sys.stderr)
+                self.exitCodes[test_suit_name] = 1
+            else:
+                if process_stdout:
+                    print(process_stdout.decode('utf8'), file=sys.stdout, flush=True)
+                if process_stderr:
+                    print(process_stderr.decode('utf8'), file=sys.stderr, flush=True)
 
         # Exit message
         PrintTestFooter(test_suit_name, self.process.returncode)
@@ -219,40 +223,18 @@ class Commander(object):
                             file=sys.stderr)
 
                     if os.path.isfile(script):
-                        try:
-                            self.process = subprocess.Popen([
-                                command,
-                                script,
-                                '-l'+level,
-                                '-v'+str(verbose)
-                            ], stdout=subprocess.PIPE, cwd=os.path.dirname(os.path.abspath(script)))
-                        except OSError:
-                            # Command does not exist
-                            print('[Error]: Unable to execute {}'.format(command), file=sys.stderr)
-                            self.exitCodes[application] = 1
-                        except ValueError:
-                            # Command does exist, but the arguments are invalid (It sohuld never enter here. Just to be safe)
-                            print('[Error]: Invalid arguments when calling {} {} {} {}'.format(command, script, '-l'+level, '-v'+str(verbose)), file=sys.stderr)
-                            self.exitCodes[application] = 1
-                        else:
-                            # Used instead of wait to "soft-block" the process and prevent deadlocks
-                            # and capture the first exit code different from OK
-                            try:
-                                process_stdout, process_stderr = self.process.communicate(timeout=timer)
-                            except subprocess.TimeoutExpired:
-                                # Timeout reached
-                                self.process.kill()
-                                print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
-                                self.exitCodes[application] = 1
-                            else:
-                                if process_stdout:
-                                    print(process_stdout.decode('utf8'), file=sys.stdout)
-                                if process_stderr:
-                                    print(process_stderr.decode('utf8'), file=sys.stderr)
-
-                            # Running out of time in the tests will send the error code -15. We may want to skip
-                            # that one in a future. Right now will throw everything different from 0.
-                            self.exitCodes[application] = int(self.process.returncode != 0)
+                        # Run all the tests in the executable
+                        self._RunTest(
+                            test_suit_name=application, 
+                            command=filter(None, [
+                                command, 
+                                script, 
+                                f"-v{verbose}", 
+                                f"-l{level}"
+                            ]),
+                            timer=timer,
+                            working_dir=os.path.dirname(os.path.abspath(script))
+                        )
                     else:
                         if verbose > 0:
                             print(
@@ -267,7 +249,7 @@ class Commander(object):
                                 file=sys.stderr)
                             sys.stderr.flush()
 
-    def RunCppTests(self, applications, verbosity = 1):
+    def RunCppTests(self, applications, verbosity=1):
         ''' Calls the cpp tests directly
         '''
 
@@ -281,13 +263,10 @@ class Commander(object):
                 # Run all the tests in the executable
                 self._RunTest(
                     test_suit_name=filename, 
-                    level="nightly", 
-                    verbose=1, 
                     command=[
                         os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
                     ], 
                     timer=180)
-
 
     def RunMPIPythonTests(self, applications, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
@@ -300,41 +279,29 @@ class Commander(object):
         # Iterate over the list of all applications an execute the ones selected by the user
         for application in fullApplicationList:
             if application in applications:
-
                 test_script = Path(Kratos.KratosPaths.kratos_applications) / application / Path("tests") / Path("test_{}.py".format(application + "_mpi"))
 
                 print(application, test_script, Path.is_file(test_script))
 
                 if Path.is_file(test_script):
-                    full_command = "{} {} {} {} {} {} --using-mpi -v{} -l{}".format(mpi_command, mpi_flags, num_processes_flag, num_processes, command, test_script, verbose, level)
-                    try:
-                        self.process = subprocess.Popen([
-                            full_command
-                        ], shell=True,
-                        stdout=subprocess.PIPE,
-                        cwd=os.path.dirname(os.path.abspath(str(test_script))))
-                    except:
-                        print('[Error]: Unable to execute "{}"'.format(full_command), file=sys.stderr)
-                        self.exitCodes[application] = 1
-                    else:
-                        # Used instead of wait to "soft-block" the process and prevent deadlocks
-                        # and capture the first exit code different from OK
-                        try:
-                            process_stdout, process_stderr = self.process.communicate(timeout=timer)
-                        except subprocess.TimeoutExpired:
-                            # Timeout reached
-                            self.process.kill()
-                            print('[Error]: Tests for {} took too long. Process Killed.'.format(application), file=sys.stderr)
-                            self.exitCodes[application] = 1
-                        else:
-                            if process_stdout:
-                                print(process_stdout.decode('utf8'), file=sys.stdout)
-                            if process_stderr:
-                                print(process_stderr.decode('utf8'), file=sys.stderr)
-
-                        # Running out of time in the tests will send the error code -15. We may want to skip
-                        # that one in a future. Right now will throw everything different from 0.
-                        self.exitCodes[application] = int(self.process.returncode != 0)
+                    # Run all the tests in the executable
+                    self._RunTest(
+                        test_suit_name=application, 
+                        command=filter(None, [
+                            mpi_command, 
+                            mpi_flags, 
+                            num_processes_flag, 
+                            str(num_processes), 
+                            command, 
+                            test_script,
+                            "--using-mpi",
+                            f"-v{verbose}", 
+                            f"-l{level}"
+                        ]),
+                        timer=timer,
+                        working_dir=os.path.dirname(os.path.abspath(str(test_script)))
+                    )
+                    
                 else:
                     if verbose > 0:
                         print('[Warning]: No test script found for {}'.format(application), file=sys.stderr, flush=True)
@@ -355,13 +322,11 @@ class Commander(object):
                 # Run all the tests in the executable
                 self._RunTest(
                     test_suit_name=filename, 
-                    level="nightly", 
-                    verbose=verbosity, 
                     command=filter(None, [
                         mpi_command, 
                         mpi_flags, 
                         num_processes_flag, 
                         str(num_processes), 
-                        os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)]
-                    ),
+                        os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
+                    ]),
                     timer=180)
