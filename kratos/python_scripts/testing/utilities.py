@@ -179,7 +179,7 @@ class Commander(object):
 
         '''
 
-        fullApplicationList = kratos_utils.GetListOfAvailableApplications()
+        fullApplicationList = ["KratosCore"] + kratos_utils.GetListOfAvailableApplications()
 
         # If no applications are selected by the user, run all applications
         if not applications:
@@ -188,52 +188,24 @@ class Commander(object):
         # Iterate over the list of all applications an execute the ones selected by the user
         for application in fullApplicationList:
             if application in applications:
-                appNormalizedPath = application.lower().replace('_', '')
+                    
+                    if application == "KratosCore":
+                        test_script = Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath())) / Path("kratos") / Path("tests") / Path("test_{}.py".format(application))
+                    else:
+                        test_script = Path(Kratos.KratosPaths.kratos_applications) / application / Path("tests") / Path("test_{}.py".format(application))
 
-                possiblePaths = [
-                    {'Found': p, 'FoundNormalized': p.split('/')[-1].lower().replace('_', ''), 'Expected': application, 'ExpectedNormalized': appNormalizedPath} for p in os.listdir(Kratos.KratosPaths.kratos_applications) if p.split('/')[-1].lower().replace('_', '') == appNormalizedPath
-                ]
-
-                if len(possiblePaths) < 1:
-                    if verbose > 0:
-                        print(
-                            '[Warning]: No directory found for {}'.format(
-                                application),
-                            file=sys.stderr)
-                        sys.stderr.flush()
-                elif len(possiblePaths) > 1:
-                    if verbose > 0:
-                        print('Unable to determine correct path for {}'.format(application), file=sys.stderr)
-                        print(
-                            'Please try to follow the standard naming convention \'FooApplication\' Snake-Capital string  without symbols.',
-                            file=sys.stderr)
-                    if verbose > 1:
-                        print('Several possible options were found:', file=sys.stderr)
-                        for p in possiblePaths:
-                            print('\t', p, file=sys.stderr)
-                else:
-                    script = Kratos.KratosPaths.kratos_applications+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
-                    print(script, file=sys.stderr)
-
-                    if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
-                        print(
-                            '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convention.'.format(
-                                possiblePaths[0]['Found'],
-                                possiblePaths[0]['Expected']),
-                            file=sys.stderr)
-
-                    if os.path.isfile(script):
+                    if os.path.isfile(test_script):
                         # Run all the tests in the executable
                         self._RunTest(
                             test_suit_name=application, 
                             command=filter(None, [
                                 command, 
-                                script, 
+                                test_script, 
                                 f"-v{verbose}", 
                                 f"-l{level}"
                             ]),
                             timer=timer,
-                            working_dir=os.path.dirname(os.path.abspath(script))
+                            working_dir=os.path.dirname(os.path.abspath(test_script))
                         )
                     else:
                         if verbose > 0:
@@ -245,7 +217,7 @@ class Commander(object):
                         if verbose > 1:
                             print(
                                 '  expected file: "{}"'.format(
-                                    script),
+                                    test_script),
                                 file=sys.stderr)
                             sys.stderr.flush()
 
@@ -270,7 +242,7 @@ class Commander(object):
 
     def RunMPIPythonTests(self, applications, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
-        fullApplicationList = kratos_utils.GetListOfAvailableApplications()
+        fullApplicationList = ["KratosMPICore"] + kratos_utils.GetListOfAvailableApplications()
 
         # If no applications are selected by the user, run all applications
         if not applications:
@@ -279,9 +251,11 @@ class Commander(object):
         # Iterate over the list of all applications an execute the ones selected by the user
         for application in fullApplicationList:
             if application in applications:
-                test_script = Path(Kratos.KratosPaths.kratos_applications) / application / Path("tests") / Path("test_{}.py".format(application + "_mpi"))
 
-                print(application, test_script, Path.is_file(test_script))
+                if application == "KratosMPICore":
+                    test_script = Path(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath())) / Path("kratos") / Path("mpi") / Path("tests") / Path("test_{}.py".format(application))
+                else:
+                    test_script = Path(Kratos.KratosPaths.kratos_applications) / application / Path("tests") / Path("test_{}.py".format(application + "_mpi"))
 
                 if Path.is_file(test_script):
                     # Run all the tests in the executable

@@ -11,7 +11,7 @@ def main():
     cmd = testing_utils.GetPython3Command()
 
     # List of application
-    applications = kratos_utils.GetListOfAvailableApplications()
+    applications = kratos_utils.GetListOfAvailableApplications() + ["KratosCore"]
 
     # Parse command line options
     parser = argparse.ArgumentParser()
@@ -35,12 +35,10 @@ def main():
     else:
         parsedApps = args.applications
     for a in parsedApps:
-        if a not in applications + ['KratosCore']:
+        if a not in applications:
             print('Warning: Application {} does not exist'.format(a))
             sys.exit()
     applications = parsedApps
-    if 'KratosCore' in applications:
-        applications.remove('KratosCore')
 
     # Set timeout of the different levels
     signalTime = None
