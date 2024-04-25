@@ -21,6 +21,6 @@ The picture below illustrates the pressure profile resulting from the simulation
 
 These results are associated with the final time step after the solution reaches a steady state. The results for both test configurations are identical. The analytical solution is:
 
-$T = 10000 y$
+$P = 10000 y$
 
 In this test case, the result at node number 3 at location $y = -2 \mathrm{[m]}$ is compared with the analytical solution. The value of the pressure at node 3 is -20,000 $\mathrm{[Pa]}$
