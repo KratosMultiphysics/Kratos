@@ -20,4 +20,4 @@ These results are associated with the final time step after the solution reaches
 
 $T = \frac{110}{3} y + 100$
 
-In this test case, the result at node number 3 at location $y = -2$ is compared with the analytical solution. The value of the temperature at node 3 is "26.333333..." 
+In this test case, the result at node number 3 at location $y = -2$ is compared with the analytical solution. The value of the temperature at node 3 is 26.6666666... $\mathrm{[^\circ C]}$
