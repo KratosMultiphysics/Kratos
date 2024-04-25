@@ -121,7 +121,7 @@ class RomDatabase(object):
 
 
     def check_if_in_database(self, table_name, mu):
-        file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
+        file_name, _ = self.get_hashed_mu_for_table(table_name, mu)
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
@@ -131,7 +131,7 @@ class RomDatabase(object):
 
 
 
-    def add_to_database(self, table_name, mu ):
+    def add_to_database(self, table_name, mu, numpy_array ):
         file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
         tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool = self.get_curret_params()
 
@@ -170,6 +170,9 @@ class RomDatabase(object):
         conn.commit()
         conn.close()
 
+        self.save_as_npy(numpy_array, file_name)
+
+
 
     def identify_list_type(self, lst):
         if not lst:
@@ -192,7 +195,7 @@ class RomDatabase(object):
     def save_as_npy(self, result, hash_mu):
         file_path = self.npys_directory / f"{hash_mu}.npy"
         np.save(file_path, result)
-        return file_path
+        print(f"numpy saved to {file_path}")
 
 
     def make_mu_dictionary(self, mu):
@@ -210,7 +213,7 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         for mu in mu_list_unique:
-            hash_mu, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
+            hash_mu, _ = self.get_hashed_mu_for_table(table_name, mu)
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
             result = cursor.fetchone()
             if result:

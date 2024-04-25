@@ -26,7 +26,7 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
 
 
-    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=True, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
+    def Fit(self, mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         #######################
@@ -40,7 +40,7 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.__LaunchTrainHROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
                 self.__LaunchHROM(mu_train)
             self.ComputeErrors(mu_train)
@@ -57,7 +57,7 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 # Change the flags to train the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
-                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.__LaunchTrainHROM(mu_train)
                 # Change the flags to run the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
                 self.__LaunchHROM(mu_train)
@@ -77,7 +77,7 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.__LaunchTrainHROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
                 self.__LaunchHROM(mu_train)
 
@@ -228,7 +228,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
-            in_database, hash_mu = self.data_base.check_if_in_database("FOM", mu)
+            in_database, _ = self.data_base.check_if_in_database("FOM", mu)
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -244,11 +244,7 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                self.data_base.add_to_database("FOM", mu )
-                print(f"Simulation saved to {file_path}")
-            else:
-                print("Simulation for given parameters already in database.")
+                self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
 
         if BasisOutputProcess is None:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess() #TODO not call unnecesarily
@@ -256,8 +252,7 @@ class RomManager(object):
         if not in_database: #Check if basis exists already for current parameters
             u = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
             BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
-            self.data_base.add_to_database("RightBasis", hash_basis )
-            file_path = self.data_base.save_as_npy(u, hash_basis)
+            self.data_base.add_to_database("RightBasis", hash_basis, u )
         else:
             BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
@@ -288,11 +283,7 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                self.data_base.add_to_database("ROM", mu )
-                print(f"Simulation saved to {file_path}")
-            else:
-                print("Simulation for given parameters already in database.")
+                self.data_base.add_to_database("ROM", mu, SnapshotsMatrix )
 
         self.GenerateDatabaseSummary()
 
@@ -320,11 +311,7 @@ class RomManager(object):
                 simulation.Run()
                 PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
                 pretrov_galerkin_matrix = PetrovGalerkinTrainingUtility._GetSnapshotsMatrix() #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
-                file_path = self.data_base.save_as_npy(pretrov_galerkin_matrix, hash_mu)
-                self.data_base.add_to_database("PetrovGalerkinSnapshots", mu )
-                print(f"Simulation saved to {file_path}")
-            else:
-                print("Simulation for given parameters already in database.")
+                self.data_base.add_to_database("PetrovGalerkinSnapshots", mu, pretrov_galerkin_matrix)
         if PetrovGalerkinTrainingUtility is None:
             PetrovGalerkinTrainingUtility = self.InitializeDummySimulationForPetrovGalerkinTrainingUtility()
         in_database, hash_basis =  self.data_base.check_if_in_database("LeftBasis", mu_train)
@@ -332,7 +319,7 @@ class RomManager(object):
             snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="PetrovGalerkinSnapshots")
             u = PetrovGalerkinTrainingUtility._CalculateResidualBasis(snapshots_matrix)
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(u)
-            self.data_base.add_to_database("LeftBasis", mu_train )
+            self.data_base.add_to_database("LeftBasis", mu_train, u )
         else:
             PetrovGalerkinTrainingUtility._AppendNewBasisToRomParameters(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
@@ -341,7 +328,7 @@ class RomManager(object):
 
 
 
-    def __LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
+    def __LaunchTrainHROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -361,11 +348,7 @@ class RomManager(object):
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
                 ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
-                file_path = self.data_base.save_as_npy(ResidualProjected, hash_mu)
-                self.data_base.add_to_database("ResidualsProjected", mu )
-                print(f"Simulation saved to {file_path}")
-            else:
-                print("Simulation for given parameters already in database.")
+                self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
 
         self.GenerateDatabaseSummary()
 
@@ -389,10 +372,8 @@ class RomManager(object):
                 HROM_utility.hyper_reduction_element_selector.Run()
             z = HROM_utility.hyper_reduction_element_selector.z
             w = HROM_utility.hyper_reduction_element_selector.w
-            self.data_base.add_to_database("HROM_Elements", mu_train )
-            self.data_base.add_to_database("HROM_Weights", mu_train )
-            self.data_base.save_as_npy(np.squeeze(w), hash_w)
-            self.data_base.save_as_npy(np.squeeze(z), hash_z)
+            self.data_base.add_to_database("HROM_Elements", mu_train, np.squeeze(z))
+            self.data_base.add_to_database("HROM_Weights", mu_train, np.squeeze(w))
             HROM_utility.AppendHRomWeightsToRomParameters()
             HROM_utility.CreateHRomModelParts()
         else:
@@ -431,11 +412,7 @@ class RomManager(object):
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                file_path = self.data_base.save_as_npy(SnapshotsMatrix, hash_mu)
-                self.data_base.add_to_database("HROM", mu )
-                print(f"Simulation saved to {file_path}")
-            else:
-                print("Simulation for given parameters already in database.")
+                self.data_base.add_to_database("HROM", mu, SnapshotsMatrix)
 
         self.GenerateDatabaseSummary()
 
