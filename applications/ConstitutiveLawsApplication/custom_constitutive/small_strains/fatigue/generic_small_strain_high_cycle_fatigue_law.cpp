@@ -154,7 +154,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                     local_number_of_cycles,
                                                                     relaxation_factor);     
 
-        
+        residual_stress_vector *= relaxation_factor;
         const double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
         
         if (residual_stress_sign_factor > 0.0) {
@@ -210,6 +210,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                     local_number_of_cycles,
                                                                     relaxation_factor);     
         
+        residual_stress_vector *= relaxation_factor;
         const double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
         
         if (residual_stress_sign_factor > 0.0) {
