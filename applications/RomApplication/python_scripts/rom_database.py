@@ -157,13 +157,13 @@ class RomDatabase(object):
             cursor.execute('INSERT INTO RightBasis (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
         elif table_name == 'LeftBasis':
             cursor.execute('INSERT INTO LeftBasis (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, serialized_mu))
+                        (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
         elif table_name == 'HROM_Elements':
-            cursor.execute('INSERT INTO HROM_Elements (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)',
-                        (file_name, tol_sol, tol_res, projection_type))
+            cursor.execute('INSERT INTO HROM_Elements (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+                        (tol_sol, tol_res, projection_type, file_name))
         elif table_name == 'HROM_Weights':
-            cursor.execute('INSERT INTO HROM_Weights  (file_name, tol_sol , tol_res , type_of_projection) VALUES (?, ?, ?, ?)',
-                        (file_name, tol_sol, tol_res, projection_type))
+            cursor.execute('INSERT INTO HROM_Weights  (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+                        (tol_sol, tol_res, projection_type, file_name))
         else:
             error
 
