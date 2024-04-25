@@ -101,6 +101,11 @@ public:
         return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
+    void ComputeIncrementalDisplacementField() override
+    {
+        // intentionally empty
+    }
+
     void OutputProcess() override
     {
         ++mCountOutputProcessCalled;
