@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
+from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 
 if kratos_utilities.CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     import KratosMultiphysics.FluidDynamicsApplication
@@ -22,7 +23,16 @@ class TestHromTrainingUtilityRom(KratosUnittest.TestCase):
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             cls.model = KratosMultiphysics.Model()
             cls.simulation = rom_testing_utilities.SetUpSimulationInstance(cls.model, parameters)
-            cls.simulation.Run()
+            cls.simulation.Initialize()
+            cls.simulation.time = cls.simulation._GetSolver().AdvanceInTime(cls.simulation.time)
+            cls.simulation.InitializeSolutionStep()
+
+            # Assuming test_empirical_cubature_method.py passes, use pre-existing weights (w) and elements (z)
+            # to ensure consistency and avoid duplication, as np.linalg.svd() can vary with thread settings (number of threads).
+            cls.simulation._RomAnalysis__hrom_training_utility.hyper_reduction_element_selector.w = np.load("input_w.npy")
+            cls.simulation._RomAnalysis__hrom_training_utility.hyper_reduction_element_selector.z = np.load("input_z.npy")
+            cls.simulation._RomAnalysis__hrom_training_utility.AppendHRomWeightsToRomParameters()
+            cls.simulation._RomAnalysis__hrom_training_utility.CreateHRomModelParts()
 
             # Load the expected and obtained model parts
             cls.expected_model_part = cls.model.CreateModelPart("expected")
