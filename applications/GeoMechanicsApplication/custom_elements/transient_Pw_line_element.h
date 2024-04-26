@@ -274,9 +274,8 @@ private:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-
-        if (mRetentionLawVector.size() != number_integration_points) {
+        if (const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+            mRetentionLawVector.size() != number_integration_points) {
             mRetentionLawVector.resize(number_integration_points);
         }
         for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
@@ -382,6 +381,7 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        rSerializer.save("RetentionlawVector", mRetentionLawVector);
     }
 
     void load(Serializer& rSerializer) override

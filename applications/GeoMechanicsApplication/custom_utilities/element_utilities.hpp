@@ -55,7 +55,8 @@ public:
         unsigned int index = 0;
         for (unsigned int i=0; i<TNumNodes; ++i) {
             for (unsigned int j=0; j<TDim; ++j) {
-                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index++];
+                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index];
+                index++;
             }
         }
     }
@@ -107,7 +108,8 @@ public:
         for (unsigned int i=0; i < TNumNodes; ++i) {
             noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable, SolutionStepIndex);
             for (unsigned int j=0; j < TDim; ++j) {
-                rNodalVariableVector[index++] = NodalVariableAux[j];
+                rNodalVariableVector[index] = NodalVariableAux[j];
+                index++;
             }
         }
     }
