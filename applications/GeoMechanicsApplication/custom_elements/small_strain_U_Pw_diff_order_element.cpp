@@ -442,7 +442,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
-    MatrixType MassMatrix = GeoTransportEquationUtilities::CalculateMassMatrixDiffOrder(
+    MatrixType mass_matrix = GeoTransportEquationUtilities::CalculateMassMatrixDiffOrder(
         this->GetGeometry(), mpPressureGeometry, this->GetIntegrationMethod(), *mpStressStatePolicy,
         mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
@@ -458,8 +458,8 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 
     const PropertiesType& rProp = this->GetProperties();
 
-    if (rProp.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
+    if (rProp.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * mass_matrix;
+    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * mass_matrix;
 
     if (rProp.Has(RAYLEIGH_BETA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
     else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
