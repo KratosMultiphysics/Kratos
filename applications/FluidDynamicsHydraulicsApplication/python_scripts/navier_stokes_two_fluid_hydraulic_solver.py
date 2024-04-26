@@ -270,6 +270,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString(
             )
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+
+        self.initialize_flaging=True
+
     def Check(self):
         super().Check()
         # Check if Inlet and Outlet boundary conditions are defined
@@ -278,69 +282,56 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
-        # self.gid_output = GiDOutputProcess(self.main_model_part,
-        #                                    "gid_output",
-        #                                    KratosMultiphysics.Parameters("""
-        #                                     {
-        #                                         "result_file_configuration" : {
-        #                                             "gidpost_flags": {
-        #                                                 "GiDPostMode": "GiD_PostBinary",
-        #                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
-        #                                                 "MultiFileFlag": "SingleFile"
-        #                                             },
-        #                                             "nodal_results"       : ["DISTANCE"],
-        #                                             "nodal_nonhistorical_results": ["AUX_DISTANCE"],
-        #                                             "nodal_flags_results": []
-        #                                         }
-        #                                     }
-        #                                     """)
-        #                                    )
+        #TODO: TESTIG
+        self.DetectedCutElements()
 
-        # self.gid_output.ExecuteInitialize()
-        # self.gid_output.ExecuteBeforeSolutionLoop()
-        # self.gid_output.ExecuteInitializeSolutionStep()
-        # self.gid_output.PrintOutput()
-        # self.gid_output.ExecuteFinalizeSolutionStep()
-        # self.gid_output.ExecuteFinalize()
-        # AAAAAAAAAAAAAAA
+        if self.initialize_flaging:
+            self.FlagingPreBlock()
+            self.initialize_flaging= False
+
+        self.current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        print(self.current_step)
+        self.air_steps=0
+        self.water_steps=0
+
+        self.air_bloqued = False
+        self.water_bloqued = False
+
+        if self.current_step <= self.air_steps:
+            self.air_bloqued = True
+        elif self.air_bloqued < self.current_step <= self.water_steps:
+            self.water_bloqued = True
+            self.air_bloqued = False
+        else:
+           self.water_bloqued = False
+
+        # self.BlockingControl(self.air_steps, self.water_steps, self.current_step,self.air_bloqued,self.water_bloqued)
+        self.PreBloquedProcess()
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
 
         # Perform the convection of the historical database (Eulerian FM-ALE)
+
         if self.eulerian_fm_ale:
             self.__PerformEulerianFmAleVelocity()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
         # TODO: TEST
-        if self.levelset_test:
-            self.__PerformEdgeBasedLevelSetConvection()
-        else:
-            self.__PerformLevelSetConvection()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
+        if self.current_step > self.water_steps:
+            if self.levelset_test:
+                self.__PerformEdgeBasedLevelSetConvection()
+            else:
+                self.__PerformLevelSetConvection()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
         # Perform the level-set convection according to the previous step velocity
         for node in self.main_model_part.Nodes:
             node.Free(KratosMultiphysics.DISTANCE)
+
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-
         # Turn off the gravity of the air fluid.
         if self.settings["formulation"].Has("turn_off_air_gravity"):
             KratosHydraulics.HydraulicFluidAuxiliaryUtilities.TurnOffGravityOnAirElements(self.main_model_part)
-        # for element in  self.GetComputingModelPart().Elements:
-        #     neg = 0.0
-        #     pos = 0.0
-        #     nodes = element.GetNodes()
-        #     for node in nodes:
-        #         dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-        #         if dist < 0:
-        #             neg += 1
-        #         else:
-        #             pos += 1
-        #     if neg == 0.0:
-        #         for node in nodes:
-        #             node.SetSolutionStepValue(
-        #                 KratosMultiphysics.BODY_FORCE, [0, 0, 0])
-
 
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
@@ -359,38 +350,17 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
-    # TODO:This is a test for do nothing outlet condition.
-
-    # def SolveSolutionStep(self):
-    #     n_it =6
-
-    #     for k in range(n_it):
-    #         is_converged = self._GetSolutionStrategy().SolveSolutionStep()
-    #         for node in self.GetComputingModelPart().Nodes:
-    #             if node.Is(KratosMultiphysics.OUTLET):
-    #                 p=node.GetSolutionStepValue(KratosMultiphysics.PRESSURE)
-    #                 node.SetSolutionStepValue(KratosMultiphysics.EXTERNAL_PRESSURE,p)
-    #         if not is_converged:
-    #             msg = "Fluid solver did not converge for step " + \
-    #                 str(
-    #                     self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
-    #             msg += "corresponding to time " + \
-    #                 str(
-    #                     self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-    #             KratosMultiphysics.Logger.PrintWarning(
-    #                 self.__class__.__name__, msg)
-    #         return is_converged
-
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         # Recompute the distance field according to the new level-set position
-        if self._reinitialization_type != "none":
-            self._GetDistanceReinitializationProcess().Execute()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        if self.current_step > self.water_steps:
+            if self._reinitialization_type != "none":
+                self._GetDistanceReinitializationProcess().Execute()
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
-        # Prepare distance correction for next step
-        self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+            # Prepare distance correction for next step
+            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
         # Finalize the solver current step
         self._GetSolutionStrategy().FinalizeSolutionStep()
@@ -464,8 +434,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                     neg_nodes+=1
             if neg_nodes>0 and pos_nodes>0:
                 elem_artificial_viscosity= 0.0
-            # elif pos_nodes==3:
-            #     elem_artificial_viscosity = 0.0
 
             element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
 
@@ -803,4 +771,84 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         return self.edge_based_level_set_convection_process
     def __PerformEdgeBasedLevelSetConvection(self):
         self._GetEdgeBasedLevelSetConvectionProcess().Execute()
+
+
+
+
+
+    def FlagingPreBlock(self):
+        for node in self.main_model_part.Nodes:
+            if node.IsFixed(KratosMultiphysics.VELOCITY_X):
+                node.Set(KratosMultiphysics.RIGID, True)
+            elif node.IsFixed(KratosMultiphysics.VELOCITY_Y):
+                node.Set(KratosMultiphysics.RIGID, True)
+            elif node.IsFixed(KratosMultiphysics.VELOCITY_Z):
+                node.Set(KratosMultiphysics.RIGID, True)
+
+    def BlockAndFix(self, velocity, pressure,node):
+        if node.IsNot(KratosMultiphysics.RIGID):
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, velocity)
+            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, pressure)
+            node.Fix(KratosMultiphysics.VELOCITY_X)
+            node.Fix(KratosMultiphysics.VELOCITY_Y)
+            node.Fix(KratosMultiphysics.VELOCITY_Z)
+
+    def FreeAll(self,node):
+        if node.IsNot(KratosMultiphysics.RIGID):
+            node.Free(KratosMultiphysics.VELOCITY_X)
+            node.Free(KratosMultiphysics.VELOCITY_Y)
+            node.Free(KratosMultiphysics.VELOCITY_Z)
+    def DetectedCutElements(self):
+        for element in self.main_model_part.Elements:
+            pos_node=0.0
+            neg_node=0.0
+            nodes= element.GetNodes()
+            for node in nodes:
+                phi =node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if phi>0.0:
+                    pos_node+=1
+                else:
+                    neg_node+=1
+            if neg_node>0 and pos_node>0:
+                # cut element
+                for node in nodes:
+                    node.Set(KratosMultiphysics.SOLID,True)
+
+
+    def PreBloquedProcess(self):
+        for node in self.main_model_part.Nodes:
+            phi = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            if self.air_bloqued:
+                if phi>0:
+                    velocity=[0.0,0.0,0.0]
+                    pressure=0.0
+                    self.BlockAndFix(velocity, pressure, node)
+
+            elif self.water_bloqued:
+                if phi<0:
+                    velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
+                    pressure = node.GetSolutionStepValue(KratosMultiphysics.PRESSURE, 1)
+                    self.BlockAndFix(velocity,pressure,node)
+                    node.Fix(KratosMultiphysics.PRESSURE)
+
+                elif phi>0.0:
+                    self.FreeAll(node)
+            # elif node.Is(KratosMultiphysics.SOLID):
+            #     if self.current_step<self.air_steps:
+            #         velocity = [0.0, 0.0, 0.0]
+            #         pressure=0.0
+            #         self.BlockAndFix(velocity, pressure, node)
+
+
+            else:
+                self.FreeAll(node)
+                node.Free(KratosMultiphysics.PRESSURE)
+
+
+
+
+
+
+
+
 
