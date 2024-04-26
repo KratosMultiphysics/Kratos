@@ -107,7 +107,7 @@ public:
         const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
+        RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
 
         Matrix         Nu                 = ZeroMatrix(dimension, number_U_nodes * dimension);
         Matrix         aux_density_matrix = ZeroMatrix(dimension, number_U_nodes * dimension);
@@ -117,7 +117,7 @@ public:
 
         for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
             const double degree_of_saturation = CalculateDegreeOfSaturation(
-                g_point, Np_container, pressure_vector, RetentionParameters, rRetentionLawVector);
+                g_point, Np_container, pressure_vector, retention_parameters, rRetentionLawVector);
 
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
 
@@ -159,7 +159,7 @@ public:
         const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
 
         // Create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
+        RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
 
         BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
         BoundedMatrix<double, TDim, TNumNodes * TDim> aux_density_matrix = ZeroMatrix(TDim, TNumNodes * TDim);
@@ -168,7 +168,7 @@ public:
 
         for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
             const double degree_of_saturation = CalculateDegreeOfSaturation(
-                g_point, N_container, pressure_vector, RetentionParameters, rRetentionLawVector);
+                g_point, N_container, pressure_vector, retention_parameters, rRetentionLawVector);
 
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
 
