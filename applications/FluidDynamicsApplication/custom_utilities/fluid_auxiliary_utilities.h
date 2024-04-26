@@ -230,6 +230,8 @@ public:
         ModelPart& rModelPart,
         const bool CalculateNodalNeighbours = true);
 
+    static void PostprocessP2P1ContinuousPressure(ModelPart& rModelPart);
+
     ///@}
 private:
 
@@ -299,6 +301,22 @@ private:
         Matrix& rShapeFunctions,
         std::vector<array_1d<double,3>>& rNormals,
         Vector& rWeights);
+
+    static void PostprocessP2P1NodePressure(
+        GeometryType& rGeometry,
+        const std::size_t PostNodeLocalId,
+        const std::size_t EdgeNodeLocalIdI,
+        const std::size_t EdgeNodeLocalIdJ)
+    {
+        if (rGeometry[PostNodeLocalId].IsNot(VISITED)) {
+            rGeometry[PostNodeLocalId].SetLock();
+            const double p_i = rGeometry[EdgeNodeLocalIdI].FastGetSolutionStepValue(PRESSURE);
+            const double p_j = rGeometry[EdgeNodeLocalIdJ].FastGetSolutionStepValue(PRESSURE);
+            rGeometry[PostNodeLocalId].FastGetSolutionStepValue(PRESSURE) = 0.5 * (p_i + p_j);
+            rGeometry[PostNodeLocalId].Set(VISITED, true);
+            rGeometry[PostNodeLocalId].UnSetLock();
+        }
+    }
 
 };
 
