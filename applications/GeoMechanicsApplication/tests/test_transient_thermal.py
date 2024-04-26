@@ -11,6 +11,7 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
     etalon_value2 = 17.55892791313559322
     etalon_value3 = 41.3797035928672316
     etalon_value4 = 35.31073446327683615819
+    etalon_value5 = 26.6666666666666667
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
@@ -395,6 +396,48 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         temperature = test_helper.get_temperature(simulation)
         temp = temperature[4]
         self.assertAlmostEqual(6.1263675349643965, temp)
+        
+    def test_thermal_line_element_2D2N(self):
+        test_name = 'test_thermal_line_element_2D2N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        self.assertAlmostEqual(self.etalon_value5, temperature[2])
+        
+    def test_thermal_line_element_2D3N(self):
+        test_name = 'test_thermal_line_element_2D3N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        self.assertAlmostEqual(self.etalon_value5, temperature[2])
+        
+    def test_thermal_line_element_2D4N(self):
+        test_name = 'test_thermal_line_element_2D4N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        self.assertAlmostEqual(self.etalon_value5, temperature[2])
+        
+    def test_thermal_line_element_2D5N(self):
+        test_name = 'test_thermal_line_element_2D5N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        self.assertAlmostEqual(self.etalon_value5, temperature[2])
+
+    def test_thermal_line_element_3D2N(self):
+        test_name = 'test_thermal_line_element_3D2N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        self.assertAlmostEqual(self.etalon_value5, temperature[2])
+        
+    def test_thermal_line_element_3D3N(self):
+        test_name = 'test_thermal_line_element_3D3N'
+        file_path = test_helper.get_file_path(os.path.join('test_thermal_element', 'test_thermal_line_element', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        self.assertAlmostEqual(self.etalon_value5, temperature[2])
 
 if __name__ == '__main__':
     KratosUnittest.main()
