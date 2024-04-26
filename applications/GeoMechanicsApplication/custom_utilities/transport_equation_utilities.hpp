@@ -104,8 +104,7 @@ public:
 
         const Matrix& Nu_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
         const Matrix  Np_container = rpPressureGeometry.ShapeFunctionsValues(IntegrationMethod);
-        const Vector  pressure_vector =
-            GeoTransportEquationUtilities::GetSolutionVector(number_P_nodes, rGeom, WATER_PRESSURE);
+        const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
@@ -157,8 +156,7 @@ public:
         const unsigned int number_G_points = integration_points.size();
 
         const Matrix& N_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
-        const Vector  pressure_vector =
-            GeoTransportEquationUtilities::GetSolutionVector(TNumNodes, rGeom, WATER_PRESSURE);
+        const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
 
         // Create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
@@ -227,9 +225,9 @@ private:
         return inner_prod(rNp, rPressureVector);
     }
 
-    static Vector GetSolutionVector(SizeType NumberPNodes, const Geometry<Node>& rGeom, const Variable<double>& rSolutionVariable)
+    static Vector GetSolutionVector(const Geometry<Node>& rGeom, const Variable<double>& rSolutionVariable)
     {
-        Vector solution_vector(NumberPNodes);
+        Vector solution_vector(rGeom.size());
         std::transform(rGeom.begin(), rGeom.end(), solution_vector.begin(),
                        [&rSolutionVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rSolutionVariable);
