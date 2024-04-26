@@ -275,7 +275,7 @@ BoundedMatrix<double, 3, 3>* mDifferentialStrainTensor;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
-virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
+virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3], double GlobalContactForce[3]);
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
 

@@ -887,7 +887,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce);
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
                 }
             }
 
@@ -2233,7 +2233,7 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         KRATOS_CATCH("")
     }
 
-    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3]) {
+    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
 
         KRATOS_TRY
 
@@ -2244,6 +2244,11 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         bond->mLocalContactForce[0] = LocalContactForce[0];
         bond->mLocalContactForce[1] = LocalContactForce[1];
         bond->mLocalContactForce[2] = LocalContactForce[2];
+
+        bond->mGlobalContactForce[0] = GlobalContactForce[0];
+        bond->mGlobalContactForce[1] = GlobalContactForce[1];
+        bond->mGlobalContactForce[2] = GlobalContactForce[2];
+        
         KRATOS_CATCH("")
     }
 

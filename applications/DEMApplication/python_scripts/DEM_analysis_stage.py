@@ -915,69 +915,90 @@ class DEMAnalysisStage(AnalysisStage):
         
         if type == "stress_tensor_modulus":
             
-            if self.DEM_parameters["PostStressStrainOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
                 
                 measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-                total_tensor_raw    = np.empty((3, 3))
                 total_tensor        = np.empty((3, 3))
-                total_tensor_raw[:] = 0.0
                 total_tensor[:]     = 0.0
                 stress_tensor_modulus = 0.0
 
-                for node in self.spheres_model_part.Nodes:
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
 
-                    r = node.GetSolutionStepValue(RADIUS)
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
 
-                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
 
-                    if center_to_sphere_distance < (radius - r):
-                        total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
+                total_tensor = total_tensor / measure_sphere_volume
                 
-                total_tensor = total_tensor_raw / measure_sphere_volume
-
                 stress_tensor_modulus = np.linalg.norm(total_tensor)
                 
                 return stress_tensor_modulus
             
             else:
                 
-                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
             
         
         if type == "stress_tensor":
             
-            measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-            
-            if self.DEM_parameters["PostStressStrainOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
                 
                 measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
-                total_tensor_raw    = np.empty((3, 3))
                 total_tensor        = np.empty((3, 3))
-                total_tensor_raw[:] = 0.0
                 total_tensor[:]     = 0.0
+                stress_tensor_modulus = 0.0
 
-                for node in self.spheres_model_part.Nodes:
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
 
-                    r = node.GetSolutionStepValue(RADIUS)
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
+                    center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
+                    center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
 
-                    center_to_sphere_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
-
-                    if center_to_sphere_distance < (radius - r):
-                        total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
+                    if (center_to_sphere_distance_0 < (radius - r)) or (center_to_sphere_distance_1 < (radius - r)):
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
                 
-                total_tensor = total_tensor_raw / measure_sphere_volume
+                total_tensor = total_tensor / measure_sphere_volume
 
                 return total_tensor
             
             else:
-
-                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
+                
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
             
         if type == "unbalanced_force":
 
@@ -1399,28 +1420,49 @@ class DEMAnalysisStage(AnalysisStage):
 
         if type == "stress_tensor_modulus":
             
-            if self.DEM_parameters["PostStressStrainOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
                 
                 measure_cubic_volume = side_length ** 3
-                total_tensor_raw    = np.empty((3, 3))
                 total_tensor        = np.empty((3, 3))
-                total_tensor_raw[:] = 0.0
                 total_tensor[:]     = 0.0
                 stress_tensor_modulus = 0.0
 
-                for node in self.spheres_model_part.Nodes:
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
 
-                    r = node.GetSolutionStepValue(RADIUS)
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
 
-                    if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
-                        if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
-                            if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
-                                total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
-                
-                total_tensor = total_tensor_raw / measure_cubic_volume
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside or sphere_1_is_inside:
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+
+                total_tensor = total_tensor / measure_cubic_volume
 
                 stress_tensor_modulus = np.linalg.norm(total_tensor)
                 
@@ -1428,38 +1470,59 @@ class DEMAnalysisStage(AnalysisStage):
             
             else:
                 
-                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
         
         if type == "stress_tensor":
             
-            if self.DEM_parameters["PostStressStrainOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
                 
                 measure_cubic_volume = side_length ** 3
-                total_tensor_raw    = np.empty((3, 3))
                 total_tensor        = np.empty((3, 3))
-                total_tensor_raw[:] = 0.0
                 total_tensor[:]     = 0.0
                 stress_tensor_modulus = 0.0
 
-                for node in self.spheres_model_part.Nodes:
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
 
-                    r = node.GetSolutionStepValue(RADIUS)
-                    x = node.X
-                    y = node.Y
-                    z = node.Z
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
 
-                    if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
-                        if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
-                            if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
-                                total_tensor_raw = node.GetSolutionStepValue(DEM_STRESS_TENSOR_RAW)
-                
-                total_tensor = total_tensor_raw / measure_cubic_volume
-                
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside or sphere_1_is_inside:
+                        
+                        local_contact_force_X = element.GetValue(GLOBAL_CONTACT_FORCE)[0]
+                        local_contact_force_Y = element.GetValue(GLOBAL_CONTACT_FORCE)[1]
+                        local_contact_force_Z = element.GetValue(GLOBAL_CONTACT_FORCE)[2]
+                        contact_force_vector = np.array([local_contact_force_X , local_contact_force_Y, local_contact_force_Z])
+                        vector_l = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        tensor = np.outer(contact_force_vector, vector_l)
+                        total_tensor += tensor
+
+                total_tensor = total_tensor / measure_cubic_volume
+
                 return total_tensor
             
             else:
                 
-                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
             
         if type == "unbalanced_force":
 
