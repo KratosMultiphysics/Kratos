@@ -461,8 +461,6 @@ void HydraulicFluidAuxiliaryUtilities::FixCornerNodeVelocity(ModelPart &rModelPa
                                 if (edgelist[edge][i].Id()==1031)
                                 {
                                     auto geom = cond_it->GetGeometry();
-                                    KRATOS_WATCH(geom.Id())
-                                    KRATOS_WATCH(repeated)
                                 }
 
                             }
@@ -577,7 +575,6 @@ bool HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(ModelPart &rModel
                                                       { return rNode.Z(); });
 
     ;
-    KRATOS_WATCH(min_Z);
     double maximum_water_depth_change = false;
     block_for_each(rModelPart.Nodes(), [&](Node &rNode)
                    {
@@ -585,9 +582,6 @@ bool HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(ModelPart &rModel
 
             double inlet_phi = rNode.GetValue(AUX_DISTANCE);
             double domain_phi = rNode.FastGetSolutionStepValue(DISTANCE);
-            KRATOS_WATCH(inlet_phi);
-            KRATOS_WATCH(domain_phi);
-
             if (std::abs(domain_phi) > std::abs(inlet_phi))
             {
                 maximum_water_depth_change=true;
@@ -601,4 +595,36 @@ bool HydraulicFluidAuxiliaryUtilities::MaximumWaterDepthChange(ModelPart &rModel
         } });
     return maximum_water_depth_change;
 }
-                                    } // namespace Kratos
+                                    
+
+void HydraulicFluidAuxiliaryUtilities::CalculateArtificialViscosity(ModelPart &rModelPart,double WaterDynamicViscosityMax){
+    const auto &r_process_info = rModelPart.GetProcessInfo();
+    block_for_each(rModelPart.Elements(), [&](Element &rElement)
+    {
+    double artificial_viscosity;
+    rElement.Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY,artificial_viscosity ,r_process_info);
+        if (artificial_viscosity > WaterDynamicViscosityMax)
+        {
+            artificial_viscosity = WaterDynamicViscosityMax;
+        }
+        double neg_nodes = 0.0;
+        double pos_nodes=0.0;
+        for (auto &r_node : rElement.GetGeometry())
+        {
+            double distance = r_node.FastGetSolutionStepValue(DISTANCE);
+            
+            if (distance > 0){
+                pos_nodes += 1;
+            }
+            else{
+                neg_nodes += 1;
+            }
+        }
+        if (neg_nodes > 0 && pos_nodes > 0){
+            artificial_viscosity = 0.0;
+            }
+            rElement.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity);
+    });
+}
+
+} // namespace Kratos

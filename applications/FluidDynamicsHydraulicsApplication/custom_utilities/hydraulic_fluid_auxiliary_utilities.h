@@ -146,6 +146,13 @@ public:
      * @param  rDistancesVariable Variable name of the inlet distance.
      */
     static bool MaximumWaterDepthChange(ModelPart &rModelPart);
+    /**
+     * @brief  Set the free surface (DISTANCE) in the rModelPart equal to the water depth corresponding to Froude 1
+     * @param  rModelPart Inlet Model Part
+     * @param  rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @param  rDistancesVariable Variable name of the inlet distance.
+     */
+    static void CalculateArtificialViscosity(ModelPart &rModelPart, double WaterDynamicViscosityMax);
     ///@}
 
 private:
