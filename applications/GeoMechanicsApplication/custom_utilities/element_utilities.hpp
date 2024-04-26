@@ -46,10 +46,10 @@ public:
                                          unsigned int       GPoint)
     {
         for (unsigned int i = 0; i < Dim; ++i) {
-            unsigned int index = i - Dim;
+            unsigned int index = i;
             for (unsigned int j = 0; j < NumNodes; ++j) {
-                index += Dim;
                 rNu(i, index) = NContainer(GPoint, j);
+                index += Dim;
             }
         }
     }
