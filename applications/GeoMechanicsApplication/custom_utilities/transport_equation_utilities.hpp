@@ -87,8 +87,8 @@ public:
         return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
     }
 
-    static Matrix CalculateMassMatrixDiffOrder(const Geometry<Node>&          rGeom,
-                                               const Geometry<Node>::Pointer& rpPressureGeometry,
+    static Matrix CalculateMassMatrixDiffOrder(const Geometry<Node>& rGeom,
+                                               const Geometry<Node>& rpPressureGeometry,
                                                const GeometryData::IntegrationMethod IntegrationMethod,
                                                const StressStatePolicy& rStressStatePolicy,
                                                const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
@@ -98,12 +98,12 @@ public:
         const SizeType dimension          = rGeom.WorkingSpaceDimension();
         const SizeType number_U_nodes     = rGeom.PointsNumber();
         const SizeType block_element_size = number_U_nodes * dimension;
-        const SizeType number_P_nodes     = rpPressureGeometry->PointsNumber();
+        const SizeType number_P_nodes     = rpPressureGeometry.PointsNumber();
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
 
         const Matrix& Nu_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
-        const Matrix  Np_container = rpPressureGeometry->ShapeFunctionsValues(IntegrationMethod);
+        const Matrix  Np_container = rpPressureGeometry.ShapeFunctionsValues(IntegrationMethod);
         const Vector  pressure_vector =
             GeoTransportEquationUtilities::GetSolutionVector(number_P_nodes, rGeom, WATER_PRESSURE);
 
@@ -115,7 +115,7 @@ public:
         Matrix         density_matrix     = ZeroMatrix(dimension, dimension);
         const SizeType element_size       = block_element_size + number_P_nodes;
         Matrix         mass_matrix        = ZeroMatrix(element_size, element_size);
-        
+
         for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
             const double degree_of_saturation = CalculateDegreeOfSaturation(
                 g_point, Np_container, pressure_vector, RetentionParameters, rRetentionLawVector);
