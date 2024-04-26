@@ -28,6 +28,9 @@
 namespace Kratos
 {
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 Element::Pointer SmallDisplacementMixedStrainDisplacementElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
@@ -186,7 +189,8 @@ void SmallDisplacementMixedStrainDisplacementElement::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedStrainDisplacementElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
+void SmallDisplacementMixedStrainDisplacementElement::Initialize(
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -206,19 +210,22 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(const ProcessIn
 
     }
 
-    KRATOS_CATCH( "" )
+    // mIntegrationPointsArray = GetIntegrationPoints();
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
 
     bool required = false;
-    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
             required = true;
             break;
@@ -267,13 +274,14 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(con
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -327,7 +335,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(const
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -339,13 +347,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    auto &r_props    = GetProperties();
+    auto &r_props          = GetProperties();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau = GetStabilizationFactor();
+    const double tau    = GetStabilizationFactor();
     const double lambda = GetScalingFactor();
 
     // Check RHS size
@@ -416,14 +424,14 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= GetScalingFactor() * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
+        noalias(RHSe) -= lambda * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Contributions to the LHS
         noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(M) += GetScalingFactor() * (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
-        noalias(G) += GetScalingFactor() * (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
+        noalias(M) += lambda * (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
+        noalias(G) += lambda * (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
@@ -436,7 +444,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo)
 {
-
+    // tODO
 }
 
 /***********************************************************************************/
@@ -447,13 +455,13 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
-    auto &r_props    = GetProperties();
+    auto &r_props          = GetProperties();
     const SizeType dim     = r_geometry.WorkingSpaceDimension();
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
     const SizeType block_size  = dim + strain_size;
     const SizeType matrix_size = block_size * n_nodes;
-    const double tau = GetStabilizationFactor();
+    const double tau    = GetStabilizationFactor();
     const double lambda = GetScalingFactor();
 
     // Check RHS size
@@ -512,7 +520,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= GetScalingFactor() * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
+        noalias(RHSe) -= lambda * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
     }
     AssembleRHS(rRHS, RHSu, RHSe);
