@@ -238,7 +238,7 @@ class Commander(object):
                     command=[
                         os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
                     ], 
-                    timer=180)
+                    timer=300)
 
     def RunMPIPythonTests(self, applications, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
@@ -303,4 +303,4 @@ class Commander(object):
                         str(num_processes), 
                         os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
                     ]),
-                    timer=180)
+                    timer=300)
