@@ -12,13 +12,13 @@
 
 #pragma once
 
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
 
 class Element;
-class Parameters;
 class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Process
@@ -26,16 +26,21 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Pro
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyK0ProcedureProcess);
 
-    ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters&);
+    ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters& rK0Settings);
     ~ApplyK0ProcedureProcess() override = default;
 
-    void ExecuteFinalizeSolutionStep() override;
+    void ExecuteInitialize() override;
+    void ExecuteFinalize() override;
+
+    void        ExecuteFinalizeSolutionStep() override;
     std::string Info() const override;
 
 private:
-    ModelPart& mrModelPart;
+    [[nodiscard]] bool UseStandardProcedure() const;
+    void               CalculateK0Stresses(Element& rElement);
 
-    void CalculateK0Stresses(Element& rElement);
+    ModelPart&       mrModelPart;
+    const Parameters mSettings;
 };
 
 } // namespace Kratos

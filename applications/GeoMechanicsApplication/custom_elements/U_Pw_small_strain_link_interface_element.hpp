@@ -56,35 +56,39 @@ public:
     UPwSmallStrainLinkInterfaceElement() : UPwSmallStrainInterfaceElement<TDim, TNumNodes>() {}
 
     // Constructor 1
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainLinkInterfaceElement(IndexType                          NewId,
+                                       GeometryType::Pointer              pGeometry,
+                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     // Constructor 2
-    UPwSmallStrainLinkInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainLinkInterfaceElement(IndexType                          NewId,
+                                       GeometryType::Pointer              pGeometry,
+                                       PropertiesType::Pointer            pProperties,
+                                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    // Destructor
-    ~UPwSmallStrainLinkInterfaceElement() override {}
+    ~UPwSmallStrainLinkInterfaceElement() = default;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     // Turn back information as a string.
     std::string Info() const override
@@ -109,11 +113,11 @@ protected:
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

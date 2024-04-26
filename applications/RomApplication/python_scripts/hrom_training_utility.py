@@ -64,10 +64,13 @@ class HRomTrainingUtility(object):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
 
 
+        #TODO use cpp mappings
+        root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+        number_of_elements = root_model_part.NumberOfElements()
+        self._setup_mappings(root_model_part, number_of_elements)
+
         # getting initial candidate ids for empirical cubature
         initial_candidate_elements_model_part_list = settings["initial_candidate_elements_model_part_list"].GetStringArray()
-        initial_candidate_conditions_model_part_list = settings["initial_candidate_conditions_model_part_list"].GetStringArray()
-
         candidate_ids = np.empty(0)
         for model_part_name in initial_candidate_elements_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
@@ -80,16 +83,19 @@ class HRomTrainingUtility(object):
             else:
                 this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(candidate_elements_model_part)
             if len(this_modelpart_element_ids)>0:
-                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_element_ids)]
+                this_modelpart_element_ids = self.map_element_ids_to_numpy_indexes(this_modelpart_element_ids)
+                candidate_ids = np.r_[candidate_ids, this_modelpart_element_ids]
 
-        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
+
+        initial_candidate_conditions_model_part_list = settings["initial_candidate_conditions_model_part_list"].GetStringArray()
+
         for model_part_name in initial_candidate_conditions_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
             this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
             if len(this_modelpart_condition_ids)>0:
-                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
-
+                this_modelpart_condition_ids = self.map_condition_ids_to_numpy_indexes(this_modelpart_condition_ids)
+                candidate_ids = np.r_[candidate_ids, this_modelpart_condition_ids]
         if np.size(candidate_ids)>0:
             self.candidate_ids = np.unique(candidate_ids).astype(int)
         else:
@@ -98,6 +104,47 @@ class HRomTrainingUtility(object):
         # Rom settings files
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
+
+    def _setup_mappings(self, root_model_part, number_of_elements):
+        self.element_id_to_numpy_index_mapping = {}
+        self.numpy_index_to_element_id_mapping = {}
+        for index, element in enumerate(root_model_part.Elements):
+            self.numpy_index_to_element_id_mapping[index] = element.Id-1 #FIXME -1
+            self.element_id_to_numpy_index_mapping[element.Id-1] = index #FIXME -1
+
+        self.condition_id_to_numpy_index_mapping = {}
+        self.numpy_index_to_condition_id_mapping = {}
+        for index, condition in enumerate(root_model_part.Conditions):
+            self.numpy_index_to_condition_id_mapping[index+number_of_elements] = condition.Id -1 +number_of_elements  #FIXME -1 #FIXME +number_of_elements We should remove redundant fixes
+            self.condition_id_to_numpy_index_mapping[condition.Id-1] = index+number_of_elements #FIXME -1
+
+
+    def map_condition_ids_to_numpy_indexes(self, this_modelpart_condition_ids):
+        this_modelpart_indexes_numpy = []
+        for cond_id in this_modelpart_condition_ids:
+            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[cond_id])
+        return np.array(this_modelpart_indexes_numpy)
+
+
+    def map_element_ids_to_numpy_indexes(self, this_modelpart_element_ids):
+        this_modelpart_indexes_numpy = []
+        for elem_id in this_modelpart_element_ids:
+            this_modelpart_indexes_numpy.append(self.condition_id_to_numpy_index_mapping[elem_id])
+        return np.array(this_modelpart_indexes_numpy)
+
+
+    def map_numpy_indexes_to_element_and_conditions_ids(self,indexes,number_of_elements):
+
+        kratos_indexes = []
+        for i in range(np.size(indexes)):
+            if indexes[i]<=number_of_elements-1:
+                kratos_indexes.append(self.numpy_index_to_element_id_mapping[indexes[i]])
+            else:
+                kratos_indexes.append(self.numpy_index_to_condition_id_mapping[indexes[i]])
+
+        return np.array(kratos_indexes) #FIXME -1
+
+
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -241,12 +288,9 @@ class HRomTrainingUtility(object):
         return default_settings
 
     def __CalculateResidualBasis(self):
-        # Set up the residual snapshots matrix
-        residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
-
-        # Calculate the randomized and truncated SVD of the residual snapshots
+        # Calculate the randomized and truncated SVD of the residual snapshots #TODO add other SVD options
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-            residuals_snapshot_matrix,
+            self._GetResidualsProjectedMatrix(),
             self.element_selection_svd_truncation_tolerance)
 
         return u
@@ -254,13 +298,7 @@ class HRomTrainingUtility(object):
 
 
     def _GetResidualsProjectedMatrix(self):
-        # Set up the residual snapshots matrix
-        n_steps = len(self.time_step_residual_matrix_container)
-        residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
-        for i in range(1,n_steps):
-            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
-        return residuals_snapshot_matrix
+        return np.block(self.time_step_residual_matrix_container)
 
 
 
@@ -268,6 +306,7 @@ class HRomTrainingUtility(object):
         number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
+        indexes = self.map_numpy_indexes_to_element_and_conditions_ids(indexes,number_of_elements)
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
         hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)

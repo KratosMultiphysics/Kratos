@@ -63,8 +63,10 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    GeoCurvedBeamElement(IndexType NewId = 0) : GeoStructuralBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit GeoCurvedBeamElement(IndexType NewId = 0)
+        : GeoStructuralBaseElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     GeoCurvedBeamElement(IndexType NewId, const NodesArrayType& ThisNodes)
@@ -85,13 +87,12 @@ public:
         mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
-    /// Destructor
-    virtual ~GeoCurvedBeamElement() {}
+    ~GeoCurvedBeamElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -103,11 +104,11 @@ public:
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -120,30 +121,30 @@ protected:
 
     double CalculateIntegrationCoefficient(unsigned int GPointCross, double detJ, double weight) const;
 
-    virtual void CalculateBMatrix(Matrix& B,
-                                  unsigned int GPointCross,
+    virtual void CalculateBMatrix(Matrix&                                  B,
+                                  unsigned int                             GPointCross,
                                   const BoundedMatrix<double, TDim, TDim>& InvertDetJacobian,
-                                  ElementVariables& rVariables) const;
+                                  ElementVariables&                        rVariables) const;
 
-    virtual void CalculateLocalBMatrix(Matrix& B,
-                                       unsigned int GPointCross,
+    virtual void CalculateLocalBMatrix(Matrix&                                  B,
+                                       unsigned int                             GPointCross,
                                        const BoundedMatrix<double, TDim, TDim>& InvertDetJacobian,
-                                       ElementVariables& rVariables) const;
+                                       ElementVariables&                        rVariables) const;
 
     void CalculateStrainVector(ElementVariables& rVariables) const;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo,
-                              const bool CalculateStiffnessMatrixFlag,
-                              const bool CalculateResidualVectorFlag) override;
+                              const bool         CalculateStiffnessMatrixFlag,
+                              const bool         CalculateResidualVectorFlag) override;
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    virtual void CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                     ElementVariables& rVariables,
-                                    unsigned int GPoint) const;
+                                    unsigned int      GPoint) const;
 
     virtual void CalculateLocalInternalForce(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
@@ -156,21 +157,21 @@ protected:
     virtual double CalculateAngleAtNode(unsigned int GPoint,
                                         const BoundedMatrix<double, TNumNodes, TNumNodes>& DN_DXContainer) const;
 
-    virtual void CalculateJacobianMatrix(unsigned int GPointCross,
+    virtual void CalculateJacobianMatrix(unsigned int            GPointCross,
                                          const ElementVariables& rVariables,
                                          BoundedMatrix<double, TDim, TDim>& DeterminantJacobian) const;
 
     void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
+    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
                                        ElementVariables& rVariables,
-                                       unsigned int GPoint) const;
+                                       unsigned int      GPoint) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
 
-    void InitializeElementVariables(ElementVariables& rVariables,
+    void InitializeElementVariables(ElementVariables&            rVariables,
                                     ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    const GeometryType& Geom,
-                                    const PropertiesType& Prop,
+                                    const GeometryType&          Geom,
+                                    const PropertiesType&        Prop,
                                     const ProcessInfo& rCurrentProcessInfo) const override;
 
     void InterpolateOnOutputPoints(Matrix& Values) const;

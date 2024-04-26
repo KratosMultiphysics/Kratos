@@ -85,11 +85,20 @@ public:
     void AccumulateTotalDisplacementField() override{
         // intentionally empty
     };
+    void ComputeIncrementalDisplacementField() override{
+        // intentionally empty
+    };
     void OutputProcess() override{
         // intentionally empty
     };
 
     void Initialize() override { ++mSolverStrategyInitializeCalls; }
+
+    void InitializeOutput() override
+    {
+        // Intentionally empty
+    }
+
     void InitializeSolutionStep() override
     {
         ++mSolverStrategyInitializeSolutionStepCalls;

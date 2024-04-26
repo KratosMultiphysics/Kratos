@@ -33,8 +33,8 @@ GeoCrBeamElement3D2N::GeoCrBeamElement3D2N(IndexType NewId, GeometryType::Pointe
 }
 
 //----------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElement3D2N::Create(IndexType NewId,
-                                              NodesArrayType const& rThisNodes,
+Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
+                                              NodesArrayType const&   rThisNodes,
                                               PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
@@ -42,15 +42,12 @@ Element::Pointer GeoCrBeamElement3D2N::Create(IndexType NewId,
 }
 
 //----------------------------------------------------------------------------------------------------
-Element::Pointer GeoCrBeamElement3D2N::Create(IndexType NewId,
-                                              GeometryType::Pointer pGeom,
+Element::Pointer GeoCrBeamElement3D2N::Create(IndexType               NewId,
+                                              GeometryType::Pointer   pGeom,
                                               PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_intrusive<GeoCrBeamElement3D2N>(NewId, pGeom, pProperties);
 }
-
-//----------------------------------------------------------------------------------------------------
-GeoCrBeamElement3D2N::~GeoCrBeamElement3D2N() {}
 
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
@@ -73,7 +70,7 @@ void GeoCrBeamElement3D2N::ResetConstitutiveLaw()
 }
 
 //-------------------------------------------------------------------------------------------------
-void GeoCrBeamElement3D2N::ConstCalculateRightHandSide(VectorType& rRightHandSideVector,
+void GeoCrBeamElement3D2N::ConstCalculateRightHandSide(VectorType&        rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY

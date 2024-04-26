@@ -16,13 +16,12 @@ CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication
 CALL :add_app %KRATOS_APP_DIR%\DEMApplication
 CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication
-CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\MPMApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 CALL :add_app %KRATOS_APP_DIR%\DamApplication;
 CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
@@ -39,6 +38,7 @@ CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
 CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
+CALL :add_app %KRATOS_APP_DIR%\MedApplication;
 CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
@@ -63,6 +63,7 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
 -DKRATOS_BUILD_TESTING=ON                                                                   ^
 -DHDF5_ROOT="c:\hdf5\bin"                                                                   ^
+-DMED_ROOT="c:\med\bin"                                                                     ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 :add_app

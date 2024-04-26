@@ -10,8 +10,8 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED)
-#define  KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED
+#if !defined(KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED)
+#define KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED
 
 // System includes
 
@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/constitutive_law.h"
+#include "linear_elastic_law.h"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -52,16 +52,13 @@ namespace Kratos
  * @details This class derives from the base constitutive law
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ElasticIsotropicK03DLaw
-    : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ElasticIsotropicK03DLaw : public GeoLinearElasticLaw
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
-    /// The base class ConstitutiveLaw type definition
-    using BaseType = ConstitutiveLaw;
+    using BaseType = GeoLinearElasticLaw;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -73,7 +70,7 @@ public:
     static constexpr SizeType VoigtSize = VOIGT_SIZE_3D;
 
     /// Counted pointer of ElasticIsotropicK03DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropicK03DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(ElasticIsotropicK03DLaw);
 
     ///@}
     ///@name Life Cycle
@@ -92,8 +89,6 @@ public:
     ///@name Operations
     ///@{
 
-    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
     /**
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures The Features of the law
@@ -101,129 +96,16 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-    * @brief Dimension of the law:
-    */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    };
+     * @brief Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override { return Dimension; }
 
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override
-    {
-        return VoigtSize;
-    };
-
-    /**
-     * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
-     * @return the expected strain measure
-     */
-    StrainMeasure GetStrainMeasure() override
-    {
-        return StrainMeasure_Infinitesimal;
-    }
-
-    /**
-     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    StressMeasure GetStressMeasure() override
-    {
-        return StressMeasure_Cauchy;
-    }
-
-    /**
-     * @brief Computes the material response:
-     * @details PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-     * @brief Computes the material response:
-     * @details PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-     * @brief Computes the material response:
-     * @details Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-     * @brief Computes the material response:
-     * @details Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
-
-    bool RequiresFinalizeMaterialResponse() override;
-
-    /**
-     * @brief It calculates the value of a specified variable (double case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<double>& rThisVariable,
-                           double& rValue) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Vector case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Vector>& rThisVariable,
-                           Vector& rValue) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Matrix case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                           const Variable<Matrix>& rThisVariable,
-                           Matrix& rValue) override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
-     * @param rMaterialProperties The properties of the material
-     * @param rElementGeometry The geometry of the element
-     * @param rCurrentProcessInfo The current process info instance
-     * @return 0 if OK, 1 otherwise
-     */
-    int Check(const Properties& rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void SetValue( const Variable<double>& rVariable,
-                   const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override {}
-
-    void SetValue( const Variable<Vector>& rVariable,
-                   const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override {}
-
+    SizeType GetStrainSize() const override { return VoigtSize; }
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -240,17 +122,11 @@ protected:
     ///@{
 
     /**
-    * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
-    * @param rConstitutiveMatrix The constitutive matrix
-    */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix) const;
-
-    /**
-    * @brief It calculates the constitutive matrix rConstitutiveMatrix
-    * @param rConstitutiveMatrix The constitutive matrix
-    * @param rValues Parameters of the constitutive law
-    */
-    virtual void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, ConstitutiveLaw::Parameters& rValues);
+     * @brief It calculates the constitutive matrix rConstitutiveMatrix
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
+    void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the stress vector
@@ -258,21 +134,20 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    virtual void CalculatePK2Stress(const Vector& rStrainVector,
-                                    Vector& rStressVector,
-                                    ConstitutiveLaw::Parameters& rValues);
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
+                            ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the strain vector
      * @param rValues The internal values of the law
      * @param rStrainVector The strain vector in Voigt notation
      */
-    virtual void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector);
+    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -300,13 +175,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     }
 }; // Class ElasticIsotropicK03DLaw
-}  // namespace Kratos.
+} // namespace Kratos.
 #endif // KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED  defined
