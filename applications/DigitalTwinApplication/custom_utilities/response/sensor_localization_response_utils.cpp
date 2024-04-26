@@ -93,14 +93,14 @@ void SensorLocalizationResponseUtils::ComputeClusterDifference(Matrix& rOutput) 
 
     noalias(rOutput) = ZeroMatrix(number_of_elements, number_of_elements);
 
-    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
-        const double sensor_status = (r_model_part.NodesBegin() + SensorIndex)->GetValue(SENSOR_STATUS);
-        const auto& r_matrix = mClusterData[SensorIndex];
-        for (IndexType i = 0; i < number_of_elements; ++i) {
+    IndexPartition<IndexType>(number_of_elements).for_each([&](const auto i) {
+        for (IndexType k_sensor = 0; k_sensor < r_model_part.NumberOfNodes(); ++k_sensor) {
+            const double sensor_status = (r_model_part.NodesBegin() + k_sensor)->GetValue(SENSOR_STATUS);
+            const auto& r_matrix = mClusterData[k_sensor];
             for (IndexType j = i + 1; j < number_of_elements; ++j) {
                 const double value = sensor_status * r_matrix(i, j);
-                AtomicAdd<double>(rOutput(i, j), value);
-                AtomicAdd<double>(rOutput(j, i), value);
+                rOutput(i, j) += value;
+                rOutput(j, i) += value;
             }
         }
     });
