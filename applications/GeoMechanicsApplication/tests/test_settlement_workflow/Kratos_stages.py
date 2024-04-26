@@ -6,7 +6,7 @@ from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import Geo
 if __name__ == "__main__":
 
     # construct parameterfile names of stages to run
-    n_stages = 1
+    n_stages = 4
     parameter_file_names = ['ProjectParameters_stage' + str(i + 1) + '.json' for i in
                             range(n_stages)]
 
