@@ -88,7 +88,7 @@ public:
     }
 
     static Matrix CalculateMassMatrixDiffOrder(const Geometry<Node>& rGeom,
-                                               const Geometry<Node>& rpPressureGeometry,
+                                               const Geometry<Node>& rPressureGeometry,
                                                const GeometryData::IntegrationMethod IntegrationMethod,
                                                const StressStatePolicy& rStressStatePolicy,
                                                const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
@@ -98,12 +98,12 @@ public:
         const SizeType dimension          = rGeom.WorkingSpaceDimension();
         const SizeType number_U_nodes     = rGeom.PointsNumber();
         const SizeType block_element_size = number_U_nodes * dimension;
-        const SizeType number_P_nodes     = rpPressureGeometry.PointsNumber();
+        const SizeType number_P_nodes     = rPressureGeometry.PointsNumber();
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
 
         const Matrix& Nu_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
-        const Matrix  Np_container = rpPressureGeometry.ShapeFunctionsValues(IntegrationMethod);
+        const Matrix  Np_container = rPressureGeometry.ShapeFunctionsValues(IntegrationMethod);
         const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
 
         // create general parameters of retention law
