@@ -51,7 +51,9 @@ class SensorLocalizationResponse(ResponseFunction):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
         self.mask_model_part = self.model[self.mask_model_part_name]
-        self.utils = KratosDT.SensorLocalizationResponseUtils(self.model_part, self.p_coefficient)
+        list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
+        list_of_masks = [sensor.GetElementExpression(self.mask_expression_name) for sensor in list_of_sensors]
+        self.utils = KratosDT.SensorLocalizationResponseUtils(self.model_part, list_of_masks, self.p_coefficient)
 
     def Check(self) -> None:
         pass
@@ -68,9 +70,7 @@ class SensorLocalizationResponse(ResponseFunction):
         return None
 
     def CalculateValue(self) -> float:
-        list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
-        list_of_masks = [sensor.GetElementExpression(self.mask_expression_name) for sensor in list_of_sensors]
-        return self.utils.CalculateValue(list_of_masks)
+        return self.utils.CalculateValue()
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # make everything zeros
@@ -80,10 +80,7 @@ class SensorLocalizationResponse(ResponseFunction):
 
         for physical_variable, collective_expression in physical_variable_collective_expressions.items():
             if physical_variable == KratosDT.SENSOR_STATUS:
-                list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
-                list_of_masks = [sensor.GetElementExpression(self.mask_expression_name) for sensor in list_of_sensors]
-                sensitivity = self.utils.CalculateGradient(list_of_masks)
-                collective_expression.GetContainerExpressions()[0].SetExpression(sensitivity.GetExpression())
+                collective_expression.GetContainerExpressions()[0].SetExpression(self.utils.CalculateGradient().GetExpression())
             else:
                 raise RuntimeError("Unsupported physical variable.")
 

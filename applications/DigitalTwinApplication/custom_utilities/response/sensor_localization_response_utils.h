@@ -42,15 +42,16 @@ public:
 
     SensorLocalizationResponseUtils(
         ModelPart& rSensorModelPart,
+        const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList,
         const double P);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    double CalculateValue(const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList);
+    double CalculateValue() const;
 
-    ContainerExpression<ModelPart::NodesContainerType> CalculateGradient(const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList);
+    ContainerExpression<ModelPart::NodesContainerType> CalculateGradient() const;
 
     ///@}
 
@@ -62,13 +63,17 @@ private:
 
     const double mP;
 
+    std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer> mMasksList;
+
+    vector<matrix<bool>> mClusterData;
+
+    std::vector<double> mDomainSizeRatio;
+
     ///@}
     ///@name Private operations
     ///@{
 
-    void ComputeClusterDifference(
-        Matrix& rOutput,
-        const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList);
+    void ComputeClusterDifference(Matrix& rOutput) const;
 
     ///@}
 };

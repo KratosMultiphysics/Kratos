@@ -18,6 +18,7 @@
 #include "expression/literal_flat_expression.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "custom_utilities/smooth_clamper.h"
@@ -30,22 +31,61 @@ namespace Kratos {
 
 SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
     ModelPart& rSensorModelPart,
+    const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList,
     const double P)
     : mpSensorModelPart(&rSensorModelPart),
-      mP(P)
-{
-}
-
-
-void SensorLocalizationResponseUtils::ComputeClusterDifference(
-    Matrix& rOutput,
-    const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList)
+      mP(P),
+      mMasksList(rMasksList)
 {
     KRATOS_TRY
 
     auto& r_model_part = *mpSensorModelPart;
 
-    const IndexType number_of_elements = rMasksList.front()->GetContainer().size();
+    KRATOS_ERROR_IF(mMasksList.empty())
+        << "Masks list is empty.";
+
+    KRATOS_ERROR_IF_NOT(r_model_part.NumberOfNodes() == mMasksList.size())
+        << "Number of sensors and masks list mismatch [ number of sensors = "
+        << r_model_part.NumberOfNodes() << ", number of masks  = "
+        << mMasksList.size() << " ].\n";
+
+    const IndexType number_of_elements = mMasksList.front()->GetContainer().size();
+    mClusterData.resize(r_model_part.NumberOfNodes(), false);
+
+    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
+        const auto& r_mask_exp = mMasksList[SensorIndex]->GetExpression();
+        auto& r_matrix = mClusterData[SensorIndex];
+        r_matrix.resize(number_of_elements, number_of_elements, false);
+        for (IndexType i = 0; i < number_of_elements; ++i) {
+            for (IndexType j = i + 1; j < number_of_elements; ++j) {
+                r_matrix(i, j) = static_cast<bool>(std::pow(r_mask_exp.Evaluate(i, i, 0) - r_mask_exp.Evaluate(j, j, 0), 2));
+            }
+        }
+    });
+
+    // get the total domain size and domain size ratios
+    const auto& r_container = mMasksList.front()->GetContainer();
+    mDomainSizeRatio.resize(r_container.size());
+    const double local_domain_size = IndexPartition<IndexType>(r_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
+        const double domain_size = (r_container.begin() + Index)->GetGeometry().DomainSize();
+        mDomainSizeRatio[Index] = domain_size;
+        return domain_size;
+    });
+    const double total_domain_size = mMasksList.front()->GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+    block_for_each(mDomainSizeRatio, [total_domain_size](auto& rValue) {
+        rValue /= total_domain_size;
+    });
+
+    KRATOS_CATCH("");
+}
+
+void SensorLocalizationResponseUtils::ComputeClusterDifference(Matrix& rOutput) const
+{
+    KRATOS_TRY
+
+    auto& r_model_part = *mpSensorModelPart;
+
+    const IndexType number_of_elements = mMasksList.front()->GetContainer().size();
 
     if (rOutput.size1() != number_of_elements || rOutput.size2() != number_of_elements) {
         rOutput.resize(number_of_elements, number_of_elements, false);
@@ -53,15 +93,14 @@ void SensorLocalizationResponseUtils::ComputeClusterDifference(
 
     noalias(rOutput) = ZeroMatrix(number_of_elements, number_of_elements);
 
-    IndexPartition<IndexType>(number_of_elements).for_each([&rOutput, &rMasksList, &r_model_part, number_of_elements](const auto i) {
-        for (IndexType i_sensor = 0; i_sensor < r_model_part.NumberOfNodes(); ++i_sensor) {
-            const auto& r_mask_exp = rMasksList[i_sensor]->GetExpression();
-            const double sensor_status = (r_model_part.NodesBegin() + i_sensor)->GetValue(SENSOR_STATUS);
-            const double i_value = r_mask_exp.Evaluate(i, i, 0);
+    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
+        const double sensor_status = (r_model_part.NodesBegin() + SensorIndex)->GetValue(SENSOR_STATUS);
+        const auto& r_matrix = mClusterData[SensorIndex];
+        for (IndexType i = 0; i < number_of_elements; ++i) {
             for (IndexType j = i + 1; j < number_of_elements; ++j) {
-                const double value = sensor_status * std::pow(i_value - r_mask_exp.Evaluate(j, j, 0), 2);
-                rOutput(i, j) += value;
-                rOutput(j, i) += value;
+                const double value = sensor_status * r_matrix(i, j);
+                AtomicAdd<double>(rOutput(i, j), value);
+                AtomicAdd<double>(rOutput(j, i), value);
             }
         }
     });
@@ -69,37 +108,21 @@ void SensorLocalizationResponseUtils::ComputeClusterDifference(
     KRATOS_CATCH("");
 }
 
-double SensorLocalizationResponseUtils::CalculateValue(const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList)
+double SensorLocalizationResponseUtils::CalculateValue() const
 {
     KRATOS_TRY
-
-    auto& r_model_part = *mpSensorModelPart;
-
-    KRATOS_ERROR_IF(rMasksList.empty())
-        << "Masks list is empty.";
-
-    KRATOS_ERROR_IF_NOT(r_model_part.NumberOfNodes() == rMasksList.size())
-        << "Number of sensors and masks list mismatch [ number of sensors = "
-        << r_model_part.NumberOfNodes() << ", number of masks  = "
-        << rMasksList.size() << " ].\n";
 
     SmoothClamper<ModelPart::ElementsContainerType> clamper(0.0, 1.0);
 
     Matrix cluster_differences;
-    ComputeClusterDifference(cluster_differences, rMasksList);
+    ComputeClusterDifference(cluster_differences);
 
-    const auto& r_mask_container = rMasksList.front()->GetContainer();
-
-    // get the total domain size
-    const double local_domain_size = block_for_each<SumReduction<double>>(r_mask_container, [](const auto& rElement) {
-        return rElement.GetGeometry().DomainSize();
-    });
-    const double total_domain_size = rMasksList.front()->GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+    const auto& r_mask_container = mMasksList.front()->GetContainer();
 
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         double cluster_size_ratio = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            const double domain_size_ratio = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize() / total_domain_size;
+            const double domain_size_ratio = mDomainSizeRatio[i_element];
             cluster_size_ratio += domain_size_ratio * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
         }
         return std::pow(cluster_size_ratio, mP);
@@ -110,38 +133,24 @@ double SensorLocalizationResponseUtils::CalculateValue(const std::vector<Contain
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUtils::CalculateGradient(const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList)
+ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUtils::CalculateGradient() const
 {
     KRATOS_TRY
 
     auto& r_model_part = *mpSensorModelPart;
 
-    KRATOS_ERROR_IF(rMasksList.empty())
-        << "Masks list is empty.";
-
-    const auto& r_mask_container = rMasksList.front()->GetContainer();
-
-    KRATOS_ERROR_IF_NOT(r_model_part.NumberOfNodes() == rMasksList.size())
-        << "Number of sensors and masks list mismatch [ number of sensors = "
-        << r_model_part.NumberOfNodes() << ", number of masks  = "
-        << rMasksList.size() << " ].\n";
+    const auto& r_mask_container = mMasksList.front()->GetContainer();
 
     SmoothClamper<ModelPart::ElementsContainerType> clamper(0.0, 1.0);
 
     // first compute the cluster differences
     Matrix cluster_differences;
-    ComputeClusterDifference(cluster_differences, rMasksList);
-
-    // get the total domain size
-    const double local_domain_size = block_for_each<SumReduction<double>>(r_mask_container, [](const auto& rElement) {
-        return rElement.GetGeometry().DomainSize();
-    });
-    const double total_domain_size = rMasksList.front()->GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+    ComputeClusterDifference(cluster_differences);
 
     std::vector<double> cluster_size_ratios(r_mask_container.size(), 0.0);
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            const double domain_size_ratio = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize() / total_domain_size;
+            const double domain_size_ratio = mDomainSizeRatio[i_element];
             cluster_size_ratios[Index] += domain_size_ratio * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
         }
         return std::pow(cluster_size_ratios[Index], mP);
@@ -151,17 +160,21 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
 
     auto p_expression = LiteralFlatExpression<double>::Create(r_model_part.NumberOfNodes(), {});
     auto& r_expression = *p_expression;
-    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto Index) {
-        const auto& r_mask_exp = rMasksList[Index]->GetExpression();
-        double& value = *(r_expression.begin() + Index);
+    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
+        const auto& r_matrix = mClusterData[SensorIndex];
+        double& value = *(r_expression.begin() + SensorIndex);
         value = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            const double i_value = r_mask_exp.Evaluate(i_element, i_element, 0);
             double d_cluster_size_ratio_d_sensor_status = 0.0;
-            for (IndexType j_element = 0; j_element < r_mask_container.size(); ++j_element) {
-                const double domain_size_ratio = (r_mask_container.begin() + i_element)->GetGeometry().DomainSize() / total_domain_size;
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * std::pow(i_value - r_mask_exp.Evaluate(j_element, j_element, 0), 2);
+            const double domain_size_ratio = mDomainSizeRatio[i_element];
+
+            for (IndexType j_element = 0; j_element < i_element; ++j_element) {
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * r_matrix(j_element, i_element);
             }
+            for (IndexType j_element = i_element + 1; j_element < r_mask_container.size(); ++j_element) {
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * r_matrix(i_element, j_element);
+            }
+
             value += std::pow(cluster_size_ratios[i_element], mP - 1) * d_cluster_size_ratio_d_sensor_status;
         }
         value *= coeff;
