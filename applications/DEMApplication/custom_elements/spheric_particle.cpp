@@ -1598,6 +1598,8 @@ void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
         //make a copy
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW) = (*mStressTensor);
 
+        //KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_TENSOR_RAW))
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 (*mStressTensor)(i,j) /= rRepresentative_Volume;

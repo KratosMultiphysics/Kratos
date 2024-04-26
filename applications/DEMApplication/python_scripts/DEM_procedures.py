@@ -517,9 +517,7 @@ class Procedures():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
                 model_part.AddNodalSolutionStepVariable(DEM_STRAIN_TENSOR)
                 model_part.AddNodalSolutionStepVariable(DEM_DIFFERENTIAL_STRAIN_TENSOR)
-        
-        if DEM_parameters["ComputeStressTensorOption"].GetBool():
-            model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR_RAW)
+                model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR_RAW)
 
         if self.solver.poisson_ratio_option:
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)

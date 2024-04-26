@@ -532,9 +532,11 @@ class DEMAnalysisStage(AnalysisStage):
 
         if "BoundingBoxMoveOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["BoundingBoxMoveOption"].GetBool():
-                self.UpdateSearchStartegyAndCPlusPlusStrategy()
-                self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
-        
+                time_step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
+                NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
+                if (time_step + 1) % NStepSearch == 0 and (time_step > 0):
+                    self.UpdateSearchStartegyAndCPlusPlusStrategy()
+                    self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
 
     def UpdateSearchStartegyAndCPlusPlusStrategy(self):
 
@@ -913,7 +915,7 @@ class DEMAnalysisStage(AnalysisStage):
         
         if type == "stress_tensor_modulus":
             
-            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 
                 measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
                 total_tensor_raw    = np.empty((3, 3))
@@ -942,14 +944,14 @@ class DEMAnalysisStage(AnalysisStage):
             
             else:
                 
-                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
             
         
         if type == "stress_tensor":
             
             measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
             
-            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 
                 measure_sphere_volume = 4.0 / 3.0 * math.pi * radius * radius * radius
                 total_tensor_raw    = np.empty((3, 3))
@@ -975,7 +977,7 @@ class DEMAnalysisStage(AnalysisStage):
             
             else:
 
-                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
             
         if type == "unbalanced_force":
 
@@ -1397,7 +1399,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         if type == "stress_tensor_modulus":
             
-            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 
                 measure_cubic_volume = side_length ** 3
                 total_tensor_raw    = np.empty((3, 3))
@@ -1426,11 +1428,11 @@ class DEMAnalysisStage(AnalysisStage):
             
             else:
                 
-                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
         
         if type == "stress_tensor":
             
-            if self.DEM_parameters["ComputeStressTensorOption"].GetBool():
+            if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 
                 measure_cubic_volume = side_length ** 3
                 total_tensor_raw    = np.empty((3, 3))
@@ -1457,7 +1459,7 @@ class DEMAnalysisStage(AnalysisStage):
             
             else:
                 
-                raise Exception('The \"ComputeStressTensorOption\" in the [ProjectParametersDEM.json] should be [True].')
+                raise Exception('The \"PostStressStrainOption\" in the [ProjectParametersDEM.json] should be [True].')
             
         if type == "unbalanced_force":
 
