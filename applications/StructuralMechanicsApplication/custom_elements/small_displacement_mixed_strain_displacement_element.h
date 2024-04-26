@@ -148,6 +148,10 @@ public:
     ///Type definition for integration methods
     using IntegrationMethod = GeometryData::IntegrationMethod;
 
+    using BaseType = Element;
+
+    using IntegrationPointsArrayType = BaseType::GeometryType::IntegrationPointsArrayType;
+
     /// This is the definition of the node.
     using NodeType = Node;
 

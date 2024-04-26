@@ -475,7 +475,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     auto& r_cl_options = cons_law_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cons_law_values.SetStrainVector(constitutive_variables.StrainVector);
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
