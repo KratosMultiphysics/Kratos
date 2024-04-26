@@ -19,6 +19,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
+        print("ENTERED PYTHON's ApplyFarFieldProcess")
+        print(Model)
+
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"",
@@ -93,6 +96,40 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.CRITICAL_MACH,self.critical_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWIND_FACTOR_CONSTANT,self.upwind_factor_constant)
+
+    def update(self, mu):
+        KratosMultiphysics.Process.__init__(self)
+
+        self.angle_of_attack = mu[0]
+        self.free_stream_mach = mu[1]
+
+        self.free_stream_speed_of_sound = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.SOUND_VELOCITY)
+
+        # Computing free stream velocity
+        self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
+        self.free_stream_velocity = KratosMultiphysics.Vector(3)
+
+        self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        if self.domain_size == 2:
+            # By convention 2D airfoils are in the xy plane
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack*math.pi/180),8)
+            self.free_stream_velocity[1] = round(self.u_inf*math.sin(self.angle_of_attack*math.pi/180),8)
+            self.free_stream_velocity[2] = 0.0
+        else: # self.domain_size == 3
+            # By convention 3D wings and aircrafts:
+            # y axis along the span
+            # z axis pointing upwards
+            # TODO: Add sideslip angle beta
+            self.free_stream_velocity[0] = round(self.u_inf*math.cos(self.angle_of_attack*math.pi/180),8)
+            self.free_stream_velocity[1] = 0.0
+            self.free_stream_velocity[2] = round(self.u_inf*math.sin(self.angle_of_attack*math.pi/180),8)
+
+        self.free_stream_velocity_direction = self.free_stream_velocity / self.u_inf
+
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_MACH,self.free_stream_mach)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY,self.free_stream_velocity)
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.FREE_STREAM_VELOCITY_DIRECTION,self.free_stream_velocity_direction)
+
 
     def ExecuteInitializeSolutionStep(self):
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)

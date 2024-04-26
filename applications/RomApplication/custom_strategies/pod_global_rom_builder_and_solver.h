@@ -819,6 +819,9 @@ protected:
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
+        if(rEigenRomA.colPivHouseholderQr().isInvertible() == false){
+            KRATOS_INFO("PODGlobalROMBuilderAndSolver") << "Linear system to be solved by QR is not invertible" << std::endl;
+        }
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
         
         double time = solving_timer.ElapsedSeconds();

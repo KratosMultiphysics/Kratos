@@ -352,11 +352,11 @@ public:
         KRATOS_TRY
 
         if (mRightRomBasisInitialized==false){
-            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), BaseType::GetNumberOfROMModes());
+            BaseType::mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), BaseType::GetNumberOfROMModes());
             auto& r_root_mp = rModelPart.GetRootModelPart();
-            Vector& xrom = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
-            BaseType::mLastItDecoderOut = ZeroVector(BaseBuilderAndSolverType::GetEquationSystemSize());
-            BaseType::GetXAndDecoderGradient(xrom, mPhiGlobal, BaseType::mLastItDecoderOut);
+            Vector& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
+            Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
+            BaseType::GetXAndDecoderGradient(xrom, xBase);
             mRightRomBasisInitialized = true;
             
             // mInit_A = mPhiGlobal;
@@ -365,15 +365,15 @@ public:
             // eigen_init_A = BaseType::mNNLayers[2];
             // mInit_x = BaseType::mLastItDecoderOut;
 
-            Vector eigen_b_theor_last = ZeroVector(BaseBuilderAndSolverType::GetEquationSystemSize());
-            mEigen_b_theor_last = Eigen::Map<EigenDynamicVector>(eigen_b_theor_last.data().begin(), eigen_b_theor_last.size());
+            Vector b_theor_last = ZeroVector(BaseBuilderAndSolverType::GetEquationSystemSize());
+            mEigen_b_theor_last = Eigen::Map<EigenDynamicVector>(b_theor_last.data().begin(), b_theor_last.size());
         }
 
-        BaseType::BuildRightROMBasis(mPhiGlobal);
+        BaseType::BuildRightROMBasis();
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(BaseType::mPhiGlobal.data().begin(), BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
 
         // EigenDynamicMatrix eigen_my_A = eigen_rA;
 
@@ -422,6 +422,8 @@ public:
                 mEigenRomB = eigen_rb;
             }
         }
+
+        // KRATOS_INFO("AnnPromGlobalROMResidualBasedBlockBuilderAndSolver") << "ProjectROM: " << "mEigenRomB" << mEigenRomB << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -587,7 +589,6 @@ protected:
     ///@{
     ElementsArrayType mNeighbouringAndSelectedElements;
     ConditionsArrayType mNeighbouringAndSelectedConditions;
-    Vector mLastItDecoderOut;
 
     ///@}
     ///@name Protected operators
@@ -795,7 +796,6 @@ private:
     std::string mSolvingTechnique;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
-    Matrix mPhiGlobal;
     bool mRightRomBasisInitialized = false;
     std::unordered_set<std::size_t> mSelectedDofs;
     bool mIsSelectedDofsInitialized = false;

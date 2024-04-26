@@ -441,10 +441,15 @@ protected:
         typename TSchemeType::Pointer pScheme = this->GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
 
-        TSystemVectorType& DxRom = BaseType::GetModelPart().GetValue(ROM_SOLUTION_INCREMENT)
-        TSystemVectorType& XRomPrevious = BaseType::GetModelPart().GetValue(ROM_SOLUTION_BASE)
-        TSystemVectorType& XRomTotal = BaseType::GetModelPart().GetValue(ROM_SOLUTION_TOTAL)
-        TSystemVectorType& UPrevious = BaseType::GetModelPart().GetValue(SOLUTION_BASE)
+        TSystemVectorType& DxRom = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+        TSystemVectorType& XRomPrevious = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_BASE);
+        TSystemVectorType& XRomTotal = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_TOTAL);
+        TSystemVectorType& UPrevious = BaseType::GetModelPart().GetRootModelPart().GetValue(SOLUTION_BASE);
+
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_INCREMENT " << DxRom << std::endl;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_BASE " << XRomPrevious << std::endl;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_TOTAL " << XRomTotal << std::endl;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "SOLUTION_BASE " << UPrevious[8174] << std::endl;
 
         TSystemVectorType aux(Dx);
         TSystemVectorType auxPrevious(Dx);
@@ -460,27 +465,39 @@ protected:
         // UPrevious was incremented by Dx in the NewtonRaphson solver. We need to revert that change.
         UPrevious -= Dx;
 
+
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "UPrevious: " << UPrevious[8174] << std::endl;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
+
         //Compute residual with 1 coefficient update (x1)
         TSparseSpace::Assign(auxRom,x1,DxRom);
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "X1: " << x1 << "AuxROM " << auxRom << std::endl;
         pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
         aux = UTotal-UPrevious;
-        BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+        Dx = aux;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
+        BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        double r1 = TSparseSpace::Dot(aux,b);
+        double r1 = TSparseSpace::Dot(Dx,b);
 
         double rmax = std::abs(r1);
         while(!converged && it < mMaxLineSearchIterations) {
 
             //Compute residual with 2 coefficient update (x2)
             TSparseSpace::Assign(auxRom,x2, DxRom);
+            // KRATOS_INFO("AnnPromLineSearchStrategy") << "X2: " << x2 << "AuxROM " << auxRom << std::endl;
             pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
             auxPrevious = aux;
             aux = UTotal-UPrevious;
-            BaseType::UpdateDatabase(A,aux-auxPrevious,b,MoveMesh);
+            Dx = aux-auxPrevious;
+            // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
+            // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
+            BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
             TSparseSpace::SetToZero(b);
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-            double r2 = TSparseSpace::Dot(aux,b);
+            double r2 = TSparseSpace::Dot(Dx,b);
 
             if(it == 0) {
                 rmax = std::max(rmax,std::abs(r2));
@@ -500,10 +517,14 @@ protected:
 
             //Perform final update
             TSparseSpace::Assign(auxRom,x, DxRom);
+            // KRATOS_INFO("AnnPromLineSearchStrategy") << "x: " << x << "AuxROM " << auxRom << std::endl;
             pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
             auxPrevious = aux;
             aux = UTotal-UPrevious;
-            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+            Dx = aux-auxPrevious;
+            // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
+            // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
+            BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
             if(rmin < mLineSearchTolerance*rmax) {
                 KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
                 converged = true;
@@ -514,7 +535,7 @@ protected:
             //note that we compute the next residual only if it is strictly needed (we break on the line before if it is not needed)
             TSparseSpace::SetToZero(b);
             pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-            double rf = TSparseSpace::Dot(aux,b);
+            double rf = TSparseSpace::Dot(Dx,b);
 
             KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
 
@@ -539,14 +560,14 @@ protected:
             it++;
         }
 
-        Dx = aux;
-        UPrevious += Dx;
+        // UPrevious += Dx;
+        UPrevious = UTotal;
+        // KRATOS_INFO("AnnPromLineSearchStrategy") << "Updated UPrevious: " << UPrevious[8174] << std::endl;
 
         DxRom = auxRom;
         XRomTotal = DxRom+XRomPrevious;
-        XRomPrevious = XRomTotal;
 
-        pBuilderAndSolver->GetXAndDecoderGradient(auxRom+XRomPrevious, UTotal)
+        pBuilderAndSolver->GetXAndDecoderGradient(auxRom+XRomPrevious, UTotal);
 
         TSparseSpace::SetToZero(b);
 

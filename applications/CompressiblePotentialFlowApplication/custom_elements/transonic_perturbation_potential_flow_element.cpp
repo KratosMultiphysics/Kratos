@@ -62,11 +62,11 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Initialize(cons
     FindUpwindElement(rCurrentProcessInfo);
 }
 
-// template <int TDim, int TNumNodes>
-// void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-// {
-//     FindUpwindElement(rCurrentProcessInfo);
-// }
+template <int TDim, int TNumNodes>
+void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    FindUpwindElement(rCurrentProcessInfo);
+}
 
 template <int TDim, int TNumNodes>
 void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLocalSystem(

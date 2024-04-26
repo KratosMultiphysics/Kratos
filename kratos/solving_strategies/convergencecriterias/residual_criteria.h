@@ -213,10 +213,15 @@ public:
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+            // const TDataType last_norm = rModelPart.GetProcessInfo()[RESIDUAL_NORM];
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
-            const bool has_achieved_convergence = ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm;
+            const bool has_achieved_convergence = ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm || std::abs(mLastNorm-absolute_norm)/absolute_norm<1e-6;
+            // KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << "mLastNorm" << mLastNorm << std::endl;
             KRATOS_INFO_IF("RESIDUAL CRITERION", has_achieved_convergence && this->GetEchoLevel() > 0 && rank == 0) << "Convergence is achieved" << std::endl;
+            
+            mLastNorm = absolute_norm;
+            
             return has_achieved_convergence;
         } else {
             return true;
@@ -248,6 +253,8 @@ public:
 
         SizeType size_residual;
         CalculateResidualNorm(rModelPart, mInitialResidualNorm, size_residual, rDofSet, rb);
+
+        mLastNorm = 0.0;
     }
 
     /**
@@ -353,6 +360,8 @@ protected:
     std::vector<int> mActiveDofs;                                    /// This vector contains the dofs that are active
 
     IndexType mInitialDoFId = std::numeric_limits<IndexType>::max(); /// The initial DoF Id
+
+    TDataType mLastNorm;                                             /// Residual norm in he last iteration
 
     ///@}
     ///@name Protected Operators

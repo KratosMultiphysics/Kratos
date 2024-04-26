@@ -50,6 +50,27 @@ def CreateSolver(cls, model, custom_settings):
             else:
                 err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
                 raise ValueError(err_msg)
+            
+        def _CreateLineSearchStrategy(self):
+            if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+                settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+                settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+            else:
+                settings = self._GetDefaultLineSearchParameters()
+            settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+            settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+            settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+            settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+            computing_model_part = self.GetComputingModelPart()
+            time_scheme = self._GetScheme()
+            convergence_criterion = self._GetConvergenceCriterion()
+            builder_and_solver = self._GetBuilderAndSolver()
+            solution_strategy = KratosROM.AnnPromLineSearchStrategy(computing_model_part,
+                time_scheme,
+                convergence_criterion,
+                builder_and_solver,
+                settings)
+            return solution_strategy
 
         def _ValidateAndReturnRomParameters(self):
 
