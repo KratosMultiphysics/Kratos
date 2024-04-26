@@ -698,6 +698,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_GEOMETRY(name, reference) \
     KratosComponents<Geometry<Node>>::Add(name, reference); \
+    if(!Registry::HasItem("geometries."+Registry::GetCurrentSource()+"."+name)){                                              \
+        Registry::AddItem<RegistryItem>("geometries."+Registry::GetCurrentSource()+"."+name);                           \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_ELEMENT
