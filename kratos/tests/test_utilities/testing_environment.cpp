@@ -43,8 +43,8 @@ void KratosCoreFastSuite::SetUp() {
 }
 
 void KratosCoreFastSuite::TearDown() { 
-    std::cout.rdbuf(mCoutBuffer);
-    std::cerr.rdbuf(mCerrBuffer); 
+    // std::cout.rdbuf(mCoutBuffer);
+    // std::cerr.rdbuf(mCerrBuffer); 
 }
 
 DataCommunicator& GetDefaultDataCommunicator()
