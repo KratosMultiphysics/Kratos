@@ -443,8 +443,8 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     MatrixType mass_matrix = GeoTransportEquationUtilities::CalculateMassMatrixDiffOrder(
-        this->GetGeometry(), mpPressureGeometry, this->GetIntegrationMethod(), *mpStressStatePolicy,
-        mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
+        this->GetGeometry(), *mpPressureGeometry, this->GetIntegrationMethod(),
+        *mpStressStatePolicy, mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
     // Compute Stiffness matrix
     MatrixType StiffnessMatrix(ElementSize, ElementSize);
