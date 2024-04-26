@@ -28,7 +28,6 @@ class SensorStatusControl(Control):
 
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names": [""],
-            "initial_sensor_status"      : 0.5,
             "penalty_factor"             : 3,
             "output_all_fields"          : false,
             "beta_settings": {
@@ -42,7 +41,6 @@ class SensorStatusControl(Control):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.controlled_physical_variables = [KratosDT.SENSOR_STATUS]
-        self.initial_sensor_status = parameters["initial_sensor_status"].GetDouble()
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.penalty_factor = parameters["penalty_factor"].GetInt()
 
@@ -68,7 +66,7 @@ class SensorStatusControl(Control):
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
 
         sensor_status = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(sensor_status, self.initial_sensor_status)
+        Kratos.Expression.VariableExpressionIO.Read(sensor_status, KratosDT.SENSOR_STATUS, False)
 
         # project backward the uniform physical control field and assign it to the control field
         self.physical_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
@@ -147,6 +145,9 @@ class SensorStatusControl(Control):
                                                 self.penalty_factor)
         # now update physical field
         Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosDT.SENSOR_STATUS, False)
+        list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
+        for i, node in enumerate(self.model_part.Nodes):
+            list_of_sensors[i].SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS))
 
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(

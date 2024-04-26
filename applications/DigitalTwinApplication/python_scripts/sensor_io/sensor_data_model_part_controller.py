@@ -46,7 +46,11 @@ class SensorDataModelPartController(ModelPartController):
             for i, sensor in enumerate(self.list_of_sensors):
                 sensor_io.Read(sensor)
                 location = sensor.GetLocation()
-                self.sensor_model_part.CreateNewNode(i + 1, location[0], location[1], location[2])
+                node: Kratos.Node = self.sensor_model_part.CreateNewNode(i + 1, location[0], location[1], location[2])
+                # set data
+                for var_name in sensor.GetDataVariableNames():
+                    var = Kratos.KratosGlobals.GetVariable(var_name)
+                    node.SetValue(var, sensor.GetValue(var))
                 sensor.SetValue(KratosDT.SENSOR_ID, i + 1)
 
     def GetModelPart(self) -> Kratos.ModelPart:
