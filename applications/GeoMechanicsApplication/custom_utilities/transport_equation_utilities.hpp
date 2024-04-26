@@ -116,8 +116,9 @@ public:
         Matrix         mass_matrix        = ZeroMatrix(element_size, element_size);
 
         for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
-            const double degree_of_saturation = CalculateDegreeOfSaturation(
-                g_point, Np_container, pressure_vector, retention_parameters, rRetentionLawVector);
+            const double degree_of_saturation =
+                CalculateDegreeOfSaturation(row(Np_container, g_point), pressure_vector,
+                                            retention_parameters, rRetentionLawVector[g_point]);
 
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
 
@@ -167,8 +168,9 @@ public:
         Matrix                            mass_matrix    = ZeroMatrix(N_DOF, N_DOF);
 
         for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
-            const double degree_of_saturation = CalculateDegreeOfSaturation(
-                g_point, N_container, pressure_vector, retention_parameters, rRetentionLawVector);
+            const double degree_of_saturation =
+                CalculateDegreeOfSaturation(row(N_container, g_point), pressure_vector,
+                                            retention_parameters, rRetentionLawVector[g_point]);
 
             const double density = CalculateSoilDensity(degree_of_saturation, rProp);
 
@@ -207,17 +209,16 @@ private:
             rIntegrationPoints[GPoint], det_J_initial_configuration, rGeom);
     }
 
-    static double CalculateDegreeOfSaturation(unsigned int              GPoint,
-                                              const Matrix&             rNContainer,
-                                              const Vector&             rPressureVector,
-                                              RetentionLaw::Parameters& rRetentionParameters,
-                                              const std::vector<RetentionLaw::Pointer>& rRetentionLawVector)
+    static double CalculateDegreeOfSaturation(const Vector&                rNVector,
+                                              const Vector&                rPressureVector,
+                                              RetentionLaw::Parameters&    rRetentionParameters,
+                                              const RetentionLaw::Pointer& rRetentionLaw)
     {
-        const double fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-            row(rNContainer, GPoint), rPressureVector);
+        const double fluid_pressure =
+            GeoTransportEquationUtilities::CalculateFluidPressure(rNVector, rPressureVector);
         rRetentionParameters.SetFluidPressure(fluid_pressure);
 
-        return rRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
+        return rRetentionLaw->CalculateSaturation(rRetentionParameters);
     }
 
     static double CalculateFluidPressure(const Vector& rNp, const Vector& rPressureVector)
