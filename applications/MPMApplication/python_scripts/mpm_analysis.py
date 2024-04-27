@@ -6,6 +6,10 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.MPMApplication.python_solvers_wrapper_mpm import CreateSolver
 
+# Import utilities
+import itertools
+
+
 class MPMAnalysis(AnalysisStage):
     """
     This class is the main-script of the MPMApplication put in a class
@@ -36,17 +40,17 @@ class MPMAnalysis(AnalysisStage):
         aux_var_friction = ["FRICTION_STATE",
                             "STICK_FORCE"]
 
-        if not project_parameters["processes"].Has("list_other_processes"):
-            return
-
         # check if friction BC is set
         friction_active = False
-        for proc in project_parameters["processes"]["list_other_processes"].values():
-            if proc["python_module"].GetString() == "apply_mpm_slip_boundary_process":
-                proc_params = proc["Parameters"]
 
-                if proc_params.Has("friction_coefficient") and proc_params["friction_coefficient"].GetDouble() > 0:
-                    friction_active = True
+        for proc_list in project_parameters["processes"].values():
+            for proc in proc_list:
+                if proc.Has("process_name") and proc["process_name"].GetString() == "ApplyMPMSlipBoundaryProcess":
+                    proc_params = proc["Parameters"]
+
+                    if proc_params.Has("friction_coefficient") and proc_params["friction_coefficient"].GetDouble() > 0:
+                        friction_active = True
+                        break
 
         if friction_active:
             aux_var_list = project_parameters["solver_settings"]["auxiliary_variables_list"].GetStringArray()
