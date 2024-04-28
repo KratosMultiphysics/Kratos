@@ -424,15 +424,21 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= lambda * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Contributions to the LHS
-        noalias(K) += tau         * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
-        noalias(Q) += (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(M) += lambda * (tau - 1.0) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
-        noalias(G) += lambda * (1.0 - tau) * w_gauss  * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
+        noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
+        noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
+        noalias(M) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.N_epsilon);
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
+    K *= tau;
+    Q *= (1.0 - tau);
+    M *= lambda * (tau - 1.0);
+    G *= lambda * (1.0 - tau);
+    RHSe *= lambda * (1.0 - tau);
+
     AssembleRHS(rRHS, RHSu, RHSe);
     AssembleLHS(rLHS, K, Q, M, G);
 }
@@ -520,9 +526,10 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= lambda * (1.0 - tau) * w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl - kinematic_variables.NodalStrain);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
     }
+    RHSe *= lambda * (1.0 - tau);
     AssembleRHS(rRHS, RHSu, RHSe);
 }
 

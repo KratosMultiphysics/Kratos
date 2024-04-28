@@ -24,6 +24,9 @@
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
+#include "integration/triangle_gauss_legendre_integration_points.h"
+#include "integration/hexahedron_gauss_lobatto_integration_points.h"
+#include "integration/tetrahedron_gauss_legendre_integration_points.h"
 
 
 namespace Kratos
@@ -386,6 +389,28 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
+
+    // const IntegrationPointsArrayType& GetIntegrationPoints()
+    // {
+    //     const auto &r_geometry = GetGeometry();
+    //     const SizeType nnodes = r_geometry.size();
+    //     const SizeType dim = r_geometry.WorkingSpaceDimension();
+
+        // if (dim == 2) {
+        //     if (nnodes == 4) { // quad
+        //         return QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+        //     } else { // triangle
+        //         return TriangleGaussLegendreIntegrationPoints1().IntegrationPoints();
+        //     }
+        // } else { // 3D
+        //     if (nnodes == 4) { // tets
+        //         return TetrahedronGaussLegendreIntegrationPoints1().IntegrationPoints();
+        //     } else { // hexas
+        //         return HexahedronGaussLobattoIntegrationPoints2().IntegrationPoints();
+        //     }
+        // }
+    // }
+
     ///@}
     ///@name Friends
     ///@{
@@ -401,6 +426,7 @@ protected:
 
     IntegrationMethod mThisIntegrationMethod;                     /// Currently selected integration methods
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+    IntegrationPointsArrayType mIntegrationPointsArray;
 
     ///@}
     ///@name Protected Operators
