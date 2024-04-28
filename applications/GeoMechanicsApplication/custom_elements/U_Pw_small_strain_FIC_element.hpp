@@ -54,29 +54,33 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainFICElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
-    UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainFICElement(IndexType                          NewId,
+                             GeometryType::Pointer              pGeometry,
+                             PropertiesType::Pointer            pProperties,
+                             std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~UPwSmallStrainFICElement() override {}
+    ~UPwSmallStrainFICElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -163,8 +167,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeFICElementVariables(FICElementVariables& rFICVariables,
                                        const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,

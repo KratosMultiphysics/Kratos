@@ -22,7 +22,8 @@ Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType        
                                                                NodesArrayType const& ThisNodes,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwElement(NewId, this->GetGeometry().Create(ThisNodes),
+                                                     pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -31,7 +32,8 @@ Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType        
                                                                GeometryType::Pointer pGeom,
                                                                PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwElement(NewId, pGeom, pProperties));
+    return Element::Pointer(
+        new SteadyStatePwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -135,8 +137,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                          VectorType&        rRightHandSideVector,
                                                          const ProcessInfo& rCurrentProcessInfo,
-                                                         const bool CalculateStiffnessMatrixFlag,
-                                                         const bool CalculateResidualVectorFlag)
+                                                         bool CalculateStiffnessMatrixFlag,
+                                                         bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 

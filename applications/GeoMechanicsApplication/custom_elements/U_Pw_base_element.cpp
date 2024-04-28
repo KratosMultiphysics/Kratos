@@ -14,36 +14,9 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
-#include "plane_strain_stress_state.h"
-#include "three_dimensional_stress_state.h"
 
 namespace Kratos
 {
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
-                                                         NodesArrayType const&   ThisNodes,
-                                                         PropertiesType::Pointer pProperties) const
-{
-    KRATOS_ERROR << "calling the default Create method for a particular "
-                    "element ... illegal operation!!"
-                 << this->Id() << std::endl;
-
-    return Element::Pointer(new UPwBaseElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer UPwBaseElement<TDim, TNumNodes>::Create(IndexType               NewId,
-                                                         GeometryType::Pointer   pGeom,
-                                                         PropertiesType::Pointer pProperties) const
-{
-    KRATOS_ERROR << "calling the default Create method for a particular "
-                    "element ... illegal operation!!"
-                 << this->Id() << std::endl;
-
-    return Element::Pointer(new UPwBaseElement(NewId, pGeom, pProperties));
-}
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -183,14 +156,12 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
         if (nStateVariables > 0) {
-            // ProcessInfo rCurrentProcessInfo;
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
     }
 
     if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
     for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        // RetentionLawFactory::Pointer pRetentionFactory;
         mRetentionLawVector[i] = RetentionLawFactory::Clone(rProp);
         mRetentionLawVector[i]->InitializeMaterial(
             rProp, rGeom, row(rGeom.ShapeFunctionsValues(mThisIntegrationMethod), i));
@@ -252,7 +223,6 @@ GeometryData::IntegrationMethod UPwBaseElement<TDim, TNumNodes>::GetIntegrationM
         break;
     }
 
-    // return GeometryData::IntegrationMethod::GI_GAUSS;
     return GI_GAUSS;
 }
 
@@ -352,7 +322,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 {
     KRATOS_TRY
 
-    // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
+    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
 
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
@@ -561,15 +531,8 @@ double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
 
 {
-    std::unique_ptr<StressStatePolicy> p_stress_state_policy;
-    if constexpr (TDim == 2) {
-        p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
-    } else {
-        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    }
-
-    return p_stress_state_policy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
-                                                                  detJ, GetGeometry());
+    return mpStressStatePolicy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
+                                                                detJ, GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------
@@ -652,14 +615,14 @@ unsigned int UPwBaseElement<TDim, TNumNodes>::GetNumberOfDOF() const
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
 {
-    auto result = Element::DofsVectorType{};
-    for (const auto& r_node : this->GetGeometry()) {
-        result.push_back(r_node.pGetDof(DISPLACEMENT_X));
-        result.push_back(r_node.pGetDof(DISPLACEMENT_Y));
-        if constexpr (TDim == 3) result.push_back(r_node.pGetDof(DISPLACEMENT_Z));
-        result.push_back(r_node.pGetDof(WATER_PRESSURE));
-    }
-    return result;
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(this->GetGeometry(),
+                                                      this->GetGeometry().WorkingSpaceDimension());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+StressStatePolicy& UPwBaseElement<TDim, TNumNodes>::GetStressStatePolicy() const
+{
+    return *mpStressStatePolicy;
 }
 
 //----------------------------------------------------------------------------------------
