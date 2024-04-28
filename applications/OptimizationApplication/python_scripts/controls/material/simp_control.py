@@ -126,10 +126,10 @@ class SimpControl(Control):
         # calculate phi from existing density
         density = Kratos.Expression.ElementExpression(self.model_part)
         KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
-        self.physical_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(density, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
+        self.simp_physical_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(density, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
 
         # get the control field
-        self.control_phi = self.filter.UnfilterField(self.physical_phi)
+        self.control_phi = self.filter.UnfilterField(self.simp_physical_phi)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -190,28 +190,26 @@ class SimpControl(Control):
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
         physical_phi_update = self.filter.ForwardFilterField(update)
-        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + physical_phi_update)
+        self.simp_physical_phi = Kratos.Expression.Utils.Collapse(self.simp_physical_phi + physical_phi_update)
 
-        density =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.physical_phi_field, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
+        density =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
         KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
         self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
 
-        youngs_modulus =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.physical_phi_field, self.materials.GetPhi(), self.materials.GetYoungModulus(), self.beta, self.simp_power_fac)
+        youngs_modulus =  KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetYoungModulus(), self.beta, self.simp_power_fac)
         KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
         self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
 
         # now calculate the total sensitivities of density w.r.t. phi
-        self.d_density_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.physical_phi_field, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
+        self.d_density_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetDensities(), self.beta, 1)
 
-        # now calculate the total sensitivities of young modulus w.r.t. physical_phi_field
-        self.d_young_modulus_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.physical_phi_field, self.materials.GetPhi(), self.materials.GetYoungModulus(), self.beta, self.simp_power_fac)
+        # now calculate the total sensitivities of young modulus w.r.t. simp_physical_phi
+        self.d_young_modulus_d_phi = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(self.simp_physical_phi, self.materials.GetPhi(), self.materials.GetYoungModulus(), self.beta, self.simp_power_fac)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue("physical_phi", self.physical_phi_field.Clone(),overwrite=True)
+        un_buffered_data.SetValue(f"{self.GetName()}", self.simp_physical_phi.Clone(),overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue("physical_phi_update", physical_phi_update.Clone(), overwrite=True)
-            un_buffered_data.SetValue("control_phi", self.control_phi.Clone(), overwrite=True)
-            un_buffered_data.SetValue("control_phi_update", update.Clone(), overwrite=True)
-            un_buffered_data.SetValue("DENSITY_projection_derivative", self.d_density_d_phi.Clone(), overwrite=True)
-            un_buffered_data.SetValue("YOUNG_MODULUS_projection_derivative", self.d_young_modulus_d_phi.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"{self.GetName()}_update", physical_phi_update.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
