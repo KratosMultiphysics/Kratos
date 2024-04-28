@@ -83,6 +83,7 @@ class L2ConvCriterion:
         info = {'type': 'l2_norm',
                 'l2_norm': self.norm,
                 'tolerance': self.__tolerance,
+                "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
                 'status': str("converged" if self.conv else "not converged")}
         return info
 
@@ -103,7 +104,7 @@ class AverageAbsoluteImprovement:
         self.__optimization_problem = optimization_problem
         self.__tolerance = parameters["tolerance"].GetDouble()
         self.__abs_value_change = []
-        self.value = 9999
+        self.value = None
 
     @time_decorator()
     def IsConverged(self) -> bool:
@@ -111,7 +112,6 @@ class AverageAbsoluteImprovement:
         self.conv = iter >= self.__max_iter
 
         step = self.__optimization_problem.GetStep()
-        print(step)
         algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
         if step == 0:
             self.__init_value = algorithm_buffered_data.GetValue("std_obj_value", 0)
@@ -128,7 +128,8 @@ class AverageAbsoluteImprovement:
             for i in range(self.__tracked_iter - 1):
                 self.value += self.__abs_value_change[-1 - i]
             self.value = abs(self.value) / (self.__tracked_iter - 1) 
-            self.conv = self.value <= self.__tolerance
+            if not self.conv:
+                self.conv = self.value <= self.__tolerance
 
         DictLogger("Convergence info",self.GetInfo())
 
@@ -136,9 +137,10 @@ class AverageAbsoluteImprovement:
 
     def GetInfo(self) -> dict:
         info = {'type': 'aver_abs_delta',
-                'aver_abs_delta [%]': self.value * 100,
-                'tolerance [%]': self.__tolerance * 100,
+                'aver_abs_delta': str(self.value),
+                'tolerance': self.__tolerance,
                 'tracked_iter': self.__tracked_iter,
+                "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
                 'status': str("converged" if self.conv else "not converged")}
         return info
     
@@ -177,5 +179,6 @@ class TargetValueCriterion:
         info = {'type': 'value',
                 'current_value': self.value,
                 'target_value': self.__target_value,
+                "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
                 'status': str("converged" if self.conv else "not converged")}
         return info
