@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "processes/apply_constant_vectorvalue_process.h"
 
@@ -29,10 +30,22 @@ KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,Z_COMPONENT_FIXED, 2);
 /***********************************************************************************/
 /***********************************************************************************/
 
-ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(ModelPart& rModelPart,
-                                Parameters parameters
-                                ) : Process(Flags()),
-                                    mrModelPart(rModelPart)
+ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(
+    Model& rModel,
+    Parameters ThisParameters
+    ) : ApplyConstantVectorValueProcess(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(
+    ModelPart& rModelPart,
+    Parameters ThisParameters
+    ) : Process(Flags()),
+        mrModelPart(rModelPart)
 {
     KRATOS_TRY
 
@@ -41,29 +54,29 @@ ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(ModelPart& rMod
 
     // Some values need to be mandatorily prescribed since no meaningful default Value exist. For this reason try accessing to them
     // So that an error is thrown if they don't exist
-    KRATOS_ERROR_IF(parameters["direction"].IsArray() && parameters["direction"].size() != 3) << "direction vector is not a vector or it does not have size 3. Direction vector currently passed" << parameters.PrettyPrintJsonString() << std::endl;
-    KRATOS_ERROR_IF_NOT(parameters["modulus"].IsNumber()) << "modulus shall be a number. Parameter list in which is included is :" <<  parameters.PrettyPrintJsonString() << std::endl;
-    KRATOS_ERROR_IF_NOT(parameters["variable_name"].IsString()) << "variable_name shall be a String. Parameter list in which is included is :" << parameters.PrettyPrintJsonString() << std::endl;
-    KRATOS_ERROR_IF_NOT(parameters["model_part_name"].IsString()) << "model_part_name shall be a String. Parameter list in which is included is :" << parameters.PrettyPrintJsonString() << std::endl;
+    KRATOS_ERROR_IF(ThisParameters["direction"].IsArray() && ThisParameters["direction"].size() != 3) << "direction vector is not a vector or it does not have size 3. Direction vector currently passed" << ThisParameters.PrettyPrintJsonString() << std::endl;
+    KRATOS_ERROR_IF_NOT(ThisParameters["modulus"].IsNumber()) << "modulus shall be a number. Parameter list in which is included is :" <<  ThisParameters.PrettyPrintJsonString() << std::endl;
+    KRATOS_ERROR_IF_NOT(ThisParameters["variable_name"].IsString()) << "variable_name shall be a String. Parameter list in which is included is :" << ThisParameters.PrettyPrintJsonString() << std::endl;
+    KRATOS_ERROR_IF_NOT(ThisParameters["model_part_name"].IsString()) << "model_part_name shall be a String. Parameter list in which is included is :" << ThisParameters.PrettyPrintJsonString() << std::endl;
 
     // Validate against defaults -- this also ensures no type mismatch
-    parameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // Read from the parameters and assign to the values
-    mMeshId = parameters["mesh_id"].GetInt();
+    mMeshId = ThisParameters["mesh_id"].GetInt();
 
-    this->Set(X_COMPONENT_FIXED, parameters["is_fixed_x"].GetBool());
-    this->Set(Y_COMPONENT_FIXED, parameters["is_fixed_y"].GetBool());
-    this->Set(Z_COMPONENT_FIXED, parameters["is_fixed_z"].GetBool());
+    this->Set(X_COMPONENT_FIXED, ThisParameters["is_fixed_x"].GetBool());
+    this->Set(Y_COMPONENT_FIXED, ThisParameters["is_fixed_y"].GetBool());
+    this->Set(Z_COMPONENT_FIXED, ThisParameters["is_fixed_z"].GetBool());
 
     // Get the modulus and variable name
-    mVariableName = parameters["variable_name"].GetString();
-    mModulus = parameters["modulus"].GetDouble();
+    mVariableName = ThisParameters["variable_name"].GetString();
+    mModulus = ThisParameters["modulus"].GetDouble();
 
     mDirection.resize(3,false);
-    mDirection[0] = parameters["direction"][0].GetDouble();
-    mDirection[1] = parameters["direction"][1].GetDouble();
-    mDirection[2] = parameters["direction"][2].GetDouble();
+    mDirection[0] = ThisParameters["direction"][0].GetDouble();
+    mDirection[1] = ThisParameters["direction"][1].GetDouble();
+    mDirection[2] = ThisParameters["direction"][2].GetDouble();
 
     const double dim_norm = norm_2(mDirection);
     KRATOS_ERROR_IF(dim_norm < 1e-20) << " Norm of direction given is approximately zero. Please give a direction vector with a non zero norm : current Value of direction vector = " << mDirection << std::endl;
@@ -181,17 +194,16 @@ void ApplyConstantVectorValueProcess::InternalApplyValue(
 
 const Parameters ApplyConstantVectorValueProcess::GetDefaultParameters() const
 {
-    Parameters default_settings(R"({
-        "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-        "mesh_id"        : 0,
-        "variable_name"  : "PLEASE_PRESCRIBE_VARIABLE_NAME",
-        "is_fixed_x"     : false,
-        "is_fixed_y"     : false,
-        "is_fixed_z"     : false,
-        "modulus"        : 1.0,
-        "direction"      : [1.0, 0.0, 0.0]
+    return Parameters(R"({
+        "model_part_name" :"PLEASE_CHOOSE_MODEL_PART_NAME",
+        "mesh_id"         : 0,
+        "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
+        "is_fixed_x"      : false,
+        "is_fixed_y"      : false,
+        "is_fixed_z"      : false,
+        "modulus"         : 1.0,
+        "direction"       : [1.0, 0.0, 0.0]
     })");
-    return default_settings;
 }
 
 }  // namespace Kratos.
