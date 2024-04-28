@@ -67,6 +67,7 @@ class SimpControl(Control):
             "controlled_model_part_names": [""],
             "simp_power_fac"   : 3,
             "output_all_fields": true,
+            "echo_level"       : 0,
             "list_of_materials": [
                 {
                     "density"      : 1.0,
@@ -85,6 +86,7 @@ class SimpControl(Control):
         parameters.ValidateAndAssignDefaults(default_settings)
         self.simp_power_fac = parameters["simp_power_fac"].GetInt()
         self.output_all_fields = parameters["output_all_fields"].GetBool()
+        self.echo_level = parameters["echo_level"].GetInt()
 
         self.controlled_physical_variables = [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
 
@@ -186,7 +188,8 @@ class SimpControl(Control):
             if step % self.beta_update_period == 0 and self.beta_computed_step != step:
                 self.beta_computed_step = step
                 self.beta = min(self.beta * self.beta_increase_frac, self.beta_max)
-                Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
+                if self.echo_level > 0:
+                    Kratos.Logger.PrintInfo(f"::{self.GetName()}::", f"Increased beta to {self.beta}.")
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
