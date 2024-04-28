@@ -177,7 +177,8 @@ class SimpControl(Control):
             self.control_phi = control_field
             self._UpdateAndOutputFields(update)
             self.filter.Update()
-            self.__UpdateBeta()
+
+        self.__UpdateBeta()
 
     def __UpdateBeta(self) -> None:
         if self.beta_adaptive:
