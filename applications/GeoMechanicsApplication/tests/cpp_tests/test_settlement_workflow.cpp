@@ -31,7 +31,7 @@ namespace Kratos::Testing
 {
     const auto working_directory =
         std::filesystem::path{"./applications/GeoMechanicsApplication/tests/"
-                              "test_settlement_workflow"};
+                              "test_settlement_workflow/cpp_workflow"};
 
     auto settlement = CustomWorkflowFactory::CreateKratosGeoSettlement();
     for (int i = 0; i < 4; ++i) {
@@ -40,7 +40,7 @@ namespace Kratos::Testing
                                                        &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                        &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-        const std::string original_file = "test_model_stage" + std::to_string(i + 1) + ".post.orig.res";
+        const std::string original_file = "../common/test_model_stage" + std::to_string(i + 1) + ".post.orig.res";
         const std::string result_file = "test_model_stage" + std::to_string(i + 1) + ".post.res";
 
         KRATOS_EXPECT_EQ(status, 0);
