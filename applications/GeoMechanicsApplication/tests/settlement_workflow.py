@@ -8,16 +8,9 @@ import test_helper
 
 class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
     """
-    This class contains benchmark tests which are checked with the analytical solution
+    This test class is used to check the settlement workflow test, same as test_settlement_workflow.cpp to
+    make sure the python workflow yields the same results as the c++ workflow.
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
 
     def test_DSettlement_workflow(self):
         test_name = 'test_settlement_workflow'
