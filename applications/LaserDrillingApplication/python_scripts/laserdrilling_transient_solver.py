@@ -574,13 +574,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
     def Finalize(self):
         super().Finalize()
+        elapsed_time = timer.time() - self.starting_time
+        print("\nElapsed_time:", elapsed_time, '\n')
         if self.print_hdf5_and_gnuplot_files:
             self.decomposed_volume_file.close()
             self.temperature_alpha_file.close()
             self.time_alpha_file.close()
             self.PrintDecomposedVolumeEvolution()
-        elapsed_time = timer.time() - self.starting_time
-        print("\nElapsed_time:", elapsed_time, '\n')
 
     def PrintDecomposedVolumeEvolution(self):
         import matplotlib.pyplot as plt
@@ -726,7 +726,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         time = step = process_info[KratosMultiphysics.TIME]
         # Open the HDF5 file.
         with h5py.File(filename, 'a') as f:
-            assert self.radii.shape  == self.temperature_increments.shape
+            assert self.radii.shape == self.temperature_increments.shape
             # Create a dataset to store the radii and temperatures data.
             dataset = f['/temperature_increments'].create_dataset(str(step), self.temperature_increments.shape, dtype=self.temperature_increments.dtype)
             # Write the radii and temperatures data to the dataset.

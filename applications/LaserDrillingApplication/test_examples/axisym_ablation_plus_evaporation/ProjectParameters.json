@@ -11,7 +11,7 @@
         "residual_heat_fraction" : 0.05,
         "mask_aperture_diameter" : 0.025,
         "vaporisation_temperature" : 1000.0,
-        "compute_vaporisation" : true,
+        "compute_vaporisation" : false,
         "time_jump_between_pulses": 5e-6
     },
     "solver_settings"  : {
