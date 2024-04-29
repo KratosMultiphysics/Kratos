@@ -430,6 +430,10 @@ private:
     /// Incompressible Navier-Stokes div-stable wall condition
     const NavierStokesP2P1ContinuousWallCondition<2> mNavierStokesP2P1ContinuousWallCondition2D;
     const NavierStokesP2P1ContinuousWallCondition<3> mNavierStokesP2P1ContinuousWallCondition3D;
+    const NavierStokesP2P1ContinuousWallCondition<2,LinearLogWallLaw<2,3,2>> mNavierStokesP2P1ContinuousLinearLogWallCondition2D;
+    const NavierStokesP2P1ContinuousWallCondition<3,LinearLogWallLaw<3,6,3>> mNavierStokesP2P1ContinuousLinearLogWallCondition3D;
+    const NavierStokesP2P1ContinuousWallCondition<2,NavierSlipWallLaw<2,3,2>> mNavierStokesP2P1ContinuousNavierSlipWallCondition2D;
+    const NavierStokesP2P1ContinuousWallCondition<3,NavierSlipWallLaw<3,6,3>> mNavierStokesP2P1ContinuousNavierSlipWallCondition3D;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
