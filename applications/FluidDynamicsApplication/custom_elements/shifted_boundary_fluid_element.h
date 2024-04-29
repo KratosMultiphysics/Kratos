@@ -78,16 +78,7 @@ public:
 
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    /// Type for shape function values container
-    typedef Kratos::Vector ShapeFunctionsType;
-
-    /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
-
-    /// Type for an array of shape function gradient matrices
-    typedef Geometry<NodeType>::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    typedef PointerVectorSet< Dof<double>, IndexedObject > DofsArrayType;
 
     constexpr static std::size_t Dim = TBaseElement::Dim;
     constexpr static std::size_t NumNodes = TBaseElement::NumNodes;
@@ -316,32 +307,6 @@ protected:
      */
     void InitializeGeometryData(ShiftedBoundaryElementData& rData) const;
 
-    /**
-     * @brief Non-intersected element geometry data fill
-     * This method sets the data structure geometry fields (shape functions, gradients, ...) for a non-intersected element.
-     * @param rData reference to the element data structure
-     */
-    void DefineStandardGeometryData(ShiftedBoundaryElementData& rData) const;
-
-    /**
-     * @brief Intersected element geometry data fill
-     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an
-     * intersected element. To do that, the modified shape functions utility is firstly created and then called
-     * to perform all operations on both, the positive and negative, sides of the element.
-     * @param rData reference to the element data structure
-     */
-    void DefineCutGeometryData(ShiftedBoundaryElementData& rData) const;
-
-    /**
-     * @brief For an intersected element, normalize the interface normals
-     * This method normalizes the interface normals for an intersected element.
-     * @param rNormals interface normals container
-     * @param Tolerance tolerance to avoid division by 0 when normalizing
-     */
-    void NormalizeInterfaceNormals(
-        typename ShiftedBoundaryElementData::InterfaceNormalsType& rNormals,
-        double Tolerance) const;
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -394,28 +359,6 @@ private:
      */
     std::vector<std::size_t> GetSurrogateFacesIds();
 
-    /**
-     * @brief Calculates the drag force
-     * For an intersected element, this method calculates the drag force.
-     * Note that the drag force includes both the shear and the pressure contributions.
-     * @param rData reference to the embedded elemental data
-     * @param rDragForce reference to the computed drag force
-     */
-    void CalculateDragForce(
-        ShiftedBoundaryElementData& rData,
-        array_1d<double,3>& rDragForce) const;
-
-    /**
-     * @brief Calculates the location of the drag force
-     * For an intersected element, this method calculates the drag force location.
-     * Note that the drag force includes both the shear and the pressure contributions.
-     * @param rData reference to the embedded elemental data
-     * @param rDragForce reference to the computed drag force
-     */
-    void CalculateDragForceCenter(
-        ShiftedBoundaryElementData& rData,
-        array_1d<double,3>& rDragForceLocation) const;
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -440,14 +383,6 @@ private:
 
 
 }; // Class ShiftedBoundaryFluidElement
-
-namespace ShiftedBoundaryInternals {
-
-template <size_t TDim, size_t TNumNodes>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
-    const Element &rElement,
-    const Vector &rDistance);
-}
 
 ///@}
 

@@ -111,12 +111,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         // Get the surrogate faces local IDs.
         // Note that it might happen that an INTERFACE element has no surrogate face (i.e. a unique node in the surrogate skin)
         const auto sur_bd_ids_vect = GetSurrogateFacesIds();
-        if (sur_bd_ids_vect.size() != 0) {
+        /*if (sur_bd_ids_vect.size() != 0) {
             // Get the parent geometry data
             double size_parent;
             const auto& r_parent_geom = this->GetGeometry();
             array_1d<double, NumNodes> N_parent;
-            BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;  // a node's shape function derivatives at the respective node
+            BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;  // each node's shape function derivatives at the respective node
             GeometryUtils::CalculateGeometryData(r_parent_geom, DN_DX_parent, N_parent, size_parent);
             const auto& r_boundaries = r_parent_geom.GenerateBoundariesEntities();
             DenseMatrix<unsigned int> nodes_in_faces;
@@ -128,13 +128,13 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             std::size_t surrogate_pt_index = 0;
             //TODO: choose
             //const GeometryData::IntegrationMethod integration_method = r_boundaries[0].GetDefaultIntegrationMethod();
-            const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;  // this->GetIntegrationMethod(); // GI_GAUSS_2
 
             for (std::size_t sur_bd_id : sur_bd_ids_vect) {
                 // Get the current surrogate face geometry information
                 const auto& r_bd_geom = r_boundaries[sur_bd_id];
                 //const unsigned int n_bd_points = r_bd_geom.PointsNumber();  //NOTE 2 nodes for a triangle parent (EdgeType is Line2D2N)
-                const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);  //ERROR?? face is column not row, for triangle row works as well because of symmetry, first node is the contrary one for tri and tetra
+                const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);  //TODO: column ERROR?? face is column not row, for triangle row works as well because of symmetry, first node is the contrary one for tri and tetra
                 //auto& r_sur_bd_N = r_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);   //NOTE returns matrix of SF values F_{ij}, where i is integration pt index and j is SF index
                 const auto& r_integration_points = r_bd_geom.IntegrationPoints(integration_method);
                 //const std::size_t n_int_pts = r_bd_geom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); // Number of Gauss pts. per subdivision
@@ -147,16 +147,16 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 BoundedVector<double,Dim> normal_sur_bd = - DN_DX_contrary_node * h_sur_bd;
 
                 // Calculate a scaling factor to eliminate the change of area from global to local coordinate system
-                /*double scaling_factor = 0.0;
-                for (auto& r_int_pt : r_integration_points) {
-                    scaling_factor += r_int_pt.Weight();
-                }*/
+                //double scaling_factor = 0.0;
+                //for (auto& r_int_pt : r_integration_points) {
+                //    scaling_factor += r_int_pt.Weight();
+                //}
 
                 //TODO: choose weight calculation; based on element's detJ or boundary's detJ?
                 // NOTE that the integration weight is calculated as detJ of the parent multiplied by the global size of the surrogate boundary face: Dim * Parent domain volume * norm(DN_DX_contrary_node)
                 // NOTE that detJ is only constant inside the element for simplex elements and only for Triangle2D3N and Tetrahedra3D4N Dim*size_parent results in the correct multiplier for the norm
                 // Triangle2D3N: 2*1/2*detJ*length_of_line | Tetrahedra3D4N: 3*1/6*detJ*area_of_parallelogram
-                //double weight = Dim * size_parent / h_sur_bd;
+                const double int_pt_weight = Dim * size_parent / h_sur_bd;
                 // NOTE that the integration weight is calculated as the global size of the surrogate boundary face: Triangle2D3N: length_of_line | Tetrahedra3D4N: 1/2*area_of_parallelogram
                 //double weight = (Dim==2) ? 1.0/h_sur_bd : 0.5/h_sur_bd;
 
@@ -168,12 +168,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
                 // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
                 //std::size_t i_int_pt = 0;
-                for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); i_int_pt++) {
+                for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
                     // Integration weight of one integration point is calculated by multiplying the scaled weight by the respective integration point weight
                     //const double int_pt_weight = weight * scaling_factor * r_int_pt.Weight();
                     //const double int_pt_weight = weight * int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
                     // Integration weight of one integration point is calculated by multiplying the integration point's detJ value by its weight
-                    const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
+                    //const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
 
                     // Compute the local coordinates of the integration point in the parent element's geometry
                     Geometry<Node>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
@@ -190,13 +190,18 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                         int_pt_N_parent(0, i_node) = aux_N_parent(i_node);
                     }
 
-                    // Get DN_DX of the element at the integration point
-                    Matrix int_pt_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
+                    // Get DN_DX of the element at the integration point  //TODO node ID necessary for correct position?? why?
+                    Matrix int_pt_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
                     double aux_detJ_parent;
                     r_parent_geom.ShapeFunctionsLocalGradients(aux_DN_DXi_parent, int_pt_local_coords_parent);
                     r_parent_geom.Jacobian(aux_J_parent, int_pt_local_coords_parent);
                     MathUtils<double>::InvertMatrix(aux_J_parent, aux_J_inv_parent, aux_detJ_parent);
-                    int_pt_DN_DX_parent = prod(aux_DN_DXi_parent, aux_J_inv_parent);
+                    aux_DN_DX_parent = prod(aux_DN_DXi_parent, aux_J_inv_parent);
+                    for (std::size_t d = 0; d < Dim; ++d ) {
+                        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
+                            int_pt_DN_DX_parent(i_node, d) = aux_DN_DX_parent(i_node, d);
+                        }
+                    }
 
                     // Update the element's data
                     this->UpdateIntegrationPointData(data, n_volume_gauss_points+surrogate_pt_index++, int_pt_weight, row(int_pt_N_parent,0), int_pt_DN_DX_parent);
@@ -205,6 +210,86 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             }
+        }*/
+
+        // ALTERNATIVE TODO
+        if (sur_bd_ids_vect.size() != 0) {
+            // Initialize the element data
+            ShiftedBoundaryElementData data;
+            data.Initialize(*this, rCurrentProcessInfo);
+
+            // Get the parent geometry data
+            double dom_size_parent;
+            const auto& r_geom = this->GetGeometry();
+            array_1d<double, NumNodes> N_parent;
+            BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;
+            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, dom_size_parent);
+
+            // Auxilary LHS matrix for summation
+            BoundedMatrix<double, LocalSize, LocalSize> aux_LHS;
+
+            // Set strain matrix  // TODO: here based on derivatives at respective nodes, not at integration point? DN_DX should be at integration point?!?
+            // Thereby, we calculate the stress at the element midpoint??
+            // Note that in here we are assuming constant strain kinematics
+            BoundedMatrix<double, StrainSize, LocalSize> B_matrix;
+            FluidElementUtilities<NumNodes>::GetStrainMatrix(DN_DX_parent, B_matrix);
+
+            const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
+            DenseMatrix<unsigned int> nodes_in_faces;
+            r_geom.NodesInFaces(nodes_in_faces);
+
+            // Loop the surrogate faces
+            // Note that there is the chance that the surrogate face is not unique
+            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
+                // Get the current surrogate face geometry information
+                const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
+                const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();
+                const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+
+                // Get the gradient of the node contrary to the surrogate face
+                // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
+                const BoundedVector<double,Dim> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
+                const double h_sur_bd = 1.0 / norm_2(DN_DX_cont_node);
+                BoundedVector<double,Dim> normal_sur_bd = - DN_DX_cont_node * h_sur_bd;
+
+                // Note that the integration weight is calculated as Dim * Parent domain size * norm(DN_DX_cont_node)
+                const double weight = Dim * dom_size_parent / h_sur_bd;
+
+                // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B)
+                BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(normal_sur_bd, voigt_normal_projection_matrix);
+                const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, data.C);
+                const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+
+                // Fill the shape functions auxiliary transpose matrix and the pressure to Voigt notation operator matrix for the surrogate boundary integration point
+                // Note that the local face ids. are already taken into account in the assembly ??
+                BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
+                BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
+                std::size_t i_local_id;
+                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                    i_local_id = sur_bd_local_ids[i_bd_node+1];
+                    for (std::size_t d = 0; d < Dim; ++d) {
+                        N_aux_trans(i_local_id*BlockSize+d, d) = r_sur_bd_N(0, i_bd_node);  // TODO only one integration point ?!?
+                        pres_to_voigt_matrix_op(d, i_local_id*BlockSize+Dim) = r_sur_bd_N(0, i_bd_node);
+                    }
+                }
+
+                // Contribution coming from the shear stress operator
+                aux_LHS = prod(N_aux_trans, aux_matrix_ACB);
+
+                // Contribution coming from the pressure terms
+                const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+                aux_LHS -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
+
+                aux_LHS *= weight;
+            }
+
+            // Add boundary traction of the element's surrogate boundaries to the system
+            array_1d<double,LocalSize> values;
+            this->GetCurrentValuesVector(data,values);
+            rLeftHandSideMatrix -= aux_LHS;
+            rRightHandSideVector += prod(aux_LHS, values);
         }
     }
 
@@ -235,20 +320,9 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
     double& rOutput,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    if (rVariable == CUTTED_AREA) {
-        // Initialize the embedded element data
-        ShiftedBoundaryElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-        this->InitializeGeometryData(data);
-        // Calculate the intersection area as the Gauss weights summation
-        const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
-        rOutput = 0.0;
-        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
-            rOutput += data.PositiveInterfaceWeights[g];
-        }
-    } else {
-        TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-    }
+    //TODO calculate cutted area?
+
+    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TBaseElement>
@@ -261,21 +335,10 @@ void ShiftedBoundaryFluidElement<TBaseElement>::Calculate(
 
     // If the element is split, integrate sigma.n over the interface
     // Note that in the Ausas formulation (discontinuous for thin-walled), both interface sides need to be integrated
-    if (rVariable == DRAG_FORCE) {
-        ShiftedBoundaryElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-        this->InitializeGeometryData(data);
-        // Calculate the drag force
-        this->CalculateDragForce(data, rOutput);
-    } else if (rVariable == DRAG_FORCE_CENTER) {
-        ShiftedBoundaryElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-        this->InitializeGeometryData(data);
-        // Calculate the drag force location
-        this->CalculateDragForceCenter(data, rOutput);
-    } else {
-        TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-    }
+
+    //TODO take care of drag force calculation see embedded element??
+
+    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TBaseElement>
@@ -394,65 +457,9 @@ void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBo
             rData.NegativeIndices.push_back(i);
         }
     }
-
-    if ( rData.IsCut() ) {
-        this->DefineCutGeometryData(rData);
-    }
-    else {
-        this->DefineStandardGeometryData(rData);
-    }
-}
-
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::DefineStandardGeometryData(ShiftedBoundaryElementData& rData) const
-{
     rData.NumNegativeNodes = 0;
     rData.NumPositiveNodes = NumNodes;
     this->CalculateGeometryData(rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);
-}
-
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::DefineCutGeometryData(ShiftedBoundaryElementData& rData) const
-{
-    // Auxiliary distance vector for the element subdivision utility
-    Vector distances = rData.Distance;
-
-    ModifiedShapeFunctions::Pointer p_calculator = ShiftedBoundaryInternals::GetShapeFunctionCalculator<
-        ShiftedBoundaryElementData::Dim,
-        ShiftedBoundaryElementData::NumNodes>(*this, distances);
-
-    // Positive side volume
-    p_calculator->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveSideN, rData.PositiveSideDNDX, rData.PositiveSideWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Positive side interface
-    p_calculator->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-        rData.PositiveInterfaceN, rData.PositiveInterfaceDNDX, rData.PositiveInterfaceWeights,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Positive side interface normals
-    p_calculator->ComputePositiveSideInterfaceAreaNormals(
-        rData.PositiveInterfaceUnitNormals,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Normalize the normals
-    // Note: we calculate h here (and we don't use the value in rData.ElementSize)
-    // because rData.ElementSize might still be uninitialized: some data classes define it at the Gauss point.
-    double h = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
-    const double tolerance = std::pow(1e-3 * h, Dim-1);
-    this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
-}
-
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::NormalizeInterfaceNormals(
-    typename ShiftedBoundaryElementData::InterfaceNormalsType& rNormals,
-    double Tolerance) const
-{
-    for (std::size_t i = 0; i < rNormals.size(); ++i) {
-        double norm = norm_2(rNormals[i]);
-        rNormals[i] /= std::max(norm,Tolerance);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -478,104 +485,6 @@ std::vector<std::size_t> ShiftedBoundaryFluidElement<TBaseElement>::GetSurrogate
     return surrogate_faces_ids;
 }
 
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::CalculateDragForce(
-    ShiftedBoundaryElementData& rData,
-    array_1d<double,3>& rDragForce) const
-{
-    const std::size_t n_pos_gauss = rData.PositiveSideWeights.size();
-
-    if (rData.IsCut()) {
-        // Integrate positive interface side drag
-        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
-        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
-
-            // Update the Gauss pt. rData and the constitutive law
-            this->UpdateIntegrationPointData(
-                rData,
-                g + n_pos_gauss,
-                rData.PositiveInterfaceWeights[g],
-                row(rData.PositiveInterfaceN, g),
-                rData.PositiveInterfaceDNDX[g]);
-
-            // Get the interface Gauss pt. unit noromal
-            const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
-
-            // Compute Gauss pt. pressure
-            const double p_gauss = inner_prod(rData.N, rData.Pressure);
-
-            // Get the normal projection matrix in Voigt notation
-            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-
-            // Add the shear and pressure drag contributions
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i) {
-                rDragForce(i) -= shear_proj(i);
-            }
-            rDragForce += rData.Weight * p_gauss * aux_unit_normal;
-        }
-    }
-}
-
-template <class TBaseElement>
-void ShiftedBoundaryFluidElement<TBaseElement>::CalculateDragForceCenter(
-    ShiftedBoundaryElementData& rData,
-    array_1d<double,3>& rDragForceLocation) const
-{
-    const auto &r_geometry = this->GetGeometry();
-    array_1d<double,3> tot_drag = ZeroVector(3);
-    const unsigned int n_pos_gauss = rData.PositiveSideWeights.size();
-
-    if (rData.IsCut()) {
-        // Integrate positive interface side drag
-        const unsigned int n_int_pos_gauss = rData.PositiveInterfaceWeights.size();
-        for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
-            // Calculate the Gauss pt. coordinates
-            array_1d<double,3> g_coords = ZeroVector(3);
-            const auto g_shape_functions = row(rData.PositiveInterfaceN, g);
-            for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-                g_coords += g_shape_functions[i_node] * r_geometry[i_node].Coordinates();
-            }
-
-            // Update the Gauss pt. rData and the constitutive law
-            this->UpdateIntegrationPointData(
-                rData,
-                g + n_pos_gauss,
-                rData.PositiveInterfaceWeights[g],
-                g_shape_functions,
-                rData.PositiveInterfaceDNDX[g]);
-
-            // Get the interface Gauss pt. unit noromal
-            const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
-
-            // Compute Gauss pt. pressure
-            const double p_gauss = inner_prod(rData.N, rData.Pressure);
-
-            // Get the normal projection matrix in Voigt notation
-            BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
-            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
-
-            // Add the shear and pressure drag contributions
-            const array_1d<double, 3> p_proj = rData.Weight * p_gauss * aux_unit_normal;
-            const array_1d<double, Dim> shear_proj = rData.Weight * prod(voigt_normal_proj_matrix, rData.ShearStress);
-            for (unsigned int i = 0; i < Dim ; ++i) {
-                tot_drag(i) -= shear_proj(i);
-                rDragForceLocation(i) += g_coords(i) * p_proj(i);
-                rDragForceLocation(i) -= g_coords(i) * shear_proj(i);
-            }
-            tot_drag += p_proj;
-        }
-
-        // Divide the obtained result by the total drag
-        rDragForceLocation(0) /= tot_drag(0);
-        rDragForceLocation(1) /= tot_drag(1);
-        if (Dim == 3) {
-            rDragForceLocation(2) /= tot_drag(2);
-        }
-    }
-}
-
 // serializer
 
 template <class TBaseElement>
@@ -589,26 +498,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TBaseElement);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Helper functions for template specialization
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace ShiftedBoundaryInternals {
-
-template <>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(
-    const Element& rElement, const Vector& rDistance) {
-    return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
-}
-
-template <>
-ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
-    const Element& rElement, const Vector& rDistance) {
-    return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
-}
-
-}  // namespace ShiftedBoundaryInternals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
