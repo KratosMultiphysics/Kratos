@@ -116,8 +116,9 @@ double SensorLocalizationResponseUtils::CalculateValue() const
 
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         double cluster_size_ratio = 0.0;
+        Vector& r_values = row(aux_matrix, Index);
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            cluster_size_ratio += mDomainSizeRatio[i_element] * aux_matrix(Index, i_element);
+            cluster_size_ratio += mDomainSizeRatio[i_element] * r_values[i_element];
         }
         return std::pow(cluster_size_ratio, mP);
     });
