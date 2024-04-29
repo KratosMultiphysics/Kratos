@@ -162,7 +162,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.shifted_boundary_formulation = ShiftedBoundaryFormulation(self.settings["formulation"])
         self.element_name = self.shifted_boundary_formulation.element_name
         self.condition_name = self.shifted_boundary_formulation.condition_name
-        self.sbm_interface_condition_name = self.shifted_boundary_formulation.sbm_interface_condition_name
+        self.sbm_interface_condition_name = self.shifted_boundary_formulation.sbm_interface_condition_name + str(self.settings["domain_size"].GetInt()) + "D"
         self.level_set_type = self.shifted_boundary_formulation.level_set_type
         self.element_integrates_in_time = self.shifted_boundary_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.shifted_boundary_formulation.element_has_nodal_properties
