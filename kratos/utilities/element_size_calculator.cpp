@@ -867,6 +867,7 @@ double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
 template<>
 double ElementSizeCalculator<2,9>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
+    // this is to compensate for the missing 2.0 in the geometry length computation.
     return rGeometry.Length() * 2.0;
 }
 
