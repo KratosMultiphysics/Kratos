@@ -101,8 +101,16 @@ double SensorLocalizationResponseUtils::CalculateValue() const
 
     SmoothClamper<ModelPart::ElementsContainerType> clamper(0.0, 1.0);
 
-    Matrix cluster_differences;
-    ComputeClusterDifference(cluster_differences);
+    Matrix aux_matrix;
+    ComputeClusterDifference(aux_matrix);
+
+    IndexPartition<IndexType>(aux_matrix.size1()).for_each([&](const auto i) {
+        for (IndexType j = i + 1; j <  aux_matrix.size2(); ++j) {
+            aux_matrix(i, j) = (1.0 - clamper.Clamp(aux_matrix(i, j)));
+            aux_matrix(j, i) = aux_matrix(i, j);
+        }
+        aux_matrix(i, i) = 1.0;
+    });
 
     const auto& r_mask_container = mMasksList.front()->GetContainer();
 
@@ -110,7 +118,7 @@ double SensorLocalizationResponseUtils::CalculateValue() const
         double cluster_size_ratio = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             const double domain_size_ratio = mDomainSizeRatio[i_element];
-            cluster_size_ratio += domain_size_ratio * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
+            cluster_size_ratio += domain_size_ratio * aux_matrix(Index, i_element);
         }
         return std::pow(cluster_size_ratio, mP);
     });
@@ -134,11 +142,20 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     Matrix aux_matrix;
     ComputeClusterDifference(aux_matrix);
 
+    Matrix aux_matrix_2(aux_matrix.size1(), aux_matrix.size2());
+    IndexPartition<IndexType>(aux_matrix.size1()).for_each([&](const auto i) {
+        for (IndexType j = i + 1; j <  aux_matrix.size2(); ++j) {
+            aux_matrix_2(i, j) = (1.0 - clamper.Clamp(aux_matrix(i, j)));
+            aux_matrix_2(j, i) = aux_matrix_2(i, j);
+        }
+        aux_matrix_2(i, i) = 1.0;
+    });
+
     std::vector<double> cluster_size_ratios(r_mask_container.size(), 0.0);
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             const double domain_size_ratio = mDomainSizeRatio[i_element];
-            cluster_size_ratios[Index] += domain_size_ratio * (1.0 - clamper.Clamp(aux_matrix(Index, i_element)));
+            cluster_size_ratios[Index] += domain_size_ratio * aux_matrix_2(Index, i_element);
         }
         return std::pow(cluster_size_ratios[Index], mP);
     });
