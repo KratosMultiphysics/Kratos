@@ -131,22 +131,22 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     SmoothClamper<ModelPart::ElementsContainerType> clamper(0.0, 1.0);
 
     // first compute the cluster differences
-    Matrix cluster_differences;
-    ComputeClusterDifference(cluster_differences);
+    Matrix aux_matrix;
+    ComputeClusterDifference(aux_matrix);
 
     std::vector<double> cluster_size_ratios(r_mask_container.size(), 0.0);
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             const double domain_size_ratio = mDomainSizeRatio[i_element];
-            cluster_size_ratios[Index] += domain_size_ratio * (1.0 - clamper.Clamp(cluster_differences(Index, i_element)));
+            cluster_size_ratios[Index] += domain_size_ratio * (1.0 - clamper.Clamp(aux_matrix(Index, i_element)));
         }
         return std::pow(cluster_size_ratios[Index], mP);
     });
 
-    Matrix clamp_derivatives(cluster_differences.size1(), cluster_differences.size2());
-    IndexPartition<IndexType>(cluster_differences.size1()).for_each([&](const auto i) {
-        for (IndexType j = i + 1; j <  cluster_differences.size2(); ++j) {
-            clamp_derivatives(i, j) = clamper.ClampDerivative(cluster_differences(i, j));
+    // now we compute the clamper derivatives
+    IndexPartition<IndexType>(aux_matrix.size1()).for_each([&](const auto i) {
+        for (IndexType j = i + 1; j <  aux_matrix.size2(); ++j) {
+            aux_matrix(i, j) = clamper.ClampDerivative(aux_matrix(i, j));
         }
     });
 
@@ -164,10 +164,10 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
             const bool i_value = static_cast<bool>(r_mask_exp.Evaluate(i_element, i_element, 0));
 
             for (IndexType j_element = 0; j_element < i_element; ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamp_derivatives(j_element, i_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_matrix(j_element, i_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
             }
             for (IndexType j_element = i_element + 1; j_element < r_mask_container.size(); ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamp_derivatives(i_element, j_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_matrix(i_element, j_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
             }
 
             value += std::pow(cluster_size_ratios[i_element], mP - 1) * d_cluster_size_ratio_d_sensor_status;
