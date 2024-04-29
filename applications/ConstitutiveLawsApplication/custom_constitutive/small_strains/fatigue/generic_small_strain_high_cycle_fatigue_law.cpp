@@ -404,6 +404,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 this->SetStressVector(r_integrated_stress_vector);
                 rValues.SetStressVector(r_integrated_stress_vector);
                 this->SetStressVector(rValues.GetStressVector());
+                r_constitutive_matrix *= (1.0 - damage);
                 this->CalculateTangentTensor(rValues);
             }
         }
