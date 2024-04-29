@@ -45,9 +45,8 @@ namespace Kratos
  * implementing the remaining terms (see @NavierStokesWallCondition).
  * @tparam TDim Number of dimensions
  * @tparam TNumNodes Number of nodes
- * @tparam TBlockSize Block size to be used in the momentum conservation assembly
  */
-template<std::size_t TDim, std::size_t TNumNodes, std::size_t TBlockSize = TDim + 1>
+template<std::size_t TDim, std::size_t TNumNodes>
 class LinearLogWallLaw
 {
 public:
@@ -57,7 +56,9 @@ public:
     /// Pointer definition of LinearLogWallLaw
     KRATOS_CLASS_POINTER_DEFINITION(LinearLogWallLaw);
 
-    static constexpr std::size_t BlockSize = TBlockSize;
+    static constexpr std::size_t BlockSize = TDim+1;
+
+    static constexpr std::size_t LocalSize = TNumNodes*BlockSize;
 
     using SizeType = Condition::SizeType;
 
@@ -263,7 +264,7 @@ public:
 private:
     ///@name Private variables
     ///@{
-
+    
     static constexpr double BPlus = 5.2; // Dimensionless velocity u+ constant
     static constexpr double InvKappa = 1.0/0.41; // Inverse of Von Karman's kappa
     static constexpr double YPlusLimit = 10.9931899; // Limit between linear and log regions

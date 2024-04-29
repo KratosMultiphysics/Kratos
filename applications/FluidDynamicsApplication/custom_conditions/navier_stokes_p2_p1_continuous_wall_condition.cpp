@@ -393,9 +393,5 @@ void NavierStokesP2P1ContinuousWallCondition<TDim, TWallModel...>::ComputeRHSOut
 
 template class NavierStokesP2P1ContinuousWallCondition<2>;
 template class NavierStokesP2P1ContinuousWallCondition<3>;
-template class NavierStokesP2P1ContinuousWallCondition<2,LinearLogWallLaw<2,3,2>>;
-template class NavierStokesP2P1ContinuousWallCondition<3,LinearLogWallLaw<3,6,3>>;
-template class NavierStokesP2P1ContinuousWallCondition<2,NavierSlipWallLaw<2,3,2>>;
-template class NavierStokesP2P1ContinuousWallCondition<3,NavierSlipWallLaw<3,6,3>>;
 
 } // namespace Kratos

@@ -63,6 +63,9 @@ namespace Kratos
  * implementing the wall model RHS and LHS Gauss point contributions (as example see @NavierSlipWallLaw).
  * Current condition also has optional features that help numerical stability such as the outlet
  * inflow energy correction or the spurious tangential velocity correction for pure slip boundaries.
+ * TODO: Implement the drag calculation (this requires implementing the viscous stress from the parent)
+ * TODO: Implement the slip boundaries spurious velocity correction (this requires implementing the viscous stress from the parent)
+ * TODO: Implement the wall contributions (this requires Lobatto quadratures and also I/O considerations if current ApplyWallLawProcess is used)
  * @tparam TDim Number of dimensions
  * @tparam TWallModel Optional class implementing a LHS and RHS wall contribution
  */
@@ -70,10 +73,12 @@ template<unsigned int TDim, class... TWallModel>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NavierStokesP2P1ContinuousWallCondition : public Condition
 {
 public:
+
+    static_assert(sizeof...(TWallModel) == 0, "Wall models are not supported in 'NavierStokesP2P1ContinuousWallCondition' yet.");
+
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of NavierStokesP2P1ContinuousWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NavierStokesP2P1ContinuousWallCondition);
 
     static constexpr std::size_t VoigtSize = 3*(TDim-1);
