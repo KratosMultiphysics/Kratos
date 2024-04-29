@@ -60,8 +60,9 @@ namespace Kratos
  * More information about can be found in https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
  * @tparam TDim Number of dimensions
  * @tparam TNumNodes Number of nodes
+ * @tparam TBlockSize Block size to be used in the momentum conservation assembly
  */
-template<std::size_t TDim, std::size_t TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes, std::size_t TBlockSize = TDim + 1>
 class NavierSlipWallLaw
 {
 public:
@@ -71,9 +72,7 @@ public:
     /// Pointer definition of NavierSlipWallLaw
     KRATOS_CLASS_POINTER_DEFINITION(NavierSlipWallLaw);
 
-    static constexpr std::size_t BlockSize = TDim+1;
-
-    static constexpr std::size_t LocalSize = TNumNodes*BlockSize;
+    static constexpr std::size_t BlockSize = TBlockSize;
 
     using SizeType = Condition::SizeType;
 
@@ -133,7 +132,7 @@ public:
             // Get current Gauss point data
             const double w_gauss = wall_law_data.GaussPtsWeights[i_gauss];
             const auto& N_gauss = row(wall_law_data.ShapeFunctionsContainer, i_gauss);
-            
+
             // Interpolate slip length at current Gauss point
             double gp_slip_length = 0.0;
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -182,7 +181,7 @@ public:
             // Get current Gauss point data
             const double w_gauss = wall_law_data.GaussPtsWeights[i_gauss];
             const auto& N_gauss = row(wall_law_data.ShapeFunctionsContainer, i_gauss);
-            
+
             // Interpolate slip length at current Gauss point
             double gp_slip_length = 0.0;
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -229,7 +228,7 @@ public:
             // Get current Gauss point data
             const double w_gauss = wall_law_data.GaussPtsWeights[i_gauss];
             const auto& N_gauss = row(wall_law_data.ShapeFunctionsContainer, i_gauss);
-            
+
             // Interpolate slip length at current Gauss point
             double gp_slip_length = 0.0;
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {

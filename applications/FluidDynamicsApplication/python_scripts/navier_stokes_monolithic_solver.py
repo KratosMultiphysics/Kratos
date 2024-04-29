@@ -201,7 +201,7 @@ class StabilizedFormulation:
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "IncompressibleNavierStokesP2P1Continuous"
-        self.condition_name = "LineCondition" #TODO: Implement an IncompressibleNavierStokesP2P1ContinuousCondition
+        self.condition_name = "NavierStokesP2P1ContinuousWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = False
 
