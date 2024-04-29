@@ -1287,7 +1287,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatri
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                               ElementVariables& rVariables)
+                                                                               const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
