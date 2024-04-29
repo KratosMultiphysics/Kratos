@@ -106,9 +106,14 @@ public:
 
     /**
      * @brief This is the default constructor
+     */
+    explicit FallbackLinearSolver() = default;
+
+    /**
+     * @brief This is the default constructor
      * @param ThisParameters The configuration parameters
      */
-    explicit FallbackLinearSolver(Parameters ThisParameters = Parameters(R"({})"))
+    explicit FallbackLinearSolver(Parameters ThisParameters)
         : mParameters(ThisParameters)
     {
         // Set the default parameters
@@ -161,6 +166,9 @@ public:
         ) : mSolvers(rSolvers),
             mParameters(ThisParameters)
     {
+        // Verify that linear solvers are not defined in the parameters
+        KRATOS_ERROR_IF(mParameters.Has("solvers")) << "The solvers are already defined in the input parameters" << std::endl;
+
         // Set the default parameters
         mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
@@ -317,7 +325,7 @@ public:
             // In case of failure
             if (!success) {
                 // First, update the counter
-                UpdateCounterSolverIndex();
+                UpdateSolverIndex();
 
                 // Call initialize methods
                 InitializeSolutionStep(rA, rX, rB);
@@ -347,7 +355,7 @@ public:
             // In case of failure
             if (!success) {
                 // First, update the counter
-                UpdateCounterSolverIndex();
+                UpdateSolverIndex();
 
                 // // Call initialize methods (NOTE: does not exist the method for dense matrices)
                 // InitializeSolutionStep(rA, rX, rB);
@@ -500,21 +508,20 @@ public:
     }
 
     /**
-     * @brief Get the Current Solver Index.
+     * @brief Get the Current Solver Index. (not mutable)
      * @return IndexType The current solver index.
      */
-    IndexType& GetCurrentSolverIndex()
+    const IndexType GetCurrentSolverIndex()
     {
         return mCurrentSolverIndex;
     }
 
     /**
-     * @brief Set the Current Solver Index.
-     * @param index The new solver index to set.
+     * @brief Set the Current Solver Index to 0.
      */
-    void SetCurrentSolverIndex(const IndexType Index)
+    void ClearCurrentSolverIndex()
     {
-        mCurrentSolverIndex = Index;
+        mCurrentSolverIndex = 0;
     }
 
     ///@}
@@ -747,6 +754,14 @@ protected:
     /**
      * @brief Get the default parameters for this solver.
      * @details This function returns the default parameters for configuring this solver.
+     * Empty in defaults. Should be filled with the solvers to try. For example:
+     * {
+     *     "solver_type": "amgcl"
+     * },
+     * {
+     *     "solver_type": "skyline_lu_factorization"
+     * }
+     * Label of the solver is solver_x, where x is the index in the list
      * @return Default parameters for the solver.
      */
     const Parameters GetDefaultParameters() const
@@ -754,14 +769,6 @@ protected:
         return Parameters(R"({
             "solver_type": "fallback_linear_solver",
             "solvers"    : [
-                // Empty in defaults. Should be filled with the solvers to try. For example:
-                // {
-                //     "solver_type": "amgcl"
-                // },
-                // {
-                //     "solver_type": "skyline_lu_factorization"
-                // }
-                // Label of the solver is solver_x, where x is the index in the list
             ],
             "reset_solver_index_each_try": false
         })");
@@ -776,13 +783,10 @@ protected:
      *       outlines a placeholder for enhanced future functionality, such as more comprehensive logging or
      *       additional transition actions.
      */
-    void UpdateCounterSolverIndex()
+    void UpdateSolverIndex()
     {
         // Safety check to ensure we have solvers to work with
-        if (mSolvers.empty()) {
-            KRATOS_WARNING("FallbackLinearSolver") << "No solvers are configured." << std::endl;
-            return;
-        }
+        KRATOS_ERROR_IF(mSolvers.empty()) << "No solvers are configured." << std::endl;
 
         // Log the settings of the current (failing) solver, if applicable
         if (mCurrentSolverIndex < mSolvers.size()) {

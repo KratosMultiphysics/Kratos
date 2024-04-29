@@ -91,7 +91,7 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("GetParameters", &TrilinosFallbackLinearSolverType::GetParameters)
         .def("SetParameters", &TrilinosFallbackLinearSolverType::SetParameters)
         .def("GetCurrentSolverIndex", &TrilinosFallbackLinearSolverType::GetCurrentSolverIndex)
-        .def("SetCurrentSolverIndex", &TrilinosFallbackLinearSolverType::SetCurrentSolverIndex)
+        .def("ClearCurrentSolverIndex", &TrilinosFallbackLinearSolverType::ClearCurrentSolverIndex)
         ;
 
 #ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER

@@ -256,7 +256,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("GetParameters", &FallbackLinearSolverType::GetParameters)
     .def("SetParameters", &FallbackLinearSolverType::SetParameters)
     .def("GetCurrentSolverIndex", &FallbackLinearSolverType::GetCurrentSolverIndex)
-    .def("SetCurrentSolverIndex", &FallbackLinearSolverType::SetCurrentSolverIndex)
+    .def("ClearCurrentSolverIndex", &FallbackLinearSolverType::ClearCurrentSolverIndex)
     ;
 
 }
