@@ -19,7 +19,8 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
         for i in range(4):
             result_file_name = os.path.join(file_path, 'test_model_stage' + str(i + 1) + '.post.res')
-            expected_result_file_name = test_helper.get_file_path(os.path.join('.', test_name, 'common', 'test_model_stage' + str(i + 1) + '.post.orig.res'))
+            expected_result_file_name = (test_helper.get_file_path(
+                os.path.join('.', test_name, 'common', 'test_model_stage' + str(i + 1) + '.post.orig.res')))
             self.assertTrue(filecmp.cmp(result_file_name, expected_result_file_name, shallow=False))
 
 if __name__ == '__main__':
