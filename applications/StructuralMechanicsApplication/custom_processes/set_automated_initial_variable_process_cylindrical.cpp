@@ -68,20 +68,12 @@ void SetAutomatedInitialVariableProcessCylindrical::ExecuteInitialize()
 
         double centroid_relative_distance = MathUtils<double>::Norm3(radial_position_vector) - hole_radius_offset;
 
-        // if (centroid_relative_distance < tolerance){
-        //     centroid_relative_distance = 0.0;
-        // }
-
         if (centroid_relative_distance < tolerance){
-            centroid_relative_distance = 2.4878275E-06;
+            centroid_relative_distance = 2.05E-06;
         }
 
-        // if (centroid_relative_distance < 0.0){
-        //     if (std::abs(centroid_relative_distance) <= tolerance) {
-        //         centroid_relative_distance = 0.0;
-        //     } else {
-        //         KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
-        //     }
+        // if (centroid_relative_distance < tolerance){
+        //     centroid_relative_distance = 2.4878275E-06;
         // }
         
         // if (centroid_relative_distance < 0.0){
@@ -91,7 +83,7 @@ void SetAutomatedInitialVariableProcessCylindrical::ExecuteInitialize()
         //         KRATOS_ERROR << "The relative centroid distance may not be negative. Check the hole radius offset and the thickness of element " << rElement.Id() << std::endl;
         //     }
         // }
-
+        
         array_1d<double, 6> initial_variable_vector;
         noalias(initial_variable_vector) = ZeroVector(6); 
  

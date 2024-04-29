@@ -8,7 +8,10 @@ def Factory(settings, Model):
     
     """
     This process reads the surface roughness r_z and material constants a_r and sigma_uts_min to compute the roughness reduction factor K_r 
-    in the high cycle fatigue integrator.
+    according to the equation K_r = 1 - a_r * log10(r_z) * log10(2 * sigma_uts / sigma_uts_min) in the high cycle fatigue integrator.
+    For steel: a_r = 0.22 and sigma_uts_min = 400 MPa
+    For aluminum: a_r = 0.22 and sigma_uts_min = 133 MPa
+    Reference: E. Haibach, Fkm-guideline: Analytical strength assessment of components in mechanical engineering, 5 revised edition, english version (2003).
     """
 
     default_settings = KM.Parameters(
