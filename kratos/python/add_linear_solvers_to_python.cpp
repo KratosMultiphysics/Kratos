@@ -254,7 +254,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("GetResetSolverEachTry", &FallbackLinearSolverType::GetResetSolverEachTry)
     .def("SetResetSolverIndexEachTry", &FallbackLinearSolverType::SetResetSolverIndexEachTry)
     .def("GetParameters", &FallbackLinearSolverType::GetParameters)
-    .def("SetParameters", &FallbackLinearSolverType::SetParameters)
     .def("GetCurrentSolverIndex", &FallbackLinearSolverType::GetCurrentSolverIndex)
     .def("ClearCurrentSolverIndex", &FallbackLinearSolverType::ClearCurrentSolverIndex)
     ;

@@ -89,7 +89,6 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("GetResetSolverEachTry", &TrilinosFallbackLinearSolverType::GetResetSolverEachTry)
         .def("SetResetSolverIndexEachTry", &TrilinosFallbackLinearSolverType::SetResetSolverIndexEachTry)
         .def("GetParameters", &TrilinosFallbackLinearSolverType::GetParameters)
-        .def("SetParameters", &TrilinosFallbackLinearSolverType::SetParameters)
         .def("GetCurrentSolverIndex", &TrilinosFallbackLinearSolverType::GetCurrentSolverIndex)
         .def("ClearCurrentSolverIndex", &TrilinosFallbackLinearSolverType::ClearCurrentSolverIndex)
         ;

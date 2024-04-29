@@ -501,15 +501,6 @@ public:
     }
 
     /**
-     * @brief Set the Parameters.
-     * @param parameters A Parameters object to set.
-     */
-    void SetParameters(const Parameters ThisParameters)
-    {
-        mParameters = ThisParameters;
-    }
-
-    /**
      * @brief Get the Current Solver Index. (not mutable)
      * @return IndexType The current solver index.
      */
