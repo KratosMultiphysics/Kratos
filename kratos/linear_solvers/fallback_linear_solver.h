@@ -458,7 +458,17 @@ public:
      */
     void SetSolvers(const std::vector<LinearSolverPointer>& rSolvers)
     {
+        // Assign the solvers
         mSolvers = rSolvers;
+
+        // Remove solvers and add again
+        mParameters.RemoveValue("solvers");
+        mParameters.AddEmptyArray("solvers");
+
+        // Fill the parameters with the solvers
+        for (auto& p_solver : mSolvers) {
+            FillParametersFromSolver(p_solver);
+        }
     }
 
     /**
