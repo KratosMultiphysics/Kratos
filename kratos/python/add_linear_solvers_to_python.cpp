@@ -246,8 +246,8 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("AddSolver", [](FallbackLinearSolverType& rSelf, LinearSolverType::Pointer pSolver) {
         rSelf.AddSolver(pSolver);
     })
-    .def("AddSolver", [](FallbackLinearSolverType& rSelf, LinearSolverType::Pointer pSolver, const Parameters ThisParameters) {
-        rSelf.AddSolver(pSolver, ThisParameters);
+    .def("AddSolver", [](FallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
+        rSelf.AddSolver(ThisParameters);
     })
     .def("GetSolvers", &FallbackLinearSolverType::GetSolvers)
     .def("SetSolvers", &FallbackLinearSolverType::SetSolvers)

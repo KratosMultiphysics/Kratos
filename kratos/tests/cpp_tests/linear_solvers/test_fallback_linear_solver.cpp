@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, AltairExten
                 "solver_type": "skyline_lu_factorization"
             }
         ],
-        "reset_solver_index_each_try": false
+        "reset_solver_each_try": false
     })");
     FallbackLinearSolverType simple_fallback_solver(parameters);
 

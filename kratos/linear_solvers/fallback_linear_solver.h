@@ -466,7 +466,7 @@ public:
      * @return true If the solver index is reset for each try.
      * @return false Otherwise.
      */
-    bool& GetResetSolverEachTry()
+    const bool GetResetSolverEachTry() const
     {
         return mResetSolverEachTry;
     }
@@ -478,6 +478,7 @@ public:
     void SetResetSolverIndexEachTry(const bool Reset)
     {
         mResetSolverEachTry = Reset;
+        mParameters["reset_solver_each_try"].SetBool(Reset);
     }
 
     /**
@@ -502,7 +503,7 @@ public:
      * @brief Get the Current Solver Index. (not mutable)
      * @return IndexType The current solver index.
      */
-    const IndexType GetCurrentSolverIndex()
+    const IndexType GetCurrentSolverIndex() const
     {
         return mCurrentSolverIndex;
     }
@@ -739,7 +740,7 @@ protected:
     void CommonSettingsFromParameters()
     {
         // Set the member variables
-        mResetSolverEachTry = mParameters["reset_solver_index_each_try"].GetBool();
+        mResetSolverEachTry = mParameters["reset_solver_each_try"].GetBool();
     }
 
     /**
@@ -758,10 +759,11 @@ protected:
     const Parameters GetDefaultParameters() const
     {
         return Parameters(R"({
-            "solver_type": "fallback_linear_solver",
-            "solvers"    : [
+            "solver_type"           : "fallback_linear_solver",
+            "solvers"               : [
+                // As default is empty, if not defined it will throw an error
             ],
-            "reset_solver_index_each_try": false
+            "reset_solver_each_try" : false
         })");
     }
 
