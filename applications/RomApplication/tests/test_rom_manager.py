@@ -61,6 +61,9 @@ class TestRomManager(KratosUnittest.TestCase):
     def test_orchestration(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
 
+            #We do not check for specific entries. The generated npy files depend heavily on the SVD, which contains randomization.
+            # Here we are checking the generation of the files and their sizes, number of rom modes, number of selected hrom elements, etc.
+
             def UpdateProjectParameters(parameters, mu=None):
                 """
                 Customize ProjectParameters here for imposing different conditions to the simulations as needed
@@ -81,37 +84,39 @@ class TestRomManager(KratosUnittest.TestCase):
             train_mu = [[0.1, 0.1, 0.1]]
             rom_manager_object.Fit(train_mu)
             right_basis = 'RightBasisMatrix'
-            self.assertMatrixAlmostEqual(KratosMultiphysics.Matrix(np.load(f'rom_data/{right_basis}.npy')), KratosMultiphysics.Matrix(np.load(f'ExpectedOutputs/galerkin/{right_basis}.npy')))
+            self.assertEqual(np.load(f'rom_data/{right_basis}.npy').shape[1], np.load(f'ExpectedOutputs/galerkin/{right_basis}.npy').shape[1]) #number of right modes
             node_ids = 'NodeIds'
             self.assertListEqual(np.load(f'rom_data/{node_ids}.npy').tolist(),np.load(f'ExpectedOutputs/galerkin/{node_ids}.npy').tolist())
             elem_weights = 'HROM_ElementWeights'
-            self.assertListEqual(np.load(f'rom_data/{elem_weights}.npy').tolist(), np.load(f'ExpectedOutputs/galerkin/{elem_weights}.npy').tolist())
+            self.assertEqual(np.load(f'rom_data/{elem_weights}.npy').size, np.load(f'ExpectedOutputs/galerkin/{elem_weights}.npy').size)
             elem_ids = 'HROM_ElementIds'
-            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy'),np.load(f'ExpectedOutputs/galerkin/{elem_ids}.npy'))
+            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy').size,np.load(f'ExpectedOutputs/galerkin/{elem_ids}.npy').size)
             cond_weights = 'HROM_ConditionWeights'
-            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy'),np.load(f'ExpectedOutputs/galerkin/{cond_weights}.npy'))
+            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy').size,np.load(f'ExpectedOutputs/galerkin/{cond_weights}.npy').size)
             cond_ids = 'HROM_ConditionIds'
-            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy'),np.load(f'ExpectedOutputs/galerkin/{cond_ids}.npy'))
+            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/galerkin/{cond_ids}.npy').size)
+            self.clear_npys()
 
             parameters["projection_strategy"].SetString("lspg")
             rom_manager_object.Fit(train_mu)
-            self.assertMatrixAlmostEqual(KratosMultiphysics.Matrix(np.load(f'rom_data/{right_basis}.npy')), KratosMultiphysics.Matrix(np.load(f'ExpectedOutputs/galerkin/{right_basis}.npy')))
+            self.assertEqual(np.load(f'rom_data/{right_basis}.npy').shape[1], np.load(f'ExpectedOutputs/galerkin/{right_basis}.npy').shape[1]) #number of right modes
             self.assertListEqual(np.load(f'rom_data/{node_ids}.npy').tolist(),np.load(f'ExpectedOutputs/galerkin/{node_ids}.npy').tolist())
-            self.assertListEqual(np.load(f'rom_data/{elem_weights}.npy').tolist(), np.load(f'ExpectedOutputs/galerkin/{elem_weights}.npy').tolist())
-            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy'),np.load(f'ExpectedOutputs/galerkin/{elem_ids}.npy'))
-            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy'),np.load(f'ExpectedOutputs/galerkin/{cond_weights}.npy'))
-            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy'),np.load(f'ExpectedOutputs/galerkin/{cond_ids}.npy'))
+            self.assertEqual(np.load(f'rom_data/{elem_weights}.npy').size, np.load(f'ExpectedOutputs/galerkin/{elem_weights}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy').size,np.load(f'ExpectedOutputs/galerkin/{elem_ids}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy').size,np.load(f'ExpectedOutputs/galerkin/{cond_weights}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/galerkin/{cond_ids}.npy').size)
+            self.clear_npys()
 
             parameters["projection_strategy"].SetString("petrov_galerkin")
             rom_manager_object.Fit(train_mu)
-            right_basis = 'LeftBasisMatrix'
-            self.assertMatrixAlmostEqual(KratosMultiphysics.Matrix(np.load(f'rom_data/{right_basis}.npy')), KratosMultiphysics.Matrix(np.load(f'ExpectedOutputs/petrov_galerkin/{right_basis}.npy')))
-            self.assertMatrixAlmostEqual(KratosMultiphysics.Matrix(np.load(f'rom_data/{right_basis}.npy')), KratosMultiphysics.Matrix(np.load(f'ExpectedOutputs/galerkin/{right_basis}.npy')))
-            self.assertListEqual(np.load(f'rom_data/{node_ids}.npy').tolist(),np.load(f'ExpectedOutputs/galerkin/{node_ids}.npy').tolist())
-            self.assertListEqual(np.load(f'rom_data/{elem_weights}.npy').tolist(), np.load(f'ExpectedOutputs/galerkin/{elem_weights}.npy').tolist())
-            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy'),np.load(f'ExpectedOutputs/galerkin/{elem_ids}.npy'))
-            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy'),np.load(f'ExpectedOutputs/galerkin/{cond_weights}.npy'))
-            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy'),np.load(f'ExpectedOutputs/galerkin/{cond_ids}.npy'))
+            self.assertEqual(np.load(f'rom_data/{right_basis}.npy').shape[1], np.load(f'ExpectedOutputs/petrov_galerkin/{right_basis}.npy').shape[1]) #number of right modes
+            left_basis = 'LeftBasisMatrix'
+            self.assertEqual(np.load(f'rom_data/{left_basis}.npy').shape[1], np.load(f'ExpectedOutputs/petrov_galerkin/{left_basis}.npy').shape[1]) #number of left modes
+            self.assertListEqual(np.load(f'rom_data/{node_ids}.npy').tolist(),np.load(f'ExpectedOutputs/petrov_galerkin/{node_ids}.npy').tolist())
+            self.assertEqual(np.load(f'rom_data/{elem_weights}.npy').size, np.load(f'ExpectedOutputs/petrov_galerkin/{elem_weights}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{elem_ids}.npy').size,np.load(f'ExpectedOutputs/petrov_galerkin/{elem_ids}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{cond_weights}.npy').size,np.load(f'ExpectedOutputs/petrov_galerkin/{cond_weights}.npy').size)
+            self.assertEqual(np.load(f'rom_data/{cond_ids}.npy').size,np.load(f'ExpectedOutputs/petrov_galerkin/{cond_ids}.npy').size)
 
 
 
@@ -244,6 +249,14 @@ class TestRomManager(KratosUnittest.TestCase):
                 # what to do with self._SetPetrovGalerkinBnSParameters()
 
 
+    def clear_npys(self):
+        #this should be called from the rom_data scope
+        for file_name in os.listdir():
+                if file_name.endswith(".npy"):
+                    kratos_utilities.DeleteFileIfExisting(file_name)
+
+
+
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             for file_name in os.listdir():
@@ -251,9 +264,9 @@ class TestRomManager(KratosUnittest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
         with KratosUnittest.WorkFolderScope(self.work_folder+'/rom_data', __file__):
             for file_name in os.listdir():
-                if file_name.endswith(".npy") or  file_name.endswith("test_to_erase.json"):
+                if file_name.endswith("test_to_erase.json"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
-
+            self.clear_npys()
 
 
 if __name__ == '__main__':
