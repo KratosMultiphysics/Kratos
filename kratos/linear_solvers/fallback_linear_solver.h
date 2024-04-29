@@ -476,7 +476,7 @@ public:
      * @return true If the solver index is reset for each try.
      * @return false Otherwise.
      */
-    const bool GetResetSolverEachTry() const
+    bool GetResetSolverEachTry() const
     {
         return mResetSolverEachTry;
     }
@@ -502,9 +502,9 @@ public:
 
     /**
      * @brief Get the Current Solver Index. (not mutable)
-     * @return IndexType The current solver index.
+     * @return mCurrentSolverIndex The current solver index.
      */
-    const IndexType GetCurrentSolverIndex() const
+    IndexType GetCurrentSolverIndex() const
     {
         return mCurrentSolverIndex;
     }
