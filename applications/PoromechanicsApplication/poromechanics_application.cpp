@@ -221,9 +221,6 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElastic3DLaw",mHistoryLinearElastic3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStrain2DLaw",mHistoryLinearElasticPlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HistoryLinearElasticPlaneStress2DLaw",mHistoryLinearElasticPlaneStress2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )

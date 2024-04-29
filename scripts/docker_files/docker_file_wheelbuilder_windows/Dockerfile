@@ -83,6 +83,15 @@ RUN powershell.exe -Command \
     c:\python\311\python.exe -m pip install --upgrade pip; \
     c:\python\311\python.exe -m pip install --upgrade setuptools wheel
 
+#Install python 3.12
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe -OutFile c:\temp\python312.exe; \
+    mkdir c:\python\312; \
+    Start-Process c:\temp\python312.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\312' -Wait; \
+    c:\python\312\python.exe -m pip install --upgrade pip; \
+    c:\python\312\python.exe -m pip install --upgrade setuptools wheel
+
 # Download and extract hdf5
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
