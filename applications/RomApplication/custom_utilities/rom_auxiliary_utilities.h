@@ -83,6 +83,25 @@ public:
         ModelPart& rHRomComputingModelPart);
 
     /**
+     * @brief Sets the HROM model part using lists of element and condition IDs and weights
+     * This function constructs the HROM model part by directly using lists of element and
+     * condition IDs along with their corresponding weights. It processes the given IDs to
+     * retrieve the respective elements and conditions from the origin model part and then
+     * adds them to the destination model part. Unique node IDs are also extracted and managed
+     * efficiently to avoid duplication. This approach is more direct and efficient, especially
+     * when dealing with large datasets.
+     * @param elementIds Vector of integers representing the IDs of elements to be included in the HROM model part
+     * @param conditionIds Vector of integers representing the IDs of conditions to be included in the HROM model part
+     * @param rOriginModelPart Reference to the origin model part (usually the computing model part)
+     * @param rHRomComputingModelPart Reference to the destination model part where the HROM mesh will be stored
+     */
+    static void SetHRomComputingModelPartWithLists(
+        const std::vector<int>& elementIds,
+        const std::vector<int>& conditionIds,
+        ModelPart& rOriginModelPart,
+        ModelPart& rHRomComputingModelPart);
+
+    /**
      * @brief Sets the HROM model part including neighboring entities based on the nodal weights
      *
      * Provided an origin model part and a parameters object containing the HROM weights,
@@ -360,6 +379,28 @@ public:
         const std::vector<Condition::Pointer>& rConditionsVector,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart);
+
+    /**
+     * @brief Recursively creates a hierarchical Reduced Order Model (HROM) ModelPart based on specified node, element, and condition IDs.
+     *
+     * This function replicates the submodelpart hierarchy from the origin ModelPart to the destination ModelPart.
+     * Only entities (nodes, elements, and conditions) whose IDs are included in the provided vectors are added to the new ModelPart.
+     * It also copies all properties from the origin ModelPart to the destination ModelPart.
+     * The function is recursive, so it replicates the entire hierarchy of submodelparts.
+     *
+     * @param rNodeIds Vector of node IDs to include in the HROM submodelpart.
+     * @param rElementIds Vector of element IDs to include in the HROM submodelpart.
+     * @param rConditionIds Vector of condition IDs to include in the HROM submodelpart.
+     * @param rOriginModelPart Reference to the original ModelPart from which to copy entities and structure.
+     * @param rDestinationModelPart Reference to the destination ModelPart where the HROM structure will be created.
+     */
+    static void RecursiveHRomModelPartCreationVector(
+        const std::vector<IndexType>& rNodeIds,
+        const std::vector<IndexType>& rElementIds,
+        const std::vector<IndexType>& rConditionIds,
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
 
     static void RecursiveHRomMinimumConditionIds(
         const ModelPart& rModelPart,
