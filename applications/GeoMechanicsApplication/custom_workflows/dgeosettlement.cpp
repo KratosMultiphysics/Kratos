@@ -249,6 +249,7 @@ void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
 
     // Displacement
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    rModelPart.AddNodalSolutionStepVariable(INCREMENTAL_DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(POINT_LOAD);
