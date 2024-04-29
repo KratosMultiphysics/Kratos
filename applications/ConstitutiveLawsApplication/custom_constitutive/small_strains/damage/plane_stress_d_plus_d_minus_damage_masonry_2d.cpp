@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 
@@ -169,6 +170,72 @@ void DamageDPlusDMinusMasonry2DLaw::SetValue(
 	else if(rVariable == THRESHOLD_COMPRESSION)
 		ThresholdCompression = rValue;
 }
+
+Vector& DamageDPlusDMinusMasonry2DLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    )
+{
+    if (rThisVariable == STRAIN ||
+        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        ConstitutiveLaw::StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
+
+        if( r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+            //Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
+			ConstitutiveLawUtilities<3>::CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
+        }
+        AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
+
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
+        noalias(rValue) = r_strain_vector;
+
+    } else if (rThisVariable == STRESSES ||
+        rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+        rThisVariable == PK2_STRESS_VECTOR) {
+
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        // Set flags to only compute the stress
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        this->CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
+        noalias(rValue) = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
+
+    } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
+        if (this->HasInitialState()) {
+	    if (rValue.size() != GetStrainSize()) {
+	        rValue.resize(GetStrainSize());
+	    }
+	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
+        } else {
+            noalias(rValue) = ZeroVector(0);
+        }
+    }
+
+    return rValue;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::SetValue(
@@ -784,9 +851,10 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 	}
 	else {
 		// extract material parameters
-		const double c1 			= data.BezierControllerC1;
-		const double c2 			= data.BezierControllerC2;
-		const double c3 			= data.BezierControllerC3;
+		const double c1 = data.BezierControllerC1;
+		const double c2 = data.BezierControllerC2;
+		const double c3 = data.BezierControllerC3;
+
 		const double specific_fracture_energy = data.FractureEnergyCompression / data.CharacteristicLength;
 		const double young_modulus = data.YoungModulus;
 		const double s_0 = data.DamageOnsetStressCompression;
@@ -801,7 +869,7 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		double e_p = data.YieldStrainCompression;
 		const double alpha  = 2.0 * (e_p - s_p / young_modulus);
 		double e_j = e_p + alpha * c2;
-		double e_k = e_j + alpha * (1 - c2);
+		double e_k = e_j + alpha * (1.0 - c2);
 		double e_r = (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j; // 0.035;
 		double e_u = e_r * c3;
 		double e_i = s_p / young_modulus;

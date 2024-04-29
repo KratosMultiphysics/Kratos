@@ -110,6 +110,11 @@ public:
 
 	};
 
+	Vector& CalculateValue(
+		ConstitutiveLaw::Parameters &rParameterValues,
+		const Variable<Vector> &rThisVariable,
+		Vector &rValue) override;
+
 	/**
 	* returns whether this constitutive Law has specified variable
 	* @param rThisVariable the variable to be checked for
