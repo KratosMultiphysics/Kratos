@@ -81,12 +81,12 @@ void  AddLinearSolvers(pybind11::module& m)
         .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, TrilinosLinearSolverType::Pointer pSolver) {
             rSelf.AddSolver(pSolver);
         })
-        .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, TrilinosLinearSolverType::Pointer pSolver, const Parameters ThisParameters) {
-            rSelf.AddSolver(pSolver, ThisParameters);
+        .def("AddSolver", [](TrilinosFallbackLinearSolverType& rSelf, const Parameters ThisParameters) {
+            rSelf.AddSolver(ThisParameters);
         })
         .def("GetSolvers", &TrilinosFallbackLinearSolverType::GetSolvers)
         .def("SetSolvers", &TrilinosFallbackLinearSolverType::SetSolvers)
-        .def("GetResetSolverIndexEachTry", &TrilinosFallbackLinearSolverType::GetResetSolverIndexEachTry)
+        .def("GetResetSolverEachTry", &TrilinosFallbackLinearSolverType::GetResetSolverEachTry)
         .def("SetResetSolverIndexEachTry", &TrilinosFallbackLinearSolverType::SetResetSolverIndexEachTry)
         .def("GetParameters", &TrilinosFallbackLinearSolverType::GetParameters)
         .def("SetParameters", &TrilinosFallbackLinearSolverType::SetParameters)

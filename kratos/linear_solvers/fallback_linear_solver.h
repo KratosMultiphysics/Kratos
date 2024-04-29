@@ -310,7 +310,7 @@ public:
         VectorType& rB
         ) override
     {
-        if (mResetSolverIndexEachTry) mCurrentSolverIndex = 0;
+        if (mResetSolverEachTry) mCurrentSolverIndex = 0;
         bool success = false;
         while (!success && mCurrentSolverIndex < mSolvers.size()) {
             success = GetCurrentSolver()->Solve(rA, rX, rB);
@@ -340,7 +340,7 @@ public:
         DenseMatrixType& rB
         ) override
     {
-        if (mResetSolverIndexEachTry) mCurrentSolverIndex = 0;
+        if (mResetSolverEachTry) mCurrentSolverIndex = 0;
         bool success = false;
         while (!success && mCurrentSolverIndex < mSolvers.size()) {
             success = GetCurrentSolver()->Solve(rA, rX, rB);
@@ -466,9 +466,9 @@ public:
      * @return true If the solver index is reset for each try.
      * @return false Otherwise.
      */
-    bool& GetResetSolverIndexEachTry()
+    bool& GetResetSolverEachTry()
     {
-        return mResetSolverIndexEachTry;
+        return mResetSolverEachTry;
     }
 
     /**
@@ -477,7 +477,7 @@ public:
      */
     void SetResetSolverIndexEachTry(const bool Reset)
     {
-        mResetSolverIndexEachTry = Reset;
+        mResetSolverEachTry = Reset;
     }
 
     /**
@@ -617,7 +617,7 @@ public:
             rOStream << "\nSolver: " << p_solver->Info() << "\n:";
             p_solver->PrintData(rOStream);
         }
-        rOStream << "\nReset solver index each try: " << mResetSolverIndexEachTry;
+        rOStream << "\nReset solver index each try: " << mResetSolverEachTry;
         rOStream << "\nGlobal parameters: " << mParameters;
         rOStream << "\nCurrent solver index: " << mCurrentSolverIndex << std::endl;
     }
@@ -639,7 +639,7 @@ protected:
     std::vector<LinearSolverPointer> mSolvers;
 
     /// Flag to reset the solver index each try
-    bool mResetSolverIndexEachTry = false;
+    bool mResetSolverEachTry = false;
 
     /// The parameters
     Parameters mParameters;
@@ -739,7 +739,7 @@ protected:
     void CommonSettingsFromParameters()
     {
         // Set the member variables
-        mResetSolverIndexEachTry = mParameters["reset_solver_index_each_try"].GetBool();
+        mResetSolverEachTry = mParameters["reset_solver_index_each_try"].GetBool();
     }
 
     /**

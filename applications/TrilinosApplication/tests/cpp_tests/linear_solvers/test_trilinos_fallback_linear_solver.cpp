@@ -148,7 +148,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosFallbackLinearSolverConstructorPar
                 "solver_type": "amgcl"
             }
         ],
-        "reset_solver_index_each_try": false
+        "reset_solver_each_try": false
     })");
     TrilinosFallbackLinearSolverType simple_fallback_solver(parameters);
 
