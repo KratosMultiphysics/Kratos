@@ -116,7 +116,7 @@ double SensorLocalizationResponseUtils::CalculateValue() const
 
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         double cluster_size_ratio = 0.0;
-        Vector& r_values = row(aux_matrix, Index);
+        const Vector& r_values = row(aux_matrix, Index);
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             cluster_size_ratio += mDomainSizeRatio[i_element] * r_values[i_element];
         }
@@ -153,9 +153,9 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
 
     std::vector<double> cluster_size_ratios(r_mask_container.size(), 0.0);
     const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
+        const Vector& r_values = row(aux_matrix_2, Index);
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            const double domain_size_ratio = mDomainSizeRatio[i_element];
-            cluster_size_ratios[Index] += domain_size_ratio * aux_matrix_2(Index, i_element);
+            cluster_size_ratios[Index] += mDomainSizeRatio[i_element] * r_values[i_element];
         }
         return std::pow(cluster_size_ratios[Index], mP);
     });
@@ -180,11 +180,14 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
             const double domain_size_ratio = mDomainSizeRatio[i_element];
             const bool i_value = static_cast<bool>(r_mask_exp.Evaluate(i_element, i_element, 0));
 
+            const Vector& aux_vec_1 = column(aux_matrix, i_element);
             for (IndexType j_element = 0; j_element < i_element; ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_matrix(j_element, i_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_vec_1[j_element] * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
             }
+
+            const Vector& aux_vec_2 = row(aux_matrix, i_element);
             for (IndexType j_element = i_element + 1; j_element < r_mask_container.size(); ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_matrix(i_element, j_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_vec_2[j_element] * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
             }
 
             value += std::pow(cluster_size_ratios[i_element], mP - 1) * d_cluster_size_ratio_d_sensor_status;
