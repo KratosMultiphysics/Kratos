@@ -446,6 +446,12 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    auto integration_coefficients = std::vector<double>{};
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        integration_coefficients.push_back(this->CalculateIntegrationCoefficient(
+            IntegrationPoints, GPoint, Variables.detJContainer[GPoint]));
+    }
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute GradNpT, B and StrainVector
@@ -460,9 +466,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
