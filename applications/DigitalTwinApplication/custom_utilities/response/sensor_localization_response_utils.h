@@ -65,8 +65,6 @@ private:
 
     std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer> mMasksList;
 
-    vector<matrix<bool>> mClusterData;
-
     std::vector<double> mDomainSizeRatio;
 
     ///@}

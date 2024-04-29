@@ -49,20 +49,6 @@ SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
         << r_model_part.NumberOfNodes() << ", number of masks  = "
         << mMasksList.size() << " ].\n";
 
-    const IndexType number_of_elements = mMasksList.front()->GetContainer().size();
-    mClusterData.resize(r_model_part.NumberOfNodes(), false);
-
-    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
-        const auto& r_mask_exp = mMasksList[SensorIndex]->GetExpression();
-        auto& r_matrix = mClusterData[SensorIndex];
-        r_matrix.resize(number_of_elements, number_of_elements, false);
-        for (IndexType i = 0; i < number_of_elements; ++i) {
-            for (IndexType j = i + 1; j < number_of_elements; ++j) {
-                r_matrix(i, j) = static_cast<bool>(std::pow(r_mask_exp.Evaluate(i, i, 0) - r_mask_exp.Evaluate(j, j, 0), 2));
-            }
-        }
-    });
-
     // get the total domain size and domain size ratios
     const auto& r_container = mMasksList.front()->GetContainer();
     mDomainSizeRatio.resize(r_container.size());
@@ -96,9 +82,10 @@ void SensorLocalizationResponseUtils::ComputeClusterDifference(Matrix& rOutput) 
     IndexPartition<IndexType>(number_of_elements).for_each([&](const auto i) {
         for (IndexType k_sensor = 0; k_sensor < r_model_part.NumberOfNodes(); ++k_sensor) {
             const double sensor_status = (r_model_part.NodesBegin() + k_sensor)->GetValue(SENSOR_STATUS);
-            const auto& r_matrix = mClusterData[k_sensor];
+            const auto& r_mask_exp = mMasksList[k_sensor]->GetExpression();
+            const bool i_value = static_cast<bool>(r_mask_exp.Evaluate(i, i, 0));
             for (IndexType j = i + 1; j < number_of_elements; ++j) {
-                const double value = sensor_status * r_matrix(i, j);
+                const double value = sensor_status * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j, j ,0)));
                 rOutput(i, j) += value;
                 rOutput(j, i) += value;
             }
@@ -156,23 +143,31 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
         return std::pow(cluster_size_ratios[Index], mP);
     });
 
+    Matrix clamp_derivatives(cluster_differences.size1(), cluster_differences.size2());
+    IndexPartition<IndexType>(cluster_differences.size1()).for_each([&](const auto i) {
+        for (IndexType j = i + 1; j <  cluster_differences.size2(); ++j) {
+            clamp_derivatives(i, j) = clamper.ClampDerivative(cluster_differences(i, j));
+        }
+    });
+
     const double coeff = std::pow(summation, 1 / mP - 1);
 
     auto p_expression = LiteralFlatExpression<double>::Create(r_model_part.NumberOfNodes(), {});
     auto& r_expression = *p_expression;
     IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
-        const auto& r_matrix = mClusterData[SensorIndex];
+        const auto& r_mask_exp = mMasksList[SensorIndex]->GetExpression();
         double& value = *(r_expression.begin() + SensorIndex);
         value = 0.0;
         for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
             double d_cluster_size_ratio_d_sensor_status = 0.0;
             const double domain_size_ratio = mDomainSizeRatio[i_element];
+            const bool i_value = static_cast<bool>(r_mask_exp.Evaluate(i_element, i_element, 0));
 
             for (IndexType j_element = 0; j_element < i_element; ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * r_matrix(j_element, i_element);
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamp_derivatives(j_element, i_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
             }
             for (IndexType j_element = i_element + 1; j_element < r_mask_container.size(); ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamper.ClampDerivative(cluster_differences(i_element, j_element)) * r_matrix(i_element, j_element);
+                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * clamp_derivatives(i_element, j_element) * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
             }
 
             value += std::pow(cluster_size_ratios[i_element], mP - 1) * d_cluster_size_ratio_d_sensor_status;
