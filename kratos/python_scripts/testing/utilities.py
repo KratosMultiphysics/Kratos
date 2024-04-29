@@ -138,6 +138,9 @@ class Commander(object):
             try:
                 # Pipe the output of the process until the timer is reached
                 process_stdout, process_stderr = self.process.communicate(timeout=timer)
+                
+                # Capture the result of the process
+                self.exitCodes[test_suit_name] = int(self.process.returncode != 0)
             except subprocess.TimeoutExpired:
                 # Timeout reached
                 self.process.kill()
@@ -152,9 +155,6 @@ class Commander(object):
         # Exit message
         PrintTestFooter(test_suit_name, self.process.returncode)
 
-        # Running out of time in the tests will send the error code -15. We may want to skip
-        # that one in a future. Right now will throw everything different from 0.
-        self.exitCodes[test_suit_name] = int(self.process.returncode != 0)
         
     def RunPythonTests(self, applications, level, verbose, command, timer):
         ''' Calls the script that will run the tests.

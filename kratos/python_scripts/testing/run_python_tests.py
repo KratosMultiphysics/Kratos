@@ -60,7 +60,11 @@ def main():
     testing_utils.PrintTestSummary(commander.exitCodes)
 
     # Propagate exit code and end
-    sys.exit(max(commander.exitCodes.values()))
+    try:
+        sys.exit(max(commander.exitCodes.values()))
+    except:
+        print("Failed to run tests")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
