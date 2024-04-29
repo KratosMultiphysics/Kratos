@@ -1009,8 +1009,8 @@ public:
         // Obtain necessary variables
         const Vector& N = rValues.GetShapeFunctionsValues();
         const unsigned int number_of_nodes = geometry.size(); 
-        unsigned int dimension;
-        unsigned int voigt_size;   
+        unsigned int dimension = 0;
+        unsigned int voigt_size = 0;   
 
         if (rStressVector.size() == 3) {
             dimension = 2;
