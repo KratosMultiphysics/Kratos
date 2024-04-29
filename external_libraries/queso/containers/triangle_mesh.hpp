@@ -89,7 +89,7 @@ public:
     /// @param TriangleId
     /// @param Method integration method.
     /// @return BoundaryIpVectorPtrType.
-    BoundaryIpVectorPtrType pGetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
+    virtual BoundaryIpVectorPtrType pGetIPsGlobal( IndexType TriangleId, IndexType Method ) const {
 
         const auto& s_integration_points = GetIntegrationPoints(Method);
         const SizeType point_numbers = s_integration_points.size();
@@ -124,21 +124,21 @@ public:
     ///@brief Get triangle vertex 1
     ///@param TriangleId
     ///@return const Vector3d&
-    const Vector3d& P1(IndexType TriangleId) const {
+    virtual const Vector3d P1(IndexType TriangleId) const {
         return mVertices[mTriangles[TriangleId][0]];
     }
 
     ///@brief Get triangle vertex 2
     ///@param TriangleId
     ///@return const Vector3d&
-    const Vector3d& P2(IndexType TriangleId) const {
+    virtual const Vector3d P2(IndexType TriangleId) const {
         return mVertices[mTriangles[TriangleId][1]];
     }
 
     ///@brief Get triangle vertex 3
     ///@param TriangleId
     ///@return const Vector3d&
-    const Vector3d& P3(IndexType TriangleId) const {
+    virtual const Vector3d P3(IndexType TriangleId) const {
         return mVertices[mTriangles[TriangleId][2]];
     }
 
@@ -227,12 +227,12 @@ public:
         return mEdgesOnPlanes;
     }
     ///@brief Get number of triangles in mesh.
-    IndexType NumOfTriangles() const{
+    virtual IndexType NumOfTriangles() const{
         return mTriangles.size();
     }
 
     ///@brief Get number of vertices in mesh.
-    IndexType NumOfVertices() const{
+    virtual IndexType NumOfVertices() const{
         return mVertices.size();
     }
 
@@ -252,6 +252,12 @@ public:
     ///@return const std::vector<Vector3i>&
     const std::vector<Vector3i>& GetTriangles() const {
         return mTriangles;
+    }
+
+    ///@brief Get triangles from mesh. (const version)
+    ///@return const std::vector<Vector3i>&
+    std::vector<Vector3d>& GetNormals()  {
+        return mNormals;
     }
 
     ///@brief Basic check of this TriangleMesh instance.
