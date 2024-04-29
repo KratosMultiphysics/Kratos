@@ -419,25 +419,24 @@ public:
     {
         // Increase the solvers vector
         mSolvers.push_back(pSolver);
+
+        // Extend the parameters
+        FillParametersFromSolver(pSolver);
     }
 
     /**
      * @brief Add a linear solver to the collection with additional parameters.
      * @details This function adds a linear solver to the collection and extends the parameters.
-     * @param pSolver Pointer to the linear solver to be added.
      * @param ThisParameters Parameters associated with the linear solver.
-     * @note This function extends parameters, but the interface for this is yet to be decided.
      */
-    void AddSolver(
-        LinearSolverPointer pSolver,
-        const Parameters ThisParameters
-        )
+    void AddSolver(const Parameters ThisParameters)
     {
-        // Increase the solvers vector
-        AddSolver(pSolver);
+        // Create the solver
+        auto p_solver = ConstructLinearSolverFromSettings(ThisParameters);
+        mSolvers.push_back(p_solver);
 
-        // Extend the parameters
-        FillParametersFromSolver(pSolver);
+        // Add the new solver parameters to the collection
+        mParameters["solvers"].Append(ThisParameters);
     }
 
     ///@}
@@ -726,7 +725,7 @@ protected:
         // Set the solver type to include the solver's information
         dummy_parameters["solver_type"].SetString(pSolver->Info() + " (settings unknown)");
 
-        // Generate a unique key and add the new solver parameters to the collection
+        // Add the new solver parameters to the collection
         mParameters["solvers"].Append(dummy_parameters);
     }
 
