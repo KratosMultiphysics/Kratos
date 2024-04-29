@@ -185,12 +185,7 @@ public:
     }
 
     /// Copy constructor.
-    FallbackLinearSolver(const FallbackLinearSolver& rOther)
-        : mSolvers(rOther.mSolvers),
-          mParameters(rOther.mParameters),
-          mCurrentSolverIndex(rOther.mCurrentSolverIndex)
-    {
-    }
+    FallbackLinearSolver(const FallbackLinearSolver& rOther) = delete;
 
     /// Destructor.
     ~FallbackLinearSolver() override = default;
@@ -200,13 +195,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    FallbackLinearSolver& operator=(const FallbackLinearSolver& rOther)
-    {
-        mSolvers = rOther.mSolvers;
-        mParameters = rOther.mParameters;
-        mCurrentSolverIndex = rOther.mCurrentSolverIndex;
-        return *this;
-    }
+    FallbackLinearSolver& operator=(const FallbackLinearSolver& rOther) = delete;
 
     ///@}
     ///@name Operations
