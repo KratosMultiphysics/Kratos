@@ -447,10 +447,11 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     auto integration_coefficients = std::vector<double>{};
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        integration_coefficients.push_back(this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJContainer[GPoint]));
-    }
+    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
+                   Variables.detJContainer.begin(), std::back_inserter(integration_coefficients),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
