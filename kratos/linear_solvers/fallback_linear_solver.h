@@ -108,7 +108,7 @@ public:
      * @brief This is the default constructor
      * @param ThisParameters The configuration parameters
      */
-    FallbackLinearSolver(Parameters ThisParameters = Parameters(R"({})"))
+    explicit FallbackLinearSolver(Parameters ThisParameters = Parameters(R"({})"))
         : mParameters(ThisParameters)
     {
         // Set the default parameters
