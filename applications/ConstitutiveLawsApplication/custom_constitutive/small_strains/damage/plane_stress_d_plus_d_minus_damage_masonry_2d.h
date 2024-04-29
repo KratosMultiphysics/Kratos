@@ -110,10 +110,6 @@ public:
 
 	};
 
-	Vector& CalculateValue(
-		ConstitutiveLaw::Parameters &rParameterValues,
-		const Variable<Vector> &rThisVariable,
-		Vector &rValue) override;
 
 	/**
 	* returns whether this constitutive Law has specified variable
@@ -164,15 +160,15 @@ public:
 
     Matrix GetTransformationMatrix(const Properties &rMaterialProperties)
     {
-        const double a11 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_11];
-        const double a12 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_12];
-        const double a13 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_13];
-        const double a21 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_21];
-        const double a22 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_22];
-        const double a23 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_23];
-        const double a31 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_31];
-        const double a32 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_32];
-        const double a33 = rMaterialProperties[TRANSFORMATION_MATRIX_COMP_33];
+        const double a11 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_11)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_11] : 1.0;
+        const double a12 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_12)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_12] : 0.0;
+        const double a13 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_13)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_13] : 0.0;
+        const double a21 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_21)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_21] : 0.0;
+        const double a22 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_22)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_22] : 1.0;
+        const double a23 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_23)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_23] : 0.0;
+        const double a31 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_31)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_31] : 0.0;
+        const double a32 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_32)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_32] : 0.0;
+        const double a33 = (rMaterialProperties.Has(TRANSFORMATION_MATRIX_COMP_33)) ? rMaterialProperties[TRANSFORMATION_MATRIX_COMP_33] : 1.0;
 
         Matrix T(3, 3);
         T(0,0) = a11;		T(0,1) = a12;		T(0,2) = a13;

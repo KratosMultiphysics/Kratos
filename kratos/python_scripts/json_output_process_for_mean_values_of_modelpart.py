@@ -186,14 +186,12 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                     total_list_elem_participations = []
 
+                    # LOOP over elements on the averaging zone
                     for elem in current_segment.Elements:
                         compute = self.__check_flag(elem)
 
                         if (compute == True):
                             value = elem.CalculateOnIntegrationPoints(variable, current_segment.ProcessInfo)
-
-                            # print(variable_name)
-                            # print(value[0])
 
                             gauss_point_number = len(value)
                         
