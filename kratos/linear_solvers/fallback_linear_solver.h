@@ -144,6 +144,9 @@ public:
         ) : mSolvers({pSolver1, pSolver2}),
             mParameters(ThisParameters)
     {
+        // Verify that linear solvers are not defined in the parameters
+        KRATOS_ERROR_IF(mParameters.Has("solvers")) << "The solvers are already defined in the input parameters" << std::endl;
+
         // Set the default parameters
         mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
