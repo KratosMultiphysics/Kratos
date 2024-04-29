@@ -107,7 +107,7 @@ def AssembleTestSuites():
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
                         KratosGeoMechanicsTimeIntegrationTests,
-                        KratosGeoMechanicsTransientPressureLineElementTests
+                        KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsSettlementWorkflow
                         ]
     night_test_cases.extend(small_test_cases)
