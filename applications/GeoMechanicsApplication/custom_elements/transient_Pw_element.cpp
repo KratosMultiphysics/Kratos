@@ -449,7 +449,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     auto integration_coefficients = std::vector<double>{};
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         integration_coefficients.push_back(this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJContainer[GPoint]));
+            IntegrationPoints[GPoint], Variables.detJContainer[GPoint]));
     }
 
     // Loop over integration points

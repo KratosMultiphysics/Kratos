@@ -528,11 +528,10 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandS
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int PointNumber, double detJ)
+    const GeometryType::IntegrationPointType& rIntegrationPoint, double detJ)
 
 {
-    return mpStressStatePolicy->CalculateIntegrationCoefficient(IntegrationPoints[PointNumber],
-                                                                detJ, GetGeometry());
+    return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
 }
 
 //----------------------------------------------------------------------------------------
