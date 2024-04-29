@@ -51,6 +51,30 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
 
 CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
 
+
+int CrBeamElementLinear3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const {
+
+    KRATOS_TRY
+
+    const GeometryType& r_geom = GetGeometry();
+    // verify that the rotational stiffness around axis 2 and 3 are greater or equal than 0.0 if they are given.
+    for (unsigned int i = 0; i < r_geom.size(); ++i) {
+
+        if (r_geom[i].Has(ROTATIONAL_STIFFNESS_AXIS_2)) {
+            KRATOS_ERROR_IF(r_geom[i].GetValue(ROTATIONAL_STIFFNESS_AXIS_2) < 0.0) 
+                << " ROTATIONAL_STIFFNESS_AXIS_2 should be greater or equal than 0.0" << std::endl;
+        }
+        if (r_geom[i].Has(ROTATIONAL_STIFFNESS_AXIS_3)) {
+            KRATOS_ERROR_IF(r_geom[i].GetValue(ROTATIONAL_STIFFNESS_AXIS_3) < 0.0) 
+                << " ROTATIONAL_STIFFNESS_AXIS_3 should be greater or equal than 0.0" << std::endl;
+        }
+    }
+
+    return CrBeamElement3D2N::Check(rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
+}
+
 void CrBeamElementLinear3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
