@@ -11,11 +11,9 @@
 //                   Jonathan Nuttall
 //
 
-// System includes
-
-// External includes
-
 // Project includes
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/triangle_2d_3.h"
 
 // Include the point locator
 #include "utilities/math_utils.h"
@@ -30,9 +28,6 @@ namespace Kratos
     ) : GeoIntegrationValuesExtrapolationToNodesProcess(rModel.GetModelPart(ThisParameters["model_part_name"].GetString()), ThisParameters)
 {
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolationToNodesProcess(
     ModelPart& rMainModelPart,
@@ -69,19 +64,12 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
     }
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 void GeoIntegrationValuesExtrapolationToNodesProcess::Execute()
 {
-    // We execute all the necesary steps
     ExecuteBeforeSolutionLoop();
     ExecuteFinalizeSolutionStep();
-//     ExecuteFinalize();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop()
 {
@@ -91,9 +79,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop(
     // We initialize the map of coincident and maps of sizes
     InitializeMaps();
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 {
@@ -240,35 +225,68 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                                                                                              SizeType number_of_nodes,
                                                                                              TLSType& rTls)
     {
+        KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
+                        r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral );
+
+        KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle &&
+                        ( number_of_nodes != 3 && number_of_nodes != 6));
+
+        KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
+                        ( number_of_nodes != 4 && number_of_nodes != 8));
 
         // Definition of node coefficient
         rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
-        Matrix node_coefficient(number_of_nodes, integration_points_number);
-        if (rTls.N.size() != number_of_nodes )
-            rTls.N.resize(number_of_nodes);
 
-        // calculate extrapolation matrix
+        Matrix node_coefficient(number_of_nodes, integration_points_number);
+        // Sofar this works for 3, 4, 6 and 8 node planar elements
+        // for 2 and 3 node line elements the extension is straightforward.
+        // for volume elements ( hexa, tetra, wedge ) the midside node interpolation step is more elaborate
+        GeometryType* p_low_order_geometry = &r_this_geometry;
+        std::unique_ptr<GeometryType> p_new_low_order_geometry;
+        switch(r_this_geometry.PointsNumber()){
+        case 6:
+            p_new_low_order_geometry = std::make_unique<Triangle2D3<Node>>(r_this_geometry(0), r_this_geometry(1), r_this_geometry(2));
+            p_low_order_geometry = p_new_low_order_geometry.get();
+            break;
+        case 8:
+            p_new_low_order_geometry = std::make_unique<Quadrilateral2D4<Node>>(r_this_geometry(0), r_this_geometry(1), r_this_geometry(2), r_this_geometry(3));
+            p_low_order_geometry = p_new_low_order_geometry.get();
+            break;
+        }
+
+        // calculate extrapolation matrix towards corner nodes
+        SizeType number_of_low_order_nodes = p_low_order_geometry->PointsNumber();
+        rTls.N.resize(number_of_low_order_nodes);
+        Matrix quasi_mass_mat = ZeroMatrix(number_of_low_order_nodes,number_of_low_order_nodes);
         for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-            const array_1d<double, 3> &r_local_coordinates = integration_points[i_gauss_point].Coordinates();
-            r_this_geometry.ShapeFunctionsValues(rTls.N, r_local_coordinates);
+            // local_coordinates --> isoparametric coordinates or for triangles area coordinates
+            const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
+            // shape function for this i.p.
+            p_low_order_geometry->ShapeFunctionsValues(rTls.N, r_local_coordinates);
+            quasi_mass_mat += outer_prod(rTls.N, rTls.N) * rTls.vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
             for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                node_coefficient(i_node, i_gauss_point) = abs(rTls.N[i_node]);
+                node_coefficient(i_node, i_gauss_point) = rTls.N[i_node]* rTls.vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
             }
         }
 
-        // calculate (A^T*A)^-1 * A^T where A is the node coeffient matrix
-        auto A_transpose = trans(node_coefficient);
-        const auto A_transpose_A = prod(A_transpose, node_coefficient);
-        Matrix A_transpose_A_inv;
         double MetricDet;
-        MathUtils<double>::InvertMatrix(A_transpose_A, A_transpose_A_inv, MetricDet);
-        auto extrapolation_matrix= prod(A_transpose_A_inv, A_transpose);
-        KRATOS_INFO("EXTRAPOLATION_MATRIX")<<extrapolation_matrix<<std::endl;
+        Matrix quasi_mass_mat_inverse;
+        MathUtils<double>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, MetricDet, -1.);
+
+        auto extrapolation_matrix = Matrix{prod(quasi_mass_mat_inverse, node_coefficient)};
+
+        // add rows for midside nodes if needed ( mean value of corner nodes )
+        if (r_this_geometry.PointsNumber() > p_low_order_geometry->PointsNumber()){
+            extrapolation_matrix.resize(r_this_geometry.PointsNumber(),extrapolation_matrix.size2());
+            std::size_t n_filled = p_low_order_geometry->PointsNumber();
+            for (std::size_t i_row = 0; i_row < r_this_geometry.PointsNumber() - n_filled; ++i_row){
+                row(extrapolation_matrix,n_filled + i_row) =
+                    0.5 * ( row(extrapolation_matrix, i_row) + row(extrapolation_matrix, (i_row + 1)%n_filled) );
+            }
+        }
+
         return extrapolation_matrix;
     }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 {
@@ -302,9 +320,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     });
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
 const Parameters GeoIntegrationValuesExtrapolationToNodesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
@@ -317,9 +332,6 @@ const Parameters GeoIntegrationValuesExtrapolationToNodesProcess::GetDefaultPara
     })" );
     return default_parameters;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 {
@@ -360,11 +372,10 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
             auto node_var_to_update = rNode.GetValue(*mpAverageVariable);
     }
 
-
     // The process info
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
 
-    // First we check if the model part constains at least one element
+    // First we check if the model part contains at least one element
     if (r_elements_array.size() != 0) {
         // The first iterator of elements
         auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
@@ -390,9 +401,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
         }
     }
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 {
