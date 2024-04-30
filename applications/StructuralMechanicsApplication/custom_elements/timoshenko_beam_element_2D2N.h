@@ -125,7 +125,7 @@ public:
     }
 
     /**
-     * @brief This method returns the length of the FE
+     * @brief This method returns the angle of the FE axis
      */
     double GetAngle()
     {
@@ -134,7 +134,7 @@ public:
 
     /**
      * @brief Returns a 6 component vector including the values of the DoFs
-     * in LOCAL axes
+     * in LOCAL beam axes
      */
     virtual void GetNodalValuesVector(VectorType& rNodalValue);
 
