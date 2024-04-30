@@ -109,6 +109,16 @@ class Commander(object):
         self.process = None
         self.exitCodes = {}
 
+    def PrintOutput(self, output, channel):
+        ''' Prints the output of the process line by line.
+            This prevents the github actions log from buffering too much and casuing output to be printed out of order.
+
+            Ideallt this should detect if we are in the ci and only use the line/print in that case.
+        '''
+
+        for line in output.decode('utf8').split('\n'):
+            print(line, file=channel)
+
     def TestToAppName(self, application):
         ''' Converts the name of a test suit into an application
         '''
@@ -148,9 +158,9 @@ class Commander(object):
                 self.exitCodes[test_suit_name] = 1
             else:
                 if process_stdout:
-                    print(process_stdout.decode('utf8'), file=sys.stdout, flush=True)
+                    self.PrintOutput(process_stdout, sys.stdout)
                 if process_stderr:
-                    print(process_stderr.decode('utf8'), file=sys.stderr, flush=True)
+                    self.PrintOutput(process_stderr, sys.stderr)
 
         # Exit message
         PrintTestFooter(test_suit_name, self.process.returncode)
@@ -244,6 +254,9 @@ class Commander(object):
 
         fullApplicationList = ["KratosMPICore"] + kratos_utils.GetListOfAvailableApplications()
 
+        # mpi_flags may need to be passed using quotes by some executors. This removes the quotes if they are present.
+        mpi_flags = mpi_flags.split(" ")
+
         # If no applications are selected by the user, run all applications
         if not applications:
             applications = fullApplicationList
@@ -263,7 +276,7 @@ class Commander(object):
                         test_suit_name=application, 
                         command=filter(None, [
                             mpi_command, 
-                            mpi_flags, 
+                            *mpi_flags, 
                             num_processes_flag, 
                             str(num_processes), 
                             command, 
@@ -286,6 +299,9 @@ class Commander(object):
         ''' Calls the mpi cpp tests directly
         '''
 
+        # mpi_flagss may need to be passed using quotes by some executors. This removes the quotes if they are present.
+        mpi_flags = mpi_flags.split(" ")
+
         # Iterate over all executables that are mpi dependant and execute them.
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
             filename = os.fsdecode(test_suite)
@@ -298,7 +314,7 @@ class Commander(object):
                     test_suit_name=filename, 
                     command=filter(None, [
                         mpi_command, 
-                        mpi_flags, 
+                        *mpi_flags, 
                         num_processes_flag, 
                         str(num_processes), 
                         os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
