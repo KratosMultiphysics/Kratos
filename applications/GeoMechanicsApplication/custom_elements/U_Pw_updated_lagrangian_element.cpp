@@ -84,6 +84,13 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
     const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
 
+    auto integration_coefficients = std::vector<double>{};
+    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
+                   Variables.detJContainer.begin(), std::back_inserter(integration_coefficients),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // Compute element kinematics B, F, GradNpT ...
@@ -110,9 +117,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         // calculate Bulk modulus from stiffness matrix
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Calculating weights for integration on the reference configuration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
             IntegrationPoints[GPoint], Variables.detJInitialConfiguration);

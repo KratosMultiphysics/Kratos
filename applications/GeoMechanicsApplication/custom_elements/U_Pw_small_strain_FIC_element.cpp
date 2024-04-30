@@ -438,6 +438,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    auto integration_coefficients = std::vector<double>{};
+    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
+                   Variables.detJContainer.begin(), std::back_inserter(integration_coefficients),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
@@ -468,9 +475,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         // calculate Bulk modulus from stiffness matrix
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
             IntegrationPoints[GPoint], Variables.detJInitialConfiguration);

@@ -889,6 +889,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+    auto integration_coefficients = std::vector<double>{};
+    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
+                   Variables.detJContainer.begin(), std::back_inserter(integration_coefficients),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
@@ -904,9 +911,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1023,6 +1028,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
+    auto integration_coefficients = std::vector<double>{};
+    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
+                   Variables.detJContainer.begin(), std::back_inserter(integration_coefficients),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
@@ -1047,9 +1059,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
         this->CalculatePermeabilityUpdateFactor(Variables);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
             IntegrationPoints[GPoint], Variables.detJInitialConfiguration);

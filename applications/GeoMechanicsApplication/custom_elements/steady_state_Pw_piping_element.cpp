@@ -214,6 +214,13 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
+    auto integration_coefficients = std::vector<double>{};
+    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(), detJContainer.begin(),
+                   std::back_inserter(integration_coefficients),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, StrainVector, JointWidth, GradNpT
@@ -232,9 +239,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
