@@ -45,7 +45,8 @@ class StabilizedFormulation:
                 err_msg = f"Wrong \'element_type\' : \'{formulation}\' provided. Available options are:\n"
                 for elem in formulation_list:
                     err_msg += f"\t- {elem}\n"
-                raise RuntimeError(err_msg)
+                # raise RuntimeError(err_msg) #TODO: Turn this into an error once the derived solvers handle this properly
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesMonolithicSolver", err_msg)
         else:
             print(settings)
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
