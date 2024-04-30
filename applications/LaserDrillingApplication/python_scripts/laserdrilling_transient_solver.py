@@ -178,7 +178,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         self.surface_element_size = self.R_far / self.n_surface_elements
 
         # Debug
-        self.show_plots = True
+        self.plot_progressive_hole_figures = False
 
     def SetUpResultsFiles(self):
         self.SetUpGNUPlotFiles()
@@ -248,6 +248,13 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         if self.print_hdf5_and_gnuplot_files:
             self.WriteResults(self.results_filename, self.main_model_part.ProcessInfo)
+
+    def CountActiveElements(self):
+        count = 0
+        for elem in self.main_model_part.Elements:
+            if elem.Is(KratosMultiphysics.ACTIVE):
+                count += 1
+        return count
 
     def IdentifyInitialSurfaceNodes(self):
         list_of_decomposed_nodes_ids = []
@@ -483,8 +490,8 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         axis[1].legend(list_of_legends, loc="lower right")
         axis[1].set_xlabel('radius (mm)')
         axis[1].set_title("Ablation plus evaporation (mm)") 
-        
-        if self.show_plots:
+
+        if self.plot_progressive_hole_figures:
             plt.show()
 
         if self.vaporisation_layer_number <= self.max_vaporisation_layers:
