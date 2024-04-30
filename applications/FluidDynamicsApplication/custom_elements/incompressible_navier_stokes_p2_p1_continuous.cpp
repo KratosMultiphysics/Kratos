@@ -449,10 +449,6 @@ void IncompressibleNavierStokesP2P1Continuous<2>::AddGaussPointLeftHandSideContr
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
-    // Get auxiliary data
-    const double bdf0 = rData.BDF0;
-    const double dt = rData.DeltaTime;
-
     // Get stabilization data
     const double h = rData.ElementSize;
     const double stab_c1 = rData.StabC1;
@@ -1023,10 +1019,6 @@ void IncompressibleNavierStokesP2P1Continuous<3>::AddGaussPointLeftHandSideContr
     // Get material data
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
-    // Get auxiliary data
-    const double bdf0 = rData.BDF0;
-    const double dt = rData.DeltaTime;
 
     // Get stabilization data
     const double h = rData.ElementSize;
@@ -3544,12 +3536,6 @@ void IncompressibleNavierStokesP2P1Continuous<2>::AddGaussPointRightHandSideCont
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
-    // Get auxiliary data
-    const double bdf0 = rData.BDF0;
-    const double bdf1 = rData.BDF1;
-    const double bdf2 = rData.BDF2;
-    const double dt = rData.DeltaTime;
-
     // Get stabilization data
     const double h = rData.ElementSize;
     const double stab_c1 = rData.StabC1;
@@ -3678,12 +3664,6 @@ void IncompressibleNavierStokesP2P1Continuous<3>::AddGaussPointRightHandSideCont
     // Get material data
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
-    // Get auxiliary data
-    const double bdf0 = rData.BDF0;
-    const double bdf1 = rData.BDF1;
-    const double bdf2 = rData.BDF2;
-    const double dt = rData.DeltaTime;
 
     // Get stabilization data
     const double h = rData.ElementSize;
