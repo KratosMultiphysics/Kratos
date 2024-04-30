@@ -336,7 +336,8 @@ class NavierStokesMonolithicSolver(FluidSolver):
         # If the P2-P1 element is used, postprocess the pressure in the quadratic nodes for the visualization
         # Note that this must be done in here (not in the FinalizeSolutionStep) in case the SolveSolutionStep
         # is called in a non-linear outer loop (e.g. from the FSI or the CHT solvers)
-        KratosCFD.FluidAuxiliaryUtilities.PostprocessP2P1ContinuousPressure(self.GetComputingModelPart())
+        if self.element_name == "IncompressibleNavierStokesP2P1Continuous":
+            KratosCFD.FluidAuxiliaryUtilities.PostprocessP2P1ContinuousPressure(self.GetComputingModelPart())
 
         return is_converged
 
