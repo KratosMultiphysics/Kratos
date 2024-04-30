@@ -377,6 +377,7 @@ private:
     // HCFDataContainer mFatigueDataModeTwo = HCFDataContainer();
     std::vector <HCFDataContainer> mFatigueDataContainersModeOne;
     std::vector <HCFDataContainer> mFatigueDataContainersModeTwo;
+    bool mFatigueLoadingStateParameter = false;
     ///@}
     ///@name Private Operators
     ///@{

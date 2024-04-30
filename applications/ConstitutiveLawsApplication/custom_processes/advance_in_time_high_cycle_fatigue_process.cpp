@@ -375,6 +375,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
     for (auto& r_elem : mrModelPart.Elements()) {
         std::vector<bool> cycle_identifier;
         std::vector<int>  local_number_of_cycles;
+        std::vector<int>  increment_in_number_of_cycles;
         std::vector<int>  global_number_of_cycles;
         std::vector<double> period;
         // double time_increment = 0.0;
@@ -384,6 +385,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
         r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, r_process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
         r_elem.CalculateOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
+        r_elem.CalculateOnIntegrationPoints(INCREMENT_IN_NUMBER_OF_CYCLES, increment_in_number_of_cycles, r_process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, r_process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
 
@@ -404,11 +406,13 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
                     time_increment = std::trunc(Increment / period[i]) * period[i];
                     previous_cycle_time[i] += time_increment;
                 }
+                increment_in_number_of_cycles[i] = local_cycles_increment;
                 local_number_of_cycles[i] += local_cycles_increment;
                 global_number_of_cycles[i] += local_cycles_increment;
             }
-            r_elem.SetValuesOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
-            r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
+            // r_elem.SetValuesOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
+            // r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
+            r_elem.SetValuesOnIntegrationPoints(INCREMENT_IN_NUMBER_OF_CYCLES, increment_in_number_of_cycles, r_process_info);
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
             // #pragma omp critical
             r_process_info[TIME_INCREMENT] = time_increment;

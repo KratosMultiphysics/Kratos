@@ -71,6 +71,7 @@ public:
         bool is_initiated = false;
         double nc_initiation = 0.0;
         double fred_initiation = 1.0;
+        Vector hcf_coefficients = ZeroVector(10);
     };
 
     static constexpr double tolerance = 1.0e-3;
@@ -291,6 +292,20 @@ public:
     }
 
     /**
+     * @brief This method returns the increment in number of cycles
+     */
+    int GetIncrementInNumberOfCycles() {
+        return mIncrementInNumberOfCycles;
+    }
+
+    /**
+     * @brief This method sets global number of cycles
+     */
+    void SetIncrementInNumberOfCycles(int rValue) {
+        mIncrementInNumberOfCycles = rValue;
+    }
+
+    /**
      * @brief This method sets global number of cycles
      */
     void SetGlobalNumberOfCycles(int rValue) {
@@ -330,6 +345,7 @@ private:
     double mMaxStressRelativeError = 0.0;
     unsigned int mNumberOfCyclesGlobal = 1;
     unsigned int mNumberOfCyclesLocal = 1;
+    unsigned int mIncrementInNumberOfCycles = 0;
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
     double mWohlerStress = 1.0;

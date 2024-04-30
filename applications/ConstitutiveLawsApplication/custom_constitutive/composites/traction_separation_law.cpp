@@ -129,6 +129,8 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<int>& rThisVariable)
         has = true;
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
         has = true;
+    } else if (rThisVariable == INCREMENT_IN_NUMBER_OF_CYCLES) {
+        has = true;
     } else if (rThisVariable == AIT_CONTROL_COUNTER) {
         has = true;
     } else {
@@ -218,8 +220,15 @@ bool& TractionSeparationLaw3D<TDim>::GetValue(
 {
     if (rThisVariable == CYCLE_INDICATOR) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetNewCycleIndicator();
-        // rValue = mFatigueDataContainersModeOne[0].GetNewCycleIndicator();    //Change the loading mode here
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetNewCycleIndicator();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetNewCycleIndicator();
+        }
+
+        // bool rValueII = mFatigueDataContainersModeTwo[0].GetNewCycleIndicator();
+        // bool rValueI = mFatigueDataContainersModeOne[0].GetNewCycleIndicator();    //Change the loading mode here
+        // rValue = rValueII || rValueI;
         return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
@@ -237,13 +246,36 @@ int& TractionSeparationLaw3D<TDim>::GetValue(
 {
     if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetLocalNumberOfCycles();
+        }
+        // rValue = mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
         // rValue = mFatigueDataContainersModeOne[0].GetLocalNumberOfCycles();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
-        // rValue = mFatigueDataContainersModeOne[0].GetGlobalNumberOfCycles();    //Change the loading mode here
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetGlobalNumberOfCycles();
+        }
+        // double rValueII = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
+        // double rValueI = mFatigueDataContainersModeOne[0].GetGlobalNumberOfCycles();    //Change the loading mode here
+        // if (rValueII > rValueI) {
+        //     rValue = rValueI;
+        // } else {
+        //     rValue = rValueII;
+        // }
+        return rValue;
+    } else if (rThisVariable == INCREMENT_IN_NUMBER_OF_CYCLES) {
+
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetIncrementInNumberOfCycles();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetIncrementInNumberOfCycles();
+        }
         return rValue;
     } else if (rThisVariable == AIT_CONTROL_COUNTER) {
 
@@ -266,12 +298,32 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
 {
     if (rThisVariable == DAMAGE) {
 
-        rValue = mDelaminationDamageModeTwo[1];
+        if (mDelaminationDamageModeTwo[1] > 0.0) {
+            rValue = mDelaminationDamageModeTwo[1];
+        } else if (mDelaminationDamageModeOne[1] > 0.0) {
+            rValue = mDelaminationDamageModeOne[1];
+        } else {
+            rValue = 0.0;
+        }
+        // rValue = mDelaminationDamageModeTwo[1];
         // rValue = mDelaminationDamageModeOne[1];    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == REFERENCE_DAMAGE) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetReferenceDamage();
+        }
+        // if ((1.0 - mFatigueDataContainersModeTwo[0].GetReferenceDamage()) * mFatigueDataContainersModeTwo[0].GetMaximumStress() > mFatigueDataContainersModeTwo[0].GetThresholdStress()
+        //     && (1.0 - mFatigueDataContainersModeOne[0].GetReferenceDamage()) * mFatigueDataContainersModeOne[0].GetMaximumStress() > mFatigueDataContainersModeOne[0].GetThresholdStress()) 
+        // {
+        //     rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage(); //It is optional. Could be mode one or mode two.
+        // } else {
+        //     rValue = 0.0;
+        // }
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetReferenceDamage();
         // rValue = mFatigueDataContainersModeOne[0].GetReferenceDamage();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
@@ -281,37 +333,103 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
         return rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleTime();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleTime();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetPreviousCycleTime();
+        }
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleTime(); //It is optional. Could be mode one or mode two.
         // rValue = mFatigueDataContainersModeOne[0].GetPreviousCycleTime();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == CYCLE_PERIOD) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetCyclePeriod();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetCyclePeriod();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetCyclePeriod();
+        }
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetCyclePeriod(); //It is optional. Could be mode one or mode two.
         // rValue = mFatigueDataContainersModeOne[0].GetCyclePeriod();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError();
+        if (mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError() > mFatigueDataContainersModeOne[0].GetMaxStressRelativeError()) {
+            rValue = mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetMaxStressRelativeError();
+        }
+        // rValue = mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError();
         // rValue = mFatigueDataContainersModeOne[0].GetMaxStressRelativeError();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError();
+        if (mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError() > mFatigueDataContainersModeOne[0].GetReversionFactorRelativeError()) {
+            rValue = mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetReversionFactorRelativeError();
+        }
+        // rValue = mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError();
         // rValue = mFatigueDataContainersModeOne[0].GetReversionFactorRelativeError();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == THRESHOLD_STRESS) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetThresholdStress();
+        }
+
+        // if ((1.0 - mFatigueDataContainersModeTwo[0].GetReferenceDamage()) * mFatigueDataContainersModeTwo[0].GetMaximumStress() > mFatigueDataContainersModeTwo[0].GetThresholdStress()
+        //     && (1.0 - mFatigueDataContainersModeOne[0].GetReferenceDamage()) * mFatigueDataContainersModeOne[0].GetMaximumStress() > mFatigueDataContainersModeOne[0].GetThresholdStress()) 
+        // {
+        //     rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress(); //It is optional. Could be mode one or mode two.
+        // } else {
+        //     rValue = 0.0;
+        // }
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress();
         // rValue = mFatigueDataContainersModeOne[0].GetThresholdStress();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == MAX_STRESS) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetMaximumStress();
+        }
+
+        // if ((1.0 - mFatigueDataContainersModeTwo[0].GetReferenceDamage()) * mFatigueDataContainersModeTwo[0].GetMaximumStress() > mFatigueDataContainersModeTwo[0].GetThresholdStress()
+        //     && (1.0 - mFatigueDataContainersModeOne[0].GetReferenceDamage()) * mFatigueDataContainersModeOne[0].GetMaximumStress() > mFatigueDataContainersModeOne[0].GetThresholdStress()) 
+        // {
+        //     rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress(); //It is optional. Could be mode one or mode two.
+        // } else {
+        //     rValue = 0.0;
+        // }
+
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress();
         // rValue = mFatigueDataContainersModeOne[0].GetMaximumStress();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
 
-        rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
+        if (mFatigueLoadingStateParameter) {
+            rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
+        } else {
+            rValue = mFatigueDataContainersModeOne[0].GetCyclesToFailure();
+        }
+
+        // double N_residual_mode_one = mFatigueDataContainersModeOne[0].GetCyclesToFailure() - mFatigueDataContainersModeOne[0].GetLocalNumberOfCycles();
+        // double N_residual_mode_two = mFatigueDataContainersModeTwo[0].GetCyclesToFailure() - mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
+
+        // if (N_residual_mode_one > N_residual_mode_two) {
+        //     rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
+        // } else {
+        //     rValue = mFatigueDataContainersModeOne[0].GetCyclesToFailure();
+        // }
+
+        // rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
         // rValue = mFatigueDataContainersModeOne[0].GetCyclesToFailure();    //Change the loading mode here
         return rValue;
     } else if (rThisVariable == WOHLER_STRESS) {
@@ -410,12 +528,24 @@ void TractionSeparationLaw3D<TDim>::SetValue(
 {
     if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
 
-        mFatigueDataContainersModeTwo[0].SetLocalNumberOfCycles(rValue);
-        // mFatigueDataContainersModeOne[0].SetLocalNumberOfCycles(rValue);    //Change the loading mode here
+        // if ((1.0 - mFatigueDataContainersModeTwo[0].GetReferenceDamage()) * mFatigueDataContainersModeTwo[0].GetMaximumStress() > mFatigueDataContainersModeTwo[0].GetThresholdStress()) {
+        //     mFatigueDataContainersModeTwo[0].SetLocalNumberOfCycles(rValue);
+        // }
+        // if ((1.0 - mFatigueDataContainersModeOne[0].GetReferenceDamage()) * mFatigueDataContainersModeOne[0].GetMaximumStress() > mFatigueDataContainersModeOne[0].GetThresholdStress()) {
+        //     mFatigueDataContainersModeOne[0].SetLocalNumberOfCycles(rValue);    //Change the loading mode here
+        // }
     } else if (rThisVariable == NUMBER_OF_CYCLES) {
 
-        mFatigueDataContainersModeTwo[0].SetGlobalNumberOfCycles(rValue);
-        // mFatigueDataContainersModeOne[0].SetGlobalNumberOfCycles(rValue);    //Change the loading mode here
+        // if ((1.0 - mFatigueDataContainersModeTwo[0].GetReferenceDamage()) * mFatigueDataContainersModeTwo[0].GetMaximumStress() > mFatigueDataContainersModeTwo[0].GetThresholdStress()) {
+        //     mFatigueDataContainersModeTwo[0].SetGlobalNumberOfCycles(rValue);
+        // }
+
+        // if ((1.0 - mFatigueDataContainersModeOne[0].GetReferenceDamage()) * mFatigueDataContainersModeOne[0].GetMaximumStress() > mFatigueDataContainersModeOne[0].GetThresholdStress()) {
+        //     mFatigueDataContainersModeOne[0].SetGlobalNumberOfCycles(rValue);    //Change the loading mode here
+        // }
+    } else if (rThisVariable == INCREMENT_IN_NUMBER_OF_CYCLES) {
+        mFatigueDataContainersModeOne[0].SetIncrementInNumberOfCycles(rValue);
+        mFatigueDataContainersModeTwo[0].SetIncrementInNumberOfCycles(rValue);
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -433,11 +563,16 @@ void TractionSeparationLaw3D<TDim>::SetValue(
 {
     if (rThisVariable == PREVIOUS_CYCLE) {
 
-        mFatigueDataContainersModeTwo[0].SetPreviousCycleTime(rValue);
-        // mFatigueDataContainersModeOne[0].SetPreviousCycleTime(rValue);    //Change the loading mode here
+        mFatigueDataContainersModeTwo[0].SetPreviousCycleTime(rValue); //It is optional. Could be mode one or mode two.
+        mFatigueDataContainersModeOne[0].SetPreviousCycleTime(rValue);    //Change the loading mode here
     } else if (rThisVariable == CYCLE_PERIOD) {
 
-        mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue);
+        if (mFatigueLoadingStateParameter) {
+            mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue);
+        } else {
+            mFatigueDataContainersModeOne[0].SetCyclePeriod(rValue);
+        }
+        // mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue); //It is optional. Could be mode one or mode two.
         // mFatigueDataContainersModeOne[0].SetCyclePeriod(rValue);    //Change the loading mode here
     } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
 
@@ -1075,6 +1210,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
 
             mFatigueDataContainersModeOne[i].InitializeFatigueVariables(HCFVariablesModeOne, rValues);
             mFatigueDataContainersModeTwo[i].InitializeFatigueVariables(HCFVariablesModeTwo, rValues);
+            HCFVariablesModeOne.hcf_coefficients = r_material_properties[HIGH_CYCLE_FATIGUE_COEFFICIENTS_MODE_ONE];
+            HCFVariablesModeTwo.hcf_coefficients = r_material_properties[HIGH_CYCLE_FATIGUE_COEFFICIENTS_MODE_TWO];
 
             Vector fatigue_interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
             Vector fatigue_interfacial_stress_vector_mode_two = ZeroVector(VoigtSize);
@@ -1160,6 +1297,36 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
+    //Specifying the state of loading in the fatigue regime to be fed into the get/set methods. true->mode two / false->mode one
+    double stress_mode_one = (1.0 - mFatigueDataContainersModeOne[0].GetReferenceDamage()) * mFatigueDataContainersModeOne[0].GetMaximumStress();
+    double stress_mode_two = (1.0 - mFatigueDataContainersModeTwo[0].GetReferenceDamage()) * mFatigueDataContainersModeTwo[0].GetMaximumStress();
+    double Sth_mode_one = mFatigueDataContainersModeOne[0].GetThresholdStress();
+    double Sth_mode_two = mFatigueDataContainersModeTwo[0].GetThresholdStress();
+    double Su_mode_one = r_material_properties[INTERFACIAL_NORMAL_STRENGTH];
+    double Su_mode_two = r_material_properties[INTERFACIAL_SHEAR_STRENGTH];
+
+    if ((stress_mode_one > Su_mode_one && stress_mode_two > Su_mode_two) || (stress_mode_one < Sth_mode_one && stress_mode_two < Sth_mode_two)) {
+        mFatigueLoadingStateParameter = true; //It is optional and could be mode one (false) or mode two (true)
+    } else if (stress_mode_one > Sth_mode_one && stress_mode_one < Su_mode_one && stress_mode_two > Sth_mode_two && stress_mode_two < Su_mode_two) {
+    
+        double N_residual_mode_one = mFatigueDataContainersModeOne[0].GetCyclesToFailure() - mFatigueDataContainersModeOne[0].GetLocalNumberOfCycles();
+        double N_residual_mode_two = mFatigueDataContainersModeTwo[0].GetCyclesToFailure() - mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
+
+        if (N_residual_mode_one > N_residual_mode_two) {
+            mFatigueLoadingStateParameter = true;
+        } else {
+            mFatigueLoadingStateParameter = false;
+        }
+    } else if (stress_mode_one < Sth_mode_one && stress_mode_two > Sth_mode_two) {
+        mFatigueLoadingStateParameter = true;
+    } else if (stress_mode_two < Sth_mode_two && stress_mode_one > Sth_mode_one) {
+        mFatigueLoadingStateParameter = false;
+    } else if (stress_mode_one > Sth_mode_one && stress_mode_one < Su_mode_one && stress_mode_two > Su_mode_two) {
+        mFatigueLoadingStateParameter = true;
+    } else if (stress_mode_two > Sth_mode_two && stress_mode_two < Su_mode_two && stress_mode_one > Su_mode_one) {
+        mFatigueLoadingStateParameter = false;
+    }
+    //Specifying the state of loading in the fatigue regime to be fed into the get/set methods
     KRATOS_CATCH("");
 
 }
