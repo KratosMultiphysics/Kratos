@@ -264,8 +264,8 @@ void MultipointConstraintToElementProcess::Execute()
                     const Dof<double>& r_slave = *r_constraint.GetSlaveDofsVector()[i_slave];
                     const Dof<double>& r_master = *r_constraint.GetMasterDofsVector()[i_master];
                     SymmetricIdPair<Node::IndexType> node_id_pair {r_slave.GetId(), r_master.GetId()};
-                    SymmetricIdPair<Variable<double>::KeyType> variable_id_pair {r_slave.GetVariable().SourceKey(),
-                                                                                 r_master.GetVariable().SourceKey()};
+                    SymmetricIdPair<Variable<double>::KeyType> variable_id_pair {r_slave.GetVariable().Key(),
+                                                                                 r_master.GetVariable().Key()};
                     NestedIdPair<Node::IndexType,Variable<double>::KeyType> mpc_id {node_id_pair, variable_id_pair};
 
                     // Get or create the element related to this MPC
