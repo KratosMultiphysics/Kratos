@@ -401,11 +401,10 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
                 << " is higher than the number of fine vertices " << r_geometry.PointsNumber();
 
             // Mark each DoF of all nodes on the equivalent lower order element
-            // (unless they are constrained as slave dofs in multi-point constraints)
             for (std::size_t i_node=0ul; i_node<coarse_node_count; ++i_node) {
                 const auto& r_node_dofs = r_geometry[i_node].GetDofs();
 
-                // The node is a slave => mark all its DoFs constrained in the fine system
+                // The DoF is a slave => mark it as such
                 for (const auto& rp_dof : r_node_dofs) {
                     if (!rp_dof->IsActive()) continue;
                     const std::size_t i_fine_dof = rp_dof->EquationId();
@@ -433,11 +432,28 @@ void GetLowerOrderDofs(typename TSparseSpace::MatrixType& rA,
     // part of any element but are connected to the rest of the mesh in some
     // other manner (with MPCs for example).
     for (const Dof<double>& r_dof : rDofs) {
-        rCoarseMask[r_dof.EquationId()] = r_dof.IsFixed() || r_dof.Is(SLAVE)
-                                          ? DofCategory::Constrained
-                                          : (r_dof.Is(MASTER) && rCoarseMask[r_dof.EquationId()] != DofCategory::Fine
-                                             ? DofCategory::Coarse
-                                             : rCoarseMask[r_dof.EquationId()]);
+        // If the DoF is fixed or a slave, it should not be included in the coarse system.
+        if (r_dof.IsFixed() || r_dof.Is(SLAVE)) {
+            rCoarseMask[r_dof.EquationId()] = DofCategory::Constrained;
+        }
+
+        // If the DoF is a master, the options are more complicated
+        else if (r_dof.Is(MASTER)) {
+            // A special case must be handled here: disconnected nodes that aren't part of any element
+            // A distinction is made by either marking it DofCategory::Coarse or DofCategory::Unknown.
+            // DofCategory::Unknown will also make it into the coarse system in this case, but its
+            // restriction must be handled separately.
+            const auto dof_category = rCoarseMask[r_dof.EquationId()];
+            if (dof_category != DofCategory::Fine && dof_category != DofCategory::Unknown) {
+                rCoarseMask[r_dof.EquationId()] = DofCategory::Coarse;
+            }
+        }
+
+        // If the DoF is not a master and is not part of any elements, the case is unhandled
+        // and it should not make it into the coarse system (for now).
+        else if (rCoarseMask[r_dof.EquationId()] == DofCategory::Unknown) {
+            rCoarseMask[r_dof.EquationId()] = DofCategory::Fine;
+        }
     }
 
     KRATOS_CATCH("")
@@ -650,59 +666,9 @@ void ProcessMasterDof(const std::size_t iCoarseDofInFineSystem,
     const auto it_slave_end = rSlaveMap.end();
     const std::size_t i_coarse_dof = rCoarseDofMap[iCoarseDofInFineSystem];
 
-    // Loop over the master's geometric connections
-    for (const auto& [p_element, i_master_vertex, i_master_node_dof] : rMasterInfo.first) {
-        const Geometry<Node>& r_fine_geometry = p_element->GetGeometry();
-        std::vector<
-            std::vector<std::pair<
-                std::size_t,    // <== fine DoF index
-                double          // <== fine DoF coefficient
-            >>
-        > restriction_coefficients;
-        restriction_coefficients.reserve(4ul); // <== reserve assuming a tetrahedron (linear vertex count)
-        GetNonzeroQuadraticCoefficients(r_fine_geometry.GetGeometryType(),
-                                        std::back_inserter(restriction_coefficients));
-        if (i_master_vertex < restriction_coefficients.size()) {
-            const auto& r_restriction_terms = restriction_coefficients[i_master_vertex];
-
-            for (const auto& [i_fine_vertex, restriction_coefficient] : r_restriction_terms) {
-                const std::size_t i_fine_dof = r_fine_geometry[i_fine_vertex].GetDofs()[i_master_node_dof]->EquationId();
-                const auto it_slave = rSlaveMap.find(i_fine_dof);
-                const bool is_slave = it_slave != it_slave_end;
-                if (is_slave) {
-                    //for (const auto& [i_master, master_coefficient] : it_slave->second.first) {
-                    //    if (i_master == iCoarseDofInFineSystem) {
-                    //        // This is the same master we're already looping over, so no need to apply
-                    //        // the MPC's coefficient.
-                    //        rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), Weight * restriction_coefficient);
-                    //    } else {
-                    //        rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), Weight * restriction_coefficient / master_coefficient);
-                    //        const auto it_master = rMasterMap.find(i_master);
-                    //        KRATOS_ERROR_IF(it_master == rMasterMap.end());
-                    //        if (rVisitedDofIds.insert(it_master->first).second) {
-                    //            ProcessMasterDof(iCoarseDofInFineSystem,
-                    //                             Weight * restriction_coefficient / master_coefficient,
-                    //                             it_master->second,
-                    //                             rMasterMap,
-                    //                             rSlaveMap,
-                    //                             rCoarseDofMask,
-                    //                             rCoarseDofMap,
-                    //                             rVisitedDofIds,
-                    //                             rRestrictionMap);
-                    //        }
-                    //    }
-                    //} // for i_master, master_coefficient in it_slave->second.first
-                } else /*is_slave*/ {
-                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), Weight * restriction_coefficient);
-                }
-            } // for i_fine_vertex, restriction_coefficient in r_restriction_terms
-        } // if i_master_vertex < restriction_coefficients.size()
-    } // for [p_element, i_master_vertex, i_slave_node_dof] in rMasterInfo.first
-
     // Loop over slave DoFs
     for (const auto& [it_slave_info, slave_coefficient] : rMasterInfo.second) {
         const auto& r_slave_info = it_slave_info->second;
-
         for (const auto& [p_element, i_slave_vertex, i_slave_node_dof] : r_slave_info.second) {
             const Geometry<Node>& r_fine_geometry = p_element->GetGeometry();
             std::vector<
@@ -817,13 +783,7 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
                             const std::size_t i_fine_dof = r_fine_node_dofs[i_node_dof]->EquationId();
                             const auto it_slave = rSlaveMap.find(i_fine_dof);
                             const bool is_slave = it_slave != rSlaveMap.end();
-                            if (is_slave) {
-                                // The DoF is a slave, so its master should take its place
-                                // in the restriction operator.
-//                                for (auto [i_master, mpc_coefficient] : it_slave->second.first) {
-//                                    rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_master), r_fine_coefficient_pair.second * mpc_coefficient);
-//                                }
-                            } else {
+                            if (!is_slave) {
                                 // The DoF is not a slave, so it can be added to the restriction map
                                 rRestrictionMap.emplace(std::make_pair(i_coarse_dof, i_fine_dof), r_fine_coefficient_pair.second);
                             }
@@ -886,9 +846,17 @@ void MapHigherToLowerOrder(const ModelPart& rModelPart,
 
     // Loop over master DoFs and register their contributions
     for (const auto& [i_coarse_dof_in_fine_system, r_slave_infos] : rMasterMap) {
+        const auto dof_category = rCoarseDofMask[i_coarse_dof_in_fine_system];
+
         // Skip the DoF if it is not part of the coarse system
-        if (rCoarseDofMask[i_coarse_dof_in_fine_system] != DofCategory::Coarse) {
-            return;
+        if (dof_category == DofCategory::Fine || dof_category == DofCategory::Constrained) {
+            continue;
+        }
+
+        // Special case if the DoF is a master and not part of any element
+        if (dof_category == DofCategory::Unknown) {
+            const std::size_t i_coarse_dof_in_coarse_system = rCoarseDofMap[i_coarse_dof_in_fine_system];
+            rRestrictionMap.emplace(std::make_pair(i_coarse_dof_in_coarse_system, i_coarse_dof_in_fine_system), 1.0);
         }
 
         std::unordered_set<std::size_t> visited_dof_ids {i_coarse_dof_in_fine_system};
@@ -960,7 +928,7 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
     // (hence the std::optional).
     std::optional<std::vector<ModelPart::DofType>> coarse_dofs;
     std::size_t masked_count = 0ul;
-    //if (mpImpl->mCoarseSystem.mpSolver->AdditionalPhysicalDataIsNeeded()) {
+    if (mpImpl->mCoarseSystem.mpSolver->AdditionalPhysicalDataIsNeeded()) {
         // Reserve space for coarse DoFs assuming the system consists exclusively
         // of quadratic tetrahedral elements (10 nodes per element) that get reduced
         // to linear tetrahedra (4 nodes per element)
@@ -970,21 +938,20 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
 
         // Fill the fine=>coarse DoF index map and set coarse DoFs
         for (std::size_t i_mask=0; i_mask<system_size; ++i_mask) {
-            if (coarse_mask[i_mask] == DofCategory::Coarse) {
+            if (coarse_mask[i_mask] == DofCategory::Coarse || coarse_mask[i_mask] == DofCategory::Unknown) {
                 r_coarse_dofs.push_back(**(rDofs.ptr_begin() + i_mask));
                 r_coarse_dofs.back().SetEquationId(masked_count);
                 coarse_dof_indices[i_mask] = masked_count++;
-                std::cout << "\t" << (**(rDofs.ptr_begin() + i_mask)) << "\n";
             }
         }
-    //} /* if CoarseSolver.AdditionalPhysicalDataIsNeeded */ else {
-    //    // Fill the fine => coarse DoF index map
-    //    for (std::size_t i_mask=0; i_mask<system_size; ++i_mask) {
-    //        if (coarse_mask[i_mask] == DofCategory::Coarse) {
-    //            coarse_dof_indices[i_mask] = masked_count++;
-    //        }
-    //    }
-    //}
+    } /* if CoarseSolver.AdditionalPhysicalDataIsNeeded */ else {
+        // Fill the fine => coarse DoF index map
+        for (std::size_t i_mask=0; i_mask<system_size; ++i_mask) {
+            if (coarse_mask[i_mask] == DofCategory::Coarse || coarse_mask[i_mask] == DofCategory::Unknown) {
+                coarse_dof_indices[i_mask] = masked_count++;
+            }
+        }
+    }
 
     KRATOS_INFO_IF("HierarchicalSolver", 1 <= mpImpl->mVerbosity)
         << "coarse system size: " << masked_count << "\n";
@@ -1141,7 +1108,6 @@ void HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalD
         coarse_dof_pointers.reserve(r_coarse_dofs.size());
         for (auto& rDof : r_coarse_dofs) {
             coarse_dof_pointers.push_back(&rDof);
-            std::cout << "\t" << rDof << "\n";
         }
         coarse_dof_pointers.Sort();
 
