@@ -80,6 +80,7 @@ kratos/scripts/wheels/README.md
 
 # Most used editor files
 *.vscode
+*.idx
 remote_*.md
 
 /compile_commands.json
