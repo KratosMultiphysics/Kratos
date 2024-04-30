@@ -313,26 +313,27 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
         msElementSize);
 }
 
-Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
+Vector CrBeamElement3D2N::CalculateLocalNodalForces(const ProcessInfo& rProcessInfo) const
 {
     // Deformation modes
-    const Vector element_forces_t = CalculateElementForces();
-    
+    const Vector element_forces_t = CalculateElementForces(rProcessInfo);
+
     // Nodal element forces local
     const Matrix transformation_matrix_s = CalculateTransformationS();
     const Vector nodal_forces_local_qe = prod(transformation_matrix_s, element_forces_t);
-     
+
     return nodal_forces_local_qe;
 }
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
-CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
+CrBeamElement3D2N::CreateElementStiffnessMatrix_Material(const ProcessInfo& rProcessInfo) const
 {
 
     KRATOS_TRY;
-    const double E = GetProperties()[YOUNG_MODULUS];
-    const double G = CalculateShearModulus();
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const double E = GetProperties().GetValue(YOUNG_MODULUS, this->GetGeometry(), row(Ncontainer, 0), rProcessInfo);
+    const double G = CalculateShearModulus(rProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
@@ -349,8 +350,8 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
     if (GetProperties().Has(AREA_EFFECTIVE_Z)) {
         Az = GetProperties()[AREA_EFFECTIVE_Z];
     }
-    const double Psi_y = CalculatePsi(Iy, Az);
-    const double Psi_z = CalculatePsi(Iz, Ay);
+    const double Psi_y = CalculatePsi(Iy, Az, rProcessInfo);
+    const double Psi_z = CalculatePsi(Iz, Ay, rProcessInfo);
 
     BoundedMatrix<double, msElementSize, msElementSize> local_stiffness_matrix =
         ZeroMatrix(msElementSize, msElementSize);
@@ -412,11 +413,11 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Material() const
 
 BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
-CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() const
+CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY;
 
-    const Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+    const Vector nodal_forces_local_qe = CalculateLocalNodalForces(rProcessInfo);
 
     const double N = nodal_forces_local_qe[6];
     const double Mt   = nodal_forces_local_qe[9];
@@ -538,14 +539,15 @@ CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() const
 
 BoundedMatrix<double, CrBeamElement3D2N::msLocalSize,
 CrBeamElement3D2N::msLocalSize>
-CrBeamElement3D2N::CalculateDeformationStiffness() const
+CrBeamElement3D2N::CalculateDeformationStiffness(const ProcessInfo& rProcessInfo) const
 {
 
     KRATOS_TRY
     BoundedMatrix<double, msLocalSize, msLocalSize> Kd =
         ZeroMatrix(msLocalSize, msLocalSize);
-    const double E = GetProperties()[YOUNG_MODULUS];
-    const double G = CalculateShearModulus();
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const double E = GetProperties().GetValue(YOUNG_MODULUS, this->GetGeometry(), row(Ncontainer, 0), rProcessInfo);
+    const double G = CalculateShearModulus(rProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
@@ -563,8 +565,8 @@ CrBeamElement3D2N::CalculateDeformationStiffness() const
     if (GetProperties().Has(AREA_EFFECTIVE_Z)) {
         Az = GetProperties()[AREA_EFFECTIVE_Z];
     }
-    const double Psi_y = CalculatePsi(Iy, Az);
-    const double Psi_z = CalculatePsi(Iz, Ay);
+    const double Psi_y = CalculatePsi(Iy, Az, rProcessInfo);
+    const double Psi_z = CalculatePsi(Iz, Ay, rProcessInfo);
 
     Kd(0, 0) = G * It / L;
     Kd(1, 1) = E * Iy / L;
@@ -1032,25 +1034,25 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, 
+    VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
     KRATOS_TRY;
-    
+
     // Add internal forces
-    const Vector internal_forces = CalculateGlobalNodalForces();
+    const Vector internal_forces = CalculateGlobalNodalForces(rCurrentProcessInfo);
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
-    
+
     // Add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
-    
+
     KRATOS_CATCH("")
 }
 
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
+    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1061,7 +1063,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
+    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
@@ -1070,8 +1072,8 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
     // resizing the matrices + create memory for LHS
     rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
     // creating LHS
-    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
-    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Geometry();
+    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material(rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Geometry(rCurrentProcessInfo);
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
 
@@ -1082,9 +1084,9 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
     KRATOS_CATCH("")
 }
 
-Vector CrBeamElement3D2N::CalculateGlobalNodalForces() const
+Vector CrBeamElement3D2N::CalculateGlobalNodalForces(const ProcessInfo& rProcessInfo) const
 {
-    const Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+    const Vector nodal_forces_local_qe = CalculateLocalNodalForces(rProcessInfo);
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
 
@@ -1096,13 +1098,13 @@ Vector CrBeamElement3D2N::CalculateGlobalNodalForces() const
 }
 
 BoundedVector<double, CrBeamElement3D2N::msLocalSize>
-CrBeamElement3D2N::CalculateElementForces() const
+CrBeamElement3D2N::CalculateElementForces(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY;
     BoundedVector<double, msLocalSize> deformation_modes_total_v = ZeroVector(msLocalSize);
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-  
+
     BoundedVector<double, 3> initial_strain_vector = ZeroVector(3);
     double initial_unit_elongation = 0.0;
     double initial_unit_rotation_2 = 0.0;
@@ -1131,19 +1133,20 @@ CrBeamElement3D2N::CalculateElementForces() const
     BoundedMatrix<double, msLocalSize, msLocalSize> deformation_stiffness_Kd =
         ZeroMatrix(msLocalSize);
 
-    deformation_stiffness_Kd = CalculateDeformationStiffness();
+    deformation_stiffness_Kd = CalculateDeformationStiffness(rProcessInfo);
     element_forces_t = prod(deformation_stiffness_Kd, deformation_modes_total_v);
 
     return element_forces_t;
     KRATOS_CATCH("")
 }
 
-double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) const
+double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff, const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY;
-    const double E = GetProperties()[YOUNG_MODULUS];
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const double E = GetProperties().GetValue(YOUNG_MODULUS, this->GetGeometry(), row(Ncontainer, 0), rProcessInfo);
     const double L = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-    const double G = CalculateShearModulus();
+    const double G = CalculateShearModulus(rProcessInfo);
 
     const double phi = (12.0 * E * I) / (L * L * G * A_eff);
     double psi;
@@ -1225,7 +1228,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     // rOutput[GP 1,2,3][x,y,z]
 
     if (rVariable == MOMENT) {
-        Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+        Vector nodal_forces_local_qe = CalculateLocalNodalForces(rCurrentProcessInfo);
         rOutput[0][0] = -1.0 * nodal_forces_local_qe[3] * 0.75 + nodal_forces_local_qe[9] * 0.25;
         rOutput[1][0] = -1.0 * nodal_forces_local_qe[3] * 0.50 + nodal_forces_local_qe[9] * 0.50;
         rOutput[2][0] = -1.0 * nodal_forces_local_qe[3] * 0.25 + nodal_forces_local_qe[9] * 0.75;
@@ -1238,7 +1241,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
         rOutput[1][2] = -1.0 * nodal_forces_local_qe[5] * 0.50 + nodal_forces_local_qe[11] * 0.50;
         rOutput[2][2] = -1.0 * nodal_forces_local_qe[5] * 0.25 + nodal_forces_local_qe[11] * 0.75;
     } else if (rVariable == FORCE) {
-        Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+        Vector nodal_forces_local_qe = CalculateLocalNodalForces(rCurrentProcessInfo);
         rOutput[0][0] = -1.0 * nodal_forces_local_qe[0] * 0.75 + nodal_forces_local_qe[6] * 0.25;
         rOutput[1][0] = -1.0 * nodal_forces_local_qe[0] * 0.50 + nodal_forces_local_qe[6] * 0.50;
         rOutput[2][0] = -1.0 * nodal_forces_local_qe[0] * 0.25 + nodal_forces_local_qe[6] * 0.75;
@@ -1403,7 +1406,8 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
     const double L2 = L * L;
     const double rho = GetProperties()[DENSITY];
     const double A = GetProperties()[CROSS_AREA];
-    const double E = GetProperties()[YOUNG_MODULUS];
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const double E = GetProperties().GetValue(YOUNG_MODULUS, this->GetGeometry(), row(Ncontainer, 0), rCurrentProcessInfo);
 
     const double Iy = GetProperties()[I22];
     const double Iz = GetProperties()[I33];
@@ -1416,7 +1420,7 @@ void CrBeamElement3D2N::CalculateConsistentMassMatrix(
         //This is an approximation for a circular cross section
         Ip = Iy + Iz;
     }
-    const double G = CalculateShearModulus();
+    const double G = CalculateShearModulus(rCurrentProcessInfo);
 
     double Ay = 0.00;
     if (GetProperties().Has(AREA_EFFECTIVE_Y)) {
@@ -1620,11 +1624,12 @@ void CrBeamElement3D2N::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
-double CrBeamElement3D2N::CalculateShearModulus() const
+double CrBeamElement3D2N::CalculateShearModulus(const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY;
     const double nu = GetProperties()[POISSON_RATIO];
-    const double E = GetProperties()[YOUNG_MODULUS];
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const double E = GetProperties().GetValue(YOUNG_MODULUS, this->GetGeometry(), row(Ncontainer, 0), rProcessInfo);
     const double G = E / (2.0 * (1.0 + nu));
     return G;
     KRATOS_CATCH("")
@@ -1657,8 +1662,7 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
             << "Please provide a reasonable value for \"CROSS_AREA\" for element #"
             << Id() << std::endl;
 
-    KRATOS_ERROR_IF(!GetProperties().Has(YOUNG_MODULUS) ||
-                    GetProperties()[YOUNG_MODULUS] <= numerical_limit)
+    KRATOS_ERROR_IF(!(GetProperties().Has(YOUNG_MODULUS) || GetProperties().HasAccessor(YOUNG_MODULUS)))
             << "Please provide a reasonable value for \"YOUNG_MODULUS\" for element #"
             << Id() << std::endl;
 

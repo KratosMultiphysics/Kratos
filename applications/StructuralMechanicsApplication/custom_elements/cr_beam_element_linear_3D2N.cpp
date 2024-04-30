@@ -96,7 +96,7 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
     BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
         CalculateInitialLocalCS();
     rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material();
+    noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Material(rCurrentProcessInfo);
 
     //// start static condensation
     if (Has(CONDENSED_DOF_LIST)) {
@@ -148,14 +148,14 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
 
 BoundedMatrix<double, CrBeamElement3D2N::msLocalSize,
 CrBeamElement3D2N::msLocalSize>
-CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
+CrBeamElementLinear3D2N::CalculateDeformationStiffness(const ProcessInfo& rProcessInfo) const
 {
 
     KRATOS_TRY
     BoundedMatrix<double, msLocalSize, msLocalSize> Kd =
         ZeroMatrix(msLocalSize, msLocalSize);
     const double E = GetProperties()[YOUNG_MODULUS];
-    const double G = CalculateShearModulus();
+    const double G = CalculateShearModulus(rProcessInfo);
     const double A = GetProperties()[CROSS_AREA];
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
@@ -172,8 +172,8 @@ CrBeamElementLinear3D2N::CalculateDeformationStiffness() const
     if (GetProperties().Has(AREA_EFFECTIVE_Z)) {
         Az = GetProperties()[AREA_EFFECTIVE_Z];
     }
-    const double Psi_y = CalculatePsi(Iy, Az);
-    const double Psi_z = CalculatePsi(Iz, Ay);
+    const double Psi_y = CalculatePsi(Iy, Az, rProcessInfo);
+    const double Psi_z = CalculatePsi(Iz, Ay, rProcessInfo);
 
     Kd(0, 0) = G * J / L;
     Kd(1, 1) = E * Iy / L;
@@ -214,7 +214,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
         rOutput.resize(write_points_number);
     }
 
-    Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Material();
+    Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Material(rCurrentProcessInfo);
 
     Vector nodal_deformation = ZeroVector(msElementSize);
     GetValuesVector(nodal_deformation);

@@ -100,17 +100,17 @@ public:
     /**
      * @brief This function calculates the elastic part of the total stiffness matrix
      */
-    BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material() const;
+    BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material(const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief This function calculates the geometric part of the total stiffness matrix
      */
-    BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry() const;
+    BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry(const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief This function calculates the element stiffness w.r.t. deformation modes
      */
-    virtual BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const;
+    virtual BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness(const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief This function calculates a transformation matrix from deformation modes to real deformations
@@ -125,7 +125,7 @@ public:
     /**
      * @brief This function calculates the internal element forces
      */
-    BoundedVector<double,msLocalSize> CalculateElementForces() const;
+    BoundedVector<double,msLocalSize> CalculateElementForces(const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
@@ -243,12 +243,12 @@ public:
      * @param I The second moment of area
      * @param A_eff The shear-effective area
      */
-    double CalculatePsi(const double I, const double A_eff) const;
+    double CalculatePsi(const double I, const double A_eff, const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief This function calculates shear modulus from user input values
      */
-    double CalculateShearModulus() const;
+    double CalculateShearModulus(const ProcessInfo& rProcessInfo) const;
 
     /**
      * @brief This function calculates self-weight forces
@@ -293,11 +293,11 @@ public:
      * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
      * @param VectorDifference The vector differences of the quaternions
      */
-    Vector CalculateLocalNodalForces() const;
+    Vector CalculateLocalNodalForces(const ProcessInfo& rProcessInfo) const;
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    Vector CalculateGlobalNodalForces() const;
+    Vector CalculateGlobalNodalForces(const ProcessInfo& rProcessInfo) const;
 
     Vector GetIncrementDeformation() const;
 

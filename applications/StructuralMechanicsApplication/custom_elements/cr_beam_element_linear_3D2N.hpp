@@ -90,7 +90,7 @@ public:
     /**
      * @brief This function calculates the element stiffness w.r.t. deformation modes
      */
-    BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const override;
+    BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness(const ProcessInfo& rProcessInfo) const override;
 
     void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput,
      const ProcessInfo& rCurrentProcessInfo) override;
