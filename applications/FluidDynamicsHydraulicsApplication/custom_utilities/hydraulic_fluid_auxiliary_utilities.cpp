@@ -311,6 +311,7 @@ void HydraulicFluidAuxiliaryUtilities::SetInletFreeSurface(ModelPart &rModelPart
                 rNode.Fix(DISTANCE);
             }
         }
+    
     });
 }
 void HydraulicFluidAuxiliaryUtilities::TurnOffGravityOnAirElements(ModelPart &rModelPart){

@@ -209,6 +209,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def Initialize(self):
+
         computing_model_part = self.GetComputingModelPart()
         # Calculate boundary normals
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
@@ -233,11 +234,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Set nodal properties after setting distance(level-set).
         self._SetNodalProperties()
-
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
@@ -264,12 +263,30 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.maximum_angle= self.settings["corner_detection"]["maximum_angle"].GetDouble()
             KratosMultiphysics.FindConditionsNeighboursProcess(self.main_model_part, self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE], 3).Execute()
             KratosHydraulics.HydraulicFluidAuxiliaryUtilities.FixCornerNodeVelocity(self.main_model_part,self.maximum_angle)
-        self._reinitialization_type="variational"
-        if self._reinitialization_type != "none":
-            self._GetDistanceReinitializationProcess().Execute()
-        self._reinitialization_type = self.settings["distance_reinitialization"].GetString(
-            )
+        
+        for node in self.main_model_part.Nodes:
+            if node.Id==100:
+                print("Node post 4A")
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+            if node.Id==6861:
+                print("ode post 4B")
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+        
+        # self._reinitialization_type="none"
+        # if self._reinitialization_type != "none":
+        #     self._GetDistanceReinitializationProcess().Execute()
+        # self._reinitialization_type = self.settings["distance_reinitialization"].GetString(
+        #     )
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+
+        for node in self.main_model_part.Nodes:
+            if node.Id==100:
+                print("Node post 3A")
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
+            if node.Id==6861:
+                print("ode post 3B")
+                print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
     def Check(self):
         super().Check()
         # Check if Inlet and Outlet boundary conditions are defined
@@ -278,30 +295,30 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
-        # self.gid_output = GiDOutputProcess(self.main_model_part,
-        #                                    "gid_output",
-        #                                    KratosMultiphysics.Parameters("""
-        #                                     {
-        #                                         "result_file_configuration" : {
-        #                                             "gidpost_flags": {
-        #                                                 "GiDPostMode": "GiD_PostBinary",
-        #                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
-        #                                                 "MultiFileFlag": "SingleFile"
-        #                                             },
-        #                                             "nodal_results"       : ["DISTANCE"],
-        #                                             "nodal_nonhistorical_results": ["AUX_DISTANCE"],
-        #                                             "nodal_flags_results": []
-        #                                         }
-        #                                     }
-        #                                     """)
-        #                                    )
+        self.gid_output = GiDOutputProcess(self.main_model_part,
+                                           "gid_output",
+                                           KratosMultiphysics.Parameters("""
+                                            {
+                                                "result_file_configuration" : {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "nodal_results"       : ["DISTANCE"],
+                                                    "nodal_nonhistorical_results": ["AUX_DISTANCE"],
+                                                    "nodal_flags_results": []
+                                                }
+                                            }
+                                            """)
+                                           )
 
-        # self.gid_output.ExecuteInitialize()
-        # self.gid_output.ExecuteBeforeSolutionLoop()
-        # self.gid_output.ExecuteInitializeSolutionStep()
-        # self.gid_output.PrintOutput()
-        # self.gid_output.ExecuteFinalizeSolutionStep()
-        # self.gid_output.ExecuteFinalize()
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()
         # AAAAAAAAAAAAAAA
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
