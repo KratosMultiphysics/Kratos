@@ -18,8 +18,6 @@
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
 #include "custom_utilities/static_condensation_utility.h"
 #include "geo_mechanics_application_variables.h"
-// #include "custom_utilities/structural_mechanics_element_utilities.h"
-#include "geo_mechanics_application_variables.h"
 #include "includes/define.h"
 
 namespace Kratos
@@ -53,9 +51,6 @@ Element::Pointer GeoCrBeamElementLinear3D2N::Create(IndexType               NewI
 {
     return Kratos::make_intrusive<GeoCrBeamElementLinear3D2N>(NewId, pGeom, pProperties);
 }
-
-//-------------------------------------------------------------------------------------------------
-GeoCrBeamElementLinear3D2N::~GeoCrBeamElementLinear3D2N() {}
 
 //----------------------------------------------------------------------------------------
 void GeoCrBeamElementLinear3D2N::ResetConstitutiveLaw()

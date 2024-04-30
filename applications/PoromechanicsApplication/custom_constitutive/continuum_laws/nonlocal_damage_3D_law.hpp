@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_constitutive/continuum_laws/local_damage_3D_law.hpp"
 #include "poromechanics_application_variables.h"
+#include "custom_utilities/poro_element_utilities.hpp"
 
 namespace Kratos
 {
@@ -74,7 +75,8 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalReturnMapping( FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, 
-                                        Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector );
+                                        Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector,
+                                        Parameters& rValues );
 
 private:
     

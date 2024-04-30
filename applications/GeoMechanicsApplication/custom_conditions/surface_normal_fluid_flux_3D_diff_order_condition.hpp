@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -91,5 +89,3 @@ private:
 }; // class SurfaceNormalFluidFlux3DDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_SURFACE_NORMAL_FLUID_FLUX_3D_DIFF_ORDER_CONDITION_H_INCLUDED defined 
