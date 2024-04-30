@@ -270,10 +270,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Set the element data container
+     * This method accesses the database and fills the provided data container
+     * @param rProcessInfo Reference to the current ProcessInfo container
+     * @param rElementData Reference to the data container to be filled
+     */
     void SetElementData(
         const ProcessInfo& rProcessInfo,
         ElementDataContainer& rElementData);
 
+    /**
+     * @brief Calculate the kinematics
+     * This method calculates the current element kinematics
+     * @param rGaussWeights Integration points weights
+     * @param rVelocityN Velocity shape functions at the integration points
+     * @param rPressureN Pressure shape functions at the integrationo points
+     * @param rVelocityDNDX Velocity shape functions derivatives at the integration points
+     * @param rPressureDNDX Pressure shape functions derivatives at the integration points
+     * @param rVelocityDDNDDX Velocity shape functions second derivatives at the integration points
+     */
     void CalculateKinematics(
         Vector& rGaussWeights,
         Matrix& rVelocityN,
@@ -282,12 +298,29 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rPressureDNDX,
         DenseVector<GeometryType::ShapeFunctionsSecondDerivativesType>& rVelocityDDNDDX);
 
+    /**
+     * @brief Calculates the strain rate
+     * This method calculates the current element strain rate and stores it in the provided data container
+     * @param rData Reference to the data container
+     */
     void CalculateStrainRate(ElementDataContainer& rData);
 
+    /**
+     * @brief Adds the current Gauss point contribution to LHS
+     * This function adds the current Gauss point contribution to the provided Left Hand Side (LHS) matrix
+     * @param rData Reference to the data container from which the contribution is computed
+     * @param rLHS Reference to the LHS matrix
+     */
     void AddGaussPointLeftHandSideContribution(
         const ElementDataContainer& rData,
         MatrixType& rLHS);
 
+    /**
+     * @brief Adds the current Gauss point contribution to RHS
+     * This function adds the current Gauss point contribution to the provided Right Hand Side (RHS) vector
+     * @param rData Reference to the data container from which the contribution is computed
+     * @param rRHS Reference to the RHS vector
+     */
     void AddGaussPointRightHandSideContribution(
         const ElementDataContainer& rData,
         VectorType& rRHS);
