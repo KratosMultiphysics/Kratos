@@ -314,10 +314,13 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -451,13 +454,15 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     // Defining shape functions and the determinant of the jacobian at all integration points
 
     // Loop over integration points
-    Matrix Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix DensityMatrix    = ZeroMatrix(Dim, Dim);
+    Matrix     Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
+    Matrix     AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
+    Matrix     DensityMatrix    = ZeroMatrix(Dim, Dim);
+    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B)
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
@@ -578,11 +583,13 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -950,11 +957,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             Variables.FluidPressure = CalculateFluidPressure(Variables);
             SetRetentionParameters(Variables, RetentionParameters);
@@ -1039,11 +1048,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute FluidFlux vector q [m/s]
             const SizeType Dim       = rGeom.WorkingSpaceDimension();
@@ -1138,11 +1149,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         // Definition of variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
             this->CalculateStrain(Variables, GPoint);
@@ -1177,10 +1190,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         Vector TotalStressVector(mStressVector[0].size());
 
+        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
             this->CalculateStrain(Variables, GPoint);
@@ -1314,10 +1330,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
+    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -1372,9 +1390,12 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
+    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
