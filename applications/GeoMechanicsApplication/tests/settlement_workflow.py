@@ -31,10 +31,10 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
             node_ids = [1, 102, 1085, 1442]
 
             actual_data = reader.read_output_from(result_file_name)
-            actual_nodal_values = reader.nodal_values_at_time("DISPLACEMENT", times_to_check[i], actual_data, [1])
+            actual_nodal_values = reader.nodal_values_at_time("DISPLACEMENT", times_to_check[i], actual_data, node_ids)
 
             expected_data = reader.read_output_from(expected_result_file_name)
-            expected_nodal_values = reader.nodal_values_at_time("DISPLACEMENT", times_to_check[i], expected_data, [1])
+            expected_nodal_values = reader.nodal_values_at_time("DISPLACEMENT", times_to_check[i], expected_data, node_ids)
 
             self.assertEqual(len(actual_nodal_values), len(expected_nodal_values))
             for j in range(len(actual_nodal_values)):
