@@ -222,15 +222,19 @@ public:
     {
         if (std::abs(MaxStress) > std::abs(MinStress)) {
             if (std::abs(MaxStress) / InitialThreshold < 1.0){
-                rRelaxationFactor = std::min(rRelaxationFactor, std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                // rRelaxationFactor = std::min(rRelaxationFactor, std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                rRelaxationFactor = 1.0;
             } else {
-                rRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MaxStress) / InitialThreshold) + 2.6) * std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                // rRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MaxStress) / InitialThreshold) + 2.6) * std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                rRelaxationFactor = 1.0;
             }
         } else {
              if (std::abs(MinStress) / InitialThreshold < 1.0){
-                rRelaxationFactor = std::min(rRelaxationFactor, std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                // rRelaxationFactor = std::min(rRelaxationFactor, std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                rRelaxationFactor = 1.0;
             } else {
-                rRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MinStress) / InitialThreshold) + 2.6) * std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));             
+                // rRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MinStress) / InitialThreshold) + 2.6) * std::pow((static_cast<double>(LocalNumberOfCycles) - 1.0),-0.004));
+                rRelaxationFactor = 1.0;             
             }
         }
     }
