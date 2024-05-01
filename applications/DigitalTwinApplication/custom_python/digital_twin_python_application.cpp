@@ -35,9 +35,9 @@ PYBIND11_MODULE(KratosDigitalTwinApplication, m)
         m, "KratosDigitalTwinApplication")
         .def(py::init<>());
 
-    AddCustomResponseUtilitiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomSensorsToPython(m);
+    AddCustomResponseUtilitiesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_DISPLACEMENT)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ROTATION)
