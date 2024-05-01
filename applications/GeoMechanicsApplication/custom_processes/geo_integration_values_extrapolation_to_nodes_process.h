@@ -10,8 +10,7 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GEO_INTEGRATION_VALUES_EXTRAPOLATION_TO_NODES_PROCESS )
-#define  KRATOS_GEO_INTEGRATION_VALUES_EXTRAPOLATION_TO_NODES_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_map>
@@ -19,294 +18,102 @@
 // External includes
 
 // Project includes
-#include "processes/process.h"
 #include "containers/model.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
 /**
  * @class IntegrationValuesExtrapolationToNodesProcess
- * @ingroup KratosCore
+ * @ingroup GeoMechanicsApplication
  * @brief This process extrapolates vales from the integration points to the nodes
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
  * @author Vicente Mataix Ferrandiz
  * @todo Add extrapolation from conditions on the future
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIntegrationValuesExtrapolationToNodesProcess
-    : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIntegrationValuesExtrapolationToNodesProcess : public Process
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    // Node type definition
     typedef Node NodeType;
-
-    /// Geometry type definition
     typedef Geometry<NodeType> GeometryType;
-
-    /// Defining the size type
     typedef std::size_t SizeType;
-
-    /// Defining the index type
     typedef std::size_t IndexType;
 
-    struct TLSType
-    {
+    struct TLSType {
         Vector vector_J, N;
     };
 
-    /// Pointer definition of GeoIntegrationValuesExtrapolationToNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
 
-    ///@}
-    ///@name  Enum's
-    ///@{
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /**
-     * @brief The constructor of the integration values extraplation using a Model
-     * @param rModel The model which contains the model part
-     * @param ThisParameters The parameters containing all the information needed
-     */
-    GeoIntegrationValuesExtrapolationToNodesProcess(
-        Model& rModel,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+    GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
+                                                    Parameters ThisParameters = Parameters(R"({})"));
 
     /**
      * @brief The constructor of the integration values extraplation using a model part
      * @param rMainModelPart The model part from where extrapolate values
      * @param ThisParameters The parameters containing all the information needed
      */
-    GeoIntegrationValuesExtrapolationToNodesProcess(
-        ModelPart& rMainModelPart,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+    GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
+                                                    Parameters ThisParameters = Parameters(R"({})"));
 
-    /// Destructor
-    ~GeoIntegrationValuesExtrapolationToNodesProcess() override= default;;
+    ~GeoIntegrationValuesExtrapolationToNodesProcess() override = default;
+    ;
 
-    ///@}
-    ///@name Operators
-    ///@{
+    void operator()() { Execute(); }
 
-    void operator()()
-    {
-        Execute();
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief We execute the search relative to the old and new model part
-     */
     void Execute() override;
 
-    /**
-     * @brief This function is designed for being execute once before the solution loop but after all of the solvers where built
-     */
     void ExecuteBeforeSolutionLoop() override;
 
-    /**
-     * @brief This function will be executed at every time step AFTER performing the solve phase
-     */
     void ExecuteFinalizeSolutionStep() override;
 
-    /**
-     * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
-     */
     void ExecuteFinalize() override;
 
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
     const Parameters GetDefaultParameters() const override;
 
-    ///@}
-    ///@name Access
-    ///@{
+    std::string Info() const override { return "GeoIntegrationValuesExtrapolationToNodesProcess"; }
 
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /************************************ GET INFO *************************************/
-    /***********************************************************************************/
-
-    std::string Info() const override
-    {
-        return "GeoIntegrationValuesExtrapolationToNodesProcess";
-    }
-
-    /************************************ PRINT INFO ***********************************/
-    /***********************************************************************************/
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
+    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
+    ModelPart& mrModelPart;         /// The main model part
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ModelPart& mrModelPart;                                     /// The main model part
-
-    bool mExtrapolateNonHistorical;                             /// If the non-historical values are interpolated
-    bool mAreaAverage;                                          /// If the values are averaged over area
+    bool mExtrapolateNonHistorical; /// If the non-historical values are interpolated
+    bool mAreaAverage;              /// If the values are averaged over area
 
     std::vector<const Variable<double>*> mDoubleVariable;             /// The double variables
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
-    std::vector<const Variable<Vector>*> mVectorVariable;             /// The vector variables to compute
-    std::vector<const Variable<Matrix>*> mMatrixVariable;             /// The matrix variables to compute
+    std::vector<const Variable<Vector>*> mVectorVariable; /// The vector variables to compute
+    std::vector<const Variable<Matrix>*> mMatrixVariable; /// The matrix variables to compute
 
     std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables
 
-    const Variable<double>* mpAverageVariable;          /// The variable used to compute the average weight
+    const Variable<double>* mpAverageVariable; /// The variable used to compute the average weight
     std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap; /// The map containing the extrapolation matrix
 
-    SizeType mEchoLevel;                                        /// The level of verbosity
+    SizeType mEchoLevel;                                          /// The level of verbosity
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief This method initializes the map
-     */
-    void InitializeMaps();
-
-    /**
-     * @brief This method initializes the variables
-     */
-    void InitializeVariables();
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
-    Matrix CalculateElementExtrapolationMatrix(Element &rElem, GeometryType &r_this_geometry,
-                                               SizeType integration_points_number,
+    void   InitializeMaps();
+    void   InitializeVariables();
+    Matrix CalculateElementExtrapolationMatrix(Element&      rElem,
+                                               GeometryType& r_this_geometry,
+                                               SizeType      integration_points_number,
                                                GeometryType::IntegrationPointsArrayType& integration_points,
                                                GeometryData::IntegrationMethod this_integration_method,
-                                               SizeType number_of_nodes, TLSType &rTls);
+                                               SizeType number_of_nodes,
+                                               TLSType& rTls);
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
-///@}
+inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-/****************************** INPUT STREAM FUNCTION ******************************/
-/***********************************************************************************/
-
-inline std::istream& operator >> (std::istream& rIStream,
-                                  GeoIntegrationValuesExtrapolationToNodesProcess& rThis);
-
-/***************************** OUTPUT STREAM FUNCTION ******************************/
-/***********************************************************************************/
-
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const GeoIntegrationValuesExtrapolationToNodesProcess& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const GeoIntegrationValuesExtrapolationToNodesProcess& rThis)
 {
     return rOStream;
 }
 
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_GEO_INTEGRATION_VALUES_EXTRAPOLATION_TO_NODES_PROCESS  defined
+} // namespace Kratos.
