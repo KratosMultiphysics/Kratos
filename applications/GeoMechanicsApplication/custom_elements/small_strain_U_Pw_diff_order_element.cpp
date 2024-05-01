@@ -1724,7 +1724,7 @@ void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables&
 }
 
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                                                       double detJ)
+                                                                       double detJ) const
 {
     return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
 }
