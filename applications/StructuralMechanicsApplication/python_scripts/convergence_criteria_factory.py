@@ -31,6 +31,11 @@ class convergence_criterion:
             if convergence_criterion_parameters["volumetric_strain_dofs"].GetBool():
                 volumetric_strain_dofs = True
 
+        strain_vector_dofs = False
+        if convergence_criterion_parameters.Has("strain_vector_dofs"):
+            if convergence_criterion_parameters["strain_vector_dofs"].GetBool():
+                strain_vector_dofs = True
+
         # Convergence criteria if there are rotation DOFs in the problem
         if(rotation_dofs):
             if(convergence_crit == "displacement_criterion"):
@@ -99,6 +104,19 @@ class convergence_criterion:
                 err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
                 err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
                 raise Exception(err_msg)
+
+        # Convergence criteria if there are strain vector DOFs in the problem
+        elif(strain_vector_dofs):
+
+            if(convergence_crit == "displacement_criterion"):
+                self.mechanical_convergence_criterion = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                    (StructuralMechanicsApplication.NODAL_STRAIN_VECTOR, D_RT, D_AT)])
+                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
+            elif(convergence_crit == "residual_criterion"):
+                # self.mechanical_convergence_criterion = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, "NODAL_STRAIN_VECTOR")
+                self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                self.mechanical_convergence_criterion.SetEchoLevel(echo_level)
 
         # Convergence criteria without rotation DOFs
         else:
