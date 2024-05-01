@@ -54,7 +54,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
                                                          const Matrix&           NContainer,
@@ -66,12 +65,12 @@ public:
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             for (unsigned int j = 0; j < TDim; ++j) {
-                rVector[j] += NContainer(GPoint, i) * VariableWithComponents[index++];
+                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index];
+                index++;
             }
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TDof, unsigned int TNumNodes>
     static inline void InterpolateVariableWithComponents(Vector&       rVector,
                                                          const Matrix& NContainer,
@@ -92,7 +91,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void FillArray1dOutput(array_1d<double, 3>& rOutputValue, const array_1d<double, 2>& ComputedValue)
     {
         rOutputValue[0] = ComputedValue[0];
@@ -100,7 +98,7 @@ public:
         rOutputValue[2] = 0.0;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
     static inline void FillArray1dOutput(array_1d<double, 3>& rOutputValue, const array_1d<double, 3>& ComputedValue)
     {
         rOutputValue[0] = ComputedValue[0];
@@ -108,7 +106,6 @@ public:
         rOutputValue[2] = ComputedValue[2];
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void GetNodalVariableVector(array_1d<double, TDim * TNumNodes>& rNodalVariableVector,
                                               const Element::GeometryType&         Geom,
@@ -120,12 +117,12 @@ public:
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             noalias(NodalVariableAux) = Geom[i].FastGetSolutionStepValue(Variable, SolutionStepIndex);
             for (unsigned int j = 0; j < TDim; ++j) {
-                rNodalVariableVector[index++] = NodalVariableAux[j];
+                rNodalVariableVector[index] = NodalVariableAux[j];
+                index++;
             }
         }
     }
 
-    //----------------------------------------------------------------------------------------
     template <unsigned int TDim, unsigned int TNumNodes>
     static inline void GetNodalVariableMatrix(Matrix&                      rNodalVariableMatrix,
                                               const Element::GeometryType& rGeom,
@@ -143,7 +140,14 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
+    {
+        // 1D
+        rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+    }
+
+
     static inline void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
                                               const Element::PropertiesType& Prop)
     {
@@ -155,7 +159,6 @@ public:
         rPermeabilityMatrix(1, 0) = rPermeabilityMatrix(0, 1);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
                                               const Element::PropertiesType& Prop)
     {
@@ -174,7 +177,6 @@ public:
         rPermeabilityMatrix(0, 2) = rPermeabilityMatrix(2, 0);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                                      const BoundedMatrix<double, 2, 2>& InputMatrix,
                                      double&                            InputMatrixDet)
@@ -197,7 +199,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                                      const BoundedMatrix<double, 2, 2>& InputMatrix)
     {
@@ -210,7 +211,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template <unsigned int TDim>
     static inline void AssembleDensityMatrix(BoundedMatrix<double, TDim + 1, TDim + 1>& DensityMatrix, double Density)
     {
@@ -277,7 +277,6 @@ public:
         AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 2, 2>& DN_DeContainer)
     {
         // Line 2-noded
@@ -294,7 +293,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 3, 3>& DN_DeContainer)
     {
         // Line 3-noded
@@ -312,7 +310,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double, 3, 3>& NContainer)
     {
         // Line 3-noded
@@ -327,7 +324,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer)
     {
         // Line 3-noded
@@ -347,7 +343,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer)
     {
         // Line 3-noded
@@ -396,7 +391,6 @@ public:
         return Circumference;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateExtrapolationMatrixTriangle(Matrix& rExtrapolationMatrix,
                                                             const GeometryData::IntegrationMethod& rIntegrationMethod)
     {
@@ -435,7 +429,6 @@ public:
         }
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateExtrapolationMatrixQuad(Matrix& rExtrapolationMatrix,
                                                         const GeometryData::IntegrationMethod& rIntegrationMethod)
     {
@@ -519,9 +512,9 @@ public:
                             "IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2"
                          << std::endl;
         }
+
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix,
                                                         const GeometryData::IntegrationMethod& rIntegrationMethod)
     {
@@ -623,8 +616,6 @@ public:
                          << std::endl;
         }
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom, const Properties& rProp)
     {

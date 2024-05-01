@@ -58,8 +58,19 @@ public:
      * @brief Constructor for ApplyConstantVectorValueProcess.
      * @details This constructor initializes an instance of the ApplyConstantVectorValueProcess class with the given model part
      * and parameters.
+     * @param rModel Reference to the model to which the process is applied.
+     * @param ThisParameters Parameters defining the behavior of the process.
+     */
+    ApplyConstantVectorValueProcess(Model& rModel,
+                                    Parameters ThisParameters
+                                   );
+
+    /**
+     * @brief Constructor for ApplyConstantVectorValueProcess.
+     * @details This constructor initializes an instance of the ApplyConstantVectorValueProcess class with the given model part
+     * and parameters.
      * @param rModelPart Reference to the model part to which the process is applied.
-     * @param parameters Parameters defining the behavior of the process.
+     * @param ThisParameters Parameters defining the behavior of the process.
      */
     ApplyConstantVectorValueProcess(ModelPart& rModelPart,
                                     Parameters ThisParameters
