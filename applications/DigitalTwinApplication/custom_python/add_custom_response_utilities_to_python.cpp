@@ -24,6 +24,7 @@
 #include "custom_utilities/response/sensor_isolation_response_utils.h"
 #include "custom_utilities/response/sensor_distance_p_norm_utils.h"
 #include "custom_utilities/response/sensor_cosine_distance_utils.h"
+#include "custom_utilities/response/sensor_coverage_response_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utilities_to_python.h"
@@ -59,6 +60,13 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &SensorCosineDistanceResponseUtils::Initialize, py::arg("masks_list"))
         .def("CalculateValue", &SensorCosineDistanceResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorCosineDistanceResponseUtils::CalculateGradient)
+        ;
+
+    m.def_submodule("SensorCoverageResponseUtils")
+        .def("CalculateValue", &SensorCoverageResponseUtils::CalculateValue<ModelPart::ConditionsContainerType>, py::arg("sensor_mask_status"))
+        .def("CalculateGradient", &SensorCoverageResponseUtils::CalculateGradient<ModelPart::ConditionsContainerType>, py::arg("sensor_mask_status"))
+        .def("CalculateValue", &SensorCoverageResponseUtils::CalculateValue<ModelPart::ElementsContainerType>, py::arg("sensor_mask_status"))
+        .def("CalculateGradient", &SensorCoverageResponseUtils::CalculateGradient<ModelPart::ElementsContainerType>, py::arg("sensor_mask_status"))
         ;
 }
 
