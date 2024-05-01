@@ -22,6 +22,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
@@ -435,16 +436,24 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     KRATOS_TRY
 
     // Rayleigh Method: Damping Matrix = alpha*M + beta*K
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
+    const GeometryType& rGeom              = GetGeometry();
+    const auto          integration_method = this->GetIntegrationMethod();
+    const SizeType number_of_integration_points = rGeom.IntegrationPoints(integration_method).size();
+    const Matrix Np_container    = mpPressureGeometry->ShapeFunctionsValues(integration_method);
+    const auto   solid_densities = GeoTransportEquationUtilities::CalculateSoilDensityVector(
+        rGeom, number_of_integration_points, Np_container, mRetentionLawVector,
+        this->GetProperties(), rCurrentProcessInfo);
 
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    const auto integration_coefficients = GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
+        rGeom, rGeom.IntegrationPoints(integration_method), integration_method, *mpStressStatePolicy);
 
-    MatrixType mass_matrix = GeoTransportEquationUtilities::CalculateMassMatrixDiffOrder(
-        this->GetGeometry(), *mpPressureGeometry, this->GetIntegrationMethod(),
-        *mpStressStatePolicy, mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
+    const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
+        this->GetGeometry(), integration_method, solid_densities, integration_coefficients);
+
+    const SizeType ElementSize =
+        rGeom.PointsNumber() * rGeom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
+    Matrix mass_matrix = ZeroMatrix(ElementSize, ElementSize);
+    GeoElementUtilities::AssembleUUBlockMatrix(mass_matrix, mass_matrix_u);
 
     // Compute Stiffness matrix
     MatrixType StiffnessMatrix(ElementSize, ElementSize);

@@ -87,105 +87,30 @@ public:
         return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
     }
 
-    static Matrix CalculateMassMatrixDiffOrder(const Geometry<Node>& rGeom,
-                                               const Geometry<Node>& rPressureGeometry,
-                                               const GeometryData::IntegrationMethod IntegrationMethod,
-                                               const StressStatePolicy& rStressStatePolicy,
-                                               const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
-                                               const Properties&  rProp,
-                                               const ProcessInfo& rCurrentProcessInfo)
-    {
-        const SizeType dimension          = rGeom.WorkingSpaceDimension();
-        const SizeType number_U_nodes     = rGeom.PointsNumber();
-        const SizeType block_element_size = number_U_nodes * dimension;
-        const SizeType number_P_nodes     = rPressureGeometry.PointsNumber();
-        const Geometry<Node>::IntegrationPointsArrayType& integration_points =
-            rGeom.IntegrationPoints(IntegrationMethod);
-
-        const Matrix& Nu_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
-        const Matrix  Np_container = rPressureGeometry.ShapeFunctionsValues(IntegrationMethod);
-        const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
-
-        // create general parameters of retention law
-        RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
-
-        Matrix         Nu                 = ZeroMatrix(dimension, number_U_nodes * dimension);
-        Matrix         aux_density_matrix = ZeroMatrix(dimension, number_U_nodes * dimension);
-        Matrix         density_matrix     = ZeroMatrix(dimension, dimension);
-        const SizeType element_size       = block_element_size + number_P_nodes;
-        Matrix         mass_matrix        = ZeroMatrix(element_size, element_size);
-
-        for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {
-            const double degree_of_saturation =
-                CalculateDegreeOfSaturation(row(Np_container, g_point), pressure_vector,
-                                            retention_parameters, rRetentionLawVector[g_point]);
-
-            const double density = CalculateSoilDensity(degree_of_saturation, rProp);
-
-            GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
-            GeoElementUtilities::CalculateNuMatrix(dimension, number_U_nodes, Nu, Nu_container, g_point);
-            noalias(aux_density_matrix) = prod(density_matrix, Nu);
-
-            // Adding contribution to Mass matrix
-            const double integration_coefficient_initial_configuration =
-                CalculateIntegrationCoefficientInitialConfiguration(
-                    g_point, rGeom, integration_points, IntegrationMethod, rStressStatePolicy);
-
-            GeoElementUtilities::AssembleUUBlockMatrix(
-                mass_matrix, prod(trans(Nu), aux_density_matrix) * integration_coefficient_initial_configuration);
-        }
-        return mass_matrix;
-    }
-
     static double CalculateSoilDensity(double DegreeOfSaturation, const Properties& rProp)
     {
         return (DegreeOfSaturation * rProp[POROSITY] * rProp[DENSITY_WATER]) +
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static Matrix CalculateMassMatrix(unsigned int                              N_DOF,
-                                      const Geometry<Node>&                     rGeom,
-                                      const GeometryData::IntegrationMethod     IntegrationMethod,
-                                      const StressStatePolicy&                  rStressStatePolicy,
-                                      const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
-                                      const Properties&                         rProp,
-                                      const ProcessInfo&                        rCurrentProcessInfo)
+    static Vector CalculateSoilDensityVector(const Geometry<Node>& rGeom,
+                                             unsigned int          NumberOfIntegrationPoints,
+                                             const Matrix&         rNContainer,
+                                             const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                                             const Properties&  rProp,
+                                             const ProcessInfo& rCurrentProcessInfo)
     {
-        const Geometry<Node>::IntegrationPointsArrayType& integration_points =
-            rGeom.IntegrationPoints(IntegrationMethod);
-        const unsigned int number_G_points = integration_points.size();
-
-        const Matrix& N_container = rGeom.ShapeFunctionsValues(IntegrationMethod);
         const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
-
-        // Create general parameters of retention law
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
-
-        BoundedMatrix<double, TDim, TNumNodes * TDim> Nu = ZeroMatrix(TDim, TNumNodes * TDim);
-        BoundedMatrix<double, TDim, TNumNodes * TDim> aux_density_matrix = ZeroMatrix(TDim, TNumNodes * TDim);
-        BoundedMatrix<double, TDim, TDim> density_matrix = ZeroMatrix(TDim, TDim);
-        Matrix                            mass_matrix    = ZeroMatrix(N_DOF, N_DOF);
-
-        for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
+        Vector                   density(NumberOfIntegrationPoints);
+        for (unsigned int g_point = 0; g_point < NumberOfIntegrationPoints; ++g_point) {
             const double degree_of_saturation =
-                CalculateDegreeOfSaturation(row(N_container, g_point), pressure_vector,
+                CalculateDegreeOfSaturation(row(rNContainer, g_point), pressure_vector,
                                             retention_parameters, rRetentionLawVector[g_point]);
 
-            const double density = CalculateSoilDensity(degree_of_saturation, rProp);
-
-            GeoElementUtilities::AssembleDensityMatrix(density_matrix, density);
-            GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu, N_container, g_point);
-            noalias(aux_density_matrix) = prod(density_matrix, Nu);
-
-            // Adding contribution to Mass matrix
-            const double integration_coefficient_initial_configuration =
-                CalculateIntegrationCoefficientInitialConfiguration(
-                    g_point, rGeom, integration_points, IntegrationMethod, rStressStatePolicy);
-            GeoElementUtilities::AssembleUUBlockMatrix(
-                mass_matrix, prod(trans(Nu), aux_density_matrix) * integration_coefficient_initial_configuration);
+            density(g_point) = CalculateSoilDensity(degree_of_saturation, rProp);
         }
-        return mass_matrix;
+        return density;
     }
 
 private:

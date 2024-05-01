@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
@@ -942,9 +943,26 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 {
     KRATOS_TRY
 
-    rMassMatrix = GeoTransportEquationUtilities::CalculateMassMatrix<TDim, TNumNodes>(
-        this->GetNumberOfDOF(), this->GetGeometry(), this->GetIntegrationMethod(),
-        this->GetStressStatePolicy(), mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
+    const IndexType N_DOF = this->GetNumberOfDOF();
+    if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
+    noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
+
+    const GeometryType& rGeom              = this->GetGeometry();
+    const auto          integration_method = this->GetIntegrationMethod();
+    const SizeType number_of_integration_points = rGeom.IntegrationPoints(integration_method).size();
+    const auto N_container = rGeom.ShapeFunctionsValues(integration_method);
+
+    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensityVector(
+        rGeom, number_of_integration_points, N_container, mRetentionLawVector,
+        this->GetProperties(), rCurrentProcessInfo);
+
+    const auto integration_coefficients = GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
+        rGeom, rGeom.IntegrationPoints(integration_method), integration_method, this->GetStressStatePolicy());
+
+    const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
+        rGeom, integration_method, solid_densities, integration_coefficients);
+
+    GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 
     KRATOS_CATCH("")
 }
