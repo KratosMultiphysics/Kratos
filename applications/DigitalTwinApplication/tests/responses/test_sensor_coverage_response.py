@@ -118,10 +118,12 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
                 "sensors"
-            ],
-            "mask_model_part_name": "mask",
-            "mask_expression_name": "mask_exp"
+            ]
         }""")
+
+        cls.sensor_mask_status = KratosDT.MaskUtils.SensorElementMaskStatus(cls.sensor_model_part, [sensor.GetElementExpression("mask_exp") for sensor in cls.sensors])
+        ComponentDataView("sensor", cls.optimization_problem).GetUnBufferedData().SetValue("sensor_mask_status", cls.sensor_mask_status)
+
         cls.response = SensorCoverageResponse("test", cls.model, params, cls.optimization_problem)
         cls.response.Initialize()
 
@@ -138,9 +140,11 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
             total_mask += mask * sensor_status
 
         total_mask = KratosDT.ElementSmoothClamper(0, 1).Clamp(total_mask)
+        self.sensor_mask_status.Update()
         self.assertAlmostEqual(self.response.CalculateValue(), Kratos.Expression.Utils.InnerProduct(domain_size_exp, total_mask) / Kratos.Expression.Utils.Sum(domain_size_exp))
 
     def test_CalculateGradient(self):
+        self.sensor_mask_status.Update()
         ref_value = self.response.CalculateValue()
         collective_exp = KratosOA.CollectiveExpression()
         collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
@@ -150,6 +154,7 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) + delta)
+            self.sensor_mask_status.Update()
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) - delta)
             self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i])
