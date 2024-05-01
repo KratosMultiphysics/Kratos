@@ -1686,9 +1686,6 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementVariables& rVari
     noalias(rVariables.DNu_DX) = rVariables.DNu_DXContainer[GPoint];
     noalias(rVariables.DNp_DX) = rVariables.DNp_DXContainer[GPoint];
 
-    // Compute the deformation matrix B
-    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX, rVariables.Nu);
-
     rVariables.detJ = rVariables.detJuContainer[GPoint];
 
     Matrix J0;

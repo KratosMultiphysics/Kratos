@@ -1674,9 +1674,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
 
     rVariables.detJ = rVariables.detJContainer[GPoint];
 
-    // Compute the deformation matrix B
-    this->CalculateBMatrix(rVariables.B, rVariables.GradNpT, rVariables.Np);
-
     Matrix J0, InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
                                                      rVariables.GradNpTInitialConfiguration, GPoint);
