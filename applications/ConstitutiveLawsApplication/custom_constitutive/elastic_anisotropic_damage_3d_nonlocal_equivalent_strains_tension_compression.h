@@ -435,7 +435,7 @@ protected:
 
     void ComputePrincipalDamageIncrement(BoundedVectorType& PrincipalDamageIncrement,
                                        ConstitutiveLaw::Parameters& rParametersValues,
-                                       ModelParameters rModelParameters,
+                                       ModelParameters& rModelParameters,
                                        const BoundedVectorType& PrincipalStrains
                                        );
     void CheckDamageCriteria(

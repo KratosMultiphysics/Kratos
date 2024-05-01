@@ -131,7 +131,10 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::FinalizeMaterialResp
 
     InternalDamageVariables rInternalDamageParameters;
     this->CalculateStressResponse(rParametersValues, rInternalDamageParameters);
-    mInternalDamageVariables = rInternalDamageParameters;
+    mInternalDamageVariables.DamageMatrix = rInternalDamageParameters.DamageMatrix;
+    mInternalDamageVariables.EquivalentStrainsTC = rInternalDamageParameters.EquivalentStrainsTC;
+    mInternalDamageVariables.kappa = rInternalDamageParameters.kappa;
+    mInternalDamageVariables.StrainHistoryParameter = rInternalDamageParameters.StrainHistoryParameter;
     KRATOS_CATCH("")
 }
 
@@ -208,8 +211,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
             Calculate_tangent_HNLu(H_NL1u, H_NL2u, rParametersValues, principal_strains);
             KRATOS_WATCH("there is damage")
         }
-        KRATOS_WATCH(H_uNL1)
-        KRATOS_WATCH(H_uNL2)
         AssembleConstitutiveMatrix(r_constitutive_matrix, r_elasticity_matrix, H_NL1u, H_NL2u, H_uNL1, H_uNL2, H_NLNL);
         rInternalDamageVariables.DamageMatrix = total_damage_tensor;
         CalculateLocalEquivalentStrains(local_equivalent_strains, rParametersValues, principal_strains);
@@ -251,7 +252,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::GetEigenValues(
 void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::ComputePrincipalDamageIncrement(
     BoundedVectorType& PrincipalDamageIncrement,
     ConstitutiveLaw::Parameters& rParametersValues,
-    ModelParameters rModelParameters,
+    ModelParameters& rModelParameters,
     const BoundedVectorType& PrincipalStrains
     )
 {
@@ -277,13 +278,9 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::ComputePrincipalDama
         nonlocal_equivalent_strains[1] += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_EQUIVALENT_STRAIN_COMPRESSION, 0);
     }
     ScaleNonlocalEquivalentStrain(principal_nonlocal_strains, rParametersValues, PrincipalStrains, nonlocal_equivalent_strains, local_equivalent_strains_tc);
-    KRATOS_WATCH(nonlocal_equivalent_strains)
-    KRATOS_WATCH(local_equivalent_strains_tc)
-    KRATOS_WATCH(principal_nonlocal_strains)
+
     SetModelParameters(rModelParameters, rParametersValues, PrincipalStrains, principal_nonlocal_strains);
     KRATOS_WATCH(rModelParameters.kappa)
-    KRATOS_WATCH(rModelParameters.kappa0)
-    KRATOS_WATCH(principal_damage_n)
     CheckDamageCriteria(PrincipalDamageIncrement, rModelParameters, principal_damage_n);
     KRATOS_WATCH(PrincipalDamageIncrement)
     KRATOS_CATCH("")
@@ -350,8 +347,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateLocalEquiva
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
     BoundedVectorType PrincipalDeviatoricStrains = ZeroVector(3);
     GetPrincipalDeviatoricStrains(PrincipalDeviatoricStrains, r_strain_vector, PrincipalStrains);
-    KRATOS_WATCH(r_strain_vector)
-    KRATOS_WATCH(PrincipalDeviatoricStrains)
     LocalEquivalentStrains[0] = sqrt(pow(MacaulayBrackets(PrincipalStrains[0]),2) + pow(MacaulayBrackets(PrincipalStrains[1]),2) + pow(MacaulayBrackets(PrincipalStrains[2]),2));
     LocalEquivalentStrains[1] = sqrt(pow(MacaulayBrackets(PrincipalDeviatoricStrains[0]),2) + pow(MacaulayBrackets(PrincipalDeviatoricStrains[1]),2) + pow(MacaulayBrackets(PrincipalDeviatoricStrains[2]),2));
     KRATOS_CATCH("")
@@ -669,11 +664,11 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::Calculate_tangent_Hu
         dDdNLEpseq_compression[i] = dDdkappa[i] * dkappadNLEpseq_compression[i];
         dHdD(i,i) = E_factor * (-2 * (1-Damage_Vector[i]) * (1-nu));
     }
-    KRATOS_WATCH(dDdkappa)
-    KRATOS_WATCH(dkappadNLEpseq_tension)
-    KRATOS_WATCH(dkappadNLEpseq_compression)
-    KRATOS_WATCH(dDdNLEpseq_tension)
-    KRATOS_WATCH(dDdNLEpseq_tension)
+    //KRATOS_WATCH(dDdkappa)
+    //KRATOS_WATCH(dkappadNLEpseq_tension)
+    //KRATOS_WATCH(dkappadNLEpseq_compression)
+    //KRATOS_WATCH(dDdNLEpseq_tension)
+    //KRATOS_WATCH(dDdNLEpseq_tension)
     dHdD(3,1) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[1]+Damage_Vector[2]))-1) ;
     dHdD(3,2) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[1]+Damage_Vector[2]))-1) ;
     dHdD(4,0) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (Damage_Vector[0]+Damage_Vector[2]))-1) ;
@@ -686,9 +681,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::Calculate_tangent_Hu
         dHdEpseq_tension(i,i) = dHdEpseq_tensoin_diagonal[i];
         dHdEpseq_compression(i,i) = dHdEpseq_compression_diagonal[i];
     }
-    KRATOS_WATCH(dHdD)
-    KRATOS_WATCH(dHdEpseq_tension)
-    KRATOS_WATCH(dHdEpseq_compression)
     H_uNL1 = prod(dHdEpseq_tension, r_strain_vector);
     H_uNL2 = prod(dHdEpseq_compression, r_strain_vector);
     KRATOS_CATCH("")
