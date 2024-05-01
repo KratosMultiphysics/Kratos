@@ -237,7 +237,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
         // Definition of node coefficient
         rTls.vector_J = r_this_geometry.DeterminantOfJacobian(rTls.vector_J , this_integration_method );
 
-        Matrix node_coefficient(number_of_nodes, integration_points_number);
         // Sofar this works for 3, 4, 6 and 8 node planar elements
         // for 2 and 3 node line elements the extension is straightforward.
         // for volume elements ( hexa, tetra, wedge ) the midside node interpolation step is more elaborate
@@ -258,15 +257,14 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
         SizeType number_of_low_order_nodes = p_low_order_geometry->PointsNumber();
         rTls.N.resize(number_of_low_order_nodes);
         Matrix quasi_mass_mat = ZeroMatrix(number_of_low_order_nodes,number_of_low_order_nodes);
+        Matrix node_coefficient(number_of_low_order_nodes, integration_points_number);
         for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
             // local_coordinates --> isoparametric coordinates or for triangles area coordinates
             const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
             // shape function for this i.p.
             p_low_order_geometry->ShapeFunctionsValues(rTls.N, r_local_coordinates);
             quasi_mass_mat += outer_prod(rTls.N, rTls.N) * rTls.vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
-            for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                node_coefficient(i_node, i_gauss_point) = rTls.N[i_node]* rTls.vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
-            }
+            column(node_coefficient, i_gauss_point) = rTls.N *  rTls.vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
         }
 
         double MetricDet;
