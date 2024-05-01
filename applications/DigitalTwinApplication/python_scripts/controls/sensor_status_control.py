@@ -28,6 +28,7 @@ class SensorStatusControl(Control):
 
         default_settings = Kratos.Parameters("""{
             "controlled_model_part_names": [""],
+            "mask_expression_name"       : "YOUNG_MODULUS_SENSITIVITY_mask",
             "penalty_factor"             : 3,
             "output_all_fields"          : false,
             "beta_settings": {
@@ -43,6 +44,7 @@ class SensorStatusControl(Control):
         self.controlled_physical_variables = [KratosDT.SENSOR_STATUS]
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         self.penalty_factor = parameters["penalty_factor"].GetInt()
+        self.mask_expression_name = parameters["mask_expression_name"].GetString()
 
         # beta settings
         beta_settings = parameters["beta_settings"]
@@ -75,6 +77,23 @@ class SensorStatusControl(Control):
                                                 [0, 1],
                                                 self.beta,
                                                 self.penalty_factor)
+
+        sensor_data = ComponentDataView("sensor", self.optimization_problem)
+        sensors_list: 'list[KratosDT.Sensors.Sensor]' = sensor_data.GetUnBufferedData("list_of_sensors")
+        if len(sensors_list) == 0:
+            raise RuntimeError("Empty sensors list.")
+
+        first_sensor = sensors_list[0]
+        if self.mask_expression_name in first_sensor.GetNodalExpressionsMap().keys():
+            self.sensor_mask_status = KratosDT.MaskUtils.SensorNodalMaskStatus(self.model_part, [sensor.GetNodalExpression(self.mask_expression_name) for sensor in sensors_list])
+        elif self.mask_expression_name in first_sensor.GetConditionExpressionsMap().keys():
+            self.sensor_mask_status = KratosDT.MaskUtils.SensorConditionMaskStatus(self.model_part, [sensor.GetConditionExpression(self.mask_expression_name) for sensor in sensors_list])
+        elif self.mask_expression_name in first_sensor.GetElementExpressionsMap().keys():
+            self.sensor_mask_status = KratosDT.MaskUtils.SensorElementMaskStatus(self.model_part, [sensor.GetElementExpression(self.mask_expression_name) for sensor in sensors_list])
+        else:
+            raise RuntimeError(f"The sensor mask expression \"{self.mask_expression_name}\" not found in the list of sensors.")
+
+        sensor_data.GetBufferedData().SetValue("sensor_mask_status", self.sensor_mask_status)
 
         # now update the physical thickness field
         self._UpdateAndOutputFields(self.GetEmptyField())
@@ -148,6 +167,8 @@ class SensorStatusControl(Control):
         list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
         for i, node in enumerate(self.model_part.Nodes):
             list_of_sensors[i].SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS))
+
+        self.sensor_mask_status.Update()
 
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
