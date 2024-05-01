@@ -1023,9 +1023,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -1207,9 +1210,23 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np)
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) const
 {
     rB = this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
+    const Matrix& NContainer, const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer) const
+{
+    std::vector<Matrix> result;
+    for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {
+        Matrix b_matrix;
+        this->CalculateBMatrix(b_matrix, DN_DXContainer[GPoint], row(NContainer, GPoint));
+        result.push_back(b_matrix);
+    }
+
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
