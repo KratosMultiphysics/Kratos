@@ -376,7 +376,7 @@ void NavierStokesP2P1ContinuousWallCondition<TDim, TWallModel...>::ComputeRHSOut
         const auto& r_v = r_geom[i].FastGetSolutionStepValue(VELOCITY);
         v_gauss += rData.N_v[i] * r_v;
     }
-    const double v_gauss_proj = inner_prod(v_gauss, rData.UnitNormal);
+    const double v_gauss_proj = std::inner_product(rData.UnitNormal.begin(), rData.UnitNormal.end(), v_gauss.begin(), 0.0);
     const double v_gauss_squared_norm = std::pow(v_gauss[0],2) + std::pow(v_gauss[1],2) + std::pow(v_gauss[2],2);
 
     // Add outlet inflow prevention contribution
