@@ -88,24 +88,20 @@ public:
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, VoigtSize> BoundedMatrix3x6Type;
 
-    struct MaterialProperties{
-        double beta1t;
-        double beta2t;
-        double beta1c;
-        double beta2c;
-        double E;
-        double nu;
-        double ft;
-        double fc;
-        double kt0;
-        double kc0;
+    struct InternalDamageVariables{
+        BoundedMatrixType DamageMatrix = ZeroMatrix(3,3);
+        BoundedVectorType StrainHistoryParameter = ZeroVector(3);
+        BoundedVectorType kappa = ZeroVector(3);
+        Vector EquivalentStrainsTC = ZeroVector(2);
     };
+
     struct ModelParameters
     {
         Vector Beta1;
         Vector Beta2;
         Vector kappa0;
         Vector kappa;
+        Vector strain_history_parameter;
         Vector del_kappa;
         /**
          * The default constructor
@@ -121,6 +117,8 @@ public:
                 kappa0.resize(Dimension);
             if (kappa.size() != Dimension)
                 kappa.resize(Dimension);
+            if (strain_history_parameter.size() != Dimension)
+                strain_history_parameter.resize(Dimension);
             if (del_kappa.size() != Dimension)
                 del_kappa.resize(Dimension);
 
@@ -128,6 +126,7 @@ public:
             noalias(Beta2)      = ZeroVector(Dimension);
             noalias(kappa0)     = ZeroVector(Dimension);
             noalias(kappa)      = ZeroVector(Dimension);
+            noalias(strain_history_parameter)  = ZeroVector(Dimension);
             noalias(del_kappa)  = ZeroVector(Dimension);
 
         }
@@ -316,9 +315,8 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    BoundedVectorType k0;
-    BoundedVectorType beta1;
-    BoundedVectorType beta2;
+    Vector mMaterialProperties;
+    InternalDamageVariables mInternalDamageVariables;
 
     ///@}
 
@@ -384,6 +382,7 @@ protected:
      * @param Local_Equivalent_Strain
      */
     void ScaleNonlocalEquivalentStrain(BoundedVectorType& Principal_Nonlocal_Strains,
+                                        ConstitutiveLaw::Parameters& rParametersValues,
                                         const BoundedVectorType& Principal_Strains,
                                         const Vector& Nonlocal_Equivalent_Strains,
                                         const Vector& Local_Equivalent_Strains
@@ -402,7 +401,8 @@ protected:
      * @brief
      *
      */
-    Vector& GetPrincipalDeviatoricStrains(const Vector& StrainVector,
+    void GetPrincipalDeviatoricStrains(BoundedVectorType& PrincipalDeviatoricStrains,
+                                         const Vector& StrainVector,
                                          const BoundedVectorType& PrincipalStrains
                                          );
     /**
@@ -424,7 +424,7 @@ protected:
 
     void GetTotalPrincipalDamageVector(BoundedVectorType& PrincipaldamageVector,
                                         const BoundedMatrixType& TotalDamageTensor
-                                        );                                       
+                                        );
     /**
      * @brief This method evaluates the Macaulay brackets
      */
@@ -435,6 +435,7 @@ protected:
 
     void ComputePrincipalDamageIncrement(BoundedVectorType& PrincipalDamageIncrement,
                                        ConstitutiveLaw::Parameters& rParametersValues,
+                                       ModelParameters rModelParameters,
                                        const BoundedVectorType& PrincipalStrains
                                        );
     void CheckDamageCriteria(
@@ -453,7 +454,7 @@ protected:
     void Calculate_tangent_HuNL(BoundedVectorVoigtType& H_uNL1,
                                 BoundedVectorVoigtType& H_uNL2,
                                 ConstitutiveLaw::Parameters& rParametersValues,
-                                ModelParameters& rModelParameters,
+                                const ModelParameters& rModelParameters,
                                 const Vector& Damage_Vector,
                                 const BoundedVectorType& Principal_Strains
                                 );
@@ -502,11 +503,7 @@ protected:
                                     );
 
 
-    struct InternalVariables{
-        BoundedMatrixType DamageMatrix = ZeroMatrix(3,3);
-        BoundedVectorType StrainHistoryParameter = ZeroVector(3);
-        Vector EquivalentStrainsTC = ZeroVector(2);
-    };
+    
 
     /**
      * @brief This method computes the stress and constitutive tensor
@@ -514,7 +511,7 @@ protected:
      * @param rStrainVariable
      */
     void CalculateStressResponse(ConstitutiveLaw::Parameters& rParametersValues,
-                                 InternalVariables &rInternalDamageParameters) ;
+                                 InternalDamageVariables &rInternalDamageVariables) ;
 
     ///@}
 private:
@@ -526,7 +523,7 @@ private:
 
     ///@name Member Variables
     ///@{
-
+    
     ///@}
 
     ///@name Private Operators
