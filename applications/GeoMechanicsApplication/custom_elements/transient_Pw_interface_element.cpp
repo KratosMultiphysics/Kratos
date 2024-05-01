@@ -479,12 +479,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
-    auto integration_coefficients = std::vector<double>{};
-    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(), detJContainer.begin(),
-                   std::back_inserter(integration_coefficients),
-                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
-    });
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {

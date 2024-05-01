@@ -1315,12 +1315,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
-    auto integration_coefficients = std::vector<double>{};
-    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
-                   Variables.detJuContainer.begin(), std::back_inserter(integration_coefficients),
-                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
-    });
+    const auto integration_coefficients =
+        CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1727,6 +1723,19 @@ double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const Geo
                                                                        double detJ) const
 {
     return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficients(
+    const Geometry<GeometricalObject::NodeType>::IntegrationPointsArrayType& rIntegrationPoints,
+    const Vector&                                                            rDetJs) const
+{
+    auto result = std::vector<double>{};
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(),
+                   rDetJs.begin(), std::back_inserter(result),
+                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+    return result;
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)

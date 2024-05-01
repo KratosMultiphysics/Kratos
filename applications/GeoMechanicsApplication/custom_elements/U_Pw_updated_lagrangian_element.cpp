@@ -84,12 +84,8 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
     const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
 
-    auto integration_coefficients = std::vector<double>{};
-    std::transform(IntegrationPoints.begin(), IntegrationPoints.end(),
-                   Variables.detJContainer.begin(), std::back_inserter(integration_coefficients),
-                   [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
-    });
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {

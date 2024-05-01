@@ -254,6 +254,8 @@ protected:
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
                                            double detJ) const;
+    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                                         const Vector& rDetJs) const;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
