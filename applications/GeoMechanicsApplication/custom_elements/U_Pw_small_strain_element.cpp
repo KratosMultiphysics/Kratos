@@ -149,10 +149,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -253,9 +256,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -302,10 +308,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     Matrix StressContainer(NumGPoints, mStressVector[0].size());
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -509,9 +518,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint]; // This one is probably not necessary
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -567,6 +579,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         if (rOutput.size() != mConstitutiveLawVector.size())
             rOutput.resize(mConstitutiveLawVector.size());
 
+        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             const PropertiesType& rProp = this->GetProperties();
 
@@ -576,6 +590,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
             this->CalculateStrain(Variables, GPoint);
@@ -629,9 +644,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         // Create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute strain, needed for update permeability
             this->CalculateStrain(Variables, GPoint);
@@ -714,10 +732,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
         Vector TotalStressVector(mStressVector[0].size());
 
+        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
             this->CalculateStrain(Variables, GPoint);
@@ -770,9 +791,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // Compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             this->CalculateStrain(Variables, GPoint);
 
@@ -888,10 +912,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);

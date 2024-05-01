@@ -72,10 +72,13 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // Compute element kinematics B, F, GradNpT ...
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
@@ -183,10 +186,13 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute strain
             this->CalculateDeformationGradient(Variables, GPoint);

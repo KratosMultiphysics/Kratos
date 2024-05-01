@@ -136,9 +136,12 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
 
     Vector StressVector(VoigtSize);
 
+    const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -187,9 +190,12 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
 
     Vector StressVector(VoigtSize);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -438,10 +444,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);
