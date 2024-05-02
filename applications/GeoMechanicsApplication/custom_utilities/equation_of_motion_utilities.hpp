@@ -56,7 +56,7 @@ public:
         }
         return mass_matrix;
     }
-    
+
     static Vector CalculateIntegrationCoefficientInitialConfiguration(
         const Geometry<Node>&                             rGeom,
         const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
@@ -65,7 +65,7 @@ public:
     {
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
-        const unsigned int number_G_points = integration_points.size();
+        const std::size_t number_G_points = integration_points.size();
 
         Vector integration_coefficient_initial_configuration(number_G_points);
         Matrix J0;

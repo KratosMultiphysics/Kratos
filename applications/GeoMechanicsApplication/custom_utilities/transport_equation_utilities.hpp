@@ -94,7 +94,7 @@ public:
     }
 
     static Vector CalculateSoilDensityVector(const Geometry<Node>& rGeom,
-                                             unsigned int          NumberOfIntegrationPoints,
+                                             std::size_t           NumberOfIntegrationPoints,
                                              const Matrix&         rNContainer,
                                              const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
                                              const Properties&  rProp,

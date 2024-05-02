@@ -33,9 +33,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D10NGivesCorrectResults, KratosGeo
     properties.SetValue(POROSITY, 0.3);
     properties.SetValue(DENSITY_SOLID, 2500.0);
 
-    auto       p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    const auto integration_method    = r_model_part.GetElement(1).GetIntegrationMethod();
-    auto&      r_geom                = r_model_part.GetElement(1).GetGeometry();
+    auto        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
+    const auto  integration_method    = r_model_part.GetElement(1).GetIntegrationMethod();
+    const auto& r_geom                = r_model_part.GetElement(1).GetGeometry();
 
     const Geometry<Node>::IntegrationPointsArrayType& integration_points =
         r_geom.IntegrationPoints(integration_method);
@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D10NGivesCorrectResults, KratosGeo
     const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
     const Geometry<Node>::Pointer p_pressure_geometry =
         make_shared<Tetrahedra3D4<Node>>(r_geom(0), r_geom(1), r_geom(2), r_geom(3));
-    const auto Np_container = p_pressure_geometry->ShapeFunctionsValues(integration_method);
+    const auto& Np_container = p_pressure_geometry->ShapeFunctionsValues(integration_method);
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensityVector(
         r_geom, number_of_integration_points, Np_container, p_retention_law, properties, process_info);
@@ -126,9 +126,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     properties.SetValue(POROSITY, 0.3);
     properties.SetValue(DENSITY_SOLID, 2500.0);
 
-    auto       p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
-    const auto integration_method    = r_model_part.GetElement(1).GetIntegrationMethod();
-    auto&      r_geom                = r_model_part.GetElement(1).GetGeometry();
+    auto        p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
+    const auto  integration_method    = r_model_part.GetElement(1).GetIntegrationMethod();
+    const auto& r_geom                = r_model_part.GetElement(1).GetGeometry();
 
     const Geometry<Node>::IntegrationPointsArrayType& integration_points =
         r_geom.IntegrationPoints(integration_method);
@@ -143,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
 
     // execution
     const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
-    const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
+    const auto& N_container = r_geom.ShapeFunctionsValues(integration_method);
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensityVector(
         r_geom, number_of_integration_points, N_container, p_retention_law, properties, process_info);
