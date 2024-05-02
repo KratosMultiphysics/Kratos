@@ -454,15 +454,13 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     // Defining shape functions and the determinant of the jacobian at all integration points
 
     // Loop over integration points
-    Matrix     Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix     AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix     DensityMatrix    = ZeroMatrix(Dim, Dim);
-    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+    Matrix Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
+    Matrix AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
+    Matrix DensityMatrix    = ZeroMatrix(Dim, Dim);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B)
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
 
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
@@ -957,13 +955,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
-        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
-            Variables.B = b_matrices[GPoint];
 
             Variables.FluidPressure = CalculateFluidPressure(Variables);
             SetRetentionParameters(Variables, RetentionParameters);

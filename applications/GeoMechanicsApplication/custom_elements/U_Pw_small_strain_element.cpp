@@ -518,12 +518,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
-
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
-            Variables.B = b_matrices[GPoint]; // This one is probably not necessary
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 

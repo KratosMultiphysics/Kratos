@@ -189,13 +189,10 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
-
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
-            Variables.B = b_matrices[GPoint]; // Might not be needed!
 
             // Compute strain
             this->CalculateDeformationGradient(Variables, GPoint);
