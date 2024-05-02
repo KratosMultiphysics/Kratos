@@ -636,9 +636,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
         }
-    }
-
-    else {
+    } else {
         if (rOutput.size() != mConstitutiveLawVector.size())
             rOutput.resize(mConstitutiveLawVector.size());
 
