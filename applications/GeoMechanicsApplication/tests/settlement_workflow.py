@@ -11,7 +11,7 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
     def test_DSettlement_workflow(self):
         test_name = 'test_settlement_workflow'
-        file_path = test_helper.get_file_path(os.path.join(test_name, 'python_workflow'))
+        file_path = test_helper.get_file_path(test_name)
         test_helper.run_stages(file_path, 4)
 
         times_to_check = [1.0, 2.0, 3.0, 3.2]
@@ -19,7 +19,7 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         for i in range(4):
             result_file_name = os.path.join(file_path, f'test_model_stage{i+1}.post.res')
             expected_result_file_name = (test_helper.get_file_path(
-                os.path.join(test_name, 'common', f'test_model_stage{i+1}.post.orig.res')))
+                os.path.join(test_name, f'test_model_stage{i+1}.post.orig.res')))
 
             reader = test_helper.GiDOutputFileReader()
 

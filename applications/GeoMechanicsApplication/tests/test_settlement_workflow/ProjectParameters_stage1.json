@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "../common/test_model"
+            "input_filename":   "test_model"
         },
         "material_import_settings":              {
-            "materials_filename":       "../common/MaterialParameters.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":                1.0,

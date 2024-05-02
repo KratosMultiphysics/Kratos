@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "test_model",
-        "start_time":           2.0,
-        "end_time":             3.0,
+        "start_time":           1.0,
+        "end_time":             2.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,10 +13,10 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "../common/test_model"
+            "input_filename":   "test_model"
         },
         "material_import_settings":              {
-            "materials_filename":       "../common/MaterialParameters.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":                1.0,
@@ -67,7 +67,7 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Second_line_load","Gravitational_load"],
+        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","First_line_load","Gravitational_load"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     },
     "output_processes": {
@@ -77,7 +77,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_model_stage3",
+                "output_name": "test_model_stage2",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -159,11 +159,11 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Second_line_load",
+            "model_part_name": "PorousDomain.First_line_load",
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
-            "value":           [0.0,-15,0.0],
-            "table":           [0,2,0]
+            "value":           [0.0,-5,0.0],
+            "table":           [0,1,0]
         }
     },{
         "python_module": "apply_vector_constraint_table_process",

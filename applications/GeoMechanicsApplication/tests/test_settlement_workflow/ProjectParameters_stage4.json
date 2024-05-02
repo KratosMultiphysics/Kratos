@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "test_model",
-        "start_time":           2.0,
-        "end_time":             3.0,
+        "start_time":           3.0,
+        "end_time":             4.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,13 +13,13 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "../common/test_model"
+            "input_filename":   "test_model"
         },
         "material_import_settings":              {
-            "materials_filename":       "../common/MaterialParameters.json"
+            "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                1.0,
+            "time_step":                0.2,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
@@ -38,7 +38,7 @@
         "newmark_theta":                      0.5,
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
-        "strategy_type":                      "newton_raphson",
+        "strategy_type":                      "line_search",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
@@ -67,7 +67,7 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Second_line_load","Gravitational_load"],
+        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Excavate_sloot","Second_line_load","Hydrostatic_load_in_sloot","Gravitational_load"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     },
     "output_processes": {
@@ -77,7 +77,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_model_stage3",
+                "output_name": "test_model_stage4",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -153,6 +153,15 @@
             "value":                -137.34,
             "table":                0
         }
+    },{
+        "python_module": "apply_excavation_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyExcavationProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.Excavate_sloot",
+            "variable_name":        "EXCAVATION",
+            "deactivate_soil_part":             true
+        }
     }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
@@ -164,6 +173,21 @@
             "active":          [false,true,false],
             "value":           [0.0,-15,0.0],
             "table":           [0,2,0]
+        }
+    },{
+        "python_module": "apply_normal_load_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyNormalLoadTableProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.Hydrostatic_load_in_sloot",
+            "variable_name":        "NORMAL_CONTACT_STRESS",
+            "active":               [true,false],
+            "value":                [0.0,0.0],
+            "table":                [0,0],
+            "fluid_pressure_type": "Hydrostatic",
+            "gravity_direction":    1,
+            "reference_coordinate": -1,
+            "specific_weight":      9.81
         }
     },{
         "python_module": "apply_vector_constraint_table_process",
