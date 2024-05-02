@@ -2061,7 +2061,8 @@ Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix
     return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
-Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint)
+Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariables& rVariables,
+                                                                    unsigned int      GPoint) const
 {
     KRATOS_TRY
 

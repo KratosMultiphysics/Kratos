@@ -1026,7 +1026,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
+    auto deformation_gradients = std::vector<Matrix>{};
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        deformation_gradients.emplace_back(this->CalculateDeformationGradient(Variables, GPoint));
+    }
+
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        Variables.F = deformation_gradients[GPoint];
+
         // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
@@ -1526,7 +1533,7 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(ElementVariables& rVariables,
-                                                                            unsigned int GPoint)
+                                                                            unsigned int GPoint) const
 {
     KRATOS_TRY
 
