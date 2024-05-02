@@ -86,7 +86,8 @@ class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
                 "rom_basis_output_format": "numpy",
                 "rom_basis_output_name": "RomParameters",
                 "rom_basis_output_folder": "rom_data",
-                "svd_truncation_tolerance": 1e-6
+                "svd_truncation_tolerance": 1e-6,
+                "print_singular_values": true
             }
         }""")
 
@@ -117,7 +118,8 @@ class TestNeuralNetworkTrainerClass(KratosUnittest.TestCase):
             snapshots_matrix_test = snapshots_matrix_train[:,test_timesteps].copy()
             snapshots_matrix_train = np.delete(snapshots_matrix_train, test_timesteps, 1)
 
-            basis_output_process._PrintRomBasis(snapshots_matrix_train)
+            u, sigma = basis_output_process._ComputeSVD(snapshots_matrix_train)
+            basis_output_process._PrintRomBasis(u, sigma)
 
             self.assertTrue(np.all(np.abs(snapshots_matrix_train - np.load('rom_data/reference_fom_snapshots.npy')<1e-10)))
             self.assertTrue(np.all(np.abs(snapshots_matrix_test - np.load('rom_data/reference_fom_snapshots_val.npy'))<1e-10))

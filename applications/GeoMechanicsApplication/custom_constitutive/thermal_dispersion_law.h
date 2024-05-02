@@ -16,7 +16,8 @@
 
 #include "includes/constitutive_law.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 class RetentionLaw;
 
@@ -24,8 +25,9 @@ class RetentionLaw;
  * @class GeoThermalDispersionLaw
  * @ingroup GeoMechanicsApplication
  * @brief This class defines the thermal dispersion for heat cases
-*/
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public ConstitutiveLaw {
+ */
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public ConstitutiveLaw
+{
 public:
     /// Counted pointer of GeoThermalDispersionLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalDispersionLaw);
@@ -38,8 +40,7 @@ public:
 
     SizeType WorkingSpaceDimension() override;
 
-    Matrix CalculateThermalDispersionMatrix(const Properties& rProp,
-                                            const ProcessInfo& rProcessInfo) const;
+    Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const;
 
 private:
     SizeType mNumberOfDimensions;

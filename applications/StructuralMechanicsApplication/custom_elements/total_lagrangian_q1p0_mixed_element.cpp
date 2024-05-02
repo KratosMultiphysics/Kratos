@@ -179,7 +179,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure(), false);
 
         const Matrix& r_C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);

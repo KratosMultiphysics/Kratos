@@ -90,7 +90,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
                 
         //Contributions to the right hand side
         noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;
-        GeoElementUtilities::AssemblePBlockVector< TDim, TNumNodes >(rRightHandSideVector,PVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector,PVector);
     }
 }
 

@@ -38,6 +38,9 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 #TODO split all of the methods for ROM generation: Snapshots generation (train snapshots and validation snapshots), Basis Computation, NeuralNetworkTraining
                 # necesary steps: Modify RomBasisOuptupProcess to fetch snapshots, not only run after simulations
+                if self.rom_training_parameters["print_singular_values"] == False:
+                    err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
+                    raise Exception(err_msg)
                 self.StoreFomSnapshotsAndBasis(mu_train=mu_train)
                 self.StoreFomValidationSnapshots(mu_validation=mu_validation)
                 self.TrainAnnEnhancedROM()
@@ -280,7 +283,8 @@ class RomManager(object):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
         SnapshotsMatrix = np.block(SnapshotsMatrix)
-        BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
+        u, sigma = BasisOutputProcess._ComputeSVD(SnapshotsMatrix)
+        BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
 
         return SnapshotsMatrix
 
@@ -759,6 +763,7 @@ class RomManager(object):
             "rom_basis_output_folder",
             "nodal_unknowns",
             "snapshots_interval",
+            "print_singular_values"
         ]
 
         for key in keys_to_copy:
@@ -818,7 +823,8 @@ class RomManager(object):
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
                     "rom_basis_output_folder": "rom_data",
-                    "svd_truncation_tolerance": 1e-3
+                    "svd_truncation_tolerance": 1e-3,
+                    "print_singular_values": false
                 }
             }""")
         return rom_training_parameters

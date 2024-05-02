@@ -24,6 +24,20 @@ namespace Kratos
 
 // Public methods //////////////////////////////////////////////////////////////
 
+ConnectivityPreserveModeler::ConnectivityPreserveModeler(Model& rModel, Parameters Settings):
+    Modeler(Settings),
+    mpModel(&rModel)
+{
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+}
+
+
+Modeler::Pointer ConnectivityPreserveModeler::Create(Model& rModel, const Parameters Settings) const
+{
+    return Kratos::make_shared<ConnectivityPreserveModeler>(rModel, Settings);
+}
+
+
 void ConnectivityPreserveModeler::GenerateModelPart(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
@@ -92,6 +106,61 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 
     KRATOS_CATCH("");
 }
+
+
+void ConnectivityPreserveModeler::SetupModelPart()
+{
+    ModelPart& r_origin_model_part = mpModel->GetModelPart(mParameters["origin_model_part_name"].GetString());
+
+    const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
+    if (!mpModel->HasModelPart(destination_model_part_name)) {
+        mpModel->CreateModelPart(destination_model_part_name, r_origin_model_part.GetBufferSize());
+    }
+    ModelPart& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
+
+    const std::string element_name = mParameters["reference_element"].GetString();
+    const std::string condition_name = mParameters["reference_condition"].GetString();
+
+    if (element_name != "") {
+        if (condition_name != "") {
+            GenerateModelPart(
+                r_origin_model_part,
+                r_destination_model_part,
+                KratosComponents<Element>::Get(element_name),
+                KratosComponents<Condition>::Get(condition_name));
+        } else {
+            GenerateModelPart(
+                r_origin_model_part,
+                r_destination_model_part,
+                KratosComponents<Element>::Get(element_name));
+        }
+    } else if (condition_name != "") {
+        GenerateModelPart(
+            r_origin_model_part,
+            r_destination_model_part,
+            KratosComponents<Condition>::Get(condition_name));
+    } else {
+        KRATOS_ERROR << "At least one of reference_element or reference_condition is required." << std::endl;
+    }
+}
+
+
+const Parameters ConnectivityPreserveModeler::GetDefaultParameters() const
+{
+    return Parameters(R"({
+        "origin_model_part_name"        : "undefined_origin_model_part_name",
+        "destination_model_part_name"   : "undefined_destination_model_part_name",
+        "reference_element"             : "",
+        "reference_condition"           : ""
+    })");
+}
+
+
+std::string ConnectivityPreserveModeler::Info() const
+{
+    return "ConnectivityPreserveModeler";
+}
+
 
 // Private methods /////////////////////////////////////////////////////////////
 void ConnectivityPreserveModeler::CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const
