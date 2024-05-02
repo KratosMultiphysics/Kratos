@@ -324,7 +324,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 
 const Parameters GeoIntegrationValuesExtrapolationToNodesProcess::GetDefaultParameters() const
 {
-    const Parameters default_parameters = Parameters(R"(
+    return Parameters(R"(
     {
         "model_part_name"            : "",
         "echo_level"                 : 0,
@@ -332,7 +332,6 @@ const Parameters GeoIntegrationValuesExtrapolationToNodesProcess::GetDefaultPara
         "list_of_variables"          : [],
         "extrapolate_non_historical" : true
     })");
-    return default_parameters;
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
