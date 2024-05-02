@@ -24,8 +24,19 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## DigitalTwin python interface sources
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
+find_package(Flann)
+
+if(${FLANN_FOUND})
+  message(STATUS "Found flann library")
+else(${FLANN_FOUND})
+  message(STATUS "Could not find flann library")
+endif(${FLANN_FOUND})
+include_directories(${FLANN_INCLUDE_DIRS})
+
+find_library(LZ4_LIBRARIES NAMES liblz4.so HINTS "lz4/lib")
+
 add_library(KratosDigitalTwinCore SHARED ${KRATOS_DIGITAL_TWIN_APPLICATION_CORE} ${KRATOS_DIGITAL_TWIN_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosDigitalTwinCore PUBLIC KratosCore)
+target_link_libraries(KratosDigitalTwinCore PUBLIC KratosCore PRIVATE ${FLANN_LIBRARIES} ${LZ4_LIBRARIES})
 set_target_properties(KratosDigitalTwinCore PROPERTIES COMPILE_DEFINITIONS "DIGITAL_TWIN_APPLICATION=EXPORT,API")
 
 ###############################################################
