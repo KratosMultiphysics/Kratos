@@ -219,7 +219,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
 }
 
 Matrix GeoIntegrationValuesExtrapolationToNodesProcess::CalculateElementExtrapolationMatrix(
-    Element&                                  rElem,
+    [[maybe_unused]] Element&                 rElem,
     GeometryType&                             r_this_geometry,
     SizeType                                  integration_points_number,
     GeometryType::IntegrationPointsArrayType& integration_points,
