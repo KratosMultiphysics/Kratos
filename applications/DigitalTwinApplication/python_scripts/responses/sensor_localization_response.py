@@ -51,9 +51,7 @@ class SensorLocalizationResponse(ResponseFunction):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
         self.mask_model_part = self.model[self.mask_model_part_name]
-        list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
-        list_of_masks = [sensor.GetElementExpression(self.mask_expression_name) for sensor in list_of_sensors]
-        self.utils = KratosDT.SensorLocalizationResponseUtils(self.model_part, list_of_masks, self.p_coefficient)
+        self.utils = KratosDT.SensorLocalizationResponseUtils(ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("sensor_mask_status_kd_tree"), self.p_coefficient)
 
     def Check(self) -> None:
         pass
