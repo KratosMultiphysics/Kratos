@@ -10,16 +10,9 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "containers/model.h"
-#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_retention/retention_law.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
-#include "custom_utilities/transport_equation_utilities.hpp"
-#include "geometries/triangle_2d_3.h"
-#include "includes/checks.h"
-#include "includes/process_info.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
