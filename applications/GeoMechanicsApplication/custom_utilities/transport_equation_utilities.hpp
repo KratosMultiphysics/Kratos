@@ -93,12 +93,12 @@ public:
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
-    static Vector CalculateSoilDensityVector(const Geometry<Node>& rGeom,
-                                             std::size_t           NumberOfIntegrationPoints,
-                                             const Matrix&         rNContainer,
-                                             const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
-                                             const Properties&  rProp,
-                                             const ProcessInfo& rCurrentProcessInfo)
+    static Vector CalculateSoilDensities(const Geometry<Node>& rGeom,
+                                         std::size_t           NumberOfIntegrationPoints,
+                                         const Matrix&         rNContainer,
+                                         const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                                         const Properties&  rProp,
+                                         const ProcessInfo& rCurrentProcessInfo)
     {
         const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);

@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D10NGivesCorrectResults, KratosGeo
         make_shared<Tetrahedra3D4<Node>>(r_geom(0), r_geom(1), r_geom(2), r_geom(3));
     const auto& Np_container = p_pressure_geometry->ShapeFunctionsValues(integration_method);
 
-    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensityVector(
+    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
         r_geom, number_of_integration_points, Np_container, p_retention_law, properties, process_info);
     Vector expected_solid_densities(r_geom.PointsNumber() + p_pressure_geometry->PointsNumber());
     expected_solid_densities <<= 2050, 2050, 2050, 2050, 2050, 2050, 2050, 2050, 2050, 2050, 2050,
@@ -145,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
     const auto& N_container = r_geom.ShapeFunctionsValues(integration_method);
 
-    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensityVector(
+    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
         r_geom, number_of_integration_points, N_container, p_retention_law, properties, process_info);
     Vector expected_solid_densities(r_geom.PointsNumber());
     expected_solid_densities <<= 2050, 2050, 2050, 2050;
