@@ -187,7 +187,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+        const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {

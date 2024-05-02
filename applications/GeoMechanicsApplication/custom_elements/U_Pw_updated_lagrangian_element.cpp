@@ -83,7 +83,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
     const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
@@ -189,7 +189,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+        const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {

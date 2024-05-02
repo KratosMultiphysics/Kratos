@@ -190,7 +190,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
 
     Vector StressVector(VoigtSize);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -444,7 +444,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = this->CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
