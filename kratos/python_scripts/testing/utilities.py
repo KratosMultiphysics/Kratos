@@ -156,7 +156,11 @@ class Commander(object):
                 self.process.kill()
                 print(f'[Error]: Tests for {test_suit_name} took too long. Process Killed.', file=sys.stderr)
                 self.exitCodes[test_suit_name] = 1
-            else:
+            except Exception as e:
+                # Unknown error
+                print(f"[Error]: Unhandled exception while running {test_suit_name} tests: {e}", file=sys.stderr)
+                self.exitCodes[test_suit_name] = 1
+            finally:
                 if process_stdout:
                     self.PrintOutput(process_stdout, sys.stdout)
                 if process_stderr:
