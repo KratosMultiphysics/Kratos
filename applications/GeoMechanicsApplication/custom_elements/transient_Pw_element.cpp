@@ -389,10 +389,10 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
 
     if (rVariable == FLUID_FLUX_VECTOR) {
         std::vector<double> permeability_update_factors(NumGPoints, 1.0);
-        const auto FluidFluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+        const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFluxes[GPoint]);
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
         }
     } else {
         if (rOutput.size() != mRetentionLawVector.size())
