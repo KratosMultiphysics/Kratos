@@ -25,6 +25,7 @@
 #include "custom_utilities/mask_utils.h"
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/sensor_mask_status.h"
+#include "custom_utilities/sensor_mask_status_kd_tree.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -78,11 +79,17 @@ void AddMaskUtilsToPython(
     py::class_<SensorMaskStatus<TContainerType>, typename SensorMaskStatus<TContainerType>::Pointer>(m, ("Sensor" + upper_prefix + "MaskStatus").c_str())
         .def(py::init<ModelPart&, const std::vector<ContainerExpression<TContainerType>>&>(), py::arg("sensor_model_part"), py::arg("sensor_masks"))
         .def("GetMasks", &SensorMaskStatus<TContainerType>::GetMasks)
-        .def("GetMaskStatuses", &SensorMaskStatus<TContainerType>::GetMaskStatuses)
+        .def("GetMaskStatuses", py::overload_cast<>(&SensorMaskStatus<TContainerType>::GetMaskStatuses, py::const_))
         .def("GetSensorModelPart", &SensorMaskStatus<TContainerType>::GetSensorModelPart)
         .def("GetMaskLocalContainer", &SensorMaskStatus<TContainerType>::GetMaskLocalContainer)
         .def("GetDataCommunicator", &SensorMaskStatus<TContainerType>::GetDataCommunicator)
         .def("Update", &SensorMaskStatus<TContainerType>::Update)
+        ;
+
+    py::class_<SensorMaskStatusKDTree<TContainerType>, typename SensorMaskStatusKDTree<TContainerType>::Pointer>(m, ("Sensor" + upper_prefix + "MaskStatusKDTree").c_str())
+        .def(py::init<typename SensorMaskStatus<TContainerType>::Pointer, IndexType>(), py::arg("sensor_mask_status"), py::arg("number_of_parallel_trees"))
+        .def("Update", &SensorMaskStatusKDTree<TContainerType>::Update)
+        .def("GetEntitiesWithinRadius", &SensorMaskStatusKDTree<TContainerType>::GetEntitiesWithinRadius, py::arg("neighbour_indices_list"), py::arg("neighbour_square_distances_list"), py::arg("query_points_matrix"), py::arg("radius"))
         ;
 }
 
