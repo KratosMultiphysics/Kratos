@@ -70,6 +70,7 @@
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/fixed_interval_recurring_event_utility.h"
 #include "utilities/cpp_tests_utilities.h"
+#include "utilities/model_part_utils.h"
 
 namespace Kratos::Python {
 
@@ -844,6 +845,36 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("CreateSphereTriangularMesh", &CppTestsUtilities::CreateSphereTriangularMesh)
     ;
 
+    py::class_<ModelPartUtils>(m, "ModelPartUtils", "Auxiliary utilities for model parts.")
+        .def_static("FromConnectivityGenerateElements", [](
+            const std::string& rEntityName,
+            const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
+            ModelPart::NodesContainerType& rThisNodes,
+            ModelPart::ElementsContainerType& rThisElements,
+            const Properties::Pointer pProperties) {
+                ModelPartUtils::GenerateEntitiesFromConnectivities<Element>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisElements, pProperties);
+            },
+            py::arg("entity_name"),
+            py::arg("entities_connectivities"),
+            py::arg("nodes"),
+            py::arg("elements"),
+            py::arg("properties")
+        )
+        .def_static("FromConnectivityGenerateConditions", [](
+            const std::string& rEntityName,
+            const std::vector<std::vector<std::size_t>>& rEntitiesConnectivities,
+            ModelPart::NodesContainerType& rThisNodes,
+            ModelPart::ConditionsContainerType& rThisConditions,
+            const Properties::Pointer pProperties) {
+                ModelPartUtils::GenerateEntitiesFromConnectivities<Condition>(rEntityName, rEntitiesConnectivities, rThisNodes, rThisConditions, pProperties);
+            },
+            py::arg("entity_name"),
+            py::arg("entities_connectivities"),
+            py::arg("nodes"),
+            py::arg("conditions"),
+            py::arg("properties")
+        );
+    ;
 }
 
 } // namespace Kratos::Python.

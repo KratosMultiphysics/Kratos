@@ -1,0 +1,109 @@
+{
+    "list_of_sensors": [
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_99",
+            "location": [
+                58.54103333333333,
+                15.060899999999998,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        },
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_108",
+            "location": [
+                59.34613333333333,
+                26.242666666666665,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        },
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_89",
+            "location": [
+                59.49563333333333,
+                3.304283333333333,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        },
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_422",
+            "location": [
+                10.403176666666667,
+                15.740466666666666,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        },
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_142",
+            "location": [
+                34.94099999999999,
+                12.744933333333332,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        },
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_486",
+            "location": [
+                57.3192,
+                20.114866666666664,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        },
+        {
+            "type": "displacement_sensor",
+            "name": "disp_x_94",
+            "location": [
+                59.23526666666667,
+                8.81829,
+                0.0
+            ],
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "weight": 1.0
+        }
+    ]
+}

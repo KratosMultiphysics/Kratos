@@ -252,15 +252,16 @@ protected:
     void SetConstitutiveParameters(ElementVariables&            rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
 
-    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                   unsigned int PointNumber,
-                                                   double       detJ);
+    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
+                                           double detJ) const;
+    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                                         const Vector& rDetJs) const;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
@@ -276,7 +277,8 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                            const ElementVariables& rVariables) const;
 
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 

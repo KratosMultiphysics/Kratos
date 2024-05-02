@@ -461,7 +461,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
 
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
+            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1315,6 +1315,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
+    const auto integration_coefficients =
+        CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
+
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
@@ -1334,12 +1337,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
         this->CalculatePermeabilityUpdateFactor(Variables);
 
-        // calculating weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
+            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -1389,7 +1390,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
 
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
 
         // Contributions of material stiffness to the left hand side
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1718,10 +1719,21 @@ void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables&
     KRATOS_CATCH("")
 }
 
-double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints, unsigned int GPoint, double detJ)
+double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
+                                                                       double detJ) const
 {
-    return mpStressStatePolicy->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJ, GetGeometry());
+    return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficients(
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
+{
+    auto result = std::vector<double>{};
+    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
+                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
+        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+    });
+    return result;
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -1755,7 +1767,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                   ElementVariables& rVariables)
+                                                                   const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1769,9 +1781,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
     for (unsigned int i = 0; i < StressTensorSize; ++i)
         VoigtVector[i] = 1.0;
 
-    Matrix CouplingMatrix = PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-                            prod(trans(rVariables.B), Matrix(outer_prod(VoigtVector, rVariables.Np))) *
-                            rVariables.IntegrationCoefficient;
+    Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, CouplingMatrix);
@@ -1913,9 +1925,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     for (SizeType idim = 0; idim < StressTensorSize; ++idim)
         VoigtVector[idim] = 1.0;
 
-    Matrix CouplingMatrix = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-                            prod(trans(rVariables.B), Matrix(outer_prod(VoigtVector, rVariables.Np))) *
-                            rVariables.IntegrationCoefficient;
+    Matrix CouplingMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                                         rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+                                         rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     Vector CouplingForce = prod(CouplingMatrix, rVariables.PressureVector);
 
@@ -1935,7 +1947,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                        ElementVariables& rVariables) const
+                                                                        const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 

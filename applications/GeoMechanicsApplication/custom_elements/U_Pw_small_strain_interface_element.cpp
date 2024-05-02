@@ -195,7 +195,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
 
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1278,7 +1278,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
 
         // Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1336,6 +1336,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, StrainVector, JointWidth, GradNpT
@@ -1371,9 +1374,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -1876,13 +1877,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 {
     KRATOS_TRY
 
-    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
+    const Matrix b_matrix = prod(rVariables.RotationMatrix, rVariables.Nu);
 
-    noalias(rVariables.UVector) = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
-
-    noalias(rVariables.UPMatrix) =
-        PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        b_matrix, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     // Distribute coupling block matrix into the elemental matrix
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
