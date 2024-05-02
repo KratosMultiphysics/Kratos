@@ -620,7 +620,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     if (rVariable == FLUID_FLUX_VECTOR) {
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-        
+
         std::vector<double> permeability_update_factors;
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
@@ -1100,39 +1100,34 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     const GeometryType& rGeom      = this->GetGeometry();
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    std::vector<array_1d<double, TDim>> FluidFluxes;
-    ElementVariables                    Variables;
+    ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     const PropertiesType& rProp = this->GetProperties();
 
-    array_1d<double, TDim> GradPressureTerm;
-
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+    std::vector<array_1d<double, TDim>> result;
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-        Variables.PermeabilityUpdateFactor = permeability_update_factors[GPoint];
 
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-        Variables.FluidPressure = CalculateFluidPressure(Variables);
-        RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+        RetentionParameters.SetFluidPressure(CalculateFluidPressure(Variables));
 
-        Variables.RelativePermeability =
+        const auto relative_permeability =
             mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
 
-        noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
+        const auto grad_pressure_term = prod(trans(Variables.GradNpT), Variables.PressureVector) +
+                                        PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
 
-        noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
-
-        FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                              Variables.RelativePermeability * Variables.PermeabilityUpdateFactor *
-                              prod(Variables.PermeabilityMatrix, GradPressureTerm));
+        result.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+                         relative_permeability * permeability_update_factors[GPoint] *
+                         prod(Variables.PermeabilityMatrix, grad_pressure_term));
     }
 
-    return FluidFluxes;
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
