@@ -83,7 +83,6 @@ private:
     ModelPart& mrModelPart;         /// The main model part
 
     bool mExtrapolateNonHistorical; /// If the non-historical values are interpolated
-    bool mAreaAverage;              /// If the values are averaged over area
 
     std::vector<const Variable<double>*> mDoubleVariable;             /// The double variables
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
