@@ -159,7 +159,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateDeformationGradient(Variables, GPoint);
+            Variables.F     = this->CalculateDeformationGradient(Variables, GPoint);
             rOutput[GPoint] = Variables.detF;
         }
     } else {
@@ -187,7 +187,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateDeformationGradient(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(Variables, GPoint);
             Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
@@ -219,7 +219,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateDeformationGradient(Variables, GPoint);
+            Variables.F = this->CalculateDeformationGradient(Variables, GPoint);
 
             if (rOutput[GPoint].size2() != Dim) rOutput[GPoint].resize(Dim, Dim, false);
 
