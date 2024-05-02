@@ -59,6 +59,15 @@ public:
      *          matrix represents number of sensors.
      * @return const Matrix&        Mask statuses matrix.
      */
+    Matrix& GetMaskStatuses();
+
+    /**
+     * @brief Get the mask statuses.
+     * @details This method returns the masks multiplied with the corresponding SENSOR_STATUS.
+     *          The rows of the return matrix returns number of entities, and columns of the return
+     *          matrix represents number of sensors.
+     * @return const Matrix&        Mask statuses matrix.
+     */
     const Matrix& GetMaskStatuses() const;
 
     /**

@@ -63,6 +63,12 @@ SensorMaskStatus<TContainerType>::SensorMaskStatus(
 }
 
 template<class TContainerType>
+Matrix& SensorMaskStatus<TContainerType>::GetMaskStatuses()
+{
+    return mSensorMaskStatuses;
+}
+
+template<class TContainerType>
 const Matrix& SensorMaskStatus<TContainerType>::GetMaskStatuses() const
 {
     return mSensorMaskStatuses;
