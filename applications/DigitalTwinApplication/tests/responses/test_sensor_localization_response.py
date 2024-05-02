@@ -133,13 +133,21 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             "mask_expression_name": "mask_exp",
             "p_coefficient"       : 4
         }""")
+        cls.sensor_mask_status = KratosDT.MaskUtils.SensorElementMaskStatus(cls.sensor_model_part, [sensor.GetElementExpression("mask_exp") for sensor in cls.sensors])
+        cls.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorElementMaskStatusKDTree(cls.sensor_mask_status, 4)
+        ComponentDataView("sensor", cls.optimization_problem).GetUnBufferedData().SetValue("sensor_mask_status_kd_tree", cls.sensor_mask_status_kd_tree)
         cls.response = SensorLocalizationResponse("test", cls.model, params, cls.optimization_problem)
         cls.response.Initialize()
 
+        cls.sensor_mask_status.Update()
+        cls.sensor_mask_status_kd_tree.Update()
+
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.6654425963833284)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.7929448529843486)
 
     def test_CalculateGradient(self):
+        self.sensor_mask_status.Update()
+        self.sensor_mask_status_kd_tree.Update()
         ref_value = self.response.CalculateValue()
         collective_exp = KratosOA.CollectiveExpression()
         collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
@@ -149,6 +157,8 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) + delta)
+            self.sensor_mask_status.Update()
+            self.sensor_mask_status_kd_tree.Update()
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) - delta)
             self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i], 5)
