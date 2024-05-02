@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDigitalTwinApplication ****")
 
-find_package(FLANN REQUIRED)
+find_package(Flann REQUIRED)
 
 ################### PYBIND11
 include(pybind11Tools)
