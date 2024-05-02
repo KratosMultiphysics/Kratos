@@ -23,6 +23,7 @@
 #include "includes/kratos_parameters.h"
 
 // Application includes
+#include "custom_utilities/sensor_mask_status_kd_tree.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -41,15 +42,14 @@ public:
     ///@{
 
     SensorLocalizationResponseUtils(
-        ModelPart& rSensorModelPart,
-        const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList,
+        SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer pSensorMaskKDTree,
         const double P);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    double CalculateValue() const;
+    double CalculateValue();
 
     ContainerExpression<ModelPart::NodesContainerType> CalculateGradient() const;
 
@@ -59,19 +59,19 @@ private:
     ///@name Private member variables
     ///@{
 
-    ModelPart* mpSensorModelPart;
+    SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer mpSensorMaskStatusKDTree;
 
     const double mP;
 
-    std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer> mMasksList;
+    double mValue;
 
     std::vector<double> mDomainSizeRatio;
 
-    ///@}
-    ///@name Private operations
-    ///@{
+    std::vector<double> mClusterSizes;
 
-    void ComputeClusterDifference(Matrix& rOutput) const;
+    std::vector<std::vector<int>> mNeighbourIndices;
+
+    std::vector<std::vector<double>> mNeighbourSquareDistances;
 
     ///@}
 };

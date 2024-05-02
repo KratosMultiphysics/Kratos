@@ -13,6 +13,7 @@
 #include <cmath>
 
 // External includes
+#include "flann/flann.hpp"
 
 // Project includes
 #include "expression/literal_flat_expression.h"
@@ -30,100 +31,60 @@
 namespace Kratos {
 
 SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
-    ModelPart& rSensorModelPart,
-    const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>& rMasksList,
+    SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer pSensorMaskKDTree,
     const double P)
-    : mpSensorModelPart(&rSensorModelPart),
-      mP(P),
-      mMasksList(rMasksList)
+    : mpSensorMaskStatusKDTree(pSensorMaskKDTree),
+      mP(P)
 {
     KRATOS_TRY
 
-    auto& r_model_part = *mpSensorModelPart;
-
-    KRATOS_ERROR_IF(mMasksList.empty())
-        << "Masks list is empty.";
-
-    KRATOS_ERROR_IF_NOT(r_model_part.NumberOfNodes() == mMasksList.size())
-        << "Number of sensors and masks list mismatch [ number of sensors = "
-        << r_model_part.NumberOfNodes() << ", number of masks  = "
-        << mMasksList.size() << " ].\n";
-
     // get the total domain size and domain size ratios
-    const auto& r_container = mMasksList.front()->GetContainer();
+    const auto& r_container = pSensorMaskKDTree->GetSensorMaskStatus()->GetMaskLocalContainer();
     mDomainSizeRatio.resize(r_container.size());
     const double local_domain_size = IndexPartition<IndexType>(r_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
         const double domain_size = (r_container.begin() + Index)->GetGeometry().DomainSize();
         mDomainSizeRatio[Index] = domain_size;
         return domain_size;
     });
-    const double total_domain_size = mMasksList.front()->GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+    const double total_domain_size = pSensorMaskKDTree->GetSensorMaskStatus()->GetDataCommunicator().SumAll(local_domain_size);
     block_for_each(mDomainSizeRatio, [total_domain_size](auto& rValue) {
         rValue /= total_domain_size;
     });
 
-    KRATOS_CATCH("");
-}
-
-void SensorLocalizationResponseUtils::ComputeClusterDifference(Matrix& rOutput) const
-{
-    KRATOS_TRY
-
-    auto& r_model_part = *mpSensorModelPart;
-
-    const IndexType number_of_elements = mMasksList.front()->GetContainer().size();
-
-    if (rOutput.size1() != number_of_elements || rOutput.size2() != number_of_elements) {
-        rOutput.resize(number_of_elements, number_of_elements, false);
-    }
-
-    noalias(rOutput) = ZeroMatrix(number_of_elements, number_of_elements);
-
-    IndexPartition<IndexType>(number_of_elements).for_each([&](const auto i) {
-        for (IndexType k_sensor = 0; k_sensor < r_model_part.NumberOfNodes(); ++k_sensor) {
-            const double sensor_status = (r_model_part.NodesBegin() + k_sensor)->GetValue(SENSOR_STATUS);
-            const auto& r_mask_exp = mMasksList[k_sensor]->GetExpression();
-            const bool i_value = static_cast<bool>(r_mask_exp.Evaluate(i, i, 0));
-            for (IndexType j = i + 1; j < number_of_elements; ++j) {
-                const double value = sensor_status * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j, j ,0)));
-                rOutput(i, j) += value;
-                rOutput(j, i) += value;
-            }
-        }
-    });
+    mClusterSizes.resize(r_container.size());
 
     KRATOS_CATCH("");
 }
 
-double SensorLocalizationResponseUtils::CalculateValue() const
+double SensorLocalizationResponseUtils::CalculateValue()
 {
     KRATOS_TRY
 
     SmoothClamper<ModelPart::ElementsContainerType> clamper(0.0, 1.0);
 
-    Matrix aux_matrix;
-    ComputeClusterDifference(aux_matrix);
+    // possible number of maximum clusters is the number of elements.
+    const IndexType number_of_elements = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskLocalContainer().size();
 
-    IndexPartition<IndexType>(aux_matrix.size1()).for_each([&](const auto i) {
-        for (IndexType j = i + 1; j <  aux_matrix.size2(); ++j) {
-            aux_matrix(i, j) = (1.0 - clamper.Clamp(aux_matrix(i, j)));
-            aux_matrix(j, i) = aux_matrix(i, j);
+    // getting neighbours for all the elements which are within the radius 1.0 ("1.1" is used to make sure that
+    // we have all the neighbours within the radius = 1.0). All other elements are not relevant since the
+    // clamper will anyways will make the contribution zero.
+    mpSensorMaskStatusKDTree->GetEntitiesWithinRadius(mNeighbourIndices, mNeighbourSquareDistances, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses(), 1.1);
+
+    // TODO: this will calculate some repeated cluster sizes. Try to avoid them in future.
+    const auto local_value = IndexPartition<IndexType>(number_of_elements).for_each<SumReduction<double>>([&](const auto iElement) {
+        double& cluster_size = mClusterSizes[iElement];
+        cluster_size = 0.0;
+        const auto& r_neighbour_square_distances = mNeighbourSquareDistances[iElement];
+        const auto& r_neighbour_indices = mNeighbourIndices[iElement];
+        for (IndexType i_neighbour = 0; i_neighbour < r_neighbour_square_distances.size(); ++i_neighbour) {
+            cluster_size += mDomainSizeRatio[r_neighbour_indices[i_neighbour]] * (1 - clamper.Clamp(r_neighbour_square_distances[i_neighbour]));
         }
-        aux_matrix(i, i) = 1.0;
+        return std::pow(cluster_size, mP);
     });
 
-    const auto& r_mask_container = mMasksList.front()->GetContainer();
+    mValue = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetDataCommunicator().SumAll(local_value);
 
-    const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
-        double cluster_size_ratio = 0.0;
-        const Vector& r_values = row(aux_matrix, Index);
-        for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            cluster_size_ratio += mDomainSizeRatio[i_element] * r_values[i_element];
-        }
-        return std::pow(cluster_size_ratio, mP);
-    });
-
-    return std::pow(summation, 1 / mP);
+    return std::pow(mValue, 1 / mP);
 
     KRATOS_CATCH("");
 }
@@ -132,70 +93,42 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
 {
     KRATOS_TRY
 
-    auto& r_model_part = *mpSensorModelPart;
+    const auto& r_mask_status = *mpSensorMaskStatusKDTree->GetSensorMaskStatus();
+    const auto& r_mask_statuses = r_mask_status.GetMaskStatuses();
+    const auto& r_mask_statuses_gradient = r_mask_status.GetMasks();
+    const auto& r_data_communicator = r_mask_status.GetDataCommunicator();
+    const auto number_of_elements = r_mask_statuses.size1();
 
-    const auto& r_mask_container = mMasksList.front()->GetContainer();
+    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 1.0);
 
-    SmoothClamper<ModelPart::ElementsContainerType> clamper(0.0, 1.0);
-
-    // first compute the cluster differences
-    Matrix aux_matrix;
-    ComputeClusterDifference(aux_matrix);
-
-    Matrix aux_matrix_2(aux_matrix.size1(), aux_matrix.size2());
-    IndexPartition<IndexType>(aux_matrix.size1()).for_each([&](const auto i) {
-        for (IndexType j = i + 1; j <  aux_matrix.size2(); ++j) {
-            aux_matrix_2(i, j) = (1.0 - clamper.Clamp(aux_matrix(i, j)));
-            aux_matrix_2(j, i) = aux_matrix_2(i, j);
-        }
-        aux_matrix_2(i, i) = 1.0;
-    });
-
-    std::vector<double> cluster_size_ratios(r_mask_container.size(), 0.0);
-    const double summation = IndexPartition<IndexType>(r_mask_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
-        const Vector& r_values = row(aux_matrix_2, Index);
-        for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            cluster_size_ratios[Index] += mDomainSizeRatio[i_element] * r_values[i_element];
-        }
-        return std::pow(cluster_size_ratios[Index], mP);
-    });
-
-    // now we compute the clamper derivatives
-    IndexPartition<IndexType>(aux_matrix.size1()).for_each([&](const auto i) {
-        for (IndexType j = i + 1; j <  aux_matrix.size2(); ++j) {
-            aux_matrix(i, j) = clamper.ClampDerivative(aux_matrix(i, j));
-        }
-    });
-
-    const double coeff = std::pow(summation, 1 / mP - 1);
-
-    auto p_expression = LiteralFlatExpression<double>::Create(r_model_part.NumberOfNodes(), {});
+    auto p_expression = LiteralFlatExpression<double>::Create(r_mask_statuses.size2(), {});
     auto& r_expression = *p_expression;
-    IndexPartition<IndexType>(r_model_part.NumberOfNodes()).for_each([&](const auto SensorIndex) {
-        const auto& r_mask_exp = mMasksList[SensorIndex]->GetExpression();
-        double& value = *(r_expression.begin() + SensorIndex);
+
+    const double coeff = std::pow(mValue, 1 / mP - 1);
+
+    auto& r_sensor_model_part = r_mask_status.GetSensorModelPart();
+
+    IndexPartition<IndexType>(r_mask_statuses.size2()).for_each([&](const auto iSensor) {
+        double& value = *(r_expression.begin() + iSensor);
+
         value = 0.0;
-        for (IndexType i_element = 0; i_element < r_mask_container.size(); ++i_element) {
-            double d_cluster_size_ratio_d_sensor_status = 0.0;
-            const double domain_size_ratio = mDomainSizeRatio[i_element];
-            const bool i_value = static_cast<bool>(r_mask_exp.Evaluate(i_element, i_element, 0));
-
-            const Vector& aux_vec_1 = column(aux_matrix, i_element);
-            for (IndexType j_element = 0; j_element < i_element; ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_vec_1[j_element] * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
+        for (IndexType i_element = 0; i_element < number_of_elements; ++i_element) {
+            const auto& r_neighbour_square_distances = mNeighbourSquareDistances[i_element];
+            const auto& r_neighbour_indices = mNeighbourIndices[i_element];
+            const bool i_mask_value = static_cast<bool>(r_mask_statuses_gradient(i_element, iSensor));
+            const double cluster_size_derivative = std::pow(mClusterSizes[i_element], mP - 1);
+            for (IndexType j_neighbour_element = 0; j_neighbour_element < r_neighbour_square_distances.size(); ++j_neighbour_element) {
+                const IndexType neighbour_index = r_neighbour_indices[j_neighbour_element];
+                const bool j_mask_value = static_cast<bool>(r_mask_statuses_gradient(neighbour_index, iSensor));
+                value -= mDomainSizeRatio[neighbour_index] * clamper.ClampDerivative(r_neighbour_square_distances[j_neighbour_element]) * (i_mask_value ^ j_mask_value) * cluster_size_derivative;
             }
-
-            const Vector& aux_vec_2 = row(aux_matrix, i_element);
-            for (IndexType j_element = i_element + 1; j_element < r_mask_container.size(); ++j_element) {
-                d_cluster_size_ratio_d_sensor_status -= domain_size_ratio * aux_vec_2[j_element] * (i_value ^ static_cast<bool>(r_mask_exp.Evaluate(j_element, j_element, 0)));
-            }
-
-            value += std::pow(cluster_size_ratios[i_element], mP - 1) * d_cluster_size_ratio_d_sensor_status;
         }
-        value *= coeff;
+
+        const double sensor_value = (r_sensor_model_part.NodesBegin() + iSensor)->GetValue(SENSOR_STATUS);
+        value = r_data_communicator.SumAll(value) * 2.0 * sensor_value * coeff;
     });
 
-    ContainerExpression<ModelPart::NodesContainerType> result(r_model_part);
+    ContainerExpression<ModelPart::NodesContainerType> result(r_mask_status.GetSensorModelPart());
     result.SetExpression(p_expression);
     return result;
 

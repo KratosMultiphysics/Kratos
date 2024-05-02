@@ -36,7 +36,7 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<SensorLocalizationResponseUtils, SensorLocalizationResponseUtils::Pointer>(m, "SensorLocalizationResponseUtils")
-        .def(py::init<ModelPart&, const std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>&, const double>(), py::arg("sensor_model_part"), py::arg("sensor_masks_list"), py::arg("p_coefficient"))
+        .def(py::init<SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer, const double>(), py::arg("sensor_mask_kd_tree"), py::arg("p_coefficient"))
         .def("CalculateValue", &SensorLocalizationResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorLocalizationResponseUtils::CalculateGradient)
         ;
