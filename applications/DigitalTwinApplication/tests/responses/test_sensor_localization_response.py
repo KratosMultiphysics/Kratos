@@ -129,8 +129,6 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             "evaluated_model_part_names" : [
                 "sensors"
             ],
-            "mask_model_part_name": "mask",
-            "mask_expression_name": "mask_exp",
             "p_coefficient"       : 4
         }""")
         cls.sensor_mask_status = KratosDT.MaskUtils.SensorElementMaskStatus(cls.sensor_model_part, [sensor.GetElementExpression("mask_exp") for sensor in cls.sensors])

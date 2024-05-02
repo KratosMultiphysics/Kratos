@@ -26,8 +26,6 @@ class SensorLocalizationResponse(ResponseFunction):
             "evaluated_model_part_names" : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ],
-            "mask_model_part_name": "",
-            "mask_expression_name": "YOUNG_MODULUS_SENSITIVITY_mask",
             "p_coefficient"       : 4
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -41,8 +39,6 @@ class SensorLocalizationResponse(ResponseFunction):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
         self.optimization_problem = optimization_problem
-        self.mask_expression_name = parameters["mask_expression_name"].GetString()
-        self.mask_model_part_name = parameters["mask_model_part_name"].GetString()
         self.p_coefficient = parameters["p_coefficient"].GetDouble()
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
@@ -50,7 +46,6 @@ class SensorLocalizationResponse(ResponseFunction):
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
-        self.mask_model_part = self.model[self.mask_model_part_name]
         self.utils = KratosDT.SensorLocalizationResponseUtils(ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("sensor_mask_status_kd_tree"), self.p_coefficient)
 
     def Check(self) -> None:

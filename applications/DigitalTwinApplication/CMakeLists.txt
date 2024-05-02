@@ -2,9 +2,11 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDigitalTwinApplication ****")
 
+find_package(FLANN REQUIRED)
+
 ################### PYBIND11
 include(pybind11Tools)
-
+include_directories( ${FLANN_INCLUDE_DIRS} )
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## DigitalTwin Core sources
@@ -23,15 +25,6 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## DigitalTwin python interface sources
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
-
-find_package(Flann)
-
-if(${FLANN_FOUND})
-  message(STATUS "Found flann library")
-else(${FLANN_FOUND})
-  message(STATUS "Could not find flann library")
-endif(${FLANN_FOUND})
-include_directories(${FLANN_INCLUDE_DIRS})
 
 find_library(LZ4_LIBRARIES NAMES liblz4.so HINTS "lz4/lib")
 

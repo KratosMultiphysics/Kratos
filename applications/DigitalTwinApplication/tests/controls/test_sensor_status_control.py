@@ -104,9 +104,17 @@ class TestSensorStatusControl(UnitTest.TestCase):
             node: Kratos.Node = cls.sensor_model_part.CreateNewNode(i + 1, loc[0], loc[1], loc[2])
             node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 3) / 2)
 
+            elem_np = np.zeros(cls.mask_model_part.NumberOfElements())
+            for j in range(elem_np.shape[0]):
+                if j % (i + 2) == 0:
+                    elem_np[j] = 1
+            elem_exp = Kratos.Expression.ElementExpression(cls.mask_model_part)
+            Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
+            sensor.AddElementExpression("mask_exp", elem_exp)
+
         params = Kratos.Parameters("""{
             "controlled_model_part_names": ["sensors"],
-            "initial_sensor_status"      : 0.5,
+            "mask_expression_name"       : "mask_exp",
             "beta_settings": {
                 "initial_value": 5,
                 "max_value"    : 30,
@@ -117,6 +125,7 @@ class TestSensorStatusControl(UnitTest.TestCase):
         }""")
 
         cls.optimization_problem = OptimizationProblem()
+        ComponentDataView("sensor", cls.optimization_problem).GetUnBufferedData().SetValue("list_of_sensors", cls.sensors)
         cls.control = SensorStatusControl("test", cls.model, params, cls.optimization_problem)
         cls.optimization_problem.AddComponent(cls.control)
         cls.control.Initialize()
