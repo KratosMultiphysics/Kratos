@@ -59,6 +59,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMonotonicityPreservingRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSaveRomCoefficientsProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHromTrainingUtilityRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestRomManager]))
 
     # - testNightly
