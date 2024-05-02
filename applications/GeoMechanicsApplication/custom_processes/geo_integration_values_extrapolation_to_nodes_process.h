@@ -32,7 +32,6 @@ namespace Kratos
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
  * @author Vicente Mataix Ferrandiz
- * @todo Add extrapolation from conditions on the future
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIntegrationValuesExtrapolationToNodesProcess : public Process
 {
@@ -43,7 +42,8 @@ public:
     using IndexType    = std::size_t;
 
     struct TLSType {
-        Vector vector_J, N;
+        Vector vector_J;
+        Vector N;
     };
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
