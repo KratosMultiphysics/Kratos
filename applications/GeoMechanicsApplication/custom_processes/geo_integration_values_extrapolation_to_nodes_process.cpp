@@ -119,7 +119,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double  nodal_area = r_this_geometry[i_node].GetValue(*mpAverageVariable);
-                        double& aux_value  = (mExtrapolateNonHistorical)
+                        double& aux_value  = mExtrapolateNonHistorical
                                                  ? r_this_geometry[i_node].GetValue(*p_var)
                                                  : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         AtomicAdd(aux_value, extrapolation_matrix(i_node, i_gauss_point) *
@@ -136,7 +136,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double nodal_area = r_this_geometry[i_node].GetValue(*mpAverageVariable);
                         array_1d<double, 3>& aux_value =
-                            (mExtrapolateNonHistorical)
+                            mExtrapolateNonHistorical
                                 ? r_this_geometry[i_node].GetValue(*p_var)
                                 : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const array_1d<double, 3>& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
@@ -153,7 +153,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double  nodal_area = r_this_geometry[i_node].GetValue(*mpAverageVariable);
-                        Vector& aux_value  = (mExtrapolateNonHistorical)
+                        Vector& aux_value  = mExtrapolateNonHistorical
                                                  ? r_this_geometry[i_node].GetValue(*p_var)
                                                  : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const Vector& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
@@ -172,7 +172,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double  nodal_area = r_this_geometry[i_node].GetValue(*mpAverageVariable);
-                        Matrix& aux_value  = (mExtrapolateNonHistorical)
+                        Matrix& aux_value  = mExtrapolateNonHistorical
                                                  ? r_this_geometry[i_node].GetValue(*p_var)
                                                  : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const Matrix& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
