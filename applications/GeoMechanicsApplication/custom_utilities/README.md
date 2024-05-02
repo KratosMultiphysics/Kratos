@@ -46,8 +46,8 @@ File transport_equation_utilities.hpp includes
 -  CalculatePermeabilityMatrix function
 -  CalculateCompressibilityMatrix function
 -  CalculateCouplingMatrix function
--  CalculateMassMatrix function
 -  CalculateSoilDensity function
+-  CalculateSoilDensities function that calculates solid density for all integration points
 
 ## Equation of motion utilities
 
@@ -58,6 +58,9 @@ $$M = \int_\Omega N_{u}^T \rho N_u d\Omega$$
 
 Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density matrix that holds density for all directions.
 
+File equation_of_motion_utilities.hpp includes 
+-  CalculateMassMatrix function
+-  CalculateIntegrationCoefficientInitialConfiguration function that calculates integration coefficient for all integration points
 
 ## Stress strain utilities
 
