@@ -37,10 +37,10 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIntegrationValuesExtrapolationToNodesProcess : public Process
 {
 public:
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using NodeType     = Node;
+    using GeometryType = Geometry<NodeType>;
+    using SizeType     = std::size_t;
+    using IndexType    = std::size_t;
 
     struct TLSType {
         Vector vector_J, N;
