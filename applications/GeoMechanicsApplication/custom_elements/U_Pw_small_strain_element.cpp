@@ -953,7 +953,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
     const auto N_container = rGeom.ShapeFunctionsValues(integration_method);
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        rGeom, number_of_integration_points, N_container, mRetentionLawVector,
+        rGeom, number_of_integration_points, rGeom.PointsNumber(), N_container, mRetentionLawVector,
         this->GetProperties(), rCurrentProcessInfo);
 
     const auto integration_coefficients =

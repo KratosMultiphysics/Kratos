@@ -103,27 +103,28 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
         make_shared<Triangle2D3<Node>>(r_geom(0), r_geom(1), r_geom(2));
     const auto& Np_container = p_pressure_geometry->ShapeFunctionsValues(integration_method);
 
-    /* const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        r_geom, number_of_integration_points, Np_container, p_retention_law, properties, process_info);
+    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
+        r_geom, number_of_integration_points, p_pressure_geometry->PointsNumber(), Np_container,
+        p_retention_law, properties, process_info);
     Vector expected_solid_densities(number_of_integration_points);
     expected_solid_densities <<= 1700, 1700, 1700;
 
-    KRATOS_CHECK_VECTOR_NEAR(solid_densities, expected_solid_densities, 1e-4)*/
-    /*
-        const auto integration_coefficients =
-            GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
-                r_geom, integration_method, *p_stress_state_policy);
-        Vector expected_integration_coefficients(number_of_integration_points);
-        expected_integration_coefficients <<= 0.000416667, 0.000416667, 0.000416667;
+    KRATOS_CHECK_VECTOR_NEAR(solid_densities, expected_solid_densities, 1e-4)
 
-        KRATOS_CHECK_VECTOR_NEAR(integration_coefficients, expected_integration_coefficients, 1e-4)
+    const auto integration_coefficients =
+        GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
+            r_geom, integration_method, *p_stress_state_policy);
+    Vector expected_integration_coefficients(number_of_integration_points);
+    expected_integration_coefficients <<= 0.000416667, 0.000416667, 0.000416667;
 
-        const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
-            r_geom, integration_method, solid_densities, integration_coefficients);
+    KRATOS_CHECK_VECTOR_NEAR(integration_coefficients, expected_integration_coefficients, 1e-4)
 
-        Matrix expected_mass_matrix(r_geom.WorkingSpaceDimension() * r_geom.PointsNumber(),
-                                    r_geom.WorkingSpaceDimension() * r_geom.PointsNumber());
-        // clang-format off
+    const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
+        r_geom, integration_method, solid_densities, integration_coefficients);
+
+    Matrix expected_mass_matrix(r_geom.WorkingSpaceDimension() * r_geom.PointsNumber(),
+                                r_geom.WorkingSpaceDimension() * r_geom.PointsNumber());
+    // clang-format off
        expected_mass_matrix <<=
     0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,
     0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,
@@ -140,8 +141,6 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix_u, expected_mass_matrix, 1e-4)
-
-    */
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
@@ -178,7 +177,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     const auto& N_container = r_geom.ShapeFunctionsValues(integration_method);
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        r_geom, number_of_integration_points, N_container, p_retention_law, properties, process_info);
+        r_geom, number_of_integration_points, r_geom.PointsNumber(), N_container, p_retention_law,
+        properties, process_info);
     Vector expected_solid_densities(number_of_integration_points);
     expected_solid_densities <<= 2050, 2050, 2050, 2050;
 

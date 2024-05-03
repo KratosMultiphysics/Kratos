@@ -95,12 +95,14 @@ public:
 
     static Vector CalculateSoilDensities(const Geometry<Node>& rGeom,
                                          std::size_t           NumberOfIntegrationPoints,
+                                         std::size_t           NumberOfPressurePoints,
                                          const Matrix&         rNContainer,
                                          const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
                                          const Properties&  rProp,
                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(rGeom, WATER_PRESSURE);
+        const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(
+            NumberOfPressurePoints, rGeom, WATER_PRESSURE);
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
         Vector                   density(NumberOfIntegrationPoints);
         for (unsigned int g_point = 0; g_point < NumberOfIntegrationPoints; ++g_point) {
@@ -131,11 +133,13 @@ private:
         return inner_prod(rNp, rPressureVector);
     }
 
-    static Vector GetSolutionVector(const Geometry<Node>& rGeom, const Variable<double>& rSolutionVariable)
+    static Vector GetSolutionVector(std::size_t             NumberOfPressurePoints,
+                                    const Geometry<Node>&   rGeom,
+                                    const Variable<double>& rSolutionVariable)
     {
-        Vector solution_vector(rGeom.size());
-        std::transform(rGeom.begin(), rGeom.end(), solution_vector.begin(),
-                       [&rSolutionVariable](const auto& node) {
+        Vector solution_vector(NumberOfPressurePoints);
+        std::transform(rGeom.begin(), rGeom.begin() + NumberOfPressurePoints,
+                       solution_vector.begin(), [&rSolutionVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rSolutionVariable);
         });
         return solution_vector;

@@ -441,8 +441,8 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     const SizeType number_of_integration_points = rGeom.IntegrationPoints(integration_method).size();
     const Matrix Np_container    = mpPressureGeometry->ShapeFunctionsValues(integration_method);
     const auto   solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        rGeom, number_of_integration_points, Np_container, mRetentionLawVector,
-        this->GetProperties(), rCurrentProcessInfo);
+        rGeom, number_of_integration_points, mpPressureGeometry->PointsNumber(), Np_container,
+        mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
     const auto integration_coefficients =
         GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
