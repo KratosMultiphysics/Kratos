@@ -620,7 +620,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     if (rVariable == FLUID_FLUX_VECTOR) {
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-        
+
         std::vector<double> permeability_update_factors;
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
@@ -1093,7 +1093,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeBiotCoefficients(ElementV
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidFluxes(
-    const std::vector<double>& permeability_update_factors, const ProcessInfo& rCurrentProcessInfo)
+    const std::vector<double>& rPermeabilityUpdateFactors, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom      = this->GetGeometry();
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
@@ -1111,7 +1111,7 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-        Variables.PermeabilityUpdateFactor = permeability_update_factors[GPoint];
+        Variables.PermeabilityUpdateFactor = rPermeabilityUpdateFactors[GPoint];
 
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
@@ -1122,7 +1122,6 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
             mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
 
         noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
-
         noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
 
         FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
