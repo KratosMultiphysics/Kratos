@@ -47,7 +47,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void GeoThermalPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
-    //GeometryType& rGeom = GetGeometry();
     rRightHandSideVector[0] = this->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
 }
 

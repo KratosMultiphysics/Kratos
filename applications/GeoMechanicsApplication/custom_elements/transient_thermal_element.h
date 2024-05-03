@@ -74,9 +74,8 @@ public:
         if (GetGeometry().LocalSpaceDimension() == 1) {
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-            for (unsigned int index = 0; index < dN_dX_container.size(); ++index) {
-                dN_dX_container[index] /= det_J_container[index];
-            }
+            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                           dN_dX_container.begin(), std::divides<>());
         } 
         else {
             GetGeometry().ShapeFunctionsIntegrationPointsGradients(dN_dX_container, det_J_container,
