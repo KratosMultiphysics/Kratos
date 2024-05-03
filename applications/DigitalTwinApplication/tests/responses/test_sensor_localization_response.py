@@ -141,8 +141,10 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         cls.sensor_mask_status_kd_tree.Update()
 
     def test_CalculateValue1(self):
-        for node in self.sensor_model_part.Nodes:
-            node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 2))
+        self.sensor_model_part.GetNode(1).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 0)
+        self.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 0)
 
         """
         status  1   0   1   0
@@ -172,32 +174,72 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             [1, 2, 5],
             [3, 6]
         ]
-        total_domain_size_exp = Kratos.Expression.ElementExpression(self.mask_model_part)
-        Kratos.Expression.DomainSizeExpressionIO.Read(total_domain_size_exp)
-        total_domain_size = Kratos.Expression.Utils.Sum(total_domain_size_exp)
+        def __calculate_response_value(cluster_element_ids_list: 'list[list[int]]') -> float:
+            total_domain_size_exp = Kratos.Expression.ElementExpression(self.mask_model_part)
+            Kratos.Expression.DomainSizeExpressionIO.Read(total_domain_size_exp)
+            total_domain_size = Kratos.Expression.Utils.Sum(total_domain_size_exp)
 
-        response_value = 0.0
-        for cluster_element_ids in cluster_element_ids_list:
-            cluster_size = 0.0
-            for element_id in cluster_element_ids:
-                cluster_size += self.mask_model_part.GetElement(element_id).GetGeometry().DomainSize()
-            cluster_size /= total_domain_size
-            response_value += cluster_size ** 4
+            response_value = 0.0
+            for cluster_element_ids in cluster_element_ids_list:
+                cluster_size = 0.0
+                for element_id in cluster_element_ids:
+                    cluster_size += self.mask_model_part.GetElement(element_id).GetGeometry().DomainSize()
+                cluster_size /= total_domain_size
+                response_value += cluster_size ** 4
+            return response_value ** (0.25)
 
         self.sensor_mask_status.Update()
         self.sensor_mask_status_kd_tree.Update()
-        self.assertAlmostEqual(response_value ** (0.25), self.response.CalculateValue())
+        self.assertAlmostEqual(__calculate_response_value(cluster_element_ids_list), self.response.CalculateValue())
+
+        self.sensor_model_part.GetNode(1).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 1)
+
+        """
+        status  1   1   1   1
+        mask    m1  m2  m3  m4
+        e1      1   1   0   0
+        e2      1   1   0   0
+        e3      0   0   0   1
+        e4      1   1   1   0
+        e5      1   0   0   1
+        e6      0   1   0   1
+
+        So the clustering will be based on m1, m2, m3, m4
+
+        c_1 = e1, e2
+        c_2 = e1, e2
+        c_3 = e3
+        c_4 = e4
+        c_5 = e5
+        c_6 = e6
+        """
+
+        cluster_element_ids_list = [
+            [1, 2],
+            [1, 2],
+            [3],
+            [4],
+            [5],
+            [6]
+        ]
+
+        self.sensor_mask_status.Update()
+        self.sensor_mask_status_kd_tree.Update()
+        self.assertAlmostEqual(__calculate_response_value(cluster_element_ids_list), self.response.CalculateValue())
 
     def test_CalculateValue2(self):
         for node in self.sensor_model_part.Nodes:
             node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 3) / 2)
         self.sensor_mask_status.Update()
         self.sensor_mask_status_kd_tree.Update()
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.7929448529843486)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.6654425963833284)
 
     def test_CalculateGradient2(self):
         for node in self.sensor_model_part.Nodes:
-            node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 3) / 2)
+            node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 4) / 2)
         self.sensor_mask_status.Update()
         self.sensor_mask_status_kd_tree.Update()
         ref_value = self.response.CalculateValue()
