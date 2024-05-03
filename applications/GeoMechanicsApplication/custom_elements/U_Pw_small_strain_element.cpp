@@ -1526,7 +1526,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
 {
     if (rVariables.UseHenckyStrain) {
-        this->CalculateDeformationGradient(rVariables, GPoint);
+        rVariables.F    = this->CalculateDeformationGradient(GPoint);
+        rVariables.detF = MathUtils<>::Det(rVariables.F);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
         this->CalculateCauchyStrain(rVariables);
@@ -1546,8 +1547,7 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(ElementVariables& rVariables,
-                                                                          unsigned int GPoint)
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -1565,9 +1565,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(Elemen
     KRATOS_ERROR_IF(detJ < 0.0) << "ERROR:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ: " << detJ
                                 << " nodes:" << this->GetGeometry() << std::endl;
 
-    // Deformation gradient
-    noalias(rVariables.F) = prod(J, InvJ0);
-    rVariables.detF       = MathUtils<double>::Det(rVariables.F);
+    return prod(J, InvJ0);
 
     KRATOS_CATCH("")
 }
