@@ -34,13 +34,13 @@ SensorMaskStatusKDTree<TContainerType>::SensorMaskStatusKDTree(
     const IndexType NumberOfParallelTrees)
     : mpSensorMaskStatus(pSensorMaskStatus),
       mData(mpSensorMaskStatus->GetMaskStatuses().data().begin(), mpSensorMaskStatus->GetMaskStatuses().size1(), mpSensorMaskStatus->GetMaskStatuses().size2()),
-      mKDTree(mData, flann::KDTreeIndexParams(NumberOfParallelTrees))
+      mKDTree(mData, flann::KDTreeIndexParams(1)) // since we are using an exact search, there is no point in using more than one tree.
 {
 }
 
 template<class TContainerType>
 void SensorMaskStatusKDTree<TContainerType>::GetEntitiesWithinRadius(
-    std::vector<std::vector<int>>& rIndices,
+    std::vector<std::vector<long unsigned int>>& rIndices,
     std::vector<std::vector<double>>& rDistances,
     Matrix& rQueries,
     const double Radius)
@@ -50,7 +50,8 @@ void SensorMaskStatusKDTree<TContainerType>::GetEntitiesWithinRadius(
     flann::Matrix<double> queries(rQueries.data().begin(), rQueries.size1(), rQueries.size2());
 
     flann::SearchParams params;
-    params.cores = 0;
+    params.cores = 0; // uses all the cores available.
+    params.checks = flann::FLANN_CHECKS_UNLIMITED; // for an exact search within the radius.
     mKDTree.radiusSearch(queries, rIndices, rDistances, Radius, params);
 
     KRATOS_CATCH("");

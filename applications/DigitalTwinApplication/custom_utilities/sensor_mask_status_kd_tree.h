@@ -55,7 +55,7 @@ public:
     ///@{
 
     void GetEntitiesWithinRadius(
-        std::vector<std::vector<int>>& rIndices,
+        std::vector<std::vector<long unsigned int>>& rIndices,
         std::vector<std::vector<double>>& rDistances,
         Matrix& rQueries,
         const double Radius);
@@ -77,7 +77,7 @@ private:
 
     flann::Matrix<double> mData;
 
-    flann::Index<flann::L2<double>> mKDTree;
+    flann::KDTreeIndex<flann::L1<double>> mKDTree;
 
     ///@}
 };
