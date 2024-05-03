@@ -1,18 +1,11 @@
 import os
-from functools import reduce
-import math
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
-
-
-
-
-class TestExtrapolation(KratosUnittest.TestCase):
+class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
     """
-    Class that contains elementary groundwater flow tests.
-
+    Class that contains geo element integration points to nodes extrapolation tests.
     """
 
     def setUp(self):
@@ -24,18 +17,60 @@ class TestExtrapolation(KratosUnittest.TestCase):
         pass
 
     def test_3_noded_triangle(self):
-        """ Triangle2D3N """
-        test_name = 'test_integration_node_extrapolation//3_noded_triangle'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        directory  = 'test_integration_node_extrapolation'
+        test_name  = '3_noded_triangle'
+        file_path  = test_helper.get_file_path(os.path.join(directory, test_name))
         simulation = test_helper.run_kratos(file_path)
+        reader     = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
+        heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
+                                                                             node_ids=[1, 3, 5])
+        expected_heads    = [ 1., 0.5, 0. ]
+        for head, expected_head in zip(heads, expected_heads):
+            self.assertAlmostEqual(head, expected_head)
        
-    def test_6_noded_triangle(self):
-        """ Triangle2D6N """
-        test_name = 'test_integration_node_extrapolation//6_noded_triangle'
-        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+    def test_4_noded_quadrilateral(self):
+        directory  = 'test_integration_node_extrapolation'
+        test_name = '4_noded_quadrilateral'
+        file_path = test_helper.get_file_path(os.path.join(directory, test_name))
         simulation = test_helper.run_kratos(file_path)
+        reader     = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
+        heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
+                                                                             node_ids=[1, 5])
+        expected_heads    = [ 1., 0. ]
+        for head, expected_head in zip(heads, expected_heads):
+            self.assertAlmostEqual(head, expected_head)
+
+    def test_6_noded_triangle(self):
+        directory  = 'test_integration_node_extrapolation'
+        test_name = '6_noded_triangle'
+        file_path = test_helper.get_file_path(os.path.join(directory, test_name))
+        simulation = test_helper.run_kratos(file_path)
+        reader     = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
+        heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
+                                                                             node_ids=[1, 3, 5])
+        expected_heads    = [ 1., 0.5, 0. ]
+        for head, expected_head in zip(heads, expected_heads):
+            self.assertAlmostEqual(head, expected_head)
+       
+    def test_8_noded_quadrilateral(self):
+        directory  = 'test_integration_node_extrapolation'
+        test_name = '8_noded_quadrilateral'
+        file_path = test_helper.get_file_path(os.path.join(directory, test_name))
+        simulation = test_helper.run_kratos(file_path)
+        reader     = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
+        heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
+                                                                             node_ids=[1, 5])
+        expected_heads    = [ 1., 0. ]
+        for head, expected_head in zip(heads, expected_heads):
+            self.assertAlmostEqual(head, expected_head)
         
 if __name__=="__main__":
-    tests = TestExtrapolation()
+    tests = KratosGeoMechanicsExtrapolationTests()
     tests.test_3_noded_triangle()
+    tests.test_4_noded_quadrilateral()
     tests.test_6_noded_triangle()
+    tests.test_8_noded_quadrilateral()

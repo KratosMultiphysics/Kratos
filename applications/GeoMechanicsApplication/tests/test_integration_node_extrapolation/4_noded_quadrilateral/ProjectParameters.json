@@ -77,7 +77,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "simple_mesh",
+                "output_name": "4_noded_quadrilateral",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -94,7 +94,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["HYDRAULIC_HEAD"],
-                        "gauss_point_results": ["HYDRAULIC_HEAD"]
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }

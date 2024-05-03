@@ -94,7 +94,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["HYDRAULIC_HEAD"],
-                        "gauss_point_results": ["HYDRAULIC_HEAD"]
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }
