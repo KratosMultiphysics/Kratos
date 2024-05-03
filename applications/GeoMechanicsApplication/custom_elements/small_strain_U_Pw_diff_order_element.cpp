@@ -2043,6 +2043,7 @@ void SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariable
 {
     if (rVariables.UseHenckyStrain) {
         rVariables.F             = this->CalculateDeformationGradient(rVariables, GPoint);
+        rVariables.detF          = MathUtils<>::Det(rVariables.F);
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
@@ -2086,9 +2087,7 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVaria
            "mesh size."
         << std::endl;
 
-    const auto result = prod(J, InvJ0);
-    rVariables.detF   = MathUtils<double>::Det(result);
-    return result;
+    return prod(J, InvJ0);
 
     KRATOS_CATCH("")
 }
