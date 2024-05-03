@@ -38,7 +38,7 @@ class RomManager(object):
             if type_of_decoder =="ann_enhanced":
                 #TODO split all of the methods for ROM generation: Snapshots generation (train snapshots and validation snapshots), Basis Computation, NeuralNetworkTraining
                 # necesary steps: Modify RomBasisOuptupProcess to fetch snapshots, not only run after simulations
-                if self.rom_training_parameters["print_singular_values"] == False:
+                if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
                     err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
                     raise Exception(err_msg)
                 self.StoreFomSnapshotsAndBasis(mu_train=mu_train)
