@@ -210,13 +210,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            Variables.F = this->CalculateDeformationGradient(GPoint);
-
-            if (rOutput[GPoint].size2() != Dim) rOutput[GPoint].resize(Dim, Dim, false);
-
-            rOutput[GPoint] = Variables.F;
+            rOutput[GPoint] = this->CalculateDeformationGradient(GPoint);
         }
     } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);

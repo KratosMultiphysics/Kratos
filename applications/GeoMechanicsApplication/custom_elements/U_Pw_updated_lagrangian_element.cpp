@@ -167,13 +167,8 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            Variables.F = this->CalculateDeformationGradient(GPoint);
-
-            if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
-
-            rOutput[GPoint] = Variables.F;
+            rOutput[GPoint] = this->CalculateDeformationGradient(GPoint);
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
         // Definition of variables
