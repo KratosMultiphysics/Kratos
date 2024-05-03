@@ -11,8 +11,6 @@
 //  Main authors:    Richard Faasse
 //
 
-#pragma once
-
 #include "variables_utilities.hpp"
 #include "includes/kratos_components.h"
 
