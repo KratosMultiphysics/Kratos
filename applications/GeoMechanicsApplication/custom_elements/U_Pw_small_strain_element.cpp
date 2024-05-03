@@ -1026,15 +1026,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
-    auto deformation_gradients = std::vector<Matrix>{};
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        deformation_gradients.emplace_back(this->CalculateDeformationGradient(GPoint));
-    }
-
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        Variables.F    = deformation_gradients[GPoint];
-        Variables.detF = MathUtils<>::Det(Variables.F);
-
         // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
