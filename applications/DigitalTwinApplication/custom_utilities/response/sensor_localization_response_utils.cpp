@@ -10,6 +10,7 @@
 //
 
 // System includes
+#include <limits>
 #include <cmath>
 
 // External includes
@@ -65,10 +66,10 @@ double SensorLocalizationResponseUtils::CalculateValue()
     // possible number of maximum clusters is the number of elements.
     const IndexType number_of_elements = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskLocalContainer().size();
 
-    // getting neighbours for all the elements which are within the radius 1.0 ("1.1" is used to make sure that
-    // we have all the neighbours within the radius = 1.0). All other elements are not relevant since the
-    // clamper will anyways will make the contribution zero.
-    mpSensorMaskStatusKDTree->GetEntitiesWithinRadius(mNeighbourIndices, mNeighbourSquareDistances, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses(), 1.1);
+    // getting neighbours for all the elements which are within the radius 1.0 ("0.99999999999999999" is used to make sure that
+    // we have all the neighbours within the radius = 1.0, but not the neighbours with 1.0). All other elements which has distance >= 1.0
+    // are not relevant since the clamper will anyways make those contribution to zero.
+    mpSensorMaskStatusKDTree->GetEntitiesWithinRadius(mNeighbourIndices, mNeighbourSquareDistances, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses(), 1.0 - std::numeric_limits<double>::epsilon());
 
     // TODO: this will calculate some repeated cluster sizes. Try to avoid them in future.
     const auto local_value = IndexPartition<IndexType>(number_of_elements).for_each<SumReduction<double>>([&](const auto iElement) {
@@ -77,7 +78,9 @@ double SensorLocalizationResponseUtils::CalculateValue()
         const auto& r_neighbour_square_distances = mNeighbourSquareDistances[iElement];
         const auto& r_neighbour_indices = mNeighbourIndices[iElement];
         for (IndexType i_neighbour = 0; i_neighbour < r_neighbour_square_distances.size(); ++i_neighbour) {
-            cluster_size += mDomainSizeRatio[r_neighbour_indices[i_neighbour]] * (1 - clamper.Clamp(r_neighbour_square_distances[i_neighbour]));
+            const double clamped_value = clamper.Clamp(r_neighbour_square_distances[i_neighbour]);
+            const double coeff = (1 - clamped_value);
+            cluster_size += mDomainSizeRatio[r_neighbour_indices[i_neighbour]] * coeff;
         }
         return std::pow(cluster_size, mP);
     });
@@ -106,8 +109,6 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
 
     const double coeff = std::pow(mValue, 1 / mP - 1);
 
-    auto& r_sensor_model_part = r_mask_status.GetSensorModelPart();
-
     IndexPartition<IndexType>(r_mask_statuses.size2()).for_each([&](const auto iSensor) {
         double& value = *(r_expression.begin() + iSensor);
 
@@ -124,8 +125,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
             }
         }
 
-        const double sensor_value = (r_sensor_model_part.NodesBegin() + iSensor)->GetValue(SENSOR_STATUS);
-        value = r_data_communicator.SumAll(value) * 2.0 * sensor_value * coeff;
+        value = r_data_communicator.SumAll(value) * coeff;
     });
 
     ContainerExpression<ModelPart::NodesContainerType> result(r_mask_status.GetSensorModelPart());

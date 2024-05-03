@@ -69,7 +69,7 @@ private:
 
     std::vector<double> mClusterSizes;
 
-    std::vector<std::vector<int>> mNeighbourIndices;
+    std::vector<std::vector<long unsigned int>> mNeighbourIndices;
 
     std::vector<std::vector<double>> mNeighbourSquareDistances;
 
