@@ -1,12 +1,18 @@
-import KratosMultiphysics
-from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
-from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
 import numpy as np
 import importlib
 import json
 from pathlib import Path
+
+import KratosMultiphysics
+from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
+from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+
+try:
+    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
+    have_tensorflow = True
+except ImportError:
+    have_tensorflow = False
 
 
 
@@ -564,11 +570,20 @@ class RomManager(object):
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
     def __LaunchTrainNeuralNetwork(self):
+        if not have_tensorflow:
+            err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
+            raise Exception(err_msg)
+        
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name = rom_nn_trainer.TrainNetwork()
         rom_nn_trainer.EvaluateNetwork(model_name)
+        
 
     def __LaunchTestNeuralNetworkReconstruction(self):
+        if not have_tensorflow:
+            err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
+            raise Exception(err_msg)
+        
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name=self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_name"].GetString()
         rom_nn_trainer.EvaluateNetwork(model_name)
@@ -768,6 +783,7 @@ class RomManager(object):
             "rom_stages_to_test" : [],              // ["ROM","HROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
+            "type_of_decoder" : "linear",
             "assembling_strategy": "global",            // "global", "elemental"
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
@@ -781,6 +797,7 @@ class RomManager(object):
                 "rom_basis_output_folder": "rom_data",
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
+                "print_singular_values": false,
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
@@ -794,6 +811,37 @@ class RomManager(object):
                 },
                 "petrov_galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
+                },
+                "ann_enhanced_settings": {
+                    "online": {
+                        "model_name": "test_neural_network"
+                    },
+                    "saved_models_root_path": "rom_data/saved_nn_models/",
+                    "training": {
+                        "batch_size": 1,
+                        "custom_name": "test_neural_network",
+                        "database": {
+                            "phi_matrix": "rom_data/RightBasisMatrix.npy",
+                            "sigma_vector": "rom_data/SingularValuesVector.npy",
+                            "training_set": "rom_data/SnapshotsMatrices/fom_snapshots.npy",
+                            "validation_set": "rom_data/SnapshotsMatrices/fom_snapshots_val.npy"
+                        },
+                        "epochs": 50,
+                        "layers_size": [
+                            2,
+                            2
+                        ],
+                        "lr_strategy": {
+                            "additional_params": [],
+                            "base_lr": 0.01,
+                            "scheduler": "const"
+                        },
+                        "modes": [
+                            1,
+                            2
+                        ],
+                        "use_automatic_name": false
+                    }
                 }
             },
             "HROM":{
