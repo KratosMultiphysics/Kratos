@@ -11,19 +11,26 @@ from pathlib import Path
 
 class RomManager(object):
 
-    def __init__(self,project_parameters_name, general_rom_manager_parameters, CustomizeSimulation, UpdateProjectParameters,UpdateMaterialParametersFile):
+    def __init__(self,project_parameters_name="ProjectParameters.json", general_rom_manager_parameters=None, CustomizeSimulation=None, UpdateProjectParameters=None,UpdateMaterialParametersFile=None):
         #FIXME:
         # - Use a method (upcoming) for smothly retrieving solutions. In here we are using the RomBasisOutput process in order to store the solutions
         # - There is some redundancy between the methods that launch the simulations. Can we create a single method?
         # - We must use the Hyper-Reduced model part for the HROM simulations. (The one in which we have eliminated the non selected elements and conditions)
         # - Not yet paralellised with COMPSs
         self.project_parameters_name = project_parameters_name
-        self.general_rom_manager_parameters = general_rom_manager_parameters
-        self.rom_training_parameters = self._SetRomTrainingParameters()
-        self.hrom_training_parameters = self.SetHromTrainingParameters()
-        self.CustomizeSimulation = CustomizeSimulation
-        self.UpdateProjectParameters = UpdateProjectParameters
-        self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
+        self._SetUpRomManagerParameters(general_rom_manager_parameters)
+        if CustomizeSimulation is None:
+            self.CustomizeSimulation = self.DefaultCustomizeSimulation
+        else:
+            self.CustomizeSimulation = CustomizeSimulation
+        if UpdateProjectParameters is None:
+            self.UpdateProjectParameters = self.DefaultUpdateProjectParameters
+        else:
+            self.UpdateProjectParameters = UpdateProjectParameters
+        if UpdateMaterialParametersFile is None:
+            self.UpdateMaterialParametersFile = self.DefaultUpdateMaterialParametersFile
+        else:
+            self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
         self.SetUpQuantityOfInterestContainers()
 
 
@@ -692,6 +699,93 @@ class RomManager(object):
         return parameters
 
 
+
+    def _SetUpRomManagerParameters(self, input):
+
+        if input is None:
+            input = KratosMultiphysics.Parameters()
+        self.general_rom_manager_parameters = input
+
+
+        default_settings = KratosMultiphysics.Parameters("""{
+            "rom_stages_to_train" : ["ROM","HROM"],             // ["ROM","HROM"]
+            "rom_stages_to_test" : [],              // ["ROM","HROM"]
+            "paralellism" : null,                        // null, TODO: add "compss"
+            "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
+            "assembling_strategy": "global",            // "global", "elemental"
+            "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
+            "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
+            "output_name": "id",                         // "id" , "mu"
+            "ROM":{
+                "svd_truncation_tolerance": 1e-5,
+                "model_part_name": "Structure",                            // This changes depending on the simulation: Structure, FluidModelPart, ThermalPart #TODO: Idenfity it automatically
+                "nodal_unknowns": ["DISPLACEMENT_X","DISPLACEMENT_Y"],     // Main unknowns. Snapshots are taken from these
+                "rom_basis_output_format": "numpy",
+                "rom_basis_output_name": "RomParameters",
+                "rom_basis_output_folder": "rom_data",
+                "snapshots_control_type": "step",                          // "step", "time"
+                "snapshots_interval": 1,
+                "galerkin_rom_bns_settings": {
+                    "monotonicity_preserving": false
+                },
+                "lspg_rom_bns_settings": {
+                    "train_petrov_galerkin": false,
+                    "basis_strategy": "residuals",                        // 'residuals', 'jacobian', 'reactions'
+                    "include_phi": false,
+                    "svd_truncation_tolerance": 1e-12,
+                    "solving_technique": "normal_equations",              // 'normal_equations', 'qr_decomposition'
+                    "monotonicity_preserving": false
+                },
+                "petrov_galerkin_rom_bns_settings": {
+                    "monotonicity_preserving": false
+                }
+            },
+            "HROM":{
+                "element_selection_type": "empirical_cubature",
+                "element_selection_svd_truncation_tolerance": 0,
+                "create_hrom_visualization_model_part" : true,
+                "echo_level" : 0
+            }
+        }""")
+
+        self.general_rom_manager_parameters.RecursivelyValidateAndAssignDefaults(default_settings)
+
+        self.rom_training_parameters = self._SetRomTrainingParameters()
+        self.hrom_training_parameters = self.SetHromTrainingParameters()
+
+
+    def DefaultCustomizeSimulation(self, cls, global_model, parameters):
+        # Default function that does nothing special
+        class DefaultCustomSimulation(cls):
+            def __init__(self, model, project_parameters):
+                super().__init__(model, project_parameters)
+
+            def Initialize(self):
+                super().Initialize()
+
+            def FinalizeSolutionStep(self):
+                super().FinalizeSolutionStep()
+
+            def CustomMethod(self):
+                pass  # Do nothing special
+
+        return DefaultCustomSimulation(global_model, parameters)
+
+
+    def DefaultUpdateProjectParameters(self, parameters, mu=None):
+        return parameters
+
+    def DefaultUpdateMaterialParametersFile(self, material_parametrs_file_name=None, mu=None):
+        pass
+        # with open(material_parametrs_file_name, mode="r+") as f:
+        #     data = json.load(f)
+        #     #change the angles of 1st and 2nd layer
+        #     data["properties"][0]["Material"]["Variables"]["EULER_ANGLES"][0] = mu[0]
+        #     data["properties"][1]["Material"]["Variables"]["EULER_ANGLES"][0] = mu[1]
+        #     #write to file and save file
+        #     f.seek(0)
+        #     json.dump(data, f, indent=4)
+        #     f.truncate()
 
     def _SetRomTrainingParameters(self):
         defaults = self._GetDefaulRomBasisOutputParameters()
