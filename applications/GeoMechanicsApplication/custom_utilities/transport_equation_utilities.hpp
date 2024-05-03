@@ -114,26 +114,6 @@ public:
     }
 
 private:
-    static double CalculateIntegrationCoefficientInitialConfiguration(
-        unsigned int                                      GPoint,
-        const Geometry<Node>&                             rGeom,
-        const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
-        const GeometryData::IntegrationMethod             IntegrationMethod,
-        const StressStatePolicy&                          rStressStatePolicy)
-    {
-        Matrix J0;
-        Matrix inv_J0;
-        GeometryUtils::JacobianOnInitialConfiguration(rGeom, rIntegrationPoints[GPoint], J0);
-        const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[GPoint];
-        double        det_J_initial_configuration;
-        MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
-        Matrix dNu_dX_initial_configuration;
-        GeometryUtils::ShapeFunctionsGradients(dN_De, inv_J0, dNu_dX_initial_configuration);
-
-        return rStressStatePolicy.CalculateIntegrationCoefficient(
-            rIntegrationPoints[GPoint], det_J_initial_configuration, rGeom);
-    }
-
     static double CalculateDegreeOfSaturation(const Vector&                rNVector,
                                               const Vector&                rPressureVector,
                                               RetentionLaw::Parameters&    rRetentionParameters,
