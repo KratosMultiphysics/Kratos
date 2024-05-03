@@ -108,6 +108,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.ionization_alpha = 0.95
         else:
             self.ionization_alpha = self.material_settings['Variables']['IONIZATION_ALPHA'].GetDouble()
+        i_alpha = self.ionization_alpha
 
         if not self.material_settings["Variables"].Has("PENETRATION_DEPTH"):
             self.l_s = 0.002148 # mm.
@@ -125,14 +126,26 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.l_th = self.material_settings['Variables']['THERMAL_DEPTH'].GetDouble()
 
         if not self.material_settings["Variables"].Has("ENTHALPY"):
-            self.specific_evaporation_enthalpy = 4e5 # J/Kg. Value found on the internet for a given epoxy resin.
+            self.H_ev = 4e5 # J/Kg. Value found on the internet for a given epoxy resin.
         else:
-            self.specific_evaporation_enthalpy = self.material_settings['Variables']['ENTHALPY'].GetDouble()
+            self.H_ev = self.material_settings['Variables']['ENTHALPY'].GetDouble()
 
-        if self.compute_vaporisation:
-            self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_with_evap.txt"
+        if not project_parameters["problem_data"].Has("mesh_size"):
+            mesh_size = "coarse"
         else:
-            self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_no_evap.txt"
+            mesh_size = project_parameters["problem_data"]["mesh_size"].GetString()
+
+        if not project_parameters["problem_data"].Has("mesh_type"):
+            mesh_type = "unstructured"
+        else:
+            mesh_type = project_parameters["problem_data"]["mesh_type"].GetString()
+
+        self.decomposed_nodes_coords_filename = "hole_coords_l_s=" + str(self.l_s) + "_F_th=" + str(self.F_th) + "_H_ev=" + str(self.H_ev) + "_l_th=" + str(self.l_th) + "_alpha_ion=" + str(i_alpha) + "_" + mesh_type + "_" + mesh_size + ".txt"
+
+        # if self.compute_vaporisation:
+        #     self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_with_evap.txt"
+        # else:
+        #     self.decomposed_nodes_coords_filename = "list_of_decomposed_nodes_coords_no_evap.txt"
 
         self.R_far = mask_aperture_diameter * 0.5
         self.cp = self.material_settings['Variables']['SPECIFIC_HEAT'].GetDouble()
@@ -299,7 +312,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             self.q_interp = self.projector.InterpolateFunctionAndNormalize(self.EnergyPerUnitArea1D) #, 1.0)
             if self.compute_vaporisation:
                 self.first_evaporation_stage_done = False
-                self.max_vaporisation_layers = 20
+                self.max_vaporisation_layers = 50
                 # if self.pulse_number == 1:
                 #     self.max_vaporisation_layers = 1
                 self.vaporisation_layer_number = 1
@@ -387,7 +400,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
 
         # Total enthalpy: Energy consumed for the material to vaporize plus the energy for heating up the material to the vaporization temperature.
         # Equation (8) in Wang, 2019. 'Thermal effect of femtosecond laser polystyrene processing'
-        self.evap_elements_enthalpies = self.evap_elements_volumes * self.rho * (self.specific_evaporation_enthalpy + self.cp * self.delta_temp_elements)
+        self.evap_elements_enthalpies = self.evap_elements_volumes * self.rho * (self.H_ev + self.cp * self.delta_temp_elements)
 
         #print("evap_elements_volumes:", evap_elements_volumes)
         #print("delta_temp_elements:", delta_temp_elements)

@@ -8,10 +8,10 @@
                 "CONDUCTIVITY"  : 3.00E-04,
                 "SPECIFIC_HEAT" : 1500.0,
                 "IONIZATION_ALPHA": 0.95,
-                "PENETRATION_DEPTH": 0.001548,
-                "ABLATION_THRESHOLD": 0.008667,
-                "THERMAL_DEPTH": 0.0007,
-                "ENTHALPY": 4e4
+                "PENETRATION_DEPTH": 0.0006,
+                "ABLATION_THRESHOLD": 0.003,
+                "THERMAL_DEPTH": 0.00025,
+                "ENTHALPY": 4e5
             },
             "Tables"    : null
         }
