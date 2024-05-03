@@ -275,7 +275,7 @@ protected:
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
     virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
     virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
-    Matrix         CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint) const;
+    Matrix         CalculateDeformationGradient(unsigned int GPoint) const;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);

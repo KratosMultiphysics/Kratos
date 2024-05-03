@@ -148,7 +148,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            rOutput[GPoint] = MathUtils<>::Det(this->CalculateDeformationGradient(Variables, GPoint));
+            rOutput[GPoint] = MathUtils<>::Det(this->CalculateDeformationGradient(GPoint));
         }
     } else {
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
@@ -173,7 +173,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            Variables.F = this->CalculateDeformationGradient(Variables, GPoint);
+            Variables.F = this->CalculateDeformationGradient(GPoint);
 
             if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
             rOutput[GPoint] = Variables.F;
@@ -189,7 +189,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             this->CalculateKinematics(Variables, GPoint);
 
             // Compute strain
-            Variables.F            = this->CalculateDeformationGradient(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
             Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
 
             if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);

@@ -295,7 +295,7 @@ protected:
     virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
     virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
 
-    Matrix CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint) const;
+    Matrix CalculateDeformationGradient(unsigned int GPoint) const;
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 

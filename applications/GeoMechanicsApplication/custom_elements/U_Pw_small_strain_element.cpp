@@ -1028,7 +1028,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     auto deformation_gradients = std::vector<Matrix>{};
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        deformation_gradients.emplace_back(this->CalculateDeformationGradient(Variables, GPoint));
+        deformation_gradients.emplace_back(this->CalculateDeformationGradient(GPoint));
     }
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -1513,7 +1513,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
 {
     if (rVariables.UseHenckyStrain) {
-        rVariables.F    = this->CalculateDeformationGradient(rVariables, GPoint);
+        rVariables.F    = this->CalculateDeformationGradient(GPoint);
         rVariables.detF = MathUtils<>::Det(rVariables.F);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
@@ -1534,8 +1534,7 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(ElementVariables& rVariables,
-                                                                            unsigned int GPoint) const
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(unsigned int GPoint) const
 {
     KRATOS_TRY
 
