@@ -347,7 +347,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     };
 
     // Fill the average value
-    block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls) {
+    block_for_each(r_elements_array, [&](Element& rElem) {
         // Only active elements
         if (rElem.IsActive()) {
             // The geometry of the element
@@ -362,9 +362,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     });
 
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(*mpAverageVariable);
-    for (auto& rNode : mrModelPart.Nodes()) {
-        auto node_var_to_update = rNode.GetValue(*mpAverageVariable);
-    }
 
     // The process info
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
@@ -372,7 +369,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // First we check if the model part contains at least one element
     if (r_elements_array.size() != 0) {
         // The first iterator of elements
-        auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
+        const auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
 
         // Auxiliar values
         const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
