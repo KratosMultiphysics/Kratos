@@ -18,63 +18,18 @@
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
-#include "containers/model.h"
-#include "includes/model_part.h"
+// #include "containers/model.h"
+// #include "includes/model_part.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-void AddNodalVariablesToModelPart(ModelPart& rModelPart, const Geo::ConstVariableRefs& rNodalVariables)
-{
-    for (const auto& r_variable : rNodalVariables) {
-        rModelPart.AddNodalSolutionStepVariable(r_variable.get());
-    }
-}
-
-void CreateNewNodes(ModelPart& rModelPart, const std::vector<Point>& rPoints)
-{
-    auto NodeIndex = rModelPart.NumberOfNodes();
-    for (const auto& r_point : rPoints) {
-        ++NodeIndex;
-        rModelPart.CreateNewNode(NodeIndex, r_point.X(), r_point.Y(), r_point.Z());
-    }
-}
-
-template <typename InputIt>
-void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
-{
-    for (const auto& r_variable : rNodalVariables) {
-        for (auto it = NodeRangeBegin; it != NodeRangeEnd; ++it) {
-            it->AddDof(r_variable.get());
-        }
-    }
-}
-
-template <typename NodeRange>
-void AddDofsToNodes(const NodeRange& rNodeRange, const Geo::ConstVariableRefs& rNodalVariables)
-{
-    AddDofsToNodes(std::begin(rNodeRange), std::end(rNodeRange), rNodalVariables);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    auto& r_model_part = model.CreateModelPart("Main");
-    const auto variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
-                                                  std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
-    AddNodalVariablesToModelPart(r_model_part, variables);
-    CreateNewNodes(
-        r_model_part,
-        {{0.0, 0.0, 0.0}, {0.0, -0.05, 0.0}, {0.05, 0.0, 0.0}, {0.0, -0.025, 0.0}, {0.025, -0.025, 0.0}, {0.025, 0.0, 0.0}});
-
-    const auto nodes = r_model_part.Nodes();
-    AddDofsToNodes(nodes, variables);
-
-    const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
-    r_model_part.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids,
-                                  r_model_part.CreateNewProperties(0));
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
 
     Properties properties(0);
     // Please note these are not representative values, it just ensures the values are set
