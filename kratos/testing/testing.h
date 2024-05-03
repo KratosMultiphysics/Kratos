@@ -261,9 +261,9 @@ class KRATOS_API(KRATOS_TEST_UTILS) KratosCoreFastSuite : public ::testing::Test
 
     private:
         Kratos::Kernel mKernel;
-        std::stringstream mStream;                                          // Stream to store the output of the tests and control visibility
-        std::streambuf * mCoutBuffer;
-        std::streambuf * mCerrBuffer;
+        // std::stringstream mStream;                                          // Stream to store the output of the tests and control visibility
+        // std::streambuf * mCoutBuffer;
+        // std::streambuf * mCerrBuffer;
         std::vector<KratosApplication::Pointer> mRegisteredApplications;    // List of applications loaded by the suit. TODO: Remove once every test includes its own suit
 };
 

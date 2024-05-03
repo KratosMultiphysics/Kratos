@@ -23,23 +23,23 @@ namespace Kratos::Testing
 {
 
 void KratosTestEnv::SetUp() {
-    std::cout << "KratosTestEnv::SetUp" << std::endl;
+    // std::cout << "KratosTestEnv::SetUp" << std::endl;
 }
 
 void KratosTestEnv::TearDown() {
-    std::cout << "KratosTestEnv::TearDown" << std::endl;
+    // std::cout << "KratosTestEnv::TearDown" << std::endl;
 }
 
 KratosTestEnv::KratosTestEnv() {
-    std::cout << "KratosTestEnv::KratosTestEnv" << std::endl;
+    // std::cout << "KratosTestEnv::KratosTestEnv" << std::endl;
 }
 
 void KratosCoreFastSuite::SetUp() { 
-    mCoutBuffer = std::cout.rdbuf();
-    mCerrBuffer = std::cerr.rdbuf();
+    // mCoutBuffer = std::cout.rdbuf();
+    // mCerrBuffer = std::cerr.rdbuf();
 
-    std::cout.rdbuf(mStream.rdbuf());
-    std::cerr.rdbuf(mStream.rdbuf());   
+    // std::cout.rdbuf(mStream.rdbuf());
+    // std::cerr.rdbuf(mStream.rdbuf());   
 }
 
 void KratosCoreFastSuite::TearDown() { 
