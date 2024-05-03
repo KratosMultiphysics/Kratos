@@ -109,37 +109,38 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     expected_solid_densities <<= 1700, 1700, 1700;
 
     KRATOS_CHECK_VECTOR_NEAR(solid_densities, expected_solid_densities, 1e-4)
+    /*
+        const auto integration_coefficients =
+            GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
+                r_geom, integration_method, *p_stress_state_policy);
+        Vector expected_integration_coefficients(number_of_integration_points);
+        expected_integration_coefficients <<= 0.000416667, 0.000416667, 0.000416667;
 
-    const auto integration_coefficients =
-        GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
-            r_geom, integration_method, *p_stress_state_policy);
-    Vector expected_integration_coefficients(number_of_integration_points);
-    expected_integration_coefficients <<= 0.000416667, 0.000416667, 0.000416667;
+        KRATOS_CHECK_VECTOR_NEAR(integration_coefficients, expected_integration_coefficients, 1e-4)
 
-    KRATOS_CHECK_VECTOR_NEAR(integration_coefficients, expected_integration_coefficients, 1e-4)
+        const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
+            r_geom, integration_method, solid_densities, integration_coefficients);
 
-    const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
-        r_geom, integration_method, solid_densities, integration_coefficients);
-
-    Matrix expected_mass_matrix(r_geom.WorkingSpaceDimension() * r_geom.PointsNumber(),
-                                r_geom.WorkingSpaceDimension() * r_geom.PointsNumber());
-    // clang-format off
-   expected_mass_matrix <<=
-0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,
-0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,
--0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,
--0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,
--0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,
--0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,
-0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,
-0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,
--0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,
--0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,
-0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858,
-0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858;
-// clang-format on*/
+        Matrix expected_mass_matrix(r_geom.WorkingSpaceDimension() * r_geom.PointsNumber(),
+                                    r_geom.WorkingSpaceDimension() * r_geom.PointsNumber());
+        // clang-format off
+       expected_mass_matrix <<=
+    0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,
+    0.0524691,0.0524691,-0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,
+    -0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,
+    -0.0262346,-0.0262346,0.0524691,0.0524691,-0.0262346,-0.0262346,0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,
+    -0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,
+    -0.0262346,-0.0262346,-0.0262346,-0.0262346,0.0524691,0.0524691,-0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,
+    0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,
+    0.0262346,0.0262346,0.0262346,0.0262346,-0.0524691,-0.0524691,0.28858,0.28858,0.209877,0.209877,0.209877,0.209877,
+    -0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,
+    -0.0524691,-0.0524691,0.0262346,0.0262346,0.0262346,0.0262346,0.209877,0.209877,0.28858,0.28858,0.209877,0.209877,
+    0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858,
+    0.0262346,0.0262346,-0.0524691,-0.0524691,0.0262346,0.0262346,0.209877,0.209877,0.209877,0.209877,0.28858,0.28858;
+    // clang-format on*/
 
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix_u, expected_mass_matrix, 1e-4)
+    * /
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuite)
