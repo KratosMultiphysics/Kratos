@@ -237,6 +237,46 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         self.sensor_mask_status_kd_tree.Update()
         self.assertAlmostEqual(self.response.CalculateValue(), 0.6654425963833284)
 
+    def test_CalculateValue3(self):
+        params = Kratos.Parameters("""{
+            "evaluated_model_part_names" : [
+                "sensors"
+            ],
+            "p_coefficient"       : 300
+        }""")
+        response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
+        response.Initialize()
+
+        self.sensor_model_part.GetNode(1).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 0)
+        self.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 1)
+        self.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 0)
+
+        """
+        status  1   0   1   0
+        mask    m1  m2  m3  m4
+        e1      1   1   0   0
+        e2      1   1   0   0
+        e3      0   0   0   1
+        e4      1   1   1   0
+        e5      1   0   0   1
+        e6      0   1   0   1
+
+        So the clustering will be based on m1 and m3
+
+        c_1 = e1, e2, e5
+        c_2 = e1, e2, e5
+        c_3 = e3, e6
+        c_4 = e4
+        c_5 = e1, e2, e5
+        c_6 = e3, e6
+        """
+        self.sensor_mask_status.Update()
+        self.sensor_mask_status_kd_tree.Update()
+        # the exact max cluster size ratio is 0.5
+        self.assertAlmostEqual(response.CalculateValue(), 0.501834377213362)
+
+
     def test_CalculateGradient2(self):
         for node in self.sensor_model_part.Nodes:
             node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 4) / 2)
