@@ -15,7 +15,8 @@
               "SPECIFIC_HEAT_CAPACITY_SOLID"  :  400.0,
               "SPECIFIC_HEAT_CAPACITY_WATER"  :  3795.0,
               "THERMAL_CONDUCTIVITY_SOLID_XX" :  1.50,
-              "THERMAL_CONDUCTIVITY_WATER"    :  0.48
+              "THERMAL_CONDUCTIVITY_WATER"    :  0.48,
+              "SECTION_AREA"                  :  1.0
          },
          "Tables": {}
       }
