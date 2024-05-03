@@ -172,9 +172,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            // compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->CalculateKinematics(Variables, GPoint);
-
             // Compute strain
             Variables.F            = this->CalculateDeformationGradient(GPoint);
             Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
