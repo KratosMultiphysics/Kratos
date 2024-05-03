@@ -956,8 +956,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
         rGeom, number_of_integration_points, N_container, mRetentionLawVector,
         this->GetProperties(), rCurrentProcessInfo);
 
-    const auto integration_coefficients = GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
-        rGeom, rGeom.IntegrationPoints(integration_method), integration_method, this->GetStressStatePolicy());
+    const auto integration_coefficients =
+        GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
+            rGeom, integration_method, this->GetStressStatePolicy());
 
     const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
         rGeom, integration_method, solid_densities, integration_coefficients);

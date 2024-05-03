@@ -444,8 +444,9 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
         rGeom, number_of_integration_points, Np_container, mRetentionLawVector,
         this->GetProperties(), rCurrentProcessInfo);
 
-    const auto integration_coefficients = GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
-        rGeom, rGeom.IntegrationPoints(integration_method), integration_method, *mpStressStatePolicy);
+    const auto integration_coefficients =
+        GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientInitialConfiguration(
+            rGeom, integration_method, *mpStressStatePolicy);
 
     const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
         this->GetGeometry(), integration_method, solid_densities, integration_coefficients);

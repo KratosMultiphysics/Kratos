@@ -57,11 +57,9 @@ public:
         return mass_matrix;
     }
 
-    static Vector CalculateIntegrationCoefficientInitialConfiguration(
-        const Geometry<Node>&                             rGeom,
-        const Geometry<Node>::IntegrationPointsArrayType& rIntegrationPoints,
-        const GeometryData::IntegrationMethod             IntegrationMethod,
-        const StressStatePolicy&                          rStressStatePolicy)
+    static Vector CalculateIntegrationCoefficientInitialConfiguration(const Geometry<Node>& rGeom,
+                                                                      const GeometryData::IntegrationMethod IntegrationMethod,
+                                                                      const StressStatePolicy& rStressStatePolicy)
     {
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
@@ -71,7 +69,7 @@ public:
         Matrix J0;
         Matrix inv_J0;
         for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
-            GeometryUtils::JacobianOnInitialConfiguration(rGeom, rIntegrationPoints[g_point], J0);
+            GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
             const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[g_point];
             double        det_J_initial_configuration;
             MathUtils<double>::InvertMatrix(J0, inv_J0, det_J_initial_configuration);
@@ -80,7 +78,7 @@ public:
 
             integration_coefficient_initial_configuration(g_point) =
                 rStressStatePolicy.CalculateIntegrationCoefficient(
-                    rIntegrationPoints[g_point], det_J_initial_configuration, rGeom);
+                    integration_points[g_point], det_J_initial_configuration, rGeom);
         }
         return integration_coefficient_initial_configuration;
     }
