@@ -155,11 +155,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    // Defining necessary variables
-    const GeometryType& rGeom      = this->GetGeometry();
-    const unsigned int  NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-
-    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
+    rOutput.resize(this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod));
 
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
