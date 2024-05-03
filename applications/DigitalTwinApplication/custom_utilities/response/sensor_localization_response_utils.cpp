@@ -78,9 +78,7 @@ double SensorLocalizationResponseUtils::CalculateValue()
         const auto& r_neighbour_square_distances = mNeighbourSquareDistances[iElement];
         const auto& r_neighbour_indices = mNeighbourIndices[iElement];
         for (IndexType i_neighbour = 0; i_neighbour < r_neighbour_square_distances.size(); ++i_neighbour) {
-            const double clamped_value = clamper.Clamp(r_neighbour_square_distances[i_neighbour]);
-            const double coeff = (1 - clamped_value);
-            cluster_size += mDomainSizeRatio[r_neighbour_indices[i_neighbour]] * coeff;
+            cluster_size += mDomainSizeRatio[r_neighbour_indices[i_neighbour]] * (1 - clamper.Clamp(r_neighbour_square_distances[i_neighbour]));
         }
         return std::pow(cluster_size, mP);
     });
