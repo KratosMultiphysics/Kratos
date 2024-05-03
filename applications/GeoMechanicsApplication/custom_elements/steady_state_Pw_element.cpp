@@ -157,7 +157,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
-
+    
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         // Compute GradNpT, B and StrainVector

@@ -774,7 +774,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                 Variables.detJInitialConfiguration, J0, InvJ0, Variables.GradNpTInitialConfiguration, GPoint);
 
             // Calculating operator B
-            this->CalculateBMatrix(Variables.B, Variables.GradNpTInitialConfiguration, Variables.Np);
+            Variables.B = this->CalculateBMatrix(Variables.GradNpTInitialConfiguration, Variables.Np);
 
             // Compute infinitesimal strain
             this->CalculateCauchyStrain(Variables);
@@ -1234,9 +1234,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np) const
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& GradNpT, const Vector& Np) const
 {
-    rB = this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
+    return this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1245,9 +1245,7 @@ std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
 {
     std::vector<Matrix> result;
     for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {
-        Matrix b_matrix;
-        this->CalculateBMatrix(b_matrix, DN_DXContainer[GPoint], row(NContainer, GPoint));
-        result.push_back(b_matrix);
+        result.push_back(this->CalculateBMatrix(DN_DXContainer[GPoint], row(NContainer, GPoint)));
     }
 
     return result;

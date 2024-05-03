@@ -287,7 +287,7 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
 
-    virtual void        CalculateBMatrix(Matrix& rB, const Matrix& DNu_DX, const Vector& Np) const;
+    Matrix              CalculateBMatrix(const Matrix& DNu_DX, const Vector& Np) const;
     std::vector<Matrix> CalculateBMatrices(const Matrix& NContainer,
                                            const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer) const;
 

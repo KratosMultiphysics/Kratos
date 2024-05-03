@@ -1131,7 +1131,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 Variables.detJInitialConfiguration, J0, InvJ0, Variables.DNu_DXInitialConfiguration, GPoint);
 
             // Calculating operator B
-            this->CalculateBMatrix(Variables.B, Variables.DNu_DXInitialConfiguration, Variables.Nu);
+            Variables.B = this->CalculateBMatrix(Variables.DNu_DXInitialConfiguration, Variables.Nu);
 
             // Compute infinitesimal strain
             this->CalculateCauchyStrain(Variables);
@@ -1710,9 +1710,9 @@ void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX, const Vector& Np) const
+Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& DNp_DX, const Vector& Np) const
 {
-    rB = mpStressStatePolicy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
+    return mpStressStatePolicy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
 }
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
@@ -1720,9 +1720,7 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
 {
     std::vector<Matrix> result;
     for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {
-        Matrix b_matrix;
-        this->CalculateBMatrix(b_matrix, DN_DXContainer[GPoint], row(NContainer, GPoint));
-        result.push_back(b_matrix);
+        result.push_back(this->CalculateBMatrix(DN_DXContainer[GPoint], row(NContainer, GPoint)));
     }
 
     return result;
