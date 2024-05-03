@@ -78,7 +78,6 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
-protected:
 private:
     ModelPart& mrModelPart;         /// The main model part
 

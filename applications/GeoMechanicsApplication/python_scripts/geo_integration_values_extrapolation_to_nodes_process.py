@@ -2,10 +2,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return GeoIntegrationValuesExtrapolationToNodesProcess(Model, settings["Parameters"])
+    return GeoIntegrationValuesExtrapolationToNodesProcess(model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 class GeoIntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
@@ -14,10 +14,10 @@ class GeoIntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    Model -- the container of the different model parts.
+    model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
     """
-    def __init__(self, Model, settings ):
+    def __init__(self, model, settings ):
         """ The default constructor of the class
 
         Keyword arguments:
@@ -42,7 +42,7 @@ class GeoIntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
 
         extrapolation_parameters = KratosMultiphysics.Parameters("""{}""")
         extrapolation_parameters.AddValue("echo_level", settings["echo_level"])
