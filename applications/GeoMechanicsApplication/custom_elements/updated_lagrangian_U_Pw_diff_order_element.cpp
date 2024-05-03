@@ -174,19 +174,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     if (rOutput.size() != IntegrationPointsNumber) rOutput.resize(IntegrationPointsNumber);
 
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-        // Definition of variables
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            Variables.F            = this->CalculateDeformationGradient(GPoint);
-            Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
-
-            if (rOutput[GPoint].size() != Variables.StrainVector.size())
-                rOutput[GPoint].resize(Variables.StrainVector.size(), false);
-
-            rOutput[GPoint] = Variables.StrainVector;
+            rOutput[GPoint] = this->CalculateGreenLagrangeStrain(this->CalculateDeformationGradient(GPoint));
         }
     } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);

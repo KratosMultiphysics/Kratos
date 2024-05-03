@@ -166,19 +166,9 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             rOutput[GPoint] = this->CalculateDeformationGradient(GPoint);
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
-        // Definition of variables
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            // Compute strain
-            Variables.F            = this->CalculateDeformationGradient(GPoint);
-            Variables.StrainVector = this->CalculateGreenLagrangeStrain(Variables.F);
-
-            if (rOutput[GPoint].size2() != TDim) rOutput[GPoint].resize(TDim, TDim, false);
-
-            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
+            rOutput[GPoint] = MathUtils<>::StrainVectorToTensor(
+                this->CalculateGreenLagrangeStrain(this->CalculateDeformationGradient(GPoint)));
         }
     } else {
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
