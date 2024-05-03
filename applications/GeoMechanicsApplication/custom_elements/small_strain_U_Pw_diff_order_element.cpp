@@ -314,7 +314,7 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -581,7 +581,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
-    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1044,7 +1044,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
-        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1145,7 +1145,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         // Definition of variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1186,7 +1186,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         Vector TotalStressVector(mStressVector[0].size());
 
-        const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1326,7 +1326,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
-    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
     const auto integration_coefficients =
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
@@ -1387,7 +1387,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
-    const auto b_matrices = CalculateBMatrices(Variables.NuContainer, Variables.DNu_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1716,7 +1716,7 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& DNp_DX, co
 }
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
-    const Matrix& NContainer, const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer) const
+    const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer, const Matrix& NContainer) const
 {
     std::vector<Matrix> result;
     for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {

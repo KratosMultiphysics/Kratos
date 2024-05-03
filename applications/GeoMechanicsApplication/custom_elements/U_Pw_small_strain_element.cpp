@@ -149,7 +149,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -256,7 +256,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -308,7 +308,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
     Matrix StressContainer(NumGPoints, mStressVector[0].size());
     // Loop over integration points
@@ -576,7 +576,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         if (rOutput.size() != mConstitutiveLawVector.size())
             rOutput.resize(mConstitutiveLawVector.size());
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             const PropertiesType& rProp = this->GetProperties();
@@ -641,7 +641,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         // Create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
@@ -729,7 +729,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
         Vector TotalStressVector(mStressVector[0].size());
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -788,7 +788,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // Compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -909,7 +909,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
@@ -1046,7 +1046,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
-    const auto b_matrices = CalculateBMatrices(Variables.NContainer, Variables.DN_DXContainer);
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
@@ -1241,7 +1241,7 @@ Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& Gr
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
-    const Matrix& NContainer, const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer) const
+    const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer, const Matrix& NContainer) const
 {
     std::vector<Matrix> result;
     for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {

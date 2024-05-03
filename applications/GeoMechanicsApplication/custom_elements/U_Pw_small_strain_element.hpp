@@ -230,9 +230,9 @@ protected:
 
     void CalculatePermeabilityUpdateFactor(ElementVariables& rVariables);
 
-    Matrix              CalculateBMatrix(const Matrix& GradNpT, const Vector& Np) const;
-    std::vector<Matrix> CalculateBMatrices(const Matrix& NContainer,
-                                           const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer) const;
+    Matrix CalculateBMatrix(const Matrix& GradNpT, const Vector& Np) const;
+    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
+                                           const Matrix& NContainer) const;
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
