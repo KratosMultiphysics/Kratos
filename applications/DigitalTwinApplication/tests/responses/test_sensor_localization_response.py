@@ -129,7 +129,7 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             "evaluated_model_part_names" : [
                 "sensors"
             ],
-            "p_coefficient"       : 4
+            "beta"       : 4
         }""")
         cls.sensor_mask_status = KratosDT.MaskUtils.SensorElementMaskStatus(cls.sensor_model_part, [sensor.GetElementExpression("mask_exp") for sensor in cls.sensors])
         cls.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorElementMaskStatusKDTree(cls.sensor_mask_status, 4)
@@ -185,8 +185,8 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
                 for element_id in cluster_element_ids:
                     cluster_size += self.mask_model_part.GetElement(element_id).GetGeometry().DomainSize()
                 cluster_size /= total_domain_size
-                response_value += cluster_size ** 4
-            return response_value ** (0.25)
+                response_value += np.exp(cluster_size * 4)
+            return np.log(response_value) / 4.0
 
         self.sensor_mask_status.Update()
         self.sensor_mask_status_kd_tree.Update()
@@ -235,14 +235,14 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             node.SetValue(KratosDT.SENSOR_STATUS, (node.Id % 3) / 2)
         self.sensor_mask_status.Update()
         self.sensor_mask_status_kd_tree.Update()
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.6654425963833284)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.846533338318369)
 
     def test_CalculateValue3(self):
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
                 "sensors"
             ],
-            "p_coefficient"       : 300
+            "beta": 300
         }""")
         response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
         response.Initialize()
@@ -274,7 +274,7 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         self.sensor_mask_status.Update()
         self.sensor_mask_status_kd_tree.Update()
         # the exact max cluster size ratio is 0.5
-        self.assertAlmostEqual(response.CalculateValue(), 0.501834377213362)
+        self.assertAlmostEqual(response.CalculateValue(), 0.503662040962227)
 
 
     def test_CalculateGradient2(self):

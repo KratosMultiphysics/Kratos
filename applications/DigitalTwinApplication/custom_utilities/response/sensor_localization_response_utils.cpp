@@ -33,9 +33,9 @@ namespace Kratos {
 
 SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
     SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer pSensorMaskKDTree,
-    const double P)
+    const double Beta)
     : mpSensorMaskStatusKDTree(pSensorMaskKDTree),
-      mP(P)
+      mBeta(Beta)
 {
     KRATOS_TRY
 
@@ -80,12 +80,13 @@ double SensorLocalizationResponseUtils::CalculateValue()
         for (IndexType i_neighbour = 0; i_neighbour < r_neighbour_square_distances.size(); ++i_neighbour) {
             cluster_size += mDomainSizeRatio[r_neighbour_indices[i_neighbour]] * (1 - clamper.Clamp(r_neighbour_square_distances[i_neighbour]));
         }
-        return std::pow(cluster_size, mP);
+        cluster_size = std::exp(mBeta * cluster_size);
+        return cluster_size;
     });
 
     mValue = mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetDataCommunicator().SumAll(local_value);
 
-    return std::pow(mValue, 1 / mP);
+    return std::log(mValue) / mBeta;
 
     KRATOS_CATCH("");
 }
@@ -105,8 +106,6 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     auto p_expression = LiteralFlatExpression<double>::Create(r_mask_statuses.size2(), {});
     auto& r_expression = *p_expression;
 
-    const double coeff = std::pow(mValue, 1 / mP - 1);
-
     IndexPartition<IndexType>(r_mask_statuses.size2()).for_each([&](const auto iSensor) {
         double& value = *(r_expression.begin() + iSensor);
 
@@ -115,7 +114,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
             const auto& r_neighbour_square_distances = mNeighbourSquareDistances[i_element];
             const auto& r_neighbour_indices = mNeighbourIndices[i_element];
             const bool i_mask_value = static_cast<bool>(r_mask_statuses_gradient(i_element, iSensor));
-            const double cluster_size_derivative = std::pow(mClusterSizes[i_element], mP - 1);
+            const double cluster_size_derivative = mClusterSizes[i_element];
             for (IndexType j_neighbour_element = 0; j_neighbour_element < r_neighbour_square_distances.size(); ++j_neighbour_element) {
                 const IndexType neighbour_index = r_neighbour_indices[j_neighbour_element];
                 const bool j_mask_value = static_cast<bool>(r_mask_statuses_gradient(neighbour_index, iSensor));
@@ -123,7 +122,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
             }
         }
 
-        value = r_data_communicator.SumAll(value) * coeff;
+        value = r_data_communicator.SumAll(value) / mValue;
     });
 
     ContainerExpression<ModelPart::NodesContainerType> result(r_mask_status.GetSensorModelPart());
