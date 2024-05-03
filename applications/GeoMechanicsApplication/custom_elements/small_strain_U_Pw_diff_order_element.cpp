@@ -1710,17 +1710,17 @@ void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
     KRATOS_CATCH("")
 }
 
-Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& DNp_DX, const Vector& Np) const
+Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
-    return mpStressStatePolicy->CalculateBMatrix(DNp_DX, Np, this->GetGeometry());
+    return mpStressStatePolicy->CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
 }
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
-    const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer, const Matrix& NContainer) const
+    const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
     std::vector<Matrix> result;
-    for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {
-        result.push_back(this->CalculateBMatrix(DN_DXContainer[GPoint], row(NContainer, GPoint)));
+    for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
+        result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
     }
 
     return result;

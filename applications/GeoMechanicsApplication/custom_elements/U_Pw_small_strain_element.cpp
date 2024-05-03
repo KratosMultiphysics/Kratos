@@ -1234,18 +1234,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& GradNpT, const Vector& Np) const
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
-    return this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
+    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
-    const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer, const Matrix& NContainer) const
+    const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
     std::vector<Matrix> result;
-    for (unsigned int GPoint = 0; GPoint < DN_DXContainer.size(); ++GPoint) {
-        result.push_back(this->CalculateBMatrix(DN_DXContainer[GPoint], row(NContainer, GPoint)));
+    for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
+        result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
     }
 
     return result;

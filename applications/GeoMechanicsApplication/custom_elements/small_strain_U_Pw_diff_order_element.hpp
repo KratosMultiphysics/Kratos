@@ -287,9 +287,9 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
 
-    Matrix CalculateBMatrix(const Matrix& DNu_DX, const Vector& Np) const;
-    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-                                           const Matrix& NContainer) const;
+    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
+    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
+                                           const Matrix& rNContainer) const;
 
     void AssignPressureToIntermediateNodes();
 
