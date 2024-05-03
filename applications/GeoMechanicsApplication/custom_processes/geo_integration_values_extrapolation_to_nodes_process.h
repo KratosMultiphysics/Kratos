@@ -104,7 +104,7 @@ private:
                                                GeometryType::IntegrationPointsArrayType& integration_points,
                                                GeometryData::IntegrationMethod this_integration_method,
                                                SizeType number_of_nodes,
-                                               TLSType& rTls);
+                                               TLSType& rTls) const;
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);

@@ -226,7 +226,7 @@ Matrix GeoIntegrationValuesExtrapolationToNodesProcess::CalculateElementExtrapol
     GeometryType::IntegrationPointsArrayType& integration_points,
     GeometryData::IntegrationMethod           this_integration_method,
     SizeType                                  number_of_nodes,
-    TLSType&                                  rTls)
+    TLSType&                                  rTls) const
 {
     KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
@@ -252,6 +252,9 @@ Matrix GeoIntegrationValuesExtrapolationToNodesProcess::CalculateElementExtrapol
         p_new_low_order_geometry = std::make_unique<Quadrilateral2D4<Node>>(
             r_this_geometry(0), r_this_geometry(1), r_this_geometry(2), r_this_geometry(3));
         p_low_order_geometry = p_new_low_order_geometry.get();
+        break;
+    default:
+        // deliberately empty
         break;
     }
 
