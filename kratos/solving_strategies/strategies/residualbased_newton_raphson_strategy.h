@@ -879,6 +879,42 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
+    Vector GetCurrentSolution(ModelPart &rModelPart){
+        int NumberOfNodes = rModelPart.NumberOfNodes();
+        int number_of_dofs_per_node = mNonconveregedVariablesToStore.size();
+        Vector a = ZeroVector(NumberOfNodes * number_of_dofs_per_node);
+        for (auto& node : rModelPart.Nodes()) {
+            for (int dof = 0; dof < number_of_dofs_per_node; ++dof) {
+                const auto& variable = KratosComponents<Variable<double>>::Get( mNonconveregedVariablesToStore.at(dof));
+            int index = (node.Id() - 1) * number_of_dofs_per_node + dof;
+            a[index] = node.GetSolutionStepValue(variable);
+                }
+            }
+        return a;
+        }
+
+    Matrix GetNonconvergedSolutionsMatrix(){
+            return mNonconveregedSolutionsMatrix;
+        }
+
+    void SetUpNonconvergedSolutionsGathering(Parameters ThisParameters){
+        for (const auto& r_var_name : ThisParameters["variables_to_store"].GetStringArray()) {
+            if(KratosComponents<Variable<double>>::Has(r_var_name)) {
+                const auto& var = KratosComponents<Variable<double>>::Get(r_var_name);
+                mNonconveregedVariablesToStore.push_back(r_var_name);
+            } else {
+                KRATOS_ERROR << "Variable \""<< r_var_name << "\" not valid" << std::endl;
+            }
+        }
+        mStoreNonconvergedSolutionsFlag = true;
+    }
+
+    unsigned int GetNumberOfIterations(){
+        return mNumberOfIterations;
+    }
+
+
+
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -889,6 +925,12 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
+        if (mStoreNonconvergedSolutionsFlag == true){
+            Vector initial = GetCurrentSolution(BaseType::GetModelPart());
+            NonconvergedSolutions.push_back(initial);
+        }
+
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -928,6 +970,11 @@ class ResidualBasedNewtonRaphsonStrategy
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+        if (mStoreNonconvergedSolutionsFlag==true){
+            Vector first = GetCurrentSolution(BaseType::GetModelPart());
+            NonconvergedSolutions.push_back(first);
+        }
 
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -996,6 +1043,11 @@ class ResidualBasedNewtonRaphsonStrategy
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
+            if (mStoreNonconvergedSolutionsFlag == true){
+                Vector ith = GetCurrentSolution(BaseType::GetModelPart());
+                NonconvergedSolutions.push_back(ith);
+            }
+
             residual_is_updated = false;
 
             if (is_converged == true)
@@ -1038,6 +1090,18 @@ class ResidualBasedNewtonRaphsonStrategy
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
+
+
+        if (mStoreNonconvergedSolutionsFlag == true){
+            mNonconveregedSolutionsMatrix = ZeroMatrix( r_model_part.NumberOfNodes()*mNonconveregedVariablesToStore.size(), NonconvergedSolutions.size() );
+            for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
+                for (std::size_t j = 0; j < r_model_part.NumberOfNodes()*mNonconveregedVariablesToStore.size(); ++j) {
+                    mNonconveregedSolutionsMatrix(j, i) = NonconvergedSolutions[i](j);
+                }
+            }
+            NonconvergedSolutions.clear();
+            mNumberOfIterations = iteration_number;
+        }
 
         return is_converged;
     }
@@ -1264,6 +1328,16 @@ class ResidualBasedNewtonRaphsonStrategy
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     bool mKeepSystemConstantDuringIterations; // Flag to allow keeping system matrix constant during iterations
+
+    std::vector<Vector> NonconvergedSolutions;
+
+    Matrix mNonconveregedSolutionsMatrix;
+
+    std::vector<std::string> mNonconveregedVariablesToStore;
+
+    bool  mStoreNonconvergedSolutionsFlag = false;
+
+    unsigned int mNumberOfIterations;
 
     ///@}
     ///@name Private Operators
