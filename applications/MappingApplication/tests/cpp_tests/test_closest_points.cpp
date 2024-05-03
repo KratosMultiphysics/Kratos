@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointWithIdEqualComparison, KratosMappingApplicationSe
     PointWithId point_5(id, coords, dist+1.0);
     PointWithId point_6(id+1, coords, dist+1.0);
 
-    // Position and Distance aka the coordinates are used for the equal comparison!
+    // Only the position (aka the coordinates) are used for the EQ and NE comparison
     KRATOS_EXPECT_EQ(point_1, point_2);
     KRATOS_EXPECT_NE(point_1, point_3);
 
