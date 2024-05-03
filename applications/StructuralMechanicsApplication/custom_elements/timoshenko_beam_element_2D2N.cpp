@@ -359,6 +359,9 @@ void LinearTimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
     rStrain[2] = CalculateShearStrain(Length, Phi, xi, rNodalValues);      // Gamma_xy
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double LinearTimoshenkoBeamElement2D2N::CalculateAxialStrain(
     const double Length,
     const double Phi,
