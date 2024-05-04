@@ -1959,7 +1959,8 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
 void SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
 {
     if (rVariables.UseHenckyStrain) {
-        this->CalculateDeformationGradient(rVariables, GPoint);
+        rVariables.F             = this->CalculateDeformationGradient(GPoint);
+        rVariables.detF          = MathUtils<>::Det(rVariables.F);
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
@@ -1978,7 +1979,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix
     return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint)
+Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -2002,9 +2003,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(ElementVariabl
            "mesh size."
         << std::endl;
 
-    // Deformation gradient
-    noalias(rVariables.F) = prod(J, InvJ0);
-    rVariables.detF       = MathUtils<double>::Det(rVariables.F);
+    return prod(J, InvJ0);
 
     KRATOS_CATCH("")
 }
