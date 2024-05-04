@@ -89,6 +89,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double ultimate_stress;
     double initial_threshold = mInitialTherhold;
     double relaxation_factor = mRelaxationFactor;
+    double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
     bool first_max_indicator = mFirstMaxDetected;
     bool first_min_indicator = mFirstMinDetected;
     bool max_indicator = mMaxDetected;
@@ -118,13 +119,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     residual_stress_vector = ZeroVector(VoigtSize);
     this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(residual_stress_vector);
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(residual_stress_vector, r_strain_vector, uniaxial_residual_stress, rValues);
+    uniaxial_residual_stress = (rValues.GetElementGeometry().Has(INITIAL_STRESS_VECTOR)) ? uniaxial_residual_stress : 0.0;
 
     if (((time - time_offset) % load_increments_per_cycle) == 0 && (time - time_offset) > 0) {
-
-        if (mReferenceDamageIndicator){
-            reference_damage = this->GetDamage();
-            mReferenceDamageIndicator = false;
-        }
 
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
@@ -147,11 +144,14 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         global_number_of_cycles++;
         local_number_of_cycles++;
+        
+        double threshold = this->GetThreshold() * (1 - this->GetDamage());
 
-        HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(max_stress,
-                                                                    min_stress,
-                                                                    initial_threshold,                  
+        HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(mMaxStress,
+                                                                    mMinStress,
+                                                                    threshold,          
                                                                     local_number_of_cycles,
+                                                                    first_cycle_relaxation_factor,
                                                                     relaxation_factor);     
 
         residual_stress_vector *= relaxation_factor;
@@ -163,7 +163,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
            uniaxial_residual_stress = 0.0;
         }
                 
-        double threshold = this->GetThreshold();
         double alphat;
         HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
 
@@ -180,7 +179,16 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             alphat,
             cycles_to_failure);
        
-        mReferenceDamage = reference_damage;
+        if (std::abs(mMaxStress) > std::abs(mMinStress)) {
+            if (std::abs(max_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
+                mReferenceDamage = 1 - (threshold / std::abs(mMaxStress));
+            }
+        } else {
+            if (std::abs(min_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
+                mReferenceDamage = 1 - (threshold / std::abs(mMinStress));
+            }
+        }      
+        mFirstCycleRelaxationFactor = first_cycle_relaxation_factor;  
         mCyclesToFailure = cycles_to_failure;
         new_cycle = true;
         first_max_indicator = true;
@@ -204,12 +212,15 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
+        
+        double threshold = this->GetThreshold() * (1 - this->GetDamage());
 
-        HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(max_stress,
-                                                                    min_stress,
-                                                                    initial_threshold,                  
+        HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(mMaxStress,
+                                                                    mMinStress,
+                                                                    threshold,                
                                                                     local_number_of_cycles,
-                                                                    relaxation_factor);     
+                                                                    first_cycle_relaxation_factor,
+                                                                    relaxation_factor);    
         
         residual_stress_vector *= relaxation_factor;
         const double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
@@ -221,7 +232,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         }
 
         double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-        double threshold = this->GetThreshold();
         double alphat;
         HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
 
@@ -252,18 +262,23 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                                         fatigue_reduction_factor);
     
         
-        
+        if (std::abs(mMaxStress) > std::abs(mMinStress)) {
+            if (std::abs(max_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
+                mReferenceDamage = 1 - (threshold / std::abs(mMaxStress));
+            }
+        } else {
+            if (std::abs(min_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
+                mReferenceDamage = 1 - (threshold / std::abs(mMinStress));
+            }
+        }      
         previous_max_stress = max_stress;
         previous_min_stress = min_stress;
     
     }
-
-    max_stress = mMaxStress;
-    min_stress = mMinStress;
-    
+   
     if (new_model_part) {
         mCyclesToFailure = std::numeric_limits<double>::infinity();
-        mReferenceDamageIndicator = true;
+        // mReferenceDamageIndicator = true;
     }
 
     max_indicator = false;
@@ -288,8 +303,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mFatigueReductionFactor = fatigue_reduction_factor;
     mNewCycleIndicator = new_cycle;
     mThresholdStress = s_th;
-    mRelaxationFactor = relaxation_factor;
-   
+    mRelaxationFactor = relaxation_factor;  
 }
 
 

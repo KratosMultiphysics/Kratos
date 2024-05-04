@@ -426,7 +426,7 @@ private:
     ///@name Member Variables
     ///@{
     double mReferenceDamage = 0.0; // Damage parameter used to compute B0 in the low cycle regime (maximum predictive stress great or equal to the Uts)
-    bool mReferenceDamageIndicator = true; // Indicates when the reference damage is to be applied or updated
+    // bool mReferenceDamageIndicator = true; // Indicates when the reference damage is to be applied or updated
     double mFatigueReductionFactor = 1.0; // Fatigue reduction factor
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mPreviousMaxStress = 0.0; // Previous maximun stress detected in the current cycle
@@ -451,6 +451,7 @@ private:
     double mPeriod = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles
     double mInitialTherhold = 0.0; // Initial damage threshold
     double mRelaxationFactor = 1.0; // Relaxation factor of the residual stresses
+    double mFirstCycleRelaxationFactor = 1.0; // Relaxation factor of the residual stresses at the first cycle
 
     ///@}
     ///@name Private Operators
@@ -471,8 +472,8 @@ private:
     void save(Serializer &rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("ReferenceDamage", mReferenceDamage);
-        rSerializer.save("ReferenceDamageIndicator", mReferenceDamageIndicator);
+        // rSerializer.save("ReferenceDamage", mReferenceDamage);
+        // rSerializer.save("ReferenceDamageIndicator", mReferenceDamageIndicator);
         rSerializer.save("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.save("PreviousStresses", mPreviousStresses);
         rSerializer.save("PreviousMaxStress", mPreviousMaxStress);
@@ -502,8 +503,8 @@ private:
     void load(Serializer &rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("ReferenceDamage", mReferenceDamage);
-        rSerializer.load("ReferenceDamageIndicator", mReferenceDamageIndicator);
+        // rSerializer.load("ReferenceDamage", mReferenceDamage);
+        // rSerializer.load("ReferenceDamageIndicator", mReferenceDamageIndicator);
         rSerializer.load("FatigueReductionFactor", mFatigueReductionFactor);
         rSerializer.load("PreviousStresses", mPreviousStresses);
         rSerializer.load("PreviousMaxStress", mPreviousMaxStress);
