@@ -23,6 +23,7 @@
 #include "custom_utilities/response/sensor_localization_response_utils.h"
 #include "custom_utilities/response/sensor_isolation_response_utils.h"
 #include "custom_utilities/response/sensor_distance_p_norm_utils.h"
+#include "custom_utilities/response/sensor_distance_boltzmann_operator_utils.h"
 #include "custom_utilities/response/sensor_cosine_distance_utils.h"
 #include "custom_utilities/response/sensor_coverage_response_utils.h"
 
@@ -53,6 +54,13 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &SensorDistancePNormResponseUtils::Initialize)
         .def("CalculateValue", &SensorDistancePNormResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorDistancePNormResponseUtils::CalculateGradient)
+        ;
+
+    py::class_<SensorDistanceBoltzmannOperatorResponseUtils, SensorDistanceBoltzmannOperatorResponseUtils::Pointer>(m, "SensorDistanceBoltzmannOperatorResponseUtils")
+        .def(py::init<ModelPart&, const double>(), py::arg("sensor_model_part"), py::arg("beta"))
+        .def("Initialize", &SensorDistanceBoltzmannOperatorResponseUtils::Initialize)
+        .def("CalculateValue", &SensorDistanceBoltzmannOperatorResponseUtils::CalculateValue)
+        .def("CalculateGradient", &SensorDistanceBoltzmannOperatorResponseUtils::CalculateGradient)
         ;
 
     py::class_<SensorCosineDistanceResponseUtils, SensorCosineDistanceResponseUtils::Pointer>(m, "SensorCosineDistanceResponseUtils")
