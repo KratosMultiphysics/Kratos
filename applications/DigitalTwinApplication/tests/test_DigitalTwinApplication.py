@@ -12,6 +12,7 @@ import responses.test_sensor_localization_response
 import responses.test_sensor_distance_p_norm_response
 import responses.test_sensor_isolation_response
 import responses.test_sensor_cosine_distance_response
+import responses.test_sensor_distance_boltzmann_operator_response
 import test_sensor_data_model_part_controller
 import controls.test_sensor_status_control
 
@@ -30,6 +31,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_distance_p_norm_response.TestSensorDistancePNormResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_isolation_response.TestSensorIsolationResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_cosine_distance_response.TestSensorCosineDistanceResponse]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_distance_boltzmann_operator_response.TestSensorDistanceBoltzmannOperatorResponseUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_distance_boltzmann_operator_response.TestSensorDistanceBoltzmannOperatorResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensor_data_model_part_controller.TestSensorDataModelPartController]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_sensor_status_control.TestSensorStatusControl]))
     # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_system_identification.TestSystemIdentification]))
