@@ -15,15 +15,8 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/stress_state_policy.h"
-#include "custom_retention/retention_law.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
-#include "geometries/geometry.h"
-#include "includes/element.h"
-#include "includes/smart_pointers.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
