@@ -18,9 +18,6 @@
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
-// #include "containers/model.h"
-// #include "includes/model_part.h"
-
 using namespace Kratos;
 
 namespace Kratos::Testing
