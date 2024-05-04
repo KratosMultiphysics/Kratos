@@ -89,7 +89,7 @@ public:
 
     static double CalculateSoilDensity(double DegreeOfSaturation, const Properties& rProp)
     {
-        return (DegreeOfSaturation * rProp[POROSITY] * rProp[DENSITY_WATER]) +
+        return DegreeOfSaturation * rProp[POROSITY] * rProp[DENSITY_WATER] +
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
