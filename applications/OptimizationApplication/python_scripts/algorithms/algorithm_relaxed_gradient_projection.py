@@ -287,11 +287,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self.converged = self.__convergence_criteria.IsConverged()
 
-                self.converged &= all([c.IsSatisfied() for c in self.__constraints_list])
-
-                # TODO: Remove this (its a bug)
-                if self._optimization_problem.GetStep() > 5e+3:
-                    self.converged = True
+                # self.converged &= all([c.IsSatisfied() for c in self.__constraints_list])
 
                 self._optimization_problem.AdvanceStep()
 
