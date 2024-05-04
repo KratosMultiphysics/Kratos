@@ -60,7 +60,7 @@ Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho
 
 File equation_of_motion_utilities.hpp includes 
 -  CalculateMassMatrix function
--  CalculateIntegrationCoefficientInitialConfiguration function that calculates integration coefficient for all integration points
+-  CalculateIntegrationCoefficientsInitialConfiguration function that calculates integration coefficient for all integration points
 
 ## Stress strain utilities
 

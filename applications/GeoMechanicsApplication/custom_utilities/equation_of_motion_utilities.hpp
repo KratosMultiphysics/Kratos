@@ -57,9 +57,9 @@ public:
         return mass_matrix;
     }
 
-    static Vector CalculateIntegrationCoefficientInitialConfiguration(const Geometry<Node>& rGeom,
-                                                                      const GeometryData::IntegrationMethod IntegrationMethod,
-                                                                      const StressStatePolicy& rStressStatePolicy)
+    static Vector CalculateIntegrationCoefficientsInitialConfiguration(const Geometry<Node>& rGeom,
+                                                                       const GeometryData::IntegrationMethod IntegrationMethod,
+                                                                       const StressStatePolicy& rStressStatePolicy)
     {
         const Geometry<Node>::IntegrationPointsArrayType& integration_points =
             rGeom.IntegrationPoints(IntegrationMethod);
