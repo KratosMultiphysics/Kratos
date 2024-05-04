@@ -30,12 +30,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateSoilDensityGivesCorrectResults, KratosGeoMech
 
     double degree_of_saturation = 0.0;
     auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(degree_of_saturation, properties);
-    double expected_value = 1750.0;
+    double expected_value = 0.7 * 2500.0;
     KRATOS_CHECK_NEAR(soil_density, expected_value, 1e-12);
 
     degree_of_saturation = 0.1;
     soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(degree_of_saturation, properties);
-    expected_value = 1780.0;
+    expected_value = 0.1 * 0.3 * 1000.0 + 0.7 * 2500.0;
     KRATOS_CHECK_NEAR(soil_density, expected_value, 1e-12);
 }
 
