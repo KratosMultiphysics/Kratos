@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_ELEMENT_UTILITIES)
-#define KRATOS_GEO_ELEMENT_UTILITIES
+#pragma once
 
 // Project includes
 #include "includes/element.h"
@@ -65,7 +64,7 @@ public:
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             for (unsigned int j = 0; j < TDim; ++j) {
-                rVector[j] += NContainer(GPoint,i)*VariableWithComponents[index];
+                rVector[j] += NContainer(GPoint, i) * VariableWithComponents[index];
                 index++;
             }
         }
@@ -97,7 +96,6 @@ public:
         rOutputValue[1] = ComputedValue[1];
         rOutputValue[2] = 0.0;
     }
-
 
     static inline void FillArray1dOutput(array_1d<double, 3>& rOutputValue, const array_1d<double, 3>& ComputedValue)
     {
@@ -146,7 +144,6 @@ public:
         // 1D
         rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
     }
-
 
     static inline void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
                                               const Element::PropertiesType& Prop)
@@ -512,7 +509,6 @@ public:
                             "IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2"
                          << std::endl;
         }
-
     }
 
     static inline void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix,
@@ -668,5 +664,3 @@ private:
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_GEO_ELEMENT_UTILITIES defined */
