@@ -633,14 +633,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const PropertiesType& rProp = this->GetProperties();
-
-        array_1d<double, TDim> GradPressureTerm;
-        array_1d<double, TDim> FluidFlux;
-
-        // Create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
         std::vector<double> permeability_update_factors;
