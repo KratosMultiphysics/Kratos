@@ -783,7 +783,7 @@ class RomManager(object):
             "rom_stages_to_test" : [],              // ["ROM","HROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
-            "type_of_decoder" : "linear",
+            "type_of_decoder" : "linear",               // "linear" "ann_enhanced",  TODO: add "quadratic"
             "assembling_strategy": "global",            // "global", "elemental"
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
