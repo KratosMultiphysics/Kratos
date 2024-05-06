@@ -72,8 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(PointWithIdEqualComparison, KratosMappingApplicationSe
     KRATOS_EXPECT_NE(point_1, point_3);
 
     KRATOS_EXPECT_EQ(point_1, point_4);
-    KRATOS_EXPECT_NE(point_1, point_5);
-    KRATOS_EXPECT_NE(point_1, point_6);
+    KRATOS_EXPECT_EQ(point_1, point_5);
+    KRATOS_EXPECT_EQ(point_1, point_6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PointWithIdLessComparison, KratosMappingApplicationSerialTestSuite)
