@@ -715,9 +715,7 @@ protected:
     void FillParametersFromSolver(LinearSolverPointer pSolver)
     {
         // Ensure the solver pointer is not null
-        if (!pSolver) {
-            throw std::invalid_argument("Solver pointer is null.");
-        }
+        KRATOS_ERROR_IF(!pSolver) << "Solver pointer is null." << std::endl;
 
         // Initialize dummy parameters for the new solver
         Parameters dummy_parameters = Parameters(R"({
