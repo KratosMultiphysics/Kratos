@@ -215,11 +215,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         if hasattr(self, 'shifted_boundary_formulation'):
             self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
 
-        # Construct and initialize the solution strategy
-        solution_strategy = self._GetSolutionStrategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        solution_strategy.Initialize()
-
         # # Set the distance modification process
         # self.GetDistanceModificationProcess().ExecuteInitialize()
         # # Correct the distance field
@@ -234,6 +229,14 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpInterfaceUtility()
+
+        # Construct and initialize the solution strategy
+        #TODO "Error: Constitutive Law not initialized for Element ShiftedBoundaryFluidElement #105033"
+        # if strategy is initialized after set up of interface utility (deactivation of elements)
+        # SEGFAULT if strategy is initialized before set up of interface utility
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
@@ -303,7 +306,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         # Create the boundary elements and MLS basis
         settings = KratosMultiphysics.Parameters("""{}""")
-        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
+        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
         settings.AddEmptyValue("conforming_basis").SetBool(self.settings["formulation"]["conforming_basis"].GetBool())
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())

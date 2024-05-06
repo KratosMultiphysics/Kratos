@@ -98,8 +98,6 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
 
     // Add base fluid contribution (volume integration)
     TBaseElement::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-    std::string msg = "\n SBM ELEMENT";
-    KRATOS_WATCH(msg);
 
     // Check if the element belongs to the surrogate interface.
     // Note that the INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
@@ -201,7 +199,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     this->UpdateIntegrationPointData(data, surrogate_pt_index++, int_pt_weight, row(int_pt_N_parent,0), int_pt_DN_DX_parent);
 
                     // Calculate the surrogate boundary traction as t_i = tau_ij - p_h * I_ij) * n_j with tau_ij = C:delta^s u_h taking N, DN_DX and Weight from the element's data
-                    //this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
+                    this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
                 }
             }
         }
