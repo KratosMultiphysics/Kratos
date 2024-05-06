@@ -12,7 +12,6 @@ if kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
     import KratosMultiphysics.ConstitutiveLawsApplication
 
 try:
-    import tensorflow
     from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
     have_tensorflow = True
 except ImportError:

@@ -195,7 +195,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 node_ids.append(node.Id)
             node_ids = numpy.array(node_ids)
             numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
-            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int))
+            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", node_ids)
             if self.print_singular_values:
                 numpy.save(self.rom_basis_output_folder / "SingularValuesVector.npy", sigma)
         else:
