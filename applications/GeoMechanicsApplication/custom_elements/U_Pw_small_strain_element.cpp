@@ -643,6 +643,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
+        std::vector<double> permeability_update_factors;
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
@@ -651,26 +652,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             // Compute strain, needed for update permeability
             this->CalculateStrain(Variables, GPoint);
             this->CalculatePermeabilityUpdateFactor(Variables);
+            permeability_update_factors.push_back(Variables.PermeabilityUpdateFactor);
+        }
 
-            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-            Variables.FluidPressure = CalculateFluidPressure(Variables);
-
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
-
-            Variables.RelativePermeability =
-                mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
-
-            noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
-
-            noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
-
-            noalias(FluidFlux) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                                 Variables.RelativePermeability * Variables.PermeabilityUpdateFactor *
-                                 prod(Variables.PermeabilityMatrix, GradPressureTerm);
-
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
+        const auto fluid_fluxes = CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
         }
     } else {
         if (rOutput.size() != mConstitutiveLawVector.size())
@@ -1139,6 +1126,47 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeBiotCoefficients(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidFluxes(
+    const std::vector<double>& rPermeabilityUpdateFactors, const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& rGeom      = this->GetGeometry();
+    const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+
+    std::vector<array_1d<double, TDim>> FluidFluxes;
+    ElementVariables                    Variables;
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+    const PropertiesType& rProp = this->GetProperties();
+
+    array_1d<double, TDim> GradPressureTerm;
+
+    // Create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.PermeabilityUpdateFactor = rPermeabilityUpdateFactors[GPoint];
+
+        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
+        Variables.FluidPressure = CalculateFluidPressure(Variables);
+        RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+
+        Variables.RelativePermeability =
+            mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+
+        noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
+        noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
+
+        FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+                              Variables.RelativePermeability * Variables.PermeabilityUpdateFactor *
+                              prod(Variables.PermeabilityMatrix, GradPressureTerm));
+    }
+
+    return FluidFluxes;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables)
 {
     KRATOS_TRY
@@ -1543,7 +1571,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
 {
     if (rVariables.UseHenckyStrain) {
-        this->CalculateDeformationGradient(rVariables, GPoint);
+        rVariables.F    = this->CalculateDeformationGradient(GPoint);
+        rVariables.detF = MathUtils<>::Det(rVariables.F);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
         this->CalculateCauchyStrain(rVariables);
@@ -1563,8 +1592,7 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(ElementVariables& rVariables,
-                                                                          unsigned int GPoint)
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -1582,9 +1610,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(Elemen
     KRATOS_ERROR_IF(detJ < 0.0) << "ERROR:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ: " << detJ
                                 << " nodes:" << this->GetGeometry() << std::endl;
 
-    // Deformation gradient
-    noalias(rVariables.F) = prod(J, InvJ0);
-    rVariables.detF       = MathUtils<double>::Det(rVariables.F);
+    return prod(J, InvJ0);
 
     KRATOS_CATCH("")
 }
