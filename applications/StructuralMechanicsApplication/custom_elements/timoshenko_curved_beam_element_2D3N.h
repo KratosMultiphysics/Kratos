@@ -260,11 +260,11 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues                 (GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
-    void GetFirstDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
-    void GetSecondDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
-    void GetThirdDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
-    void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
+    void GetShapeFunctionsValues                 (GlobalSizeVector& rN, const double J, const double xi);
+    void GetFirstDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double xi);
+    void GetSecondDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
+    void GetThirdDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double xi);
+    void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)

@@ -221,7 +221,6 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetBendingShearStiffnessRati
 void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
     GlobalSizeVector& rN,
     const double J,
-    const double ShearFactor,
     const double xi
     )
 {
@@ -283,7 +282,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
 void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
     GlobalSizeVector& rdN,
     const double J,
-    const double ShearFactor,
     const double xi
     )
 {
@@ -336,7 +334,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsVal
 void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsValues(
     GlobalSizeVector& rd2N,
     const double J,
-    const double ShearFactor,
     const double xi
     )
 {
@@ -388,7 +385,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsVa
 void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsValues(
     GlobalSizeVector& rd3N,
     const double J,
-    const double ShearFactor,
     const double xi
     )
 {
@@ -439,7 +435,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
 void LinearTimoshenkoCurvedBeamElement2D3N::GetFourthDerivativesShapeFunctionsValues(
     GlobalSizeVector& rd4N,
     const double J,
-    const double ShearFactor,
     const double xi
     )
 {
@@ -675,7 +670,17 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
+    rLHS.clear();
+    const double xi = -1.0;
+    const double J = GetJacobian(xi);
+    const double k0 = GetGeometryCurvature(J, xi);
 
+    GlobalSizeVector N;
+    GetShapeFunctionsValues(N, J,  xi);
+
+    KRATOS_WATCH(N)
+    KRATOS_WATCH(J)
+    KRATOS_WATCH(k0)
 }
 
 /***********************************************************************************/
