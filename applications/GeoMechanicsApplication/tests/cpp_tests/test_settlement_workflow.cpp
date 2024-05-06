@@ -28,19 +28,10 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
 {
-    const auto temporary_working_directory = std::filesystem::path(std::filesystem::current_path()) 
-                                           / ".." 
-                                           / "applications" 
-                                           / "GeoMechanicsApplication" 
-                                           / "tests"
-                                           / "test_settlement_workflow_cpp";
-                                     
-    const auto source_directory = std::filesystem::path{"."} 
-                                / ".." 
-                                / "applications" 
-                                / "GeoMechanicsApplication" 
-                                / "tests"
-                                / "test_settlement_workflow";
+    const auto temporary_working_directory = std::filesystem::path{"."} / "applications" /
+                                             "GeoMechanicsApplication" / "tests" / "test_settlement_workflow_cpp";
+    const auto source_directory = std::filesystem::path{"."} / "applications" /
+                                  "GeoMechanicsApplication" / "tests" / "test_settlement_workflow";
 
     std::filesystem::remove_all(temporary_working_directory);
     std::filesystem::create_directory(temporary_working_directory);

@@ -23,8 +23,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = std::filesystem::path(std::filesystem::current_path()) / ".." / "applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
-
+    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
     auto projectFile = "ProjectParameters.json";
 
     auto execute = KratosExecute();
@@ -34,7 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsIntegrationS
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory.u8string(), projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
 
     KRATOS_EXPECT_EQ(status, 0);
@@ -42,7 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsIntegrationS
 
 KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = std::filesystem::path(std::filesystem::current_path()) / ".." / "applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
+    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
     auto projectFile = "ProjectParameters.json";
 
     auto execute = KratosExecute();
@@ -70,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeo
                                                                  reportTextualProgress,
                                                                  &flow_stubs::emptyCancel);
 
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory.u8string(), projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
     KRATOS_EXPECT_EQ(firstMessageFound, true);
@@ -80,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeo
 
 KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechanicsIntegrationSuite)
 {
-    auto workingDirectory = std::filesystem::path(std::filesystem::current_path()) / ".." / "applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
+    auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
     auto projectFile = "ProjectParameters.json";
 
     auto execute = KratosExecute();
@@ -108,7 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechani
                                                                  &flow_stubs::emptyLog,
                                                                  &flow_stubs::emptyCancel);
 
-    const int status = execute.ExecuteFlowAnalysis(workingDirectory.u8string(), projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "PorousDomain.Left_head", call_back_functions);
 
 
     KRATOS_EXPECT_EQ(status, 0);
