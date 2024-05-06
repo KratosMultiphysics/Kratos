@@ -105,7 +105,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::EquationIdVector(
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dofs_per_node = DoFperNode; // u, v, theta
 
     IndexType local_index = 0;
 
@@ -134,7 +134,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetDofList(
 
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
-    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dofs_per_node = DoFperNode; // u, v, theta
     rElementalDofList.resize(dofs_per_node * number_of_nodes);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
@@ -144,6 +144,18 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetDofList(
         rElementalDofList[index + 2] = r_geom[i].pGetDof(ROTATION_Z    );
     }
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian()
+{
+    // GlobalSizeVector r_N;
+    // GetFirstDerivativesNu0ShapeFunctionsValues(r_N, )
+    // const double dx_dxi = 
+    // return std::sqrt()
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -231,11 +243,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
 
 void LinearTimoshenkoCurvedBeamElement2D3N::GetNu0ShapeFunctionsValues(
     GlobalSizeVector& rNu,
-    const double J,
     const double xi
     )
 {
-    // todo
+    rNu.clear();
+    rNu[0] = 0.5 * xi * (xi - 1.0);
+    rNu[3] = 0.5 * xi * (xi + 1.0);
+    rNu[6] = 1.0 - std::pow(xi, 2);
 }
 
 /***********************************************************************************/
@@ -247,7 +261,49 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctions
     const double xi
     )
 {
-    // todo
+    GetLocalFirstDerivativesNu0ShapeFunctionsValues(rNu, xi);
+    rNu /= J;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::GetLocalFirstDerivativesNu0ShapeFunctionsValues(
+    GlobalSizeVector& rNu,
+    const double xi
+    )
+{
+    rNu.clear();
+    rNu[0] = xi - 0.5;
+    rNu[3] = xi + 0.5;
+    rNu[6] = -2.0 * xi;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::GetLocalSecondDerivativesNu0ShapeFunctionsValues(
+    GlobalSizeVector& rNu,
+    const double xi
+    )
+{
+    rNu.clear();
+    rNu[0] = 1.0;
+    rNu[3] = 1.0;
+    rNu[6] = -2.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesNu0ShapeFunctionsValues(
+    GlobalSizeVector& rNu,
+    const double J,
+    const double xi
+    )
+{
+    GetLocalSecondDerivativesNu0ShapeFunctionsValues(rNu, xi);
+    rNu /= std::pow(J, 2);
 }
 
 /***********************************************************************************/
@@ -255,7 +311,20 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNu0ShapeFunctions
 
 void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(GlobalSizeVector& rNodalValues)
 {
-    // todo
+    const auto &r_geom = GetGeometry();
+    const auto& r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_displ_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+    rNodalValues[0] = r_displ_0[0];
+    rNodalValues[1] = r_displ_0[1];
+    rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
+    rNodalValues[3] = r_displ_1[0];
+    rNodalValues[4] = r_displ_1[1];
+    rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
+    rNodalValues[6] = r_displ_2[0];
+    rNodalValues[7] = r_displ_2[1];
+    rNodalValues[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
 }
 
 /***********************************************************************************/

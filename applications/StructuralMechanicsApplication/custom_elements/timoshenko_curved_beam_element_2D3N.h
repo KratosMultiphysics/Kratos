@@ -75,6 +75,10 @@ public:
     /// The base element type
     using BaseType = Element;
 
+    static constexpr SizeType SystemSize    = 9;
+    static constexpr SizeType NumberOfNodes = 3;
+    static constexpr SizeType DoFperNode    = 3;
+
     using GlobalSizeVector = BoundedVector<double, 9>;
 
     // Counted pointer of BaseSolidElement
@@ -130,14 +134,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief Indicates the amount of DoFs per node (u, v, theta)
-     */
-    IndexType GetDoFsPerNode() const
-    {
-        return 3;
-    }
 
     /**
      * @brief Returns a 6 component vector including the values of the DoFs
@@ -239,6 +235,12 @@ public:
     }
 
     /**
+     * @brief Returns the Jacobian of the isoparametric transformation
+     *     J = sqrt((dx)^2 + (dy)^2)
+     */
+    const double GetJacobian();
+
+    /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
      * Also its derivatives
      * @param rN reference to the shape functions (or derivatives)
@@ -272,8 +274,11 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues                (GlobalSizeVector& rNu, const double J, const double xi);
-    void GetFirstDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double J, const double xi);
+    void GetNu0ShapeFunctionsValues                 (GlobalSizeVector& rNu,                const double xi);
+    void GetFirstDerivativesNu0ShapeFunctionsValues (GlobalSizeVector& rNu, const double J, const double xi);
+    void GetSecondDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double J, const double xi);
+    void GetLocalFirstDerivativesNu0ShapeFunctionsValues (GlobalSizeVector& rNu, const double xi);
+    void GetLocalSecondDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double xi);
 
 
     /**
