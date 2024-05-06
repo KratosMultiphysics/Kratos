@@ -220,10 +220,10 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::InitializeElastoPlasticConstitutiveL
     // Initialize the yield functions
     rEPlasticVariables.YieldFunction_MC     = 0.0;
     rEPlasticVariables.YieldFunction_CutOff = 0.0;
-    // Initialize the size of the vectors to the yield surface and plastic potential surface of the Mohr-Coulomb criteria
+    // Initialize the size of the vectors normal to the yield surface and plastic potential surface of the Mohr-Coulomb criteria
     rEPlasticVariables.n_MC.resize(VoigtSize);
     rEPlasticVariables.np_MC.resize(VoigtSize);
-    // Initialize the size of the vectors to the yield surface and plastic potential surface of the cut-off criteria
+    // Initialize the size of the vectors normal to the yield surface and plastic potential surface of the cut-off criteria
     rEPlasticVariables.n_TC  = ZeroVector(VoigtSize);
     rEPlasticVariables.np_TC = ZeroVector(VoigtSize);
     rEPlasticVariables.n_TC[VoigtSize-1]  = 1.0;
@@ -310,24 +310,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
     double ts_intersection = std::abs(c - ft*tanPhi);
 
     // Return mapping    
-    if((std::abs(ts) < ts_intersection) && (rEPlasticVariables.YieldFunction_CutOff > 0.0)){ // -------------- Return to the cut-off surface
-
-        // Compute the plastic multiplier
-        PlasticMultiplier_TC = rEPlasticVariables.YieldFunction_CutOff / kN;
-
-        // Update the normal component of the traction vector
-        rStressVector[VoigtSize-1] = ft;
-
-        // Update the current plastic displacement jumps
-        mPlasticStrainVector = mOldPlasticStrainVector + PlasticMultiplier_TC * rEPlasticVariables.np_TC;
-
-        // Compute the tangent constitutive matrix
-        if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
-            rConstitutiveMatrix = IdentityMtrx * kS;
-            rConstitutiveMatrix(VoigtSize-1, VoigtSize-1) = 0.0;
-        }  
-
-    } else if ((rEPlasticVariables.YieldFunction_MC > 0.0) && (rEPlasticVariables.YieldFunction_CutOff < 0.0)){ // ------ Return to the Mohr-Coulomb surface
+    if((rEPlasticVariables.YieldFunction_MC > 0.0) && (rEPlasticVariables.YieldFunction_CutOff <= 1e-15)){ // ------ Return to the Mohr-Coulomb surface
         
         // Result from the product between n^T * Tel * np
         n_Tel_np = kS + kN * tanPhi * tanPsi;
@@ -350,7 +333,26 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
             Tel_n = prod(ElasticConstitutiveMatrix, rEPlasticVariables.n_MC);
             //Tangent constitutive matrix
             noalias(rConstitutiveMatrix) = ElasticConstitutiveMatrix - outer_prod(Tel_np,Tel_n) / n_Tel_np;
-        }
+        }  
+        //TO-DO: Compute slip tendency
+
+    } else if ((std::abs(ts) < ts_intersection) && (rEPlasticVariables.YieldFunction_CutOff > 0.0)){ // -------------- Return to the cut-off surface
+
+        // Compute the plastic multiplier
+        PlasticMultiplier_TC = rEPlasticVariables.YieldFunction_CutOff / kN;
+
+        // Update the normal component of the traction vector
+        rStressVector[VoigtSize-1] = ft;
+
+        // Update the current plastic displacement jumps
+        mPlasticStrainVector = mOldPlasticStrainVector + PlasticMultiplier_TC * rEPlasticVariables.np_TC;
+
+        // Compute the tangent constitutive matrix
+        if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
+            rConstitutiveMatrix = IdentityMtrx * kS;
+            rConstitutiveMatrix(VoigtSize-1, VoigtSize-1) = 0.0;
+        } 
+        //TO-DO: Compute slip tendency
 
     }else{ // ------------------------------------------------------------------------------------------- Return to the point which both surfaces intersect
 
@@ -476,10 +478,11 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::GetElasticConstitutiveMatrix(Matrix&
     const Vector& StrainVector = rValues.GetStrainVector();
 
     double cp = 1.0;
-    // Penalization coefficient, in case it is a compression
-    if(StrainVector[2] < 0.0){
-        cp = rVariables.PenaltyStiffness;
-    }
+    //TO-DO: Check 
+    // // Penalization coefficient, in case it is a compression
+    // if(StrainVector[2] < 0.0){
+    //     cp = rVariables.PenaltyStiffness;
+    // }
 
     // Fill the constitutive matrix
     noalias(rElasticConstitutiveMatrix) = ZeroMatrix(3,3);

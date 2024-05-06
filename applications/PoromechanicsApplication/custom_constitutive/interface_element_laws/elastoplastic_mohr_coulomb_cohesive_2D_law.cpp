@@ -88,10 +88,10 @@ void ElastoPlasticMohrCoulombCohesive2DLaw::GetElasticConstitutiveMatrix(Matrix&
     const Vector& StrainVector = rValues.GetStrainVector();
 
     double cp = 1.0;
-    // Penalization coefficient, in case it is a compression
-    if(StrainVector[1] < 0.0){
-        cp = rVariables.PenaltyStiffness;
-    }
+    // // Penalization coefficient, in case it is a compression
+    // if(StrainVector[1] < 0.0){
+    //     cp = rVariables.PenaltyStiffness;
+    // }
 
     // Fill the constitutive matrix
     noalias(rElasticConstitutiveMatrix) = ZeroMatrix(2,2);
