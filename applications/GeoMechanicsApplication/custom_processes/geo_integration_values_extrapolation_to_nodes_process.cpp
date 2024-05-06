@@ -346,7 +346,8 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
     // Some definitions
     struct TLSType {
-        Vector vector_J, N;
+        Vector vector_J;
+        Vector  N;
     };
 
     // Fill the average value
