@@ -252,9 +252,10 @@ protected:
     void SetConstitutiveParameters(ElementVariables&            rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
 
-    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                   unsigned int PointNumber,
-                                                   double       detJ);
+    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
+                                           double detJ) const;
+    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                                         const Vector& rDetJs) const;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -294,7 +295,7 @@ protected:
     virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
     virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
 
-    virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
+    Matrix CalculateDeformationGradient(unsigned int GPoint) const;
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 

@@ -233,6 +233,9 @@ class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
 class Simple3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/linear_3D2NBeamCr_test"
 
+class SimpleSemiRigid3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
+    file_name = "beam_test/semi_rigid_linear_3D2NBeamCr_test"
+
 class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_force_3D2NBeamCr_test"
 

@@ -240,7 +240,8 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                   const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -275,7 +276,7 @@ protected:
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
     virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
     virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
-    virtual void   CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
+    Matrix         CalculateDeformationGradient(unsigned int GPoint) const;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
@@ -283,6 +284,8 @@ protected:
 
     void   InitializeProperties(ElementVariables& rVariables);
     double CalculateFluidPressure(const ElementVariables& rVariables);
+    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
+                                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
