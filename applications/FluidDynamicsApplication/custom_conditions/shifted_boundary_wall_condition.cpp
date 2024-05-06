@@ -22,6 +22,7 @@
 #include "includes/checks.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/constitutive_law.h"
 #include "utilities/integration_utilities.h"
 
 // Application includes
@@ -46,7 +47,7 @@ void ShiftedBoundaryWallCondition<TDim>::EquationIdVector(
     // Resize the equation IDs vector
     const auto &r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
-    const std::size_t local_size = (TDim+1) * n_nodes;
+    const std::size_t local_size = BlockSize * n_nodes;
     if (rResult.size() != local_size) {
         rResult.resize(local_size, false);
     }
@@ -78,7 +79,7 @@ void ShiftedBoundaryWallCondition<TDim>::GetDofList(
     // Resize the DOFs vector
     const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
-    const std::size_t local_size = (TDim+1) * n_nodes;
+    const std::size_t local_size = BlockSize * n_nodes;
     if (rConditionalDofList.size() != local_size){
         rConditionalDofList.resize(local_size);
     }
@@ -101,11 +102,30 @@ void ShiftedBoundaryWallCondition<TDim>::GetDofList(
 }
 
 template<std::size_t TDim>
+void ShiftedBoundaryWallCondition<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
+{
+    // Get the parent constitutive law from the properties and clone them to be current properties
+    // Note that we are assuming that the parent properties were assigned as properties when creating the condition
+    const auto& r_prop = GetProperties();
+    const auto p_cons_law = r_prop[CONSTITUTIVE_LAW];
+    const auto& r_N = this->GetValue(SHAPE_FUNCTIONS_VECTOR);
+    if (p_cons_law != nullptr) {
+        this->SetValue(CONSTITUTIVE_LAW, p_cons_law->Clone());
+        this->GetValue(CONSTITUTIVE_LAW)->InitializeMaterial(r_prop, GetGeometry(), r_N);
+    } else {
+        KRATOS_ERROR << "A constitutive law needs to be specified in condition " << this->Id() << "." << std::endl;
+    }
+}
+
+template<std::size_t TDim>
 void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    std::string msg = "\nSBM CONDITION";
+    //KRATOS_WATCH(msg);
+
     KRATOS_TRY
 
     // Check (and resize) LHS and RHS matrix
@@ -125,10 +145,10 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
 
     // Get meshless geometry data (for the integration point)
     const double parent_size = GetValue(ELEMENT_H);                     // parent element size
-    const double weight = GetValue(INTEGRATION_WEIGHT);                  // integration weight for the integration point
+    const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
     const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points
     const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points
-    array_1d<double,3> normal = GetValue(NORMAL);                       // integration weight ate the integration point
+    array_1d<double,3> normal = GetValue(NORMAL);                       // boundary normal at the integration point
     normal /= norm_2(normal);
 
     // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
@@ -174,9 +194,9 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);  //see displ_sbm
 
     // Set constitutive law values
-    constitutive_law_values.SetShapeFunctionsValues(r_N); 
+    constitutive_law_values.SetShapeFunctionsValues(r_N);
     constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
-    constitutive_law_values.SetStrainVector(strain_rate);           
+    constitutive_law_values.SetStrainVector(strain_rate);
     constitutive_law_values.SetStressVector(shear_stress);          //this is an ouput parameter
     constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
 
@@ -209,6 +229,7 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the Nitsche slip normal imposition penalty coefficient
     const double pen_coeff = this->ComputeSlipNormalPenaltyCoefficient(r_N, delta_time, penalty, parent_size, effective_viscosity);
+    //KRATOS_WATCH(pen_coeff);
 
     // Add slip normal penalty contribution of the integration point
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -252,6 +273,8 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the slip tangential imposition penalty coefficients (penalization)
     std::pair<const double, const double> pen_coeffs = this->ComputeSlipTangentialPenaltyCoefficients(slip_length, penalty, parent_size, effective_viscosity);
+    //KRATOS_WATCH(pen_coeffs.first);
+    //KRATOS_WATCH(pen_coeffs.second);
 
     // Set the tangential projection matrix (I - n x n)
     BoundedMatrix<double, TDim, TDim> tang_proj_matrix;
@@ -270,6 +293,8 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     /////////////////////////////////////////////////////////////////////////////////
     // Compute the slip tangential symmetric counterpart penalty coefficients (Nitsche stabilization TODO ?)
     std::pair<const double, const double> nitsche_coeffs = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
+    //KRATOS_WATCH(nitsche_coeffs.first);
+    //KRATOS_WATCH(nitsche_coeffs.second);
 
     // Compute some integration point auxiliar matrices
     const Matrix aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
@@ -282,6 +307,8 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.second * weight * prod(aux_matrix_BtransAtransPtan, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
+    //KRATOS_WATCH(aux_LHS);
+
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
     // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well!
     noalias(rLeftHandSideMatrix) += aux_LHS;
@@ -314,6 +341,8 @@ int ShiftedBoundaryWallCondition<TDim>::Check(const ProcessInfo& rCurrentProcess
     KRATOS_TRY;
 
     //TODO check certain variables as in NavierStokesWallCondition? like viscosity?
+    // SLIP_LENGTH, PENALTY_COEFFICIENT, constitutive law, EMBEDDED_VELOCITY
+
     /*int check = BaseType::Check(rCurrentProcessInfo);
     if (check != 0) {
         return check;

@@ -146,7 +146,7 @@ public:
         return Kratos::make_intrusive<ShiftedBoundaryWallCondition>(NewId, pGeom, pProperties);
     }
 
-    //void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
