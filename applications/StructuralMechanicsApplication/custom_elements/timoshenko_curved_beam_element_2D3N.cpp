@@ -149,13 +149,22 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian()
+const double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(const double xi)
 {
-    // GlobalSizeVector r_N;
-    // GetFirstDerivativesNu0ShapeFunctionsValues(r_N, )
-    // const double dx_dxi = 
-    // return std::sqrt()
-    return 0.0;
+    GlobalSizeVector r_dN_dxi;
+    GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
+    const auto r_geom = GetGeometry();
+
+    double dx_dxi = 0.0;
+    double dy_dxi = 0.0;
+
+    for (IndexType i = 0; i < NumberOfNodes; ++i) {
+        const IndexType u_coord = DoFperNode * i;
+        const auto &r_coords_node = r_geom[i].Coordinates();
+        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
+        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+    }
+    return std::sqrt(std::pow(dx_dxi, 2) + std::pow(dy_dxi, 2));
 }
 
 /***********************************************************************************/

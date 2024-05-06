@@ -238,7 +238,7 @@ public:
      * @brief Returns the Jacobian of the isoparametric transformation
      *     J = sqrt((dx)^2 + (dy)^2)
      */
-    const double GetJacobian();
+    const double GetJacobian(const double xi);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
