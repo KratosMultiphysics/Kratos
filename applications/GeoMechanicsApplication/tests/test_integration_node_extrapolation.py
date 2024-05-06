@@ -20,7 +20,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         directory  = 'test_integration_node_extrapolation'
         test_name  = '3_noded_triangle'
         file_path  = test_helper.get_file_path(os.path.join(directory, test_name))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
         reader     = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
         heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
@@ -33,7 +33,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         directory  = 'test_integration_node_extrapolation'
         test_name = '4_noded_quadrilateral'
         file_path = test_helper.get_file_path(os.path.join(directory, test_name))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
         reader     = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
         heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
@@ -46,7 +46,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         directory  = 'test_integration_node_extrapolation'
         test_name = '6_noded_triangle'
         file_path = test_helper.get_file_path(os.path.join(directory, test_name))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
         reader     = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
         heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
@@ -59,7 +59,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         directory  = 'test_integration_node_extrapolation'
         test_name = '8_noded_quadrilateral'
         file_path = test_helper.get_file_path(os.path.join(directory, test_name))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
         reader     = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
         heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
