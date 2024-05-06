@@ -240,7 +240,8 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                   const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -283,6 +284,8 @@ protected:
 
     void   InitializeProperties(ElementVariables& rVariables);
     double CalculateFluidPressure(const ElementVariables& rVariables);
+    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
+                                                             const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
