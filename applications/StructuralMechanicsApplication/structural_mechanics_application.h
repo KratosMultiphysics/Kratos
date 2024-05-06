@@ -272,6 +272,7 @@ private:
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
+    const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
 
 
     // Adding the shells elements
