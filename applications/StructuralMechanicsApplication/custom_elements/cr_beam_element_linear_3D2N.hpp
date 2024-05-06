@@ -70,6 +70,8 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -106,6 +108,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
+
+    /**
+    * @brief This function calculates a matrix which is used to reduce rigidity at the beam connections
+    */
+    void CalculateRigidityReductionMatrix(
+        BoundedMatrix<double, msElementSize, msElementSize>& rReductionMatrix) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
