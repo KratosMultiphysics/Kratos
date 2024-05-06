@@ -70,6 +70,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
+    const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
@@ -78,6 +79,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute strain
         this->CalculateStrain(Variables, GPoint);

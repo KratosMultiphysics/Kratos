@@ -24,8 +24,8 @@ public:
     [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                          double DetJ,
                                                          const Geometry<Node>& rGeometry) const override;
-    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rGradNpT,
-                                          const Vector&         rNp,
+    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
+                                          const Vector&         rN,
                                           const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const override;
     [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const override;
