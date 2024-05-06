@@ -2,10 +2,10 @@
 
 **Author:** [Mohamed Nabi](https://github.com/mnabideltares)
 
-**Source files:** [Thermal line element with fixed temperature](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_thermal_heat_flux_line_element)
+**Source files:** [Thermal line element with point flux condition](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_thermal_heat_flux_line_element)
 
 ## Case Specification
-In this thermal test case, a 1 m high soil column is considered, with everywhere set to 0 $\mathrm{[^\circ C]}$. The top boundary condition is set to be 0 $\mathrm{[^\circ C]}$. A heat flux of 100 $\mathrm{[W/m^2]}$ is set at the bottom boundary. The simulation spans 250 days to allow for a transition from an exponential to a linear temperature profile between the two sides. This test is conducted for various configurations, including 2D2N, 2D3N, 2D4N, 2D5N, 3D2N and 3D3N line elements. The temperature distribution along the depth is then evaluated with its own result.
+In this thermal test case, a 1 m height soil column is considered, with everywhere set to 0 $\mathrm{[^\circ C]}$. The top boundary condition is set to be 0 $\mathrm{[^\circ C]}$. A heat flux of 100 $\mathrm{[W/m^2]}$ is set at the bottom boundary. The simulation spans 250 days to allow for a transition from an exponential to a linear temperature profile between the two sides. This test is conducted for various configurations, including 2D2N, 2D3N, 2D4N, 2D5N, 3D2N and 3D3N line elements. The temperature distribution along the depth is then evaluated with its own result.
 The boundary conditions are shown below:
 
 <img src="../documentation_data/test_thermal_point_flux_condition.svg" alt="Visualization of the Boundary conditions" title="Visualization of the Boundary conditions" width="600">
