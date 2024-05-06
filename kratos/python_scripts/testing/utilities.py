@@ -162,7 +162,7 @@ class Commander(object):
                 self.exitCodes[test_suit_name] = 1
             finally:
                 if process_stdout:
-                    self.PrintOutput(process_stdout, sys.stdout)
+                    self.PrintOutput(process_stdout, sys.stderr)
                 if process_stderr:
                     self.PrintOutput(process_stderr, sys.stderr)
 
@@ -234,7 +234,7 @@ class Commander(object):
                                 file=sys.stderr)
                             sys.stderr.flush()
 
-    def RunCppTests(self, applications, timer):
+    def RunCppTests(self, applications, timer, config):
         ''' Calls the cpp tests directly
         '''
 
@@ -242,17 +242,23 @@ class Commander(object):
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
             filename = os.fsdecode(test_suite)
 
+            working_dir = os.getcwd()
+
+            if filename in config and "working_dir" in config[filename]:
+                working_dir = config[filename]["working_dir"]
+
             # Skip mpi tests
             if ("MPI" not in filename and self.TestToAppName(filename) in applications) or filename == "KratosCoreTest":
                 
                 # Run all the tests in the executable
+                print(f"Running {filename} tests at @ {working_dir}")
                 self._RunTest(
                     test_suit_name=filename, 
                     command=[
                         os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
                     ], 
                     timer=timer,
-                    working_dir=os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()))
+                    working_dir=working_dir
                 )
 
     def RunMPIPythonTests(self, applications, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):

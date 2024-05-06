@@ -1,5 +1,6 @@
 import os
 import sys
+import pathlib
 import argparse
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
@@ -52,11 +53,18 @@ def main():
         elif args.level == 'nightly':
             signalTime = int(900)
 
+    # Custom configuration
+    config = {
+        "KratosGeoMechanicsCoreTest" : {
+            "working_dir": pathlib.Path(kratos_utils.GetKratosMultiphysicsPath()).parents[0]  # GeoMechanicsCore needs to be run from the KratosMultiphysics install directory, not the module directory
+        }
+    }
+
     # Create the commands
     commander = testing_utils.Commander()
     
     # Run the tests
-    commander.RunCppTests(applications, signalTime)
+    commander.RunCppTests(applications, signalTime, config)
 
     # Exit message
     testing_utils.PrintTestSummary(commander.exitCodes)
