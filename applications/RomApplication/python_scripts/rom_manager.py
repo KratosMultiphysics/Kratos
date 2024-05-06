@@ -827,18 +827,19 @@ class RomManager(object):
                             "validation_set": "rom_data/SnapshotsMatrices/fom_snapshots_val.npy"
                         },
                         "epochs": 50,
-                        "layers_size": [
+                        "layers_size": [            // Size of each hidden layer in the Neural Network (for more layers, append more values)
                             2,
                             2
                         ],
-                        "lr_strategy": {
-                            "additional_params": [],
-                            "base_lr": 0.01,
-                            "scheduler": "const"
+                        "lr_strategy": {                // Learning Rate update strategy
+                            "scheduler": "const",       // 'const', 'steps', 'sgdr'
+                            "base_lr": 0.01,            // Initial LR
+                            "additional_params": []     // 'const' -> []; 'steps' or 'sgdr' -> [minimum_LR, reduction_factor, period_length]
                         },
+                                                         
                         "modes": [
-                            1,
-                            2
+                            1,                  // Highest mode to be used as inferior modes (size of NN input)
+                            2                   // Highest mode to be used as superior modes (size of NN output + size of NN input)
                         ],
                         "use_automatic_name": false
                     }
