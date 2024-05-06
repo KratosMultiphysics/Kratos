@@ -55,13 +55,24 @@ namespace Kratos
             rCurve.GlobalCoordinates(point_2, parameter_2);
 
             double distance = point_1[AxisDirectionIndex] - IntersectionAxis;
-            if (distance < 0) {
+            if (distance < -1e-8) {
                 parameter_smaller = parameter_1[0];
                 parameter_bigger = parameter_2[0];
             }
-            else {
+            else if (distance > 1e-8) {
                 parameter_smaller = parameter_2[0];
                 parameter_bigger = parameter_1[0];
+            }
+            else {
+                if (norm_2(point_1) - norm_2(point_2) < 0)
+                {
+                    parameter_smaller = parameter_1[0];
+                    parameter_bigger = parameter_2[0];
+                }
+                else{
+                    parameter_smaller = parameter_2[0];
+                    parameter_bigger = parameter_1[0];
+                }
             }
 
             for (IndexType i = 0; i <= IndexType(50); ++i)
@@ -169,7 +180,7 @@ namespace Kratos
                 << std::endl;
 
             bool ascending_1 = (rAxis1[0] < rAxis1[1]);
-            bool ascending_2 = (rAxis2[0] < rAxis2[1]);
+            bool ascending_2 = (rAxis2[0] < rAxis2[1]);   
 
             // initialize axes
             IndexType axis_index_1, axis_index_2;

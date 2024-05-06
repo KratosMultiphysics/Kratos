@@ -58,6 +58,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
+#include "geometries/brep_curve_on_surface.h"
 
 // Elements
 #include "elements/mesh_element.h"
@@ -440,6 +441,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     //prisms
     const MeshCondition mPrismCondition2D4N;
     const MeshCondition mPrismCondition3D6N;
+    // B-rep
+    const MeshCondition mBrepCurveOnSurface;
 
 
     // Master-Slave base constraint

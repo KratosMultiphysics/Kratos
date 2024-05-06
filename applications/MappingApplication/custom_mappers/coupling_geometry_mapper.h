@@ -23,6 +23,7 @@
 #include "custom_utilities/mapper_local_system.h"
 
 #include "custom_utilities/mapping_intersection_utilities.h"
+#include "custom_utilities/iga_mapping_intersection_utilities.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
 

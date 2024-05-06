@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapping_intersection_utilities.h"
+#include "custom_utilities/iga_mapping_intersection_utilities.h"
 
 
 namespace Kratos {
@@ -34,11 +35,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     auto m_mapper_utilities = m.def_submodule("MapperUtilities");
     auto m_mapping_intersection_utils = m.def_submodule("MappingIntersectionUtilities");
+    auto m_iga_mapping_intersection_utils = m.def_submodule("IgaMappingIntersectionUtilities");
 
     m_mapper_utilities.def("SaveCurrentConfiguration", &MapperUtilities::SaveCurrentConfiguration);
     m_mapper_utilities.def("RestoreCurrentConfiguration", &MapperUtilities::RestoreCurrentConfiguration);
     m_mapping_intersection_utils.def("FindIntersection1DGeometries2D", &MappingIntersectionUtilities::FindIntersection1DGeometries2D);
     m_mapping_intersection_utils.def("CreateQuadraturePointsCoupling1DGeometries2D", &MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D);
+    m_iga_mapping_intersection_utils.def("IgaCreateBrepCurveOnSurfaceCouplingGeometries", &IgaMappingIntersectionUtilities::IgaCreateBrepCurveOnSurfaceCouplingGeometries);
+    m_iga_mapping_intersection_utils.def("IgaCreateQuadraturePointsCoupling1DGeometries2D", &IgaMappingIntersectionUtilities::IgaCreateQuadraturePointsCoupling1DGeometries2D);
 }
 
 }  // namespace Python.

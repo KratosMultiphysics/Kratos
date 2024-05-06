@@ -75,18 +75,18 @@ namespace Kratos
         //Triangulation 
         static void Triangulate_OPT(const Clipper2Lib::Path64& polygon, std::vector<Matrix>& triangles, const double factor)
         {
-            if (polygon.size() == 4)
-            {
-                Matrix triangle(3, 2);
-                triangle(0, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[0];
-                triangle(0, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[1];
-                triangle(1, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[1], factor)[0];
-                triangle(1, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[1], factor)[1];
-                triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[0];
-                triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[1];
-                triangles.push_back(triangle);
-                return;
-            }
+            // if (polygon.size() == 4)
+            // {
+            //     Matrix triangle(3, 2);
+            //     triangle(0, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[0];
+            //     triangle(0, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[0], factor)[1];
+            //     triangle(1, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[1], factor)[0];
+            //     triangle(1, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[1], factor)[1];
+            //     triangle(2, 0) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[0];
+            //     triangle(2, 1) = BrepTrimmingUtilities::IntPointToDoublePoint(polygon[2], factor)[1];
+            //     triangles.push_back(triangle);
+            //     return;
+            // }
 
             array_1d<double, 2> p1, p2, p3, p4;
             int bestvertex;

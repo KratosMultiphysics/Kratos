@@ -19,7 +19,6 @@
 
 // Project includes
 #include "modeler/modeler.h"
-#include "custom_utilities/mapping_intersection_utilities.h"
 
 namespace Kratos
 {
@@ -120,9 +119,23 @@ private:
         rDestinationMP.SetNodalSolutionStepVariablesList(rReferenceMP.pGetNodalSolutionStepVariablesList());
         ModelPart& coupling_conditions = rReferenceMP.GetSubModelPart("coupling_conditions");
         rDestinationMP.SetConditions(coupling_conditions.pConditions());
+
+        // Remove the control points which have all zero shape functions in the corresponding condition (quadrature point condition)
+        for (auto& r_cond : rReferenceMP.Conditions()) {
+            auto& r_geom = r_cond.GetGeometry();
+            auto& r_N = r_geom.ShapeFunctionsValues();
+
+            for (IndexType i = 0; i<r_N.size2();++i)
+            {
+                if(r_N(0,i) < 1e-8)
+                {
+                    rDestinationMP.RemoveNode(r_geom.pGetPoint(i));
+                }
+            }
+        }
     }
 
-    void CreateInterfaceLineCouplingConditions(ModelPart& rInterfaceModelPart);
+    void CreateInterfaceLineBrepCurveOnSurface(ModelPart& rInterfaceModelPart);
 
     void CheckParameters();
 
