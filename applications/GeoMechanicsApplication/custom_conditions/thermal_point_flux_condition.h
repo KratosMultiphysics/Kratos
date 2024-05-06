@@ -15,8 +15,6 @@
 #pragma once
 
 #include "custom_conditions/T_condition.h"
-#include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/element_utilities.hpp"
 #include "includes/serializer.h"
 
 namespace Kratos {
@@ -25,7 +23,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalPointFluxCondition
     : public GeoTCondition<TDim, TNumNodes> {
 public:
-    using GeometryType = Geometry<Node>;
+    using GeometryType   = Geometry<Node>;
     using PropertiesType = Properties;
     using NodesArrayType = GeometryType::PointsArrayType;
 

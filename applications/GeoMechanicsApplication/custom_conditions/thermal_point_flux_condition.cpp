@@ -14,8 +14,6 @@
 
 // Application includes
 #include "custom_conditions/thermal_point_flux_condition.h"
-#include "custom_utilities/condition_utilities.hpp"
-#include "utilities/math_utils.h"
 
 namespace Kratos {
 
