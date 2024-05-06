@@ -24,6 +24,7 @@
 
 // Application includes
 #include "poromechanics_application_variables.h"
+#include "custom_utilities/interface_element_utilities.hpp"
 
 namespace Kratos
 {
