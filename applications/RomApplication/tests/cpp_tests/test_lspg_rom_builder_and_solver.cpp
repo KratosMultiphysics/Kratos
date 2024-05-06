@@ -186,38 +186,37 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
 {
     using namespace LeastSquaresPetrovGalerkinROMBuilderAndSolverTestingInternal;
 
-    for (int i=0; i<1000; i++){
-        Model model{};
-        ModelPart& model_part = FillModel(model);
+    Model model{};
+    ModelPart& model_part = FillModel(model);
 
-        Parameters parameters(R"(
-        {
-            "name" : "rom_builder_and_solver",
-            "nodal_unknowns" : ["TEMPERATURE"],
-            "number_of_rom_dofs" : 2
-        }
-        )");
-
-        auto plinear_solver = std::make_shared<LinearSolverType>();
-        SchemeType::Pointer p_scheme = std::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
-        auto romBnS = LeastSquaresPetrovGalerkinROMBuilderAndSolverType(plinear_solver, parameters);
-
-        const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
-        const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
-
-        // KRATOS_SKIP_TEST << "this test is failing randomly in Windows. We will skip it until we find the error" << std::endl;
-
-        KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
-        KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
-
-        KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);
-        KRATOS_EXPECT_NEAR(dq(1), 0.5 , 1e-8);
-
-        // Testing free dofs
-        KRATOS_EXPECT_EQ(dx.size(), 3);
-        KRATOS_EXPECT_NEAR(dx(1), 1.5 , 1e-8);
-        KRATOS_EXPECT_NEAR(dx(2), 2.0 , 1e-8);
+    Parameters parameters(R"(
+    {
+        "name" : "rom_builder_and_solver",
+        "nodal_unknowns" : ["TEMPERATURE"],
+        "number_of_rom_dofs" : 2
     }
+    )");
+
+    auto plinear_solver = std::make_shared<LinearSolverType>();
+    SchemeType::Pointer p_scheme = std::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
+    auto romBnS = LeastSquaresPetrovGalerkinROMBuilderAndSolverType(plinear_solver, parameters);
+
+    const auto dx = BuildAndSolve(model_part, p_scheme, romBnS);
+    const auto& dq = model_part.GetValue(ROM_SOLUTION_INCREMENT);
+
+    // KRATOS_SKIP_TEST << "this test is failing randomly in Windows. We will skip it until we find the error" << std::endl;
+
+    KRATOS_EXPECT_NEAR(model_part.ElementsBegin()->GetValue(HROM_WEIGHT), 1, 1e-8);
+    KRATOS_EXPECT_EQ(romBnS.GetEquationSystemSize(), 3);
+
+    KRATOS_EXPECT_NEAR(dq(0), 1.0 , 1e-8);
+    KRATOS_EXPECT_NEAR(dq(1), 0.5 , 1e-8);
+
+    // Testing free dofs
+    KRATOS_EXPECT_EQ(dx.size(), 3);
+    KRATOS_EXPECT_NEAR(dx(1), 1.5 , 1e-8);
+    KRATOS_EXPECT_NEAR(dx(2), 2.0 , 1e-8);
+
 }
 
 }
