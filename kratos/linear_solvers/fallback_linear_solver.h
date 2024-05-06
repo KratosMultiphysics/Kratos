@@ -679,27 +679,7 @@ protected:
         const std::string linear_solver_type = linear_solver_settings["solver_type"].GetString();
         // If the solver type is a faster direct solver, try to use it
         if (linear_solver_type == "faster_direct_solver") {
-            std::vector<std::string> faster_direct_solvers;
-            if constexpr (TSparseSpaceType::IsDistributed()) {
-                faster_direct_solvers = std::vector<std::string>({ // May need to be updated and reordered. In fact I think it depends of the size of the equation system
-                    "mumps2",         // Amesos2 (if compiled with MUMPS-support)
-                    "mumps",          // Amesos (if compiled with MUMPS-support)
-                    "super_lu_dist2", // Amesos2 SuperLUDist (if compiled with MPI-support)
-                    "super_lu_dist",  // Amesos SuperLUDist (if compiled with MPI-support)
-                    "amesos2",        // Amesos2
-                    "amesos",         // Amesos
-                    "klu2",           // Amesos2 KLU
-                    "klu",            // Amesos KLU
-                    "basker"          // Amesos2 Basker
-                });
-            } else {
-                faster_direct_solvers = std::vector<std::string>({
-                    "pardiso_lu",              // LinearSolversApplication (if compiled with Intel-support)
-                    "pardiso_ldlt",            // LinearSolversApplication (if compiled with Intel-support)
-                    "sparse_lu",               // LinearSolversApplication
-                    "skyline_lu_factorization" // In Core, always available, but slow
-                });
-            }
+            const std::vector<std::string> faster_direct_solvers = TSparseSpaceType::FastestDirectSolverList();
             for (const std::string& r_solver_name : faster_direct_solvers) {
                 if (linear_solver_factory.Has(r_solver_name)) {
                     linear_solver_settings["solver_type"].SetString(r_solver_name);
