@@ -87,6 +87,8 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;

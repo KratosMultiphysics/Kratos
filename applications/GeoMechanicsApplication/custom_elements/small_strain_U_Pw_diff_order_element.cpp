@@ -430,17 +430,15 @@ void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType&        r
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
-                                                            const ProcessInfo& rCurrentProcessInfo)
+void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
     const GeometryType& r_geom             = GetGeometry();
     const auto          integration_method = this->GetIntegrationMethod();
     const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
-    const Matrix Np_container    = mpPressureGeometry->ShapeFunctionsValues(integration_method);
-    const PropertiesType& r_prop = this->GetProperties();
+    const MatrixType Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
+    const PropertiesType& r_prop  = this->GetProperties();
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
         r_geom, number_of_integration_points, mpPressureGeometry->PointsNumber(), Np_container,
@@ -455,8 +453,29 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 
     const SizeType element_size =
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
-    Matrix mass_matrix = ZeroMatrix(element_size, element_size);
-    GeoElementUtilities::AssembleUUBlockMatrix(mass_matrix, mass_matrix_u);
+    if (rMassMatrix.size1() != element_size || rMassMatrix.size2() != element_size)
+        rMassMatrix.resize(element_size, element_size, false);
+    noalias(rMassMatrix) = ZeroMatrix(element_size, element_size);
+    GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
+
+    KRATOS_CATCH("")
+}
+
+void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
+                                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
+
+    const GeometryType&   r_geom = GetGeometry();
+    const PropertiesType& r_prop = this->GetProperties();
+    const SizeType        element_size =
+        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
+
+    // Compute Mass Matrix
+    MatrixType mass_matrix = ZeroMatrix(element_size, element_size);
+    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
     // Compute Stiffness matrix
     MatrixType StiffnessMatrix(element_size, element_size);
