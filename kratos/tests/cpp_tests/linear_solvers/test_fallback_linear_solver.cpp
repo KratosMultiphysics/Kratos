@@ -114,7 +114,8 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, AltairExtensio
     KRATOS_EXPECT_EQ(simple_fallback_solver_1.GetCurrentSolverIndex(), 1);
 
     // Create a simple fallback solver
-    FallbackLinearSolverType simple_fallback_solver_2({p_solver1, p_solver2});
+    std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
+    FallbackLinearSolverType simple_fallback_solver_2(solvers);
 
     // Solve the system
     solved = simple_fallback_solver_2.Solve(A, x, b);
