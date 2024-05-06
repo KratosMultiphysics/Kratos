@@ -225,8 +225,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
     const double xi
     )
 {
-    rN.clear();
-
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
@@ -252,9 +250,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
 
     const double J3_pow_2 = std::pow(J3, 2);
     const double J3_pow_3 = std::pow(J3, 3);
-
-    const double k01_pow_2 = std::pow(k01, 2);
-    const double k02_pow_2 = std::pow(k02, 2);
 
     const double k_s_pow_2 = std::pow(k_s, 2);
     const double k_s_pow_3 = std::pow(k_s, 3);
@@ -286,13 +281,53 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
 /***********************************************************************************/
 
 void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
-    GlobalSizeVector& rN,
+    GlobalSizeVector& rdN,
     const double J,
     const double ShearFactor,
     const double xi
     )
 {
-    // todo
+    // Nodal values of the Jacobian
+    const double J1 = GetJacobian(-1.0);
+    const double J2 = GetJacobian( 1.0);
+    const double J3 = GetJacobian( 0.0);
+
+    // Nodal values of the geometric curvatures
+    const double k01 = GetGeometryCurvature(J, -1.0);
+    const double k02 = GetGeometryCurvature(J,  1.0);
+    const double k03 = GetGeometryCurvature(J,  0.0);
+
+    const double k_s = GetBendingShearStiffnessRatio();
+
+    const double xi_pow_2 = std::pow(xi, 2);
+    const double xi_pow_3 = std::pow(xi, 3);
+    const double xi_pow_4 = std::pow(xi, 4);
+
+    const double J1_pow_2 = std::pow(J1, 2);
+    const double J1_pow_3 = std::pow(J1, 3);
+
+    const double J2_pow_2 = std::pow(J2, 2);
+    const double J2_pow_3 = std::pow(J2, 3);
+
+    const double J3_pow_2 = std::pow(J3, 2);
+    const double J3_pow_3 = std::pow(J3, 3);
+
+    const double k_s_pow_2 = std::pow(k_s, 2);
+    const double k_s_pow_3 = std::pow(k_s, 3);
+
+    rdN[0] = (-5.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi_pow_4 + 4.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi_pow_3 + 3 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi_pow_2 - 2 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi + 30.0 * J1_pow_3 * J2_pow_2 * k01 * k_s * xi_pow_4 - 48.0 * J1_pow_3 * J2_pow_2 * k01 * k_s * xi_pow_3 + 24.0 * J1_pow_3 * J2_pow_2 * k01 * k_s * xi - 6.0 * J1_pow_3 * J2_pow_2 * k01 * k_s - 60.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi_pow_4 + 108.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi_pow_3 + 36.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi_pow_2 - 54.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi + 360.0 * J1_pow_3 * k01 * k_s_pow_2 * xi_pow_4 - 720.0 * J1_pow_3 * k01 * k_s_pow_2 * xi_pow_3 + 360.0 * J1_pow_3 * k01 * k_s_pow_2 * xi - 72.0 * J1_pow_3 * k01 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_2);
+    rdN[1] = (30.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_4 - 16.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_3 - 30.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_2 + 16.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 60.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_4 + 192.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_3 - 192.0 * J1_pow_2 * J2_pow_2 * k_s * xi + 60.0 * J1_pow_2 * J2_pow_2 * k_s + 330.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_4 - 516.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_3 - 432.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 414.0 * J1_pow_2 * J3_pow_2 * k_s * xi - 1080.0 * J1_pow_2 * k_s_pow_2 * xi_pow_4 + 2160.0 * J1_pow_2 * k_s_pow_2 * xi_pow_3 - 2376.0 * J1_pow_2 * k_s_pow_2 * xi + 864.0 * J1_pow_2 * k_s_pow_2 + 90.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_4 + 84.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_3 - 288.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 114.0 * J2_pow_2 * J3_pow_2 * k_s * xi + 360.0 * J2_pow_2 * k_s_pow_2 * xi_pow_4 + 720.0 * J2_pow_2 * k_s_pow_2 * xi_pow_3 - 1656.0 * J2_pow_2 * k_s_pow_2 * xi + 576.0 * J2_pow_2 * k_s_pow_2 + 720.0 * J3_pow_2 * k_s_pow_2 * xi_pow_4 - 4320.0 * J3_pow_2 * k_s_pow_2 * xi_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 * xi - 17280.0 * k_s_pow_3 * xi + 8640.0 * k_s_pow_3) / (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * k_s + 156.0 * J1_pow_2 * J3_pow_2 * k_s - 1296.0 * J1_pow_2 * k_s_pow_2 + 156.0 * J2_pow_2 * J3_pow_2 * k_s - 1296.0 * J2_pow_2 * k_s_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 - 17280.0 * k_s_pow_3);
+    rdN[2] = (5.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi_pow_4 - 4 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi_pow_3 - 3.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi_pow_2 + 2 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi - 30.0 * J1_pow_3 * J2_pow_2 * k_s * xi_pow_4 + 48.0 * J1_pow_3 * J2_pow_2 * k_s * xi_pow_3 - 24.0 * J1_pow_3 * J2_pow_2 * k_s * xi + 6.0 * J1_pow_3 * J2_pow_2 * k_s + 60.0 * J1_pow_3 * J3_pow_2 * k_s * xi_pow_4 - 108.0 * J1_pow_3 * J3_pow_2 * k_s * xi_pow_3 - 36.0 * J1_pow_3 * J3_pow_2 * k_s * xi_pow_2 + 54.0 * J1_pow_3 * J3_pow_2 * k_s * xi - 360.0 * J1_pow_3 * k_s_pow_2 * xi_pow_4 + 720.0 * J1_pow_3 * k_s_pow_2 * xi_pow_3 - 360.0 * J1_pow_3 * k_s_pow_2 * xi + 72.0 * J1_pow_3 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
+
+    rdN[3] = (-5.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * k02 * xi_pow_4 - 4.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * k02 * xi_pow_3 + 3 * J1_pow_2 * J2_pow_3 * J3_pow_2 * k02 * xi_pow_2 + 2 * J1_pow_2 * J2_pow_3 * J3_pow_2 * k02 * xi + 30.0 * J1_pow_2 * J2_pow_3 * k02 * k_s * xi_pow_4 + 48.0 * J1_pow_2 * J2_pow_3 * k02 * k_s * xi_pow_3 - 24.0 * J1_pow_2 * J2_pow_3 * k02 * k_s * xi - 6.0 * J1_pow_2 * J2_pow_3 * k02 * k_s - 60.0 * J2_pow_3 * J3_pow_2 * k02 * k_s * xi_pow_4 - 108.0 * J2_pow_3 * J3_pow_2 * k02 * k_s * xi_pow_3 + 36.0 * J2_pow_3 * J3_pow_2 * k02 * k_s * xi_pow_2 + 54.0 * J2_pow_3 * J3_pow_2 * k02 * k_s * xi + 360.0 * J2_pow_3 * k02 * k_s_pow_2 * xi_pow_4 + 720.0 * J2_pow_3 * k02 * k_s_pow_2 * xi_pow_3 - 360.0 * J2_pow_3 * k02 * k_s_pow_2 * xi - 72.0 * J2_pow_3 * k02 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
+    rdN[4] = (-30.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_4 - 16.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_3 + 30.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_2 + 16.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi + 60.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_4 + 192.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_3 - 192.0 * J1_pow_2 * J2_pow_2 * k_s * xi - 60.0 * J1_pow_2 * J2_pow_2 * k_s - 90.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_4 + 84.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_3 + 288.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 114.0 * J1_pow_2 * J3_pow_2 * k_s * xi - 360.0 * J1_pow_2 * k_s_pow_2 * xi_pow_4 + 720.0 * J1_pow_2 * k_s_pow_2 * xi_pow_3 - 1656.0 * J1_pow_2 * k_s_pow_2 * xi - 576.0 * J1_pow_2 * k_s_pow_2 - 330.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_4 - 516.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_3 + 432.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 414.0 * J2_pow_2 * J3_pow_2 * k_s * xi + 1080.0 * J2_pow_2 * k_s_pow_2 * xi_pow_4 + 2160.0 * J2_pow_2 * k_s_pow_2 * xi_pow_3 - 2376.0 * J2_pow_2 * k_s_pow_2 * xi - 864.0 * J2_pow_2 * k_s_pow_2 - 720.0 * J3_pow_2 * k_s_pow_2 * xi_pow_4 + 4320.0 * J3_pow_2 * k_s_pow_2 * xi_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 * xi - 17280.0 * k_s_pow_2 * xi - 8640.0 * k_s_pow_2) / (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * k_s + 156.0 * J1_pow_2 * J3_pow_2 * k_s - 1296.0 * J1_pow_2 * k_s_pow_2 + 156.0 * J2_pow_2 * J3_pow_2 * k_s - 1296.0 * J2_pow_2 * k_s_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 - 17280.0 * k_s_pow_3);
+    rdN[5] = (5.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi_pow_4 + 4.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi_pow_3 - 3.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi_pow_2 - 2 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi - 30.0 * J1_pow_2 * J2_pow_3 * k_s * xi_pow_4 - 48.0 * J1_pow_2 * J2_pow_3 * k_s * xi_pow_3 + 24.0 * J1_pow_2 * J2_pow_3 * k_s * xi + 6.0 * J1_pow_2 * J2_pow_3 * k_s + 60.0 * J2_pow_3 * J3_pow_2 * k_s * xi_pow_4 + 108.0 * J2_pow_3 * J3_pow_2 * k_s * xi_pow_3 - 36.0 * J2_pow_3 * J3_pow_2 * k_s * xi_pow_2 - 54.0 * J2_pow_3 * J3_pow_2 * k_s * xi - 360.0 * J2_pow_3 * k_s_pow_2 * xi_pow_4 - 720.0 * J2_pow_3 * k_s_pow_2 * xi_pow_3 + 360.0 * J2_pow_3 * k_s_pow_2 * xi + 72.0 * J2_pow_3 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
+
+    rdN[6] = (-10.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * k03 * xi_pow_4 + 12.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * k03 * xi_pow_2 - 2.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * k03 - 75.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_4 + 96.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_3 + 162.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_2 - 48.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi - 39.0 * J1_pow_2 * J3_pow_3 * k03 * k_s - 75.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_4 - 96.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_3 + 162.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_2 + 48.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi - 39.0 * J2_pow_2 * J3_pow_3 * k03 * k_s - 360.0 * J3_pow_3 * k03 * k_s_pow_2 * xi_pow_4 + 2160.0 * J3_pow_3 * k03 * k_s_pow_2 * xi_pow_2 - 648.0 * J3_pow_3 * k03 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_3 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_3 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_3 * k_s_pow_2 - 4320.0 * k_s_pow_3);
+    rdN[7] = (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_3 - 8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 96.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_3 + 96.0 * J1_pow_2 * J2_pow_2 * k_s * xi - 60.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_4 + 108.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_3 + 36.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 - 132.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 360.0 * J1_pow_2 * k_s_pow_2 * xi_pow_4 - 720.0 * J1_pow_2 * k_s_pow_2 * xi_pow_3 + 1008.0 * J1_pow_2 * k_s_pow_2 * xi - 72.0 * J1_pow_2 * k_s_pow_2 + 60.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_4 + 108.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_3 - 36.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 - 132.0 * J2_pow_2 * J3_pow_2 * k_s * xi - 360.0 * J2_pow_2 * k_s_pow_2 * xi_pow_4 - 720.0 * J2_pow_2 * k_s_pow_2 * xi_pow_3 + 1008.0 * J2_pow_2 * k_s_pow_2 * xi + 72.0 * J2_pow_2 * k_s_pow_2 - 1296.0 * J3_pow_2 * k_s_pow_2 * xi + 8640.0 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
+    rdN[8] = (10.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi_pow_4 - 12.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi_pow_2 + 2.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 + 75.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_4 - 96.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_3 - 162.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_2 + 48.0 * J1_pow_2 * J3_pow_3 * k_s * xi + 39.0 * J1_pow_2 * J3_pow_3 * k_s + 75.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_4 + 96.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_3 - 162.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_2 - 48.0 * J2_pow_2 * J3_pow_3 * k_s * xi + 39.0 * J2_pow_2 * J3_pow_3 * k_s + 360.0 * J3_pow_3 * k_s_pow_2 * xi_pow_4 - 2160.0 * J3_pow_3 * k_s_pow_2 * xi_pow_2 + 648.0 * J3_pow_3 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_3 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
+
+    rdN /= J;
 }
 
 /***********************************************************************************/
@@ -306,6 +341,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsVa
     )
 {
     // todo
+    rN /= std::pow(J, 2);
 }
 
 /***********************************************************************************/
@@ -319,6 +355,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
     )
 {
     // todo
+    rN /= std::pow(J, 3);
 }
 
 /***********************************************************************************/
@@ -333,6 +370,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNThetaShapeFunctionsValues(
     )
 {
     // todo
+    rN /= std::pow(J, 4);
 }
 
 /***********************************************************************************/
