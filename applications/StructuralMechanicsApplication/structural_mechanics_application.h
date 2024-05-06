@@ -81,6 +81,7 @@
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 #include "custom_elements/timoshenko_beam_element_2D2N.h"
 #include "custom_elements/timoshenko_beam_element_2D3N.h"
+#include "custom_elements/timoshenko_curved_beam_element_2D3N.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"

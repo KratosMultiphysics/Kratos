@@ -75,6 +75,8 @@ public:
     /// The base element type
     using BaseType = Element;
 
+    using GlobalSizeVector = BoundedVector<double, 9>;
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoCurvedBeamElement2D3N);
 
@@ -116,7 +118,7 @@ public:
     }
 
     // Create method
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<LinearTimoshenkoCurvedBeamElement2D3N>(NewId, pGeom, pProperties);
     }
@@ -141,7 +143,7 @@ public:
      * @brief Returns a 6 component vector including the values of the DoFs
      * in GLOBAL beam axes
      */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue);
+    void GetNodalValuesVector(GlobalSizeVector& rNodalValues);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -150,9 +152,9 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    double CalculateAxialStrain     (const double J, const double ShearFactor, const double xi, const GlobalSizeVector& rNodalValues);
+    double CalculateShearStrain     (const double J, const double ShearFactor, const double xi, const GlobalSizeVector& rNodalValues);
+    double CalculateBendingCurvature(const double J, const double ShearFactor, const double xi, const GlobalSizeVector& rNodalValues);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
@@ -161,7 +163,7 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues);
+    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double J, const double ShearFactor, const double xi, const GlobalSizeVector &rNodalValues);
 
     /**
      * @brief Called to initialize the element.
@@ -244,11 +246,11 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues                 (VectorType& rN, const double J, const double ks, const double xi);
-    void GetFirstDerivativesShapeFunctionsValues (VectorType& rN, const double J, const double ks, const double xi);
-    void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double J, const double ks, const double xi);
-    void GetThirdDerivativesShapeFunctionsValues (VectorType& rN, const double J, const double ks, const double xi);
-    void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double J, const double ks, const double xi);
+    void GetShapeFunctionsValues                 (GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
+    void GetFirstDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
+    void GetSecondDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
+    void GetThirdDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
+    void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double ShearFactor, const double xi);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
@@ -259,8 +261,8 @@ public:
      * @param k0 The curvature of the geometry
      * @param xi The coordinate in the natural axes
     */
-    void GetNThetaShapeFunctionsValues                (VectorType& rN, const double J, const double ShearFactor, const double k0, const double xi);
-    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double J, const double ShearFactor, const double k0, const double xi);
+    void GetNThetaShapeFunctionsValues                (GlobalSizeVector& rN, const double J, const double ShearFactor, const double k0, const double xi);
+    void GetFirstDerivativesNThetaShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double ShearFactor, const double k0, const double xi);
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
@@ -270,8 +272,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues                (VectorType& rN, const double J, const double xi);
-    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double J, const double xi);
+    void GetNu0ShapeFunctionsValues                (GlobalSizeVector& rNu, const double J, const double xi);
+    void GetFirstDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double J, const double xi);
 
 
     /**
