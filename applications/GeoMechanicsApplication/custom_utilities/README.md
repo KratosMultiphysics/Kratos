@@ -38,8 +38,8 @@ where $B$ is the B-matrix, $\alpha$ is the Biot-alpha (relation between pressure
 ### Soil density
 
 The soil density is calculated as
-$$\rho= S_r \Phi \rho_w + \Phi \rho_s$$
-where $S_r$ is the degree of saturation, $\Phi$ is the porosity, $\rho_w$ is the water density, $\rho_s$ is the solid density. 
+$$\rho= S_r n \rho_w + (1 - n ) \rho_s$$
+where $S_r$ is the degree of saturation, $n$ is the porosity, $\rho_w$ is the water density, $\rho_s$ is the solid density. 
 
 File transport_equation_utilities.hpp includes 
 
