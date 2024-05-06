@@ -1,8 +1,4 @@
 cmake_minimum_required (VERSION 2.8.6)
-project (KratosMultiphysics)
-set (CMAKE_CXX_STANDARD 17)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
-set (CMAKE_CXX_EXTENSIONS OFF)
 
 # Setting some policies
 # No recursive dereferencing
@@ -24,6 +20,17 @@ endif(POLICY CMP0074)
 if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif(POLICY CMP0057)
+
+# MSVC ABI (allow compilation with MT) (Must be enabled before project)
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif(POLICY CMP0091)
+
+project (KratosMultiphysics)
+
+set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_CXX_EXTENSIONS OFF)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
