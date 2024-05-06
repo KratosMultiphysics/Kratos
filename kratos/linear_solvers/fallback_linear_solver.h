@@ -214,12 +214,10 @@ public:
         VectorType& rB
         ) override
     {
-        // TODO: Decide if call all solvers or just the current one
         // NOTE: We assume that initializes internal data of solvers, not system of equations
         for (auto& p_solver : mSolvers) {
             p_solver->Initialize(rA, rX, rB);
         }
-        // GetCurrentSolver()->Initialize(rA, rX, rB);
     }
 
     /**
@@ -236,11 +234,6 @@ public:
         VectorType& rB
         ) override
     {
-        // TODO: Decide if call all solvers or just the current one
-        // NOTE: We assume it may modify the system of equations, therefore we call just in the current solver
-        // for (auto& p_solver : mSolvers) {
-        //     p_solver->InitializeSolutionStep(rA, rX, rB);
-        // }
         GetCurrentSolver()->InitializeSolutionStep(rA, rX, rB);
     }
 
@@ -257,11 +250,6 @@ public:
         VectorType& rB
         ) override
     {
-        // TODO: Decide if call all solvers or just the current one
-        // NOTE: We assume it may modify the system of equations, therefore we call just in the current solver
-        // for (auto& p_solver : mSolvers) {
-        //     p_solver->FinalizeSolutionStep(rA, rX, rB);
-        // }
         GetCurrentSolver()->FinalizeSolutionStep(rA, rX, rB);
     }
 
