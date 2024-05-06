@@ -56,7 +56,7 @@ def main():
     commander = testing_utils.Commander()
     
     # Run the tests
-    commander.RunCppTests(applications, args.verbosity)
+    commander.RunCppTests(applications, signalTime)
 
     # Exit message
     testing_utils.PrintTestSummary(commander.exitCodes)

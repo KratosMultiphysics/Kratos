@@ -168,7 +168,6 @@ class Commander(object):
 
         # Exit message
         PrintTestFooter(test_suit_name, self.process.returncode)
-
         
     def RunPythonTests(self, applications, level, verbose, command, timer):
         ''' Calls the script that will run the tests.
@@ -235,7 +234,7 @@ class Commander(object):
                                 file=sys.stderr)
                             sys.stderr.flush()
 
-    def RunCppTests(self, applications, verbosity=1):
+    def RunCppTests(self, applications, timer):
         ''' Calls the cpp tests directly
         '''
 
@@ -252,7 +251,9 @@ class Commander(object):
                     command=[
                         os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
                     ], 
-                    timer=300)
+                    timer=timer,
+                    working_dir=os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()))
+                )
 
     def RunMPIPythonTests(self, applications, mpi_command, mpi_flags, num_processes_flag, num_processes, level, verbose, command, timer):
 
