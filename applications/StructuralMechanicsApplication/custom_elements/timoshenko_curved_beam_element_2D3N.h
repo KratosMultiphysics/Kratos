@@ -241,6 +241,18 @@ public:
     const double GetJacobian(const double xi);
 
     /**
+     * @brief Returns the bending/shear ratio stiffness
+     */
+    const double GetBendingShearStiffnessRatio();
+
+    /**
+     * @brief Returns the curvature of the geometry
+     */
+    const double GetGeometryCurvature(
+        const double J,
+        const double xi);
+
+    /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
      * Also its derivatives
      * @param rN reference to the shape functions (or derivatives)
