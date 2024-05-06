@@ -383,7 +383,11 @@ public:
      */
     bool AdditionalPhysicalDataIsNeeded() override
     {
-        return GetCurrentSolver()->AdditionalPhysicalDataIsNeeded();
+        bool additional_data_needed = false;
+        for (auto& p_solver : mSolvers) {
+            additional_data_needed = additional_data_needed || p_solver->AdditionalPhysicalDataIsNeeded();
+        }
+        return additional_data_needed;
     }
 
     /**
