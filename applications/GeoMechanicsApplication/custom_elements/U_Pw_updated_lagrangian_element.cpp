@@ -96,7 +96,9 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
         // set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
