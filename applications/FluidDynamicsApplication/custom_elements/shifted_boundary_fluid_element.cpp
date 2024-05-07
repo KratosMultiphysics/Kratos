@@ -1,4 +1,5 @@
 // Project includes
+#include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
@@ -122,6 +123,9 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
             DenseMatrix<unsigned int> nodes_in_faces;
             r_parent_geom.NodesInFaces(nodes_in_faces);
 
+            // TODO using averaged element size?
+            //const double size2_parent = ElementSizeCalculator<Dim,BlockSize>::AverageElementSize(r_parent_geom);
+
             // Initialize counter for the surrogate integration point
             std::size_t surrogate_pt_index = data.PositiveSideWeights.size();
             //TODO: choose - Integration method for a surrogate boundary face
@@ -133,7 +137,8 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 // Get the current surrogate face geometry information
                 const auto& r_bd_geom = r_boundaries[sur_bd_id];
                 //TODO: ERROR in laplacian/small_displ?? face is column not row, for triangle row works as well because of symmetry
-                const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);  // elemental/ local node IDs of face's nodes - first entry is local ID of the face's opposite point (for tri and tetra)
+                // Elemental/ local node IDs of a face's nodes - NOTE that first entry is local ID of the face's opposite point (for tri and tetra)
+                const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);
                 const auto& r_integration_points = r_bd_geom.IntegrationPoints(integration_method);
 
                 // Get the gradient of the node opposite of the surrogate face
@@ -153,12 +158,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                 // NOTE that the integration weight is calculated as detJ of the parent multiplied by the global size of the surrogate boundary face: Dim * Parent domain volume * norm(DN_DX_opposite_node)
                 // NOTE that detJ is only constant inside the element for simplex elements and only for Triangle2D3N and Tetrahedra3D4N Dim*size_parent results in the correct multiplier for the norm
                 // Triangle2D3N: 2*1/2*detJ*length_of_line | Tetrahedra3D4N: 3*1/6*detJ*area_of_parallelogram
-                const double int_pt_weight = Dim * size_parent / h_sur_bd;
+                //const double int_pt_weight = Dim * size_parent / h_sur_bd;
                 //const double weight = Dim * size_parent / h_sur_bd / sum_int_pt_weights;
 
                 // Get detJ for all integration points of the surrogate boundary face
-                //VectorType int_pt_detJs;
-                //r_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
+                VectorType int_pt_detJs;
+                r_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
 
                 // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
                 //TODO: There is only one integration point !?
@@ -166,7 +171,7 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     // Scale integration point weight (necessary if it's more than one integration point per boundary face!)
                     // const double int_pt_weight = weight * r_integration_points[i_int_pt].Weight();
                     // Calculate integration point weight by multiplying its detJ with its weight
-                    // const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
+                    const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
 
                     // Compute the local coordinates of the integration point in the parent element's geometry
                     Geometry<Node>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
@@ -183,17 +188,12 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
                     }
 
                     // Get DN_DX of the element at the integration point
-                    MatrixType int_pt_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
+                    MatrixType int_pt_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
                     double aux_detJ_parent;
                     r_parent_geom.ShapeFunctionsLocalGradients(aux_DN_DXi_parent, int_pt_local_coords_parent);
                     r_parent_geom.Jacobian(aux_J_parent, int_pt_local_coords_parent);
                     MathUtils<double>::InvertMatrix(aux_J_parent, aux_J_inv_parent, aux_detJ_parent);
-                    aux_DN_DX_parent = prod(aux_DN_DXi_parent, aux_J_inv_parent);
-                    for (std::size_t d = 0; d < Dim; ++d ) {
-                        for (std::size_t i_node = 0; i_node < NumNodes; ++i_node) {
-                            int_pt_DN_DX_parent(i_node, d) = aux_DN_DX_parent(i_node, d);
-                        }
-                    }
+                    int_pt_DN_DX_parent = prod(aux_DN_DXi_parent, aux_J_inv_parent);
 
                     // Update the element's data
                     this->UpdateIntegrationPointData(data, surrogate_pt_index++, int_pt_weight, row(int_pt_N_parent,0), int_pt_DN_DX_parent);
@@ -461,11 +461,11 @@ void ShiftedBoundaryFluidElement<TBaseElement>::InitializeGeometryData(ShiftedBo
 template<class TBaseElement>
 std::vector<std::size_t> ShiftedBoundaryFluidElement<TBaseElement>::GetSurrogateFacesIds()
 {
-    const std::size_t n_faces = Dim + 1;
+    const std::size_t n_faces = Dim + 1;  //NOTE this is only valid for tri and tetra
     auto& r_neigh_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     // Check the current element faces
-    // Note that we rely on the fact that the neighbors are sorted according to the faces
+    // Note that we rely on the fact that the neighbors are sorted according to the order of faces in NEIGHBOUR_ELEMENTS
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
         auto p_neigh_elem = r_neigh_elems(i_face).get();
