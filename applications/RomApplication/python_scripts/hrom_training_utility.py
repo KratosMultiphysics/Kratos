@@ -347,7 +347,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetConditionIdsNotInHRomModelPart function
                 new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     conditions_to_include_model_part, # The model part containing the conditions to be included
                     hrom_weights)
 
