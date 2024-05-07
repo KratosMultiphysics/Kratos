@@ -614,12 +614,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(GlobalSizeVecto
 void LinearTimoshenkoCurvedBeamElement2D3N::CalculateGeneralizedStrainsVector(
     VectorType& rStrain,
     const double J,
-    const double ShearFactor,
     const double xi,
     const GlobalSizeVector &rNodalValues
     )
 {
-    
+    rStrain[0] = CalculateAxialStrain     (J, xi, rNodalValues); // El
+    rStrain[1] = CalculateBendingCurvature(J, xi, rNodalValues); // Kappa
+    rStrain[2] = CalculateShearStrain     (J, xi, rNodalValues); // Gamma_xy
 }
 
 /***********************************************************************************/
@@ -627,7 +628,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateGeneralizedStrainsVector(
 
 double LinearTimoshenkoCurvedBeamElement2D3N::CalculateAxialStrain(
     const double J,
-    const double ShearFactor,
     const double xi,
     const GlobalSizeVector& rNodalValues
     )
@@ -644,7 +644,6 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateAxialStrain(
 
 double LinearTimoshenkoCurvedBeamElement2D3N::CalculateShearStrain(
     const double J,
-    const double ShearFactor,
     const double xi,
     const GlobalSizeVector& rNodalValues
     )
@@ -663,7 +662,6 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateShearStrain(
 
 double LinearTimoshenkoCurvedBeamElement2D3N::CalculateBendingCurvature(
     const double J,
-    const double ShearFactor,
     const double xi,
     const GlobalSizeVector& rNodalValues
     )
@@ -727,20 +725,67 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     GlobalSizeVector nodal_values(SystemSize);
     GetNodalValuesVector(nodal_values);
 
+    GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
 
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double J = GetJacobian(xi);
+        const double k0 = GetGeometryCurvature(J, xi);
+        const double jacobian_weight = weight * J;
+
+        // We fill the strain vector with El, kappa and Gamma_sy
+        CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
+
+        // We fill the resulting stresses
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N = r_generalized_stresses[0];
+        const double M = r_generalized_stresses[1];
+        const double V = r_generalized_stresses[2];
+
+        // And its derivatives with respect to the gen. strains
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const double dN_dEl    = r_constitutive_matrix(0, 0);
+        const double dM_dkappa = r_constitutive_matrix(1, 1);
+        const double dV_dgamma = r_constitutive_matrix(2, 2);
+
+        // Let's compute the required arrays
+        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        GetShapeFunctionsValues(N_shape, J, xi);
+        GetNu0ShapeFunctionsValues(Nu, xi);
+        noalias(N_s) = dN_shape - N_theta + k0 * Nu;
+
+        // Axial contributions
+        noalias(rLHS) += outer_prod(dNu, dNu) * dN_dEl * jacobian_weight;
+        noalias(rRHS) -= dNu * N * jacobian_weight;
+
+        // todo
+
+
+        // Bending contributions
+        noalias(rLHS) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
+        noalias(rRHS) -= dN_theta * M * jacobian_weight;
+
+        // todo
+
+        // Shear contributions
+        noalias(rLHS) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
+        noalias(rRHS) -= N_s * V * jacobian_weight;
+
+        // todo
+
+
+        // Now we add the body forces contributions
+        noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
+        noalias(rRHS) += N_shape * local_body_forces[1] * jacobian_weight * area;
     } // IP loop
-
-
-
-
-
-
-
-
-
-
 
     KRATOS_CATCH("");
 }

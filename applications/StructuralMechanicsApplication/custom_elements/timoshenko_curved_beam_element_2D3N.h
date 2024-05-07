@@ -149,9 +149,9 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    double CalculateAxialStrain     (const double J, const double ShearFactor, const double xi, const GlobalSizeVector& rNodalValues);
-    double CalculateShearStrain     (const double J, const double ShearFactor, const double xi, const GlobalSizeVector& rNodalValues);
-    double CalculateBendingCurvature(const double J, const double ShearFactor, const double xi, const GlobalSizeVector& rNodalValues);
+    double CalculateAxialStrain     (const double J, const double xi, const GlobalSizeVector& rNodalValues);
+    double CalculateShearStrain     (const double J, const double xi, const GlobalSizeVector& rNodalValues);
+    double CalculateBendingCurvature(const double J, const double xi, const GlobalSizeVector& rNodalValues);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
@@ -160,7 +160,7 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double J, const double ShearFactor, const double xi, const GlobalSizeVector &rNodalValues);
+    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double J, const double xi, const GlobalSizeVector &rNodalValues);
 
     /**
      * @brief Called to initialize the element.
