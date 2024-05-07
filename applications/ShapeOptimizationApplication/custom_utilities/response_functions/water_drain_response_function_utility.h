@@ -62,7 +62,8 @@ typedef ModelPart::NodesContainerType NodesArrayType;
 struct Volume {
 	double mValue = 0.0;
 	NodesArrayType mListOfNodes;
-	NodesArrayType mNeigbhourNodes;
+	NodesArrayType mNeighbourNodes;
+	std::vector<std::pair<double, NodeTypePointer>> mNeighbourNodesSorted;
 	Vector mHighestPoint;
 	Vector mLowestPoint;
 	bool isGrowing = true;
