@@ -1105,19 +1105,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
-        // GlobalSizeVector vec = N_shape * local_body_forces[1] * jacobian_weight * area;
-        // KRATOS_WATCH(vec)
-
-        // GlobalSizeVector vec = N_shape;
-        // KRATOS_WATCH(vec)
-
         RotateRHS(local_rhs, angle);
 
         noalias(rRHS) += local_rhs;
         noalias(local_rhs) = ZeroVector(SystemSize);
     } // IP loop
-    // KRATOS_WATCH(vec)
-
 
     KRATOS_CATCH("");
 }
@@ -1156,7 +1148,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
-            GetNodalValuesVector(nodal_values, xi);
+            const double angle = GetAngle(xi);
+            GetNodalValuesVector(nodal_values, angle);
             const double J = GetJacobian(xi);
 
             CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
