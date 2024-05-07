@@ -234,10 +234,8 @@ private:
     bool IntersectionsGenerated(int Color) const;
 
     ///@}
-    ///@name Serializer
+    ///@name Friends
     ///@{
-
-    friend class Serializer;
 
     friend class VoxelMesherColoring;
 
