@@ -295,7 +295,7 @@ protected:
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
     virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements);
-    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
 
     Matrix CalculateDeformationGradient(unsigned int GPoint) const;
 

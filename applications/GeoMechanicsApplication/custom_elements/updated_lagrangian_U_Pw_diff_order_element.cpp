@@ -82,7 +82,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         Variables.B = b_matrices[GPoint];
 
         // Compute strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
 
         // set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
