@@ -1134,7 +1134,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = this->CalculateBMatrix(Variables.DNu_DXInitialConfiguration, Variables.Nu);
 
             // Compute infinitesimal strain
-            this->CalculateCauchyStrain(Variables);
+            Variables.StrainVector = this->CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -2073,13 +2073,13 @@ void SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariable
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
-        this->CalculateCauchyStrain(rVariables);
+        rVariables.StrainVector = this->CalculateCauchyStrain(rVariables.B, rVariables.DisplacementVector);
     }
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVariables)
+Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements)
 {
-    noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
+    return prod(rB, rDisplacements);
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
