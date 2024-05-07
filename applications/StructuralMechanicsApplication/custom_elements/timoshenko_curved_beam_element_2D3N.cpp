@@ -913,7 +913,98 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY;
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
 
+    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+        rLHS.resize(SystemSize, SystemSize, false);
+    }
+    noalias(rLHS) = ZeroMatrix(SystemSize, SystemSize);
+
+    MatrixType local_lhs = rLHS;
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // Let's initialize the cl values
+    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    GlobalSizeVector nodal_values(SystemSize);
+
+    GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double J  = GetJacobian(xi);
+        const double k0 = GetGeometryCurvature(J, xi);
+        const double jacobian_weight = weight * J;
+        const double angle = GetAngle(xi);
+
+        GetNodalValuesVector(nodal_values, angle);
+
+        // We fill the strain vector with El, kappa and Gamma_sy
+        CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
+
+        // We fill the resulting stresses
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N = r_generalized_stresses[0];
+        const double M = r_generalized_stresses[1];
+        const double V = r_generalized_stresses[2];
+
+        // And its derivatives with respect to the gen. strains
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const double dN_dEl    = r_constitutive_matrix(0, 0);
+        const double dM_dkappa = r_constitutive_matrix(1, 1);
+        const double dV_dgamma = r_constitutive_matrix(2, 2);
+
+        // Let's compute the required arrays
+        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        GetShapeFunctionsValues(N_shape, J, xi);
+        GetNu0ShapeFunctionsValues(Nu, xi);
+        noalias(N_s) = dN_shape - N_theta + k0 * Nu;
+
+        // Axial contributions
+        noalias(local_lhs) += outer_prod(dNu, dNu) * dN_dEl * jacobian_weight;
+
+        // todo
+
+
+        // Bending contributions
+        noalias(local_lhs) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
+
+        // todo
+
+        // Shear contributions
+        noalias(local_lhs) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
+
+
+        // todo
+
+
+        RotateLHS(local_lhs, angle);
+
+        noalias(rLHS) += local_lhs;
+        noalias(local_lhs) = ZeroMatrix(SystemSize, SystemSize);
+    } // IP loop
+
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -924,7 +1015,105 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY;
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
 
+    if (rRHS.size() != SystemSize) {
+        rRHS.resize(SystemSize, false);
+    }
+    noalias(rRHS) = ZeroVector(SystemSize);
+
+    VectorType local_rhs = rRHS;
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    const double area   = r_props[CROSS_AREA];
+
+    // Let's initialize the cl values
+    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    GlobalSizeVector nodal_values(SystemSize);
+
+    GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double J  = GetJacobian(xi);
+        const double k0 = GetGeometryCurvature(J, xi);
+        const double jacobian_weight = weight * J;
+        const double angle = GetAngle(xi);
+
+        GetNodalValuesVector(nodal_values, angle);
+
+        // We fill the strain vector with El, kappa and Gamma_sy
+        CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
+
+        // We fill the resulting stresses
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        const Vector &r_generalized_stresses = cl_values.GetStressVector();
+        const double N = r_generalized_stresses[0];
+        const double M = r_generalized_stresses[1];
+        const double V = r_generalized_stresses[2];
+
+        // And its derivatives with respect to the gen. strains
+        const MatrixType& r_constitutive_matrix = cl_values.GetConstitutiveMatrix();
+        const double dN_dEl    = r_constitutive_matrix(0, 0);
+        const double dM_dkappa = r_constitutive_matrix(1, 1);
+        const double dV_dgamma = r_constitutive_matrix(2, 2);
+
+        // Let's compute the required arrays
+        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        GetShapeFunctionsValues(N_shape, J, xi);
+        GetNu0ShapeFunctionsValues(Nu, xi);
+        noalias(N_s) = dN_shape - N_theta + k0 * Nu;
+
+        // Axial contributions
+        noalias(local_rhs) -= dNu * N * jacobian_weight;
+
+        // todo
+
+
+        // Bending contributions
+        noalias(local_rhs) -= dN_theta * M * jacobian_weight;
+
+        // todo
+
+        // Shear contributions
+        noalias(local_rhs) -= N_s * V * jacobian_weight;
+
+
+        // todo
+
+
+        // Now we add the body forces contributions
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
+        noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
+        noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
+
+        RotateRHS(local_rhs, angle);
+
+        noalias(rRHS) += local_rhs;
+        noalias(local_rhs) = ZeroVector(SystemSize);
+    } // IP loop
+
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
