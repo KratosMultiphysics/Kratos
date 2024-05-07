@@ -768,28 +768,30 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         // Axial contributions
         noalias(local_lhs) += outer_prod(dNu, dNu) * dN_dEl * jacobian_weight;
-        noalias(rRHS) -= dNu * N * jacobian_weight;
+        noalias(local_rhs) -= dNu * N * jacobian_weight;
 
         // todo
 
 
         // Bending contributions
         noalias(local_lhs) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
-        noalias(rRHS) -= dN_theta * M * jacobian_weight;
+        noalias(local_rhs) -= dN_theta * M * jacobian_weight;
 
         // todo
 
         // Shear contributions
         noalias(local_lhs) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
-        noalias(rRHS) -= N_s * V * jacobian_weight;
+        noalias(local_rhs) -= N_s * V * jacobian_weight;
 
 
         // todo
 
-        RotateLHS(local_lhs, r_geometry, angle);
+        RotateAll(local_lhs, local_rhs, 45*Globals::Pi/180.0);
 
         noalias(rLHS) += local_lhs;
+        noalias(rRHS) += local_rhs;
         noalias(local_lhs) = ZeroMatrix(SystemSize, SystemSize);
+        noalias(local_rhs) = ZeroVector(SystemSize);
 
         // Now we add the body forces contributions
         noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
@@ -828,18 +830,55 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
 
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
     MatrixType& rLHS,
-    const GeometryType& rGeometry,
     const double angle
 )
 {
-    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-        BoundedMatrix<double, 3, 3> T, Tt;
-        BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-        noalias(aux_product) = prod(rLHS, trans(global_size_T));
-        noalias(rLHS) = prod(global_size_T, aux_product);
-    }
+    BoundedMatrix<double, 3, 3> T, Tt;
+    BoundedMatrix<double, 9, 9> global_size_T, aux_product;
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const double angle
+)
+{
+    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, 9, 9> global_size_T, aux_product;
+    BoundedVector<double, 9> local_rhs;
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+
+    noalias(local_rhs) = rRHS;
+    noalias(rRHS) = prod(global_size_T, local_rhs);
+
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
+    VectorType& rRHS,
+    const double angle
+)
+{
+    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, 9, 9> global_size_T;
+    BoundedVector<double, 9> local_rhs;
+    noalias(local_rhs) = rRHS;
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+
+    noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
 /***********************************************************************************/
