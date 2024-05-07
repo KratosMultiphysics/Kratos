@@ -87,7 +87,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double max_stress;
     double min_stress;
     double ultimate_stress;
-    double initial_threshold = mInitialTherhold;
     double relaxation_factor = mRelaxationFactor;
     double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
     bool first_max_indicator = mFirstMaxDetected;
@@ -231,6 +230,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         residual_stress_vector *= relaxation_factor;
         const double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
 
+        if (residual_stress_sign_factor > 0.0) {
+           uniaxial_residual_stress *= relaxation_factor;
+        } else {
+           uniaxial_residual_stress = 0.0;
+        }
+        
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
         
