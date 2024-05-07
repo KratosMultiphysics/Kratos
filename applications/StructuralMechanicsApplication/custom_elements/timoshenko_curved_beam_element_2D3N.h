@@ -275,8 +275,8 @@ public:
      * @param k0 The curvature of the geometry
      * @param xi The coordinate in the natural axes
     */
-    void GetNThetaShapeFunctionsValues                (GlobalSizeVector& rN, const double J, const double ShearFactor, const double k0, const double xi);
-    void GetFirstDerivativesNThetaShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double ShearFactor, const double k0, const double xi);
+    void GetNThetaShapeFunctionsValues                (GlobalSizeVector& rN, const double J, const double xi);
+    void GetFirstDerivativesNThetaShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0

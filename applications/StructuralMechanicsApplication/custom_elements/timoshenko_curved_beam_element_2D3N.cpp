@@ -376,7 +376,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsVa
     rd2N[7] = (24.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_2 - 8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 288.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_2 + 96.0 * J1_pow_2 * J2_pow_2 * k_s - 240.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_3 + 324.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 72.0 * J1_pow_2 * J3_pow_2 * k_s * xi - 132.0 * J1_pow_2 * J3_pow_2 * k_s + 1440.0 * J1_pow_2 * k_s_pow_2 * xi_pow_3 - 2160.0 * J1_pow_2 * k_s_pow_2 * xi_pow_2 + 1008.0 * J1_pow_2 * k_s_pow_2 + 240.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_3 + 324.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 - 72.0 * J2_pow_2 * J3_pow_2 * k_s * xi - 132.0 * J2_pow_2 * J3_pow_2 * k_s - 1440.0 * J2_pow_2 * k_s_pow_2 * xi_pow_3 - 2160.0 * J2_pow_2 * k_s_pow_2 * xi_pow_2 + 1008.0 * J2_pow_2 * k_s_pow_2 - 1296.0 * J3_pow_2 * k_s_pow_2 + 8640.0 * k_s_pow_3) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
     rd2N[8] = (40.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi_pow_3 - 24.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi + 300.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_3 - 288.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_2 - 324.0 * J1_pow_2 * J3_pow_3 * k_s * xi + 48.0 * J1_pow_2 * J3_pow_3 * k_s + 300.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_3 + 288.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_2 - 324.0 * J2_pow_2 * J3_pow_3 * k_s * xi - 48.0 * J2_pow_2 * J3_pow_3 * k_s + 1440.0 * J3_pow_3 * k_s_pow_2 * xi_pow_3 - 4320.0 * J3_pow_3 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
 
-    // rd2N /= std::pow(J, 2);
+    rd2N /= std::pow(J, 2);
 }
 
 /***********************************************************************************/
@@ -426,7 +426,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
     rd3N[7] = (48.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 576.0 * J1_pow_2 * J2_pow_2 * k_s * xi - 720.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 648.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 72.0 * J1_pow_2 * J3_pow_2 * k_s + 4320.0 * J1_pow_2 * k_s_pow_2 * xi_pow_2 - 4320.0 * J1_pow_2 * k_s_pow_2 * xi + 720.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 648.0 * J2_pow_2 * J3_pow_2 * k_s * xi - 72.0 * J2_pow_2 * J3_pow_2 * k_s - 4320.0 * J2_pow_2 * k_s_pow_2 * xi_pow_2 - 4320.0 * J2_pow_2 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
     rd3N[8] = (120.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 + 900.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_2 - 576.0 * J1_pow_2 * J3_pow_3 * k_s * xi - 324.0 * J1_pow_2 * J3_pow_3 * k_s + 900.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_2 + 576.0 * J2_pow_2 * J3_pow_3 * k_s * xi - 324.0 * J2_pow_2 * J3_pow_3 * k_s + 4320.0 * J3_pow_3 * k_s_pow_2 * xi_pow_2 - 4320.0 * J3_pow_3 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
 
-    // rd3N /= std::pow(J, 3);
+    rd3N /= std::pow(J, 3);
 }
 
 /***********************************************************************************/
@@ -476,21 +476,27 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFourthDerivativesShapeFunctionsVa
     rd4N[7] = (48.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 576.0 * J1_pow_2 * J2_pow_2 * k_s - 1440.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 648.0 * J1_pow_2 * J3_pow_2 * k_s + 8640.0 * J1_pow_2 * k_s_pow_2 * xi - 4320.0 * J1_pow_2 * k_s_pow_2 + 1440.0 * J2_pow_2 * J3_pow_2 * k_s * xi + 648.0 * J2_pow_2 * J3_pow_2 * k_s - 8640.0 * J2_pow_2 * k_s_pow_2 * xi - 4320.0 * J2_pow_2 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
     rd4N[8] = (240.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi + 1800.0 * J1_pow_2 * J3_pow_3 * k_s * xi - 576.0 * J1_pow_2 * J3_pow_3 * k_s + 1800.0 * J2_pow_2 * J3_pow_3 * k_s * xi + 576.0 * J2_pow_2 * J3_pow_3 * k_s + 8640.0 * J3_pow_3 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
 
-    // rd4N /= std::pow(J, 4);
+    rd4N /= std::pow(J, 4);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void LinearTimoshenkoCurvedBeamElement2D3N::GetNThetaShapeFunctionsValues(
-    GlobalSizeVector& rd4N,
+    GlobalSizeVector& rN,
     const double J,
-    const double ShearFactor,
-    const double k0,
     const double xi
     )
 {
+    GlobalSizeVector dN, d3N, Nu;
+    GetFirstDerivativesShapeFunctionsValues(dN,  J, xi);
+    GetThirdDerivativesShapeFunctionsValues(d3N, J, xi);
+    GetNu0ShapeFunctionsValues(Nu, xi);
 
+    const double k0 = GetGeometryCurvature(J, xi);
+    const double k_s = GetBendingShearStiffnessRatio();
+    // v' + ks * v''' + k0 * u
+    noalias(rN) = dN + k_s * d3N + k0 * Nu;
 }
 
 /***********************************************************************************/
@@ -499,12 +505,18 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNThetaShapeFunctionsValues(
 void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFunctionsValues(
     GlobalSizeVector& rN,
     const double J,
-    const double ShearFactor,
-    const double k0,
     const double xi
     )
 {
-    // todo
+    GlobalSizeVector d2N, d4N, dNu;
+    GetSecondDerivativesShapeFunctionsValues (d2N,  J, xi);
+    GetFourthDerivativesShapeFunctionsValues (d4N, J, xi);
+    GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+
+    const double k0 = GetGeometryCurvature(J, xi);
+    const double k_s = GetBendingShearStiffnessRatio();
+    // v'' + ks * v'''' + k0 * u'
+    noalias(rN) = d2N + k_s * d4N + k0 * dNu;
 }
 
 /***********************************************************************************/
@@ -670,27 +682,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
-    rLHS.clear();
 
-    // 1st derivative ok
-    // 2nd ok
-    const double xi = -1.0;
-    const double eps = 1.0e-9;
-    const double J = GetJacobian(xi);
-    // const double k0 = GetGeometryCurvature(J, xi);
-
-    GlobalSizeVector N, dN, dNp, Np;
-
-    GetThirdDerivativesShapeFunctionsValues(N, J,  xi);
-
-    // const double Jp = GetJacobian(xi + eps);
-    GetThirdDerivativesShapeFunctionsValues(Np, J,  xi + eps);
-
-    GetFourthDerivativesShapeFunctionsValues(dN, J, xi);
-    dNp = (Np - N) / eps;
-
-    KRATOS_WATCH(dNp)
-    KRATOS_WATCH(dN)
 }
 
 /***********************************************************************************/
