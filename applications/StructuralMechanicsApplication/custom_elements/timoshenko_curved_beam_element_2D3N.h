@@ -140,7 +140,9 @@ public:
      * @brief Returns a 6 component vector including the values of the DoFs
      * in GLOBAL beam axes
      */
-    void GetNodalValuesVector(GlobalSizeVector& rNodalValues);
+    void GetNodalValuesVector(
+        GlobalSizeVector& rNodalValues,
+        const double angle);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
