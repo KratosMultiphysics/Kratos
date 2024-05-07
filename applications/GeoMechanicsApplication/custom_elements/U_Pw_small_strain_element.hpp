@@ -299,7 +299,7 @@ protected:
                                                          ElementVariables& rVariables,
                                                          unsigned int      GPoint);
 
-    VectorType UPwSmallStrainElement::GetPressureSolutionVector();
+    VectorType GetPressureSolutionVector();
 
 private:
     friend class Serializer;
