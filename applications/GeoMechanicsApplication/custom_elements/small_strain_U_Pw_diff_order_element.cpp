@@ -442,7 +442,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     const PropertiesType& r_prop  = this->GetProperties();
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        r_geom, integration_points.size(), mpPressureGeometry->PointsNumber(), Np_container,
+        this->GetPressureSolutionVector(), integration_points.size(), Np_container,
         mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
     const auto det_Js_initial_configuration =
@@ -2094,6 +2094,15 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
 {
     return *mpStressStatePolicy;
+}
+
+Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()
+{
+    Vector result(mpPressureGeometry->PointsNumber());
+    std::transform(this->GetGeometry().begin(),
+                   this->GetGeometry().begin() + mpPressureGeometry->PointsNumber(), result.begin(),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    return result;
 }
 
 } // Namespace Kratos

@@ -310,6 +310,8 @@ protected:
 
     const StressStatePolicy& GetStressStatePolicy() const;
 
+    Vector GetPressureSolutionVector();
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

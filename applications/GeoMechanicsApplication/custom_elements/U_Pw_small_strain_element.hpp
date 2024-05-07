@@ -240,7 +240,8 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                   const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -297,6 +298,8 @@ protected:
     virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
                                                          ElementVariables& rVariables,
                                                          unsigned int      GPoint);
+
+    VectorType UPwSmallStrainElement::GetPressureSolutionVector();
 
 private:
     friend class Serializer;

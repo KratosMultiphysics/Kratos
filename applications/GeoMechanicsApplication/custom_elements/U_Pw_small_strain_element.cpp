@@ -955,8 +955,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
     const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        r_geom, integration_points.size(), r_geom.PointsNumber(), N_container, mRetentionLawVector,
-        this->GetProperties(), rCurrentProcessInfo);
+        this->GetPressureSolutionVector(), integration_points.size(), N_container,
+        mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
     const auto det_Js_initial_configuration =
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
@@ -1824,6 +1824,15 @@ void UPwSmallStrainElement<3, 8>::CalculateExtrapolationMatrix(BoundedMatrix<dou
     rExtrapolationMatrix(7, 5) = 0.18301270189221927;
     rExtrapolationMatrix(7, 6) = -0.6830127018922192;
     rExtrapolationMatrix(7, 7) = 2.549038105676658;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
+{
+    Vector result(TNumNodes);
+    std::transform(this->GetGeometry().begin(), this->GetGeometry().end(), result.begin(),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    return result;
 }
 
 template class UPwSmallStrainElement<2, 3>;

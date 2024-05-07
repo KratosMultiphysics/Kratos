@@ -87,21 +87,18 @@ public:
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
-    static Vector CalculateSoilDensities(const Geometry<Node>& rGeom,
-                                         std::size_t           NumberOfIntegrationPoints,
-                                         std::size_t           NumberOfPressurePoints,
-                                         const Matrix&         rNContainer,
+    static Vector CalculateSoilDensities(const Vector& rPressureSolution,
+                                         std::size_t   NumberOfIntegrationPoints,
+                                         const Matrix& rNContainer,
                                          const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
                                          const Properties&  rProp,
                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        const Vector pressure_vector = GeoTransportEquationUtilities::GetSolutionVector(
-            NumberOfPressurePoints, rGeom, WATER_PRESSURE);
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
         Vector                   density(NumberOfIntegrationPoints);
         for (unsigned int g_point = 0; g_point < NumberOfIntegrationPoints; ++g_point) {
             const double degree_of_saturation =
-                CalculateDegreeOfSaturation(row(rNContainer, g_point), pressure_vector,
+                CalculateDegreeOfSaturation(row(rNContainer, g_point), rPressureSolution,
                                             retention_parameters, rRetentionLawVector[g_point]);
 
             density(g_point) = CalculateSoilDensity(degree_of_saturation, rProp);
@@ -127,16 +124,5 @@ private:
         return inner_prod(rNp, rPressureVector);
     }
 
-    static Vector GetSolutionVector(std::size_t             NumberOfPressurePoints,
-                                    const Geometry<Node>&   rGeom,
-                                    const Variable<double>& rSolutionVariable)
-    {
-        Vector solution_vector(NumberOfPressurePoints);
-        std::transform(rGeom.begin(), rGeom.begin() + NumberOfPressurePoints,
-                       solution_vector.begin(), [&rSolutionVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rSolutionVariable);
-        });
-        return solution_vector;
-    }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
