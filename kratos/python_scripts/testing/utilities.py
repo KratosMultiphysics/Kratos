@@ -239,8 +239,10 @@ class Commander(object):
         '''
 
         # Iterate over all executables that are not mpi dependant and execute them.
+        print(kratos_utils.GetKratosMultiphysicsPath())
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
-            filename = os.fsdecode(test_suite)
+            filename = str(Path(os.fsdecode(test_suite)).with_suffix('')) # Name of the file without extension 
+            binfname = os.fsdecode(test_suite)                            # Name of the file with extension
 
             working_dir = os.getcwd()
 
@@ -251,11 +253,10 @@ class Commander(object):
             if ("MPI" not in filename and self.TestToAppName(filename) in applications) or filename == "KratosCoreTest":
                 
                 # Run all the tests in the executable
-                print(f"Running {filename} tests at @ {working_dir}")
                 self._RunTest(
                     test_suit_name=filename, 
                     command=[
-                        os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
+                        os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",binfname)
                     ], 
                     timer=timer,
                     working_dir=working_dir
