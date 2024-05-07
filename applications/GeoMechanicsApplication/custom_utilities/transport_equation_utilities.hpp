@@ -97,31 +97,13 @@ public:
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
         Vector                   density(NumberOfIntegrationPoints);
         for (unsigned int g_point = 0; g_point < NumberOfIntegrationPoints; ++g_point) {
+            const double fluid_pressure = inner_prod(row(rNContainer, g_point), rPressureSolution);
+            retention_parameters.SetFluidPressure(fluid_pressure);
             const double degree_of_saturation =
-                CalculateDegreeOfSaturation(row(rNContainer, g_point), rPressureSolution,
-                                            retention_parameters, rRetentionLawVector[g_point]);
-
+                rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
             density(g_point) = CalculateSoilDensity(degree_of_saturation, rProp);
         }
         return density;
-    }
-
-private:
-    static double CalculateDegreeOfSaturation(const Vector&                rNVector,
-                                              const Vector&                rPressureVector,
-                                              RetentionLaw::Parameters&    rRetentionParameters,
-                                              const RetentionLaw::Pointer& rRetentionLaw)
-    {
-        const double fluid_pressure =
-            GeoTransportEquationUtilities::CalculateFluidPressure(rNVector, rPressureVector);
-        rRetentionParameters.SetFluidPressure(fluid_pressure);
-
-        return rRetentionLaw->CalculateSaturation(rRetentionParameters);
-    }
-
-    static double CalculateFluidPressure(const Vector& rNp, const Vector& rPressureVector)
-    {
-        return inner_prod(rNp, rPressureVector);
     }
 
 }; /* Class GeoTransportEquationUtilities*/
