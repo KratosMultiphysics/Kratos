@@ -706,6 +706,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     }
     noalias(rRHS) = ZeroVector(SystemSize);
 
+    MatrixType local_lhs = rLHS;
+    VectorType local_rhs = rRHS;
+
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
@@ -733,9 +736,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
-        const double J = GetJacobian(xi);
+        const double J  = GetJacobian(xi);
         const double k0 = GetGeometryCurvature(J, xi);
         const double jacobian_weight = weight * J;
+        const double angle = GetAngle(xi);
 
         // We fill the strain vector with El, kappa and Gamma_sy
         CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
@@ -763,31 +767,79 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
 
         // Axial contributions
-        noalias(rLHS) += outer_prod(dNu, dNu) * dN_dEl * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dNu, dNu) * dN_dEl * jacobian_weight;
         noalias(rRHS) -= dNu * N * jacobian_weight;
 
         // todo
 
 
         // Bending contributions
-        noalias(rLHS) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
         noalias(rRHS) -= dN_theta * M * jacobian_weight;
 
         // todo
 
         // Shear contributions
-        noalias(rLHS) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
+        noalias(local_lhs) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
         noalias(rRHS) -= N_s * V * jacobian_weight;
+
 
         // todo
 
+        RotateLHS(local_lhs, r_geometry, angle);
+
+        noalias(rLHS) += local_lhs;
+        noalias(local_lhs) = ZeroMatrix(SystemSize, SystemSize);
 
         // Now we add the body forces contributions
         noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(rRHS) += N_shape * local_body_forces[1] * jacobian_weight * area;
     } // IP loop
 
+
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
+    const double xi
+    )
+{
+    GlobalSizeVector r_dN_dxi;
+    GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
+    const auto r_geom = GetGeometry();
+
+    double dx_dxi = 0.0;
+    double dy_dxi = 0.0;
+
+    for (IndexType i = 0; i < NumberOfNodes; ++i) {
+        const IndexType u_coord = DoFperNode * i;
+        const auto &r_coords_node = r_geom[i].Coordinates();
+        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
+        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+    }
+    return std::atan2(dy_dxi, dx_dxi);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
+    MatrixType& rLHS,
+    const GeometryType& rGeometry,
+    const double angle
+)
+{
+    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
+        BoundedMatrix<double, 3, 3> T, Tt;
+        BoundedMatrix<double, 9, 9> global_size_T, aux_product;
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+        noalias(aux_product) = prod(rLHS, trans(global_size_T));
+        noalias(rLHS) = prod(global_size_T, aux_product);
+    }
 }
 
 /***********************************************************************************/

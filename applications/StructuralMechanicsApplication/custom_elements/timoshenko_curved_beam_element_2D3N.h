@@ -267,6 +267,13 @@ public:
     void GetThirdDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double xi);
     void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
 
+    void RotateLHS(
+        MatrixType &rLHS,
+        const GeometryType &rGeometry,
+        const double angle);
+
+    double GetAngle(const double xi);
+
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
      * Also its derivative
