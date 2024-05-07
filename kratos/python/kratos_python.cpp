@@ -77,7 +77,6 @@
 #include "add_accessors_to_python.h"
 #include "add_globals_to_python.h"
 #include "add_geometry_data_to_python.h"
-#include "add_space_to_python.h"
 
 namespace Kratos::Python
 {
@@ -157,7 +156,6 @@ PYBIND11_MODULE(Kratos, m)
     AddRegistryToPython(m);
     AddContainerExpressionToPython(m);
     AddGlobalsToPython(m);
-    AddSpaceToPython(m);
 
     m.def("Hello", Hello);
 }
