@@ -2083,7 +2083,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariab
     if (rVariables.UseHenckyStrain) {
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-        return StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
+        return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
     } else {
         return this->CalculateCauchyStrain(rVariables.B, rVariables.DisplacementVector);
     }
