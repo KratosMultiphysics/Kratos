@@ -414,39 +414,41 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 
         this->InterpolateOutputDoubles(rValues,GPValues);
     }
-    // else if(rVariable == MID_PLANE_LIQUID_PRESSURE)
-    // {
-    //     //Variables computed on Lobatto points
-    //     const GeometryType& Geom = this->GetGeometry();
-    //     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+    else if(rVariable == MID_PLANE_LIQUID_PRESSURE)
+    {
+        // Obtain the geometry and the number of Gauss Points
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         
-    //     // //Obtain the shape functions
-    //     // const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-    //     // const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+        // Obtain the shape functions
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+        // const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
-    //     // Vector de resultats a punts de Lobatto
-    //     std::vector<double> GPValues(NumGPoints);
+        // Vector containing the results at Lobatto Points
+        std::vector<double> GPValues(NumGPoints);
 
-    //     array_1d<double,TNumNodes> PressureVector;
-    //     for(unsigned int i=0; i<TNumNodes; i++)
-    //         PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        // Obtain the values of the liquid pressure at each of the nodes
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++)
+        {
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
+        }
 
-    //     //Loop over integration points (Lobatto)
-    //     for(unsigned int i=0; i < NumGPoints; i++)
-    //     {
-    //         noalias(Np) = row(NContainer,i);
-    //         GPValues[i] = inner_prod(Np, PressureVector);
-    //     }
+        //Loop over integration points (Lobatto)
+        Vector Np(TDim);                       // Check the size of Ncontainer!!!
+        for(unsigned int i=0; i < NumGPoints; i++)
+        {
+            noalias(Np) = row(NContainer,i);
+            GPValues[i] = inner_prod(Np, PressureVector);
+        }
 
-    //     //Printed on standard GiD Gauss points
-    //     const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-    //     if ( rValues.size() != OutputGPoints )
-    //         rValues.resize( OutputGPoints );
+        //Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        if ( rValues.size() != OutputGPoints )
+            rValues.resize( OutputGPoints );
 
-    //     this->InterpolateOutputDoubles(rValues,GPValues);
-
-
-    // }
+        this->InterpolateOutputDoubles(rValues,GPValues);
+    }
     else
     {
         //Printed on standard GiD Gauss points
