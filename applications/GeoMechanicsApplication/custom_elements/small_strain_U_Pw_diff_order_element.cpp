@@ -323,7 +323,9 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -590,7 +592,9 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1070,7 +1074,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
 
             // Compute strain, need to update porosity
-            Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
             this->CalculatePermeabilityUpdateFactor(Variables);
 
             Vector GradPressureTerm(Dim);
@@ -1154,7 +1160,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
-            Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -1195,7 +1203,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
-            Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
             // set gauss points variables to constitutive law parameters
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1337,7 +1347,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1395,7 +1407,9 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        Variables.StrainVector = this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -2064,11 +2078,9 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
     return GI_GAUSS;
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
+Vector SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariables, const Matrix& rDeformationGradient)
 {
     if (rVariables.UseHenckyStrain) {
-        rVariables.F             = this->CalculateDeformationGradient(GPoint);
-        rVariables.detF          = MathUtils<>::Det(rVariables.F);
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         return StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
