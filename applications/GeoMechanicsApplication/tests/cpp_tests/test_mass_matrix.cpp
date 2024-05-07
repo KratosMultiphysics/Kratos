@@ -11,14 +11,10 @@
 //
 
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_retention/retention_law_factory.h"
-#include "custom_utilities/equation_of_motion_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
-
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 
 using namespace Kratos;
 
