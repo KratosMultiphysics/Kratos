@@ -52,7 +52,6 @@ Vector GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(const Ge
     Matrix inv_J0;
     for (unsigned int g_point = 0; g_point < number_G_points; ++g_point) {
         GeometryUtils::JacobianOnInitialConfiguration(rGeom, integration_points[g_point], J0);
-        const Matrix& dN_De = rGeom.ShapeFunctionsLocalGradients(IntegrationMethod)[g_point];
         MathUtils<double>::InvertMatrix(J0, inv_J0, det_Js_initial_configuration(g_point));
     }
     return det_Js_initial_configuration;
