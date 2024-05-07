@@ -63,7 +63,7 @@ public:
                 r_colors.AddGeometry(r_geometry, false);
             }
         } else{
-            KRATOS_ERROR << "The input_entities  " << parameters["input_entities"] << " is not supported. The supported input_entities are  elements and conditions" << std::endl;
+            KRATOS_ERROR << "The input_entities " << parameters["input_entities"] << " is not supported. The supported input_entities are geometries, elements and conditions" << std::endl;
         }
 
         r_colors.CalculateElementalRayColors(min_ray_position, max_ray_position, inside_color, outside_color);
