@@ -619,7 +619,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateGeneralizedStrainsVector(
     const GlobalSizeVector &rNodalValues
     )
 {
-    // todo
+    
 }
 
 /***********************************************************************************/
@@ -632,7 +632,11 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateAxialStrain(
     const GlobalSizeVector& rNodalValues
     )
 {
-    return 0.0;
+    GlobalSizeVector dNu, N;
+    GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+    GetShapeFunctionsValues(N, J, xi);
+    const double k0 = GetGeometryCurvature(J, xi);
+    return inner_prod(dNu - k0 * N, rNodalValues);
 }
 
 /***********************************************************************************/
@@ -645,7 +649,13 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateShearStrain(
     const GlobalSizeVector& rNodalValues
     )
 {
-    return 0.0;
+    GlobalSizeVector dN, Nu, Ntheta;
+    GetFirstDerivativesShapeFunctionsValues(dN, J, xi);
+    GetNu0ShapeFunctionsValues(Nu, xi);
+    GetNThetaShapeFunctionsValues(Ntheta, J, xi);
+    const double k0 = GetGeometryCurvature(J, xi);
+
+    return inner_prod(dN + k0 * Nu - Ntheta, rNodalValues);
 }
 
 /***********************************************************************************/
@@ -658,7 +668,9 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateBendingCurvature(
     const GlobalSizeVector& rNodalValues
     )
 {
-    return 0.0;
+    GlobalSizeVector dNtheta;
+    GetFirstDerivativesNThetaShapeFunctionsValues(dNtheta, J, xi);
+    return inner_prod(dNtheta, rNodalValues);
 }
 
 /***********************************************************************************/
