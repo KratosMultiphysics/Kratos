@@ -214,6 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(LeastSquaresPetrovGalerkinROMBuilderAndSolver, RomAppl
     KRATOS_EXPECT_EQ(dx.size(), 3);
     KRATOS_EXPECT_NEAR(dx(1), 1.5 , 1e-8);
     KRATOS_EXPECT_NEAR(dx(2), 2.0 , 1e-8);
+
 }
 
 }

@@ -62,7 +62,7 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
                                                 Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
-
+   
     double cp = 1.0;
 
     // Penalization coefficient, in case it is a compression
@@ -72,7 +72,11 @@ void ElasticCohesive2DLaw::ComputeStressVector(Vector& rStressVector,
 
     rStressVector[0] = StrainVector[0] * rVariables.ShearStiffness;
     rStressVector[1] = StrainVector[1] * rVariables.NormalStiffness * cp;
-    
+
+    // Add initial stresses contribution
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    InterfaceElementUtilities::AddInitialInterfaceStresses2D(rStressVector, rValues, geometry);
+
 }
 
 } // Namespace Kratos
