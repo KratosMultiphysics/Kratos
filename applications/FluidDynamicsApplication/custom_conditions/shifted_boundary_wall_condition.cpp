@@ -20,6 +20,7 @@
 #include "custom_utilities/fluid_element_utilities.h"
 #include "fluid_dynamics_application_variables.h"
 #include "includes/checks.h"
+#include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
@@ -102,30 +103,11 @@ void ShiftedBoundaryWallCondition<TDim>::GetDofList(
 }
 
 template<std::size_t TDim>
-void ShiftedBoundaryWallCondition<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
-{
-    // Get the parent constitutive law from the properties and clone them to be current properties
-    // Note that we are assuming that the parent properties were assigned as properties when creating the condition
-    const auto& r_prop = GetProperties();
-    const auto p_cons_law = r_prop[CONSTITUTIVE_LAW];
-    const auto& r_N = this->GetValue(SHAPE_FUNCTIONS_VECTOR);
-    if (p_cons_law != nullptr) {
-        this->SetValue(CONSTITUTIVE_LAW, p_cons_law->Clone());
-        this->GetValue(CONSTITUTIVE_LAW)->InitializeMaterial(r_prop, GetGeometry(), r_N);
-    } else {
-        KRATOS_ERROR << "A constitutive law needs to be specified in condition " << this->Id() << "." << std::endl;
-    }
-}
-
-template<std::size_t TDim>
 void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    std::string msg = "\nSBM CONDITION";
-    //KRATOS_WATCH(msg);
-
     KRATOS_TRY
 
     // Check (and resize) LHS and RHS matrix
@@ -143,178 +125,12 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
-    // Get meshless geometry data (for the integration point)
-    const double parent_size = GetValue(ELEMENT_H);                     // parent element size
-    const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
-    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points
-    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points
-    array_1d<double,3> normal = GetValue(NORMAL);                       // boundary normal at the integration point
-    normal /= norm_2(normal);
+    //AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
-    Vector unknown_values(local_size);
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
-        //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
-        for (std::size_t d = 0; d < TDim; ++d) {
-            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];
-        }
-        unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
-    }
-
-    // Set whether the shear stress term is adjoint consistent (1.0) or adjoint inconsistent (-1.0) for Nitsche imposition
-    const double adjoint_consistency = -1.0;
-
-    // Get process data
-    const double slip_length = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
-    const double penalty = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
-    const double delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
-    // Get material data, calculated by the constitutive law
-    double effective_viscosity = 0.0;
-
-    /////////////////////////////////////////////////////////////////////////////////
-    // Get B matrix, C matrix, Voigt normal projection matrix and some auxilary matrices
-
-    // Set the current integration point's strain matrix (SF derivatives at all cloud points)
-    Matrix B_matrix = ZeroMatrix(VoigtSize, local_size);
-    CalculateStrainMatrix(r_DN_DX, n_nodes, B_matrix);  // see FluidElementUtilities
-
-    // Get C Matrix from constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
-    const auto p_constitutive_law = this->GetValue(CONSTITUTIVE_LAW);
-    ConstitutiveLaw::Parameters constitutive_law_values(r_geometry, this->GetProperties(), rCurrentProcessInfo);
-    Vector strain_rate = prod(B_matrix, unknown_values);
-    Vector shear_stress(VoigtSize);
-    Matrix C_matrix(VoigtSize, VoigtSize);
-
-    // Set constitutive law flags
-    Flags& r_cl_options = constitutive_law_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);  //see displ_sbm
-
-    // Set constitutive law values
-    constitutive_law_values.SetShapeFunctionsValues(r_N);
-    constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
-    constitutive_law_values.SetStrainVector(strain_rate);
-    constitutive_law_values.SetStressVector(shear_stress);          //this is an ouput parameter
-    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
-
-    // Calculate material response and effective viscosity
-    p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
-    p_constitutive_law->CalculateValue(constitutive_law_values, EFFECTIVE_VISCOSITY, effective_viscosity);
-
-    // Auxiliary matrix C*B
-    const Matrix aux_matrix_CB = prod(C_matrix, B_matrix);
-
-    // Set the shape functions auxiliary matrix
-    Matrix N_matrix = ZeroMatrix(TDim, local_size);
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
-        for (std::size_t d = 0; d < TDim; ++d){
-            N_matrix(d, i_node*BlockSize + d) = r_N(i_node);
-        }
-    }
-    const Matrix N_matrix_trans = trans(N_matrix);
-
-    // Get the normal projection matrix in Voigt notation (A_matrix)
-    BoundedMatrix<double, TDim, VoigtSize> voigt_normal_proj_matrix;
-    FluidElementUtilities<3>::VoigtTransformForProduct(normal, voigt_normal_proj_matrix);
-
-    // Auxilary LHS matrix for adding contributions. It gets multiplied by the unknown values in the end for RHS (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
-    Matrix aux_LHS = ZeroMatrix(local_size, local_size);
-
-    // Using Nitsche imposition of Navier-slip boundary condition (Winter, 2018)
-    // NOTE: Implement the SKEW-SYMMETRIC adjoint if needed in the future?
-
-    /////////////////////////////////////////////////////////////////////////////////
-    // Compute the Nitsche slip normal imposition penalty coefficient
-    const double pen_coeff = this->ComputeSlipNormalPenaltyCoefficient(r_N, delta_time, penalty, parent_size, effective_viscosity);
-    //KRATOS_WATCH(pen_coeff);
-
-    // Add slip normal penalty contribution of the integration point
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
-            for (std::size_t di = 0; di < TDim; ++di) {
-                const std::size_t row = i_node * BlockSize + di;
-                for (std::size_t dj = 0; dj < TDim; ++dj){
-                    const std::size_t col = j_node * BlockSize + dj;
-                    aux_LHS(row, col) += pen_coeff * weight * r_N(i_node) * normal(di) * normal(dj) * r_N(j_node);
-                }
-            }
-        }
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////
-    // Compute slip normal symmetric counterpart penalty contribution
-
-    // Fill the pressure to Voigt notation operator normal projected matrix
-    Matrix trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(local_size, TDim);
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
-        for (std::size_t d = 0; d < TDim; ++d){
-            trans_pres_to_voigt_matrix_normal_op(i_node*BlockSize + TDim, d) = r_N(i_node)*normal(d);
-        }
-    }
-
-    // Set the normal projection matrix (n x n)
-    BoundedMatrix<double, TDim, TDim> normal_proj_matrix;
-    FluidElementUtilities<3>::SetNormalProjectionMatrix(normal, normal_proj_matrix);
-
-    // Compute some integration point auxiliary matrices
-    const Matrix aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
-    const Matrix aux_matrix_BCAPnorm = prod(trans(aux_matrix_CB), aux_matrix_APnorm);
-
-    // Contribution coming from the shear stress operator (traction vector normal component)
-    noalias(aux_LHS) -= adjoint_consistency * weight * prod(aux_matrix_BCAPnorm, N_matrix);
-
-    // Contribution coming from the pressure terms
-    const Matrix aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_proj_matrix);
-    noalias(aux_LHS) -= weight * prod(aux_matrix_VPnorm, N_matrix);
-
-    /////////////////////////////////////////////////////////////////////////////////
-    // Compute the slip tangential imposition penalty coefficients (penalization)
-    std::pair<const double, const double> pen_coeffs = this->ComputeSlipTangentialPenaltyCoefficients(slip_length, penalty, parent_size, effective_viscosity);
-    //KRATOS_WATCH(pen_coeffs.first);
-    //KRATOS_WATCH(pen_coeffs.second);
-
-    // Set the tangential projection matrix (I - n x n)
-    BoundedMatrix<double, TDim, TDim> tang_proj_matrix;
-    FluidElementUtilities<3>::SetTangentialProjectionMatrix(normal, tang_proj_matrix);
-
-    // Compute some integration point auxiliary matrices
-    const Matrix aux_matrix_N_trans_tang = prod(N_matrix_trans, tang_proj_matrix);
-    const Matrix aux_matrix_ACB = prod(voigt_normal_proj_matrix, aux_matrix_CB);
-
-    // Contribution coming from the traction vector tangential component
-    noalias(aux_LHS) += pen_coeffs.first*weight*prod(aux_matrix_N_trans_tang, aux_matrix_ACB);
-
-    // Contribution coming from the shear force generated by the velocity jump
-    noalias(aux_LHS) += pen_coeffs.second*weight*prod(aux_matrix_N_trans_tang, N_matrix);
-
-    /////////////////////////////////////////////////////////////////////////////////
-    // Compute the slip tangential symmetric counterpart penalty coefficients (Nitsche stabilization TODO ?)
-    std::pair<const double, const double> nitsche_coeffs = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
-    //KRATOS_WATCH(nitsche_coeffs.first);
-    //KRATOS_WATCH(nitsche_coeffs.second);
-
-    // Compute some integration point auxiliar matrices
-    const Matrix aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
-    const Matrix aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
-
-    // Contribution coming from the traction vector tangential component
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.first * weight * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
-
-    // Contribution coming from the shear force generated by the velocity jump
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.second * weight * prod(aux_matrix_BtransAtransPtan, N_matrix);
-
-    /////////////////////////////////////////////////////////////////////////////////
-    //KRATOS_WATCH(aux_LHS);
-
-    // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
-    // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well!
-    noalias(rLeftHandSideMatrix) += aux_LHS;
-    noalias(rRightHandSideVector) -= prod(aux_LHS, unknown_values);
+    AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector);
 
     KRATOS_CATCH("")
+    //KRATOS_ERROR << "STOP" << std::endl;
 }
 
 template<std::size_t TDim>
@@ -366,6 +182,228 @@ int ShiftedBoundaryWallCondition<TDim>::Check(const ProcessInfo& rCurrentProcess
 
 // Protected Operations //////////////////////////////////////////////////////////
 template<std::size_t TDim>
+void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const std::size_t local_size = rLHS.size1();
+    const std::size_t n_nodes = local_size / BlockSize;
+
+    // Get meshless geometry data (for the integration point)
+    const double parent_size = this->GetValue(ELEMENT_H);                     // parent element size
+    const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points
+    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points
+    array_1d<double,3> normal = GetValue(NORMAL);                       // boundary normal at the integration point
+    normal /= norm_2(normal);
+
+    // Set whether the shear stress term is adjoint consistent (1.0) or adjoint inconsistent (-1.0) for Nitsche imposition
+    // NOTE that adjoint inconsistent formulation enjoys improved inf-sup stability for any value of the penalty constant according to Winter et al. (2018)
+    const double adjoint_consistency = -1.0;
+
+    // Get process data
+    const double slip_length = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
+    const double penalty = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
+    const double delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+
+    // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
+    Vector unknown_values(local_size);
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+        //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (std::size_t d = 0; d < TDim; ++d) {
+            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];
+        }
+        unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
+    }
+
+    // Get material data, calculated by the constitutive law
+    double effective_viscosity = 0.0;
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // Get B matrix, C matrix, Voigt normal projection matrix and some auxilary matrices
+
+    // Set the current integration point's strain matrix (SF derivatives at all cloud points)
+    Matrix B_matrix = ZeroMatrix(VoigtSize, local_size);
+    CalculateStrainMatrix(r_DN_DX, n_nodes, B_matrix);  // see FluidElementUtilities
+
+    // Get C Matrix from constitutive law, see FluidElementData and FluidElement::CalculateMaterialResponse
+    const auto p_constitutive_law =  this->GetProperties()[CONSTITUTIVE_LAW];  //this->GetValue(CONSTITUTIVE_LAW);
+    ConstitutiveLaw::Parameters constitutive_law_values(r_geometry, this->GetProperties(), rCurrentProcessInfo);
+    Vector strain_rate = prod(B_matrix, unknown_values);
+    Vector shear_stress(VoigtSize);
+    Matrix C_matrix(VoigtSize, VoigtSize);
+
+    // Set constitutive law flags
+    Flags& r_cl_options = constitutive_law_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);  //see displ_sbm
+
+    // Set constitutive law values
+    constitutive_law_values.SetShapeFunctionsValues(r_N);
+    constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
+    constitutive_law_values.SetStrainVector(strain_rate);
+    constitutive_law_values.SetStressVector(shear_stress);          //this is an ouput parameter
+    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
+
+    // Calculate material response and effective viscosity
+    p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
+    p_constitutive_law->CalculateValue(constitutive_law_values, EFFECTIVE_VISCOSITY, effective_viscosity);
+
+    // Auxiliary matrix C*B
+    const Matrix aux_matrix_CB = prod(C_matrix, B_matrix);
+
+    // Set the shape functions auxiliary matrix
+    Matrix N_matrix = ZeroMatrix(TDim, local_size);
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
+        for (std::size_t d = 0; d < TDim; ++d){
+            N_matrix(d, i_node*BlockSize + d) = r_N(i_node);
+        }
+    }
+    const Matrix N_matrix_trans = trans(N_matrix);
+
+    // Get the normal projection matrix in Voigt notation (A_matrix)
+    BoundedMatrix<double, TDim, VoigtSize> voigt_normal_proj_matrix;
+    FluidElementUtilities<3>::VoigtTransformForProduct(normal, voigt_normal_proj_matrix);
+
+    // Auxilary matrix for adding contributions
+    MatrixType aux_LHS = ZeroMatrix(local_size, local_size);
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // Compute the Nitsche slip normal imposition penalty coefficient
+    const double pen_coeff = this->ComputeSlipNormalPenaltyCoefficient(r_N, delta_time, penalty, parent_size, effective_viscosity);
+
+    // Add slip normal penalty contribution of the integration point
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+            for (std::size_t di = 0; di < TDim; ++di) {
+                const std::size_t row = i_node * BlockSize + di;
+                for (std::size_t dj = 0; dj < TDim; ++dj){
+                    const std::size_t col = j_node * BlockSize + dj;
+                    aux_LHS(row, col) += pen_coeff * weight * r_N(i_node) * normal(di) * normal(dj) * r_N(j_node);
+                }
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // Compute slip normal symmetric counterpart penalty contribution
+
+    // Fill the pressure to Voigt notation operator normal projected matrix
+    Matrix trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(local_size, TDim);
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
+        for (std::size_t d = 0; d < TDim; ++d){
+            trans_pres_to_voigt_matrix_normal_op(i_node*BlockSize + TDim, d) = r_N(i_node)*normal(d);
+        }
+    }
+
+    // Set the normal projection matrix (n x n)
+    BoundedMatrix<double, TDim, TDim> normal_proj_matrix;
+    FluidElementUtilities<3>::SetNormalProjectionMatrix(normal, normal_proj_matrix);
+
+    // Compute some integration point auxiliary matrices
+    const Matrix aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
+    const Matrix aux_matrix_BCAPnorm = prod(trans(aux_matrix_CB), aux_matrix_APnorm);
+
+    // Contribution coming from the shear stress operator (traction vector normal component)
+    noalias(aux_LHS) -= adjoint_consistency * weight * prod(aux_matrix_BCAPnorm, N_matrix);
+
+    // Contribution coming from the pressure terms
+    const Matrix aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_proj_matrix);
+    noalias(aux_LHS) -= weight * prod(aux_matrix_VPnorm, N_matrix);
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // Compute the slip tangential imposition penalty coefficients (penalization)
+    std::pair<const double, const double> pen_coeffs = this->ComputeSlipTangentialPenaltyCoefficients(slip_length, penalty, parent_size, effective_viscosity);
+
+    // Set the tangential projection matrix (I - n x n)
+    BoundedMatrix<double, TDim, TDim> tang_proj_matrix;
+    FluidElementUtilities<3>::SetTangentialProjectionMatrix(normal, tang_proj_matrix);
+
+    // Compute some integration point auxiliary matrices
+    const Matrix aux_matrix_N_trans_tang = prod(N_matrix_trans, tang_proj_matrix);
+    const Matrix aux_matrix_ACB = prod(voigt_normal_proj_matrix, aux_matrix_CB);
+
+    // Contribution coming from the traction vector tangential component
+    noalias(aux_LHS) += pen_coeffs.first*weight*prod(aux_matrix_N_trans_tang, aux_matrix_ACB);
+
+    // Contribution coming from the shear force generated by the velocity jump
+    noalias(aux_LHS) += pen_coeffs.second*weight*prod(aux_matrix_N_trans_tang, N_matrix);
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // Compute the slip tangential symmetric counterpart penalty coefficients (Nitsche stabilization TODO ?)
+    std::pair<const double, const double> nitsche_coeffs = this->ComputeSlipTangentialNitscheCoefficients(slip_length, penalty, parent_size, effective_viscosity);
+
+    // Compute some integration point auxiliar matrices
+    const Matrix aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
+    const Matrix aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
+
+    // Contribution coming from the traction vector tangential component
+    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.first * weight * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+
+    // Contribution coming from the shear force generated by the velocity jump
+    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs.second * weight * prod(aux_matrix_BtransAtransPtan, N_matrix);
+
+    /////////////////////////////////////////////////////////////////////////////////
+    //KRATOS_WATCH(aux_LHS);
+
+    // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
+    // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well!
+    noalias(rLHS)  += aux_LHS;
+    noalias(rRHS) -= prod(aux_LHS, unknown_values);
+}
+
+template<std::size_t TDim>
+void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
+    MatrixType& rLHS,
+    VectorType& rRHS)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const std::size_t local_size = rLHS.size1();
+    const std::size_t n_nodes = local_size / BlockSize;
+
+    // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity for FM-ALE) for all cloud nodes
+    Vector unknown_values(local_size);
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+        //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
+        for (std::size_t d = 0; d < TDim; ++d) {
+            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];
+        }
+        unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
+    }
+
+    // Auxilary matrix for adding contributions
+    MatrixType aux_LHS = ZeroMatrix(local_size, local_size);
+
+    const double weight = GetValue(INTEGRATION_WEIGHT);
+    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
+    const double pen_coeff = 1000.0;
+    // Add penalty contribution of the integration point (u=0)
+    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+            for (std::size_t di = 0; di < TDim; ++di) {
+                const std::size_t row = i_node * BlockSize + di;
+                for (std::size_t dj = 0; dj < TDim; ++dj){
+                    const std::size_t col = j_node * BlockSize + dj;
+                    aux_LHS(row, col) += pen_coeff * weight * r_N(i_node) * r_N(j_node);
+                }
+            }
+            // (p=0)
+            aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node);
+        }
+    }
+
+    // Add Dirichlet penalty contribution of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
+    // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well!
+    noalias(rLHS) += aux_LHS;
+    noalias(rRHS) -= prod(aux_LHS, unknown_values);
+}
+
+template<std::size_t TDim>
 void ShiftedBoundaryWallCondition<TDim>::CalculateStrainMatrix(
     const Matrix& rDN_DX,
     const std::size_t NumNodes,
@@ -408,16 +446,23 @@ double ShiftedBoundaryWallCondition<TDim>::ComputeSlipNormalPenaltyCoefficient(
     // Get the velocity and density for the integration point
     const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
+    //KRATOS_WATCH(rN(0));
+    //KRATOS_WATCH(r_geometry[0].FastGetSolutionStepValue(VELOCITY));
     double int_pt_rho = rN(0) * r_geometry[0].FastGetSolutionStepValue(DENSITY);
     array_1d<double,TDim> int_pt_v = rN(0) * r_geometry[0].FastGetSolutionStepValue(VELOCITY);
     for (std::size_t i_node = 1;  i_node < n_nodes; ++i_node) {
         int_pt_rho += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(DENSITY);
-        noalias(int_pt_v) += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+        int_pt_v += rN(i_node) * r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
+        //KRATOS_WATCH(rN(i_node));
+        //KRATOS_WATCH(r_geometry[i_node].FastGetSolutionStepValue(VELOCITY));
     }
+    //KRATOS_WATCH(int_pt_v);
     const double int_pt_v_norm = norm_2(int_pt_v);
 
+    //KRATOS_WATCH(int_pt_v_norm);
+
     // Compute the Nitsche coefficient (including the Winter stabilization term)
-    const double coeff = (EffectiveViscosity + EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize + int_pt_rho*ParentSize*ParentSize/DeltaTime) / (ParentSize * Penalty);
+    const double coeff = (EffectiveViscosity + EffectiveViscosity + int_pt_rho*int_pt_v_norm*ParentSize + int_pt_rho*ParentSize*ParentSize/DeltaTime) / (Penalty * ParentSize);
 
     return coeff;
 }

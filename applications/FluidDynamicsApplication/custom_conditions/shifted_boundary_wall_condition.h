@@ -146,8 +146,6 @@ public:
         return Kratos::make_intrusive<ShiftedBoundaryWallCondition>(NewId, pGeom, pProperties);
     }
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -230,6 +228,27 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This function add the terms for imposing a Navier-slip boundary condition to the system.
+     * The stabilized Nitsche imposition of the Navier-slip boundary condition (Robin-type BC) consists of a
+     * no penetration constraint in wall normal direction and a shear force imposition in tangential direction.
+     * It behaves as a linear wall-law using the slip length parameter epsilon (no-slip for epsilon towards zero,
+     * slip for epsilon towards infinity).
+     * Reference: M. Winter, B. Schott, A. Massing, W. Wall, A nitsche cut finite element method for the oseen problem with general
+     * navier boundary conditions, Comput. Methods Appl. Mech. Engrg. 330 (2018) 220–252, http://dx.doi.org/10.1016/j.cma.2017.10.023.
+     */
+    void AddNitscheImposition(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief This function penalizes a violation of a Dirichlet boundary condition using a penalty constant.
+     */
+    void AddDirichletPenalization(
+        MatrixType& rLHS,
+        VectorType& rRHS);
 
     /**
      * @brief This function builds the strain matrix from the shape function derivatives utilizing voigt notation.
