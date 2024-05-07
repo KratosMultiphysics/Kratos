@@ -146,7 +146,17 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         local_number_of_cycles++;
         
         double threshold = this->GetThreshold() * (1 - this->GetDamage());
-
+        
+        if (std::abs(max_stress) > std::abs(min_stress)) {
+            if (std::abs(max_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
+                reference_damage = 1 - (threshold / std::abs(max_stress));
+            }
+        } else {
+            if (std::abs(min_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
+                reference_damage = 1 - (threshold / std::abs(min_stress));
+            }
+        }
+                
         HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(max_stress,
                                                                     min_stress,
                                                                     threshold,          
@@ -165,16 +175,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
            uniaxial_residual_stress *= relaxation_factor;
         } else {
            uniaxial_residual_stress = 0.0;
-        }
-
-        if (std::abs(max_stress) > std::abs(min_stress)) {
-            if (std::abs(max_stress) / threshold > 1.0){
-                reference_damage = 1 - (threshold / std::abs(max_stress));
-            }
-        } else {
-            if (std::abs(min_stress) / threshold > 1.0){
-                reference_damage = 1 - (threshold / std::abs(min_stress));
-            }
         }
 
         max_stress = (1 - reference_damage) * mMaxStress;
@@ -230,22 +230,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         
         residual_stress_vector *= relaxation_factor;
         const double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
-
-        if (residual_stress_sign_factor > 0.0) {
-           uniaxial_residual_stress *= relaxation_factor;
-        } else {
-           uniaxial_residual_stress = 0.0;
-        }
-
-        if (std::abs(max_stress) > std::abs(min_stress)) {
-            if (std::abs(max_stress) / threshold > 1.0){
-                reference_damage = 1 - (threshold / std::abs(max_stress));
-            }
-        } else {
-            if (std::abs(min_stress) / threshold > 1.0){
-                reference_damage = 1 - (threshold / std::abs(min_stress));
-            }
-        }      
 
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
