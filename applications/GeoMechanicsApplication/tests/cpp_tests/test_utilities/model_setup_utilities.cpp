@@ -83,7 +83,7 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     return result;
 }
 
-ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel, Properties::Pointer pProperties)
+ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
 {
     // similar to a 1D-consolidation test
     auto& result = rModel.CreateModelPart("Main");
@@ -98,7 +98,7 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel, Propert
     AddDofsToNodes(nodes, variables);
 
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
-    result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids, pProperties);
+    result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids, result.CreateNewProperties(0));
     return result;
 }
 

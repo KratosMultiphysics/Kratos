@@ -23,21 +23,18 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuite)
 {
-    Properties::Pointer p_properties(new Properties(0));
-    // Please note these are not representative values, it just ensures the values are set
-    p_properties->SetValue(DENSITY_WATER, 1000.0);
-    p_properties->SetValue(POROSITY, 0.0);
-    p_properties->SetValue(DENSITY_SOLID, 1700.0);
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
+
+    auto&       r_element   = r_model_part.GetElement(1);
+    const auto& r_geom      = r_element.GetGeometry();
+    auto        p_elem_prop = r_model_part.pGetProperties(0);
+    p_elem_prop->SetValue(DENSITY_WATER, 1000.0);
+    p_elem_prop->SetValue(POROSITY, 0.0);
+    p_elem_prop->SetValue(DENSITY_SOLID, 1700.0);
     // set arbitrary constitutive law
     const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
-    p_properties->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
-
-    Model model;
-    auto& r_model_part =
-        ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model, p_properties);
-
-    auto&       r_element = r_model_part.GetElement(1);
-    const auto& r_geom    = r_element.GetGeometry();
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
     ProcessInfo process_info;
 
