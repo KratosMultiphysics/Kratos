@@ -38,6 +38,11 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
+        array_1d<double, 3> normal_parameter_space;
+        Matrix H_sum = ZeroMatrix(1, this->GetGeometry().size());
+        int basisFunctionsOrder;
+        Vector d;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -205,6 +210,8 @@ namespace Kratos
         unsigned long long factorial(int n); 
 
         double computeTaylorTerm(double derivative, double dx, int k, double dy, int n_k);
+
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
         ///@}
         ///@name Input and output
