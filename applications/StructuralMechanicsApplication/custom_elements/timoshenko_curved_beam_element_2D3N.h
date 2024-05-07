@@ -78,6 +78,7 @@ public:
     static constexpr SizeType SystemSize    = 9;
     static constexpr SizeType NumberOfNodes = 3;
     static constexpr SizeType DoFperNode    = 3;
+    static constexpr SizeType StrainSize    = 3;
 
     using GlobalSizeVector = BoundedVector<double, 9>;
 

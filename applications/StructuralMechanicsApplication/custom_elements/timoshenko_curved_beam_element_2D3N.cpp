@@ -682,7 +682,7 @@ array_1d<double, 3> LinearTimoshenkoCurvedBeamElement2D3N::GetLocalAxesBodyForce
     const IndexType PointNumber
     )
 {
-    return array_1d<double, 3>();
+    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
@@ -694,7 +694,55 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_TRY;
+    const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
 
+    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+        rLHS.resize(SystemSize, SystemSize, false);
+    }
+    noalias(rLHS) = ZeroMatrix(SystemSize, SystemSize);
+
+    if (rRHS.size() != SystemSize) {
+        rRHS.resize(SystemSize, false);
+    }
+    noalias(rRHS) = ZeroVector(SystemSize);
+
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    const double area   = r_props[CROSS_AREA];
+
+    // Let's initialize the cl values
+    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    GlobalSizeVector nodal_values(SystemSize);
+    GetNodalValuesVector(nodal_values);
+
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+
+    } // IP loop
+
+
+
+
+
+
+
+
+
+
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
