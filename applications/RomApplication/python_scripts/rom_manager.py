@@ -1,12 +1,21 @@
-import KratosMultiphysics
-from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
-from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 import numpy as np
 import importlib
 import json
 from pathlib import Path
 from KratosMultiphysics.RomApplication.rom_database import RomDatabase
+
+import KratosMultiphysics
+from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
+from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+
+try:
+    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
+    have_tensorflow = True
+except ImportError:
+    have_tensorflow = False
+
+
 
 class RomManager(object):
 
@@ -33,12 +42,47 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
 
 
+    def Fit(self, mu_train=[None], mu_validation=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
     def Fit(self, mu_train=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
+            if type_of_decoder =="ann_enhanced":
+                #TODO split all of the methods for ROM generation: Snapshots generation (train snapshots and validation snapshots), Basis Computation, NeuralNetworkTraining
+                # necesary steps: Modify RomBasisOuptupProcess to fetch snapshots, not only run after simulations
+                if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
+                    err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
+                    raise Exception(err_msg)
+                self.StoreFomSnapshotsAndBasis(mu_train=mu_train)
+                self.StoreFomValidationSnapshots(mu_validation=mu_validation)
+                self.TrainAnnEnhancedROM()
+                #TODO implement online stage for ann_enhanced
+                #self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN?")
+                #rom_snapshots = self.__LaunchROM(mu_train)
+            elif type_of_decoder =="linear":
+                if any(item == "ROM" for item in training_stages):
+                    fom_snapshots = self.__LaunchTrainROM(mu_train)
+                    if store_all_snapshots or store_fom_snapshots:
+                        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                    self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+                    rom_snapshots = self.__LaunchROM(mu_train)
+                    if store_all_snapshots or store_rom_snapshots:
+                        self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
+                    self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+
+                if any(item == "HROM" for item in training_stages):
+                    #FIXME there will be an error if we only train HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
+                    self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+                    hrom_snapshots = self.__LaunchHROM(mu_train)
+                    if store_all_snapshots or store_hrom_snapshots:
+                        self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
+                    self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            #######################
             if any(item == "ROM" for item in training_stages):
                 self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
@@ -55,6 +99,27 @@ class RomManager(object):
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'ann_enhanced rom only available for Galerkin Rom for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                if any(item == "ROM" for item in training_stages):
+                    fom_snapshots = self.__LaunchTrainROM(mu_train)
+                    if store_all_snapshots or store_fom_snapshots:
+                        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                    self._ChangeRomFlags(simulation_to_run = "lspg")
+                    rom_snapshots = self.__LaunchROM(mu_train)
+                    if store_all_snapshots or store_rom_snapshots:
+                        self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
+                    self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                if any(item == "HROM" for item in training_stages):
+                    # Change the flags to train the HROM for LSPG
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
+                    self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+
+                    # Change the flags to run the HROM for LSPG
+                    self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                    hrom_snapshots = self.__LaunchHROM(mu_train)
             if any(item == "ROM" for item in training_stages):
                 self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
@@ -68,11 +133,41 @@ class RomManager(object):
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
                 self.__LaunchHROM(mu_train)
 
+                    if store_all_snapshots or store_hrom_snapshots:
+                        self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
         #######################################
+
+                    self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                    #######################################
 
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
+            if type_of_decoder =="ann_enhanced":
+                err_msg = f'ann_enhanced rom only available for Galerkin Rom for the moment'
+                raise Exception(err_msg)
+            elif type_of_decoder =="linear":
+                if any(item == "ROM" for item in training_stages):
+                    fom_snapshots = self.__LaunchTrainROM(mu_train)
+                    if store_all_snapshots or store_fom_snapshots:
+                        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                    self._ChangeRomFlags(simulation_to_run = "TrainPG")
+                    self.__LaunchTrainPG(mu_train)
+                    self._ChangeRomFlags(simulation_to_run = "PG")
+                    rom_snapshots = self.__LaunchROM(mu_train)
+                    if store_all_snapshots or store_rom_snapshots:
+                        self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
+                    self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                if any(item == "HROM" for item in training_stages):
+                    #FIXME there will be an error if we only train HROM, but not ROM
+                    self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
+                    self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                    self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+                    hrom_snapshots = self.__LaunchHROM(mu_train)
+                    if store_all_snapshots or store_hrom_snapshots:
+                        self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
+                    self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            ##########################
             if any(item == "ROM" for item in training_stages):
                 self.__LaunchTrainROM(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
@@ -92,6 +187,19 @@ class RomManager(object):
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
         self.ComputeErrors(mu_train)
+
+    def StoreFomSnapshotsAndBasis(self, mu_train=[None]):
+        fom_snapshots = self.__LaunchTrainROM(mu_train)
+        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+
+    def StoreFomValidationSnapshots(self, mu_validation=[None]):
+        self.RunFOM(mu_run=mu_validation, snapshots_matrix_name='fom_snapshots_val')
+
+    def TrainAnnEnhancedROM(self):
+        self.__LaunchTrainNeuralNetwork()
+
+    def TestNeuralNetworkReconstruction(self):
+        self.__LaunchTestNeuralNetworkReconstruction()
 
 
     def Test(self, mu_test=[None]):
@@ -143,6 +251,13 @@ class RomManager(object):
         self.ComputeErrors(mu_test, 'Test')
 
 
+
+
+    def RunFOM(self, mu_run=[None], snapshots_matrix_name=None):
+        store_snapshots = snapshots_matrix_name is not None
+        fom_snapshots = self.__LaunchRunFOM(mu_run, store_snapshots=store_snapshots)
+        if store_snapshots:
+            self._StoreSnapshotsMatrix(snapshots_matrix_name, fom_snapshots)
     def RunFOM(self, mu_run=[None]):
         self.__LaunchRunFOM(mu_run)
 
@@ -230,6 +345,27 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        SnapshotsMatrix = []
+        for Id, mu in enumerate(mu_train):
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Fit',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            self.UpdateMaterialParametersFile(materials_file_name, mu)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            simulation.Run()
+            self.QoI_Fit_FOM.append(simulation.GetFinalData())
+            for process in simulation._GetListOfOutputProcesses():
+                if isinstance(process, CalculateRomBasisOutputProcess):
+                    BasisOutputProcess = process
+            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
+        u, sigma = BasisOutputProcess._ComputeSVD(SnapshotsMatrix)
+        BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
 
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
@@ -502,15 +638,17 @@ class RomManager(object):
 
 
 
-    def __LaunchRunFOM(self, mu_run):
+    def __LaunchRunFOM(self, mu_run, store_snapshots=False):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
+        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            if store_snapshots:
+                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -519,8 +657,15 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             self.QoI_Run_FOM.append(simulation.GetFinalData())
+            if store_snapshots:
+                for process in simulation._GetListOfOutputProcesses():
+                    if isinstance(process, CalculateRomBasisOutputProcess):
+                        BasisOutputProcess = process
+                SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix())
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
 
-
+        return SnapshotsMatrix
+        
     def __LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
@@ -561,6 +706,24 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
+    def __LaunchTrainNeuralNetwork(self):
+        if not have_tensorflow:
+            err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
+            raise Exception(err_msg)
+        
+        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
+        model_name = rom_nn_trainer.TrainNetwork()
+        rom_nn_trainer.EvaluateNetwork(model_name)
+        
+
+    def __LaunchTestNeuralNetworkReconstruction(self):
+        if not have_tensorflow:
+            err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
+            raise Exception(err_msg)
+        
+        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
+        model_name=self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_name"].GetString()
+        rom_nn_trainer.EvaluateNetwork(model_name)
 
     def InitializeDummySimulationForBasisOutputProcess(self):
         with open(self.project_parameters_name,'r') as parameter_file:
@@ -796,6 +959,7 @@ class RomManager(object):
             "rom_stages_to_test" : [],              // ["ROM","HROM"]
             "paralellism" : null,                        // null, TODO: add "compss"
             "projection_strategy": "galerkin",            // "lspg", "galerkin", "petrov_galerkin"
+            "type_of_decoder" : "linear",               // "linear" "ann_enhanced",  TODO: add "quadratic"
             "assembling_strategy": "global",            // "global", "elemental"
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
@@ -809,6 +973,7 @@ class RomManager(object):
                 "rom_basis_output_folder": "rom_data",
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
+                "print_singular_values": false,
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
@@ -822,6 +987,38 @@ class RomManager(object):
                 },
                 "petrov_galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
+                },
+                "ann_enhanced_settings": {
+                    "online": {
+                        "model_name": "test_neural_network"
+                    },
+                    "saved_models_root_path": "rom_data/saved_nn_models/",
+                    "training": {
+                        "batch_size": 1,
+                        "custom_name": "test_neural_network",
+                        "database": {
+                            "phi_matrix": "rom_data/RightBasisMatrix.npy",
+                            "sigma_vector": "rom_data/SingularValuesVector.npy",
+                            "training_set": "rom_data/SnapshotsMatrices/fom_snapshots.npy",
+                            "validation_set": "rom_data/SnapshotsMatrices/fom_snapshots_val.npy"
+                        },
+                        "epochs": 50,
+                        "layers_size": [            // Size of each hidden layer in the Neural Network (for more layers, append more values)
+                            2,
+                            2
+                        ],
+                        "lr_strategy": {                // Learning Rate update strategy
+                            "scheduler": "const",       // 'const', 'steps', 'sgdr'
+                            "base_lr": 0.01,            // Initial LR
+                            "additional_params": []     // 'const' -> []; 'steps' or 'sgdr' -> [minimum_LR, reduction_factor, period_length]
+                        },
+                                                         
+                        "modes": [
+                            1,                  // Highest mode to be used as inferior modes (size of NN input)
+                            2                   // Highest mode to be used as superior modes (size of NN output + size of NN input)
+                        ],
+                        "use_automatic_name": false
+                    }
                 }
             },
             "HROM":{
@@ -885,6 +1082,7 @@ class RomManager(object):
             "rom_basis_output_folder",
             "nodal_unknowns",
             "snapshots_interval",
+            "print_singular_values"
         ]
 
         for key in keys_to_copy:
@@ -944,7 +1142,8 @@ class RomManager(object):
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
                     "rom_basis_output_folder": "rom_data",
-                    "svd_truncation_tolerance": 1e-3
+                    "svd_truncation_tolerance": 1e-3,
+                    "print_singular_values": false
                 }
             }""")
         return rom_training_parameters

@@ -27,9 +27,7 @@
 #include "includes/define_python.h"
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
-#include "custom_python/add_custom_controls_to_python.h"
 #include "custom_python/add_custom_responses_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_response_utilities_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -52,8 +50,6 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
         ;
 
     AddCustomResponsesToPython(m);
-    AddCustomControlsToPython(m);
-    AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCustomFiltersToPython(m);
