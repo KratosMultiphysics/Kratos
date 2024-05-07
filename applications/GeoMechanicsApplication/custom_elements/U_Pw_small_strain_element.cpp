@@ -951,12 +951,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
     const auto          integration_method = this->GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points =
         r_geom.IntegrationPoints(integration_method);
-    // const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
     const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
 
-    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        this->GetPressureSolutionVector(), integration_points.size(), N_container,
-        mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
+    const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
+        this->GetPressureSolutionVector(), N_container, mRetentionLawVector, this->GetProperties(),
+        rCurrentProcessInfo);
+
+    const auto solid_densities =
+        GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, this->GetProperties());
 
     const auto det_Js_initial_configuration =
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);

@@ -87,23 +87,30 @@ public:
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
-    static Vector CalculateSoilDensities(const Vector& rPressureSolution,
-                                         std::size_t   NumberOfIntegrationPoints,
-                                         const Matrix& rNContainer,
-                                         const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
-                                         const Properties&  rProp,
-                                         const ProcessInfo& rCurrentProcessInfo)
+    static Vector CalculateSoilDensities(const Vector& rDegreesSaturation, const Properties& rProp)
+    {
+        Vector result(rDegreesSaturation.size());
+        std::transform(rDegreesSaturation.cbegin(), rDegreesSaturation.cend(), result.begin(),
+                       [&rProp](const auto& degree_saturation) {
+            return CalculateSoilDensity(degree_saturation, rProp);
+        });
+        return result;
+    }
+
+    static Vector CalculateDegreesSaturation(const Vector& rPressureSolution,
+                                             const Matrix& rNContainer,
+                                             const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                                             const Properties&  rProp,
+                                             const ProcessInfo& rCurrentProcessInfo)
     {
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
-        Vector                   density(NumberOfIntegrationPoints);
-        for (unsigned int g_point = 0; g_point < NumberOfIntegrationPoints; ++g_point) {
+        Vector                   result(rRetentionLawVector.size());
+        for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
             const double fluid_pressure = inner_prod(row(rNContainer, g_point), rPressureSolution);
             retention_parameters.SetFluidPressure(fluid_pressure);
-            const double degree_of_saturation =
-                rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
-            density(g_point) = CalculateSoilDensity(degree_of_saturation, rProp);
+            result(g_point) = rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
         }
-        return density;
+        return result;
     }
 
 }; /* Class GeoTransportEquationUtilities*/

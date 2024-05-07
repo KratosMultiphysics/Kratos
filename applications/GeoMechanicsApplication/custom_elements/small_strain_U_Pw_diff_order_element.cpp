@@ -441,9 +441,11 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     const MatrixType Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
     const PropertiesType& r_prop  = this->GetProperties();
 
-    const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        this->GetPressureSolutionVector(), integration_points.size(), Np_container,
-        mRetentionLawVector, r_prop, rCurrentProcessInfo);
+    const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
+        this->GetPressureSolutionVector(), Np_container, mRetentionLawVector, r_prop, rCurrentProcessInfo);
+
+    const auto solid_densities =
+        GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, r_prop);
 
     const auto det_Js_initial_configuration =
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
