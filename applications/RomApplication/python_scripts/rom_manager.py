@@ -528,7 +528,7 @@ class RomManager(object):
         SnapshotsMatrix = np.block(SnapshotsMatrix)
 
         return SnapshotsMatrix
-        
+
     def __LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
@@ -573,17 +573,17 @@ class RomManager(object):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
-        
+
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name = rom_nn_trainer.TrainNetwork()
         rom_nn_trainer.EvaluateNetwork(model_name)
-        
+
 
     def __LaunchTestNeuralNetworkReconstruction(self):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
-        
+
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name=self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_name"].GetString()
         rom_nn_trainer.EvaluateNetwork(model_name)
@@ -596,6 +596,8 @@ class RomManager(object):
         f["hrom_settings"]["include_condition_parents"] = self.hrom_training_parameters["include_condition_parents"].GetBool()
         f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.hrom_training_parameters["initial_candidate_elements_model_part_list"].GetStringArray()
         f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.hrom_training_parameters["initial_candidate_conditions_model_part_list"].GetStringArray()
+        f["hrom_settings"]["include_conditions_model_parts_list"] = self.hrom_training_parameters["include_conditions_model_parts_list"].GetStringArray()
+        f["hrom_settings"]["include_elements_model_parts_list"] = self.hrom_training_parameters["include_elements_model_parts_list"].GetStringArray()
         f["hrom_settings"]["constraint_sum_weights"] = self.hrom_training_parameters["constraint_sum_weights"].GetBool()
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
@@ -836,7 +838,7 @@ class RomManager(object):
                             "base_lr": 0.01,            // Initial LR
                             "additional_params": []     // 'const' -> []; 'steps' or 'sgdr' -> [minimum_LR, reduction_factor, period_length]
                         },
-                                                         
+
                         "modes": [
                             1,                  // Highest mode to be used as inferior modes (size of NN input)
                             2                   // Highest mode to be used as superior modes (size of NN output + size of NN input)
@@ -848,8 +850,17 @@ class RomManager(object):
             "HROM":{
                 "element_selection_type": "empirical_cubature",
                 "element_selection_svd_truncation_tolerance": 0,
-                "create_hrom_visualization_model_part" : true,
-                "echo_level" : 0
+                "create_hrom_visualization_model_part" : false,
+                "echo_level" : 0,
+                "projection_strategy": "galerkin",
+                "include_conditions_model_parts_list": [],
+                "include_elements_model_parts_list": [],
+                "initial_candidate_elements_model_part_list" : [],
+                "initial_candidate_conditions_model_part_list" : [],
+                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_minimum_condition": false,
+                "include_condition_parents": false,
+                "constraint_sum_weights": true
             }
         }""")
 
@@ -925,9 +936,18 @@ class RomManager(object):
         keys_to_copy = [
             "element_selection_type",
             "element_selection_svd_truncation_tolerance",
-            "create_hrom_visualization_model_part",
             "echo_level",
+            "create_hrom_visualization_model_part",
             "constraint_sum_weights",
+            "projection_strategy",
+            "include_conditions_model_parts_list",
+            "include_elements_model_parts_list",
+            "initial_candidate_elements_model_part_list",
+            "initial_candidate_conditions_model_part_list",
+            "include_nodal_neighbouring_elements_model_parts_list",
+            "include_minimum_condition",
+            "include_condition_parents",
+            "svd_type"
         ]
 
         for key in keys_to_copy:
