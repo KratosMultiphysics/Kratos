@@ -221,20 +221,10 @@ void VoxelMeshGeneratorModeler::GenerateEntities(
 
 ModelPart& VoxelMeshGeneratorModeler::CreateAndGetModelPart(std::string const& FullName)
 {
-        std::istringstream iss(FullName);
-        std::string name;
-        std::getline(iss, name, '.');
-        if(!mpModel->HasModelPart(name))
-            mpModel->CreateModelPart(name);
-        ModelPart* p_current_model_part = &mpModel->GetModelPart(name);
-        while (std::getline(iss, name, '.')) {
-            if(!p_current_model_part->HasSubModelPart(name)){
-                p_current_model_part->CreateSubModelPart(name);
-            }
-            p_current_model_part = &(p_current_model_part->GetSubModelPart(name));
-        }
-
-        return *p_current_model_part;
+    if (mpModel->HasModelPart(FullName)) {
+        return mpModel->GetModelPart(FullName);
+    }
+    return mpModel->CreateModelPart(FullName);
 }
 
 
