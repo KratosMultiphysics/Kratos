@@ -962,7 +962,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
 
     const auto integration_coefficients =
-        CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
+        this->CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
     const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
         r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
