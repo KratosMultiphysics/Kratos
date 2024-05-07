@@ -149,10 +149,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -253,9 +256,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -302,10 +308,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     // Create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
     Matrix StressContainer(NumGPoints, mStressVector[0].size());
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -567,6 +576,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         if (rOutput.size() != mConstitutiveLawVector.size())
             rOutput.resize(mConstitutiveLawVector.size());
 
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             const PropertiesType& rProp = this->GetProperties();
 
@@ -576,6 +587,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
             this->CalculateStrain(Variables, GPoint);
@@ -615,47 +627,29 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 
     const GeometryType& rGeom      = this->GetGeometry();
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
+    rOutput.resize(NumGPoints);
 
     if (rVariable == FLUID_FLUX_VECTOR) {
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        const PropertiesType& rProp = this->GetProperties();
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
-        array_1d<double, TDim> GradPressureTerm;
-        array_1d<double, TDim> FluidFlux;
-
-        // Create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
-
+        std::vector<double> permeability_update_factors;
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute strain, needed for update permeability
             this->CalculateStrain(Variables, GPoint);
             this->CalculatePermeabilityUpdateFactor(Variables);
+            permeability_update_factors.push_back(Variables.PermeabilityUpdateFactor);
+        }
 
-            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
-                Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-            Variables.FluidPressure = CalculateFluidPressure(Variables);
-
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
-
-            Variables.RelativePermeability =
-                mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
-
-            noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
-
-            noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
-
-            noalias(FluidFlux) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                                 Variables.RelativePermeability * Variables.PermeabilityUpdateFactor *
-                                 prod(Variables.PermeabilityMatrix, GradPressureTerm);
-
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
+        const auto fluid_fluxes = CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
         }
     } else {
         if (rOutput.size() != mConstitutiveLawVector.size())
@@ -714,10 +708,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
         Vector TotalStressVector(mStressVector[0].size());
 
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
             this->CalculateStrain(Variables, GPoint);
@@ -756,7 +753,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                 Variables.detJInitialConfiguration, J0, InvJ0, Variables.GradNpTInitialConfiguration, GPoint);
 
             // Calculating operator B
-            this->CalculateBMatrix(Variables.B, Variables.GradNpTInitialConfiguration, Variables.Np);
+            Variables.B = this->CalculateBMatrix(Variables.GradNpTInitialConfiguration, Variables.Np);
 
             // Compute infinitesimal strain
             this->CalculateCauchyStrain(Variables);
@@ -770,9 +767,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
+        const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             // Compute element kinematics (Np, gradNpT, |J|, B, strains)
             this->CalculateKinematics(Variables, GPoint);
+            Variables.B = b_matrices[GPoint];
 
             this->CalculateStrain(Variables, GPoint);
 
@@ -888,10 +888,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -1023,12 +1025,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
+    const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
         this->CalculateStrain(Variables, GPoint);
@@ -1110,6 +1115,47 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeBiotCoefficients(ElementV
     rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation * rProp[POROSITY];
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidFluxes(
+    const std::vector<double>& rPermeabilityUpdateFactors, const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& rGeom      = this->GetGeometry();
+    const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+
+    std::vector<array_1d<double, TDim>> FluidFluxes;
+    ElementVariables                    Variables;
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+    const PropertiesType& rProp = this->GetProperties();
+
+    array_1d<double, TDim> GradPressureTerm;
+
+    // Create general parameters of retention law
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+
+    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.PermeabilityUpdateFactor = rPermeabilityUpdateFactors[GPoint];
+
+        GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
+            Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
+        Variables.FluidPressure = CalculateFluidPressure(Variables);
+        RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+
+        Variables.RelativePermeability =
+            mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+
+        noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
+        noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
+
+        FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
+                              Variables.RelativePermeability * Variables.PermeabilityUpdateFactor *
+                              prod(Variables.PermeabilityMatrix, GradPressureTerm));
+    }
+
+    return FluidFluxes;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1208,9 +1254,21 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(Matrix& rB, const Matrix& GradNpT, const Vector& Np)
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
-    rB = this->GetStressStatePolicy().CalculateBMatrix(GradNpT, Np, this->GetGeometry());
+    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
+    const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
+{
+    std::vector<Matrix> result;
+    for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
+        result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
+    }
+
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1505,7 +1563,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
 {
     if (rVariables.UseHenckyStrain) {
-        this->CalculateDeformationGradient(rVariables, GPoint);
+        rVariables.F    = this->CalculateDeformationGradient(GPoint);
+        rVariables.detF = MathUtils<>::Det(rVariables.F);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
         this->CalculateCauchyStrain(rVariables);
@@ -1525,8 +1584,7 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(ElementVariables& rVariables,
-                                                                          unsigned int GPoint)
+Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -1544,9 +1602,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(Elemen
     KRATOS_ERROR_IF(detJ < 0.0) << "ERROR:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ: " << detJ
                                 << " nodes:" << this->GetGeometry() << std::endl;
 
-    // Deformation gradient
-    noalias(rVariables.F) = prod(J, InvJ0);
-    rVariables.detF       = MathUtils<double>::Det(rVariables.F);
+    return prod(J, InvJ0);
 
     KRATOS_CATCH("")
 }
@@ -1631,9 +1687,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
     noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[GPoint];
 
     rVariables.detJ = rVariables.detJContainer[GPoint];
-
-    // Compute the deformation matrix B
-    this->CalculateBMatrix(rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     Matrix J0, InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,

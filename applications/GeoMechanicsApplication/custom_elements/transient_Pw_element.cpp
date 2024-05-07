@@ -383,8 +383,17 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
 {
     KRATOS_TRY
 
+    const GeometryType& rGeom      = this->GetGeometry();
+    const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
+
     if (rVariable == FLUID_FLUX_VECTOR) {
-        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        std::vector<double> permeability_update_factors(NumGPoints, 1.0);
+        const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
+        }
     } else {
         if (rOutput.size() != mRetentionLawVector.size())
             rOutput.resize(mRetentionLawVector.size());
