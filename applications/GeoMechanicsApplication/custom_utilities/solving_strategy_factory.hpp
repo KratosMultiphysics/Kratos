@@ -79,8 +79,7 @@ public:
             result->SetEchoLevel(echo_level);
             return result;
         } else if (rSolverSettings[strategy_type].GetString() == "line_search") {
-            const std::vector<std::string> strategy_entries = {"max_iteration",
-                                                               "compute_reactions",
+            const std::vector<std::string> strategy_entries = {"compute_reactions",
                                                                "max_line_search_iterations",
                                                                "first_alpha_value",
                                                                "second_alpha_value",
@@ -93,6 +92,15 @@ public:
 
             auto strategy_parameters = ParametersUtilities::CopyOptionalParameters(
                 rSolverSettings, strategy_entries);
+
+            // For residual-based Newton-Raphson strategies (and derived ones), the Kratos Core uses
+            // the value of "max_iteration". In the GeoMechanicsApplication, we use the value of
+            // "max_iterations" (note the extra 's' at the end). This is inconsistent, and to
+            // overcome it we use a similar approach as in our Python scripts:
+            if (rSolverSettings.Has("max_iterations")) {
+                strategy_parameters.AddValue("max_iteration", rSolverSettings["max_iterations"]);
+            }
+
             auto result = std::make_unique<LineSearchStrategy<TSparseSpace,
                     TDenseSpace,
                     TLinearSolver>>(rModelPart,
