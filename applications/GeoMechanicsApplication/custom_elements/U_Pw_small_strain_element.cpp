@@ -949,19 +949,24 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
 
     const GeometryType& r_geom             = this->GetGeometry();
     const auto          integration_method = this->GetIntegrationMethod();
-    const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        r_geom.IntegrationPoints(integration_method);
+    // const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
     const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        r_geom, number_of_integration_points, r_geom.PointsNumber(), N_container,
-        mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
+        r_geom, integration_points.size(), r_geom.PointsNumber(), N_container, mRetentionLawVector,
+        this->GetProperties(), rCurrentProcessInfo);
+
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
 
     const auto integration_coefficients =
-        GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientsInitialConfiguration(
-            r_geom, integration_method, this->GetStressStatePolicy());
+        CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
     const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
-        r_geom, integration_method, solid_densities, integration_coefficients);
+        r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
+        r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
     GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 

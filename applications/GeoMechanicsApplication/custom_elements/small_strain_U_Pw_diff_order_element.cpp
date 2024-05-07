@@ -436,20 +436,24 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
 
     const GeometryType& r_geom             = GetGeometry();
     const auto          integration_method = this->GetIntegrationMethod();
-    const SizeType number_of_integration_points = r_geom.IntegrationPoints(integration_method).size();
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        r_geom.IntegrationPoints(integration_method);
     const MatrixType Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
     const PropertiesType& r_prop  = this->GetProperties();
 
     const auto solid_densities = GeoTransportEquationUtilities::CalculateSoilDensities(
-        r_geom, number_of_integration_points, mpPressureGeometry->PointsNumber(), Np_container,
+        r_geom, integration_points.size(), mpPressureGeometry->PointsNumber(), Np_container,
         mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
+
     const auto integration_coefficients =
-        GeoEquationOfMotionUtilities::CalculateIntegrationCoefficientsInitialConfiguration(
-            r_geom, integration_method, *mpStressStatePolicy);
+        CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
     const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
-        this->GetGeometry(), integration_method, solid_densities, integration_coefficients);
+        r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
+        r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
     const SizeType element_size =
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
