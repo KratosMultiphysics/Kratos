@@ -936,7 +936,46 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     const ProcessInfo& rProcessInfo
     )
 {
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(integration_points.size());
+    const auto &r_props = GetProperties();
 
+    if (rVariable == AXIAL_FORCE ||
+        rVariable == BENDING_MOMENT ||
+        rVariable == SHEAR_FORCE)
+    {
+        const auto &r_geometry = GetGeometry();
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Let's initialize the cl values
+        VectorType strain_vector(StrainSize), stress_vector(StrainSize);
+        strain_vector.clear();
+        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStressVector(stress_vector);
+        GlobalSizeVector nodal_values(SystemSize);
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi = integration_points[IP].X();
+            GetNodalValuesVector(nodal_values, xi);
+            const double J = GetJacobian(xi);
+
+            CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+            if (rVariable == AXIAL_FORCE)
+                rOutput[IP] = r_generalized_stresses[0];
+            else if (rVariable == BENDING_MOMENT)
+                rOutput[IP] = r_generalized_stresses[1];
+            else
+                rOutput[IP] = r_generalized_stresses[2];
+        }
+    }
 }
 
 /***********************************************************************************/
