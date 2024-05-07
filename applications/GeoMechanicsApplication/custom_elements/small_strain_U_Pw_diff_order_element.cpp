@@ -22,7 +22,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/equation_of_motion_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
