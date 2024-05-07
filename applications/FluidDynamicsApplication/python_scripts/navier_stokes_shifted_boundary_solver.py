@@ -215,6 +215,13 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         if hasattr(self, 'shifted_boundary_formulation'):
             self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
 
+        # Construct and initialize the solution strategy
+        #TODO "Error: Constitutive Law not initialized for Element ShiftedBoundaryFluidElement #105033"
+        # if strategy is initialized after set up of interface utility (deactivation of elements?)
+        solution_strategy = self._GetSolutionStrategy()
+        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        solution_strategy.Initialize()
+
         # # Set the distance modification process
         # self.GetDistanceModificationProcess().ExecuteInitialize()
         # # Correct the distance field
@@ -229,14 +236,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpInterfaceUtility()
-
-        # Construct and initialize the solution strategy
-        #TODO "Error: Constitutive Law not initialized for Element ShiftedBoundaryFluidElement #105033"
-        # if strategy is initialized after set up of interface utility (deactivation of elements)
-        # SEGFAULT if strategy is initialized before set up of interface utility
-        solution_strategy = self._GetSolutionStrategy()
-        solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        solution_strategy.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
@@ -292,7 +291,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Distance function taken from the .mdpa input file.")
-            # Recall to swap the distance sign (GiD considers d<0 in the fluid region)
+            # Recall to swap the distance sign (GiD considers d<0 in the fluid region)  #TODO ??? how does this work for distance set in MainKratos.py
             for node in self.main_model_part.Nodes:
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
