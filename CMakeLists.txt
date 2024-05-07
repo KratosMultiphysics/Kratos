@@ -308,7 +308,8 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   # GTest doc is wrong, this option should be used
   set(BUILD_SHARED_LIBS ON)
-  set(CMAKE_INSTALL_LIBDIR "libs")
+  set(CMAKE_INSTALL_LIBDIR "libs") # In Linux default dir is lib
+  set(CMAKE_INSTALL_BINDIR "libs") # In Win default dir is bin
   FetchContent_MakeAvailable(googletest)
   enable_testing()
 
