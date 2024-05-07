@@ -207,13 +207,13 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
+        const auto& r_properties = GetProperties();
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
-                           return rIntegrationPoint.Weight() * rDetJ;
-                       });
+                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
+                           return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA]; });
         return result;
     }
 
