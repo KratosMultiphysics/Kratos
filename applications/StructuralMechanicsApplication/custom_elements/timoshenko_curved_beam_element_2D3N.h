@@ -320,7 +320,8 @@ public:
     array_1d<double, 3> GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber);
+        const IndexType PointNumber,
+        const double angle);
 
     /**
      * @brief This function provides a more general interface to the element.

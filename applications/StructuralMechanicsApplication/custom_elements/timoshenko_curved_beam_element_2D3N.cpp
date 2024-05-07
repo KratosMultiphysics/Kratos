@@ -691,10 +691,18 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateBendingCurvature(
 array_1d<double, 3> LinearTimoshenkoCurvedBeamElement2D3N::GetLocalAxesBodyForce(
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-    const IndexType PointNumber
+    const IndexType PointNumber,
+    const double angle
     )
 {
-    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+    const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+
+    const double c = std::cos(angle);
+    const double s = std::sin(angle);
+    array_1d<double, 3> local_body_force = ZeroVector(3);
+    local_body_force[0] = c * body_force[0] + s * body_force[1];
+    local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    return local_body_force;
 }
 
 /***********************************************************************************/
@@ -745,7 +753,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
 
         const double xi     = integration_points[IP].X();
         const double weight = integration_points[IP].Weight();
@@ -803,6 +810,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
 
         // Now we add the body forces contributions
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
