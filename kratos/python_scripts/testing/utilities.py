@@ -316,7 +316,8 @@ class Commander(object):
 
         # Iterate over all executables that are mpi dependant and execute them.
         for test_suite in os.listdir(os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()), "test")):
-            filename = os.fsdecode(test_suite)
+            filename = str(Path(os.fsdecode(test_suite)).with_suffix('')) # Name of the file without extension 
+            binfname = os.fsdecode(test_suite)                            # Name of the file with extension
             
             # Skip non-mpi tests
             if ("MPI" in filename and self.MPITestToAppName(filename) in applications) or filename == "KratosMPICoreTest":
@@ -329,6 +330,6 @@ class Commander(object):
                         *mpi_flags, 
                         num_processes_flag, 
                         str(num_processes), 
-                        os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",filename)
+                        os.path.join(os.path.dirname(kratos_utils.GetKratosMultiphysicsPath()),"test",binfname)
                     ]),
                     timer=300)
