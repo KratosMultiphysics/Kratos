@@ -160,7 +160,7 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(const double xi)
 
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].Coordinates();
+        const auto &r_coords_node = r_geom[i].GetInitialPosition();
         dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
         dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
     }
@@ -188,7 +188,7 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
 
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].Coordinates();
+        const auto &r_coords_node = r_geom[i].GetInitialPosition();
         dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
         dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
 
@@ -808,10 +808,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
 
         // todo
+        KRATOS_WATCH(angle)
 
 
         // Now we add the body forces contributions
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
+        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
@@ -843,7 +844,7 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
 
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].Coordinates();
+        const auto &r_coords_node = r_geom[i].GetInitialPosition();
         dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
         dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
     }
@@ -1088,23 +1089,15 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         // Axial contributions
         noalias(local_rhs) -= aux_array * N * jacobian_weight;
 
-        // todo
-
-
         // Bending contributions
         noalias(local_rhs) -= dN_theta * M * jacobian_weight;
-
-        // todo
 
         // Shear contributions
         noalias(local_rhs) -= N_s * V * jacobian_weight;
 
 
-        // todo
-
-
         // Now we add the body forces contributions
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
+        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
