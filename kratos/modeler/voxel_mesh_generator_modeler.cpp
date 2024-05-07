@@ -237,12 +237,6 @@ ModelPart& VoxelMeshGeneratorModeler::CreateAndGetModelPart(std::string const& F
         return *p_current_model_part;
 }
 
-ModelPart& VoxelMeshGeneratorModeler::GetModelPart(std::string const& FullName)
-{
-        KRATOS_ERROR_IF(!mpModel->HasModelPart(FullName)) << "Unable to find modelpart " << FullName << std::endl;
-        return mpModel->GetModelPart(FullName);
-}
-
 
 Node::Pointer VoxelMeshGeneratorModeler::GenerateOrRetrieveNode(
     ModelPart& rTheVolumeModelPart,

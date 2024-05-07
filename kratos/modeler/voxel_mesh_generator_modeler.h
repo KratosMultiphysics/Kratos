@@ -211,8 +211,6 @@ private:
 
     ModelPart& CreateAndGetModelPart(std::string const& FullName);
 
-    ModelPart& GetModelPart(std::string const& FullName);
-
     void GenerateEntities(ModelPart& rTheVolumeModelPart, Parameters EntityGeneratorParameters);
 
     Node::Pointer GenerateOrRetrieveNode(ModelPart& rTheVolumeModelPart, ModelPart::NodesContainerType& rThisNodes, const std::size_t I, const std::size_t J, const std::size_t K);
