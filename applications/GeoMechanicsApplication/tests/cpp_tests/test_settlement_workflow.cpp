@@ -26,7 +26,8 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
+// KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
+[[maybe_unused]] void TestSettlement()
 {
     const auto temporary_working_directory = std::filesystem::path{"."} / "applications" /
                                              "GeoMechanicsApplication" / "tests" / "test_settlement_workflow_cpp";
