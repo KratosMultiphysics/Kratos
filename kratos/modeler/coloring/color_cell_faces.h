@@ -41,8 +41,8 @@ public:
         const int cell_color = parameters["cell_color"].GetInt();
         const std::string input_entities = parameters["input_entities"].GetString();
 
-        array_1d< std::size_t, 3 > min_ray_position = zero_vector<std::size_t>(3);
-        array_1d< std::size_t, 3 > max_ray_position = zero_vector<std::size_t>(3);
+        array_1d< std::size_t, 3 > min_ray_position{0, 0, 0};
+        array_1d< std::size_t, 3 > max_ray_position{0, 0, 0};
 
         r_colors.CalculateMinMaxCenterOfElementPositions(r_model_part.Nodes(), min_ray_position, max_ray_position);
         r_colors.InitializeRays(min_ray_position, max_ray_position, "center_of_elements");
