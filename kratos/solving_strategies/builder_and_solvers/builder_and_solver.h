@@ -559,6 +559,18 @@ public:
     {
     }
 
+
+    /**
+    * @brief It creates a matrix with solution steps in order to export it
+    * @param rModelPart The model part to compute
+    */
+    virtual void CreateIntermediateSolutionMatrix(
+        ModelPart& rModelPart
+        )
+    {
+    }
+
+
     /**
      * @brief It applies certain operations at the system of equations at the end of the solution step
      * @param rModelPart The model part to compute

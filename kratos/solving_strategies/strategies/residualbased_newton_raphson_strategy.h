@@ -17,6 +17,7 @@
 #include <iostream>
 
 // External includes
+#include "../applications/CompressiblePotentialFlowApplication/compressible_potential_flow_application_variables.h"
 
 // Project includes
 #include "includes/define.h"
@@ -459,6 +460,10 @@ class ResidualBasedNewtonRaphsonStrategy
         Clear();
     }
 
+
+    std::vector<Vector> Solutions;
+    Matrix IntermediateSolutionMatrix;
+
     /**
      * @brief Set method for the time scheme
      * @param pScheme The pointer to the time scheme considered
@@ -879,6 +884,27 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
+    Vector GetCurrentSolution(
+        ModelPart &rModelPart
+    ) {
+        int NumberOfNodes = rModelPart.NumberOfNodes();
+        int number_of_dos_per_node = 2;
+        Vector a = ZeroVector(NumberOfNodes*number_of_dos_per_node);
+        //KRATOS_WATCH(NumberOfNodes)
+        for (Node& node : rModelPart.Nodes()){
+            a((node.Id()-1)*number_of_dos_per_node) = node.GetSolutionStepValue(KratosComponents< Variable<double> >::Get( "AUXILIARY_VELOCITY_POTENTIAL" ));
+            a((node.Id()*number_of_dos_per_node-1))  = node.GetSolutionStepValue(KratosComponents< Variable<double> >::Get( "VELOCITY_POTENTIAL" ));
+            //a((node.Id()*number_of_dos_per_node-1)) = node.GetSolutionStepValue(VELOCITY_POTENTIAL);
+        }
+        //KRATOS_WATCH(a)
+        return a;
+    }
+
+
+    Matrix GetIntermediateSolutionsMatrix(){
+        return IntermediateSolutionMatrix;
+    }
+
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
@@ -889,6 +915,9 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
+
+        Vector initial = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
+        Solutions.push_back(initial);
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -928,6 +957,9 @@ class ResidualBasedNewtonRaphsonStrategy
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+        Vector first = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
+        Solutions.push_back(first);
 
         if (is_converged) {
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -991,10 +1023,17 @@ class ResidualBasedNewtonRaphsonStrategy
             EchoInfo(iteration_number);
 
             // Updating the results stored in the database
+            // TSparseSpace::Assign(rDx, 0.1, rDx);
             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
+
+            // if (r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] < 0.5)
+            // {
+            Vector ith = GetCurrentSolution(BaseType::GetModelPart()); // ADDED FOR INTERMEDIATE SOLUTION GATHERING
+            Solutions.push_back(ith);
+            // }
 
             residual_is_updated = false;
 
@@ -1038,6 +1077,24 @@ class ResidualBasedNewtonRaphsonStrategy
         //calculate reactions if required
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
+
+
+        IntermediateSolutionMatrix = ZeroMatrix( r_model_part.NumberOfNodes()*2, Solutions.size() ); //hard-coded 2 dofs per node
+
+        //hard-coded 2 dofs per node
+        for (std::size_t i = 0; i < Solutions.size(); ++i) {
+            for (std::size_t j = 0; j < r_model_part.NumberOfNodes()*2; ++j) {
+                IntermediateSolutionMatrix(j, i) = Solutions[i](j);
+            }
+        }
+
+        // KRATOS_WATCH(IntermediateSolutionMatrix)
+        // KRATOS_WATCH(IntermediateSolutionMatrix.size1())
+        // KRATOS_WATCH(IntermediateSolutionMatrix.size2())
+
+        Solutions.clear();
+
+        p_builder_and_solver->CreateIntermediateSolutionMatrix(r_model_part);
 
         return is_converged;
     }

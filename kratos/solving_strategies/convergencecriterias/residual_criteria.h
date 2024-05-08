@@ -197,7 +197,14 @@ public:
 
             // Calculate the residual norm
             SizeType size_residual;
+            if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
+                mPreviousResidualNorm = 1.0;
+            }else
+            {
+                mPreviousResidualNorm = mCurrentResidualNorm;
+            }
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
+            TDataType residual_differece_between_steps = std::abs(mPreviousResidualNorm - mCurrentResidualNorm);
 
             TDataType ratio{};
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
@@ -210,12 +217,12 @@ public:
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
             KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 1 && rank == 0) << " :: [ Initial residual norm = " << mInitialResidualNorm << "; Current residual norm =  " << mCurrentResidualNorm << "]" << std::endl;
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rank == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << mCurrentResidualNorm << "; Expected norm =  " << mAlwaysConvergedNorm << " Residual difference between steps =  " << residual_differece_between_steps << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
-            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
+            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = mCurrentResidualNorm;
 
-            const bool has_achieved_convergence = ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm;
+            const bool has_achieved_convergence = ratio <= mRatioTolerance || mCurrentResidualNorm < mAlwaysConvergedNorm || residual_differece_between_steps < mResidualToleranceBetweenSteps;
             KRATOS_INFO_IF("RESIDUAL CRITERION", has_achieved_convergence && this->GetEchoLevel() > 0 && rank == 0) << "Convergence is achieved" << std::endl;
             return has_achieved_convergence;
         } else {
@@ -277,9 +284,10 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                        : "residual_criteria",
-            "residual_absolute_tolerance" : 1.0e-4,
-            "residual_relative_tolerance" : 1.0e-9
+            "name"                             : "residual_criteria",
+            "residual_absolute_tolerance"      : 1.0e-4,
+            "residual_relative_tolerance"      : 1.0e-9,
+            "residual_tolerance_between_steps" : 1.0e-4
         })");
 
         // Getting base class default parameters
@@ -342,9 +350,13 @@ protected:
 
     TDataType mRatioTolerance{};                                     /// The ratio threshold for the norm of the residual
 
+    TDataType mResidualToleranceBetweenSteps{};                      /// The tolerance threshold for the norm of the residual between steps
+
     TDataType mInitialResidualNorm{};                                /// The reference norm of the residual
 
     TDataType mCurrentResidualNorm{};                                /// The current norm of the residual
+
+    TDataType mPreviousResidualNorm{};                                /// The previous norm of the residual
 
     TDataType mAlwaysConvergedNorm{};                                /// The absolute value threshold for the norm of the residual
 
@@ -485,6 +497,7 @@ protected:
         BaseType::AssignSettings(ThisParameters);
         mAlwaysConvergedNorm = ThisParameters["residual_absolute_tolerance"].GetDouble();
         mRatioTolerance = ThisParameters["residual_relative_tolerance"].GetDouble();
+        mResidualToleranceBetweenSteps = ThisParameters["residual_tolerance_between_steps"].GetDouble();
     }
 
     ///@}
