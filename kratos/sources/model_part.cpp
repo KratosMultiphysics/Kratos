@@ -1514,6 +1514,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
+    
     if (IsSubModelPart()) {
         ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(ConditionName, Id, ConditionNodeIds, pProperties, ThisIndex);
         GetMesh(ThisIndex).AddCondition(p_new_condition);
