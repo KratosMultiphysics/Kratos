@@ -18,6 +18,7 @@
 // Project includes
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -57,6 +58,10 @@ class HighCycleFatigueLawIntegrator
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Advanced and basic contitutive laws utilities for the corresponding Voigt size
+    using CLutils    = ConstitutiveLawUtilities<TVoigtSize>;
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<TVoigtSize>;
 
     /// Counted pointer of HighCycleFatigueLawIntegrator
     KRATOS_CLASS_POINTER_DEFINITION(HighCycleFatigueLawIntegrator);
@@ -170,22 +175,31 @@ public:
      */
     static void CalculateFatigueParameters(const double MaxStress,
                                             double ReversionFactor,
-                                            const Properties& rMaterialParameters,
+                                            ConstitutiveLaw::Parameters& rValues,
                                             double& rB0,
                                             double& rSth,
                                             double& rAlphat,
-                                            double& rN_f)
+                                            double& rN_f,
+                                            const double RefTemp = 0.0)
 	{
-        const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
-        double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+        const auto &r_mat_props = rValues.GetMaterialProperties();
+        const Vector& r_fatigue_coefficients = r_mat_props[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        // double ultimate_stress = r_mat_props.Has(YIELD_STRESS) ? r_mat_props[YIELD_STRESS] : r_mat_props[YIELD_STRESS_TENSION];
+        // const double yield_stress = ultimate_stress;
+
+        const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, RefTemp);
+        const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
+        const double delta_t = current_yield - ref_yield;
+
+        double ultimate_stress = current_yield;
         const double yield_stress = ultimate_stress;
 
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
-        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+        const int softening_type = r_mat_props[SOFTENING_TYPE];
         const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
         if (softening_type == curve_by_points) {
-            const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
+            const Vector& stress_damage_curve = r_mat_props[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
             const SizeType curve_points = stress_damage_curve.size() - 1;
 
             ultimate_stress = 0.0;
@@ -204,10 +218,10 @@ public:
         const double AUXR2 = r_fatigue_coefficients[6];
 
         if (std::abs(ReversionFactor) < 1.0) {
-            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
+            rSth = Se + delta_t + (ultimate_stress - Se - delta_t) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
 			rAlphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
         } else {
-            rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
+            rSth = Se + delta_t + (ultimate_stress - Se - delta_t) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
 			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
         }
 

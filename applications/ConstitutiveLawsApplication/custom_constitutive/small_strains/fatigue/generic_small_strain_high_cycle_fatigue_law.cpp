@@ -44,6 +44,27 @@
 
 namespace Kratos
 {
+
+template <class TConstLawIntegratorType>
+void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues
+    )
+{
+    // We construct the CL parameters
+    BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+
+    if (rElementGeometry.Has(REFERENCE_TEMPERATURE)) {
+        mReferenceTemperature = rElementGeometry.GetValue(REFERENCE_TEMPERATURE);
+    } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
+        mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeMaterialResponsePK1(
     ConstitutiveLaw::Parameters& rValues
@@ -106,11 +127,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             reversion_factor,
-            rValues.GetMaterialProperties(),
+            rValues,
             B0,
             s_th,
             alphat,
-            cycles_to_failure);
+            cycles_to_failure,
+            mReferenceTemperature);
 
         double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
@@ -148,11 +170,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             reversion_factor,
-            rValues.GetMaterialProperties(),
+            rValues,
             B0,
             s_th,
             alphat,
-            cycles_to_failure);
+            cycles_to_failure,
+            mReferenceTemperature);
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         local_number_of_cycles,
@@ -225,14 +248,25 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
     }
 
     // Elastic Matrix
-    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
+    // if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    //     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    // }
 
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Elastic Matrix
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+        // this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+
+        const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
+        const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
+
+        if constexpr (Dimension == 2) {
+            CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
+        } else if constexpr (Dimension == 3) {
+            CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
+        }
 
         // Converged values
         double threshold = this->GetThreshold();
@@ -246,7 +280,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
+        const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, mReferenceTemperature);
+        const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
+        const double temperature_reduction_factor = current_yield / ref_yield;
+
+        uniaxial_stress /= fatigue_reduction_factor;      // Fatigue contribution
+        uniaxial_stress /= temperature_reduction_factor;  // Thermal contribution
         const double F = uniaxial_stress - threshold;
 
         if (F <= threshold_tolerance) { // Elastic case
@@ -329,15 +368,26 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
     }
 
     // Elastic Matrix
-    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
+    // if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    //     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+    // }
     array_1d<double, VoigtSize> predictive_stress_vector;
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
 
         // Elastic Matrix
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+        // this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+
+        const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
+        const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
+
+        if constexpr (Dimension == 2) {
+            CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
+        } else if constexpr (Dimension == 3) {
+            CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
+        }
 
         // Converged values
         double threshold = this->GetThreshold();
@@ -371,7 +421,13 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         mMinDetected = min_indicator;
 
         uniaxial_stress *= sign_factor;
-        uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
+
+        const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, mReferenceTemperature);
+        const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
+        const double temperature_reduction_factor = current_yield / ref_yield;
+
+        uniaxial_stress /= fatigue_reduction_factor;      // Fatigue contribution
+        uniaxial_stress /= temperature_reduction_factor;  // Thermal contribution
 
         const double F = uniaxial_stress - threshold;
 

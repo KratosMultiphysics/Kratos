@@ -20,6 +20,8 @@
 
 // Project includes
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -81,6 +83,10 @@ public:
 
     /// Definition of the base class
     typedef GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+
+    /// Advanced and basic contitutive laws utilities for the corresponding Voigt size
+    using CLutils    = ConstitutiveLawUtilities<VoigtSize>;
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
     ///@}
     ///@name Life Cycle
@@ -202,6 +208,11 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    void InitializeMaterial(
+        const Properties &rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const Vector &rShapeFunctionsValues);
 
     /**
      * returns whether this constitutive Law has specified variable
@@ -409,6 +420,24 @@ private:
     ///@{
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector& toStressVector) {mStressVector = toStressVector;}
+
+    /**
+     * @brief Retrieve the reference temperature
+     * @return The reference temperature
+     */
+    double& GetReferenceTemperature()
+    {
+        return mReferenceTemperature;
+    }
+
+    /**
+     * @brief Sets the reference temperature
+     * @param ToRefTemperature The reference temperature
+     */
+    void SetReferenceTemperature(const double ToRefTemperature)
+    {
+        mReferenceTemperature = ToRefTemperature;
+    }
     ///@}
     ///@name Member Variables
     ///@{
@@ -433,6 +462,7 @@ private:
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
 
+    double mReferenceTemperature = 0.0;
     ///@}
     ///@name Private Operators
     ///@{
