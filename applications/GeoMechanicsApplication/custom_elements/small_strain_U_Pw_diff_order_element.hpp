@@ -300,7 +300,8 @@ protected:
                                    const Vector& rDisplacements,
                                    bool          UseHenckyStrain);
 
-    Matrix CalculateDeformationGradient(unsigned int GPoint) const;
+    Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
+    std::vector<Matrix> CalculateDeformationGradients() const;
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 
