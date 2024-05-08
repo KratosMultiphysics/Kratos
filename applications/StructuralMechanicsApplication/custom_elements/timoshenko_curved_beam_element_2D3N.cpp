@@ -738,7 +738,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double area   = r_props[CROSS_AREA];
+    const double area = r_props[CROSS_AREA];
 
     // Let's initialize the cl values
     VectorType strain_vector(StrainSize), stress_vector(StrainSize);
@@ -750,6 +750,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     GlobalSizeVector nodal_values, aux_array;
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+
+    const double angle1 = GetAngle(-1.0);
+    const double angle2 = GetAngle(1.0);
+    const double angle3 = GetAngle(0.0);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -789,6 +793,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
         noalias(aux_array) = dNu - k0 * N_shape;
 
+        KRATOS_WATCH(k0)
+
         // Axial contributions
         noalias(local_lhs) += outer_prod(aux_array, aux_array) * dN_dEl * jacobian_weight;
         noalias(local_rhs) -= aux_array * N * jacobian_weight;
@@ -818,13 +824,15 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         // KRATOS_WATCH(N_shape)
 
 
-        RotateAll(local_lhs, local_rhs, angle);
+        RotateAll(local_lhs, local_rhs, angle, angle, angle);
 
         noalias(rLHS) += local_lhs;
         noalias(rRHS) += local_rhs;
         noalias(local_lhs) = ZeroMatrix(SystemSize, SystemSize);
         noalias(local_rhs) = ZeroVector(SystemSize);
     } // IP loop
+
+    // RotateAll(rLHS, rRHS, angle1, angle2, angle3);
 
     // KRATOS_WATCH(rRHS)
 
@@ -860,15 +868,17 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
 
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
     MatrixType& rLHS,
-    const double angle
+    const double angle1,
+    const double angle2,
+    const double angle3
 )
 {
-    BoundedMatrix<double, 3, 3> T, Tt;
-    BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-    noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    noalias(rLHS) = prod(global_size_T, aux_product);
+    // BoundedMatrix<double, 3, 3> T, Tt;
+    // BoundedMatrix<double, 9, 9> global_size_T, aux_product;
+    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+    // noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    // noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -877,14 +887,56 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const double angle
+    const double angle1,
+    const double angle2,
+    const double angle3
 )
 {
-    BoundedMatrix<double, 3, 3> T;
+    BoundedMatrix<double, 3, 3> T1, T2, T3;
     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
     BoundedVector<double, 9> local_rhs;
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
+    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+
+    global_size_T.clear();
+    global_size_T(0, 0) = T1(0, 0);
+    global_size_T(0, 1) = T1(0, 1);
+    global_size_T(0, 2) = T1(0, 2);
+
+    global_size_T(1, 0) = T1(1, 0);
+    global_size_T(1, 1) = T1(1, 1);
+    global_size_T(1, 2) = T1(1, 2);
+
+    global_size_T(2, 0) = T1(2, 0);
+    global_size_T(2, 1) = T1(2, 1);
+    global_size_T(2, 2) = T1(2, 2);
+
+    global_size_T(3, 3) = T2(0, 0);
+    global_size_T(3, 4) = T2(0, 1);
+    global_size_T(3, 5) = T2(0, 2);
+
+    global_size_T(4, 3) = T2(1, 0);
+    global_size_T(4, 4) = T2(1, 1);
+    global_size_T(4, 5) = T2(1, 2);
+
+    global_size_T(5, 3) = T2(2, 0);
+    global_size_T(5, 4) = T2(2, 1);
+    global_size_T(5, 5) = T2(2, 2);
+
+    global_size_T(6, 6) = T3(0, 0);
+    global_size_T(6, 7) = T3(0, 1);
+    global_size_T(6, 8) = T3(0, 2);
+
+    global_size_T(7, 6) = T3(1, 0);
+    global_size_T(7, 7) = T3(1, 1);
+    global_size_T(7, 8) = T3(1, 2);
+
+    global_size_T(8, 6) = T3(2, 0);
+    global_size_T(8, 7) = T3(2, 1);
+    global_size_T(8, 8) = T3(2, 2);
+
 
     noalias(local_rhs) = rRHS;
     noalias(rRHS) = prod(global_size_T, local_rhs);
@@ -898,16 +950,57 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
 
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
     VectorType& rRHS,
-    const double angle
+    const double angle1,
+    const double angle2,
+    const double angle3
 )
 {
-    BoundedMatrix<double, 3, 3> T;
-    BoundedMatrix<double, 9, 9> global_size_T;
+    BoundedMatrix<double, 3, 3> T1, T2, T3;
+    BoundedMatrix<double, 9, 9> global_size_T, aux_product;
     BoundedVector<double, 9> local_rhs;
-    noalias(local_rhs) = rRHS;
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
-    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
+    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
+    global_size_T.clear();
+    global_size_T(0, 0) = T1(0, 0);
+    global_size_T(0, 1) = T1(0, 1);
+    global_size_T(0, 2) = T1(0, 2);
+
+    global_size_T(1, 0) = T1(1, 0);
+    global_size_T(1, 1) = T1(1, 1);
+    global_size_T(1, 2) = T1(1, 2);
+
+    global_size_T(2, 0) = T1(2, 0);
+    global_size_T(2, 1) = T1(2, 1);
+    global_size_T(2, 2) = T1(2, 2);
+
+    global_size_T(3, 3) = T2(0, 0);
+    global_size_T(3, 4) = T2(0, 1);
+    global_size_T(3, 5) = T2(0, 2);
+
+    global_size_T(4, 3) = T2(1, 0);
+    global_size_T(4, 4) = T2(1, 1);
+    global_size_T(4, 5) = T2(1, 2);
+
+    global_size_T(5, 3) = T2(2, 0);
+    global_size_T(5, 4) = T2(2, 1);
+    global_size_T(5, 5) = T2(2, 2);
+
+    global_size_T(6, 6) = T3(0, 0);
+    global_size_T(6, 7) = T3(0, 1);
+    global_size_T(6, 8) = T3(0, 2);
+
+    global_size_T(7, 6) = T3(1, 0);
+    global_size_T(7, 7) = T3(1, 1);
+    global_size_T(7, 8) = T3(1, 2);
+
+    global_size_T(8, 6) = T3(2, 0);
+    global_size_T(8, 7) = T3(2, 1);
+    global_size_T(8, 8) = T3(2, 2);
+
+    noalias(local_rhs) = rRHS;
     noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
@@ -1039,7 +1132,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    const double area   = r_props[CROSS_AREA];
+    const double area = r_props[CROSS_AREA];
 
     // Let's initialize the cl values
     VectorType strain_vector(StrainSize), stress_vector(StrainSize);
@@ -1051,6 +1144,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     GlobalSizeVector nodal_values, aux_array;
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+
+    const double angle1 = GetAngle(-1.0);
+    const double angle2 = GetAngle(1.0);
+    const double angle3 = GetAngle(0.0);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -1105,11 +1202,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
-        RotateRHS(local_rhs, angle);
+        RotateRHS(local_rhs, angle, angle, angle);
 
         noalias(rRHS) += local_rhs;
         noalias(local_rhs) = ZeroVector(SystemSize);
     } // IP loop
+    // RotateRHS(rRHS, angle1, angle2, angle3);
 
     KRATOS_CATCH("");
 }

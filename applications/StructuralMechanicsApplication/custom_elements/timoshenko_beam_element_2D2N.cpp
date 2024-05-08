@@ -559,9 +559,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
 
         // KRATOS_WATCH(global_size_N)
     }
-
     RotateAll(rLHS, rRHS, r_geometry);
-    // KRATOS_WATCH(rRHS)
 
     KRATOS_CATCH("");
 }
