@@ -959,6 +959,7 @@ protected:
         Vector xNew (rDx.size());
 
         // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "====================================================" << std::endl;
+        // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM xrom" << xrom << std::endl;
         // KRATOS_INFO_IF("AnnPromGlobalROMBuilderAndSolver", (this->GetEchoLevel() >= 0)) << "SolveROM: xBase" << xBase[8174] << std::endl;
         
         const auto solving_timer = BuiltinTimer();

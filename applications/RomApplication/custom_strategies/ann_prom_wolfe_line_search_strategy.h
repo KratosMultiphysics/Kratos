@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi, Nicolas Sibuet
+//  Main authors:    Nicolas Sibuet
 //
 
 
@@ -304,13 +304,12 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                       : "ann_prom_line_search_strategy",
-            "max_line_search_iterations" : 5,
-            "first_alpha_value"          : 0.5,
-            "second_alpha_value"         : 1.0,
-            "min_alpha"                  : 0.1,
-            "max_alpha"                  : 2.0,
-            "line_search_tolerance"      : 0.5
+            "name"                       : "ann_prom_wolfe_line_search_strategy",
+            "max_line_search_expand_iterations" : 10,
+            "max_line_search_zoom_iterations" : 100,
+            "coefficient_1_value"          : 1e-4,
+            "second_alpha_value"         : 0.9,
+            "max_alpha"                  : 10.0
         })");
 
         // Getting base class default parameters
@@ -438,143 +437,231 @@ protected:
         const bool MoveMesh
     ) override
     {
-        typename TSchemeType::Pointer pScheme = this->GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+        TSystemVectorType& Dq_orig = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+        TSystemVectorType& q_base = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_BASE);
+        TSystemVectorType& q_total = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_TOTAL);
 
-        TSystemVectorType& DxRom = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
-        TSystemVectorType& XRomPrevious = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_BASE);
-        TSystemVectorType& XRomTotal = BaseType::GetModelPart().GetRootModelPart().GetValue(ROM_SOLUTION_TOTAL);
-        TSystemVectorType& UPrevious = BaseType::GetModelPart().GetRootModelPart().GetValue(SOLUTION_BASE);
+        TSystemVectorType& x_old = BaseType::GetModelPart().GetRootModelPart().GetValue(SOLUTION_BASE);
+        x_old -= Dx;
 
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_INCREMENT " << DxRom << std::endl;
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_BASE " << XRomPrevious << std::endl;
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "ROM_SOLUTION_TOTAL " << XRomTotal << std::endl;
         // KRATOS_INFO("AnnPromLineSearchStrategy") << "SOLUTION_BASE " << UPrevious[8174] << std::endl;
 
-        TSystemVectorType aux(Dx);
-        TSystemVectorType auxPrevious(Dx);
-        TSystemVectorType UTotal(Dx);
-        TSystemVectorType auxRom(DxRom);
+        TSystemVectorType p = Dq_orig;
+        // TSystemVectorType p(Dq_orig);
+        // TSparseSpace::Assign(p, 1.0/TSparseSpace::TwoNorm(Dq_orig) ,Dq_orig);
 
-        double x1 = mFirstAlphaValue;
-        double x2 = mSecondAlphaValue;
+        TDataType alpha_old = 0.0;
+        
+        TDataType metric_base;
+        TSystemVectorType grad_base(q_base);
+        ComputeMetricAndGradient(q_base, p, x_old, alpha_old, globalPhiEffective, A, b, MoveMesh, metric_base, grad_base);
+        TDataType proj_base = TSparseSpace::Dot(grad_base, p);
+
+        TDataType metric_old = metric_base;
+        TDataType proj_old = proj_base;
+
+        TDataType alpha = mInitialAlpha;
+
+        TDataType metric;
+        TSystemVectorType grad(grad_base);
+        TDataType proj;
 
         bool converged = false;
         int it = 0;
+        while(!converged && it < mMaxExpandIterations) {
 
-        // UPrevious was incremented by Dx in the NewtonRaphson solver. We need to revert that change.
-        UPrevious -= Dx;
-
-
-        // KRATOS_INFO("AnnPromLineSearchStrategy") << "UPrevious: " << UPrevious[8174] << std::endl;
-        // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
-
-        //Compute residual with 1 coefficient update (x1)
-        TSparseSpace::Assign(auxRom,x1,DxRom);
-        // KRATOS_INFO("AnnPromLineSearchStrategy") << "X1: " << x1 << "AuxROM " << auxRom << std::endl;
-        pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
-        aux = UTotal-UPrevious;
-        Dx = aux;
-        // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
-        // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
-        BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
-        TSparseSpace::SetToZero(b);
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-        // double r1 = TSparseSpace::Dot(Dx,b);
-        double r1 = TSparseSpace::TwoNorm(b);
-
-        double rmax = std::abs(r1);
-        while(!converged && it < mMaxLineSearchIterations) {
-
-            //Compute residual with 2 coefficient update (x2)
-            TSparseSpace::Assign(auxRom,x2, DxRom);
-            // KRATOS_INFO("AnnPromLineSearchStrategy") << "X2: " << x2 << "AuxROM " << auxRom << std::endl;
-            pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
-            auxPrevious = aux;
-            aux = UTotal-UPrevious;
-            Dx = aux-auxPrevious;
-            // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
-            // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
-            BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
-            TSparseSpace::SetToZero(b);
-            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-            // double r2 = TSparseSpace::Dot(Dx,b);
-            double r2 = TSparseSpace::TwoNorm(b);
-
-            if(it == 0) {
-                rmax = std::max(rmax,std::abs(r2));
-            }
-            double rmin = std::min(std::abs(r1),std::abs(r2));
-
-            //Find optimum
-            double x = 1.0;
-            if(std::abs(r1 - r2) > 1e-10)
-                x =  (r1*x2 - r2*x1)/(r1 - r2);
-
-            if(x < mMinAlpha) {
-                x = mMinAlpha;
-            } else if(x > mMaxAlpha) {
-                x = mMaxAlpha;
-            }
-
-            //Perform final update
-            TSparseSpace::Assign(auxRom,x, DxRom);
-            // KRATOS_INFO("AnnPromLineSearchStrategy") << "x: " << x << "AuxROM " << auxRom << std::endl;
-            pBuilderAndSolver->GetXFromDecoder(auxRom+XRomPrevious, UTotal);
-            auxPrevious = aux;
-            aux = UTotal-UPrevious;
-            Dx = aux-auxPrevious;
-            // KRATOS_INFO("AnnPromLineSearchStrategy") << "UTotal: " << UTotal[8174] << std::endl;
-            // KRATOS_INFO("AnnPromLineSearchStrategy") << "Dx: " << Dx[8174] << std::endl;
-            BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
-            if(rmin < mLineSearchTolerance*rmax) {
-                KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x <<  " r1 = " << r1 << " r2 = " << r2 << std::endl;
+            ComputeMetricAndGradient(q_base, p, x_old, alpha, globalPhiEffective, A, b, MoveMesh, metric, grad);
+            proj = TSparseSpace::Dot(grad,p)
+            
+            // If new point violates sufficient decrease criteria or is higher than last one, it denotes a valid search interval
+            if((metric > metric_base + mCoef1*alpha*proj_base) || (it>0 && metric > metric_old)) {
+                KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH found valid interval. x_low: " << alpha_old << "(f: " << metric_old << "), x_high: " << alpha << "(f: " << metric << ")" << std::endl;
+                alpha = Zoom(metric_old, proj_old, alpha_old, metric, proj, alpha, q_base, metric_base, grad_base, p, x_old, globalPhiEffective, A, b, MoveMesh);
                 converged = true;
-                TSparseSpace::Assign(auxRom,x, DxRom);
-                break;
+                continue;
             }
 
-            //note that we compute the next residual only if it is strictly needed (we break on the line before if it is not needed)
-            TSparseSpace::SetToZero(b);
-            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
-            // double rf = TSparseSpace::Dot(Dx,b);
-            double rf = TSparseSpace::TwoNorm(b);
-
-            KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH it " << it << " coeff = " << x << " rf = " << rf << " r1 = " << r1 << " r2 = " << r2 << std::endl;
-
-
-            if(std::abs(rf) < rmax*mLineSearchTolerance) {
+            // If new point satisfies strong Wolfe conditions, we use it as our result
+            if(std::abs(proj) <= mCoef2*std::abs(proj_base)) {
+                KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH found valid point. Returning x: " << alpha << std::endl;
                 converged = true;
-                TSparseSpace::Assign(auxRom,x, DxRom);
-            } else {
-                if(std::abs(r1)>std::abs(r2)) {
-                    r1 = rf;
-                    x1 = x;
-                } else {
-                    r2 = r1;
-                    x2 = x1;
-                    r1 = rf;
-                    x1 = x;
-                }
-                converged = false;
+                continue;
             }
 
+            // If the new point has positive slope, then it denotes a valid search interval
+            if(proj >= 0.0) {
+                KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH found valid interval. x_low: " << alpha << "(f: " << metric << "), x_high: " << alpha_old << "(f: " << metric_old << ")" << std::endl;
+                alpha = Zoom(metric, proj, alpha, metric_old, proj_old, alpha_old, q_base, metric_base, grad_base, p, x_old, globalPhiEffective, A, b, MoveMesh);
+                converged = true;
+                continue;
+            }
+
+            metric_old = metric;
+            proj_old = proj;
+            alpha_old = alpha;
+
+            alpha = 2.0*alpha;
+            if (alpha >= mAlphaMax){
+                KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH went over the maximum x value. Returning x: " << mApphaMax << std::endl;
+                alpha = mAlphaMax;
+                converged = true;
+                continue;
+            }
 
             it++;
         }
 
-        // UPrevious += Dx;
-        UPrevious = UTotal;
-        // KRATOS_INFO("AnnPromLineSearchStrategy") << "Updated UPrevious: " << UPrevious[8174] << std::endl;
+        ComputeMetricAndGradient(q_base, p, x_old, alpha, globalPhiEffective, A, b, MoveMesh, metric, grad);
+        KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH final value x: " << alpha << "(f: " << metric << ")" << std::endl;
 
-        DxRom = auxRom;
-        XRomTotal = DxRom+XRomPrevious;
+        TSparseSpace::Assign(Dq_orig, alpha, p);
+        q_total += Dq_orig;
 
-        pBuilderAndSolver->GetXAndDecoderGradient(auxRom+XRomPrevious, UTotal);
-
+        TSparseSpace::SetToZero(A);
         TSparseSpace::SetToZero(b);
 
     }
+
+   /**
+    * @brief This method searches for a point that satisfies the Strong Wolfe Conditions, within the specified interval.
+    * @param metric_low Initial low metric value
+    * @param proj_low Initial projection value at the low point
+    * @param alpha_low Initial alpha value at the low point
+    * @param metric_high Initial high metric value
+    * @param proj_high Initial projection value at the high point
+    * @param alpha_high Initial alpha value at the high point
+    * @param q_base The original reduced snapshot vector
+    * @param metric_base Metric function evaluated at q_base
+    * @param grad_base Gradient of the metric function evaluated at q_base (in reduced space)
+    * @param p The search direction vector (in reduced space)
+    * @param x_old The values in the current system snapshot
+    * @param globalPhiEffective System's global phi effective
+    * @param A The LHS matrix of the system of equations
+    * @param b The RHS vector of the system of equations
+    * @param MoveMesh The flag that allows to move the mesh
+   */
+    TDataType Zoom(
+        TDataType metric_low,
+        TDataType proj_low,
+        TDataType alpha_low,
+        TDataType metric_high,
+        TDataType proj_high,
+        TDataType alpha_high,
+        const TSystemVectorType& q_base,
+        const TDataType& metric_base,
+        const TSystemVectorType& grad_base,
+        const TSystemVectorType& p,
+        const TSystemVectorType& x_old,
+        const TSystemMatrixType& globalPhiEffective,
+        TSystemMatrixType& A,
+        TSystemVectorType& b,
+        const bool MoveMesh
+    )
+    {
+        TDataType proj_base = TSparseSpace::Dot(grad_base,p);
+
+        TDataType metric;
+        TSystemVectorType grad(grad_base);
+        TDataType proj;
+        
+        bool converged = false;
+        int it = 0;
+        while(!converged && it < mMaxZoomIterations) {
+            
+            alpha = 0.5*(alpha_low+alpha_high);
+
+            ComputeMetricAndGradient(q_base, p, x_old, alpha, globalPhiEffective, A, b, MoveMesh, metric, grad);
+            proj =  TSparseSpace::Dot(grad,p);
+
+            // If new point violates sufficient decrease condition or is higher than metric_low, set it as new high point
+            if((metric > metric_base + mCoef1*alpha*proj_base) || (metric >= metric_low)) {
+                KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH reduced interval to: x_low: " << alpha_low << "(f: " << metric_low << "), x_high: " << alpha << "(f: " << metric << ")" << std::endl;
+                alpha_high = alpha;
+                metric_high = metric;
+                proj_high = proj;
+
+            } else {
+
+                // If the new point satisfies the curvature condition, then return it as our result
+                if(std::abs(proj) <= mCoef2*std::abs(proj_base)) {
+                    KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH found valid point. Returning x: " << alpha << std::endl;
+                    return alpha;
+                }
+                
+                // If proj has same sign as alpha_high - alpha_low, consider the low point as the new high point
+                if(proj*(alpha_high-alpha_low) >= 0) {
+                    alpha_high = alpha_low;
+                    metric_high = metric_low;
+                    proj_high = proj_low;
+                }
+
+                alpha_low = alpha;
+                metric_low = metric;
+                proj_low = proj;
+            }
+
+            it++;
+        }
+
+        KRATOS_INFO("AnnPromLineSearchStrategy") << "LINE SEARCH passed the iterations limit. Returning x: " << alpha << std::endl;
+        return alpha;
+    }
+                
+    /**
+     * @brief This method assigns the value of the metric at the specific point and its gradient. IMPORTANT-> It updates the database and x_old
+     * @
+     * @param q_base The original reduced snapshot vector
+     * @param p The search direction vector (in reduced space)
+     * @param x_old The values in the current system snapshot
+     * @param alpha Stepsize to apply
+     * @param globalPhiEffective System's global phi effective
+     * @param A The LHS matrix of the system of equations
+     * @param b The RHS vector of the system of equations
+     * @param MoveMesh The flag that allows to move the mesh
+     * @param metric Output: Metric function evaluated at q_base
+     * @param grad Output: Gradient of the metric function evaluated at q_base (in reduced space)
+     * 
+     */
+    void ComputeMetricAndGradient(
+        const TSystemVectorType& q_base,
+        const TSystemVectorType& p,
+        const TSystemVectorType& x_old,
+        const TDataType& alpha,
+        const TSystemMatrixType& globalPhiEffective,
+        TSystemMatrixType& A,
+        TSystemVectorType& b,
+        const bool MoveMesh,
+        TDataType& metric,
+        TSystemVectorType& grad
+    )
+    {
+        typename TSchemeType::Pointer pScheme = this->GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+        TSparseSpace::SetToZero(A);
+        TSparseSpace::SetToZero(b);
+
+        TSystemVectorType Dq(p);
+        TSystemVectorType x_total(x_old);
+        TSystemMatrixType phi(globalPhiEffective);
+
+        TSparseSpace::Assign(Dq, alpha, p);
+        pBuilderAndSolver->GetXAndDecoderGradient(q_base+Dq, x_total, phi);
+        const TSystemVectorType Dx = x_total-x_old;
+        BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
+        x_old = x_total;
+        pBuilderAndSolver->Build(pScheme, BaseType::GetModelPart(), A, b);
+
+        TSystemVectorType aux(x_old);
+        TSparseSpace::TransposeMult(A, b, aux);
+        TSparseSpace::TransposeMult(phi, aux, grad);
+        TSparseSpace::Assign(grad, -1.0, grad);
+        metric = TSparseSpace::Dot(b, b);
+    }
+
+
 
     /**
      * @brief This method assigns settings to member variables

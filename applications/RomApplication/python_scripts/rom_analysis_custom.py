@@ -243,6 +243,10 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
 
         def Initialize(self):
             super().Initialize()
+
+        def ModifyInitialGeometry(self):
+            super().ModifyInitialGeometry()
+
             NNLayers=self._GetNNLayers()
             SVDPhiMatrices=self._GetSVDPhiMatrices()
             refSnapshot=self._GetReferenceSnapshot()
@@ -281,16 +285,14 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             print(q.shape)
 
             computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(np.squeeze(q, axis=0)))
-            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(np.zeros(q.shape[1])))
+            computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(np.squeeze(q, axis=0)))
             computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros(q.shape[1])))
                                           
             computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s))
 
-            print('ROM_SOLUTION_BASE: ', computing_model_part.GetValue(KratosROM.ROM_SOLUTION_BASE))
-            print('ROM_SOLUTION_TOTAL: ', computing_model_part.GetValue(KratosROM.ROM_SOLUTION_TOTAL))
-            print('ROM_SOLUTION_INCREMENT: ', computing_model_part.GetValue(KratosROM.ROM_SOLUTION_INCREMENT))
-                                          
-            computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s))
+            # print('ROM_SOLUTION_BASE: ', computing_model_part.GetValue(KratosROM.ROM_SOLUTION_BASE))
+            # print('ROM_SOLUTION_TOTAL: ', computing_model_part.GetValue(KratosROM.ROM_SOLUTION_TOTAL))
+            # print('ROM_SOLUTION_INCREMENT: ', computing_model_part.GetValue(KratosROM.ROM_SOLUTION_INCREMENT))
 
             # Initialize nodal ROM_BASIS to zeros
             for node in computing_model_part.Nodes:
@@ -298,7 +300,6 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
 
             # test_matrix=np.load('my_test_matrix.npy')
             # self._GetSolver()._GetBuilderAndSolver().SetTestVector(test_matrix)
-            
 
 
         def FinalizeSolutionStep(self):

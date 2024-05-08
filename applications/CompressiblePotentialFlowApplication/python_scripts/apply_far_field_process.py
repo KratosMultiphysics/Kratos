@@ -19,8 +19,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        print("ENTERED PYTHON's ApplyFarFieldProcess")
-        print(Model)
+        # print("ENTERED PYTHON's ApplyFarFieldProcess")
+        # print(Model)
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
