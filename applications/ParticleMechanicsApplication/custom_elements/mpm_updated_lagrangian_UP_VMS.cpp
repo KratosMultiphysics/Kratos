@@ -884,23 +884,17 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
 void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
 
-    GeometryType& r_geometry = this->GetGeometry();
+ /*   GeometryType& r_geometry = this->GetGeometry();
     const unsigned int number_of_nodes  = r_geometry.size();
     const unsigned int dimension        = r_geometry.WorkingSpaceDimension();
-    const double density                = GetProperties()[DENSITY];
-    const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
-    // std::vector<double> mp_mass(1);
-    double mp_volume = 0;
-    double mp_mass = 0;
-    //std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
-//     std::vector<array_1d<double, 3>> volume_force = { ZeroVector(3) };
-//     Vector mp_volume_acceleration = ZeroVector(3);
-//     Vector volume_force = ZeroVector(3);
-    unsigned int particles_per_element  = GetProperties()[PARTICLES_PER_ELEMENT];
-    IntegrationMethod int_method        = GeometryData::IntegrationMethod::GI_GAUSS_1;
-//     Matrix shape_functions_values;
-    bool is_equal_int_volumes = false;
+    const Vector& r_N       = row(GetGeometry().ShapeFunctionsValues(), 0);
+    Vector MomentumRes      = ZeroVector(3);
+    double ConservRes       = 0.0;
+    VectorType momentum_rhs = ZeroVector(number_of_nodes*dimension);
+    VectorType conserv_rhs  = ZeroVector(number_of_nodes);
+    VectorType NodalArea    = ZeroVector(number_of_nodes);
 
+     // Set the Initialize General Variables
     GeneralVariables Variables;
     this-> InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
@@ -911,66 +905,45 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     Flags &ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
+    // Set Variables
     this-> CalculateKinematics(Variables, rCurrentProcessInfo);
     this-> SetGeneralVariables(Variables, Values, r_N);
     this-> SetSpecificVariables(Variables,rCurrentProcessInfo);
 
-// CAMBIAR MÁS ADELANTE PARA QUE LEA CUANTAS PARTICULAS PER ELEMENT HAY.
-//     MPMParticleGeneratorUtility::DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
-//                         int_method, shape_functions_values, is_equal_int_volumes);
-//     const unsigned int integration_point_per_elements = shape_functions_values.size1();
-    Vector int_volumes (particles_per_element);
 
-    for (size_t j = 0; j < particles_per_element; ++j)  int_volumes[j] = r_geometry.DomainSize() / particles_per_element;
+    mMP.volume = mMP.mass / mMP.density;
+    Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
 
-    VectorType momentum_rhs = ZeroVector(number_of_nodes*dimension);
-    VectorType conserv_rhs                                  = ZeroVector(number_of_nodes);
-    VectorType NodalArea                                    = ZeroVector(number_of_nodes);
+    // Compute the Residual
+    this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes);
 
-    // Loop over the material points that fall in each grid element
-    for (unsigned int PointNumber = 0; PointNumber < particles_per_element; PointNumber++)
+    // Loop over the nodes for projecting
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        //acceleration = KratosMultiphysics.KratosGlobals.GetVariable( MP_VOLUME_ACCELERATION )
-        //std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
-        //CalculateOnIntegrationPoints(acceleration, mp_volume_acceleration, rCurrentProcessInfo);
-        //CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
-
-        //MPMUpdatedLagrangian::CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
-         mp_volume = int_volumes[PointNumber];
-         mp_mass   = int_volumes[PointNumber]*density;
-
-        Vector volume_force = ZeroVector(3);
-        volume_force =  Variables.BodyForceMP * mp_mass;
-
-        Vector MomentumRes = ZeroVector(3);
-        double ConservRes = 0.0;
-        this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes);
-
-
-        // Loop over the nodes
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            double W = mp_volume*r_N(i);
-            unsigned int row = i*dimension;
-            for (unsigned int d = 0; d < dimension; d++)
-                momentum_rhs[row+d] += W*MomentumRes[d];
-            NodalArea[i] += W;
-            conserv_rhs[i] += W*ConservRes;
-        }
-    }
-
-    // Add carefully to nodal variables to avoid OpenMP race condition
-    for (SizeType i = 0; i < number_of_nodes; ++i)
-    {
-        r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
-        array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(RESPROJ_DISPL);
+        double W = mMP.volume*r_N(i);
         unsigned int row = i*dimension;
         for (unsigned int d = 0; d < dimension; d++)
-            rMomValue[d] += momentum_rhs[row + d];
-        r_geometry[i].FastGetSolutionStepValue(RESPROJ_PRESS) += conserv_rhs[i];
-        r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
-        r_geometry[i].UnSetLock(); // Free the node for other threads
+            momentum_rhs[row+d] += W*MomentumRes[d];
+        NodalArea[i] += W;
+        conserv_rhs[i] += W*ConservRes;
     }
+
+
+     // Add to Global nodal variables
+      for (SizeType i = 0; i < number_of_nodes; ++i)
+      {
+          r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
+          array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(RESPROJ_DISPL);
+          unsigned int row = i*dimension;
+          for (unsigned int d = 0; d < dimension; d++) rMomValue[d] += momentum_rhs[row + d];
+
+          r_geometry[i].FastGetSolutionStepValue(RESPROJ_PRESS) += conserv_rhs[i];
+          //r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+          r_geometry[i].UnSetLock(); // Free the node for other threads
+      }
+
+       KRATOS_CATCH( "" ) */
+   
 }
 
 
