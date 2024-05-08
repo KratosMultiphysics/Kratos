@@ -71,6 +71,9 @@ public:
         GeometryType::ShapeFunctionsGradientsType dN_dX_container;
         Vector                                    det_J_container;
 
+        // ShapreFunctionsIntegrationsPointsGradients does not allow for the line element in 2D/3D configuration
+        // and will produce errors. To circumvent this, the dN_dX_container is separately computed with correct
+        // dimensions for the line element.
         if (GetGeometry().LocalSpaceDimension() == 1) {
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
@@ -253,7 +256,7 @@ private:
             result[integration_point_index] = r_integration_points[integration_point_index].Weight() *
                                               rDetJContainer[integration_point_index];
             if (GetGeometry().LocalSpaceDimension() == 1) {
-                result[integration_point_index] *= r_properties[SECTION_AREA];
+                result[integration_point_index] *= r_properties[CROSS_AREA];
             }
         }
 

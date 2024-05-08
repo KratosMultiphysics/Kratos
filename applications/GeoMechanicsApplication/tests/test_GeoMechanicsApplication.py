@@ -46,6 +46,8 @@ from test_conditions import KratosGeoMechanicsConditionTests
 from test_prescribed_derivatives import KratosGeoMechanicsPrescribedDerivatives
 from test_dirichlet_u import KratosGeoMechanicsDirichletUTests
 from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTests
+from test_pressure_line_element import KratosGeoMechanicsTransientPressureLineElementTests
+from settlement_workflow import KratosGeoMechanicsSettlementWorkflow
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -104,7 +106,9 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsTimeIntegrationTests
+                        KratosGeoMechanicsTimeIntegrationTests,
+                        KratosGeoMechanicsTransientPressureLineElementTests,
+                        KratosGeoMechanicsSettlementWorkflow
                         ]
     night_test_cases.extend(small_test_cases)
 
