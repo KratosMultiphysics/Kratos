@@ -55,11 +55,15 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
+            "SingularValues_Solution":'''CREATE TABLE IF NOT EXISTS SingularValues_Solution
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
             "PetrovGalerkinSnapshots": '''CREATE TABLE IF NOT EXISTS PetrovGalerkinSnapshots
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
             "ResidualsProjected": '''CREATE TABLE IF NOT EXISTS ResidualsProjected
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
+            "SingularValues_Residuals":'''CREATE TABLE IF NOT EXISTS SingularValues_Residuals
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "HROM_Elements": '''CREATE TABLE IF NOT EXISTS HROM_Elements
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
@@ -104,10 +108,14 @@ class RomDatabase(object):
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         elif table_name == 'ResidualsProjected':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
+        elif table_name == 'SingularValues_Residuals':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         elif table_name == 'PetrovGalerkinSnapshots':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == 'RightBasis':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol)
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, table_name)
+        elif table_name == 'SingularValues_Solution':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, table_name)
         elif table_name == 'LeftBasis':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == "HROM_Elements":
@@ -173,10 +181,15 @@ class RomDatabase(object):
         elif table_name == 'ResidualsProjected':
             cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
                         (serialized_mu, projection_type, tol_sol, tol_res, file_name))
+        elif table_name == 'SingularValues_Residuals':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
+                        (serialized_mu, projection_type, tol_sol, tol_res, file_name))
         elif table_name == 'PetrovGalerkinSnapshots':
             cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                         (serialized_mu, tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
         elif table_name == 'RightBasis':
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
+        elif table_name == 'SingularValues_Solution':
             cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
         elif table_name == 'LeftBasis':
             cursor.execute(f'INSERT INTO {table_name} (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',

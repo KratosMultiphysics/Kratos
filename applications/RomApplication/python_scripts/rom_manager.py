@@ -42,8 +42,7 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
 
 
-    def Fit(self, mu_train=[None], mu_validation=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
-    def Fit(self, mu_train=[None]):
+    def Fit(self, mu_train=[None],mu_validation=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -51,49 +50,26 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if type_of_decoder =="ann_enhanced":
-                #TODO split all of the methods for ROM generation: Snapshots generation (train snapshots and validation snapshots), Basis Computation, NeuralNetworkTraining
-                # necesary steps: Modify RomBasisOuptupProcess to fetch snapshots, not only run after simulations
                 if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
                     err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
                     raise Exception(err_msg)
-                self.StoreFomSnapshotsAndBasis(mu_train=mu_train)
-                self.StoreFomValidationSnapshots(mu_validation=mu_validation)
-                self.TrainAnnEnhancedROM()
+                self.__LaunchTrainROM(mu_train)
+                self.__LauchTrainFOM(mu_validation)
+                self.TrainAnnEnhancedROM(mu_train,mu_validation)
                 #TODO implement online stage for ann_enhanced
                 #self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN?")
                 #rom_snapshots = self.__LaunchROM(mu_train)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
-                    fom_snapshots = self.__LaunchTrainROM(mu_train)
-                    if store_all_snapshots or store_fom_snapshots:
-                        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                    self.__LaunchTrainROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                    rom_snapshots = self.__LaunchROM(mu_train)
-                    if store_all_snapshots or store_rom_snapshots:
-                        self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
-                    self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
-
+                    self.__LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                    self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                    self.__LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    hrom_snapshots = self.__LaunchHROM(mu_train)
-                    if store_all_snapshots or store_hrom_snapshots:
-                        self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                    self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
-            #######################
-            if any(item == "ROM" for item in training_stages):
-                self.__LaunchTrainROM(mu_train)
-                self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                self.__LaunchROM(mu_train)
-            if any(item == "HROM" for item in training_stages):
-                #FIXME there will be an error if we only train HROM, but not ROM
-                self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                self.__LaunchTrainHROM(mu_train)
-                self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                self.__LaunchHROM(mu_train)
-            self.ComputeErrors(mu_train)
+                    self.__LaunchHROM(mu_train)
         #######################
 
         #######################################
@@ -104,41 +80,17 @@ class RomManager(object):
                 raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
-                    fom_snapshots = self.__LaunchTrainROM(mu_train)
-                    if store_all_snapshots or store_fom_snapshots:
-                        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                    self.__LaunchTrainROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "lspg")
-                    rom_snapshots = self.__LaunchROM(mu_train)
-                    if store_all_snapshots or store_rom_snapshots:
-                        self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
-                    self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                    self.__LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
                     # Change the flags to train the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
-                    self.__LaunchTrainHROM(mu_train, store_residuals_projected)
-
+                    self.__LaunchTrainHROM(mu_train)
                     # Change the flags to run the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    hrom_snapshots = self.__LaunchHROM(mu_train)
-            if any(item == "ROM" for item in training_stages):
-                self.__LaunchTrainROM(mu_train)
-                self._ChangeRomFlags(simulation_to_run = "lspg")
-                self.__LaunchROM(mu_train)
-
-            if any(item == "HROM" for item in training_stages):
-                # Change the flags to train the HROM for LSPG
-                self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
-                self.__LaunchTrainHROM(mu_train)
-                # Change the flags to run the HROM for LSPG
-                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                self.__LaunchHROM(mu_train)
-
-                    if store_all_snapshots or store_hrom_snapshots:
-                        self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
+                    self.__LaunchHROM(mu_train)
         #######################################
-
-                    self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
-                    #######################################
 
         ##########################
         ###  Petrov Galerkin   ###
@@ -147,56 +99,30 @@ class RomManager(object):
                 err_msg = f'ann_enhanced rom only available for Galerkin Rom for the moment'
                 raise Exception(err_msg)
             elif type_of_decoder =="linear":
+            ##########################
                 if any(item == "ROM" for item in training_stages):
-                    fom_snapshots = self.__LaunchTrainROM(mu_train)
-                    if store_all_snapshots or store_fom_snapshots:
-                        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
+                    self.__LaunchTrainROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "TrainPG")
                     self.__LaunchTrainPG(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "PG")
-                    rom_snapshots = self.__LaunchROM(mu_train)
-                    if store_all_snapshots or store_rom_snapshots:
-                        self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
-                    self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+                    self.__LaunchROM(mu_train)
+
                 if any(item == "HROM" for item in training_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                    self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                    self.__LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    hrom_snapshots = self.__LaunchHROM(mu_train)
-                    if store_all_snapshots or store_hrom_snapshots:
-                        self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                    self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                    self.__LaunchHROM(mu_train)
             ##########################
-            if any(item == "ROM" for item in training_stages):
-                self.__LaunchTrainROM(mu_train)
-                self._ChangeRomFlags(simulation_to_run = "TrainPG")
-                self.__LaunchTrainPG(mu_train)
-                self._ChangeRomFlags(simulation_to_run = "PG")
-                self.__LaunchROM(mu_train)
-
-            if any(item == "HROM" for item in training_stages):
-                #FIXME there will be an error if we only train HROM, but not ROM
-                self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                self.__LaunchTrainHROM(mu_train)
-                self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                self.__LaunchHROM(mu_train)
-
-        ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.ComputeErrors(mu_train)
+        if not type_of_decoder=="ann_enhanced":
+            #TODO implement online stage of ann_enhanced
+            self.ComputeErrors(mu_train)
 
-    def StoreFomSnapshotsAndBasis(self, mu_train=[None]):
-        fom_snapshots = self.__LaunchTrainROM(mu_train)
-        self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
-
-    def StoreFomValidationSnapshots(self, mu_validation=[None]):
-        self.RunFOM(mu_run=mu_validation, snapshots_matrix_name='fom_snapshots_val')
-
-    def TrainAnnEnhancedROM(self):
-        self.__LaunchTrainNeuralNetwork()
+    def TrainAnnEnhancedROM(self, mu_train, mu_validation):
+        self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
     def TestNeuralNetworkReconstruction(self):
         self.__LaunchTestNeuralNetworkReconstruction()
@@ -251,13 +177,6 @@ class RomManager(object):
         self.ComputeErrors(mu_test, 'Test')
 
 
-
-
-    def RunFOM(self, mu_run=[None], snapshots_matrix_name=None):
-        store_snapshots = snapshots_matrix_name is not None
-        fom_snapshots = self.__LaunchRunFOM(mu_run, store_snapshots=store_snapshots)
-        if store_snapshots:
-            self._StoreSnapshotsMatrix(snapshots_matrix_name, fom_snapshots)
     def RunFOM(self, mu_run=[None]):
         self.__LaunchRunFOM(mu_run)
 
@@ -345,33 +264,16 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
-        with open(self.project_parameters_name,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        SnapshotsMatrix = []
-        for Id, mu in enumerate(mu_train):
-            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Fit',mu,Id)
-            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-            self.UpdateMaterialParametersFile(materials_file_name, mu)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-            simulation.Run()
-            self.QoI_Fit_FOM.append(simulation.GetFinalData())
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
-        u, sigma = BasisOutputProcess._ComputeSVD(SnapshotsMatrix)
-        BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
+        self.__LauchTrainFOM(mu_train)
+        self.__LauchComputeSolutionBasis(mu_train)
 
+
+
+    def __LauchTrainFOM(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             with open(self.project_parameters_name,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            BasisOutputProcess = None
             for Id, mu in enumerate(mu_train):
                 in_database, _ = self.data_base.check_if_in_database("FOM_Fit", mu)
                 if not in_database:
@@ -390,14 +292,19 @@ class RomManager(object):
                             BasisOutputProcess = process
                     SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                     self.data_base.add_to_database("FOM_Fit", mu, SnapshotsMatrix)
-            if BasisOutputProcess is None:
-                BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            u = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
-            BasisOutputProcess._PrintRomBasis(u) #Calling the RomOutput Process for creating the RomParameter.json
+
+
+    def __LauchComputeSolutionBasis(self, mu_train):
+        in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
+        if not in_database:
+            BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
+            u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train)) #Calling the RomOutput Process for creating the RomParameter.json
+            BasisOutputProcess._PrintRomBasis(u, None) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_to_database("RightBasis", mu_train, u )
+            self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis)) #this updates the RomParameters.json
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), None ) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
 
@@ -496,26 +403,26 @@ class RomManager(object):
                     simulation.Run()
                     ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
                     self.data_base.add_to_database("ResidualsProjected", mu, ResidualProjected )
-                RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
-                u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
-                self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
-                if simulation is None:
-                    HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
-                else:
-                    HROM_utility = simulation.GetHROM_utility()
-                HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = HROM_utility.candidate_ids)
+            RedidualsSnapshotsMatrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name="ResidualsProjected")
+            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
+            self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()) #TODO load basis for residuals projected. Can we truncate it only, not compute the whole SVD but only return the respective number of singular vectors?
+            if simulation is None:
+                HROM_utility = self.InitializeDummySimulationForHromTrainingUtility()
+            else:
+                HROM_utility = simulation.GetHROM_utility()
+            HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = HROM_utility.candidate_ids)
+            HROM_utility.hyper_reduction_element_selector.Run()
+            if not HROM_utility.hyper_reduction_element_selector.success:
+                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
+                #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+                HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
                 HROM_utility.hyper_reduction_element_selector.Run()
-                if not HROM_utility.hyper_reduction_element_selector.success:
-                    KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
-                    #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-                    HROM_utility.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
-                    HROM_utility.hyper_reduction_element_selector.Run()
-                z = HROM_utility.hyper_reduction_element_selector.z
-                w = HROM_utility.hyper_reduction_element_selector.w
-                self.data_base.add_to_database("HROM_Elements", mu_train, np.squeeze(z))
-                self.data_base.add_to_database("HROM_Weights", mu_train, np.squeeze(w))
-                HROM_utility.AppendHRomWeightsToRomParameters()
-                HROM_utility.CreateHRomModelParts()
+            z = HROM_utility.hyper_reduction_element_selector.z
+            w = HROM_utility.hyper_reduction_element_selector.w
+            self.data_base.add_to_database("HROM_Elements", mu_train, np.squeeze(z))
+            self.data_base.add_to_database("HROM_Weights", mu_train, np.squeeze(w))
+            HROM_utility.AppendHRomWeightsToRomParameters()
+            HROM_utility.CreateHRomModelParts()
         # elif (in_database_elems and not in_database_weights) or (not in_database_elems and in_database_weights):
         #     error #if one of the two is there but not the other, the database is corrupted
         else:
@@ -638,17 +545,14 @@ class RomManager(object):
 
 
 
-    def __LaunchRunFOM(self, mu_run, store_snapshots=False):
+    def __LaunchRunFOM(self, mu_run):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        SnapshotsMatrix = []
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
-            if store_snapshots:
-                parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
             parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -656,16 +560,8 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
-            self.QoI_Run_FOM.append(simulation.GetFinalData())
-            if store_snapshots:
-                for process in simulation._GetListOfOutputProcesses():
-                    if isinstance(process, CalculateRomBasisOutputProcess):
-                        BasisOutputProcess = process
-                SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix())
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
 
-        return SnapshotsMatrix
-        
+
     def __LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
@@ -706,21 +602,21 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
-    def __LaunchTrainNeuralNetwork(self):
+    def __LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
-        
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
+
+        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
         model_name = rom_nn_trainer.TrainNetwork()
         rom_nn_trainer.EvaluateNetwork(model_name)
-        
+
 
     def __LaunchTestNeuralNetworkReconstruction(self):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
-        
+
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
         model_name=self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_name"].GetString()
         rom_nn_trainer.EvaluateNetwork(model_name)
@@ -731,7 +627,7 @@ class RomManager(object):
         parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+        analysis_stage_class = self._GetAnalysisStageClass(parameters)
         simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
         simulation.Initialize()
         for process in simulation._GetListOfOutputProcesses():
@@ -996,12 +892,6 @@ class RomManager(object):
                     "training": {
                         "batch_size": 1,
                         "custom_name": "test_neural_network",
-                        "database": {
-                            "phi_matrix": "rom_data/RightBasisMatrix.npy",
-                            "sigma_vector": "rom_data/SingularValuesVector.npy",
-                            "training_set": "rom_data/SnapshotsMatrices/fom_snapshots.npy",
-                            "validation_set": "rom_data/SnapshotsMatrices/fom_snapshots_val.npy"
-                        },
                         "epochs": 50,
                         "layers_size": [            // Size of each hidden layer in the Neural Network (for more layers, append more values)
                             2,
@@ -1012,7 +902,7 @@ class RomManager(object):
                             "base_lr": 0.01,            // Initial LR
                             "additional_params": []     // 'const' -> []; 'steps' or 'sgdr' -> [minimum_LR, reduction_factor, period_length]
                         },
-                                                         
+
                         "modes": [
                             1,                  // Highest mode to be used as inferior modes (size of NN input)
                             2                   // Highest mode to be used as superior modes (size of NN output + size of NN input)
