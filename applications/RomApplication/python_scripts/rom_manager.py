@@ -9,7 +9,7 @@ from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
 try:
-    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
+    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer # type: ignore
     have_tensorflow = True
 except ImportError:
     have_tensorflow = False
@@ -384,7 +384,8 @@ class RomManager(object):
             simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
             simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
-        simulation.GetHROM_utility().CreateHRomModelParts()
+        if self.hrom_training_parameters["create_hrom_visualization_model_part"].GetBool():
+            simulation.GetHROM_utility().CreateHRomModelParts()
 
 
     def __LaunchHROM(self, mu_train):
