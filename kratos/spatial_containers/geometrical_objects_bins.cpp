@@ -150,7 +150,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(
     ResultType current_result;
 
     const array_1d<double, 3> box_size = mBoundingBox.GetMaxPoint() - mBoundingBox.GetMinPoint();
-    const double max_radius= (*std::max_element(box_size.begin(), box_size.end())) * MaxRadiusCoefficient; //  TODO: Must be added in the MPI utils as well
+    const double max_radius= (*std::max_element(box_size.begin(), box_size.end())) * MaxRadiusCoefficient;
 
     return SearchNearestInRadius(rPoint, max_radius);
 }
