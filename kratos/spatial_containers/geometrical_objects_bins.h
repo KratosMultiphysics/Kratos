@@ -227,9 +227,13 @@ public:
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
      * @param rPoint The point to be checked
+     * @param MaxRadiusCoefficient The coefficient to increase the max radius computed considering BB
      * @return ResultType The result of the search
-    */
-    ResultType SearchNearest(const PointType& rPoint);
+     */
+    ResultType SearchNearest(
+        const PointType& rPoint,
+        const double MaxRadiusCoefficient = 1.0
+        );
 
     /**
      * @brief This method takes a point and finds the nearest object to it (iterative version).
