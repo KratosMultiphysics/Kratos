@@ -15,7 +15,10 @@
 // Project includes
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
+#include "geometries/geometry.h"
+#include "geometries/geometry_data.h"
+#include "includes/node.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -23,9 +26,9 @@ namespace Kratos
 class GeoEquationOfMotionUtilities
 {
 public:
-    static Matrix CalculateMassMatrix(SizeType                   dimension,
-                                      SizeType                   number_U_nodes,
-                                      SizeType                   NumberIntegrationPoints,
+    static Matrix CalculateMassMatrix(std::size_t                dimension,
+                                      std::size_t                number_U_nodes,
+                                      std::size_t                NumberIntegrationPoints,
                                       const Matrix&              Nu_container,
                                       const Vector&              rSolidDensities,
                                       const std::vector<double>& rIntegrationCoefficients);

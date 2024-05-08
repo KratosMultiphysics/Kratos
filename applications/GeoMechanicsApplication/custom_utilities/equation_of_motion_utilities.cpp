@@ -14,22 +14,23 @@
 
 // Application includes
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
 
-Matrix GeoEquationOfMotionUtilities::CalculateMassMatrix(SizeType      dimension,
-                                                         SizeType      number_U_nodes,
-                                                         SizeType      NumberIntegrationPoints,
+Matrix GeoEquationOfMotionUtilities::CalculateMassMatrix(std::size_t   dimension,
+                                                         std::size_t   number_U_nodes,
+                                                         std::size_t   NumberIntegrationPoints,
                                                          const Matrix& Nu_container,
                                                          const Vector& rSolidDensities,
                                                          const std::vector<double>& rIntegrationCoefficients)
 {
-    const SizeType block_element_size = number_U_nodes * dimension;
-    Matrix         Nu                 = ZeroMatrix(dimension, block_element_size);
-    Matrix         aux_density_matrix = ZeroMatrix(dimension, block_element_size);
-    Matrix         density_matrix     = ZeroMatrix(dimension, dimension);
-    Matrix         mass_matrix        = ZeroMatrix(block_element_size, block_element_size);
+    const std::size_t block_element_size = number_U_nodes * dimension;
+    Matrix            Nu                 = ZeroMatrix(dimension, block_element_size);
+    Matrix            aux_density_matrix = ZeroMatrix(dimension, block_element_size);
+    Matrix            density_matrix     = ZeroMatrix(dimension, dimension);
+    Matrix            mass_matrix        = ZeroMatrix(block_element_size, block_element_size);
 
     for (unsigned int g_point = 0; g_point < NumberIntegrationPoints; ++g_point) {
         GeoElementUtilities::AssembleDensityMatrix(density_matrix, rSolidDensities(g_point));

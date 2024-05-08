@@ -11,6 +11,7 @@
 //
 
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"

@@ -10,7 +10,6 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "containers/model.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/checks.h"
 #include "testing/testing.h"

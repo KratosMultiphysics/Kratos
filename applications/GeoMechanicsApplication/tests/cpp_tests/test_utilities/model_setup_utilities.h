@@ -13,7 +13,6 @@
 #pragma once
 
 #include "geo_aliases.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {
