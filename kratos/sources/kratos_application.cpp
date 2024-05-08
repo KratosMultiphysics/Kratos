@@ -311,10 +311,17 @@ void KratosApplication::DeregisterCommonComponents()
 
     auto deregister_detail = [&](std::string const & rComponentName, auto remove_detail) {
         auto path = std::string(rComponentName)+"."+mApplicationName;
-        std::cout << "Deregistering " << path << " components" << std::endl;
         for (auto & key : Registry::GetItem(path)) {
             std::cout << "\t" << key.first << std::endl;
+            
+            // Remove from components
             remove_detail(key.first);
+
+            // Remove from registry component typed list
+            Registry::RemoveItem(path);
+
+            // Remove from registry general component list
+            Registry::RemoveItem("components."+key.first);
         }
     };
 

@@ -696,10 +696,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_REGISTER_GEOMETRY
 #undef KRATOS_REGISTER_GEOMETRY
 #endif
-#define KRATOS_REGISTER_GEOMETRY(name, reference) \
-    KratosComponents<Geometry<Node>>::Add(name, reference); \
-    if(!Registry::HasItem("geometries."+Registry::GetCurrentSource()+"."+name)){                                              \
-        Registry::AddItem<RegistryItem>("geometries."+Registry::GetCurrentSource()+"."+name);                           \
+#define KRATOS_REGISTER_GEOMETRY(name, reference)                                                                   \
+    KratosComponents<Geometry<Node>>::Add(name, reference);                                                         \
+    if(!Registry::HasItem("geometries."+Registry::GetCurrentSource()+"."+name) &&                                   \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("geometries."+Registry::GetCurrentSource()+"."+name);                       \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
     }                                                                                                               \
     Serializer::Register(name, reference);
 
@@ -708,8 +710,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_ELEMENT(name, reference)                                                                    \
     KratosComponents<Element>::Add(name, reference);                                                                \
-    if(!Registry::HasItem("elements."+Registry::GetCurrentSource()+"."+name)){                                              \
-        Registry::AddItem<RegistryItem>("elements."+Registry::GetCurrentSource()+"."+name);                           \
+    if(!Registry::HasItem("elements."+Registry::GetCurrentSource()+"."+name) &&                                     \
+       !Registry::HasItem("components."+std::string(name))){                                                                    \
+        Registry::AddItem<RegistryItem>("elements."+Registry::GetCurrentSource()+"."+name);                         \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
     }                                                                                                               \
     Serializer::Register(name, reference);
 
@@ -718,8 +722,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_CONDITION(name, reference)                                                                  \
     KratosComponents<Condition>::Add(name, reference);                                                              \
-    if(!Registry::HasItem("conditions."+Registry::GetCurrentSource()+"."+name)){                                            \
+    if(!Registry::HasItem("conditions."+Registry::GetCurrentSource()+"."+name) &&                                   \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
         Registry::AddItem<RegistryItem>("conditions."+Registry::GetCurrentSource()+"."+name);                       \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
     }                                                                                                               \
     Serializer::Register(name, reference);
 
@@ -728,8 +734,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_CONSTRAINT(name, reference)                                                                 \
     KratosComponents<MasterSlaveConstraint>::Add(name, reference);                                                  \
-    if(!Registry::HasItem("constraints."+Registry::GetCurrentSource()+"."+name)){                                    \
-        Registry::AddItem<RegistryItem>("constraints."+Registry::GetCurrentSource()+"."+name);   \
+    if(!Registry::HasItem("constraints."+Registry::GetCurrentSource()+"."+name) &&                                  \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("constraints."+Registry::GetCurrentSource()+"."+name);                      \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
     }                                                                                                               \
     Serializer::Register(name, reference);
 
@@ -738,8 +746,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_MODELER(name, reference)                                                                    \
     KratosComponents<Modeler>::Add(name, reference);                                                                \
-    if(!Registry::HasItem("modelers."+Registry::GetCurrentSource()+"."+name)){                                       \
-        Registry::AddItem<RegistryItem>("modelers."+Registry::GetCurrentSource()+"."+name);                    \
+    if(!Registry::HasItem("modelers."+Registry::GetCurrentSource()+"."+name) &&                                     \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("modelers."+Registry::GetCurrentSource()+"."+name);                         \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
     }                                                                                                               \
     Serializer::Register(name, reference);
 
@@ -748,8 +758,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference)                                                           \
     KratosComponents<ConstitutiveLaw>::Add(name, reference);                                                        \
-    if(!Registry::HasItem("constitutive_laws."+Registry::GetCurrentSource()+"."+name)){                              \
-        Registry::AddItem<RegistryItem>("constitutive_laws."+Registry::GetCurrentSource()+"."+name);   \
+    if(!Registry::HasItem("constitutive_laws."+Registry::GetCurrentSource()+"."+name) &&                            \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("constitutive_laws."+Registry::GetCurrentSource()+"."+name);                \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
     }                                                                                                               \
     Serializer::Register(name, reference);
 

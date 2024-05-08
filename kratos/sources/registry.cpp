@@ -83,12 +83,37 @@ namespace
 
     void Registry::SetCurrentSource(std::string const & rCurrentSource)
     {
-        mCurrentSource = rCurrentSource;
+        // If context key not present, create it
+        if(!Registry::HasItem("CurrentContext")){
+           Registry::AddItem<RegistryItem>("CurrentContext");
+        }
+
+        auto & entry = Registry::GetItem("CurrentContext");
+
+        if (entry.HasItem("value")) {
+            entry.RemoveItem("value");
+        }
+
+        entry.AddItem<std::string>("value", rCurrentSource);
     }
 
     std::string Registry::GetCurrentSource()
     {
-        return mCurrentSource;
+        using namespace std::literals;
+
+        // If context key not present, create it
+        if(!Registry::HasItem("CurrentContext")){
+            Registry::AddItem<RegistryItem>("CurrentContext");
+        }
+
+        auto & entry = Registry::GetItem("CurrentContext");
+
+        // If no context set, set the default one
+        if (!entry.HasItem("value")) {
+            entry.AddItem<std::string>("value", std::string("KratosMultiphysics"));
+        }
+
+        return Registry::GetItem("CurrentContext.value").GetValue<std::string>();
     }
 
     std::size_t Registry::size()
