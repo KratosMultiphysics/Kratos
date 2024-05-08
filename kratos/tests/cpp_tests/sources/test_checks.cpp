@@ -35,8 +35,8 @@ namespace Kratos {
 			KRATOS_EXPECT_EQ(1.0, 1.0);
 			KRATOS_EXPECT_NE(1.0, 2.0);
 
-			KRATOS_EXPECT_EQ("Test", "Test");
-			KRATOS_EXPECT_NE("Test ", "Test");
+			KRATOS_EXPECT_STREQ("Test", "Test");
+			KRATOS_EXPECT_STRNE("Test ", "Test");
 
 			KRATOS_EXPECT_LT(1., 2.);
 			KRATOS_EXPECT_LE(1., 1.);
