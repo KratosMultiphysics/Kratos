@@ -16,7 +16,7 @@
 namespace Kratos
 {
 
-Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rGradNpT,
+Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
                                                      const Vector&,
                                                      const Geometry<Node>& rGeometry) const
 {
@@ -27,15 +27,15 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rGradNpT,
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(INDEX_3D_XX, offset + INDEX_X) = rGradNpT(i, INDEX_X);
-        result(INDEX_3D_YY, offset + INDEX_Y) = rGradNpT(i, INDEX_Y);
-        result(INDEX_3D_ZZ, offset + INDEX_Z) = rGradNpT(i, INDEX_Z);
-        result(INDEX_3D_XY, offset + INDEX_X) = rGradNpT(i, INDEX_Y);
-        result(INDEX_3D_XY, offset + INDEX_Y) = rGradNpT(i, INDEX_X);
-        result(INDEX_3D_YZ, offset + INDEX_Y) = rGradNpT(i, INDEX_Z);
-        result(INDEX_3D_YZ, offset + INDEX_Z) = rGradNpT(i, INDEX_Y);
-        result(INDEX_3D_XZ, offset + INDEX_X) = rGradNpT(i, INDEX_Z);
-        result(INDEX_3D_XZ, offset + INDEX_Z) = rGradNpT(i, INDEX_X);
+        result(INDEX_3D_XX, offset + INDEX_X) = rDN_DX(i, INDEX_X);
+        result(INDEX_3D_YY, offset + INDEX_Y) = rDN_DX(i, INDEX_Y);
+        result(INDEX_3D_ZZ, offset + INDEX_Z) = rDN_DX(i, INDEX_Z);
+        result(INDEX_3D_XY, offset + INDEX_X) = rDN_DX(i, INDEX_Y);
+        result(INDEX_3D_XY, offset + INDEX_Y) = rDN_DX(i, INDEX_X);
+        result(INDEX_3D_YZ, offset + INDEX_Y) = rDN_DX(i, INDEX_Z);
+        result(INDEX_3D_YZ, offset + INDEX_Z) = rDN_DX(i, INDEX_Y);
+        result(INDEX_3D_XZ, offset + INDEX_X) = rDN_DX(i, INDEX_Z);
+        result(INDEX_3D_XZ, offset + INDEX_Z) = rDN_DX(i, INDEX_X);
     }
 
     return result;

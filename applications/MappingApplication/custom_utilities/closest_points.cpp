@@ -32,8 +32,17 @@ PointWithId::PointWithId(const PointWithId& rOther)
 
 bool PointWithId::operator<(const PointWithId& rOther) const
 {
-    if (Point::operator==(rOther)) return false;
-    return mDistance < rOther.mDistance;
+    return (!Point::operator==(rOther)) && (mDistance < rOther.mDistance);
+}
+
+bool PointWithId::operator==(const PointWithId& rOther) const
+{
+    return ( Point::operator==(rOther));
+}
+
+bool PointWithId::operator!=(const PointWithId& rOther) const
+{
+    return (!Point::operator==(rOther));
 }
 
 void PointWithId::save(Serializer &rSerializer) const

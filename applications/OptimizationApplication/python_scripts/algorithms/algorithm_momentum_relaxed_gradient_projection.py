@@ -50,7 +50,7 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
         if self.prev_update:
             mom_update = update + self.prev_update * self.eta
             full_update = update + mom_update * self.eta
-            self.prev_update = Kratos.Expression.Utils.Collapse(mom_update)
+            self.prev_update = KratosOA.ExpressionUtils.Collapse(mom_update)
         else:
             full_update = update * (1 + self.eta)
             self.prev_update = update
