@@ -12,7 +12,6 @@
 //                   John van Esch
 //
 
-// Application includes
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 namespace Kratos {
