@@ -2160,7 +2160,6 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateDeformationGradients() const
 {
     std::vector<Matrix> result;
-
     for (unsigned int GPoint = 0;
          GPoint < this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()); ++GPoint) {
         result.push_back(CalculateDeformationGradient(GPoint));
