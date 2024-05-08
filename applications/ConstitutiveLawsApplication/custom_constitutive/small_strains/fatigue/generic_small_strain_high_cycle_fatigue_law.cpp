@@ -144,18 +144,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         global_number_of_cycles++;
         local_number_of_cycles++;
         
-        double threshold = this->GetThreshold() * (1 - this->GetDamage());
-        
-        if (std::abs(max_stress) > std::abs(min_stress)) {
-            if (std::abs(max_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
-                reference_damage = 1 - (threshold / std::abs(max_stress));
-            }
-        } else {
-            if (std::abs(min_stress) / threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage){
-                reference_damage = 1 - (threshold / std::abs(min_stress));
-            }
-        }
-                
+        double threshold = this->GetThreshold() * (1 - this->GetDamage());       
+               
         HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(max_stress,
                                                                     min_stress,
                                                                     threshold,          
@@ -166,6 +156,16 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         previous_max_stress = max_stress;
         previous_min_stress = min_stress;
+
+        if (std::abs(max_stress) > std::abs(min_stress)) {
+            if (std::abs(max_stress) / threshold > 1.0){
+                reference_damage = 1 - (threshold / std::abs(max_stress));
+            }
+        } else {
+            if (std::abs(min_stress) / threshold > 1.0){
+                reference_damage = 1 - (threshold / std::abs(min_stress));
+            }
+        }
 
         residual_stress_vector *= relaxation_factor;
         const double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
