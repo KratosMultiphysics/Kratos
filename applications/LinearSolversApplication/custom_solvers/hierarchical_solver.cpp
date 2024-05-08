@@ -164,7 +164,7 @@ HierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::HierarchicalSolver(Para
         }
     }
 
-    KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "hierarchical")
+    KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "hierarchical" || parameters["solver_type"].GetString() == "LinearSolversApplication.hierarchical")
         << "Requested a(n) '" << parameters["solver_type"].GetString() << "' solver,"
         << " but constructing a HierarchicalSolver";
 
