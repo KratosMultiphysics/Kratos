@@ -76,6 +76,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
+    const auto strain_vectors = this->CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -86,8 +88,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         // Compute strain
         Variables.F            = deformation_gradients[GPoint];
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
-        Variables.StrainVector = this->CalculateStrain(
-            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
+        Variables.StrainVector = strain_vectors[GPoint];
 
         // set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
