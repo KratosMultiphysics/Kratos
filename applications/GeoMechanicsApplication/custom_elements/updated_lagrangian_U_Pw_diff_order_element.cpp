@@ -84,7 +84,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         // Compute strain
         Variables.F            = this->CalculateDeformationGradient(GPoint);
         Variables.detF         = MathUtils<>::Det(Variables.F);
-        Variables.StrainVector = this->CalculateStrain(Variables, Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
