@@ -65,7 +65,7 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["top","initial","bottom"],
+        "processes_sub_model_part_list":      ["top","bottom"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -105,7 +105,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "PorousDomain.initial",
+            "model_part_name":      "PorousDomain.Soil",
             "variable_name":        "TEMPERATURE",
             "is_fixed":             false,
             "value":                0.0,
@@ -130,7 +130,7 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.bottom",
             "variable_name":   "NORMAL_HEAT_FLUX",
-            "value":           100.0,
+            "value":           30.0,
             "table":           0
         }
     }],

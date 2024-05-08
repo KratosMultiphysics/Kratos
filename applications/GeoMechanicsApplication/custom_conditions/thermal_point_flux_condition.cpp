@@ -14,7 +14,8 @@
 
 #include "custom_conditions/thermal_point_flux_condition.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoThermalPointFluxCondition<TDim, TNumNodes>::GeoThermalPointFluxCondition()
@@ -24,25 +25,21 @@ GeoThermalPointFluxCondition<TDim, TNumNodes>::GeoThermalPointFluxCondition()
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoThermalPointFluxCondition<TDim, TNumNodes>::GeoThermalPointFluxCondition(IndexType NewId,
-                                                                  GeometryType::Pointer pGeometry)
+                                                                            GeometryType::Pointer pGeometry)
     : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoThermalPointFluxCondition<TDim, TNumNodes>::GeoThermalPointFluxCondition(IndexType NewId,
-                                                                  GeometryType::Pointer pGeometry,
-                                                                  PropertiesType::Pointer pProperties)
+                                                                            GeometryType::Pointer pGeometry,
+                                                                            PropertiesType::Pointer pProperties)
     : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
 {
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoThermalPointFluxCondition<TDim, TNumNodes>::~GeoThermalPointFluxCondition() = default;
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void GeoThermalPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector,
-                                                            const ProcessInfo& rCurrentProcessInfo)
+void GeoThermalPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&)
 {
     rRightHandSideVector[0] = this->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
 }
