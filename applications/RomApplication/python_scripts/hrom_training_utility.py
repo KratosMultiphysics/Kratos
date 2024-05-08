@@ -105,6 +105,12 @@ class HRomTrainingUtility(object):
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
 
+        # Retrieve the svd_type from settings and validate it
+        self.svd_type = settings["svd_type"].GetString()
+        # Check if the svd_type is either 'numpy_rsvd' or 'numpy_svd'
+        if self.svd_type not in ["numpy_rsvd", "numpy_svd"]:
+            raise Exception(f"Unsupported SVD type specified: {self.svd_type}. Available options are 'numpy_rsvd' or 'numpy_svd'.")
+
     def _setup_mappings(self, root_model_part, number_of_elements):
         self.element_id_to_numpy_index_mapping = {}
         self.numpy_index_to_element_id_mapping = {}
@@ -224,7 +230,7 @@ class HRomTrainingUtility(object):
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
         if self.hrom_output_format == "numpy":
-            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+            element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
         elif self.hrom_output_format == "json":
             with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
@@ -232,9 +238,13 @@ class HRomTrainingUtility(object):
 
         # Get the weights and fill the HROM computing model part
         if (self.projection_strategy=="lspg"):
+            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights())) #TODO: Adapt SetHRomComputingModelPartWithNeighbours to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
         else:
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+            if self.hrom_output_format == "numpy":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
+            elif self.hrom_output_format == "json":
+                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part) #TODO: Adapt SetHRomComputingModelPart to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
@@ -274,7 +284,7 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
-            "create_hrom_visualization_model_part" : true,
+            "create_hrom_visualization_model_part" : false,
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
@@ -283,31 +293,37 @@ class HRomTrainingUtility(object):
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": false,
-            "constraint_sum_weights": true
+            "constraint_sum_weights": true,
+            "svd_type": "numpy_rsvd"
         }""")
         return default_settings
 
     def __CalculateResidualBasis(self):
-        # Set up the residual snapshots matrix
-        residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
-
-        # Calculate the randomized and truncated SVD of the residual snapshots
-        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-            residuals_snapshot_matrix,
-            self.element_selection_svd_truncation_tolerance)
+        if self.svd_type == "numpy_rsvd":
+            # Calculate the randomized and truncated SVD of the residual snapshots #TODO add other SVD options
+            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+                self._GetResidualsProjectedMatrix(),
+                self.element_selection_svd_truncation_tolerance)
+        elif self.svd_type == "numpy_svd":
+            # Use NumPy's SVD and manually truncate based on the truncation tolerance
+            u, s, _ = np.linalg.svd(self._GetResidualsProjectedMatrix(), full_matrices=False)
+            # Calculate total energy and identify truncation point
+            total_energy = np.sqrt(np.sum(s**2))
+            # Reverse the squared singular values, compute the cumulative sum, then take the square root
+            squared_s = s**2
+            reversed_cumulative_sum = np.cumsum(squared_s[::-1])
+            # Reverse the cumulative sum back to the original order and then take the square root
+            cumulative_energy_reversed = np.sqrt(reversed_cumulative_sum[::-1])
+            r = np.argmax(cumulative_energy_reversed/total_energy < self.element_selection_svd_truncation_tolerance)
+            # Truncate the singular vectors accordingly
+            u = u[:, :r]
 
         return u
 
 
 
     def _GetResidualsProjectedMatrix(self):
-        # Set up the residual snapshots matrix
-        n_steps = len(self.time_step_residual_matrix_container)
-        residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
-        for i in range(1,n_steps):
-            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
-        return residuals_snapshot_matrix
+        return np.block(self.time_step_residual_matrix_container)
 
 
 
@@ -467,5 +483,29 @@ class HRomTrainingUtility(object):
                     hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
 
         return hrom_weights
+
+    def __CreateListsWithRomElements(self):
+        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+
+        # Load combined indexes for elements and conditions
+        element_ids = np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy")
+        condition_ids = np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements
+
+        # Combine element and condition IDs
+        combined_indexes = np.r_[element_ids, condition_ids]
+
+        # Separate element and condition indexes
+        element_mask = combined_indexes < number_of_elements
+        condition_mask = ~element_mask
+
+        # Extract unique element and condition indexes
+        unique_element_ids = np.unique(combined_indexes[element_mask], return_inverse=False)
+        unique_condition_ids = np.unique(combined_indexes[condition_mask] - number_of_elements, return_inverse=False)
+
+        # Convert to Python lists
+        unique_element_ids_list = unique_element_ids.astype(int).tolist()
+        unique_condition_ids_list = unique_condition_ids.astype(int).tolist()
+
+        return unique_element_ids_list, unique_condition_ids_list
 
 

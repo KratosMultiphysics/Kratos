@@ -25,7 +25,7 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/DEMApplication
 add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/MPMApplication;
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
@@ -68,7 +68,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
--DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
+-DBOOST_ROOT="/workspace/boost/boost_1_74_0"                           \
 -DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
 -DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
 -DINCLUDE_MMG=ON                                                       \

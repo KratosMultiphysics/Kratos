@@ -7,6 +7,7 @@
 //                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo
 //
 
 // System includes
@@ -207,6 +208,19 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechani
     const double length_origin = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(triangle);
 
     KRATOS_EXPECT_NEAR(length_origin,  0.745356, tolerance);
+}
+/**
+* Check the correct calculation of the shear modulus
+*/
+KRATOS_TEST_CASE_IN_SUITE(CalculateSearModulus, KratosStructuralMechanicsFastSuite)
+{
+    auto props = Properties(1);
+    props.SetValue(YOUNG_MODULUS, 2.0E9);
+    props.SetValue(POISSON_RATIO, 0.2);
+
+    const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(props);
+
+    KRATOS_EXPECT_NEAR(G,  2.0e9 / 2.4, tolerance);
 }
 } // namespace Testing
 } // namespace Kratos

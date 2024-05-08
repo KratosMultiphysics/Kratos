@@ -113,6 +113,7 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
     const auto output_writer_map = std::map<std::string, NodalResultWriter, std::less<>>{
         {"DISPLACEMENT", MakeNodalResultWriterFor(DISPLACEMENT)},
         {"TOTAL_DISPLACEMENT", MakeNodalResultWriterFor(TOTAL_DISPLACEMENT)},
+        {"INCREMENTAL_DISPLACEMENT", MakeNodalResultWriterFor(INCREMENTAL_DISPLACEMENT)},
         {"WATER_PRESSURE", MakeNodalResultWriterFor(WATER_PRESSURE)},
         {"NORMAL_FLUID_FLUX", MakeNodalResultWriterFor(NORMAL_FLUID_FLUX)},
         {"VOLUME_ACCELERATION", MakeNodalResultWriterFor(VOLUME_ACCELERATION)},

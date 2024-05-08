@@ -46,11 +46,32 @@ template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod 
     AxisymmetricUPwNormalFaceLoadCondition<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    GeometryData::IntegrationMethod GI_GAUSS;
+
+    switch (TNumNodes) {
+    case 2:
+    case 3:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    case 4:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_3;
+        break;
+    case 5:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        break;
+    default:
+        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        break;
+    }
+
+    return GI_GAUSS;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2,2>;
+template class AxisymmetricUPwNormalFaceLoadCondition<2,3>;
+template class AxisymmetricUPwNormalFaceLoadCondition<2,4>;
+template class AxisymmetricUPwNormalFaceLoadCondition<2,5>;
 
 } // Namespace Kratos.

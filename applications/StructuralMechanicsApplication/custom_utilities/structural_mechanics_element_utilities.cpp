@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos {
@@ -362,7 +363,7 @@ void BuildRotationMatrixFor2D2NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetReferenceRotationAngle2D2NBeam(GeometryType& rGeometry)
+double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
 {
     const auto &r_node_1 = rGeometry[0];
     const auto &r_node_2 = rGeometry[1];
@@ -370,17 +371,21 @@ double GetReferenceRotationAngle2D2NBeam(GeometryType& rGeometry)
     const double delta_x = r_node_2.X0() - r_node_1.X0();
     const double delta_y = r_node_2.Y0() - r_node_1.Y0();
 
-    if (std::abs(delta_x) > 0.0) {
-        return std::atan(delta_y / delta_x);
-    } else {
-        if (delta_y > 0.0) {
-            return 0.5 * Globals::Pi;
-        } else if (delta_y < 0.0) {
-            return -0.5 * Globals::Pi;
-        } else {
-            KRATOS_ERROR << "The beam angle cannot be computed, check nodes coordinates..." << std::endl;
-        }
-    }
+    return std::atan2(delta_y, delta_x);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetReferenceRotationAngle2D3NBeam(const GeometryType& rGeometry)
+{
+    const auto &r_node_1 = rGeometry[0];
+    const auto &r_node_2 = rGeometry[2];
+
+    const double delta_x = r_node_2.X0() - r_node_1.X0();
+    const double delta_y = r_node_2.Y0() - r_node_1.Y0();
+
+    return std::atan2(delta_y, delta_x);
 }
 
 /***********************************************************************************/
@@ -421,6 +426,21 @@ void BuildElementSizeRotationMatrixFor2D2NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double CalculatePhi(const Properties& rProperties, const double L)
+{
+    const double E   = rProperties[YOUNG_MODULUS];
+    const double I   = rProperties[I33];
+    const double A_s = rProperties[AREA_EFFECTIVE_Y];
+    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+
+    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+        return 0.0;
+    else
+        return 12.0 * E * I / (G * A_s * std::pow(L, 2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

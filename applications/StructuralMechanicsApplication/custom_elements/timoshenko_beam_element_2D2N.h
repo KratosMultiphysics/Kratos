@@ -43,14 +43,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class TimoshenkoBeamElement2D2N
+ * @class LinearTimoshenkoBeamElement2D2N
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Timoshenko beam element of 2 nodes. Reference: Felippa and Oñate,
  * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
  * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
  * @author Alejandro Cornejo
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TimoshenkoBeamElement2D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D2N
     : public Element
 {
 
@@ -62,29 +62,26 @@ public:
     /// The base element type
     using BaseType = Element;
 
-    /// used for creating submatrices
-    using RangeMatrixType = boost::numeric::ublas::matrix_range<MatrixType>;
-
     // Counted pointer of BaseSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TimoshenkoBeamElement2D2N);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoBeamElement2D2N);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    TimoshenkoBeamElement2D2N()
+    LinearTimoshenkoBeamElement2D2N()
     {
     }
 
     // Constructor using an array of nodes
-    TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Constructor using an array of nodes with properties
-    TimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    LinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
@@ -92,7 +89,7 @@ public:
     }
 
     // Copy constructor
-    TimoshenkoBeamElement2D2N(TimoshenkoBeamElement2D2N const& rOther)
+    LinearTimoshenkoBeamElement2D2N(LinearTimoshenkoBeamElement2D2N const& rOther)
         : BaseType(rOther),
         mThisIntegrationMethod(rOther.mThisIntegrationMethod),
         mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -102,13 +99,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<TimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override
     {
-        return Kratos::make_intrusive<TimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
     }
 
     ///@}
@@ -259,11 +256,6 @@ public:
     {
         return GetGeometry().IntegrationPoints(ThisMethod);
     }
-
-    /**
-     * @brief This function computes the Phi parameter in Felippa et al.
-    */
-    double CalculatePhi(ConstitutiveLaw::Parameters &rValues);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
@@ -528,7 +520,7 @@ private:
 
     void load(Serializer &rSerializer) override;
 
-}; // class TimoshenkoBeamElement2D2N.
+}; // class LinearTimoshenkoBeamElement2D2N.
 
 ///@}
 ///@name Type Definitions

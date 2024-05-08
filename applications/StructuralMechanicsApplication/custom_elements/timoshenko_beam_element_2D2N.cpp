@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void LinearTimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -51,7 +51,7 @@ void TimoshenkoBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInf
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::InitializeMaterial()
+void LinearTimoshenkoBeamElement2D2N::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -72,14 +72,14 @@ void TimoshenkoBeamElement2D2N::InitializeMaterial()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer TimoshenkoBeamElement2D2N::Clone(
+Element::Pointer LinearTimoshenkoBeamElement2D2N::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    TimoshenkoBeamElement2D2N::Pointer p_new_elem = Kratos::make_intrusive<TimoshenkoBeamElement2D2N>
+    LinearTimoshenkoBeamElement2D2N::Pointer p_new_elem = Kratos::make_intrusive<LinearTimoshenkoBeamElement2D2N>
         (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
@@ -98,35 +98,34 @@ Element::Pointer TimoshenkoBeamElement2D2N::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::EquationIdVector(
+void LinearTimoshenkoBeamElement2D2N::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    KRATOS_TRY;
-
-    const auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
 
-    if (rResult.size() != dofs_per_node * number_of_nodes)
-        rResult.resize(dofs_per_node * number_of_nodes);
+    IndexType local_index = 0;
 
+    if (rResult.size() != dofs_per_node * number_of_nodes)
+        rResult.resize(dofs_per_node * number_of_nodes, false);
+
+    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        const SizeType index = i * dofs_per_node;
-        rResult[index]     = r_geom[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = r_geom[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = r_geom[i].GetDof(ROTATION_Z    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z    , rot_pos ).EquationId();
     }
-
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetDofList(
+void LinearTimoshenkoBeamElement2D2N::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -150,22 +149,7 @@ void TimoshenkoBeamElement2D2N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D2N::CalculatePhi(ConstitutiveLaw::Parameters &rValues)
-{
-    const auto &r_material_properties = rValues.GetMaterialProperties();
-    const double E   = r_material_properties[YOUNG_MODULUS];
-    const double A   = r_material_properties[CROSS_AREA];
-    const double I   = r_material_properties[I33];
-    const double A_s = r_material_properties.Has(AREA_EFFECTIVE_Y) ? r_material_properties[AREA_EFFECTIVE_Y] : 5.0 / 6.0 * A; // We assume rectangular 
-    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues);
-    const double L   = CalculateLength();
-    return 12.0 * E * I / (G * A_s * std::pow(L, 2));
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -185,7 +169,7 @@ void TimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -205,7 +189,7 @@ void TimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -225,7 +209,7 @@ void TimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -246,7 +230,7 @@ void TimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
 // /***********************************************************************************/
 // /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -265,7 +249,7 @@ void TimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -285,7 +269,7 @@ void TimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -301,7 +285,7 @@ void TimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
+void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
     VectorType& rN,
     const double Length,
     const double Phi,
@@ -318,7 +302,7 @@ void TimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
+void LinearTimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
 {
     if (rNodalValues.size() != 6)
         rNodalValues.resize(6, false);
@@ -334,22 +318,28 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
         StructuralMechanicsElementUtilities::BuildRotationMatrixFor2D2NBeam(T, angle);
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NBeam(T, global_size_T);
 
-        global_values[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const auto &r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        global_values[0] = r_displ_0[0];
+        global_values[1] = r_displ_0[1];
         global_values[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        global_values[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        global_values[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+        const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+        global_values[3] = r_displ_1[0];
+        global_values[4] = r_displ_1[1];
         global_values[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
 
         // We rotate to local axes
         noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 
     } else {
-        rNodalValues[0] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[1] = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const auto &r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+        rNodalValues[0] = r_displ_0[0];
+        rNodalValues[1] = r_displ_0[1];
         rNodalValues[2] = r_geom[0].FastGetSolutionStepValue(ROTATION_Z);
-        rNodalValues[3] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rNodalValues[4] = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+        const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+        rNodalValues[3] = r_displ_1[0];
+        rNodalValues[4] = r_displ_1[1];
         rNodalValues[5] = r_geom[1].FastGetSolutionStepValue(ROTATION_Z);
     }
 }
@@ -357,7 +347,7 @@ void TimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
+void LinearTimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
     VectorType& rStrain,
     const double Length,
     const double Phi,
@@ -370,7 +360,7 @@ void TimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
     rStrain[2] = CalculateShearStrain(Length, Phi, xi, rNodalValues);      // Gamma_xy
 }
 
-double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
+double LinearTimoshenkoBeamElement2D2N::CalculateAxialStrain(
     const double Length,
     const double Phi,
     const double xi,
@@ -385,7 +375,7 @@ double TimoshenkoBeamElement2D2N::CalculateAxialStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D2N::CalculateShearStrain(
+double LinearTimoshenkoBeamElement2D2N::CalculateShearStrain(
     const double Length,
     const double Phi,
     const double xi,
@@ -403,7 +393,7 @@ double TimoshenkoBeamElement2D2N::CalculateShearStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double TimoshenkoBeamElement2D2N::CalculateBendingCurvature(
+double LinearTimoshenkoBeamElement2D2N::CalculateBendingCurvature(
     const double Length,
     const double Phi,
     const double xi,
@@ -419,7 +409,7 @@ double TimoshenkoBeamElement2D2N::CalculateBendingCurvature(
 /***********************************************************************************/
 /***********************************************************************************/
 
-array_1d<double, 3> TimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
+array_1d<double, 3> LinearTimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
     const IndexType PointNumber
@@ -428,28 +418,25 @@ array_1d<double, 3> TimoshenkoBeamElement2D2N::GetLocalAxesBodyForce(
     const double angle = StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
-    if (std::abs(angle) > std::numeric_limits<double>::epsilon()) {
-        const double c = std::cos(angle);
-        const double s = std::sin(angle);
-        array_1d<double, 3> local_body_force = ZeroVector(3);
-        local_body_force[0] = c * body_force[0] + s * body_force[1];
-        local_body_force[1] = -s * body_force[0] + c * body_force[1];
-        return local_body_force;
-    } else {
-        return body_force;
-    }
+    const double c = std::cos(angle);
+    const double s = std::sin(angle);
+    array_1d<double, 3> local_body_force = ZeroVector(3);
+    local_body_force[0] = c * body_force[0] + s * body_force[1];
+    local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    return local_body_force;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
+void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY;
+    const auto &r_props = GetProperties();
     const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
@@ -466,15 +453,15 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double Phi    = CalculatePhi(cl_values);
     const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
-    const double area   = GetProperties()[CROSS_AREA];
+    const double area   = r_props[CROSS_AREA];
 
     // Let's initialize the cl values
     VectorType strain_vector(3), stress_vector(3);
@@ -485,7 +472,9 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_u(mat_size-4), N_shape(mat_size-2), N_s(mat_size-2);
+    VectorType global_size_N_2(mat_size), global_size_N(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes),
+        N_u(number_of_nodes), N_shape(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -522,52 +511,43 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
         noalias(rRHS) -= global_size_N * N * jacobian_weight;
 
-        if (r_constitutive_matrix(0, 1) != 0.0 || r_constitutive_matrix(0, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dN_dkappa = r_constitutive_matrix(0, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dN_dkappa = r_constitutive_matrix(0, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dN_dgamma = r_constitutive_matrix(0, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dN_dgamma = r_constitutive_matrix(0, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
 
         // Bending contributions
         GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
         noalias(rRHS) -= global_size_N * M * jacobian_weight;
 
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dM_dEl = r_constitutive_matrix(1, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
 
-        if (r_constitutive_matrix(1, 0) != 0.0 || r_constitutive_matrix(1, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dM_dEl = r_constitutive_matrix(1, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
-
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dM_dgamma = r_constitutive_matrix(1, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dM_dgamma = r_constitutive_matrix(1, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
 
         // Shear contributions
         GlobalSizeVector(global_size_N, N_s);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
         noalias(rRHS) -= global_size_N * V * jacobian_weight;
 
-        if (r_constitutive_matrix(2, 0) != 0.0 || r_constitutive_matrix(2, 1) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dV_dEl = r_constitutive_matrix(2, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dV_dEl = r_constitutive_matrix(2, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dV_dkappa = r_constitutive_matrix(2, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dV_dkappa = r_constitutive_matrix(2, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
+
 
         // Now we add the body forces contributions
         GlobalSizeAxialVector(global_size_N, N_u);
@@ -584,13 +564,14 @@ void TimoshenkoBeamElement2D2N::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
+void LinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY;
     const auto &r_geometry = GetGeometry();
+    const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
@@ -601,13 +582,13 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double Phi    = CalculatePhi(cl_values);
     const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
 
     // Let's initialize the cl values
@@ -619,7 +600,8 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_s(mat_size-2);
+    VectorType global_size_N(mat_size), global_size_N_2(mat_size), N_u_derivatives(number_of_nodes),
+        N_theta_derivatives(mat_size-number_of_nodes), N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_s(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -646,49 +628,41 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
         GlobalSizeAxialVector(global_size_N, N_u_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dN_dEl * jacobian_weight;
 
-        if (r_constitutive_matrix(0, 1) != 0.0 || r_constitutive_matrix(0, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dN_dkappa = r_constitutive_matrix(0, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dN_dkappa = r_constitutive_matrix(0, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dkappa * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dN_dgamma = r_constitutive_matrix(0, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dN_dgamma = r_constitutive_matrix(0, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dN_dgamma * jacobian_weight;
 
         // Bending contributions
         GlobalSizeVector(global_size_N, N_theta_derivatives);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dM_dkappa * jacobian_weight;
 
-        if (r_constitutive_matrix(1, 0) != 0.0 || r_constitutive_matrix(1, 2) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dM_dEl = r_constitutive_matrix(1, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dM_dEl = r_constitutive_matrix(1, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dEl * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_s);
-            const double dM_dgamma = r_constitutive_matrix(1, 2);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_s);
+        const double dM_dgamma = r_constitutive_matrix(1, 2);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dM_dgamma * jacobian_weight;
 
         // Shear contributions
         GlobalSizeVector(global_size_N, N_derivatives - N_theta);
         noalias(rLHS) += outer_prod(global_size_N, global_size_N) * dV_dgamma * jacobian_weight;
 
-        if (r_constitutive_matrix(2, 0) != 0.0 || r_constitutive_matrix(2, 1) != 0.0) {
-            // In here we add the cross terms
-            VectorType global_size_N_2(mat_size);
-            GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
-            const double dV_dEl = r_constitutive_matrix(2, 0);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
+        // In here we add the cross terms
+        GlobalSizeAxialVector(global_size_N_2, N_u_derivatives);
+        const double dV_dEl = r_constitutive_matrix(2, 0);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dEl * jacobian_weight;
 
-            GlobalSizeVector(global_size_N_2, N_theta_derivatives);
-            const double dV_dkappa = r_constitutive_matrix(2, 1);
-            noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
-        }
+        GlobalSizeVector(global_size_N_2, N_theta_derivatives);
+        const double dV_dkappa = r_constitutive_matrix(2, 1);
+        noalias(rLHS) += outer_prod(global_size_N, global_size_N_2) * dV_dkappa * jacobian_weight;
+
     }
 
     RotateLHS(rLHS, r_geometry);
@@ -698,13 +672,14 @@ void TimoshenkoBeamElement2D2N::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
+void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
     )
 {
     KRATOS_TRY;
     const auto &r_geometry = GetGeometry();
+    const auto &r_props = GetProperties();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
 
@@ -715,15 +690,15 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    const double Phi    = CalculatePhi(cl_values);
     const double length = CalculateLength();
+    const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
     const double J      = 0.5 * length;
-    const double area   = GetProperties()[CROSS_AREA];
+    const double area   = r_props[CROSS_AREA];
 
     // Let's initialize the cl values
     VectorType strain_vector(3), stress_vector(3);
@@ -734,7 +709,8 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     VectorType nodal_values(mat_size);
     GetNodalValuesVector(nodal_values);
-    VectorType global_size_N(mat_size), N_u_derivatives(mat_size-4), N_theta_derivatives(mat_size-2), N_theta(mat_size-2), N_derivatives(mat_size-2), N_u(mat_size-4), N_shape(mat_size-2);
+    VectorType global_size_N(mat_size), N_u_derivatives(number_of_nodes), N_theta_derivatives(mat_size-number_of_nodes),
+        N_theta(mat_size-number_of_nodes), N_derivatives(mat_size-number_of_nodes), N_u(number_of_nodes), N_shape(mat_size-number_of_nodes);
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -787,7 +763,7 @@ void TimoshenkoBeamElement2D2N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::RotateLHS(
+void LinearTimoshenkoBeamElement2D2N::RotateLHS(
     MatrixType& rLHS,
     const GeometryType& rGeometry
 )
@@ -808,7 +784,7 @@ void TimoshenkoBeamElement2D2N::RotateLHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::RotateRHS(
+void LinearTimoshenkoBeamElement2D2N::RotateRHS(
     VectorType& rRHS,
     const GeometryType& rGeometry
 )
@@ -830,7 +806,7 @@ void TimoshenkoBeamElement2D2N::RotateRHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::RotateAll(
+void LinearTimoshenkoBeamElement2D2N::RotateAll(
     MatrixType& rLHS,
     VectorType& rRHS,
     const GeometryType& rGeometry
@@ -856,33 +832,36 @@ void TimoshenkoBeamElement2D2N::RotateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
+void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rProcessInfo
     )
 {
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
     rOutput.resize(integration_points.size());
+    const auto &r_props = GetProperties();
 
     if (rVariable == AXIAL_FORCE) {
 
         const auto &r_geometry = GetGeometry();
 
-        ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        const double Phi    = CalculatePhi(cl_values);
         const double length = CalculateLength();
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
 
         // Let's initialize the cl values
-        VectorType strain_vector(3), stress_vector(3);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        VectorType nodal_values(6);
+        VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
         // Loop over the integration points
@@ -899,20 +878,20 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         const auto &r_geometry = GetGeometry();
 
-        ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        const double Phi    = CalculatePhi(cl_values);
         const double length = CalculateLength();
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
 
         // Let's initialize the cl values
-        VectorType strain_vector(3), stress_vector(3);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        VectorType nodal_values(6);
+        VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
         // Loop over the integration points
@@ -929,20 +908,20 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 
         const auto &r_geometry = GetGeometry();
 
-        ConstitutiveLaw::Parameters cl_values(r_geometry, GetProperties(), rProcessInfo);
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
         auto &r_cl_options = cl_values.GetOptions();
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        const double Phi    = CalculatePhi(cl_values);
         const double length = CalculateLength();
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
 
         // Let's initialize the cl values
-        VectorType strain_vector(3), stress_vector(3);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
         strain_vector.clear();
         cl_values.SetStrainVector(strain_vector);
         cl_values.SetStressVector(stress_vector);
-        VectorType nodal_values(6);
+        VectorType nodal_values(mat_size);
         GetNodalValuesVector(nodal_values);
 
         // Loop over the integration points
@@ -961,7 +940,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
+void LinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
     std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
@@ -981,7 +960,7 @@ void TimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
+int LinearTimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -993,7 +972,7 @@ int TimoshenkoBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) con
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::save(Serializer& rSerializer) const
+void LinearTimoshenkoBeamElement2D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     int IntMethod = int(this->GetIntegrationMethod());
@@ -1004,7 +983,7 @@ void TimoshenkoBeamElement2D2N::save(Serializer& rSerializer) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TimoshenkoBeamElement2D2N::load(Serializer& rSerializer)
+void LinearTimoshenkoBeamElement2D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     int IntMethod;
