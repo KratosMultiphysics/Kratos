@@ -444,7 +444,7 @@ private:
     double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advancing process
     double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advancing process
     double mPreviousCycleDamage = 0.0; // Damage variable computed in the previous cycle
-    double mPreviousThreshold = 0.0; // Damage threhold variable computed in the previous cycle
+    double mPreviousReferenceDamage = 1.0; // Damage threhold variable computed in the previous cycle
     bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process
     double mCyclesToFailure = 1.0e15; // Nf. Required for the advancing process
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advancing process for the conversion between time and number of cycles

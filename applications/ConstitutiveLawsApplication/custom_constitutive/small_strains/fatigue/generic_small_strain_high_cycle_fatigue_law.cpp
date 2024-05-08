@@ -158,12 +158,22 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         previous_min_stress = min_stress;
 
         if (std::abs(max_stress) > std::abs(min_stress)) {
-            if (std::abs(max_stress) / threshold > 1.0 && threshold > mPreviousThreshold){
-                reference_damage = 1 - (threshold / std::abs(max_stress));         
+            if (std::abs(max_stress) / threshold > 1.0) {
+                    reference_damage = 1 - (threshold / std::abs(max_stress));
+                    reference_damage = (reference_damage < mPreviousReferenceDamage) ? reference_damage : mPreviousReferenceDamage;
+                    mPreviousReferenceDamage = reference_damage;
+            } else {
+                reference_damage = 0.0;
+                mPreviousReferenceDamage = 1.0;         
             }
         } else {
-            if (std::abs(min_stress) / threshold > 1.0 && threshold > mPreviousThreshold){
-                reference_damage = 1 - (threshold / std::abs(min_stress));
+            if (std::abs(min_stress) / threshold > 1.0){
+                    reference_damage = 1 - (threshold / std::abs(min_stress));
+                    reference_damage = (reference_damage < mPreviousReferenceDamage) ? reference_damage : mPreviousReferenceDamage;
+                    mPreviousReferenceDamage = reference_damage;
+            } else {
+                reference_damage = 0.0;
+                mPreviousReferenceDamage = 1.0;             
             }
         }
 
@@ -201,7 +211,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         first_max_indicator = true;
         first_min_indicator = true;
         mPreviousCycleDamage = this->GetDamage();
-        mPreviousThreshold = threshold;
        
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,
@@ -270,6 +279,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
    
     if (new_model_part) {
         mCyclesToFailure = std::numeric_limits<double>::infinity();
+        mReferenceDamage = 0.0;  
     }
 
     max_indicator = false;
