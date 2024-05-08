@@ -2095,9 +2095,11 @@ std::vector<Vector> SmallStrainUPwDiffOrderElement::CalculateStrains(const std::
                                                                      bool UseHenckyStrain) const
 {
     std::vector<Vector> result;
-    for (int i = 0; i < rDeformationGradients.size(); ++i) {
-        result.push_back(this->CalculateStrain(rDeformationGradients[i], rBs[i], rDisplacements, UseHenckyStrain));
-    }
+    std::transform(
+        rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
+        [this, &rDisplacements, UseHenckyStrain](const auto& rDeformationGradient, const auto& rB) {
+        return CalculateStrain(rDeformationGradient, rB, rDisplacements, UseHenckyStrain);
+    });
 
     return result;
 }
