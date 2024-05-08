@@ -44,6 +44,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 "shed_wake_from_trailing_edge"  : false,
                 "shedded_wake_distance"         : 12.5,
                 "shedded_wake_element_size"     : 0.2,
+                "decrease_wake_width_at_the_wing_tips" : false,
                 "echo_level": 1
             }
         }''')
@@ -190,7 +191,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                                     {
                                         "result_file_configuration": {
                                             "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostAscii",
+                                                "GiDPostMode": "GiD_PostBinary",
                                                 "WriteDeformedMeshFlag": "WriteUndeformed",
                                                 "WriteConditionsFlag": "WriteConditions",
                                                 "MultiFileFlag": "SingleFile"

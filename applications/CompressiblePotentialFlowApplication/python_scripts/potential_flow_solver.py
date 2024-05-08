@@ -156,8 +156,9 @@ class PotentialFlowSolver(FluidSolver):
                 "type" : "newton_raphson",
                 "advanced_settings" : {}
             },
-            "relative_tolerance": 1e-12,
-            "absolute_tolerance": 1e-12,
+            "relative_tolerance"               : 1e-12,
+            "absolute_tolerance"               : 1e-12,
+            "residual_tolerance_between_steps" : 1e-4,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "linear_solver_settings": {
@@ -167,6 +168,8 @@ class PotentialFlowSolver(FluidSolver):
             "skin_parts":[""],
             "assign_neighbour_elements_to_conditions": false,
             "no_skin_parts": [""],
+            "scheme_settings" :{
+            },                                             
             "time_stepping"                : {
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
@@ -255,8 +258,13 @@ class PotentialFlowSolver(FluidSolver):
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateScheme(self):
-        # Fake scheme creation to do the solution update
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        strategy_type = self._GetStrategyType()
+        if strategy_type == "linear":
+            # Fake scheme creation to do the solution update
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        elif strategy_type == "non_linear":
+            # Custom Scheme for transonic cases
+            scheme = KCPFApp.ResidualBasedIncrementalUpdateStaticSchemeMod(self.settings["scheme_settings"])
         return scheme
 
     def _CreateConvergenceCriterion(self):
@@ -266,9 +274,18 @@ class PotentialFlowSolver(FluidSolver):
                 self.settings["relative_tolerance"].GetDouble(),
                 self.settings["absolute_tolerance"].GetDouble())
         elif criterion == "residual_criterion":
-            convergence_criterion = KratosMultiphysics.ResidualCriteria(
-                self.settings["relative_tolerance"].GetDouble(),
-                self.settings["absolute_tolerance"].GetDouble())
+            settings = KratosMultiphysics.Parameters(r"""{
+                }""")
+            settings.AddValue("residual_absolute_tolerance",self.settings["relative_tolerance"])
+            settings.AddValue("residual_relative_tolerance",self.settings["absolute_tolerance"])
+            settings.AddValue("residual_tolerance_between_steps",self.settings["residual_tolerance_between_steps"])
+            convergence_criterion = KratosMultiphysics.ResidualCriteria(settings)
+        elif criterion == "or_criterion":
+            RT = self.settings["relative_tolerance"].GetDouble()
+            AT = self.settings["absolute_tolerance"].GetDouble()
+            Displacement = KratosMultiphysics.DisplacementCriteria(RT, AT)
+            Residual = KratosMultiphysics.ResidualCriteria(RT, AT)
+            convergence_criterion = KratosMultiphysics.OrCriteria(Displacement, Residual)
         else:
             err_msg =  "The requested convergence criterion \"" + criterion + "\" is not available!\n"
             err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\""
@@ -326,4 +343,12 @@ class PotentialFlowSolver(FluidSolver):
 
     def _SetPhysicalProperties(self):
         # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py
+        # Assign a fresh properties container to the model        
+        rootmodelpart = self.model[self.settings["model_part_name"].GetString()].GetRootModelPart()
+        if not rootmodelpart.HasProperties(1):
+            properties = rootmodelpart.CreateNewProperties(1)
+            for cond in rootmodelpart.Conditions:
+                cond.Properties = properties
+            for elem in rootmodelpart.Elements:
+                elem.Properties = properties
         return True
