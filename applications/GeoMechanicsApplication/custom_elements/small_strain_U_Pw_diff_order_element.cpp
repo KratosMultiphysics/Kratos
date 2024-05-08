@@ -316,6 +316,8 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
 
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
+    const auto determinants_of_deformation_gradients =
+        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -324,7 +326,7 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         Variables.F = deformation_gradients[GPoint];
 
         // Compute infinitesimal strain
-        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = this->CalculateStrain(
             Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -586,6 +588,8 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
+    const auto determinants_of_deformation_gradients =
+        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -595,7 +599,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = this->CalculateStrain(
             Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1201,6 +1205,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
+        const auto determinants_of_deformation_gradients =
+            CalculateDeterminantsOfDeformationGradients(deformation_gradients);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1210,7 +1216,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             // Compute infinitesimal strain
             Variables.F            = deformation_gradients[GPoint];
-            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.detF         = determinants_of_deformation_gradients[GPoint];
             Variables.StrainVector = this->CalculateStrain(
                 Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1345,6 +1351,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
+    const auto determinants_of_deformation_gradients =
+        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
 
     const auto integration_coefficients =
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
@@ -1356,7 +1364,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = this->CalculateStrain(
             Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1410,6 +1418,8 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
 
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
+    const auto determinants_of_deformation_gradients =
+        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1418,7 +1428,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = this->CalculateStrain(
             Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -2216,6 +2226,17 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
 {
     return *mpStressStatePolicy;
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDeterminantsOfDeformationGradients(
+    const std::vector<Matrix>& rDeformationGradients) const
+{
+    std::vector<double> result(rDeformationGradients.size());
+    std::transform(
+        rDeformationGradients.cbegin(), rDeformationGradients.cend(), result.begin(),
+        [](const auto& rDeformationGradient) { return MathUtils<>::Det(rDeformationGradient); });
+
+    return result;
 }
 
 } // Namespace Kratos

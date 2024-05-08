@@ -72,7 +72,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
     const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
-
+    const auto determinants_of_deformation_gradients =
+        this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
 
@@ -84,7 +85,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 
         // Compute strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = this->CalculateStrain(
             Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -157,10 +158,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        rOutput.clear();
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            rOutput.emplace_back(MathUtils<>::Det(this->CalculateDeformationGradient(GPoint)));
-        }
+        rOutput = this->CalculateDeterminantsOfDeformationGradients(this->CalculateDeformationGradients());
     } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
