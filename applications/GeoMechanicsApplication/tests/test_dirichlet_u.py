@@ -52,6 +52,9 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
             total_displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data[stage_nr], [8])[0]
             total_displacement_8_y = total_displacements_8[1]
             self.assertAlmostEqual(time*0.05/2, total_displacement_8_y, 2)
+            incremental_displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("INCREMENTAL_DISPLACEMENT", time, output_data[stage_nr], [8])[0]
+            incremental_displacement_8_y = incremental_displacements_8[1]
+            self.assertAlmostEqual(0.025/2, incremental_displacement_8_y, 2)
 
             # integration point check in element 2, integration point 4 ( uniform stress and strain so an arbitrary choice )
             green_lagrange_strains_2_4    = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_nr], [2], [3])[0][0]
@@ -71,6 +74,10 @@ class KratosGeoMechanicsDirichletUTests(KratosUnittest.TestCase):
             total_displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data[stage_nr], [8])[0]
             total_displacement_8_y = total_displacements_8[1]
             self.assertAlmostEqual(time*0.05/2, total_displacement_8_y, 2)
+            # incremental displacement every step the same
+            incremental_displacements_8  = test_helper.GiDOutputFileReader.nodal_values_at_time("INCREMENTAL_DISPLACEMENT", time, output_data[stage_nr], [8])[0]
+            incremental_displacement_8_y = incremental_displacements_8[1]
+            self.assertAlmostEqual(0.025/2, incremental_displacement_8_y, 2)
             # integration point check in element 2, integration point 4 ( uniform stress and strain so an arbitrary choice )
             # strains start at 0 at begin of second stage ( like the displacement )
             green_lagrange_strains_2_4 = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_nr], [2], [3])[0][0]

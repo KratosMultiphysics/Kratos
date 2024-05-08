@@ -249,6 +249,7 @@ void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
 
     // Displacement
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    rModelPart.AddNodalSolutionStepVariable(INCREMENTAL_DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(POINT_LOAD);
@@ -330,7 +331,6 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
         rProjectParameters["solver_settings"], GetComputationalModelPart());
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
 
-    solving_strategy->Initialize();
     GetMainModelPart().CloneTimeStep();
 
     if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {

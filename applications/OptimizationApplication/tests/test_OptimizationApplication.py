@@ -27,6 +27,7 @@ import responses_tests.test_standardized_responses
 import responses_tests.test_geometric_centroid_deviation_response_function
 import test_model_part_utils
 import test_model_part_controllers
+import test_connectivity_preserving_model_part_controller
 import test_container_expression_utils
 import test_container_expression
 import test_collective_expressions
@@ -36,6 +37,7 @@ import control.test_master_control
 import control.material.test_material_properties_control
 import control.thickness.test_shell_thickness_control
 import control.shape.test_vm_shape_control
+import control.material.test_simp_control
 import filtering.implicit_filters_tests
 import filtering.explicit_filters_tests
 import test_component_data_view
@@ -102,9 +104,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sigmoidal_projection.TestSigmoidalProjection]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserving_model_part_controller.TestConnectivityPreservingModelPartController]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_simp_control.TestSimpControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControlShell]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControlSolid]))
