@@ -122,7 +122,14 @@ class RomManager(object):
             self.ComputeErrors(mu_train)
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
-        self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
+        in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
+        if not in_database:
+            self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(0)
+            self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
+        elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
+            number_of_instances = self.data_base.count_how_many_in_database("Neural_Network", mu_train)
+            self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(number_of_instances)
+            self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
     def TestNeuralNetworkReconstruction(self):
         self.__LaunchTestNeuralNetworkReconstruction()
@@ -886,29 +893,21 @@ class RomManager(object):
                     "monotonicity_preserving": false
                 },
                 "ann_enhanced_settings": {
-                    "online": {
-                        "model_name": "test_neural_network"
+                    "modes":[5,50],
+                    "layers_size":[200,200],
+                    "batch_size":2,
+                    "epochs":800,
+                    "lr_strategy":{
+                        "scheduler": "sgdr",
+                        "base_lr": 0.001,
+                        "additional_params": [1e-4, 10, 400]
                     },
-                    //"retrain_if_exists" : true,  // If false only one model will be trained for the mu parameters and NN hyperparameters combination
-                    "training": {
-                        "batch_size": 1,
-                        "custom_name": "test_neural_network",
-                        "epochs": 50,
-                        "layers_size": [            // Size of each hidden layer in the Neural Network (for more layers, append more values)
-                            2,
-                            2
-                        ],
-                        "lr_strategy": {                // Learning Rate update strategy
-                            "scheduler": "const",       // 'const', 'steps', 'sgdr'
-                            "base_lr": 0.01,            // Initial LR
-                            "additional_params": []     // 'const' -> []; 'steps' or 'sgdr' -> [minimum_LR, reduction_factor, period_length]
-                        },
-
-                        "modes": [
-                            1,                  // Highest mode to be used as inferior modes (size of NN input)
-                            2                   // Highest mode to be used as superior modes (size of NN output + size of NN input)
-                        ],
-                        "use_automatic_name": false
+                    "training":{
+                        "retrain_if_exists" : false,  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
+                        "model_number" : 0     // this part of the parameters will be updated with the number of trained models that exist for the same mu_train and NN hyperparameters combination
+                    },
+                    "online":{
+                        "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
                     }
                 }
             },

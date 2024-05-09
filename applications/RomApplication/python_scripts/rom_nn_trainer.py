@@ -26,21 +26,21 @@ class RomNeuralNetworkTrainer(object):
     @classmethod
     def _GetDefaultNeuralNetworkParameters(self):
         nn_training_parameters = KratosMultiphysics.Parameters("""{
+            "modes":[5,50],
+            "layers_size":[200,200],
+            "batch_size":2,
+            "epochs":800,
+            "lr_strategy":{
+                "scheduler": "sgdr",
+                "base_lr": 0.001,
+                "additional_params": [1e-4, 10, 400]
+            },
             "training":{
-                "modes":[5,50],
-                "layers_size":[200,200],
-                "batch_size":2,
-                "epochs":800,
-                "lr_strategy":{
-                    "scheduler": "sgdr",
-                    "base_lr": 0.001,
-                    "additional_params": [1e-4, 10, 400]
-                },
-                "use_automatic_name": false,
-                "custom_name": "test_neural_network"
+                "retrain_if_exists" : false,  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
+                "model_number" : 0     // this part of the parameters will be updated with the number of trained models that exist for the same mu_train and NN hyperparameters combination
             },
             "online":{
-                "model_name": "test_neural_network"
+                "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
             }
          }""")
         return nn_training_parameters
@@ -152,7 +152,7 @@ class RomNeuralNetworkTrainer(object):
             keras_set_random_seed(seed)
 
 
-        nn_training_parameters = self.nn_parameters['training']
+        nn_training_parameters = self.nn_parameters
 
         n_inf = int(nn_training_parameters['modes'].GetVector()[0])
         n_sup = int(nn_training_parameters['modes'].GetVector()[1])

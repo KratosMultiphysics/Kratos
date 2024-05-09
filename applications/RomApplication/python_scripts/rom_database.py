@@ -70,7 +70,7 @@ class RomDatabase(object):
             "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "Neural_Network": '''CREATE TABLE IF NOT EXISTS Neural_Network
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT,file_name TEXT)'''
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, file_name TEXT)'''
         }
         self.table_names = table_definitions.keys()
         for table_name, table_sql in table_definitions.items():
@@ -95,7 +95,7 @@ class RomDatabase(object):
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
-        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str = self.get_curret_params()
+        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int = self.get_curret_params()
         if table_name == 'FOM_Fit':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'ROM_Fit':
@@ -125,7 +125,7 @@ class RomDatabase(object):
         elif table_name == "HROM_Weights":
             hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type,table_name)
         elif table_name == "Neural_Network":
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str)
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
         else:
             err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
             raise Exception(err_msg)
@@ -142,15 +142,16 @@ class RomDatabase(object):
         pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
         pg_data4_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString()
         pg_data5_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool()
-        nn_data6_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["modes"].WriteJsonString()
-        nn_data7_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["layers_size"].WriteJsonString()
-        nn_data8_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["batch_size"].GetInt()
-        nn_data9_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["epochs"].GetInt()
-        nn_data10_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["lr_strategy"]["scheduler"].GetString()
-        nn_data11_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["lr_strategy"]["base_lr"].GetDouble()
-        nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["lr_strategy"]["additional_params"].WriteJsonString()
+        nn_data6_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["modes"].WriteJsonString()
+        nn_data7_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["layers_size"].WriteJsonString()
+        nn_data8_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["batch_size"].GetInt()
+        nn_data9_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["epochs"].GetInt()
+        nn_data10_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["scheduler"].GetString()
+        nn_data11_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["base_lr"].GetDouble()
+        nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["additional_params"].WriteJsonString()
+        nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].GetInt()
 
-        return tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str
+        return tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int
 
 
 
@@ -164,10 +165,19 @@ class RomDatabase(object):
         return count > 0, file_name
 
 
+    def count_how_many_in_database(self, table_name, mu):
+        file_name, _ = self.get_hashed_mu_for_table(table_name, mu)
+        conn = sqlite3.connect(self.database_name)
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+
 
     def add_to_database(self, table_name, mu, numpy_array ):
         file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
-        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str = self.get_curret_params()
+        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str,nn_data13_int = self.get_curret_params()
 
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -213,8 +223,8 @@ class RomDatabase(object):
             cursor.execute(f'INSERT INTO {table_name}  (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (tol_sol, tol_res, projection_type, file_name))
         elif table_name == 'Neural_Network':
-            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, file_name))
+            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
         else:
             err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
             raise Exception(err_msg)
