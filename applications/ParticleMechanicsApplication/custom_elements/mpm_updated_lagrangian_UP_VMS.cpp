@@ -884,7 +884,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
 void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
 
- /*   GeometryType& r_geometry = this->GetGeometry();
+    GeometryType& r_geometry = this->GetGeometry();
     const unsigned int number_of_nodes  = r_geometry.size();
     const unsigned int dimension        = r_geometry.WorkingSpaceDimension();
     const Vector& r_N       = row(GetGeometry().ShapeFunctionsValues(), 0);
@@ -914,6 +914,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     mMP.volume = mMP.mass / mMP.density;
     Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
 
+
+    //std::cout<< "volume"<< mMP.volume <<"\n";
+
     // Compute the Residual
     this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes);
 
@@ -928,9 +931,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
         conserv_rhs[i] += W*ConservRes;
     }
 
-
      // Add to Global nodal variables
-      for (SizeType i = 0; i < number_of_nodes; ++i)
+    for (SizeType i = 0; i < number_of_nodes; ++i)
       {
           r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
           array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(RESPROJ_DISPL);
@@ -938,11 +940,11 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
           for (unsigned int d = 0; d < dimension; d++) rMomValue[d] += momentum_rhs[row + d];
 
           r_geometry[i].FastGetSolutionStepValue(RESPROJ_PRESS) += conserv_rhs[i];
-          //r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+          r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
           r_geometry[i].UnSetLock(); // Free the node for other threads
       }
 
-       KRATOS_CATCH( "" ) */
+  
    
 }
 
