@@ -230,9 +230,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
     const double J3 = GetJacobian( 0.0);
 
     // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J, -1.0);
-    const double k02 = GetGeometryCurvature(J,  1.0);
-    const double k03 = GetGeometryCurvature(J,  0.0);
+    const double k01 = GetGeometryCurvature(J1, -1.0);
+    const double k02 = GetGeometryCurvature(J2,  1.0);
+    const double k03 = GetGeometryCurvature(J3,  0.0);
 
     const double k_s = GetBendingShearStiffnessRatio();
 
@@ -291,9 +291,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsVal
     const double J3 = GetJacobian( 0.0);
 
     // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J, -1.0);
-    const double k02 = GetGeometryCurvature(J,  1.0);
-    const double k03 = GetGeometryCurvature(J,  0.0);
+    const double k01 = GetGeometryCurvature(J1, -1.0);
+    const double k02 = GetGeometryCurvature(J2,  1.0);
+    const double k03 = GetGeometryCurvature(J3,  0.0);
 
     const double k_s = GetBendingShearStiffnessRatio();
 
@@ -343,9 +343,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsVa
     const double J3 = GetJacobian( 0.0);
 
     // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J, -1.0);
-    const double k02 = GetGeometryCurvature(J,  1.0);
-    const double k03 = GetGeometryCurvature(J,  0.0);
+    const double k01 = GetGeometryCurvature(J1, -1.0);
+    const double k02 = GetGeometryCurvature(J2,  1.0);
+    const double k03 = GetGeometryCurvature(J3,  0.0);
 
     const double k_s = GetBendingShearStiffnessRatio();
 
@@ -394,9 +394,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
     const double J3 = GetJacobian( 0.0);
 
     // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J, -1.0);
-    const double k02 = GetGeometryCurvature(J,  1.0);
-    const double k03 = GetGeometryCurvature(J,  0.0);
+    const double k01 = GetGeometryCurvature(J1, -1.0);
+    const double k02 = GetGeometryCurvature(J2,  1.0);
+    const double k03 = GetGeometryCurvature(J3,  0.0);
 
     const double k_s = GetBendingShearStiffnessRatio();
 
@@ -444,9 +444,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFourthDerivativesShapeFunctionsVa
     const double J3 = GetJacobian( 0.0);
 
     // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J, -1.0);
-    const double k02 = GetGeometryCurvature(J,  1.0);
-    const double k03 = GetGeometryCurvature(J,  0.0);
+    const double k01 = GetGeometryCurvature(J1, -1.0);
+    const double k02 = GetGeometryCurvature(J2,  1.0);
+    const double k03 = GetGeometryCurvature(J3,  0.0);
 
     const double k_s = GetBendingShearStiffnessRatio();
 
