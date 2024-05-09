@@ -557,7 +557,6 @@ void LinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
         GlobalSizeVector(global_size_N, N_shape);
         noalias(rRHS) += global_size_N * local_body_forces[1] * jacobian_weight * area;
 
-        // KRATOS_WATCH(global_size_N)
     }
     RotateAll(rLHS, rRHS, r_geometry);
 
@@ -756,18 +755,12 @@ void LinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
         const double J_area = jacobian_weight * area;
         noalias(rRHS) += global_size_N * local_body_forces[0] * J_area;
 
-        // auto vec = global_size_N * local_body_forces[0] * J_area;
-        // KRATOS_WATCH(vec)
-
         GlobalSizeVector(global_size_N, N_shape);
         noalias(rRHS) += global_size_N * local_body_forces[1] * J_area;
 
-        // auto vec = global_size_N;
-        // KRATOS_WATCH(vec)
     }
 
     RotateRHS(rRHS, r_geometry);
-    // KRATOS_WATCH(vec)
     KRATOS_CATCH("");
 }
 
