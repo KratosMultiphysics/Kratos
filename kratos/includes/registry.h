@@ -201,7 +201,6 @@ private:
     ///@{
 
         static RegistryItem* mspRootRegistryItem;
-        static std::string   mCurrentSource;
 
     ///@}
     ///@name Member Variables

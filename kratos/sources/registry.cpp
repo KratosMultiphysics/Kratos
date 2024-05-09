@@ -28,7 +28,6 @@ namespace
 }
 
     RegistryItem* Registry::mspRootRegistryItem = nullptr;
-    std::string   Registry::mCurrentSource = "all";
 
     RegistryItem& Registry::GetItem(std::string const& rItemFullName)
     {
