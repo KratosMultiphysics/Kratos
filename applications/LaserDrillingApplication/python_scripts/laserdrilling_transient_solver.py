@@ -414,6 +414,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         import matplotlib.pyplot as plt
         figure, axis = plt.subplots(2, 2, figsize=(15,8))
         label_size = 13
+        numbers_size = 11
         axis[0][0].grid()
         axis[0][0].plot(self.evap_elements_centers_Y, self.evap_elements_volumes, color='red', marker='+')
         axis[0][0].set_xlabel('radius (mm)')
@@ -451,7 +452,7 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         print('Total energy calculated =', total_energy)
 
         import matplotlib.pyplot as plt
-        _, axis = plt.subplots(1, 2, figsize=(15,5))
+        _, axis = plt.subplots(1, 2, figsize=(20,5))
         axis[0].grid()
         axis[0].plot(self.projector.X, self.q_interp, color='red', marker='+')
         axis[0].plot(self.projector.X, self.u, color='blue', marker='o')
@@ -463,10 +464,14 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
             if q < 0.0:
                 self.q_interp[i] = 0.0
 
+        axis[0].tick_params(axis='both', which='major', labelsize = numbers_size)
+        axis[0].tick_params(axis='both', which='minor', labelsize = numbers_size)
+        plt.subplots_adjust(left=0.1, bottom=None, right=0.9, top=None, wspace=0.22, hspace=None)
         axis[0].plot(self.projector.X, self.q_interp, color='black', marker='*')
-        axis[0].legend(["fluence (interpolated)", "fluence (lost)", "fluence (remaining)"], loc="upper right")
-        axis[0].set_xlabel('radius (mm)')
-        axis[0].set_title("Energies (J/mm2)") 
+        axis[0].set_ylim(bottom=0.0, top=0.0036)
+        axis[0].legend(["fluence (interpolated)", "fluence (lost)", "fluence (remaining)"], loc="upper right", fontsize = label_size)
+        axis[0].set_xlabel('radius (mm)', fontsize = label_size)
+        axis[0].set_ylabel("Energies (J/mm2)", fontsize = label_size) 
 
         self.AddDecomposedNodesToSurfaceList()
         self.first_evaporation_stage_done = True
@@ -489,20 +494,24 @@ class LaserDrillingTransientSolver(convection_diffusion_transient_solver.Convect
         axis[1].grid()
         list_of_legends = []
         p = 1
+        axis[1].tick_params(axis='both', which='major', labelsize = numbers_size)
+        axis[1].tick_params(axis='both', which='minor', labelsize = numbers_size)
         for list_X, list_Y in zip(self.full_list_of_ablated_nodes_coords_X, self.full_list_of_ablated_nodes_coords_Y):
             axis[1].plot(list_Y, -list_X, color='black')
+            axis[1].set_ylim(bottom=-0.0023, top=None)
             converted_num = "Ablation number #" + str(p)
             list_of_legends.append(converted_num)
             p += 1
         i = 1
         for list_X, list_Y in zip(self.list_of_lists_of_decomposed_nodes_X, self.list_of_lists_of_decomposed_nodes_Y):
             axis[1].plot(list_Y, -list_X)
+            axis[1].set_ylim(bottom=-0.0023, top=0)
             converted_num = "Evap. layer #" + str(i)
             list_of_legends.append(converted_num)
             i += 1
-        axis[1].legend(list_of_legends, loc="lower right")
-        axis[1].set_xlabel('radius (mm)')
-        axis[1].set_title("Ablation plus evaporation (mm)") 
+        axis[1].legend(list_of_legends, loc="lower right", fontsize = 11)
+        axis[1].set_xlabel('radius (mm)', fontsize = label_size)
+        axis[1].set_ylabel("Ablation plus evaporation (mm)", fontsize = label_size) 
 
         if self.plot_progressive_hole_figures:
             plt.show()
