@@ -24,12 +24,10 @@
 
 #include "modeler/voxel_mesh_generator_modeler.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 namespace {
-void WriteCubeSkinMeshMdpaFile()
+void WriteCubeSkinMeshMdpaFileForVoxelModelerTest()
 {
     Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
         R"input(
@@ -116,7 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorModelerKeyPlaneBySize,
 {
     using namespace Kratos;
 
-	WriteCubeSkinMeshMdpaFile();
+	WriteCubeSkinMeshMdpaFileForVoxelModelerTest();
 
     Parameters mesher_parameters(R"(
     {
@@ -666,6 +664,4 @@ KRATOS_TEST_CASE_IN_SUITE(XCartesianRayPlaneIntersection, KratosCoreFastSuite)
 	}
 
 
-} // namespace Testing
-
-} // namespace Kratos
+} // namespace Kratos::Testing
