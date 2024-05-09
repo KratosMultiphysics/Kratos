@@ -60,9 +60,6 @@ public:
         : Condition(NewId, pGeometry, pProperties)
     {}
 
-    // Destructor
-    virtual ~GeneralUPwDiffOrderCondition();
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,
@@ -71,8 +68,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rConditionDofList,
-                    const ProcessInfo& rCurrentProcessInfo ) const override;
+    void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,8 +82,7 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo ) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -143,6 +138,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     // Serialization
 

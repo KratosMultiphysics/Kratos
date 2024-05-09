@@ -1,20 +1,21 @@
 import numpy as np
 import KratosMultiphysics
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-from KratosMultiphysics.ParticleMechanicsApplication.particle_vtk_output_process import ParticleVTKOutputProcess
+from KratosMultiphysics.ParticleMechanicsApplication.particle_vtk_output_process import ParticleVtkOutputProcess
 
 # Import time library
 from time import time
 
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    IssueDeprecationWarning("ParticleMechanicsApplication:","`ParticleConditionVTKOutputProcess` is deprecated and replaced with `ParticleVtkOutputProcess`")
+    return ParticleVtkOutputProcess(model, settings["Parameters"])
 
-def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
-    parameters = settings["Parameters"]
-    return ParticleConditionVTKOutputProcess(model_part, parameters, Model)
-
-class ParticleConditionVTKOutputProcess(ParticleVTKOutputProcess):
+class LegacyParticleConditionVTKOutputProcess(ParticleVtkOutputProcess):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",

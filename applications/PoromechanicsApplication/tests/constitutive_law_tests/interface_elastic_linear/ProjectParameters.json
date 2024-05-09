@@ -1,0 +1,132 @@
+{
+    "problem_data": {
+        "problem_name":         "constitutive_law_tests/interface_elastic_linear/interface_elastic_linear",
+        "start_time":           0.0,
+        "end_time":             1.0,
+        "echo_level":           0,
+        "parallel_type":        "OpenMP",
+        "fracture_utility":     false
+    },
+    "solver_settings": {
+        "solver_type":    "poromechanics_U_Pl_solver",
+        "model_part_name":    "PorousModelPart",
+        "domain_size":    2,
+        "start_time":    0.0,
+        "time_step":    0.25,
+        "model_import_settings":              {
+            "input_type":    "mdpa",
+            "input_filename":    "constitutive_law_tests/interface_elastic_linear/interface_elastic_linear"
+        },
+        "material_import_settings": {
+            "materials_filename":    "constitutive_law_tests/interface_elastic_linear/PoroMaterials.json"
+        },
+        "buffer_size":    2,
+        "echo_level":    0,
+        "clear_storage":    false,
+        "compute_reactions":    false,
+        "move_mesh_flag":    false,
+        "periodic_interface_conditions":    false,
+        "reform_dofs_at_each_step":    false,
+        "nodal_smoothing":    false,
+        "gp_to_nodal_variable_list": [],
+        "gp_to_nodal_variable_extrapolate_non_historical": false,
+        "block_builder":    true,
+        "solution_type":    "implicit_quasi_static",
+        "scheme_type":    "Newmark",
+        "newmark_beta":    0.25,
+        "newmark_gamma":    0.5,
+        "newmark_theta_u":    0.5,
+        "newmark_theta_p":    0.5,
+        "calculate_alpha_beta":    false,
+        "omega_1":    1.0,
+        "omega_n":    10.0,
+        "xi_1":    1.0,
+        "xi_n":    0.05,
+        "rayleigh_alpha":    0.0,
+        "rayleigh_beta":    0.0,
+        "strategy_type":    "newton_raphson",
+        "convergence_criterion":    "Displacement_criterion",
+        "displacement_relative_tolerance":    1.0E-4,
+        "displacement_absolute_tolerance":    1.0E-9,
+        "residual_relative_tolerance":    1.0E-4,
+        "residual_absolute_tolerance":    1.0E-9,
+        "max_iteration":    15,
+        "desired_iterations":    4,
+        "max_radius_factor":    10.0,
+        "min_radius_factor":    0.1,
+        "nonlocal_damage":    false,
+        "characteristic_length":    0.05,
+        "linear_solver_settings":             {
+            "solver_type":     "amgcl",
+            "smoother_type":   "ilu0",
+            "krylov_type":     "gmres",
+            "coarsening_type": "aggregation",
+            "max_iteration":   100,
+            "verbosity":       0,
+            "tolerance":       1.0e-6,
+            "scaling":         false
+        },
+        "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1"],
+        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Liquid_Pressure-auto-1","Force-auto-1"],
+        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
+    },
+    "processes": {
+        "constraints_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Solid_Displacement-auto-1",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,false],
+                "is_fixed":        [true,true,false],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name":      "PorousModelPart.Liquid_Pressure-auto-1",
+                "variable_name":        "LIQUID_PRESSURE",
+                "is_fixed":             true,
+                "value":                0.0,
+                "table":                0,
+                "hydrostatic":          false,
+                "gravity_direction":    2,
+                "reference_coordinate": 0.0,
+                "specific_weight":      10000.0
+            }
+        }],
+        "loads_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Force-auto-1",
+                "variable_name":   "FORCE",
+                "active":          [true,false,false],
+                "value":           [1,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        }],
+        "auxiliar_process_list": [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "Parameters"      : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "constitutive_law_tests/interface_elastic_linear/interface_elastic_linear_results.json",
+                "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
+                "time_frequency"       : 0.01
+            }
+         }]
+    },
+    "_json_output_process"  : [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "constitutive_law_tests/interface_elastic_linear/interface_elastic_linear_results.json",
+            "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
+            "time_frequency"       : 0.01
+        }
+    }]
+}

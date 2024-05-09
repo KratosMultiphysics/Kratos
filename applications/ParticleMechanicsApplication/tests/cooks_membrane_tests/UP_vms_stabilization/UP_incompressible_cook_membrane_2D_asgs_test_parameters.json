@@ -72,7 +72,8 @@
                 "model_part_name"  : "Background_Grid.LineLoad2D_Load_on_lines_Auto10",
                 "time_frequency"   : 1.0
             }
-        }],
+        }]
+   },
     "print_output_process" : [{
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -84,7 +85,6 @@
             "model_part_name"   : "Background_Grid.LineLoad2D_Load_on_lines_Auto10",
             "time_frequency"    : 1.0
         }
-    }]
-   },
+    }],
     "analysis_stage"   : "KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis"
 }

@@ -390,7 +390,6 @@ void DispNewtonianFluid3DLaw::CalculateStress(MaterialResponseVariables& rViscou
         this->CalculateDeviatoricPart(rViscousVariables.DeformationRate, DeviatoricPart);
 
         rViscousVariables.StressMatrix += 2.0 * rViscousVariables.Mu * DeviatoricPart;
-
     }
 
     rStressVector=MathUtils<double>::StressTensorToVector(rViscousVariables.StressMatrix, rStressVector.size());

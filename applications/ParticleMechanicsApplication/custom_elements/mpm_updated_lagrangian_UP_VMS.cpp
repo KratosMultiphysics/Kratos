@@ -363,7 +363,7 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
     else if (GetProperties().Has(DYNAMIC_VISCOSITY))
     {
         rVariables.ShearModulus = GetProperties()[DYNAMIC_VISCOSITY];
-        rVariables.BulkModulus = 1e16;
+        rVariables.BulkModulus = GetProperties()[BULK_MODULUS];
     }
 
 

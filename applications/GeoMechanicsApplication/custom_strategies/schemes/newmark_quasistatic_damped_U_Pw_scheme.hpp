@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_DAMPED_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_DAMPED_U_PW_SCHEME
+#pragma once
 
 // Application includes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
@@ -21,156 +20,135 @@
 namespace Kratos
 {
 
-template<class TSparseSpace, class TDenseSpace>
-
-class NewmarkQuasistaticDampedUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
+template <class TSparseSpace, class TDenseSpace>
+class NewmarkQuasistaticDampedUPwScheme : public GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>
 {
-
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(NewmarkQuasistaticDampedUPwScheme);
 
-    KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticDampedUPwScheme );
+    using BaseType              = Scheme<TSparseSpace, TDenseSpace>;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
-    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Constructor
     NewmarkQuasistaticDampedUPwScheme(double beta, double gamma, double theta)
-        : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+        : GeneralizedNewmarkScheme<TSparseSpace, TDenseSpace>(
+              {FirstOrderScalarVariable(WATER_PRESSURE, DT_WATER_PRESSURE, DT_PRESSURE_COEFFICIENT)},
+              {SecondOrderVectorVariable(DISPLACEMENT), SecondOrderVectorVariable(ROTATION)},
+              beta,
+              gamma,
+              theta)
     {
-        //Allocate auxiliary memory
-        int NumThreads = ParallelUtilities::GetNumThreads();
-        mDampingMatrix.resize(NumThreads);
-        mVelocityVector.resize(NumThreads);
+        // Allocate auxiliary memory
+        const auto num_threads = ParallelUtilities::GetNumThreads();
+        mDampingMatrix.resize(num_threads);
+        mVelocityVector.resize(num_threads);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~NewmarkQuasistaticDampedUPwScheme() override {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateSystemContributions(
-        Element &rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions(Element&                       rCurrentElement,
+                                      LocalSystemMatrixType&         LHS_Contribution,
+                                      LocalSystemVectorType&         RHS_Contribution,
+                                      Element::EquationIdVectorType& EquationId,
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement).CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement).CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToLHS(LHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS(rCurrentElement, RHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateRHSContribution(
-        Element &rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateRHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemVectorType&         RHS_Contribution,
+                                  Element::EquationIdVectorType& EquationId,
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement).CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement).CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToRHS(rCurrentElement, RHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateLHSContribution(
-        Element &rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateLHSContribution(Element&                       rCurrentElement,
+                                  LocalSystemMatrixType&         LHS_Contribution,
+                                  Element::EquationIdVectorType& EquationId,
+                                  const ProcessInfo&             CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement).CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement).CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDampingToLHS(LHS_Contribution, mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    /// Member Variables
-
-    std::vector< Matrix > mDampingMatrix;
-    std::vector< Vector > mVelocityVector;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution,
-                         LocalSystemMatrixType& C,
-                         const ProcessInfo& CurrentProcessInfo)
+    void AddDampingToLHS(LocalSystemMatrixType& LHS_Contribution, LocalSystemMatrixType& C, const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         if (C.size1() != 0)
-            noalias(LHS_Contribution) += mGamma/(mBeta*mDeltaTime)*C;
+            noalias(LHS_Contribution) += (this->GetGamma() / (this->GetBeta() * this->GetDeltaTime())) * C;
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void AddDampingToRHS(Element &rCurrentElement,
+    void AddDampingToRHS(Element&               rCurrentElement,
                          LocalSystemVectorType& RHS_Contribution,
                          LocalSystemMatrixType& C,
-                         const ProcessInfo& CurrentProcessInfo)
+                         const ProcessInfo&     CurrentProcessInfo)
     {
         int thread = OpenMPUtils::ThisThread();
 
-        //adding damping contribution
-        if (C.size1() != 0)
-        {
+        // adding damping contribution
+        if (C.size1() != 0) {
             rCurrentElement.GetFirstDerivativesVector(mVelocityVector[thread], 0);
-
             noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
         }
     }
 
-}; // Class NewmarkQuasistaticDampedUPwScheme
-}  // namespace Kratos
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
 
-#endif // KRATOS_NEWMARK_QUASISTATIC_DAMPED_U_PW_SCHEME defined
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+            // No accelerations of the displacement/rotation D.O.F. in this quasistatic damped scheme
+            this->UpdateVectorFirstTimeDerivative(rNode);
+
+            for (const auto& r_first_order_scalar_variable : this->GetFirstOrderScalarVariables()) {
+                this->UpdateScalarTimeDerivative(rNode, r_first_order_scalar_variable.instance,
+                                                 r_first_order_scalar_variable.first_time_derivative);
+            }
+        });
+
+        KRATOS_CATCH("")
+    }
+
+private:
+    std::vector<Matrix> mDampingMatrix;
+    std::vector<Vector> mVelocityVector;
+}; // Class NewmarkQuasistaticDampedUPwScheme
+
+} // namespace Kratos

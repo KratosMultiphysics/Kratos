@@ -264,6 +264,19 @@ public:
         KRATOS_CATCH( "" );
     }
 
+    // Clear friction-related flags so that RHS can be properly constructed for current iteration
+    void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
+                                   TSystemVectorType &rb) override {
+
+        // clear nodal reaction values if they were assigned a value outside from the condition
+        ClearReaction();
+
+        BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        // modify reaction forces for particle slip conditions (Penalty)
+        mRotationTool.CalculateReactionForces(mGridModelPart);
+    }
+
     /**
      * @brief It initializes time step solution for MPM simulations.
      * @details The initialize solution step here also perform the following procedures:
@@ -584,6 +597,15 @@ protected:
     unsigned int mDomainSize;
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
+
+    void ClearReaction() const
+    {
+        #pragma omp parallel for
+        for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
+            auto i = mGridModelPart.NodesBegin() + iter;
+            (i)->FastGetSolutionStepValue(REACTION).clear();
+        }
+    }
 
 }; /* Class MPMResidualBasedBossakScheme */
 }  /* namespace Kratos.*/

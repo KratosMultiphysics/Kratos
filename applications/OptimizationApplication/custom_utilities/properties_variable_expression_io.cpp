@@ -28,53 +28,54 @@
 
 namespace Kratos {
 
-PropertiesVariableExpressionIO::PropertiesVariableExpressionInput::PropertiesVariableExpressionInput(
+PropertiesVariableExpressionIO::Input::Input(
     const ModelPart& rModelPart,
     const VariableType& rVariable,
-    const ContainerType& rContainerType)
-    : mrModelPart(rModelPart),
+    Globals::DataLocation CurrentLocation)
+    : mpModelPart(&rModelPart),
       mpVariable(rVariable),
-      mContainerType(rContainerType)
+      mDataLocation(CurrentLocation)
 {
 }
 
-Expression::Pointer PropertiesVariableExpressionIO::PropertiesVariableExpressionInput::Execute() const
+Expression::Pointer PropertiesVariableExpressionIO::Input::Execute() const
 {
-    switch (mContainerType) {
-        case ContainerType::ConditionNonHistorical:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Conditions(), mpVariable, mrModelPart.GetCommunicator().GetDataCommunicator());
-        case ContainerType::ElementNonHistorical:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Elements(), mpVariable, mrModelPart.GetCommunicator().GetDataCommunicator());
+    switch (mDataLocation) {
+        case Globals::DataLocation::Condition:
+            return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mpModelPart->Conditions(), mpVariable, mpModelPart->GetCommunicator().GetDataCommunicator());
+        case Globals::DataLocation::Element:
+            return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mpModelPart->Elements(), mpVariable, mpModelPart->GetCommunicator().GetDataCommunicator());
         default:
-            KRATOS_ERROR << "Invalid container type.";
+            KRATOS_ERROR << "Invalid container type. Only supports Condition and Element.";
+            break;
     }
 
     return nullptr;
 }
 
-PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput::PropertiesVariableExpressionOutput(
+PropertiesVariableExpressionIO::Output::Output(
     ModelPart& rModelPart,
     const VariableType& rVariable,
-    const ContainerType& rContainerType)
-    : mrModelPart(rModelPart),
+    Globals::DataLocation CurrentLocation)
+    : mpModelPart(&rModelPart),
       mpVariable(rVariable),
-      mContainerType(rContainerType)
+      mDataLocation(CurrentLocation)
 {
 }
 
-void PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput::Execute(const Expression& rExpression)
+void PropertiesVariableExpressionIO::Output::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
 
-    switch (mContainerType) {
-        case ContainerType::ConditionNonHistorical:
-            ExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Conditions(), mrModelPart.GetCommunicator(), rExpression, mpVariable);
+    switch (mDataLocation) {
+        case Globals::DataLocation::Condition:
+            ExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mpModelPart->Conditions(), mpModelPart->GetCommunicator(), rExpression, mpVariable);
             break;
-        case ContainerType::ElementNonHistorical:
-            ExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Elements(), mrModelPart.GetCommunicator(), rExpression, mpVariable);
+        case Globals::DataLocation::Element:
+            ExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mpModelPart->Elements(), mpModelPart->GetCommunicator(), rExpression, mpVariable);
             break;
         default:
-            KRATOS_ERROR << "Invalid container type.";
+            KRATOS_ERROR << "Invalid container type. Only supports Condition and Element.";
             break;
     }
 
@@ -90,10 +91,10 @@ void PropertiesVariableExpressionIO::Read(
                   "NodesContainerType expressions is not supported.\n");
 
     auto p_expression =
-        PropertiesVariableExpressionInput(rContainerExpression.GetModelPart(), rVariable,
+        Input(rContainerExpression.GetModelPart(), rVariable,
                                 std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                    ? ContainerType::ConditionNonHistorical
-                                    : ContainerType::ElementNonHistorical)
+                                    ? Globals::DataLocation::Condition
+                                    : Globals::DataLocation::Element)
             .Execute();
 
     // p_expression is nullptr if there are no items in the ModelParts relevant container.
@@ -119,8 +120,8 @@ void PropertiesVariableExpressionIO::Check(
         });
 
         const auto& r_data_communicator = rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator();
-        const IndexType number_of_values = r_data_communicator.SumAll(value_ptrs.size());
-        const IndexType number_of_entities = r_data_communicator.SumAll(rContainerExpression.GetContainer().size());
+        const auto number_of_values = r_data_communicator.SumAll(static_cast<unsigned int>(value_ptrs.size()));
+        const auto number_of_entities = r_data_communicator.SumAll(static_cast<unsigned int>(rContainerExpression.GetContainer().size()));
 
         KRATOS_ERROR_IF_NOT(number_of_values == number_of_entities)
             << "Number of different values in properties for variable "
@@ -141,17 +142,17 @@ void PropertiesVariableExpressionIO::Write(
     static_assert(!std::is_same_v<TContainerType, ModelPart::NodesContainerType>,
                   "NodesContainerType expressions is not supported.\n");
 
-    PropertiesVariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
+    Output(*rContainerExpression.pGetModelPart(), rVariable,
                              std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
-                                 ? ContainerType::ConditionNonHistorical
-                                 : ContainerType::ElementNonHistorical)
+                                 ? Globals::DataLocation::Condition
+                                 : Globals::DataLocation::Element)
         .Execute(rContainerExpression.GetExpression());
 }
 
 #define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                                                      \
-    template void PropertiesVariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);          \
-    template void PropertiesVariableExpressionIO::Check(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);   \
-    template void PropertiesVariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void PropertiesVariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);          \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void PropertiesVariableExpressionIO::Check(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);   \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void PropertiesVariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);
 
 #define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS_1(CONTAINER_TYPE)                \
     KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MeshType::Local)

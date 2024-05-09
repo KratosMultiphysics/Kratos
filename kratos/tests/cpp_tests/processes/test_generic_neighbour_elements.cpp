@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pablo Agustin Becker
+//
+
 // System includes
 #include <limits>
 
@@ -13,10 +25,7 @@
 #include "includes/model_part_io.h"
 #include "testing/testing.h"
 
-
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 
 KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
@@ -75,52 +84,51 @@ KRATOS_TEST_CASE_IN_SUITE(HexasGenericFindElementsNeighbourProcessTest,
 
     //element 1 must have a single neighbour in third face
     const auto& elem1_neighs = model_part.Elements()[1].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem1_neighs.size(),6); // 6 faces
+    KRATOS_EXPECT_EQ(elem1_neighs.size(),6); // 6 faces
     for(unsigned int i_face = 0; i_face<elem1_neighs.size(); i_face++){
         if(i_face!=2){
-            KRATOS_CHECK_EQUAL( elem1_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem1_neighs(i_face).get(),nullptr); //no neigh in these faces
         } else{
-            KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),2); //element #2 is in this face
+            KRATOS_EXPECT_NE( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem1_neighs[i_face].Id(),2); //element #2 is in this face
         }
     }
 
     //element 2 must have neighbours in two faces
     const auto& elem2_neighs = model_part.Elements()[2].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem2_neighs.size(),6); // 6 faces
+    KRATOS_EXPECT_EQ(elem2_neighs.size(),6); // 6 faces
     for(unsigned int i_face = 0; i_face<elem2_neighs.size(); i_face++){
         if(i_face==4){
-            KRATOS_CHECK_NOT_EQUAL( elem2_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem2_neighs[i_face].Id(),1); //element #1 is in this face
+            KRATOS_EXPECT_NE( elem2_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem2_neighs[i_face].Id(),1); //element #1 is in this face
         } else if(i_face==5) {
-            KRATOS_CHECK_NOT_EQUAL( elem2_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem2_neighs[i_face].Id(),3); //element #3 is in this face
+            KRATOS_EXPECT_NE( elem2_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem2_neighs[i_face].Id(),3); //element #3 is in this face
         } else {
-            KRATOS_CHECK_EQUAL( elem2_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem2_neighs(i_face).get(),nullptr); //no neigh in these faces
         }
     }
 
     //element 3 must have a single neighbour in first face
     const auto& elem3_neighs = model_part.Elements()[3].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem3_neighs.size(),6); // 6 faces
+    KRATOS_EXPECT_EQ(elem3_neighs.size(),6); // 6 faces
     for(unsigned int i_face = 0; i_face<elem3_neighs.size(); i_face++){
         if(i_face!=0){
-            KRATOS_CHECK_EQUAL( elem3_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem3_neighs(i_face).get(),nullptr); //no neigh in these faces
         } else{
-            KRATOS_CHECK_NOT_EQUAL( elem3_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem3_neighs[i_face].Id(),2); //element #2 is in this face
+            KRATOS_EXPECT_NE( elem3_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem3_neighs[i_face].Id(),2); //element #2 is in this face
         }
     }
 
     //element 4 must have no neighbours
     const auto& elem4_neighs = model_part.Elements()[4].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem4_neighs.size(),6); // 6 faces
+    KRATOS_EXPECT_EQ(elem4_neighs.size(),6); // 6 faces
     for(unsigned int i_face = 0; i_face<elem4_neighs.size(); i_face++){
-        KRATOS_CHECK_EQUAL( elem4_neighs(i_face).get(),nullptr); //no neigh in these faces
+        KRATOS_EXPECT_EQ( elem4_neighs(i_face).get(),nullptr); //no neigh in these faces
     }
 
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TetrahedraGenericFindElementsNeighbourProcessTest,
                           KratosCoreFastSuite)
@@ -164,22 +172,19 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraGenericFindElementsNeighbourProcessTest,
 
     //checking single element, complete model part test was done for hexas
     const auto& elem1_neighs = model_part.Elements()[1].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem1_neighs.size(),4); // 4 faces
+    KRATOS_EXPECT_EQ(elem1_neighs.size(),4); // 4 faces
     for(unsigned int i_face = 0; i_face<elem1_neighs.size(); i_face++){
         if(i_face==0){
-            KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),5); //element #1 is in this face
+            KRATOS_EXPECT_NE( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem1_neighs[i_face].Id(),5); //element #1 is in this face
         } else if(i_face==1) {
-            KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),2); //element #3 is in this face
+            KRATOS_EXPECT_NE( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem1_neighs[i_face].Id(),2); //element #3 is in this face
         } else {
-            KRATOS_CHECK_EQUAL( elem1_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem1_neighs(i_face).get(),nullptr); //no neigh in these faces
         }
     }
-
-
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProcessTest,
                           KratosCoreFastSuite)
@@ -229,72 +234,69 @@ KRATOS_TEST_CASE_IN_SUITE(TrianglesQuadilateralsGenericFindElementsNeighbourProc
 
     //element 1 must have a two neighs
     const auto& elem1_neighs = model_part.Elements()[1].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem1_neighs.size(),3); // 3 edges
+    KRATOS_EXPECT_EQ(elem1_neighs.size(),3); // 3 edges
     for(unsigned int i_face = 0; i_face<elem1_neighs.size(); i_face++){
         if(i_face==0){
-            KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),2); //element #2 is in this face
+            KRATOS_EXPECT_NE( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem1_neighs[i_face].Id(),2); //element #2 is in this face
         } else if(i_face==2) {
-            KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),3); //element #3 is in this face
+            KRATOS_EXPECT_NE( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem1_neighs[i_face].Id(),3); //element #3 is in this face
         } else {
-            KRATOS_CHECK_NOT_EQUAL( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem1_neighs[i_face].Id(),5); //element #5 is in this face
+            KRATOS_EXPECT_NE( elem1_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem1_neighs[i_face].Id(),5); //element #5 is in this face
         }
     }
 
     //element 2 must have a single neigh
     const auto& elem2_neighs = model_part.Elements()[2].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem2_neighs.size(),3); // 3 edges
+    KRATOS_EXPECT_EQ(elem2_neighs.size(),3); // 3 edges
     for(unsigned int i_face = 0; i_face<elem2_neighs.size(); i_face++){
         if(i_face!=2){
-            KRATOS_CHECK_EQUAL( elem2_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem2_neighs(i_face).get(),nullptr); //no neigh in these faces
         } else{
-            KRATOS_CHECK_NOT_EQUAL( elem2_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem2_neighs[i_face].Id(),1); //element #1 is in this face
+            KRATOS_EXPECT_NE( elem2_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem2_neighs[i_face].Id(),1); //element #1 is in this face
         }
     }
 
     //element 3 must have two neighs
     const auto& elem3_neighs = model_part.Elements()[3].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem3_neighs.size(),3); // 3 edges
+    KRATOS_EXPECT_EQ(elem3_neighs.size(),3); // 3 edges
     for(unsigned int i_face = 0; i_face<elem3_neighs.size(); i_face++){
         if(i_face==1){
-            KRATOS_CHECK_NOT_EQUAL( elem3_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem3_neighs[i_face].Id(),1); //element #5 is in this face
+            KRATOS_EXPECT_NE( elem3_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem3_neighs[i_face].Id(),1); //element #5 is in this face
         } else if(i_face==2) {
-            KRATOS_CHECK_NOT_EQUAL( elem3_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem3_neighs[i_face].Id(),5); //element #5 is in this face
+            KRATOS_EXPECT_NE( elem3_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem3_neighs[i_face].Id(),5); //element #5 is in this face
         } else {
-            KRATOS_CHECK_EQUAL( elem3_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem3_neighs(i_face).get(),nullptr); //no neigh in these faces
         }
     }
 
     //element 4 must have no neighbours
     const auto& elem4_neighs = model_part.Elements()[4].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem4_neighs.size(),3); // 3 edges
+    KRATOS_EXPECT_EQ(elem4_neighs.size(),3); // 3 edges
     for(unsigned int i_face = 0; i_face<elem4_neighs.size(); i_face++){
-        KRATOS_CHECK_EQUAL( elem4_neighs(i_face).get(),nullptr); //no neigh in these faces
+        KRATOS_EXPECT_EQ( elem4_neighs(i_face).get(),nullptr); //no neigh in these faces
     }
 
     //element 5 is a quadrilateral that has first and second edges filled
     const auto& elem5_neighs = model_part.Elements()[5].GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_CHECK_EQUAL(elem5_neighs.size(),4); // 4 edges
+    KRATOS_EXPECT_EQ(elem5_neighs.size(),4); // 4 edges
     for(unsigned int i_face = 0; i_face<elem5_neighs.size(); i_face++){
         if(i_face==0){
-            KRATOS_CHECK_NOT_EQUAL( elem5_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem5_neighs[i_face].Id(),3); //element #3 is in this face
+            KRATOS_EXPECT_NE( elem5_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem5_neighs[i_face].Id(),3); //element #3 is in this face
         } else if(i_face==1) {
-            KRATOS_CHECK_NOT_EQUAL( elem5_neighs(i_face).get(),nullptr); //real pointer in this face
-            KRATOS_CHECK_EQUAL( elem5_neighs[i_face].Id(),1); //element #1 is in this face
+            KRATOS_EXPECT_NE( elem5_neighs(i_face).get(),nullptr); //real pointer in this face
+            KRATOS_EXPECT_EQ( elem5_neighs[i_face].Id(),1); //element #1 is in this face
         } else {
-            KRATOS_CHECK_EQUAL( elem5_neighs(i_face).get(),nullptr); //no neigh in these faces
+            KRATOS_EXPECT_EQ( elem5_neighs(i_face).get(),nullptr); //no neigh in these faces
         }
     }
 
 }
 
-
-} // namespace Testing
-
-} // namespace Kratos
+} // namespace Kratos::Testing
