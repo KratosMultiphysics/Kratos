@@ -195,6 +195,7 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
         d2x_dxi2 += r_coords_node[0] * r_d2N_dxi2[u_coord];
         d2y_dxi2 += r_coords_node[1] * r_d2N_dxi2[u_coord];
     }
+    // return 0.0;
     return (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3);
 }
 
@@ -751,10 +752,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
-    const double angle1 = GetAngle(-1.0);
-    const double angle2 = GetAngle(1.0);
-    const double angle3 = GetAngle(0.0);
-
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
 
@@ -793,8 +790,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
         noalias(aux_array) = dNu - k0 * N_shape;
 
-        KRATOS_WATCH(k0)
-
         // Axial contributions
         noalias(local_lhs) += outer_prod(aux_array, aux_array) * dN_dEl * jacobian_weight;
         noalias(local_rhs) -= aux_array * N * jacobian_weight;
@@ -821,8 +816,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
-        // KRATOS_WATCH(N_shape)
-
 
         RotateAll(local_lhs, local_rhs, angle, angle, angle);
 
@@ -830,13 +823,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(rRHS) += local_rhs;
         noalias(local_lhs) = ZeroMatrix(SystemSize, SystemSize);
         noalias(local_rhs) = ZeroVector(SystemSize);
+
     } // IP loop
-
-    // RotateAll(rLHS, rRHS, angle1, angle2, angle3);
-
-    // KRATOS_WATCH(rRHS)
-
-
     KRATOS_CATCH("");
 }
 
@@ -1145,10 +1133,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
-    const double angle1 = GetAngle(-1.0);
-    const double angle2 = GetAngle(1.0);
-    const double angle3 = GetAngle(0.0);
-
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
 
@@ -1207,8 +1191,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(rRHS) += local_rhs;
         noalias(local_rhs) = ZeroVector(SystemSize);
     } // IP loop
-    // RotateRHS(rRHS, angle1, angle2, angle3);
-
     KRATOS_CATCH("");
 }
 
