@@ -2,7 +2,6 @@ import KratosMultiphysics as KM
 from KratosMultiphysics import kratos_utilities as kratos_utils
 from importlib import import_module
 
-
 def ConstructSolver(configuration):
     if(type(configuration) != KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
@@ -26,11 +25,7 @@ def CreateFastestAvailableDirectLinearSolver():
     if kratos_utils.CheckIfApplicationsAvailable("LinearSolversApplication"):
         from KratosMultiphysics import LinearSolversApplication
 
-    linear_solvers_by_speed = [
-        "pardiso_lu", # LinearSolversApplication (if compiled with Intel-support)
-        "sparse_lu",  # LinearSolversApplication
-        "skyline_lu_factorization" # in Core, always available, but slow
-    ]
+    linear_solvers_by_speed = KM.UblasSparseSpace.FastestDirectSolverList()
 
     for solver_name in linear_solvers_by_speed:
         if KM.LinearSolverFactory().Has(solver_name):
@@ -40,7 +35,6 @@ def CreateFastestAvailableDirectLinearSolver():
             return KM.LinearSolverFactory().Create(linear_solver_configuration)
 
     raise Exception("Linear-Solver could not be constructed!")
-
 
 def __GetSolverTypeAndImportApplication(solver_type):
     # remove unused "KratosMultiphysics.
@@ -58,4 +52,3 @@ def __GetSolverTypeAndImportApplication(solver_type):
         import_module("KratosMultiphysics." + app_name)
 
     return solver_type
-
