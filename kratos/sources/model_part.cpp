@@ -1514,6 +1514,13 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
+    
+    if (IsSubModelPart()) {
+        ConditionType::Pointer p_new_condition = mpParentModelPart->CreateNewCondition(ConditionName, Id, ConditionNodeIds, pProperties, ThisIndex);
+        GetMesh(ThisIndex).AddCondition(p_new_condition);
+        return p_new_condition;
+    }
+
     Geometry< Node >::PointsArrayType pConditionNodes;
 
     for (unsigned int i = 0; i < ConditionNodeIds.size(); i++)
