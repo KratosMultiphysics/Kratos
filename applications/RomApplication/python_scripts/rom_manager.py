@@ -122,13 +122,17 @@ class RomManager(object):
             self.ComputeErrors(mu_train)
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
+        counter = 0
+        self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
         in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
         if not in_database:
-            self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(0)
             self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
         elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
-            number_of_instances = self.data_base.count_how_many_in_database("Neural_Network", mu_train)
-            self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(number_of_instances)
+            while in_database:
+                counter+=1
+                self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
+                in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
+            self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
             self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
     def TestNeuralNetworkReconstruction(self):

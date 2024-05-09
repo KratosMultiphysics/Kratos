@@ -165,16 +165,6 @@ class RomDatabase(object):
         return count > 0, file_name
 
 
-    def count_how_many_in_database(self, table_name, mu):
-        file_name, _ = self.get_hashed_mu_for_table(table_name, mu)
-        conn = sqlite3.connect(self.database_name)
-        cursor = conn.cursor()
-        cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count
-
-
     def add_to_database(self, table_name, mu, numpy_array ):
         file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
         tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str,nn_data13_int = self.get_curret_params()
