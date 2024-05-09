@@ -131,6 +131,7 @@
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_law.hpp"
 #include "custom_constitutive/thermal_dispersion_law.h"
+#include "custom_constitutive/thermal_filter_law.h"
 
 namespace Kratos {
 
@@ -596,6 +597,9 @@ private:
 
     const GeoThermalDispersionLaw mGeoThermalDispersion2DLaw{ConstitutiveLaw::SizeType(2)};
     const GeoThermalDispersionLaw mGeoThermalDispersion3DLaw{ConstitutiveLaw::SizeType(3)};
+
+    const GeoThermalFilterLaw mGeoThermalFilter2DLaw{ConstitutiveLaw::SizeType(1)};
+    const GeoThermalFilterLaw mGeoThermalFilter3DLaw{ConstitutiveLaw::SizeType(1)};
 
     ///@}
 
