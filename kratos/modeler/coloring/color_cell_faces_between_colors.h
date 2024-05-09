@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "geometries/geometry.h"
 #include "voxel_mesher_coloring.h"
 
 namespace Kratos {
@@ -29,16 +28,7 @@ public:
         VoxelMesherColoring(rModeler, ColoringParameters)
     {}
 
-    void Apply() const override
-    {
-        Parameters parameters = GetParameters();
-        const int outside_color = parameters["outside_color"].GetInt();
-        const int interface_color = parameters["color"].GetInt();
-        const int cell_color = parameters["cell_color"].GetInt();
-
-        GetMeshColors().CalculateElementalFaceColorsBetweenColors(interface_color, outside_color, cell_color);
-    }
-
+    void Apply() const override;
 };
 
 }
