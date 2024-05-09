@@ -311,17 +311,31 @@ void KratosApplication::DeregisterCommonComponents()
 
     auto deregister_detail = [&](std::string const & rComponentName, auto remove_detail) {
         auto path = std::string(rComponentName)+"."+mApplicationName;
-        for (auto & key : Registry::GetItem(path)) {
-            std::cout << "\t" << key.first << std::endl;
-            
-            // Remove from components
-            remove_detail(key.first);
 
-            // Remove from registry component typed list
-            Registry::RemoveItem(path);
+        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
+        std::vector<std::string> keys;
+        std::transform(Registry::GetItem(path).cbegin(), Registry::GetItem(path).cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
+
+        for (auto & key : keys) {
+            auto cmpt_key = "components."+key;
+            auto type_key = path+"."+key;
+
+            // Remove from KratosComponents
+            remove_detail(key);
 
             // Remove from registry general component list
-            Registry::RemoveItem("components."+key.first);
+            if(Registry::HasItem(cmpt_key)) {
+                Registry::RemoveItem(cmpt_key);
+            } else {
+                KRATOS_ERROR << "Trying ro remove: " << cmpt_key << " which was not found in registry" << std::endl;
+            }
+
+            // Remove from registry component typed list
+            if(Registry::HasItem(type_key)) {
+                Registry::RemoveItem(type_key);
+            } else {
+                KRATOS_ERROR << "Trying ro remove: " << type_key << " which was not found in registry" << std::endl;
+            }
         }
     };
 
