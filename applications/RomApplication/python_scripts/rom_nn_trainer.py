@@ -26,7 +26,6 @@ class RomNeuralNetworkTrainer(object):
     @classmethod
     def _GetDefaultNeuralNetworkParameters(self):
         nn_training_parameters = KratosMultiphysics.Parameters("""{
-            "saved_models_root_path": "rom_data/saved_nn_models/",
             "training":{
                 "modes":[5,50],
                 "layers_size":[200,200],
@@ -59,9 +58,9 @@ class RomNeuralNetworkTrainer(object):
         S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM_Fit')
         S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM_Fit')
 
-        in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        in_database, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
+        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
         sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)
 
         self._CheckNumberOfModes(n_inf,n_sup,sigma_vec.shape[0])
@@ -85,17 +84,15 @@ class RomNeuralNetworkTrainer(object):
 
     def _GetEvaluationData(self, model_properties):
 
-        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM_Fit')
         S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM_Fit')
 
         n_inf = model_properties['modes'][0]
         n_sup = model_properties['modes'][1]
 
-        in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
+        _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
-        in_database, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
+        _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
         sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)
-
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
@@ -166,13 +163,10 @@ class RomNeuralNetworkTrainer(object):
         lr_additional_params = nn_training_parameters['lr_strategy']['additional_params'].GetVector()
         epochs = nn_training_parameters['epochs'].GetInt()
 
-        if nn_training_parameters['use_automatic_name'].GetBool():
-            model_name='NN_model_'+str(n_inf)+'.'+str(n_sup)+'_'+str(layers_size)+'_lr'+lr_scheme+'.'+str(base_lr)+'_batchsize'+str(batch_size)
-        else:
-            model_name=nn_training_parameters['custom_name'].GetString()
-
-        model_path=pathlib.Path(self.nn_parameters['saved_models_root_path'].GetString()+model_name)
+        model_name, _ = self.data_base.get_hashed_mu_for_table("Neural_Network", self.mu_train)
+        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
         model_path.mkdir(parents=True, exist_ok=False)
+
 
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup)
 
@@ -216,7 +210,8 @@ class RomNeuralNetworkTrainer(object):
 
     def EvaluateNetwork(self, model_name):
 
-        model_path=pathlib.Path(self.nn_parameters['saved_models_root_path'].GetString()+model_name)
+        model_name, _ = self.data_base.get_hashed_mu_for_table("Neural_Network", self.mu_train)
+        model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
 
         with open(str(model_path)+'/train_config.json', "r") as config_file:
             model_properties = json.load(config_file)

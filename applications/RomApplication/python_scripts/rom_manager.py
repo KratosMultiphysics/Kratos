@@ -609,6 +609,7 @@ class RomManager(object):
 
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
         model_name = rom_nn_trainer.TrainNetwork()
+        self.data_base.add_to_database("Neural_Network", mu_train , None)
         rom_nn_trainer.EvaluateNetwork(model_name)
 
 
@@ -888,7 +889,7 @@ class RomManager(object):
                     "online": {
                         "model_name": "test_neural_network"
                     },
-                    "saved_models_root_path": "rom_data/saved_nn_models/",
+                    //"retrain_if_exists" : true,  // If false only one model will be trained for the mu parameters and NN hyperparameters combination
                     "training": {
                         "batch_size": 1,
                         "custom_name": "test_neural_network",
