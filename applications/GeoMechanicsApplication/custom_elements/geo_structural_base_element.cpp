@@ -277,9 +277,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixTyp
     this->CalculateStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
-    if (rDampingMatrix.size1() != N_DOF_ELEMENT)
-        rDampingMatrix.resize(N_DOF_ELEMENT, N_DOF_ELEMENT, false);
-    noalias(rDampingMatrix) = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+    rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         rCurrentProcessInfo[RAYLEIGH_ALPHA], rCurrentProcessInfo[RAYLEIGH_BETA], mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
