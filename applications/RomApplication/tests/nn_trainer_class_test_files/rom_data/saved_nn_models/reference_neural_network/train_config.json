@@ -1,1 +1,0 @@
-{"modes": [1, 2], "layers_size": [2.0, 2.0], "batch_size": 2, "epochs": 50, "lr_strategy": {"scheduler": "const", "base_lr": 0.01, "additional_params": []}, "database": {"training_set": "rom_data/fom_snapshots.npy", "validation_set": "rom_data/fom_snapshots_val.npy", "phi_matrix": "rom_data/RightBasisMatrix.npy", "sigma_vector": "rom_data/SingularValuesVector.npy"}}
