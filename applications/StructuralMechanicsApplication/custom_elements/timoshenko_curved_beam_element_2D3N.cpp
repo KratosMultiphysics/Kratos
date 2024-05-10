@@ -796,12 +796,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(d_el_du) = aux_array + du * dNu + dv * dN_shape;
 
         // Axial contributions
-        noalias(local_rhs) -= aux_array * N * jacobian_weight;
+        noalias(local_rhs) -= d_el_du * N * jacobian_weight;
         noalias(local_lhs) += outer_prod(d_el_du, d_el_du) * dN_dEl * jacobian_weight;
 
-        noalias(local_rhs) -= N * dNu * du  * jacobian_weight;
         noalias(local_lhs) += outer_prod(dNu, dNu) * N * jacobian_weight;
-        noalias(local_rhs) -= N * dN_shape * dv * jacobian_weight;
         noalias(local_lhs) += outer_prod(dN_shape, dN_shape) * N * jacobian_weight;
 
         // Bending contributions
@@ -875,7 +873,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    GlobalSizeVector nodal_values, aux_array;
+    GlobalSizeVector nodal_values, aux_array, d_el_du;
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
@@ -919,11 +917,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
         const double du = inner_prod(dNu, nodal_values);
         const double dv = inner_prod(dN_shape, nodal_values);
+        noalias(d_el_du) = aux_array + du * dNu + dv * dN_shape;
 
         // Axial contributions
-        noalias(local_rhs) -= aux_array * N * jacobian_weight;
-        noalias(local_rhs) -= N * dNu * du * jacobian_weight;
-        noalias(local_rhs) -= N * dN_shape * dv * jacobian_weight;
+        noalias(local_rhs) -= d_el_du * N * jacobian_weight;
 
         // Bending contributions
         noalias(local_rhs) -= dN_theta * M * jacobian_weight;
