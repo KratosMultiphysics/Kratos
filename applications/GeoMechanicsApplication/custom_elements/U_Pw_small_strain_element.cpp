@@ -471,53 +471,46 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
     if (rVariable == VON_MISES_STRESS) {
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMisesStress(mStressVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStress(mStressVector[GPoint]);
         }
     } else if (rVariable == MEAN_EFFECTIVE_STRESS) {
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateMeanStress(mStressVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateMeanStress(mStressVector[GPoint]);
         }
     } else if (rVariable == MEAN_STRESS) {
         std::vector<Vector> StressVector;
         CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateMeanStress(StressVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateMeanStress(StressVector[GPoint]);
         }
     } else if (rVariable == ENGINEERING_VON_MISES_STRAIN) {
         std::vector<Vector> StrainVector;
         CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMisesStrain(StrainVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStrain(StrainVector[GPoint]);
         }
     } else if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN) {
         std::vector<Vector> StrainVector;
         CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateTrace(StrainVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateTrace(StrainVector[GPoint]);
         }
     } else if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN) {
         std::vector<Vector> StrainVector;
         CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMisesStrain(StrainVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStrain(StrainVector[GPoint]);
         }
     } else if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN) {
         std::vector<Vector> StrainVector;
         CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateTrace(StrainVector[GPoint]);
+            rOutput[GPoint] = StressStrainUtilities::CalculateTrace(StrainVector[GPoint]);
         }
     } else if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
                rVariable == BISHOP_COEFFICIENT || rVariable == DERIVATIVE_OF_SATURATION ||
@@ -1175,12 +1168,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(E
     const PropertiesType& rProp = this->GetProperties();
 
     if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-        const double          InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-        StressStrainUtilities EquivalentStress;
-        const double          epsV      = EquivalentStress.CalculateTrace(rVariables.StrainVector);
-        const double          ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
-        const double          eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
-        const double          permLog10 = (eCurrent - ePrevious) * InverseCK;
+        const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+        const double epsV      = StressStrainUtilities::CalculateTrace(rVariables.StrainVector);
+        const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
+        const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+        const double permLog10 = (eCurrent - ePrevious) * InverseCK;
         rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
     } else {
         rVariables.PermeabilityUpdateFactor = 1.0;
