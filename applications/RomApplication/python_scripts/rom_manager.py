@@ -53,23 +53,23 @@ class RomManager(object):
                 if self.rom_training_parameters["Parameters"]["print_singular_values"].GetBool() == False:
                     err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
                     raise Exception(err_msg)
-                self.__LaunchTrainROM(mu_train)
-                self.__LauchTrainFOM(mu_validation)
+                self._LaunchTrainROM(mu_train)
+                self._LaunchTrainFOM(mu_validation)
                 self.TrainAnnEnhancedROM(mu_train,mu_validation)
                 #TODO implement online stage for ann_enhanced
                 #self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN?")
-                #rom_snapshots = self.__LaunchROM(mu_train)
+                #rom_snapshots = self._LaunchROM(mu_train)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
-                    self.__LaunchTrainROM(mu_train)
+                    self._LaunchTrainROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                    self.__LaunchROM(mu_train)
+                    self._LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                    self.__LaunchTrainHROM(mu_train)
+                    self._LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self.__LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train)
         #######################
 
         #######################################
@@ -80,16 +80,16 @@ class RomManager(object):
                 raise Exception(err_msg)
             elif type_of_decoder =="linear":
                 if any(item == "ROM" for item in training_stages):
-                    self.__LaunchTrainROM(mu_train)
+                    self._LaunchTrainROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "lspg")
-                    self.__LaunchROM(mu_train)
+                    self._LaunchROM(mu_train)
                 if any(item == "HROM" for item in training_stages):
                     # Change the flags to train the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
-                    self.__LaunchTrainHROM(mu_train)
+                    self._LaunchTrainHROM(mu_train)
                     # Change the flags to run the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self.__LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train)
         #######################################
 
         ##########################
@@ -101,18 +101,18 @@ class RomManager(object):
             elif type_of_decoder =="linear":
             ##########################
                 if any(item == "ROM" for item in training_stages):
-                    self.__LaunchTrainROM(mu_train)
+                    self._LaunchTrainROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "TrainPG")
-                    self.__LaunchTrainPG(mu_train)
+                    self._LaunchTrainPG(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "PG")
-                    self.__LaunchROM(mu_train)
+                    self._LaunchROM(mu_train)
 
                 if any(item == "HROM" for item in training_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                    self.__LaunchTrainHROM(mu_train)
+                    self._LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self.__LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train)
             ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -126,17 +126,17 @@ class RomManager(object):
         self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
         in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
         if not in_database:
-            self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
+            self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
         elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
             while in_database:
                 counter+=1
                 self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
-            self.__LaunchTrainNeuralNetwork(mu_train,mu_validation)
+            self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
     def TestNeuralNetworkReconstruction(self):
-        self.__LaunchTestNeuralNetworkReconstruction()
+        self._LaunchTestNeuralNetworkReconstruction()
 
 
     def Test(self, mu_test=[None]):
@@ -147,13 +147,13 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in testing_stages):
-                self.__LaunchTestFOM(mu_test)
+                self._LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                self.__LaunchTestROM(mu_test)
+                self._LaunchTestROM(mu_test)
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                self.__LaunchTestHROM(mu_test)
+                self._LaunchTestHROM(mu_test)
 
         #######################
 
@@ -161,12 +161,12 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in testing_stages):
-                self.__LaunchTestFOM(mu_test)
+                self._LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                self.__LaunchTestROM(mu_test)
+                self._LaunchTestROM(mu_test)
             if any(item == "HROM" for item in testing_stages):
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                self.__LaunchTestHROM(mu_test)
+                self._LaunchTestHROM(mu_test)
         #######################################
 
 
@@ -174,13 +174,13 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in testing_stages):
-                self.__LaunchTestFOM(mu_test)
+                self._LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                self.__LaunchTestROM(mu_test)
+                self._LaunchTestROM(mu_test)
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                self.__LaunchTestHROM(mu_test)
+                self._LaunchTestHROM(mu_test)
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -189,7 +189,7 @@ class RomManager(object):
 
 
     def RunFOM(self, mu_run=[None]):
-        self.__LaunchRunFOM(mu_run)
+        self._LaunchRunFOM(mu_run)
 
 
     def RunROM(self, mu_run=[None]):
@@ -209,7 +209,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.__LaunchRunROM(mu_run)
+        self._LaunchRunROM(mu_run)
 
     def RunHROM(self, mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -228,7 +228,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.__LaunchRunHROM(mu_run, use_full_model_part)
+        self._LaunchRunHROM(mu_run, use_full_model_part)
 
 
 
@@ -271,16 +271,16 @@ class RomManager(object):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_Test)
 
 
-    def __LaunchTrainROM(self, mu_train):
+    def _LaunchTrainROM(self, mu_train):
         """
         This method should be parallel capable
         """
-        self.__LauchTrainFOM(mu_train)
-        self.__LauchComputeSolutionBasis(mu_train)
+        self._LaunchTrainFOM(mu_train)
+        self._LauchComputeSolutionBasis(mu_train)
 
 
 
-    def __LauchTrainFOM(self, mu_train):
+    def _LaunchTrainFOM(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             with open(self.project_parameters_name,'r') as parameter_file:
@@ -305,7 +305,7 @@ class RomManager(object):
                     self.data_base.add_to_database("FOM_Fit", mu, SnapshotsMatrix)
 
 
-    def __LauchComputeSolutionBasis(self, mu_train):
+    def _LauchComputeSolutionBasis(self, mu_train):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
@@ -320,7 +320,7 @@ class RomManager(object):
 
 
 
-    def __LaunchROM(self, mu_train):
+    def _LaunchROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -350,7 +350,7 @@ class RomManager(object):
 
 
 
-    def __LaunchTrainPG(self, mu_train):
+    def _LaunchTrainPG(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -390,7 +390,7 @@ class RomManager(object):
 
 
 
-    def __LaunchTrainHROM(self, mu_train):
+    def _LaunchTrainHROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -445,7 +445,7 @@ class RomManager(object):
             HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
 
-    def __LaunchHROM(self, mu_train):
+    def _LaunchHROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -476,7 +476,7 @@ class RomManager(object):
 
 
 
-    def __LaunchTestFOM(self, mu_test):
+    def _LaunchTestFOM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -502,7 +502,7 @@ class RomManager(object):
                 self.data_base.add_to_database("FOM_Test", mu, BasisOutputProcess._GetSnapshotsMatrix() ) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
 
 
-    def __LaunchTestROM(self, mu_test):
+    def _LaunchTestROM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -529,7 +529,7 @@ class RomManager(object):
 
 
 
-    def __LaunchTestHROM(self, mu_test):
+    def _LaunchTestHROM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -556,7 +556,7 @@ class RomManager(object):
 
 
 
-    def __LaunchRunFOM(self, mu_run):
+    def _LaunchRunFOM(self, mu_run):
         """
         This method should be parallel capable
         """
@@ -573,7 +573,7 @@ class RomManager(object):
             simulation.Run()
 
 
-    def __LaunchRunROM(self, mu_run):
+    def _LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
         """
@@ -592,7 +592,7 @@ class RomManager(object):
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
 
-    def __LaunchRunHROM(self, mu_run, use_full_model_part):
+    def _LaunchRunHROM(self, mu_run, use_full_model_part):
         """
         This method should be parallel capable
         """
@@ -613,7 +613,7 @@ class RomManager(object):
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
 
-    def __LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
+    def _LaunchTrainNeuralNetwork(self, mu_train, mu_validation):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
@@ -624,7 +624,7 @@ class RomManager(object):
         rom_nn_trainer.EvaluateNetwork(model_name)
 
 
-    def __LaunchTestNeuralNetworkReconstruction(self):
+    def _LaunchTestNeuralNetworkReconstruction(self):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
@@ -932,8 +932,8 @@ class RomManager(object):
     def DefaultCustomizeSimulation(self, cls, global_model, parameters):
         # Default function that does nothing special
         class DefaultCustomSimulation(cls):
-            def __init__(self, model, project_parameters):
-                super().__init__(model, project_parameters)
+            def _init_(self, model, project_parameters):
+                super()._init_(model, project_parameters)
 
             def Initialize(self):
                 super().Initialize()
