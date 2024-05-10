@@ -324,7 +324,10 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -544,7 +547,10 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1024,7 +1030,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
 
             // Compute strain, need to update porosity
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
             this->CalculatePermeabilityUpdateFactor(Variables);
 
             Vector GradPressureTerm(Dim);
@@ -1088,7 +1096,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = this->CalculateBMatrix(Variables.DNu_DXInitialConfiguration, Variables.Nu);
 
             // Compute infinitesimal strain
-            this->CalculateCauchyStrain(Variables);
+            Variables.StrainVector = this->CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -1108,7 +1116,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -1149,7 +1159,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
             // set gauss points variables to constitutive law parameters
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1291,7 +1304,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1349,7 +1365,10 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -2007,25 +2026,26 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
     return GI_GAUSS;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
+Vector SmallStrainUPwDiffOrderElement::CalculateStrain(const Matrix& rDeformationGradient,
+                                                       const Matrix& rB,
+                                                       const Vector& rDisplacements,
+                                                       bool          UseHenckyStrain) const
 {
-    if (rVariables.UseHenckyStrain) {
-        rVariables.F             = this->CalculateDeformationGradient(GPoint);
-        rVariables.detF          = MathUtils<>::Det(rVariables.F);
+    if (UseHenckyStrain) {
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-        noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
-    } else {
-        this->CalculateCauchyStrain(rVariables);
+        return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
     }
+    
+    return this->CalculateCauchyStrain(rB, rDisplacements);
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(ElementVariables& rVariables)
+Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
 {
-    noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
+    return prod(rB, rDisplacements);
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
+Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
 }

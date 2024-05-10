@@ -275,9 +275,12 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
-    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
-    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
+    virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
+    virtual Vector CalculateStrain(const Matrix& rDeformationGradient,
+                                   const Matrix& rB,
+                                   const Vector& rDisplacements,
+                                   bool          UseHenckyStrain) const;
     Matrix         CalculateDeformationGradient(unsigned int GPoint) const;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
