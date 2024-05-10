@@ -790,18 +790,25 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
         noalias(aux_array) = dNu - k0 * N_shape;
 
-        // Axial contributions
-        noalias(local_lhs) += outer_prod(aux_array, aux_array) * dN_dEl * jacobian_weight;
-        noalias(local_rhs) -= aux_array * N * jacobian_weight;
+        const double du = inner_prod(dNu, nodal_values);
+        const double dv = inner_prod(dN_shape, nodal_values);
 
-        // todo
+        // Axial contributions
+        noalias(local_rhs) -= aux_array * N * jacobian_weight;
+        noalias(local_lhs) += outer_prod(aux_array, aux_array) * dN_dEl * jacobian_weight;
+
+        noalias(local_rhs) -= N * dNu * du  * jacobian_weight;
+        noalias(local_lhs) += outer_prod(aux_array, dNu) * dN_dEl * du * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dNu, dNu) * N * jacobian_weight;
+
+        noalias(local_rhs) -= N * dN_shape * dv * jacobian_weight;
+        noalias(local_lhs) += outer_prod(aux_array, dN_shape) * dN_dEl * dv * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dN_shape, dN_shape) * N * jacobian_weight;
 
 
         // Bending contributions
         noalias(local_lhs) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
         noalias(local_rhs) -= dN_theta * M * jacobian_weight;
-
-        // todo
 
         // Shear contributions
         noalias(local_lhs) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
@@ -1171,8 +1178,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
         noalias(aux_array) = dNu - k0 * N_shape;
 
+        const double du = inner_prod(dNu, nodal_values);
+        const double dv = inner_prod(dN_shape, nodal_values);
+
         // Axial contributions
         noalias(local_rhs) -= aux_array * N * jacobian_weight;
+        noalias(local_rhs) -= N * dNu * du * jacobian_weight;
+        noalias(local_rhs) -= N * dN_shape * dv * jacobian_weight;
 
         // Bending contributions
         noalias(local_rhs) -= dN_theta * M * jacobian_weight;
