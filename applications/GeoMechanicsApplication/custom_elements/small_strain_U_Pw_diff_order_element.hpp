@@ -293,12 +293,12 @@ protected:
 
     void AssignPressureToIntermediateNodes();
 
-    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
-    virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements);
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
+    virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
     virtual Vector CalculateStrain(const Matrix& rDeformationGradient,
                                    const Matrix& rB,
                                    const Vector& rDisplacements,
-                                   bool          UseHenckyStrain);
+                                   bool          UseHenckyStrain) const;
 
     Matrix CalculateDeformationGradient(unsigned int GPoint) const;
 

@@ -2086,23 +2086,23 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
 Vector SmallStrainUPwDiffOrderElement::CalculateStrain(const Matrix& rDeformationGradient,
                                                        const Matrix& rB,
                                                        const Vector& rDisplacements,
-                                                       bool          UseHenckyStrain)
+                                                       bool          UseHenckyStrain) const
 {
     if (UseHenckyStrain) {
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
-    } else {
-        return this->CalculateCauchyStrain(rB, rDisplacements);
     }
+    
+    return this->CalculateCauchyStrain(rB, rDisplacements);
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements)
+Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
 {
     return prod(rB, rDisplacements);
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
+Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
 }

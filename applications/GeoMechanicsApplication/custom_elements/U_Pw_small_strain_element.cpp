@@ -1588,23 +1588,20 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(const Matrix& rDeformationGradient,
                                                                const Matrix& rB,
                                                                const Vector& rDisplacements,
-                                                               bool          UseHenckyStrain)
+                                                               bool          UseHenckyStrain) const
 {
-    if (UseHenckyStrain) {
-        return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
-    } else {
-        return this->CalculateCauchyStrain(rB, rDisplacements);
-    }
+    return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
+                           : this->CalculateCauchyStrain(rB, rDisplacements);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
 {
     return prod(rB, rDisplacements);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
