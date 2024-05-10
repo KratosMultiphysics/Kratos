@@ -28,8 +28,8 @@ public:
     static Parameters CopyOptionalParameters(const Parameters& rSourceParameters,
                                              const std::vector<std::string>& rNamesOfParametersToCopy);
 
-    static void AppendParameterNameIfExists(const std::string& rParameterName,
-                                            const Parameters& rSourceParameters,
+    static void AppendParameterNameIfExists(const std::string&        rParameterName,
+                                            const Parameters&         rSourceParameters,
                                             std::vector<std::string>& rResult);
 
     static bool HasTableAttached(const Parameters& rSettings);
