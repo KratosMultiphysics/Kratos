@@ -494,10 +494,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
-    if (rDampingMatrix.size1() != element_size)
-        rDampingMatrix.resize(element_size, element_size, false);
-
-    noalias(rDampingMatrix) = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+    rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
         r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
         mass_matrix, stiffness_matrix);
