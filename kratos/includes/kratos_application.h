@@ -146,8 +146,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     void RegisterKratosCore();
 
-    template<class TDeregisterComponentFType>
-    void DeregisterComponent(std::string const & rComponentName, TDeregisterComponentFType && remove_detail);
+    template<class TComponentsContainer>
+    void DeregisterComponent(std::string const & rComponentName);
 
     /**
      * @brief This method is used to unregister common components of the application.

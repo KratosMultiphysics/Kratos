@@ -305,8 +305,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
 }
 
-template<class TDeregisterComponentFType>
-void KratosApplication::DeregisterComponent(std::string const & rComponentName, TDeregisterComponentFType && remove_detail) {
+template<class TComponentsContainer>
+void KratosApplication::DeregisterComponent(std::string const & rComponentName) {
     auto path = std::string(rComponentName)+"."+mApplicationName;
 
     // Remove only if the application has this type of components registered
@@ -321,7 +321,7 @@ void KratosApplication::DeregisterComponent(std::string const & rComponentName, 
             auto type_key = path+"."+key;
 
             // Remove from KratosComponents
-            remove_detail(key);
+            KratosComponents<TComponentsContainer>::Remove(key);
 
             // Remove from registry general component list
             if (Registry::HasItem(cmpt_key)) {
@@ -384,12 +384,12 @@ void KratosApplication::DeregisterCommonComponents()
     //     }
     // };
 
-    DeregisterComponent("geometries", [](std::string const & key){ KratosComponents<Geometry<Node>>::Remove(key);});
-    DeregisterComponent("elements", [](std::string const & key){ KratosComponents<Element>::Remove(key);});
-    DeregisterComponent("conditions", [](std::string const & key){ KratosComponents<Condition>::Remove(key);});
-    DeregisterComponent("constraints", [](std::string const & key){ KratosComponents<MasterSlaveConstraint>::Remove(key);});
-    DeregisterComponent("modelers", [](std::string const & key){ KratosComponents<Modeler>::Remove(key);});
-    DeregisterComponent("constitutive_laws", [](std::string const & key){ KratosComponents<ConstitutiveLaw>::Remove(key);});
+    DeregisterComponent<Geometry<Node>>("geometries");
+    DeregisterComponent<Element>("elements");
+    DeregisterComponent<Condition>("conditions");
+    DeregisterComponent<MasterSlaveConstraint>("constraints");
+    DeregisterComponent<Modeler>("modelers");
+    DeregisterComponent<ConstitutiveLaw>("constitutive_laws");
 }
 
 void KratosApplication::DeregisterApplication() {
