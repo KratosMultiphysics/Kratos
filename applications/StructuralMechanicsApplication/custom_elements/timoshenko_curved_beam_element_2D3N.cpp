@@ -509,15 +509,41 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
     const double xi
     )
 {
-    GlobalSizeVector d2N, d4N, dNu;
+    GlobalSizeVector r_dN_dxi, r_d2N_dxi2;
+    GetLocalFirstDerivativesNu0ShapeFunctionsValues (r_dN_dxi,   xi);
+    GetLocalSecondDerivativesNu0ShapeFunctionsValues(r_d2N_dxi2, xi);
+    const auto r_geom = GetGeometry();
+
+    double dx_dxi = 0.0;
+    double dy_dxi = 0.0;
+
+    double d2x_dxi2 = 0.0;
+    double d2y_dxi2 = 0.0;
+
+    for (IndexType i = 0; i < NumberOfNodes; ++i) {
+        const IndexType u_coord = DoFperNode * i;
+        const auto &r_coords_node = r_geom[i].GetInitialPosition();
+        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
+        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+
+        d2x_dxi2 += r_coords_node[0] * r_d2N_dxi2[u_coord];
+        d2y_dxi2 += r_coords_node[1] * r_d2N_dxi2[u_coord];
+    }
+
+    const double dk0_ds = -3.0 / std::pow(J, 6) * (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) * (dx_dxi * d2x_dxi2 + dy_dxi * d2y_dxi2);
+
+    GlobalSizeVector d2N, d4N, dNu, Nu;
     GetSecondDerivativesShapeFunctionsValues (d2N,  J, xi);
     GetFourthDerivativesShapeFunctionsValues (d4N, J, xi);
+    GetNu0ShapeFunctionsValues(Nu, xi);
     GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
 
     const double k0 = GetGeometryCurvature(J, xi);
     const double k_s = GetBendingShearStiffnessRatio();
-    // v'' + ks * v'''' + k0 * u'
-    noalias(rN) = d2N + k_s * d4N + k0 * dNu;
+
+
+    // v'' + ks * v'''' + k0 * u' + dk0*u
+    noalias(rN) = d2N + k_s * d4N + k0 * dNu + dk0_ds * Nu;
 }
 
 /***********************************************************************************/
