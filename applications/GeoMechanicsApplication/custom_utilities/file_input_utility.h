@@ -15,13 +15,15 @@
 
 #include "input_utility.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-class FileInputUtility : public InputUtility {
+class FileInputUtility : public InputUtility
+{
 public:
     [[nodiscard]] Parameters ProjectParametersFromFile(const std::filesystem::path& rProjectFilePath) const override;
     void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const override;
     void AddMaterialsFromFile(const std::filesystem::path& rMaterialFilePath, Model& rModel) const override;
 };
 
-}
+} // namespace Kratos
