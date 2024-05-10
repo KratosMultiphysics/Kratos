@@ -2,6 +2,7 @@
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion as solver_wrapper
+import KratosMultiphysics.ConstitutiveLawsApplication as CLA
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -34,6 +35,26 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "::[Convection-Diffusion Simulation]:: "
+
+    def RunSolutionLoop(self):
+            """This function executes the solution loop of the AnalysisStage
+            It can be overridden by derived classes
+            """
+            while self.KeepAdvancingSolutionLoop():
+                self.time = self._GetSolver().AdvanceInTime(self.time)
+                process = CLA.AdvanceInTimeHighCycleFatigueProcess(self._GetSolver().GetComputingModelPart(), self.project_parameters)
+                if self.project_parameters["fatigue"]["advancing_strategy"].GetBool():
+                    process.Execute()
+                    time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT]
+                    self.time += time_incr
+                    print(str(time_incr))
+                    self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT] = 0.0
+                self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
+                self.InitializeSolutionStep()
+                self._GetSolver().Predict()
+                self._GetSolver().SolveSolutionStep()
+                self.FinalizeSolutionStep()
+                self.OutputSolutionStep()
 
 if __name__ == "__main__":
     from sys import argv
