@@ -63,7 +63,7 @@ public:
     using IndexType = std::size_t;
 
     /// Size type definition
-    using SizeType = std::size_t
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
