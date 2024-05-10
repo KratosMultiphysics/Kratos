@@ -43,7 +43,8 @@ public:
 
     SensorLocalizationResponseUtils(
         SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer pSensorMaskKDTree,
-        const double Beta);
+        const double Beta,
+        const double AllowedDissimilarity);
 
     ///@}
     ///@name Public operations
@@ -62,6 +63,8 @@ private:
     SensorMaskStatusKDTree<ModelPart::ElementsContainerType>::Pointer mpSensorMaskStatusKDTree;
 
     const double mBeta;
+
+    const double mAllowedDissimilarity;
 
     double mValue;
 

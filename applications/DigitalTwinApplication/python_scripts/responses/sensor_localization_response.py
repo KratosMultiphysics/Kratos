@@ -24,6 +24,7 @@ class SensorLocalizationResponse(ResponseFunction):
 
         default_settings = Kratos.Parameters("""{
             "beta"                       : 4,
+            "allowed_dissimilarity"      : 1.0,
             "evaluated_model_part_names" : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ]
@@ -40,13 +41,14 @@ class SensorLocalizationResponse(ResponseFunction):
         self.model_part: Optional[Kratos.ModelPart] = None
         self.optimization_problem = optimization_problem
         self.beta = parameters["beta"].GetDouble()
+        self.allowed_dissimilarity = parameters["allowed_dissimilarity"].GetDouble()
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosDT.SENSOR_STATUS]
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
-        self.utils = KratosDT.SensorLocalizationResponseUtils(ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("sensor_mask_status_kd_tree"), self.beta)
+        self.utils = KratosDT.SensorLocalizationResponseUtils(ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("sensor_mask_status_kd_tree"), self.beta, self.allowed_dissimilarity)
 
     def Check(self) -> None:
         pass
