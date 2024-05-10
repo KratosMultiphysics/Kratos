@@ -308,11 +308,11 @@ protected:
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
 
-    void CalculateSoilDensity(ElementVariables& rVariables);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;
+
+    Vector GetPressureSolutionVector();
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
