@@ -107,7 +107,28 @@ class MaterialPropertiesControl(Control):
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
         self.filter.Initialize()
 
+        self.control_phi_field = self.GetEmptyField()
+
+        # physical_field = self.GetPhysicalField()
+
+        # print(physical_field.Evaluate())
+
+        # # get the phi field which is in [0, 1] range
+        # self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
+
+        # # compute the control phi field
+        # self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
+
+        # self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+
+        # self._UpdateAndOutputFields(self.GetEmptyField())
+
+    def Check(self) -> None:
+        self.filter.Check()
+
         physical_field = self.GetPhysicalField()
+
+        # print(physical_field.Evaluate())
 
         # get the phi field which is in [0, 1] range
         self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
@@ -118,9 +139,6 @@ class MaterialPropertiesControl(Control):
         self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
 
         self._UpdateAndOutputFields(self.GetEmptyField())
-
-    def Check(self) -> None:
-        self.filter.Check()
 
     def Finalize(self) -> None:
         self.filter.Finalize()
