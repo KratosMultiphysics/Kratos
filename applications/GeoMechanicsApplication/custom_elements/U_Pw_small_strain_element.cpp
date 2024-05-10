@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
@@ -158,7 +159,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // Set Gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -264,7 +268,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // Set gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -317,7 +324,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // Set Gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -590,7 +600,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
             // set Gauss points variables to constitutive law parameters
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -642,7 +655,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             Variables.B = b_matrices[GPoint];
 
             // Compute strain, needed for update permeability
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
             this->CalculatePermeabilityUpdateFactor(Variables);
             permeability_update_factors.push_back(Variables.PermeabilityUpdateFactor);
         }
@@ -717,7 +732,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.B = b_matrices[GPoint];
 
             // Compute infinitesimal strain
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.detF         = MathUtils<>::Det(Variables.F);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
             // Set Gauss points variables to constitutive law parameters
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -756,7 +774,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.B = this->CalculateBMatrix(Variables.GradNpTInitialConfiguration, Variables.Np);
 
             // Compute infinitesimal strain
-            this->CalculateCauchyStrain(Variables);
+            Variables.StrainVector = this->CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -774,7 +792,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             this->CalculateKinematics(Variables, GPoint);
             Variables.B = b_matrices[GPoint];
 
-            this->CalculateStrain(Variables, GPoint);
+            Variables.F            = this->CalculateDeformationGradient(GPoint);
+            Variables.StrainVector = this->CalculateStrain(
+                Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -896,7 +916,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // Set Gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -945,50 +968,33 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
     KRATOS_TRY
 
     const IndexType N_DOF = this->GetNumberOfDOF();
-
     if (rMassMatrix.size1() != N_DOF) rMassMatrix.resize(N_DOF, N_DOF, false);
     noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->mThisIntegrationMethod);
-    const IndexType NumGPoints = IntegrationPoints.size();
+    const GeometryType& r_geom             = this->GetGeometry();
+    const auto          integration_method = this->GetIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        r_geom.IntegrationPoints(integration_method);
+    const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
 
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
+        this->GetPressureSolutionVector(), N_container, mRetentionLawVector, this->GetProperties(),
+        rCurrentProcessInfo);
 
-    // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    const auto solid_densities =
+        GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, this->GetProperties());
 
-    // Defining shape functions at all integration points
-    // Defining necessary variables
-    BoundedMatrix<double, TDim, TNumNodes * TDim> Nut = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TNumNodes * TDim> AuxDensityMatrix = ZeroMatrix(TDim, TNumNodes * TDim);
-    BoundedMatrix<double, TDim, TDim> DensityMatrix = ZeroMatrix(TDim, TDim);
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
 
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nut, Variables.NContainer, GPoint);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
-        Matrix J0, InvJ0, DNu_DX0;
-        this->CalculateDerivativesOnInitialConfiguration(Variables.detJInitialConfiguration, J0,
-                                                         InvJ0, DNu_DX0, GPoint);
+    const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
+        r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
+        r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
-        // Calculating weighting coefficient for integration
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        this->CalculateSoilDensity(Variables);
-
-        GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
-
-        noalias(AuxDensityMatrix) = prod(DensityMatrix, Nut);
-
-        // Adding contribution to Mass matrix
-        GeoElementUtilities::AssembleUUBlockMatrix(
-            rMassMatrix, prod(trans(Nut), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration);
-    }
+    GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 
     KRATOS_CATCH("")
 }
@@ -1036,7 +1042,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
-        this->CalculateStrain(Variables, GPoint);
+        Variables.F            = this->CalculateDeformationGradient(GPoint);
+        Variables.detF         = MathUtils<>::Det(Variables.F);
+        Variables.StrainVector = this->CalculateStrain(
+            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
         // Set Gauss points variables to constitutive law parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -1418,22 +1427,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(VectorT
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateSoilDensity(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    rVariables.Density = rVariables.DegreeOfSaturation * rVariables.Porosity * rVariables.FluidDensity +
-                         (1.0 - rVariables.Porosity) * rVariables.SolidDensity;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateSoilGamma(ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    this->CalculateSoilDensity(rVariables);
+    rVariables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
+        rVariables.DegreeOfSaturation, this->GetProperties());
 
     noalias(rVariables.SoilGamma) = rVariables.Density * rVariables.BodyAcceleration;
 
@@ -1560,25 +1559,23 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(Vector
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(ElementVariables& rVariables, unsigned int GPoint)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(const Matrix& rDeformationGradient,
+                                                               const Matrix& rB,
+                                                               const Vector& rDisplacements,
+                                                               bool          UseHenckyStrain) const
 {
-    if (rVariables.UseHenckyStrain) {
-        rVariables.F    = this->CalculateDeformationGradient(GPoint);
-        rVariables.detF = MathUtils<>::Det(rVariables.F);
-        noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
-    } else {
-        this->CalculateCauchyStrain(rVariables);
-    }
+    return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
+                           : this->CalculateCauchyStrain(rB, rDisplacements);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(ElementVariables& rVariables)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
 {
-    noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DisplacementVector);
+    return prod(rB, rDisplacements);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
+Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
@@ -1907,6 +1904,15 @@ void UPwSmallStrainElement<3, 8>::CalculateExtrapolationMatrix(BoundedMatrix<dou
     rExtrapolationMatrix(7, 5) = 0.18301270189221927;
     rExtrapolationMatrix(7, 6) = -0.6830127018922192;
     rExtrapolationMatrix(7, 7) = 2.549038105676658;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
+{
+    Vector result(TNumNodes);
+    std::transform(this->GetGeometry().begin(), this->GetGeometry().end(), result.begin(),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    return result;
 }
 
 template class UPwSmallStrainElement<2, 3>;

@@ -93,10 +93,12 @@ Condition::DofsVectorType GeoTCondition<TDim, TNumNodes>::GetDofs() const
     return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), TEMPERATURE);
 }
 
+template class GeoTCondition<2, 1>;
 template class GeoTCondition<2, 2>;
 template class GeoTCondition<2, 3>;
 template class GeoTCondition<2, 4>;
 template class GeoTCondition<2, 5>;
+template class GeoTCondition<3, 1>;
 template class GeoTCondition<3, 3>;
 template class GeoTCondition<3, 4>;
 template class GeoTCondition<3, 6>;

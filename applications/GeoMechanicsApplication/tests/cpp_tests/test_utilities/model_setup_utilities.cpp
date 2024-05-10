@@ -12,6 +12,7 @@
 #include "model_setup_utilities.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "includes/properties.h"
 
 namespace
 {
@@ -80,6 +81,25 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4};
     result.CreateNewElement("UPwSmallStrainElement3D4N", 1, node_ids, result.CreateNewProperties(0));
 
+    return result;
+}
+
+ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
+{
+    // similar to a 1D-consolidation test
+    auto& result = rModel.CreateModelPart("Main");
+    const auto variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
+                                                  std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
+    AddNodalVariablesToModelPart(result, variables);
+    CreateNewNodes(
+        result,
+        {{0.0, 0.0, 0.0}, {0.0, -0.05, 0.0}, {0.05, 0.0, 0.0}, {0.0, -0.025, 0.0}, {0.025, -0.025, 0.0}, {0.025, 0.0, 0.0}});
+
+    const auto nodes = result.Nodes();
+    AddDofsToNodes(nodes, variables);
+
+    const std::vector<ModelPart::IndexType> node_ids{1, 2, 3, 4, 5, 6};
+    result.CreateNewElement("SmallStrainUPwDiffOrderElement2D6N", 1, node_ids, result.CreateNewProperties(0));
     return result;
 }
 

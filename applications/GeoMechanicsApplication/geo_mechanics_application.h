@@ -48,6 +48,7 @@
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
 #include "geometries/hexahedra_3d_20.h"
@@ -560,6 +561,9 @@ private:
     const GeoTNormalFluxCondition<3, 4> mGeoTNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
     const GeoTNormalFluxCondition<3, 8> mGeoTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
     const GeoTNormalFluxCondition<3, 9> mGeoTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
+
+    const GeoThermalPointFluxCondition<2, 1> mGeoThermalPointFluxCondition2D1N{ 0, Kratos::make_shared<Point2D<NodeType>>(Condition::GeometryType::PointsArrayType(1)) };
+    const GeoThermalPointFluxCondition<3, 1> mGeoThermalPointFluxCondition3D1N{ 0, Kratos::make_shared<Point3D<NodeType>>(Condition::GeometryType::PointsArrayType(1)) };
 
     const GeoTMicroClimateFluxCondition<2, 2> mGeoTMicroClimateFluxCondition2D2N{0, Kratos::make_shared<Line2D2         <NodeType>>(Condition::GeometryType::PointsArrayType(2))};
     const GeoTMicroClimateFluxCondition<2, 3> mGeoTMicroClimateFluxCondition2D3N{0, Kratos::make_shared<Line2D3         <NodeType>>(Condition::GeometryType::PointsArrayType(3))};

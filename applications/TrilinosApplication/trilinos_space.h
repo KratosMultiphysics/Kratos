@@ -863,6 +863,28 @@ public:
     }
 
     /**
+     * @brief Returns a list of the fastest direct solvers.
+     * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
+     * @return A vector of strings containing the names of the fastest direct solvers.
+     */
+    inline static std::vector<std::string> FastestDirectSolverList()
+    {
+        // May need to be updated and reordered. In fact I think it depends of the size of the equation system
+        std::vector<std::string> faster_direct_solvers({
+            "mumps2",         // Amesos2 (if compiled with MUMPS-support)
+            "mumps",          // Amesos (if compiled with MUMPS-support)
+            "super_lu_dist2", // Amesos2 SuperLUDist (if compiled with MPI-support)
+            "super_lu_dist",  // Amesos SuperLUDist (if compiled with MPI-support)
+            "amesos2",        // Amesos2
+            "amesos",         // Amesos
+            "klu2",           // Amesos2 KLU
+            "klu",            // Amesos KLU
+            "basker"          // Amesos2 Basker
+        });
+        return faster_direct_solvers;
+    }
+
+    /**
      * @brief This function returns a value from a given vector according to a given index
      * @param rX The vector from which values are to be gathered
      * @param I The index of the value to be gathered
