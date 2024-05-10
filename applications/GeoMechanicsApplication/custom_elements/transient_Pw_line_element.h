@@ -71,6 +71,7 @@ public:
         Vector det_J_container;
         GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
         GeometryType::ShapeFunctionsGradientsType dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(), dN_dX_container.begin(), std::divides<>());
         const Matrix& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
@@ -207,13 +208,13 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
+        const auto& r_properties = GetProperties();
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
         std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
-                           return rIntegrationPoint.Weight() * rDetJ;
-                       });
+                       result.begin(), [&r_properties](const auto& rIntegrationPoint, const auto& rDetJ) {
+                           return rIntegrationPoint.Weight() * rDetJ * r_properties[CROSS_AREA]; });
         return result;
     }
 
@@ -359,6 +360,8 @@ private:
                 body_acceleration, rNContainer, volume_acceleration, integration_point_index);
 
             array_1d<double, TDim> tangent_vector = column(J_container[integration_point_index], 0);
+            tangent_vector /= norm_2(tangent_vector);
+
             array_1d<double, 1> projected_gravity = ZeroVector(1);
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
             const auto N = Vector{row(rNContainer, integration_point_index)};

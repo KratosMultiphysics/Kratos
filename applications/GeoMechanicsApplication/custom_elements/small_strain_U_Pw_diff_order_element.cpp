@@ -22,6 +22,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
@@ -443,79 +444,35 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
 {
     KRATOS_TRY
 
-    const GeometryType&                             rGeom     = GetGeometry();
-    const SizeType                                  Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType                                  NumUNodes = rGeom.PointsNumber();
-    const SizeType                                  BlockElementSize = NumUNodes * Dim;
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType& r_geom             = GetGeometry();
+    const auto          integration_method = this->GetIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        r_geom.IntegrationPoints(integration_method);
+    const MatrixType Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
+    const PropertiesType& r_prop  = this->GetProperties();
 
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
+        this->GetPressureSolutionVector(), Np_container, mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    const auto solid_densities =
+        GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, r_prop);
 
-    Matrix MassMatrixContribution = ZeroMatrix(BlockElementSize, BlockElementSize);
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
 
-    // Defining shape functions and the determinant of the jacobian at all integration points
+    const auto integration_coefficients =
+        CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
-    // Loop over integration points
-    Matrix Nu               = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix AuxDensityMatrix = ZeroMatrix(Dim, NumUNodes * Dim);
-    Matrix DensityMatrix    = ZeroMatrix(Dim, Dim);
+    const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
+        r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
+        r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
-    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B)
-        this->CalculateKinematics(Variables, GPoint);
-
-        // calculating weighting coefficient for integration
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        this->CalculateSoilDensity(Variables);
-
-        // Setting the shape function matrix
-        SizeType Index = 0;
-        for (SizeType i = 0; i < NumUNodes; ++i) {
-            for (SizeType iDim = 0; iDim < Dim; ++iDim) {
-                Nu(iDim, Index++) = Variables.Nu(i);
-            }
-        }
-
-        GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
-
-        noalias(AuxDensityMatrix) = prod(DensityMatrix, Nu);
-
-        // Adding contribution to Mass matrix
-        noalias(MassMatrixContribution) +=
-            prod(trans(Nu), AuxDensityMatrix) * Variables.IntegrationCoefficientInitialConfiguration;
-    }
-
-    // Distribute mass block matrix into the elemental matrix
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = BlockElementSize + NumPNodes;
-
-    if (rMassMatrix.size1() != ElementSize || rMassMatrix.size2() != ElementSize)
-        rMassMatrix.resize(ElementSize, ElementSize, false);
-    noalias(rMassMatrix) = ZeroMatrix(ElementSize, ElementSize);
-
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        SizeType Index_i = i * Dim;
-
-        for (SizeType j = 0; j < NumUNodes; ++j) {
-            SizeType Index_j = j * Dim;
-            for (SizeType idim = 0; idim < Dim; ++idim) {
-                for (SizeType jdim = 0; jdim < Dim; ++jdim) {
-                    rMassMatrix(Index_i + idim, Index_j + jdim) +=
-                        MassMatrixContribution(Index_i + idim, Index_j + jdim);
-                }
-            }
-        }
-    }
+    const SizeType element_size =
+        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
+    if (rMassMatrix.size1() != element_size || rMassMatrix.size2() != element_size)
+        rMassMatrix.resize(element_size, element_size, false);
+    noalias(rMassMatrix) = ZeroMatrix(element_size, element_size);
+    GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 
     KRATOS_CATCH("")
 }
@@ -526,34 +483,31 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     KRATOS_TRY
 
     // Rayleigh Method: Damping Matrix = alpha*M + beta*K
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    const GeometryType&   r_geom = GetGeometry();
+    const PropertiesType& r_prop = this->GetProperties();
+    const SizeType        element_size =
+        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
     // Compute Mass Matrix
-    MatrixType MassMatrix(ElementSize, ElementSize);
-
-    this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+    MatrixType mass_matrix = ZeroMatrix(element_size, element_size);
+    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
     // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(ElementSize, ElementSize);
+    MatrixType StiffnessMatrix(element_size, element_size);
 
     this->CalculateMaterialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
-    if (rDampingMatrix.size1() != ElementSize)
-        rDampingMatrix.resize(ElementSize, ElementSize, false);
-    noalias(rDampingMatrix) = ZeroMatrix(ElementSize, ElementSize);
+    if (rDampingMatrix.size1() != element_size)
+        rDampingMatrix.resize(element_size, element_size, false);
+    noalias(rDampingMatrix) = ZeroMatrix(element_size, element_size);
 
-    const PropertiesType& rProp = this->GetProperties();
+    if (r_prop.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += r_prop[RAYLEIGH_ALPHA] * mass_matrix;
+    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * mass_matrix;
 
-    if (rProp.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
-
-    if (rProp.Has(RAYLEIGH_BETA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
+    if (r_prop.Has(RAYLEIGH_BETA))
+        noalias(rDampingMatrix) += r_prop[RAYLEIGH_BETA] * StiffnessMatrix;
     else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
     KRATOS_CATCH("")
@@ -1927,7 +1881,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     const SizeType      Dim       = rGeom.WorkingSpaceDimension();
     const SizeType      NumUNodes = rGeom.PointsNumber();
 
-    this->CalculateSoilDensity(rVariables);
+    rVariables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
+        rVariables.DegreeOfSaturation, this->GetProperties());
 
     Vector   BodyAcceleration = ZeroVector(Dim);
     SizeType Index            = 0;
@@ -1945,18 +1900,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
                 rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateSoilDensity(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const PropertiesType& rProp = this->GetProperties();
-
-    rVariables.Density = (rVariables.DegreeOfSaturation * rProp[POROSITY] * rProp[DENSITY_WATER]) +
-                         (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
 
     KRATOS_CATCH("")
 }
@@ -2113,9 +2056,9 @@ Vector SmallStrainUPwDiffOrderElement::CalculateStrain(const Matrix& rDeformatio
         const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
-    } else {
-        return this->CalculateCauchyStrain(rB, rDisplacements);
     }
+
+    return this->CalculateCauchyStrain(rB, rDisplacements);
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
@@ -2123,7 +2066,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, c
     return prod(rB, rDisplacements);
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient)
+Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
 }
@@ -2240,6 +2183,15 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDeterminantsOfDefor
         rDeformationGradients.cbegin(), rDeformationGradients.cend(), result.begin(),
         [](const auto& rDeformationGradient) { return MathUtils<>::Det(rDeformationGradient); });
 
+    return result;
+}
+
+Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()
+{
+    Vector result(mpPressureGeometry->PointsNumber());
+    std::transform(this->GetGeometry().begin(),
+                   this->GetGeometry().begin() + mpPressureGeometry->PointsNumber(), result.begin(),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
     return result;
 }
 

@@ -314,6 +314,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
 
+    KRATOS_REGISTER_CONDITION("GeoThermalPointFluxCondition2D1N", mGeoThermalPointFluxCondition2D1N)
+    KRATOS_REGISTER_CONDITION("GeoThermalPointFluxCondition3D1N", mGeoThermalPointFluxCondition3D1N)
+
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D2N", mGeoTMicroClimateFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D3N", mGeoTMicroClimateFluxCondition2D3N)
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D4N", mGeoTMicroClimateFluxCondition2D4N)

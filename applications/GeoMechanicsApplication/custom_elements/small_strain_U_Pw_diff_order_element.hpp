@@ -293,7 +293,7 @@ protected:
 
     void AssignPressureToIntermediateNodes();
 
-    virtual Vector      CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
+    virtual Vector      CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
     virtual Vector      CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
     virtual Vector      CalculateStrain(const Matrix& rDeformationGradient,
                                         const Matrix& rB,
@@ -317,11 +317,11 @@ protected:
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
 
-    void CalculateSoilDensity(ElementVariables& rVariables);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;
+
+    Vector GetPressureSolutionVector();
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

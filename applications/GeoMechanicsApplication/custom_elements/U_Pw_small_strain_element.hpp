@@ -275,12 +275,12 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
-    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
-    virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements);
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
+    virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
     virtual Vector CalculateStrain(const Matrix& rDeformationGradient,
                                    const Matrix& rB,
                                    const Vector& rDisplacements,
-                                   bool          UseHenckyStrain);
+                                   bool          UseHenckyStrain) const;
     Matrix         CalculateDeformationGradient(unsigned int GPoint) const;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
@@ -298,14 +298,15 @@ protected:
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
-    void         ResetHydraulicDischarge();
-    void         CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
-    void         CalculateSoilGamma(ElementVariables& rVariables);
-    virtual void CalculateSoilDensity(ElementVariables& rVariables);
+    void ResetHydraulicDischarge();
+    void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
+    void CalculateSoilGamma(ElementVariables& rVariables);
 
     virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
                                                          ElementVariables& rVariables,
                                                          unsigned int      GPoint);
+
+    VectorType GetPressureSolutionVector();
 
 private:
     friend class Serializer;
