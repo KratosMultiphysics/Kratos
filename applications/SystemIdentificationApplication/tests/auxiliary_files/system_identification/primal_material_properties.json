@@ -10,7 +10,7 @@
                 "Variables": {
                     "THICKNESS": 0.25,
                     "DENSITY": 1.0,
-                    "YOUNG_MODULUS": 30000000000.0,
+                    "YOUNG_MODULUS": 10000000000.0,
                     "POISSON_RATIO": 0.29
                 },
                 "Tables": {}
