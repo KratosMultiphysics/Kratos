@@ -26,6 +26,7 @@
 #include "custom_utilities/response/sensor_distance_boltzmann_operator_utils.h"
 #include "custom_utilities/response/sensor_cosine_distance_utils.h"
 #include "custom_utilities/response/sensor_coverage_response_utils.h"
+#include "custom_utilities/response/sensor_sensitivity_boltzmann_operator_response.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utilities_to_python.h"
@@ -75,6 +76,42 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         .def("CalculateGradient", &SensorCoverageResponseUtils::CalculateGradient<ModelPart::ConditionsContainerType>, py::arg("sensor_mask_status"))
         .def("CalculateValue", &SensorCoverageResponseUtils::CalculateValue<ModelPart::ElementsContainerType>, py::arg("sensor_mask_status"))
         .def("CalculateGradient", &SensorCoverageResponseUtils::CalculateGradient<ModelPart::ElementsContainerType>, py::arg("sensor_mask_status"))
+        ;
+
+    py::class_<SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::NodesContainerType>, SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::NodesContainerType>::Pointer>(m, "SensorNodalSensitivityBoltzmannOperatorResponseUtils")
+        .def(py::init<
+            ModelPart&,
+            const std::vector<typename ContainerExpression<ModelPart::NodesContainerType>::Pointer>&,
+            const double>(),
+            py::arg("sensor_model_part"),
+            py::arg("sensor_sensitivity_distributions"),
+            py::arg("beta"))
+        .def("CalculateValue", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::NodesContainerType>::CalculateValue)
+        .def("CalculateGradient", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::NodesContainerType>::CalculateGradient)
+        ;
+
+    py::class_<SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ConditionsContainerType>, SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ConditionsContainerType>::Pointer>(m, "SensorConditionSensitivityBoltzmannOperatorResponseUtils")
+        .def(py::init<
+            ModelPart&,
+            const std::vector<typename ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>&,
+            const double>(),
+            py::arg("sensor_model_part"),
+            py::arg("sensor_sensitivity_distributions"),
+            py::arg("beta"))
+        .def("CalculateValue", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ConditionsContainerType>::CalculateValue)
+        .def("CalculateGradient", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ConditionsContainerType>::CalculateGradient)
+        ;
+
+    py::class_<SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ElementsContainerType>, SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ElementsContainerType>::Pointer>(m, "SensorElementSensitivityBoltzmannOperatorResponseUtils")
+        .def(py::init<
+            ModelPart&,
+            const std::vector<typename ContainerExpression<ModelPart::ElementsContainerType>::Pointer>&,
+            const double>(),
+            py::arg("sensor_model_part"),
+            py::arg("sensor_sensitivity_distributions"),
+            py::arg("beta"))
+        .def("CalculateValue", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ElementsContainerType>::CalculateValue)
+        .def("CalculateGradient", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ElementsContainerType>::CalculateGradient)
         ;
 }
 
