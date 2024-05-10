@@ -58,4 +58,12 @@ Vector GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(const Ge
     return det_Js_initial_configuration;
 }
 
+Matrix GeoEquationOfMotionUtilities::CalculateDampingMatrix(double        RayleighAlpha,
+                                                            double        RayleighBeta,
+                                                            const Matrix& rMassMatrix,
+                                                            const Matrix& rStiffnessMatrix)
+{
+    return rMassMatrix * RayleighAlpha + rStiffnessMatrix * RayleighBeta;
+}
+
 } /* namespace Kratos.*/

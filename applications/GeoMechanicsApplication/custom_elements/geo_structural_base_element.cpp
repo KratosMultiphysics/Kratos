@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/geo_structural_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -268,22 +269,18 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixTyp
     // Rayleigh Method: Damping Matrix = alpha*M + beta*K
 
     // Compute Mass Matrix
-    MatrixType MassMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
-
-    this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+    MatrixType mass_matrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
+    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
     // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
-
-    this->CalculateStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
+    MatrixType stiffness_matrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
+    this->CalculateStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
     if (rDampingMatrix.size1() != N_DOF_ELEMENT)
         rDampingMatrix.resize(N_DOF_ELEMENT, N_DOF_ELEMENT, false);
-    noalias(rDampingMatrix) = ZeroMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
-
-    noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
-    noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+    noalias(rDampingMatrix) = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        rCurrentProcessInfo[RAYLEIGH_ALPHA], rCurrentProcessInfo[RAYLEIGH_BETA], mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }

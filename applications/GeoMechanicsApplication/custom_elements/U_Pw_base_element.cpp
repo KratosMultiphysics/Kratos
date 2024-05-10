@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.h"
 
 namespace Kratos
 {
@@ -327,26 +328,22 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     // Compute Mass Matrix
-    MatrixType MassMatrix(N_DOF, N_DOF);
-
-    this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+    MatrixType mass_matrix(N_DOF, N_DOF);
+    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
     // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(N_DOF, N_DOF);
-
-    this->CalculateMaterialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
+    MatrixType stiffness_matrix(N_DOF, N_DOF);
+    this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
     if (rDampingMatrix.size1() != N_DOF) rDampingMatrix.resize(N_DOF, N_DOF, false);
     noalias(rDampingMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
-    const PropertiesType& rProp = this->GetProperties();
-
-    if (rProp.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_ALPHA] * MassMatrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
-
-    if (rProp.Has(RAYLEIGH_BETA)) noalias(rDampingMatrix) += rProp[RAYLEIGH_BETA] * StiffnessMatrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+    const PropertiesType& r_prop = this->GetProperties();
+    noalias(rDampingMatrix)      = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
+        r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
+        mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
@@ -527,8 +524,8 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandS
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-    const GeometryType::IntegrationPointType& rIntegrationPoint, double detJ) const
+double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
+                                                                        double detJ) const
 
 {
     return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
