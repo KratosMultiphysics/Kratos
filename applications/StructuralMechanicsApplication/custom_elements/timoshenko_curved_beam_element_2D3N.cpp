@@ -725,12 +725,12 @@ array_1d<double, 3> LinearTimoshenkoCurvedBeamElement2D3N::GetLocalAxesBodyForce
 {
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
-    const double c = std::cos(angle);
-    const double s = std::sin(angle);
-    array_1d<double, 3> local_body_force = ZeroVector(3);
-    local_body_force[0] = c * body_force[0] + s * body_force[1];
-    local_body_force[1] = -s * body_force[0] + c * body_force[1];
-    return local_body_force;
+    // const double c = std::cos(angle);
+    // const double s = std::sin(angle);
+    // array_1d<double, 3> local_body_force = ZeroVector(3);
+    // local_body_force[0] = c * body_force[0] + s * body_force[1];
+    // local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    return body_force;
 }
 
 /***********************************************************************************/
@@ -789,7 +789,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double jacobian_weight = weight * J;
         const double angle = GetAngle(xi);
 
-        GetNodalValuesVector(nodal_values, angle);
+        GetNodalValuesVector(nodal_values, 0.0);
 
         // We fill the strain vector with El, kappa and Gamma_sy
         CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
@@ -842,7 +842,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
 
-        RotateAll(local_lhs, local_rhs, angle);
+        RotateAll(local_lhs, local_rhs, 0.0);
 
         noalias(rLHS) += local_lhs;
         noalias(rRHS) += local_rhs;
@@ -913,7 +913,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double jacobian_weight = weight * J;
         const double angle = GetAngle(xi);
 
-        GetNodalValuesVector(nodal_values, angle);
+        GetNodalValuesVector(nodal_values, 0.0);
 
         // We fill the strain vector with El, kappa and Gamma_sy
         CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
@@ -959,7 +959,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
-        RotateRHS(local_rhs, angle);
+        RotateRHS(local_rhs, 0.0);
 
         noalias(rRHS) += local_rhs;
         noalias(local_rhs) = ZeroVector(SystemSize);
@@ -967,6 +967,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
     const double xi
@@ -1047,10 +1049,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
@@ -1083,7 +1081,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
             const double angle = GetAngle(xi);
-            GetNodalValuesVector(nodal_values, angle);
+            GetNodalValuesVector(nodal_values, 0.0);
             const double J = GetJacobian(xi);
 
             CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
