@@ -114,7 +114,7 @@
                     "type": "optimization_problem_ascii_output_process",
                     "module": "KratosMultiphysics.OptimizationApplication.processes",
                     "settings": {
-                        "output_file_name": "auxiliary_files/summary.csv",
+                        "output_file_name": "auxiliary_files/summary_p_norm.csv",
                         "write_kratos_version": false,
                         "write_time_stamp": false
                     }
