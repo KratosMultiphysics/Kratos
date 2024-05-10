@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
 import json
-
+from pathlib import Path
 
 
 class TestRomManager(KratosUnittest.TestCase):
@@ -265,6 +265,7 @@ class TestRomManager(KratosUnittest.TestCase):
                 if file_name.endswith(".time") or file_name.endswith("HROM.mdpa") or file_name.endswith("HROMVisualization.mdpa"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
         with KratosUnittest.WorkFolderScope(self.work_folder+'/rom_data', __file__):
+            kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_database/'))
             for file_name in os.listdir():
                 if file_name.endswith("test_to_erase.json"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
