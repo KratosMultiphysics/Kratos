@@ -305,53 +305,91 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
 }
 
+template<class TDeregisterComponentFType>
+void KratosApplication::DeregisterComponent(std::string const & rComponentName, TDeregisterComponentFType && remove_detail) {
+    auto path = std::string(rComponentName)+"."+mApplicationName;
+
+    // Remove only if the application has this type of components registered
+    if (Registry::HasItem(path)) {
+
+        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
+        std::vector<std::string> keys;
+        std::transform(Registry::GetItem(path).cbegin(), Registry::GetItem(path).cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
+
+        for (auto & key : keys) {
+            auto cmpt_key = "components."+key;
+            auto type_key = path+"."+key;
+
+            // Remove from KratosComponents
+            remove_detail(key);
+
+            // Remove from registry general component list
+            if (Registry::HasItem(cmpt_key)) {
+                Registry::RemoveItem(cmpt_key);
+            } else {
+                KRATOS_ERROR << "Trying ro remove: " << cmpt_key << " which was not found in registry" << std::endl;
+            }
+
+            // Remove from registry component typed list
+            if (Registry::HasItem(type_key)) {
+                Registry::RemoveItem(type_key);
+            } else {
+                KRATOS_ERROR << "Trying ro remove: " << type_key << " which was not found in registry" << std::endl;
+            }
+        }
+
+        // Finally, remove the entry all together
+        Registry::RemoveItem(path);
+    }
+}
+
 void KratosApplication::DeregisterCommonComponents() 
 {
     KRATOS_INFO("") << "Deregistering " << mApplicationName << std::endl;
 
-    auto deregister_detail = [&](std::string const & rComponentName, auto remove_detail) {
-        auto path = std::string(rComponentName)+"."+mApplicationName;
+    // auto deregister_detail = [&](std::string const & rComponentName, auto remove_detail) {
+    //     auto path = std::string(rComponentName)+"."+mApplicationName;
 
-        // Remove only if the application has this type of components registered
-        if (Registry::HasItem(path)) {
+    //     // Remove only if the application has this type of components registered
+    //     if (Registry::HasItem(path)) {
 
-            // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
-            std::vector<std::string> keys;
-            std::transform(Registry::GetItem(path).cbegin(), Registry::GetItem(path).cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
+    //         // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
+    //         std::vector<std::string> keys;
+    //         std::transform(Registry::GetItem(path).cbegin(), Registry::GetItem(path).cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
 
-            for (auto & key : keys) {
-                auto cmpt_key = "components."+key;
-                auto type_key = path+"."+key;
+    //         for (auto & key : keys) {
+    //             auto cmpt_key = "components."+key;
+    //             auto type_key = path+"."+key;
 
-                // Remove from KratosComponents
-                remove_detail(key);
+    //             // Remove from KratosComponents
+    //             remove_detail(key);
 
-                // Remove from registry general component list
-                if (Registry::HasItem(cmpt_key)) {
-                    Registry::RemoveItem(cmpt_key);
-                } else {
-                    KRATOS_ERROR << "Trying ro remove: " << cmpt_key << " which was not found in registry" << std::endl;
-                }
+    //             // Remove from registry general component list
+    //             if (Registry::HasItem(cmpt_key)) {
+    //                 Registry::RemoveItem(cmpt_key);
+    //             } else {
+    //                 KRATOS_ERROR << "Trying ro remove: " << cmpt_key << " which was not found in registry" << std::endl;
+    //             }
 
-                // Remove from registry component typed list
-                if (Registry::HasItem(type_key)) {
-                    Registry::RemoveItem(type_key);
-                } else {
-                    KRATOS_ERROR << "Trying ro remove: " << type_key << " which was not found in registry" << std::endl;
-                }
-            }
+    //             // Remove from registry component typed list
+    //             if (Registry::HasItem(type_key)) {
+    //                 Registry::RemoveItem(type_key);
+    //             } else {
+    //                 KRATOS_ERROR << "Trying ro remove: " << type_key << " which was not found in registry" << std::endl;
+    //             }
+    //         }
 
-            // Finally, remove the entry all together
-            Registry::RemoveItem(path);
-        }
-    };
+    //         // Finally, remove the entry all together
+    //         Registry::RemoveItem(path);
+    //     }
+    // };
 
-    deregister_detail("geometries", [](std::string const & key){ KratosComponents<Geometry<Node>>::Remove(key);});
-    deregister_detail("elements", [](std::string const & key){ KratosComponents<Element>::Remove(key);});
-    deregister_detail("conditions", [](std::string const & key){ KratosComponents<Condition>::Remove(key);});
-    deregister_detail("constraints", [](std::string const & key){ KratosComponents<MasterSlaveConstraint>::Remove(key);});
-    deregister_detail("modelers", [](std::string const & key){ KratosComponents<Modeler>::Remove(key);});
-    deregister_detail("constitutive_laws", [](std::string const & key){ KratosComponents<ConstitutiveLaw>::Remove(key);});
+    DeregisterComponent("geometries", [](std::string const & key){ KratosComponents<Geometry<Node>>::Remove(key);});
+    DeregisterComponent("elements", [](std::string const & key){ KratosComponents<Element>::Remove(key);});
+    DeregisterComponent("conditions", [](std::string const & key){ KratosComponents<Condition>::Remove(key);});
+    DeregisterComponent("constraints", [](std::string const & key){ KratosComponents<MasterSlaveConstraint>::Remove(key);});
+    DeregisterComponent("modelers", [](std::string const & key){ KratosComponents<Modeler>::Remove(key);});
+    DeregisterComponent("constitutive_laws", [](std::string const & key){ KratosComponents<ConstitutiveLaw>::Remove(key);});
 }
 
 void KratosApplication::DeregisterApplication() {
