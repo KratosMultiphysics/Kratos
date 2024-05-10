@@ -88,10 +88,13 @@ class RomDatabase(object):
         return hashlib.sha256(params_str.encode()).hexdigest()
 
     def get_hashed_mu_for_table(self, table_name, mu):
-        if self.identify_list_type(mu)=="mu":
+        type_of_list = self.identify_list_type(mu)
+        if type_of_list=="mu":
             serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
-        elif self.identify_list_type(mu)=="complete_mu":
+        elif type_of_list=="complete_mu":
             serialized_mu = self.serialize_entire_mu_train(mu)
+        elif type_of_list=="Empty list":
+            serialized_mu = 'No mu provided, running single case as described by the ProjectParameters.json'
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
@@ -262,8 +265,11 @@ class RomDatabase(object):
 
 
     def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM_Fit'):
-        unique_tuples = set(tuple(item) for item in mu_list)
-        mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_lust
+        if mu_list == [None]: #this happens when no mu is passed, the simulation run is the one in the ProjectParameters.json
+            mu_list_unique = mu_list
+        else:
+            unique_tuples = set(tuple(item) for item in mu_list)
+            mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_lust
         SnapshotsMatrix = []
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
