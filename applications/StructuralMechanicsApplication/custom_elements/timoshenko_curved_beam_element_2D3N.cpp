@@ -797,17 +797,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         // Axial contributions
         noalias(local_rhs) -= aux_array * N * jacobian_weight;
-        noalias(local_lhs) += outer_prod(aux_array, d_el_du) * dN_dEl * jacobian_weight;
-
+        noalias(local_lhs) += outer_prod(d_el_du, d_el_du) * dN_dEl * jacobian_weight;
 
         noalias(local_rhs) -= N * dNu * du  * jacobian_weight;
-        noalias(local_lhs) += outer_prod(d_el_du, dNu) * dN_dEl * du * jacobian_weight;
         noalias(local_lhs) += outer_prod(dNu, dNu) * N * jacobian_weight;
-
         noalias(local_rhs) -= N * dN_shape * dv * jacobian_weight;
-        noalias(local_lhs) += outer_prod(d_el_du, dN_shape) * dN_dEl * dv * jacobian_weight;
         noalias(local_lhs) += outer_prod(dN_shape, dN_shape) * N * jacobian_weight;
-
 
         // Bending contributions
         noalias(local_lhs) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
@@ -823,7 +818,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
 
-        RotateAll(local_lhs, local_rhs, angle, angle, angle);
+        RotateAll(local_lhs, local_rhs, angle);
 
         noalias(rLHS) += local_lhs;
         noalias(rRHS) += local_rhs;
@@ -936,13 +931,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         // Shear contributions
         noalias(local_rhs) -= N_s * V * jacobian_weight;
 
-
         // Now we add the body forces contributions
         auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
-        RotateRHS(local_rhs, angle, angle, angle);
+        RotateRHS(local_rhs, angle);
 
         noalias(rRHS) += local_rhs;
         noalias(local_rhs) = ZeroVector(SystemSize);
@@ -976,9 +970,7 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
 
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
     MatrixType& rLHS,
-    const double angle1,
-    const double angle2,
-    const double angle3
+    const double angle1
 )
 {
     // BoundedMatrix<double, 3, 3> T, Tt;
@@ -995,56 +987,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const double angle1,
-    const double angle2,
-    const double angle3
+    const double angle
 )
 {
-    BoundedMatrix<double, 3, 3> T1, T2, T3;
+    BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
     BoundedVector<double, 9> local_rhs;
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-
-    global_size_T.clear();
-    global_size_T(0, 0) = T1(0, 0);
-    global_size_T(0, 1) = T1(0, 1);
-    global_size_T(0, 2) = T1(0, 2);
-
-    global_size_T(1, 0) = T1(1, 0);
-    global_size_T(1, 1) = T1(1, 1);
-    global_size_T(1, 2) = T1(1, 2);
-
-    global_size_T(2, 0) = T1(2, 0);
-    global_size_T(2, 1) = T1(2, 1);
-    global_size_T(2, 2) = T1(2, 2);
-
-    global_size_T(3, 3) = T2(0, 0);
-    global_size_T(3, 4) = T2(0, 1);
-    global_size_T(3, 5) = T2(0, 2);
-
-    global_size_T(4, 3) = T2(1, 0);
-    global_size_T(4, 4) = T2(1, 1);
-    global_size_T(4, 5) = T2(1, 2);
-
-    global_size_T(5, 3) = T2(2, 0);
-    global_size_T(5, 4) = T2(2, 1);
-    global_size_T(5, 5) = T2(2, 2);
-
-    global_size_T(6, 6) = T3(0, 0);
-    global_size_T(6, 7) = T3(0, 1);
-    global_size_T(6, 8) = T3(0, 2);
-
-    global_size_T(7, 6) = T3(1, 0);
-    global_size_T(7, 7) = T3(1, 1);
-    global_size_T(7, 8) = T3(1, 2);
-
-    global_size_T(8, 6) = T3(2, 0);
-    global_size_T(8, 7) = T3(2, 1);
-    global_size_T(8, 8) = T3(2, 2);
-
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
     noalias(local_rhs) = rRHS;
     noalias(rRHS) = prod(global_size_T, local_rhs);
@@ -1058,55 +1008,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
 
 void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
     VectorType& rRHS,
-    const double angle1,
-    const double angle2,
-    const double angle3
+    const double angle
 )
 {
-    BoundedMatrix<double, 3, 3> T1, T2, T3;
+    BoundedMatrix<double, 3, 3> T;
     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
     BoundedVector<double, 9> local_rhs;
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-
-    global_size_T.clear();
-    global_size_T(0, 0) = T1(0, 0);
-    global_size_T(0, 1) = T1(0, 1);
-    global_size_T(0, 2) = T1(0, 2);
-
-    global_size_T(1, 0) = T1(1, 0);
-    global_size_T(1, 1) = T1(1, 1);
-    global_size_T(1, 2) = T1(1, 2);
-
-    global_size_T(2, 0) = T1(2, 0);
-    global_size_T(2, 1) = T1(2, 1);
-    global_size_T(2, 2) = T1(2, 2);
-
-    global_size_T(3, 3) = T2(0, 0);
-    global_size_T(3, 4) = T2(0, 1);
-    global_size_T(3, 5) = T2(0, 2);
-
-    global_size_T(4, 3) = T2(1, 0);
-    global_size_T(4, 4) = T2(1, 1);
-    global_size_T(4, 5) = T2(1, 2);
-
-    global_size_T(5, 3) = T2(2, 0);
-    global_size_T(5, 4) = T2(2, 1);
-    global_size_T(5, 5) = T2(2, 2);
-
-    global_size_T(6, 6) = T3(0, 0);
-    global_size_T(6, 7) = T3(0, 1);
-    global_size_T(6, 8) = T3(0, 2);
-
-    global_size_T(7, 6) = T3(1, 0);
-    global_size_T(7, 7) = T3(1, 1);
-    global_size_T(7, 8) = T3(1, 2);
-
-    global_size_T(8, 6) = T3(2, 0);
-    global_size_T(8, 7) = T3(2, 1);
-    global_size_T(8, 8) = T3(2, 2);
+    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T, angle);
+    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
     noalias(local_rhs) = rRHS;
     noalias(rRHS) = prod(global_size_T, local_rhs);
