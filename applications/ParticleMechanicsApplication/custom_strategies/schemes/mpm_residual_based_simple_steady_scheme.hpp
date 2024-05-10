@@ -136,6 +136,21 @@ public:
         it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
       } 
 
+//-----------------------------------------------------------------------------------------------      
+/*std::cout << ".............numberofMP" << rModelPart.Elements().size()<<"\n";
+ for (auto& submodelpart : rModelPart.SubModelParts()){
+        //Loop over the elements of the ModelPart
+          #pragma omp parallel for private(output)
+          for (ModelPart::ElementIterator it_elem = submodelpart.ElementsBegin();
+                    it_elem != submodelpart.ElementsEnd(); it_elem++) {
+              const Geometry< Node >& r_geometry = it_elem ->GetGeometry();
+              it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo);
+           }
+
+           
+       } */
+
+//-----------------------------------------------------------------------------------------------
 
       // Step 2 - loop over the mp for computing residuals and interpolate it to the nodes
       std::cout << ".............numberofMP" << rModelPart.Elements().size()<<"\n";
@@ -147,15 +162,15 @@ public:
 
       // Step 3
       
-     /* for (int i = 0; i < number_of_nodes; i++) {
+      /*for (int i = 0; i < number_of_nodes; i++) {
         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
         if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
           it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
         const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
         it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
-        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse;
+        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse; 
 
-      }*/
+      } */
 
     }
 
