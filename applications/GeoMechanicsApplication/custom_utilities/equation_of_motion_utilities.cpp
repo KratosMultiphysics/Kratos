@@ -63,7 +63,7 @@ Matrix GeoEquationOfMotionUtilities::CalculateDampingMatrix(double        Raylei
                                                             const Matrix& rMassMatrix,
                                                             const Matrix& rStiffnessMatrix)
 {
-    return rMassMatrix * RayleighAlpha + rStiffnessMatrix * RayleighBeta;
+    return RayleighAlpha * rMassMatrix + RayleighBeta * rStiffnessMatrix;
 }
 
 } /* namespace Kratos.*/

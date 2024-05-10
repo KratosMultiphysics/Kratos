@@ -13,7 +13,6 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "includes/checks.h"
 #include "testing/testing.h"
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
@@ -25,10 +24,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
     constexpr std::size_t n = 10;
 
     constexpr double mass_matrix_value = 10;
-    auto             mass_matrix       = scalar_matrix(n, n, mass_matrix_value);
+    const auto       mass_matrix       = scalar_matrix(n, n, mass_matrix_value);
 
     constexpr double stiffness_matrix_value = 20;
-    auto             stiffness_matrix       = scalar_matrix(n, n, stiffness_matrix_value);
+    const auto       stiffness_matrix       = scalar_matrix(n, n, stiffness_matrix_value);
 
     double rayleigh_alpha = 0.0;
     double rayleigh_beta  = 1.0;
@@ -50,7 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
         rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
 
     const double expected_matrix_value = rayleigh_alpha * mass_matrix_value + rayleigh_beta * stiffness_matrix_value;
-    auto expected_damping_matrix = scalar_matrix(n, n, expected_matrix_value);
+    const auto expected_damping_matrix = scalar_matrix(n, n, expected_matrix_value);
 
     KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
