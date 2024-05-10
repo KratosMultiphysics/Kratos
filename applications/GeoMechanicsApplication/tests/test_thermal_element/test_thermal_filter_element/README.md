@@ -2,7 +2,7 @@
 
 **Author:** [Mohamed Nabi](https://github.com/mnabideltares)
 
-**Source files:** [Thermal line element with fixed temperature](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_thermal_filter_element)
+**Source files:** [Thermal filter element with fixed temperature](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_thermal_element/test_thermal_filter_element)
 
 ## Case Specification
 In this thermal test case, a $2 \mathrm{[m]} \times 1 \mathrm{[m]}$ soil block is considered, with everywhere set to 0 $\mathrm{[^\circ C]}$. A well/filter passes vertically through middle of the domain. The temperature along the filter is kept constant at 0 $\mathrm{[^\circ C]}$. A sudden jump at the right and left boundary temperatures are given for the soil. These are both 25 $\mathrm{[^\circ C]}$. The simulation spans 100 days to allow for a transition from the initial to a linear temperature profile between the two sides. This test is conducted for various configurations, including 2D3N and 2D3N soil elements, and corresponding 2D2N and 2D3N filter elements. The temperature distribution is then evaluated with its own result.
