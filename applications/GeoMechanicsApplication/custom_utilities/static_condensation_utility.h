@@ -28,16 +28,16 @@ namespace Kratos
 /**
  * @class GeoStaticCondensationUtility
  *
- * @brief This utilitiy condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
+ * @brief This utility condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
  *
  */
 
 class GeoStaticCondensationUtility
 {
 public:
-    typedef Element     ElementType;
-    typedef std::size_t SizeType;
-    typedef Matrix      MatrixType;
+    using ElementType = Element;
+    using SizeType    = std::size_t;
+    using MatrixType  = Matrix;
 
     /**
      * @brief This function is the main operation of this utility. It sorts the reference matrix w.r.t. the given dofs and condenses the reference matrix by using the following inputs:
@@ -64,7 +64,7 @@ public:
         KRATOS_ERROR_IF(std::abs(detK22) < numerical_limit)
             << "Element " << rTheElement.Id() << " is singular !" << std::endl;
 
-        // 2.) K_cond = K11 - K12*inv(K22)*K21
+        // 2.) K_cond -> K11 - K12*inv(K22)*K21
         K_temp = prod(K_temp, sub_matrices[2]);
         K_temp = prod(sub_matrices[1], K_temp);
         K_temp = sub_matrices[0] - K_temp;
@@ -259,7 +259,6 @@ public:
                 }
             }
         }
-        // rTheElement.GlobalizeVector(rValues); // globalize local displacements -> global lvl
         KRATOS_CATCH("")
     }
 

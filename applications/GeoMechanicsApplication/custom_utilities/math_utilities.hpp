@@ -39,23 +39,11 @@ public:
      * @name type definitions
      * @{
      */
-    typedef Matrix MatrixType;
-
-    typedef Vector VectorType;
-
-    typedef unsigned int IndexType;
-
-    typedef unsigned int SizeType;
-
-    typedef MathUtils<TDataType> MathUtilsType;
-
-    typedef DenseVector<Vector> Second_Order_Tensor;
-
-    typedef DenseVector<Second_Order_Tensor> Third_Order_Tensor;
-
-    typedef DenseVector<DenseVector<Matrix>> Fourth_Order_Tensor;
-
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor;
+    using MatrixType          = Matrix;
+    using VectorType          = Vector;
+    using IndexType           = unsigned int;
+    using SizeType            = unsigned int;
+    using Fourth_Order_Tensor = DenseVector<DenseVector<Matrix>>;
 
     /**
      * @}
@@ -105,7 +93,7 @@ public:
         }
 
         if (p < 0)
-            return false; // in this case the square roots below will be negative. This substitutes with better efficiency lines 107-110
+            return false; // in this case the square roots below will be negative. This substitutes with better efficiency lines 100-102
 
         solution(0) = -sqrt(-4.0 / 3.0 * p) *
                           cos(1.0 / 3.0 * acos(-q / 2.0 * sqrt(-27.0 / (p * p * p))) + Globals::Pi / 3.0) -
@@ -115,11 +103,6 @@ public:
         solution(2) = -sqrt(-4.0 / 3.0 * p) *
                           cos(1.0 / 3.0 * acos(-q / 2.0 * sqrt(-27.0 / (p * p * p))) - Globals::Pi / 3.0) -
                       b / (3 * a);
-
-        //        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
-        //        {
-        //            return false;
-        //        }
 
         return true;
     }
@@ -260,7 +243,6 @@ public:
         B(1, 2) = inv_p * A(1, 2);
         B(2, 1) = inv_p * A(2, 1);
 
-        // r = det(B) / 2
         double r = 0.5 * (B(0, 0) * B(1, 1) * B(2, 2) + B(0, 1) * B(1, 2) * B(2, 0) +
                           B(1, 0) * B(2, 1) * B(0, 2) - B(2, 0) * B(1, 1) * B(0, 2) -
                           B(1, 0) * B(0, 1) * B(2, 2) - B(0, 0) * B(2, 1) * B(1, 2));
@@ -506,9 +488,6 @@ public:
             Rotation(index1, index1) = c;
             Rotation(index2, index2) = c;
 
-            //                 Help.resize(A.size1(),A.size1(),false);
-            //                 noalias(Help)=ZeroMatrix(A.size1(),A.size1());
-
             noalias(VDummy) = ZeroMatrix(Help.size1(), Help.size2());
 
             for (unsigned int i = 0; i < Help.size1(); i++) {
@@ -519,30 +498,6 @@ public:
                 }
             }
             V = VDummy;
-
-            //                 Matrix VTA(3,3);
-            //                 noalias(VTA) = ZeroMatrix(3,3);
-            //                 for(int i=0; i< Help.size1(); i++)
-            //                 {
-            //                     for(int j=0; j< Help.size1(); j++)
-            //                     {
-            //                         for(int k=0; k< Help.size1(); k++)
-            //                         {
-            //                             VTA(i,j) += V(k,i)*A(k,j);
-            //                         }
-            //                     }
-            //                 }
-            //
-            //                 for(int i=0; i< Help.size1(); i++)
-            //                 {
-            //                     for(int j=0; j< Help.size1(); j++)
-            //                     {
-            //                         for(int k=0; k< Help.size1(); k++)
-            //                         {
-            //                             Help(i,j) += VTA(i,k)*V(k,j);
-            //                         }
-            //                     }
-            //                 }
         }
 
         if (!(is_converged)) {
@@ -712,8 +667,8 @@ public:
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor, Matrix& Matrix)
     {
         // Simetrias seguras
-        //  Cijkl = Cjilk;
-        //  Cijkl = Cklji;
+        //  Cijkl = Cjilk
+        //  Cijkl = Cklji
         if (Tensor[0].size() == 3) {
             // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 3x3
             if (Matrix.size1() != 6 || Matrix.size2() != 6) Matrix.resize(6, 6, false);
