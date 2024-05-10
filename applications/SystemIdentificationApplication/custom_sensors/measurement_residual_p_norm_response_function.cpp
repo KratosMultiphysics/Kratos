@@ -5,9 +5,9 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: DigitalTwinApplication/license.txt
+//                   Kratos default license: SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Wranakulasuriya
+//  Main authors:    Ihar Antonau, Suneth Wranakulasuriya
 //
 
 // System includes

@@ -5,9 +5,9 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   Kratos default license: DigitalTwinApplication/license.txt
+//                   Kratos default license: SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Wranakulasuriya
+//  Main authors:    Ihar Antonau, Suneth Wranakulasuriya
 //
 
 #pragma once
@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-///@addtogroup DigitalTwinApplication
+///@addtogroup SystemIdentificationApplication
 ///@{
 
 ///@name Kratos Classes
@@ -157,10 +157,6 @@ private:
     ///@{
 
     double mPCoefficient;
-
-    double mMaxSensorErrorSquare;
-
-    double mCoefficent1;
 
     std::vector<Sensor::Pointer> mpSensorsList;
 
