@@ -2,15 +2,19 @@ import os
 import numpy as np
 import json
 import sqlite3
-import pandas as pd
+
+try:
+    import pandas as pd
+except ModuleNotFoundError:
+    pd = None
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from pathlib import Path
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
-
 from KratosMultiphysics.RomApplication.rom_database import RomDatabase
+
 
 class TestRomDatabase(KratosUnittest.TestCase):
 
@@ -27,6 +31,7 @@ class TestRomDatabase(KratosUnittest.TestCase):
             db = RomDatabase(self.parameters, self.mu_names, self.database_name)
             self.assertTrue(db.database_name.exists(), "Database file was not created.")
 
+    @KratosUnittest.skipIf(pd == None, "this test requires pandas")
     def test_table_creation(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             db = RomDatabase(self.parameters, self.mu_names, self.database_name)
