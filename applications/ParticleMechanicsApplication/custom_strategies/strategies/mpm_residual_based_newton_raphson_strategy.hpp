@@ -310,6 +310,8 @@ public:
             }
         }
 
+        std::cout<<"Number of non-linear iterations: "<<iteration_number<<"\n";
+
         // Plot a warning if the maximum number of iterations is exceeded
         if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {
