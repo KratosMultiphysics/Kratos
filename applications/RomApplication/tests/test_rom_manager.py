@@ -25,36 +25,38 @@ class TestRomManager(KratosUnittest.TestCase):
 
 
     def test_initialization(self):
-        rom_manager = RomManager()
-        self.assertIsNotNone(rom_manager.general_rom_manager_parameters)
-        self.assertIsInstance(rom_manager.general_rom_manager_parameters, KratosMultiphysics.Parameters)
-        self.assertIsNotNone(rom_manager.project_parameters_name)
-        self.assertEqual(rom_manager.project_parameters_name, "ProjectParameters.json")
-        self.assertIsNotNone(rom_manager.CustomizeSimulation)
-        self.assertTrue(callable(rom_manager.CustomizeSimulation))
-        self.assertIsNotNone(rom_manager.UpdateProjectParameters)
-        self.assertTrue(callable(rom_manager.UpdateProjectParameters))
-        self.assertIsNotNone(rom_manager.UpdateMaterialParametersFile)
-        self.assertTrue(callable(rom_manager.UpdateMaterialParametersFile))
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            rom_manager = RomManager()
+            self.assertIsNotNone(rom_manager.general_rom_manager_parameters)
+            self.assertIsInstance(rom_manager.general_rom_manager_parameters, KratosMultiphysics.Parameters)
+            self.assertIsNotNone(rom_manager.project_parameters_name)
+            self.assertEqual(rom_manager.project_parameters_name, "ProjectParameters.json")
+            self.assertIsNotNone(rom_manager.CustomizeSimulation)
+            self.assertTrue(callable(rom_manager.CustomizeSimulation))
+            self.assertIsNotNone(rom_manager.UpdateProjectParameters)
+            self.assertTrue(callable(rom_manager.UpdateProjectParameters))
+            self.assertIsNotNone(rom_manager.UpdateMaterialParametersFile)
+            self.assertTrue(callable(rom_manager.UpdateMaterialParametersFile))
 
 
     def test_setup_parameters(self):
-        parameters = KratosMultiphysics.Parameters("""{
-            "rom_stages_to_train" : ["HROM"],
-            "projection_strategy": "lspg",
-            "rom_stages_to_test" : ["HROM"],
-            "ROM":{
-                "svd_truncation_tolerance": 1e-16 ,
-                "nodal_unknowns": ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"]
-            }
-        }""")
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            parameters = KratosMultiphysics.Parameters("""{
+                "rom_stages_to_train" : ["HROM"],
+                "projection_strategy": "lspg",
+                "rom_stages_to_test" : ["HROM"],
+                "ROM":{
+                    "svd_truncation_tolerance": 1e-16 ,
+                    "nodal_unknowns": ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"]
+                }
+            }""")
 
-        rom_manager_object = RomManager(general_rom_manager_parameters=parameters)
-        self.assertListEqual(rom_manager_object.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray(), ["HROM"])
-        self.assertListEqual(rom_manager_object.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray(), ["HROM"])
-        self.assertEqual(rom_manager_object.general_rom_manager_parameters["projection_strategy"].GetString(), "lspg")
-        self.assertEqual(rom_manager_object.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble(), 1e-16)
-        self.assertListEqual(rom_manager_object.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray(), ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"])
+            rom_manager_object = RomManager(general_rom_manager_parameters=parameters)
+            self.assertListEqual(rom_manager_object.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray(), ["HROM"])
+            self.assertListEqual(rom_manager_object.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray(), ["HROM"])
+            self.assertEqual(rom_manager_object.general_rom_manager_parameters["projection_strategy"].GetString(), "lspg")
+            self.assertEqual(rom_manager_object.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble(), 1e-16)
+            self.assertListEqual(rom_manager_object.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray(), ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"])
 
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
