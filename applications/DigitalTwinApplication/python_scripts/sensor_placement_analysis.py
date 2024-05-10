@@ -163,4 +163,5 @@ class SensorPlacementAnalysis:
         else:
             normalized_filtered_exp = filtered_exp.Clone()
         mask_exp = KratosDT.MaskUtils.GetMask(normalized_filtered_exp)
+        sensor_view.AddAuxiliaryExpression("normalized_filtered", normalized_filtered_exp)
         sensor_view.AddAuxiliaryExpression("mask", mask_exp)
