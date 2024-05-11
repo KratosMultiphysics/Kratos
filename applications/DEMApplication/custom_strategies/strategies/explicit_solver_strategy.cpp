@@ -693,7 +693,6 @@ namespace Kratos {
         });
 
         RVEFinalizeSolutionStep();
-        RVEWriteForces(); // Temporary adhoc for posprocessing stress tensor of thermal expansion paper
 
         //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
         KRATOS_CATCH("")
@@ -1985,7 +1984,7 @@ namespace Kratos {
       RVEHomogenization();
 
       // Compute uniformity of rose diagram
-      RVEComputeRoseUniformity();
+      //RVEComputeRoseUniformity();
 
       // Write files
       RVEWriteFiles();
@@ -2310,11 +2309,11 @@ namespace Kratos {
 
       bool is_square = (std::abs(xmin_x1-xmin_x2)<eps && std::abs(xmax_x1-xmax_x2)<eps && std::abs(ymin_y1-ymin_y2)<eps && std::abs(ymax_y1-ymax_y2)<eps);
 
-      if (is_square) {
+      if (1) { //(is_square) {
         mRVE_CornerCoordsX = {xmin_x1, xmax_x1, xmax_x1, xmin_x1};
         mRVE_CornerCoordsY = {ymin_y1, ymin_y1, ymax_y1, ymax_y1};
       }
-      else {
+      else { // sheared RVE
         double ymin_x_min =  DBL_MAX;
         double ymin_x_max = -DBL_MAX;
         for (unsigned int i = 0; i < mRVE_WallYMin.size(); i++) {
@@ -2397,74 +2396,87 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     double ExplicitSolverStrategy::RVEComputeInnerVolume(void) {
-      const int num_particles = mRVE_InnerVolParticles.size();
-      if (!mRVE_FlatWalls || num_particles < 3)
-        return mRVE_VolTotal;
+      // Used to compute inner volume with convex hull,
+      // but since this is not a reliable apporach in Kratos anymore,
+      // the inner volume is simply being computed with the porosity offset to save time
+
+      ModelPart& r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const double os   = r_process_info[INNER_CONSOLIDATION_POROSITY_OFFSET] * mRVE_MeanRadius;
+      const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0] + os;
+      const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0] - os;
+      const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1] + os;
+      const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1] - os;
+      return (xmax - xmin) * (ymax - ymin);
       
-      // Create and clear IO
-      std::string switches = "PQ";
-      struct triangulateio in, out, vorout;
-      ClearTriangle(in);
-      ClearTriangle(out);
-      ClearTriangle(vorout);
+      //const int num_particles = mRVE_InnerVolParticles.size();
+      //if (!mRVE_FlatWalls || num_particles < 3)
+      //  return mRVE_VolTotal;
+      //
+      //// Create and clear IO
+      //std::string switches = "PQ";
+      //struct triangulateio in, out, vorout;
+      //ClearTriangle(in);
+      //ClearTriangle(out);
+      //ClearTriangle(vorout);
 
-      // Build input
-      in.numberofpoints = num_particles;
-      in.pointlist = (double*)malloc(sizeof(double) * in.numberofpoints * 2);
+      //// Build input
+      //in.numberofpoints = num_particles;
+      //in.pointlist = (double*)malloc(sizeof(double) * in.numberofpoints * 2);
 
-      for (int i = 0; i < in.numberofpoints; i++) {
-        array_1d<double,3> coords = mRVE_InnerVolParticles[i]->GetGeometry()[0].Coordinates();
-        in.pointlist[2 * i + 0] = coords[0];
-        in.pointlist[2 * i + 1] = coords[1];
-      }
+      //for (int i = 0; i < in.numberofpoints; i++) {
+      //  array_1d<double,3> coords = mRVE_InnerVolParticles[i]->GetGeometry()[0].Coordinates();
+      //  in.pointlist[2 * i + 0] = coords[0];
+      //  in.pointlist[2 * i + 1] = coords[1];
+      //}
 
-      // Perform triangulation
-      int fail = 0;
-      try {
-        triangulate(&switches[0], &in, &out, &vorout);
-      }
-      catch (int error_code) {
-        fail = error_code;
-      }
+      //// Perform triangulation
+      //int fail = 0;
+      //try {
+      //  triangulate(&switches[0], &in, &out, &vorout);
+      //}
+      //catch (int error_code) {
+      //  fail = error_code;
+      //}
 
-      if (fail || out.numberoftriangles == 0 || in.numberofpoints != out.numberofpoints) {
-        KRATOS_ERROR << "Fail to generate triangulation!" << std::endl;
-        FreeTriangle(in);
-        FreeTriangle(out);
-        FreeTriangle(vorout);
-        return 0.0;
-      }
+      //if (fail || out.numberoftriangles == 0 || in.numberofpoints != out.numberofpoints) {
+      //  KRATOS_ERROR << "Fail to generate triangulation!" << std::endl;
+      //  FreeTriangle(in);
+      //  FreeTriangle(out);
+      //  FreeTriangle(vorout);
+      //  return 0.0;
+      //}
 
-      // Compute volume of convex hull (area in 2D)
-      double total_volume = 0.0;
-      for (int i = 0; i < out.numberoftriangles; i++) {
-        // Get vertices IDs
-        const int v1 = out.trianglelist[3 * i + 0] - 1;
-        const int v2 = out.trianglelist[3 * i + 1] - 1;
-        const int v3 = out.trianglelist[3 * i + 2] - 1;
+      //// Compute volume of convex hull (area in 2D)
+      //double total_volume = 0.0;
+      //for (int i = 0; i < out.numberoftriangles; i++) {
+      //  // Get vertices IDs
+      //  const int v1 = out.trianglelist[3 * i + 0] - 1;
+      //  const int v2 = out.trianglelist[3 * i + 1] - 1;
+      //  const int v3 = out.trianglelist[3 * i + 2] - 1;
 
-        // Get vertices coordinates
-        const double x1 = out.pointlist[2 * v1 + 0];
-        const double y1 = out.pointlist[2 * v1 + 1];
-        const double x2 = out.pointlist[2 * v2 + 0];
-        const double y2 = out.pointlist[2 * v2 + 1];
-        const double x3 = out.pointlist[2 * v3 + 0];
-        const double y3 = out.pointlist[2 * v3 + 1];
+      //  // Get vertices coordinates
+      //  const double x1 = out.pointlist[2 * v1 + 0];
+      //  const double y1 = out.pointlist[2 * v1 + 1];
+      //  const double x2 = out.pointlist[2 * v2 + 0];
+      //  const double y2 = out.pointlist[2 * v2 + 1];
+      //  const double x3 = out.pointlist[2 * v3 + 0];
+      //  const double y3 = out.pointlist[2 * v3 + 1];
 
-        // Add triangle area
-        total_volume += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
-      }
+      //  // Add triangle area
+      //  total_volume += fabs(0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)));
+      //}
 
-      // Free memory
-      FreeTriangle(in);
-      FreeTriangle(out);
-      FreeTriangle(vorout);
+      //// Free memory
+      //FreeTriangle(in);
+      //FreeTriangle(out);
+      //FreeTriangle(vorout);
 
-      ClearTriangle(in);
-      ClearTriangle(out);
-      ClearTriangle(vorout);
+      //ClearTriangle(in);
+      //ClearTriangle(out);
+      //ClearTriangle(vorout);
 
-      return total_volume;
+      //return total_volume;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2967,7 +2979,7 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEReadOldForces(void) {
       std::fstream f_old_elastic_forces;
-      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
+      f_old_elastic_forces.open("rve_force_particles.txt", std::ios::in);
       if (!f_old_elastic_forces)
         return;
 
@@ -2982,7 +2994,6 @@ namespace Kratos {
           mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
         }
       }
-
       f_old_elastic_forces.close();
     }
 
@@ -3017,7 +3028,7 @@ namespace Kratos {
         mRVE_FileCoordinatesHistory << std::endl;
       }
 
-      if (r_process_info[POST_WRITE_COORDINATES_LAST]) {
+      if (true) { //(r_process_info[POST_WRITE_COORDINATES_LAST]) {
         mRVE_FileCoordinatesLast.open("rve_coordinates_last.txt", std::ios::out | std::ios::trunc);
         mRVE_FileCoordinatesLast << "LINE 1: WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
         mRVE_FileCoordinatesLast << "NEXT LINES: R X Y";
@@ -3027,19 +3038,19 @@ namespace Kratos {
         const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
         const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
         const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
-        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(15) << x1 << " " << y1 << " " << x2 << " " << y2 << " " << x3 << " " << y3 << " " << x4 << " " << y4 << std::endl;
+        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << x1 << " " << y1 << " " << x2 << " " << y2 << " " << x3 << " " << y3 << " " << x4 << " " << y4 << std::endl;
 
         const int number_of_particles = (int)mListOfSphericParticles.size();
         for (int i = 0; i < number_of_particles; i++) {
           const double r = mListOfSphericParticles[i]->GetRadius();
           const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
           const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-          mRVE_FileCoordinatesLast << std::fixed << std::setprecision(15) << r << " " << x << " " << y << std::endl;
+          mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << r << " " << x << " " << y << std::endl;
         }
         mRVE_FileCoordinatesLast.close();
       }
 
-      if (mRVE_FilePorosity.is_open())
+      if (mRVE_FilePorosity.is_open()) {
         mRVE_FilePorosity << time_step                    << " "
                           << time                         << " "
                           << mRVE_VolInner                << " "
@@ -3051,6 +3062,7 @@ namespace Kratos {
                           << mRVE_VoidRatio               << " "
                           << mRVE_VoidRatioInner
                           << std::endl;
+      }
 
       if (mRVE_FileContactNumber.is_open()) {
         mRVE_FileContactNumber << time_step << " " << time << " ";
@@ -3063,14 +3075,9 @@ namespace Kratos {
         mRVE_FileContactNumber << std::endl;
       }
 
-      if (mRVE_FileCoordNumber.is_open())
-        mRVE_FileCoordNumber << time_step             << " "
-                             << time                  << " "
-                             << mRVE_NumContacts      << " "
-                             << mRVE_NumContactsInner << " "
-                             << mRVE_AvgCoordNum      << " "
-                             << mRVE_AvgCoordNumInner
-                             << std::endl;
+      if (mRVE_FileCoordNumber.is_open()) {
+        mRVE_FileCoordNumber << time << " " << mRVE_AvgCoordNum << std::endl;
+      }
 
       if (mRVE_FileInnerVolumeParticles.is_open()) {
         mRVE_FileInnerVolumeParticles << time_step << " " << time << " ";
@@ -3089,20 +3096,23 @@ namespace Kratos {
         mRVE_FileForceChain << std::endl;
       }
 
-      if (mRVE_FileElasticContactForces.is_open() && mRVE_Equilibrium) {
+      if (true) { //(mRVE_FileElasticContactForces.is_open()) {
+        mRVE_FileElasticContactForces.open("rve_force_particles.txt", std::ios::out | std::ios::trunc);
         for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+          const int id = mListOfSphericParticles[i]->Id();
           const int n_neighbors = mListOfSphericParticles[i]->mNeighbourElements.size();
-          mRVE_FileElasticContactForces << i << " ";
-          mRVE_FileElasticContactForces << n_neighbors << " ";
+          mRVE_FileElasticContactForces << std::defaultfloat << id << " " << n_neighbors << " ";
           for (int j = 0; j < n_neighbors; j++) {
             array_1d<double, 3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
-            mRVE_FileElasticContactForces << force[0] << " ";
-            mRVE_FileElasticContactForces << force[1] << " ";
-            mRVE_FileElasticContactForces << force[2] << " ";
+            mRVE_FileElasticContactForces << std::fixed << std::setprecision(16) << force[0] << " " << force[1] << " " << force[2] << " ";
           }
           mRVE_FileElasticContactForces << std::endl;
         }
         mRVE_FileElasticContactForces.close();
+      }
+
+      if (true) {
+        RVEWriteForces();
       }
 
       if (mRVE_FileRoseDiagram.is_open()) {
@@ -3133,19 +3143,21 @@ namespace Kratos {
         mRVE_FileRoseDiagramInner << std::endl;
       }
 
-      if (mRVE_FileRoseDiagramUniformity.is_open())
+      if (mRVE_FileRoseDiagramUniformity.is_open()) {
         mRVE_FileRoseDiagramUniformity << time_step << " "
                                        << time      << " "
                                        << mRVE_StdDevRoseXYAll << " "
                                        << mRVE_StdDevRoseXYInn
                                        << std::endl;
+      }
 
-      if (mRVE_FileAnisotropy.is_open())
+      if (mRVE_FileAnisotropy.is_open()) {
         mRVE_FileAnisotropy << time_step       << " "
                             << time            << " "
                             << mRVE_Anisotropy << " "
                             << mRVE_AnisotropyInner
                             << std::endl;
+      }
 
       if (mRVE_FileFabricTensor.is_open()) {
         if (mRVE_Dimension == 2)
@@ -3175,7 +3187,7 @@ namespace Kratos {
                                      << std::endl;
       }
 
-      if (mRVE_FileStress.is_open())
+      if (mRVE_FileStress.is_open()) {
         mRVE_FileStress << time_step              << " "
                         << time                   << " "
                         << mRVE_WallStress        << " "
@@ -3184,6 +3196,7 @@ namespace Kratos {
                         << mRVE_EffectStressInner << " "
                         << mRVE_DevStressInner
                         << std::endl;
+      }
 
       if (mRVE_FileCauchyTensor.is_open()) {
         if (mRVE_Dimension == 2)
@@ -3300,48 +3313,14 @@ namespace Kratos {
     void ExplicitSolverStrategy::RVEWriteForces(void) {
       ModelPart&   r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
-      const int    step = r_process_info[TIME_STEPS];
-      const double dt   = r_process_info[DELTA_TIME];
       const double time = r_process_info[TIME];
-      const double tol  = dt;
-
-      const int step00 = (0.1-tol) / dt;
-      const int step01 = (1.0-tol)  / dt;
-      const int step02 = (2.0-tol)  / dt;
-      const int step03 = (3.0-tol)  / dt;
-      const int step04 = (4.0-tol)  / dt;
-      const int step05 = (5.0-tol)  / dt;
-      const int step06 = (6.0-tol)  / dt;
-      const int step07 = (7.0-tol)  / dt;
-      const int step08 = (8.0-tol)  / dt;
-      const int step09 = (9.0-tol)  / dt;
-      const int step10 = (10.0-tol) / dt;
-      const int step11 = (11.0-tol) / dt;
-      const int step12 = (12.0-tol) / dt;
-      const int step13 = (13.0-tol) / dt;
-      const int step14 = (14.0-tol) / dt;
-      const int step15 = (15.0-tol) / dt;
-      const int step16 = (16.0-tol) / dt;
-      const int step17 = (17.0-tol) / dt;
-      const int step18 = (18.0-tol) / dt;
-      const int step19 = (19.0-tol) / dt;
-      const int step20 = (20.0-tol) / dt;
-
-      bool write = (step==step00 || step==step01 || step==step02 || step==step03 || step==step04 || step==step05 || step==step06 || step==step07 || step==step08 || step==step09 ||
-                    step==step10 || step==step11 || step==step12 || step==step13 || step==step14 || step==step15 || step==step16 || step==step17 || step==step18 || step==step19 || step==step20);
-      if (!write) return;
 
       std::ofstream file;
-      const int file_time = round(time);
-      std::ostringstream oss;
-      oss << "rve_contact_forces_" << file_time << "s.txt";
-      std::string filename = oss.str();
-      file.open(filename, std::ios::out);
+      file.open("rve_force_chain.txt", std::ios::out | std::ios::trunc);
 
       file << "ID1 R1 X1 Y1 ID2 R2 X2 Y2 F1 F2 (WALLS: ID2=0 R2=0 X2,Y2=CONTACT_POINT)" << std::endl;
       file << "Time: ";
       file << std::defaultfloat << time << std::endl;
-
       
       for (int i = 0; i < mListOfSphericParticles.size(); i++) {
         std::size_t id1 = mListOfSphericParticles[i]->Id();
@@ -3360,10 +3339,10 @@ namespace Kratos {
           array_1d<double, 3> f = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
 
           file << std::defaultfloat << id1 << " ";
-          file << std::fixed << std::setprecision(15) << r1 << " " << x1 << " " << y1 << " ";
+          file << std::fixed << std::setprecision(16) << r1 << " " << x1 << " " << y1 << " ";
           file << std::defaultfloat << id2 << " ";
-          file << std::fixed << std::setprecision(15) << r2 << " " << x2 << " " << y2 << " ";
-          file << std::fixed << std::setprecision(15) << f[0] << " " << f[1] << std::endl;
+          file << std::fixed << std::setprecision(16) << r2 << " " << x2 << " " << y2 << " ";
+          file << std::fixed << std::setprecision(16) << f[0] << " " << f[1] << std::endl;
         }
 
         // Particle-wall
@@ -3387,10 +3366,10 @@ namespace Kratos {
           array_1d<double, 3> f = mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce[j];
 
           file << std::defaultfloat << id1 << " ";
-          file << std::fixed << std::setprecision(15) << r1 << " " << x1 << " " << y1 << " ";
+          file << std::fixed << std::setprecision(16) << r1 << " " << x1 << " " << y1 << " ";
           file << std::defaultfloat << 0 << " ";
-          file << std::fixed << std::setprecision(15) << 0.0 << " " << x2 << " " << y2 << " ";
-          file << std::fixed << std::setprecision(15) << f[0] << " " << f[1] << std::endl;
+          file << std::fixed << std::setprecision(16) << 0.0 << " " << x2 << " " << y2 << " ";
+          file << std::fixed << std::setprecision(16) << f[0] << " " << f[1] << std::endl;
         }
       }
       file.close();
@@ -3401,240 +3380,231 @@ namespace Kratos {
       ModelPart&   r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info   = r_dem_model_part.GetProcessInfo();
       
-      if (r_process_info[POST_WRITE_COORDINATES_HISTORY]) {
-        mRVE_FileCoordinatesHistory.open("rve_coordinates_history.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileCoordinatesHistory) << "Could not open file rve_coordinates_history.txt!" << std::endl;
-        mRVE_FileCoordinatesHistory << "1 - STEP | ";
-        mRVE_FileCoordinatesHistory << "2 - TIME | ";
-        mRVE_FileCoordinatesHistory << "3 - WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
-        mRVE_FileCoordinatesHistory << "4 - R X Y of all particles";
-        mRVE_FileCoordinatesHistory << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_COORDINATES_HISTORY]) {
+      //  mRVE_FileCoordinatesHistory.open("rve_coordinates_history.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileCoordinatesHistory) << "Could not open file rve_coordinates_history.txt!" << std::endl;
+      //  mRVE_FileCoordinatesHistory << "1 - STEP | ";
+      //  mRVE_FileCoordinatesHistory << "2 - TIME | ";
+      //  mRVE_FileCoordinatesHistory << "3 - WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
+      //  mRVE_FileCoordinatesHistory << "4 - R X Y of all particles";
+      //  mRVE_FileCoordinatesHistory << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_POROSITY]) {
-        mRVE_FilePorosity.open("rve_porosity.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FilePorosity) << "Could not open file rve_porosity.txt!" << std::endl;
-        mRVE_FilePorosity << "1 - STEP | ";
-        mRVE_FilePorosity << "2 - TIME | ";
-        mRVE_FilePorosity << "3 - INNER VOLUME | ";
-        mRVE_FilePorosity << "4 - TOTAL VOLUME | ";
-        mRVE_FilePorosity << "5 - TOTAL SOLID VOLUME | ";
-        mRVE_FilePorosity << "6 - TOTAL VOID VOLUME | ";
-        mRVE_FilePorosity << "7 - POROSITY | ";
-        mRVE_FilePorosity << "8 - POROSITY INNER | ";
-        mRVE_FilePorosity << "9 - VOID RATIO | ";
-        mRVE_FilePorosity << "10 - VOID RATIO INNER";
-        mRVE_FilePorosity << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_POROSITY]) {
+      //  mRVE_FilePorosity.open("rve_porosity.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FilePorosity) << "Could not open file rve_porosity.txt!" << std::endl;
+      //  mRVE_FilePorosity << "1 - STEP | ";
+      //  mRVE_FilePorosity << "2 - TIME | ";
+      //  mRVE_FilePorosity << "3 - INNER VOLUME | ";
+      //  mRVE_FilePorosity << "4 - TOTAL VOLUME | ";
+      //  mRVE_FilePorosity << "5 - TOTAL SOLID VOLUME | ";
+      //  mRVE_FilePorosity << "6 - TOTAL VOID VOLUME | ";
+      //  mRVE_FilePorosity << "7 - POROSITY | ";
+      //  mRVE_FilePorosity << "8 - POROSITY INNER | ";
+      //  mRVE_FilePorosity << "9 - VOID RATIO | ";
+      //  mRVE_FilePorosity << "10 - VOID RATIO INNER";
+      //  mRVE_FilePorosity << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_CONTACT_NUMBER]) {
-        mRVE_FileContactNumber.open("rve_contact_number.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileContactNumber) << "Could not open file rve_conact_number.txt!" << std::endl;
-        mRVE_FileContactNumber << "1 - STEP | ";
-        mRVE_FileContactNumber << "2 - TIME | ";
-        mRVE_FileContactNumber << "3 - NUMBER OF CONTACTS OF ALL PARTICLES";
-        mRVE_FileContactNumber << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_CONTACT_NUMBER]) {
+      //  mRVE_FileContactNumber.open("rve_contact_number.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileContactNumber) << "Could not open file rve_conact_number.txt!" << std::endl;
+      //  mRVE_FileContactNumber << "1 - STEP | ";
+      //  mRVE_FileContactNumber << "2 - TIME | ";
+      //  mRVE_FileContactNumber << "3 - NUMBER OF CONTACTS OF ALL PARTICLES";
+      //  mRVE_FileContactNumber << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_COORD_NUMBER]) {
+      if (true) {
         mRVE_FileCoordNumber.open("rve_coordination_number.txt", std::ios::out);
         KRATOS_ERROR_IF_NOT(mRVE_FileCoordNumber) << "Could not open file rve_coordination_number.txt!" << std::endl;
-        mRVE_FileCoordNumber << "1 - STEP | ";
-        mRVE_FileCoordNumber << "2 - TIME | ";
-        mRVE_FileCoordNumber << "3 - NUMBER OF UNIQUE CONTACTS - ALL | ";
-        mRVE_FileCoordNumber << "4 - NUMBER OF UNIQUE CONTACTS - INNER | ";
-        mRVE_FileCoordNumber << "5 - AVG COORDINATION NUMBER - ALL | ";
-        mRVE_FileCoordNumber << "6 - AVG COORDINATION NUMBER - INNER";
+        mRVE_FileCoordNumber << "1 - TIME | ";
+        mRVE_FileCoordNumber << "2 - AVG COORDINATION NUMBER - ALL";
         mRVE_FileCoordNumber << std::endl;
       }
 
-      if (r_process_info[POST_WRITE_INNER_VOLUME_PARTICLES]) {
-        mRVE_FileInnerVolumeParticles.open("rve_inner_volume_particles.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileInnerVolumeParticles) << "Could not open file rve_inner_volume_particles.txt!" << std::endl;
-        mRVE_FileInnerVolumeParticles << "1 - STEP | ";
-        mRVE_FileInnerVolumeParticles << "2 - TIME | ";
-        mRVE_FileInnerVolumeParticles << "3 - Number of particles | ";
-        mRVE_FileInnerVolumeParticles << "4 - [X Y Z R] of each particles";
-        mRVE_FileInnerVolumeParticles << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_INNER_VOLUME_PARTICLES]) {
+      //  mRVE_FileInnerVolumeParticles.open("rve_inner_volume_particles.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileInnerVolumeParticles) << "Could not open file rve_inner_volume_particles.txt!" << std::endl;
+      //  mRVE_FileInnerVolumeParticles << "1 - STEP | ";
+      //  mRVE_FileInnerVolumeParticles << "2 - TIME | ";
+      //  mRVE_FileInnerVolumeParticles << "3 - Number of particles | ";
+      //  mRVE_FileInnerVolumeParticles << "4 - [X Y Z R] of each particles";
+      //  mRVE_FileInnerVolumeParticles << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_FORCE_CHAIN]) {
-        mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
-        mRVE_FileForceChain << "1 - STEP | ";
-        mRVE_FileForceChain << "2 - TIME | ";
-        mRVE_FileForceChain << "3 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
-        mRVE_FileForceChain << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_FORCE_CHAIN]) {
+      //  mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
+      //  mRVE_FileForceChain << "1 - STEP | ";
+      //  mRVE_FileForceChain << "2 - TIME | ";
+      //  mRVE_FileForceChain << "3 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
+      //  mRVE_FileForceChain << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_ELASTIC_CONTACT_FORCES]) {
-        mRVE_FileElasticContactForces.open("rve_elastic_forces.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileElasticContactForces) << "Could not open file rve_elastic_forces.txt!" << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_ROSE_DIAGRAM]) {
+      //  mRVE_FileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
+      //  mRVE_FileRoseDiagram << "1 - STEP | ";
+      //  mRVE_FileRoseDiagram << "2 - TIME | ";
+      //  mRVE_FileRoseDiagram << "3 - [ARRAY OF ANGLES IN XY PLANE] | ";
+      //  mRVE_FileRoseDiagram << "4 - [ARRAY OF AZIMUTH ANGLES]";
+      //  mRVE_FileRoseDiagram << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_ROSE_DIAGRAM]) {
-        mRVE_FileRoseDiagram.open("rve_rose_diagram.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagram) << "Could not open file rve_rose_diagram.txt!" << std::endl;
-        mRVE_FileRoseDiagram << "1 - STEP | ";
-        mRVE_FileRoseDiagram << "2 - TIME | ";
-        mRVE_FileRoseDiagram << "3 - [ARRAY OF ANGLES IN XY PLANE] | ";
-        mRVE_FileRoseDiagram << "4 - [ARRAY OF AZIMUTH ANGLES]";
-        mRVE_FileRoseDiagram << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_ROSE_DIAGRAM_INNER]) {
+      //  mRVE_FileRoseDiagramInner.open("rve_rose_diagram_inner.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagramInner) << "Could not open file rve_rose_diagram_inner.txt!" << std::endl;
+      //  mRVE_FileRoseDiagramInner << "1 - STEP | ";
+      //  mRVE_FileRoseDiagramInner << "2 - TIME | ";
+      //  mRVE_FileRoseDiagramInner << "3 - [ARRAY OF ANGLES IN XY PLANE] | ";
+      //  mRVE_FileRoseDiagramInner << "4 - [ARRAY OF AZIMUTH ANGLES]";
+      //  mRVE_FileRoseDiagramInner << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_ROSE_DIAGRAM_INNER]) {
-        mRVE_FileRoseDiagramInner.open("rve_rose_diagram_inner.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagramInner) << "Could not open file rve_rose_diagram_inner.txt!" << std::endl;
-        mRVE_FileRoseDiagramInner << "1 - STEP | ";
-        mRVE_FileRoseDiagramInner << "2 - TIME | ";
-        mRVE_FileRoseDiagramInner << "3 - [ARRAY OF ANGLES IN XY PLANE] | ";
-        mRVE_FileRoseDiagramInner << "4 - [ARRAY OF AZIMUTH ANGLES]";
-        mRVE_FileRoseDiagramInner << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_ROSE_DIAGRAM_UNIFORMITY]) {
+      //  mRVE_FileRoseDiagramUniformity.open("rve_rose_diagram_uniformity.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagramUniformity) << "Could not open file rve_rose_diagram_uniformity.txt!" << std::endl;
+      //  mRVE_FileRoseDiagramUniformity << "1 - STEP | ";
+      //  mRVE_FileRoseDiagramUniformity << "2 - TIME | ";
+      //  mRVE_FileRoseDiagramUniformity << "3 - STD DEV XY - ALL | ";
+      //  mRVE_FileRoseDiagramUniformity << "4 - STD DEV XY - INNER";
+      //  mRVE_FileRoseDiagramUniformity << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_ROSE_DIAGRAM_UNIFORMITY]) {
-        mRVE_FileRoseDiagramUniformity.open("rve_rose_diagram_uniformity.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileRoseDiagramUniformity) << "Could not open file rve_rose_diagram_uniformity.txt!" << std::endl;
-        mRVE_FileRoseDiagramUniformity << "1 - STEP | ";
-        mRVE_FileRoseDiagramUniformity << "2 - TIME | ";
-        mRVE_FileRoseDiagramUniformity << "3 - STD DEV XY - ALL | ";
-        mRVE_FileRoseDiagramUniformity << "4 - STD DEV XY - INNER";
-        mRVE_FileRoseDiagramUniformity << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_ANISOTROPY]) {
+      //  mRVE_FileAnisotropy.open("rve_anisotropy.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileAnisotropy) << "Could not open file rve_anisotropy.txt!" << std::endl;
+      //  mRVE_FileAnisotropy << "1 - STEP | ";
+      //  mRVE_FileAnisotropy << "2 - TIME | ";
+      //  mRVE_FileAnisotropy << "3 - ANISOTROPY - ALL | ";
+      //  mRVE_FileAnisotropy << "4 - ANISOTROPY - INNER";
+      //  mRVE_FileAnisotropy << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_ANISOTROPY]) {
-        mRVE_FileAnisotropy.open("rve_anisotropy.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileAnisotropy) << "Could not open file rve_anisotropy.txt!" << std::endl;
-        mRVE_FileAnisotropy << "1 - STEP | ";
-        mRVE_FileAnisotropy << "2 - TIME | ";
-        mRVE_FileAnisotropy << "3 - ANISOTROPY - ALL | ";
-        mRVE_FileAnisotropy << "4 - ANISOTROPY - INNER";
-        mRVE_FileAnisotropy << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_FABRIC_TENSOR]) {
+      //  mRVE_FileFabricTensor.open("rve_fabric_tensor.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileFabricTensor) << "Could not open file rve_fabric_tensor.txt!" << std::endl;
+      //  mRVE_FileFabricTensor << "1 - STEP | ";
+      //  mRVE_FileFabricTensor << "2 - TIME | ";
+      //  mRVE_FileFabricTensor << "3 - [[1,1][1,2][1,3]] | ";
+      //  mRVE_FileFabricTensor << "4 - [[2,1][2,2][2,3]] | ";
+      //  mRVE_FileFabricTensor << "5 - [[3,1][3,2][3,3]]";
+      //  mRVE_FileFabricTensor << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_FABRIC_TENSOR]) {
-        mRVE_FileFabricTensor.open("rve_fabric_tensor.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileFabricTensor) << "Could not open file rve_fabric_tensor.txt!" << std::endl;
-        mRVE_FileFabricTensor << "1 - STEP | ";
-        mRVE_FileFabricTensor << "2 - TIME | ";
-        mRVE_FileFabricTensor << "3 - [[1,1][1,2][1,3]] | ";
-        mRVE_FileFabricTensor << "4 - [[2,1][2,2][2,3]] | ";
-        mRVE_FileFabricTensor << "5 - [[3,1][3,2][3,3]]";
-        mRVE_FileFabricTensor << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_FABRIC_TENSOR_INNER]) {
+      //  mRVE_FileFabricTensorInner.open("rve_fabric_tensor_inner.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileFabricTensorInner) << "Could not open file rve_fabric_tensor_inner.txt!" << std::endl;
+      //  mRVE_FileFabricTensorInner << "1 - STEP | ";
+      //  mRVE_FileFabricTensorInner << "2 - TIME | ";
+      //  mRVE_FileFabricTensorInner << "3 - [[1,1][1,2][1,3]] | ";
+      //  mRVE_FileFabricTensorInner << "4 - [[2,1][2,2][2,3]] | ";
+      //  mRVE_FileFabricTensorInner << "5 - [[3,1][3,2][3,3]]";
+      //  mRVE_FileFabricTensorInner << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_FABRIC_TENSOR_INNER]) {
-        mRVE_FileFabricTensorInner.open("rve_fabric_tensor_inner.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileFabricTensorInner) << "Could not open file rve_fabric_tensor_inner.txt!" << std::endl;
-        mRVE_FileFabricTensorInner << "1 - STEP | ";
-        mRVE_FileFabricTensorInner << "2 - TIME | ";
-        mRVE_FileFabricTensorInner << "3 - [[1,1][1,2][1,3]] | ";
-        mRVE_FileFabricTensorInner << "4 - [[2,1][2,2][2,3]] | ";
-        mRVE_FileFabricTensorInner << "5 - [[3,1][3,2][3,3]]";
-        mRVE_FileFabricTensorInner << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_STRESS]) {
+      //  mRVE_FileStress.open("rve_stresses.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileStress) << "Could not open file rve_stresses.txt!" << std::endl;
+      //  mRVE_FileStress << "1 - STEP | ";
+      //  mRVE_FileStress << "2 - TIME | ";
+      //  mRVE_FileStress << "3 - WALL STRESS | ";
+      //  mRVE_FileStress << "4 - MEAN EFFECTIVE STRESS - ALL | ";
+      //  mRVE_FileStress << "5 - DEVIATORIC STRESS - ALL | ";
+      //  mRVE_FileStress << "6 - MEAN EFFECTIVE STRESS - INNER | ";
+      //  mRVE_FileStress << "7 - DEVIATORIC STRESS - INNER";
+      //  mRVE_FileStress << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_STRESS]) {
-        mRVE_FileStress.open("rve_stresses.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileStress) << "Could not open file rve_stresses.txt!" << std::endl;
-        mRVE_FileStress << "1 - STEP | ";
-        mRVE_FileStress << "2 - TIME | ";
-        mRVE_FileStress << "3 - WALL STRESS | ";
-        mRVE_FileStress << "4 - MEAN EFFECTIVE STRESS - ALL | ";
-        mRVE_FileStress << "5 - DEVIATORIC STRESS - ALL | ";
-        mRVE_FileStress << "6 - MEAN EFFECTIVE STRESS - INNER | ";
-        mRVE_FileStress << "7 - DEVIATORIC STRESS - INNER";
-        mRVE_FileStress << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_CAUCHY_TENSOR]) {
+      //  mRVE_FileCauchyTensor.open("rve_cauchy_tensor.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileCauchyTensor) << "Could not open file rve_cauchy_tensor.txt!" << std::endl;
+      //  mRVE_FileCauchyTensor << "1 - STEP | ";
+      //  mRVE_FileCauchyTensor << "2 - TIME | ";
+      //  mRVE_FileCauchyTensor << "3 - [[1,1][1,2][1,3]] | ";
+      //  mRVE_FileCauchyTensor << "4 - [[2,1][2,2][2,3]] | ";
+      //  mRVE_FileCauchyTensor << "5 - [[3,1][3,2][3,3]]";
+      //  mRVE_FileCauchyTensor << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_CAUCHY_TENSOR]) {
-        mRVE_FileCauchyTensor.open("rve_cauchy_tensor.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileCauchyTensor) << "Could not open file rve_cauchy_tensor.txt!" << std::endl;
-        mRVE_FileCauchyTensor << "1 - STEP | ";
-        mRVE_FileCauchyTensor << "2 - TIME | ";
-        mRVE_FileCauchyTensor << "3 - [[1,1][1,2][1,3]] | ";
-        mRVE_FileCauchyTensor << "4 - [[2,1][2,2][2,3]] | ";
-        mRVE_FileCauchyTensor << "5 - [[3,1][3,2][3,3]]";
-        mRVE_FileCauchyTensor << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_CAUCHY_TENSOR_INNER]) {
+      //  mRVE_FileCauchyTensorInner.open("rve_cauchy_tensor_inner.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileCauchyTensorInner) << "Could not open file rve_cauchy_tensor_inner.txt!" << std::endl;
+      //  mRVE_FileCauchyTensorInner << "1 - STEP | ";
+      //  mRVE_FileCauchyTensorInner << "2 - TIME | ";
+      //  mRVE_FileCauchyTensorInner << "3 - [[1,1][1,2][1,3]] | ";
+      //  mRVE_FileCauchyTensorInner << "4 - [[2,1][2,2][2,3]] | ";
+      //  mRVE_FileCauchyTensorInner << "5 - [[3,1][3,2][3,3]]";
+      //  mRVE_FileCauchyTensorInner << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_CAUCHY_TENSOR_INNER]) {
-        mRVE_FileCauchyTensorInner.open("rve_cauchy_tensor_inner.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileCauchyTensorInner) << "Could not open file rve_cauchy_tensor_inner.txt!" << std::endl;
-        mRVE_FileCauchyTensorInner << "1 - STEP | ";
-        mRVE_FileCauchyTensorInner << "2 - TIME | ";
-        mRVE_FileCauchyTensorInner << "3 - [[1,1][1,2][1,3]] | ";
-        mRVE_FileCauchyTensorInner << "4 - [[2,1][2,2][2,3]] | ";
-        mRVE_FileCauchyTensorInner << "5 - [[3,1][3,2][3,3]]";
-        mRVE_FileCauchyTensorInner << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_TANGENT_TENSOR]) {
+      //  mRVE_FileTangentTensor.open("rve_tangent_tensor.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileTangentTensor) << "Could not open file rve_tangent_tensor.txt!" << std::endl;
+      //  mRVE_FileTangentTensor << "1 - STEP | ";
+      //  mRVE_FileTangentTensor << "2 - TIME | ";
+      //  mRVE_FileTangentTensor << "ROW1: [[D1111][D1112][D1113][D1121][D1122][D1123][D1131][D1132][D1133]] | ";
+      //  mRVE_FileTangentTensor << "ROW2: [[D1211][D1212][D1213][D1221][D1222][D1223][D1231][D1232][D1233]] | ";
+      //  mRVE_FileTangentTensor << "ROW3: [[D1311][D1312][D1313][D1321][D1322][D1323][D1331][D1332][D1333]] | ";
+      //  mRVE_FileTangentTensor << "ROW4: [[D2111][D2112][D2113][D2121][D2122][D2123][D2131][D2132][D2133]] | ";
+      //  mRVE_FileTangentTensor << "ROW5: [[D2211][D2212][D2213][D2221][D2222][D2223][D2231][D2232][D2233]] | ";
+      //  mRVE_FileTangentTensor << "ROW6: [[D2311][D2312][D2313][D2321][D2322][D2323][D2331][D2332][D2333]] | ";
+      //  mRVE_FileTangentTensor << "ROW7: [[D3111][D3112][D3113][D3121][D3122][D3123][D3131][D3132][D3133]] | ";
+      //  mRVE_FileTangentTensor << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
+      //  mRVE_FileTangentTensor << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
+      //  mRVE_FileTangentTensor << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_TANGENT_TENSOR]) {
-        mRVE_FileTangentTensor.open("rve_tangent_tensor.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileTangentTensor) << "Could not open file rve_tangent_tensor.txt!" << std::endl;
-        mRVE_FileTangentTensor << "1 - STEP | ";
-        mRVE_FileTangentTensor << "2 - TIME | ";
-        mRVE_FileTangentTensor << "ROW1: [[D1111][D1112][D1113][D1121][D1122][D1123][D1131][D1132][D1133]] | ";
-        mRVE_FileTangentTensor << "ROW2: [[D1211][D1212][D1213][D1221][D1222][D1223][D1231][D1232][D1233]] | ";
-        mRVE_FileTangentTensor << "ROW3: [[D1311][D1312][D1313][D1321][D1322][D1323][D1331][D1332][D1333]] | ";
-        mRVE_FileTangentTensor << "ROW4: [[D2111][D2112][D2113][D2121][D2122][D2123][D2131][D2132][D2133]] | ";
-        mRVE_FileTangentTensor << "ROW5: [[D2211][D2212][D2213][D2221][D2222][D2223][D2231][D2232][D2233]] | ";
-        mRVE_FileTangentTensor << "ROW6: [[D2311][D2312][D2313][D2321][D2322][D2323][D2331][D2332][D2333]] | ";
-        mRVE_FileTangentTensor << "ROW7: [[D3111][D3112][D3113][D3121][D3122][D3123][D3131][D3132][D3133]] | ";
-        mRVE_FileTangentTensor << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
-        mRVE_FileTangentTensor << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
-        mRVE_FileTangentTensor << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_TANGENT_TENSOR_INNER]) {
+      //  mRVE_FileTangentTensorInner.open("rve_tangent_tensor_inner.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileTangentTensorInner) << "Could not open file rve_tangent_tensor_inner.txt!" << std::endl;
+      //  mRVE_FileTangentTensorInner << "1 - STEP | ";
+      //  mRVE_FileTangentTensorInner << "2 - TIME | ";
+      //  mRVE_FileTangentTensorInner << "ROW1: [[D1111][D1112][D1113][D1121][D1122][D1123][D1131][D1132][D1133]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW2: [[D1211][D1212][D1213][D1221][D1222][D1223][D1231][D1232][D1233]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW3: [[D1311][D1312][D1313][D1321][D1322][D1323][D1331][D1332][D1333]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW4: [[D2111][D2112][D2113][D2121][D2122][D2123][D2131][D2132][D2133]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW5: [[D2211][D2212][D2213][D2221][D2222][D2223][D2231][D2232][D2233]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW6: [[D2311][D2312][D2313][D2321][D2322][D2323][D2331][D2332][D2333]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW7: [[D3111][D3112][D3113][D3121][D3122][D3123][D3131][D3132][D3133]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
+      //  mRVE_FileTangentTensorInner << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
+      //  mRVE_FileTangentTensorInner << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_TANGENT_TENSOR_INNER]) {
-        mRVE_FileTangentTensorInner.open("rve_tangent_tensor_inner.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileTangentTensorInner) << "Could not open file rve_tangent_tensor_inner.txt!" << std::endl;
-        mRVE_FileTangentTensorInner << "1 - STEP | ";
-        mRVE_FileTangentTensorInner << "2 - TIME | ";
-        mRVE_FileTangentTensorInner << "ROW1: [[D1111][D1112][D1113][D1121][D1122][D1123][D1131][D1132][D1133]] | ";
-        mRVE_FileTangentTensorInner << "ROW2: [[D1211][D1212][D1213][D1221][D1222][D1223][D1231][D1232][D1233]] | ";
-        mRVE_FileTangentTensorInner << "ROW3: [[D1311][D1312][D1313][D1321][D1322][D1323][D1331][D1332][D1333]] | ";
-        mRVE_FileTangentTensorInner << "ROW4: [[D2111][D2112][D2113][D2121][D2122][D2123][D2131][D2132][D2133]] | ";
-        mRVE_FileTangentTensorInner << "ROW5: [[D2211][D2212][D2213][D2221][D2222][D2223][D2231][D2232][D2233]] | ";
-        mRVE_FileTangentTensorInner << "ROW6: [[D2311][D2312][D2313][D2321][D2322][D2323][D2331][D2332][D2333]] | ";
-        mRVE_FileTangentTensorInner << "ROW7: [[D3111][D3112][D3113][D3121][D3122][D3123][D3131][D3132][D3133]] | ";
-        mRVE_FileTangentTensorInner << "ROW8: [[D3211][D3212][D3213][D3221][D3222][D3223][D3231][D3232][D3233]] | ";
-        mRVE_FileTangentTensorInner << "ROW9: [[D3311][D3312][D3313][D3321][D3322][D3323][D3331][D3332][D3333]]";
-        mRVE_FileTangentTensorInner << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_CONDUCTIVITY_TENSOR]) {
+      //  mRVE_FileConductivityTensor.open("rve_conductivity_tensor.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileConductivityTensor) << "Could not open file rve_conductivity_tensor.txt!" << std::endl;
+      //  mRVE_FileConductivityTensor << "1 - STEP | ";
+      //  mRVE_FileConductivityTensor << "2 - TIME | ";
+      //  mRVE_FileConductivityTensor << "3 - [[1,1][1,2][1,3]] | ";
+      //  mRVE_FileConductivityTensor << "4 - [[2,1][2,2][2,3]] | ";
+      //  mRVE_FileConductivityTensor << "5 - [[3,1][3,2][3,3]]";
+      //  mRVE_FileConductivityTensor << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_CONDUCTIVITY_TENSOR]) {
-        mRVE_FileConductivityTensor.open("rve_conductivity_tensor.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileConductivityTensor) << "Could not open file rve_conductivity_tensor.txt!" << std::endl;
-        mRVE_FileConductivityTensor << "1 - STEP | ";
-        mRVE_FileConductivityTensor << "2 - TIME | ";
-        mRVE_FileConductivityTensor << "3 - [[1,1][1,2][1,3]] | ";
-        mRVE_FileConductivityTensor << "4 - [[2,1][2,2][2,3]] | ";
-        mRVE_FileConductivityTensor << "5 - [[3,1][3,2][3,3]]";
-        mRVE_FileConductivityTensor << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_CONDUCTIVITY_TENSOR_INNER]) {
+      //  mRVE_FileConductivityTensorInner.open("rve_conductivity_tensor_inner.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileConductivityTensorInner) << "Could not open file rve_conductivity_tensor_inner.txt!" << std::endl;
+      //  mRVE_FileConductivityTensorInner << "1 - STEP | ";
+      //  mRVE_FileConductivityTensorInner << "2 - TIME | ";
+      //  mRVE_FileConductivityTensorInner << "3 - [[1,1][1,2][1,3]] | ";
+      //  mRVE_FileConductivityTensorInner << "4 - [[2,1][2,2][2,3]] | ";
+      //  mRVE_FileConductivityTensorInner << "5 - [[3,1][3,2][3,3]]";
+      //  mRVE_FileConductivityTensorInner << std::endl;
+      //}
 
-      if (r_process_info[POST_WRITE_CONDUCTIVITY_TENSOR_INNER]) {
-        mRVE_FileConductivityTensorInner.open("rve_conductivity_tensor_inner.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileConductivityTensorInner) << "Could not open file rve_conductivity_tensor_inner.txt!" << std::endl;
-        mRVE_FileConductivityTensorInner << "1 - STEP | ";
-        mRVE_FileConductivityTensorInner << "2 - TIME | ";
-        mRVE_FileConductivityTensorInner << "3 - [[1,1][1,2][1,3]] | ";
-        mRVE_FileConductivityTensorInner << "4 - [[2,1][2,2][2,3]] | ";
-        mRVE_FileConductivityTensorInner << "5 - [[3,1][3,2][3,3]]";
-        mRVE_FileConductivityTensorInner << std::endl;
-      }
-
-      if (r_process_info[POST_WRITE_FKS]) {
-        mRVE_FileFKS.open("rve_KFS.txt", std::ios::out);
-        KRATOS_ERROR_IF_NOT(mRVE_FileFKS) << "Could not open file rve_KFS.txt!" << std::endl;
-        mRVE_FileFKS << "1 - STEP | ";
-        mRVE_FileFKS << "2 - TIME | ";
-        mRVE_FileFKS << "3 - Fxy | ";
-        mRVE_FileFKS << "4 - Fxx-Fyy | ";
-        mRVE_FileFKS << "5 - Kxx Kyy Kxy";
-        mRVE_FileFKS << std::endl;
-      }
+      //if (r_process_info[POST_WRITE_FKS]) {
+      //  mRVE_FileFKS.open("rve_KFS.txt", std::ios::out);
+      //  KRATOS_ERROR_IF_NOT(mRVE_FileFKS) << "Could not open file rve_KFS.txt!" << std::endl;
+      //  mRVE_FileFKS << "1 - STEP | ";
+      //  mRVE_FileFKS << "2 - TIME | ";
+      //  mRVE_FileFKS << "3 - Fxy | ";
+      //  mRVE_FileFKS << "4 - Fxx-Fyy | ";
+      //  mRVE_FileFKS << "5 - Kxx Kyy Kxy";
+      //  mRVE_FileFKS << std::endl;
+      //}
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -3645,7 +3615,6 @@ namespace Kratos {
       if (mRVE_FileCoordNumber.is_open())             mRVE_FileCoordNumber.close();
       if (mRVE_FileInnerVolumeParticles.is_open())    mRVE_FileInnerVolumeParticles.close();
       if (mRVE_FileForceChain.is_open())              mRVE_FileForceChain.close();
-      if (mRVE_FileElasticContactForces.is_open())    mRVE_FileElasticContactForces.close();
       if (mRVE_FileRoseDiagram.is_open())             mRVE_FileRoseDiagram.close();
       if (mRVE_FileRoseDiagramInner.is_open())        mRVE_FileRoseDiagramInner.close();
       if (mRVE_FileRoseDiagramUniformity.is_open())   mRVE_FileRoseDiagramUniformity.close();
