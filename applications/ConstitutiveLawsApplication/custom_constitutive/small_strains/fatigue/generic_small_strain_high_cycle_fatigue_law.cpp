@@ -87,6 +87,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double max_stress;
     double min_stress;
     double ultimate_stress;
+    double initial_threshold = mInitialTherhold;
     double relaxation_factor = mRelaxationFactor;
     double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
     bool first_max_indicator = mFirstMaxDetected;
@@ -148,7 +149,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                
         HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(max_stress,
                                                                     min_stress,
-                                                                    threshold,          
+                                                                    initial_threshold,          
                                                                     local_number_of_cycles,
                                                                     first_cycle_relaxation_factor,
                                                                     relaxation_factor,
@@ -158,22 +159,13 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         previous_min_stress = min_stress;
 
         if (std::abs(max_stress) > std::abs(min_stress)) {
-            if (std::abs(max_stress) / threshold > 1.0) {
-                    reference_damage = 1 - (threshold / std::abs(max_stress));
-                    reference_damage = (reference_damage < mPreviousReferenceDamage) ? reference_damage : mPreviousReferenceDamage;
-                    mPreviousReferenceDamage = reference_damage;
-            } else {
-                reference_damage = 0.0;
-                mPreviousReferenceDamage = 1.0;         
+            if (std::abs(max_stress) / initial_threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage) {
+                reference_damage = this->GetDamage();
             }
         } else {
-            if (std::abs(min_stress) / threshold > 1.0){
-                    reference_damage = 1 - (threshold / std::abs(min_stress));
-                    reference_damage = (reference_damage < mPreviousReferenceDamage) ? reference_damage : mPreviousReferenceDamage;
-                    mPreviousReferenceDamage = reference_damage;
-            } else {
-                reference_damage = 0.0;
-                mPreviousReferenceDamage = 1.0;             
+            if (std::abs(min_stress) / initial_threshold > 1.0 && first_cycle_relaxation_factor < 1.0 && !mReferenceDamage) {
+                reference_damage = this->GetDamage();
+                mFirstNonlinearity = false;
             }
         }
 
@@ -393,7 +385,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);        
 
-        if (F <= threshold_tolerance || sign_factor < 0.0) { // Elastic case
+        if (F <= threshold_tolerance || (sign_factor < 0.0 && !mFirstNonlinearity)) { // Elastic case
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -412,7 +404,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                 threshold,
                 rValues,
                 characteristic_length,
-                initial_threshold);
+                initial_threshold);          
             // Updated Values
             noalias(r_integrated_stress_vector) = predictive_stress_vector;
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -562,7 +554,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         const double F = uniaxial_stress - threshold;
 
-        if (F > threshold_tolerance && sign_factor > 0.0) {
+        if (F > threshold_tolerance && (sign_factor > 0.0 || mFirstNonlinearity)) {
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
                 double initial_threshold = mInitialTherhold;
                 // This routine updates the PredictiveStress to verify the yield surface

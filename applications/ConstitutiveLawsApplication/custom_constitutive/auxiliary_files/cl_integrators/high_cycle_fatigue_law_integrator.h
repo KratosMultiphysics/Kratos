@@ -217,15 +217,15 @@ public:
 
     static void CalculateRelaxationFactor(const double MaxStress, 
                                            const double MinStress,                                   
-                                           const double Threshold,
+                                           const double InitialThreshold,
                                            unsigned int LocalNumberOfCycles,
                                            double& rFirstCycleRelaxationFactor,
                                            double& rRelaxationFactor,
                                            bool AdvanceStrategyApplied)
     {       
         if (std::abs(MaxStress) > std::abs(MinStress)) {
-            if (std::abs(MaxStress) / Threshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
-                rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MaxStress) / Threshold) + 2.6));
+            if (std::abs(MaxStress) / InitialThreshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
+                rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MaxStress) / InitialThreshold) + 2.6));
                 rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
                 rRelaxationFactor = rFirstCycleRelaxationFactor;
             } else {
@@ -233,8 +233,8 @@ public:
                 rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
             }
         } else {
-            if (std::abs(MinStress) / Threshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
-                rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MinStress) / Threshold) + 2.6));
+            if (std::abs(MinStress) / InitialThreshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
+                rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MinStress) / InitialThreshold) + 2.6));
                 rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
                 rRelaxationFactor = rFirstCycleRelaxationFactor;
             } else {
@@ -274,12 +274,12 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
         // Reduction factors applied to the fatigue limit
-        double const k_resisual_stress = (1 - UniaxialResidualStress / UltimateStress);
+        double const k_residual_stress = (1 - UniaxialResidualStress / UltimateStress);
         double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = k_resisual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
+        const double Se = k_residual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
