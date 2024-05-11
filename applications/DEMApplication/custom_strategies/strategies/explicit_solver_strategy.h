@@ -415,11 +415,13 @@ namespace Kratos {
         void   RVEComputeRoseUniformity (void);
         void   RVEStopCompression       (void);
 
-        void RVEReadOldForces (void);
-        void RVEWriteFiles    (void);
-        void RVEWriteForces   (void);
-        void RVEOpenFiles     (void);
-        void RVECloseFiles    (void);
+        void RVEReadOldForces       (void);
+        void RVEWriteFiles          (void);
+        void RVEWriteCoords         (void);
+        void RVEWriteForceParticles (void);
+        void RVEWriteForceContacts  (void);
+        void RVEOpenFiles           (void);
+        void RVECloseFiles          (void);
 
         void ClearTriangle (struct triangulateio& rTr);
         void FreeTriangle  (struct triangulateio& rTr);

@@ -693,6 +693,9 @@ namespace Kratos {
         });
 
         RVEFinalizeSolutionStep();
+        RVEWriteCoords();
+        RVEWriteForceParticles();
+        RVEWriteForceContacts();
 
         //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
         KRATOS_CATCH("")
@@ -3029,25 +3032,7 @@ namespace Kratos {
       }
 
       if (true) { //(r_process_info[POST_WRITE_COORDINATES_LAST]) {
-        mRVE_FileCoordinatesLast.open("rve_coordinates_last.txt", std::ios::out | std::ios::trunc);
-        mRVE_FileCoordinatesLast << "LINE 1: WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
-        mRVE_FileCoordinatesLast << "NEXT LINES: R X Y";
-        mRVE_FileCoordinatesLast << std::endl;
-
-        const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
-        const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
-        const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
-        const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
-        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << x1 << " " << y1 << " " << x2 << " " << y2 << " " << x3 << " " << y3 << " " << x4 << " " << y4 << std::endl;
-
-        const int number_of_particles = (int)mListOfSphericParticles.size();
-        for (int i = 0; i < number_of_particles; i++) {
-          const double r = mListOfSphericParticles[i]->GetRadius();
-          const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
-          const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-          mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << r << " " << x << " " << y << std::endl;
-        }
-        mRVE_FileCoordinatesLast.close();
+        //RVEWriteCoords();
       }
 
       if (mRVE_FilePorosity.is_open()) {
@@ -3097,22 +3082,11 @@ namespace Kratos {
       }
 
       if (true) { //(mRVE_FileElasticContactForces.is_open()) {
-        mRVE_FileElasticContactForces.open("rve_force_particles.txt", std::ios::out | std::ios::trunc);
-        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
-          const int id = mListOfSphericParticles[i]->Id();
-          const int n_neighbors = mListOfSphericParticles[i]->mNeighbourElements.size();
-          mRVE_FileElasticContactForces << std::defaultfloat << id << " " << n_neighbors << " ";
-          for (int j = 0; j < n_neighbors; j++) {
-            array_1d<double, 3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
-            mRVE_FileElasticContactForces << std::fixed << std::setprecision(16) << force[0] << " " << force[1] << " " << force[2] << " ";
-          }
-          mRVE_FileElasticContactForces << std::endl;
-        }
-        mRVE_FileElasticContactForces.close();
+        //RVEWriteForceParticles();
       }
 
       if (true) {
-        RVEWriteForces();
+        //RVEWriteForceContacts();
       }
 
       if (mRVE_FileRoseDiagram.is_open()) {
@@ -3310,10 +3284,72 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEWriteForces(void) {
-      ModelPart&   r_dem_model_part = GetModelPart();
+    void ExplicitSolverStrategy::RVEWriteCoords(void) {
+      ModelPart& r_dem_model_part = GetModelPart();
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
-      const double time = r_process_info[TIME];
+      const int time_step  = r_process_info[TIME_STEPS];
+      const int write_freq = 1000;
+      if (time_step % write_freq != 0.0)
+        return;
+
+      mRVE_FileCoordinatesLast.open("rve_coordinates_last.txt", std::ios::out | std::ios::trunc);
+      mRVE_FileCoordinatesLast << "LINE 1: WALL_X_LOW_LEFT WALL_Y_LOW_LEFT WALL_X_LOW_RIGHT WALL_Y_LOW_RIGHT WALL_X_UP_RIGHT WALL_Y_UP_RIGHT WALL_X_UP_LEFT WALL_Y_UP_LEFT | ";
+      mRVE_FileCoordinatesLast << "NEXT LINES: R X Y";
+      mRVE_FileCoordinatesLast << std::endl;
+
+      if (mRVE_CornerCoordsX.empty() || mRVE_CornerCoordsY.empty()) {
+        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << std::endl;
+      }
+      else {
+        const double x1 = mRVE_CornerCoordsX[0]; const double y1 = mRVE_CornerCoordsY[0];
+        const double x2 = mRVE_CornerCoordsX[1]; const double y2 = mRVE_CornerCoordsY[1];
+        const double x3 = mRVE_CornerCoordsX[2]; const double y3 = mRVE_CornerCoordsY[2];
+        const double x4 = mRVE_CornerCoordsX[3]; const double y4 = mRVE_CornerCoordsY[3];
+        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << x1 << " " << y1 << " " << x2 << " " << y2 << " " << x3 << " " << y3 << " " << x4 << " " << y4 << std::endl;
+      }
+
+      const int number_of_particles = (int)mListOfSphericParticles.size();
+      for (int i = 0; i < number_of_particles; i++) {
+        const double r = mListOfSphericParticles[i]->GetRadius();
+        const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+        const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+        mRVE_FileCoordinatesLast << std::fixed << std::setprecision(16) << r << " " << x << " " << y << std::endl;
+      }
+      mRVE_FileCoordinatesLast.close();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEWriteForceParticles(void) {
+      ModelPart& r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const int time_step  = r_process_info[TIME_STEPS];
+      const int write_freq = 1000;
+      if (time_step % write_freq != 0.0)
+        return;
+
+      mRVE_FileElasticContactForces.open("rve_force_particles.txt", std::ios::out | std::ios::trunc);
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        const int id = mListOfSphericParticles[i]->Id();
+        const int n_neighbors = mListOfSphericParticles[i]->mNeighbourElements.size();
+        mRVE_FileElasticContactForces << std::defaultfloat << id << " " << n_neighbors << " ";
+        for (int j = 0; j < n_neighbors; j++) {
+          array_1d<double, 3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
+          mRVE_FileElasticContactForces << std::fixed << std::setprecision(16) << force[0] << " " << force[1] << " " << force[2] << " ";
+        }
+        mRVE_FileElasticContactForces << std::endl;
+      }
+      mRVE_FileElasticContactForces.close();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEWriteForceContacts(void) {
+      ModelPart& r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+      const double time    = r_process_info[TIME];
+      const int time_step  = r_process_info[TIME_STEPS];
+      const int write_freq = 20000;
+      if (time_step % write_freq != 0.0)
+        return;
 
       std::ofstream file;
       file.open("rve_force_chain.txt", std::ios::out | std::ios::trunc);
