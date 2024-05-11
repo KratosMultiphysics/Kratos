@@ -3347,7 +3347,7 @@ namespace Kratos {
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
       const double time    = r_process_info[TIME];
       const int time_step  = r_process_info[TIME_STEPS];
-      const int write_freq = 20000;
+      const int write_freq = 1000;
       if (time_step % write_freq != 0.0)
         return;
 
