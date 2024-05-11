@@ -54,6 +54,8 @@ public:
 
     ContainerExpression<ModelPart::NodesContainerType> CalculateGradient() const;
 
+    ContainerExpression<ModelPart::ElementsContainerType> GetClusterSizes() const;
+
     ///@}
 
 private:

@@ -21,6 +21,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "input_output/vtu_output.h"
 
 // Application includes
 #include "custom_utilities/smooth_clamper.h"
@@ -50,8 +51,8 @@ SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
         return domain_size;
     });
     const double total_domain_size = pSensorMaskKDTree->GetSensorMaskStatus()->GetDataCommunicator().SumAll(local_domain_size);
-    block_for_each(mDomainSizeRatio, [total_domain_size](auto& rValue) {
-        rValue /= total_domain_size;
+    block_for_each(mDomainSizeRatio, [total_domain_size, AllowedDissimilarity](auto& rValue) {
+        rValue /= (total_domain_size * AllowedDissimilarity);
     });
 
     mClusterSizes.resize(r_container.size());
@@ -72,6 +73,31 @@ double SensorLocalizationResponseUtils::CalculateValue()
     // we have all the neighbours within the radius = mAllowedDissimilarity, but not the neighbours with mAllowedDissimilarity). All other elements which has distance >= mAllowedDissimilarity
     // are not relevant since the clamper will anyways make those contribution to zero.
     mpSensorMaskStatusKDTree->GetEntitiesWithinRadius(mNeighbourIndices, mNeighbourSquareDistances, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskStatuses(), mAllowedDissimilarity - std::numeric_limits<double>::epsilon());
+
+    // VtuOutput vtu_output(mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskModelPart());
+    // for (IndexType i = 0; i < number_of_elements; ++i) {
+    //     auto p_expression = LiteralFlatExpression<double>::Create(number_of_elements, {});
+
+    //     IndexPartition<IndexType>(number_of_elements).for_each([&](const auto Index){
+    //         *(p_expression->begin() + Index) = 0.0;
+    //     });
+
+    //     const auto& r_neighbour_indices = mNeighbourIndices[i];
+    //     IndexPartition<IndexType>(r_neighbour_indices.size()).for_each([&](const auto Index){
+    //         *(p_expression->begin() + r_neighbour_indices[Index]) = mNeighbourSquareDistances[i][Index];
+    //     });
+
+    //     // *(p_expression->begin() + i)=.0;
+    //     std::stringstream name;
+    //     name << "element_" << (mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskModelPart().Elements().begin() + i)->Id();
+    //     ContainerExpression<ModelPart::ElementsContainerType> result(mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskModelPart());
+    //     result.SetExpression(p_expression);
+    //     vtu_output.AddContainerExpression<ModelPart::ElementsContainerType>(name.str(), result.Clone());
+    // }
+
+    // vtu_output.PrintOutput("test");
+
+    // std::exit(-1);
 
     // TODO: this will calculate some repeated cluster sizes. Try to avoid them in future.
     const auto local_value = IndexPartition<IndexType>(number_of_elements).for_each<SumReduction<double>>([&](const auto iElement) {
@@ -128,6 +154,24 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     });
 
     ContainerExpression<ModelPart::NodesContainerType> result(r_mask_status.GetSensorModelPart());
+    result.SetExpression(p_expression);
+    return result;
+
+    KRATOS_CATCH("");
+}
+
+ContainerExpression<ModelPart::ElementsContainerType> SensorLocalizationResponseUtils::GetClusterSizes() const
+{
+    KRATOS_TRY
+
+    auto p_expression = LiteralFlatExpression<double>::Create(mClusterSizes.size(), {});
+    auto& r_expression = *p_expression;
+
+    IndexPartition<IndexType>(mClusterSizes.size()).for_each([&](const auto Index) {
+        *(r_expression.begin() + Index) = std::log(mClusterSizes[Index]) / mBeta;
+    });
+
+    ContainerExpression<ModelPart::ElementsContainerType> result(mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetMaskModelPart());
     result.SetExpression(p_expression);
     return result;
 

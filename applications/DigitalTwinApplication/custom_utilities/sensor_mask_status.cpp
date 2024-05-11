@@ -44,6 +44,7 @@ SensorMaskStatus<TContainerType>::SensorMaskStatus(
         << mpSensorModelPart->NumberOfNodes() << ", number of masks = "
         << rMasksList.size() << " ].";
 
+    mpMaskModelPart = &*(rMasksList.front().pGetModelPart());
     mpMaskContainer = &(rMasksList.front().GetContainer());
     mpDataCommunicator = &(rMasksList.front().GetModelPart().GetCommunicator().GetDataCommunicator());
 
@@ -90,6 +91,12 @@ template<class TContainerType>
 const TContainerType& SensorMaskStatus<TContainerType>::GetMaskLocalContainer() const
 {
     return *mpMaskContainer;
+}
+
+template<class TContainerType>
+ModelPart& SensorMaskStatus<TContainerType>::GetMaskModelPart()
+{
+    return *mpMaskModelPart;
 }
 
 template<class TContainerType>

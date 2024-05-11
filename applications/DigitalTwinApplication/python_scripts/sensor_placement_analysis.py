@@ -163,5 +163,16 @@ class SensorPlacementAnalysis:
         else:
             normalized_filtered_exp = filtered_exp.Clone()
         mask_exp = KratosDT.MaskUtils.GetMask(normalized_filtered_exp)
-        sensor_view.AddAuxiliaryExpression("normalized_filtered", normalized_filtered_exp)
+        sensor_view.AddAuxiliaryExpression("normalized_filtered", normalized_filtered_exp.Clone())
+
+        normalized_filtered_threshold = KratosDT.MaskUtils.GetMaskThreshold(normalized_filtered_exp)
+        if isinstance(normalized_filtered_exp, Kratos.Expression.NodalExpression):
+            smooth_normalized_filtered_exp = KratosDT.NodeSmoothClamper(0, 1.0).Clamp(normalized_filtered_exp / normalized_filtered_threshold)
+        elif isinstance(normalized_filtered_exp, Kratos.Expression.ConditionExpression):
+            smooth_normalized_filtered_exp = KratosDT.ConditionSmoothClamper(0, 1.0).Clamp(normalized_filtered_exp / normalized_filtered_threshold)
+        elif isinstance(normalized_filtered_exp, Kratos.Expression.ElementExpression):
+            smooth_normalized_filtered_exp = KratosDT.ElementSmoothClamper(0, 1.0).Clamp(normalized_filtered_exp / normalized_filtered_threshold)
+        else:
+            raise RuntimeError("Unsupported expression type.")
+        sensor_view.AddAuxiliaryExpression("normalized_filtered_smooth_clamped", smooth_normalized_filtered_exp)
         sensor_view.AddAuxiliaryExpression("mask", mask_exp)

@@ -88,6 +88,7 @@ public:
      */
     const TContainerType& GetMaskLocalContainer() const;
 
+    ModelPart& GetMaskModelPart();
 
     /**
      * @brief Get the Data Communicator used in the mask model part.
@@ -106,6 +107,8 @@ private:
     ///@{
 
     ModelPart * const mpSensorModelPart;
+
+    ModelPart * mpMaskModelPart;
 
     TContainerType const * mpMaskContainer;
 

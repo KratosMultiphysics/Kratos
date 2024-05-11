@@ -69,6 +69,18 @@ public:
         const ContainerExpression<TContainerType>& rScalarExpression);
 
     /**
+     * @brief Get the Mask Threshold
+     * @details The mask threshold is computed such that the given scalar expression
+     *          is aligned to the mask with minimum cosine distance
+     *
+     * @tparam TContainerType                           Container type.
+     * @param rScalarExpression                         Input scalar expression.
+     * @return double                                   Mask threshold
+     */
+    template<class TContainerType>
+    static double GetMaskThreshold(const ContainerExpression<TContainerType>& rScalarExpression);
+
+    /**
      * @brief Get the Mask for the given scalar expression using the threshold.
      *
      * The mask is computed such that all the entity values in the scalar expression

@@ -129,6 +129,58 @@ ContainerExpression<TContainerType> MaskUtils::GetMask(
 }
 
 template<class TContainerType>
+double MaskUtils::GetMaskThreshold(const ContainerExpression<TContainerType>& rScalarExpression)
+{
+    KRATOS_TRY
+
+    const auto& r_input_expression = rScalarExpression.GetExpression();
+    const auto number_of_entities = r_input_expression.NumberOfEntities();
+
+    KRATOS_ERROR_IF_NOT(r_input_expression.GetItemComponentCount() == 1)
+        << "rScalarExpression should be a scalar expression. [ shape of the given expression = "
+        << r_input_expression.GetItemShape() << " ].\n";
+
+    struct Data
+    {
+        IndexType mIndex;
+        double mValue;
+        bool operator<(const Data& rRight) const { return mValue < rRight.mValue; }
+    };
+
+    std::vector<Data> index_value_pairs_vector;
+    index_value_pairs_vector.resize(number_of_entities);
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&index_value_pairs_vector, &r_input_expression](const auto Index) {
+        index_value_pairs_vector[Index].mIndex = Index;
+        index_value_pairs_vector[Index].mValue = r_input_expression.Evaluate(Index, Index, 0);
+    });
+
+    // now sort expression values
+    std::sort(index_value_pairs_vector.begin(), index_value_pairs_vector.end(), [](const auto& rV1, const auto& rV2){
+        return rV1.mValue > rV2.mValue;
+    });
+
+    // now find the coverage
+    const auto& r_data = IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<Data>>([&index_value_pairs_vector](const auto Index){
+        const double current_sum = std::accumulate(index_value_pairs_vector.begin(), index_value_pairs_vector.begin() + Index + 1, 0.0, [](const auto& rValue, const auto& rIndexValuePair) {
+                                                return rValue + rIndexValuePair.mValue;
+                                            });
+        return Data{Index, current_sum / std::sqrt(Index + 1)};
+    });
+
+    if (r_data.mIndex < number_of_entities - 1) {
+        const auto threshold_value_index_1 = index_value_pairs_vector[r_data.mIndex].mIndex;
+        const auto threshold_value_index_2 = index_value_pairs_vector[r_data.mIndex + 1].mIndex;
+        return 0.5 * (r_input_expression.Evaluate(threshold_value_index_1, threshold_value_index_1, 0) + r_input_expression.Evaluate(threshold_value_index_2, threshold_value_index_2, 0));
+    } else {
+        const auto threshold_value_index = index_value_pairs_vector[r_data.mIndex].mIndex;
+        return r_input_expression.Evaluate(threshold_value_index, threshold_value_index, 0);
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
 ContainerExpression<TContainerType> MaskUtils::GetMask(
     const ContainerExpression<TContainerType>& rScalarExpression,
     const double Threshold)
@@ -374,6 +426,8 @@ std::vector<IndexType> MaskUtils::GetMasksDividingReferenceMask(
     template std::size_t MaskUtils::GetMaskSize(                                                                                             \
         const ContainerExpression<CONTAINER_TYPE>&, const IndexType);                                                                        \
     template ContainerExpression<CONTAINER_TYPE> MaskUtils::GetMask(                                                                         \
+        const ContainerExpression<CONTAINER_TYPE>&);                                                                                         \
+    template double MaskUtils::GetMaskThreshold(                                                                                             \
         const ContainerExpression<CONTAINER_TYPE>&);                                                                                         \
     template ContainerExpression<CONTAINER_TYPE> MaskUtils::GetMask(                                                                         \
         const ContainerExpression<CONTAINER_TYPE>&, const double);                                                                           \

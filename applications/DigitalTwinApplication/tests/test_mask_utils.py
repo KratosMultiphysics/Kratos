@@ -78,6 +78,11 @@ class TestMaskUtils(UnitTest.TestCase):
         mask = KratosDT.MaskUtils.GetMask(values)
         Kratos.Expression.VariableExpressionIO.Write(mask, Kratos.TEMPERATURE, False)
 
+        mask_threshold = KratosDT.MaskUtils.GetMaskThreshold(values)
+        print(mask_threshold)
+        mask_1 = KratosDT.MaskUtils.GetMask(values, mask_threshold)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mask - mask_1), 0.0)
+
         for node in self.model_part.Nodes:
             self.assertEqual(node.GetValue(Kratos.TEMPERATURE), node.Id % 2)
 
