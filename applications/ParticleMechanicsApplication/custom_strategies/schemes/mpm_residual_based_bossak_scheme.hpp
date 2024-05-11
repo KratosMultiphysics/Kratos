@@ -307,6 +307,18 @@ public:
             auto it_elem = el_begin + k;
             it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo); //RESPROJ_DISPL
         } 
+
+
+
+        for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+          it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+        const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
+        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse; 
+
+        }
         }
 
 
