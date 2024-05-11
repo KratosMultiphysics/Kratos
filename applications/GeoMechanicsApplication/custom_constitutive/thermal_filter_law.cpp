@@ -31,18 +31,14 @@ ConstitutiveLaw::Pointer GeoThermalFilterLaw::Clone() const
     return Kratos::make_shared<GeoThermalFilterLaw>(*this);
 }
 
-SizeType GeoThermalFilterLaw::WorkingSpaceDimension() { return mNumberOfDimensions; }
+SizeType GeoThermalFilterLaw::WorkingSpaceDimension() { return 1; }
 
-Matrix GeoThermalFilterLaw::CalculateThermalFilterMatrix(const Properties&  rProp,
-                                                                 const ProcessInfo& rProcessInfo) const
+Matrix GeoThermalFilterLaw::CalculateThermalFilterMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
 
-    Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
-
-    const auto x = static_cast<int>(indexThermalFlux::X);
-    result(x, x) = rProp[THERMAL_CONDUCTIVITY_WATER];
-
+    Matrix result = ZeroMatrix(1, 1);
+    result(0, 0) = rProp[THERMAL_CONDUCTIVITY_WATER];
     return result;
 
     KRATOS_CATCH("")
