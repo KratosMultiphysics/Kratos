@@ -2982,7 +2982,7 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEReadOldForces(void) {
       std::fstream f_old_elastic_forces;
-      f_old_elastic_forces.open("rve_force_particles.txt", std::ios::in);
+      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
       if (!f_old_elastic_forces)
         return;
 
