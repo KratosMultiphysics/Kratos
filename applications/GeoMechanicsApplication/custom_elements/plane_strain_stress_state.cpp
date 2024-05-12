@@ -15,7 +15,7 @@
 namespace Kratos
 {
 
-Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rGradNpT, const Vector&, const Geometry<Node>& rGeometry) const
+Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector&, const Geometry<Node>& rGeometry) const
 {
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
@@ -24,10 +24,10 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rGradNpT, const Ve
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, offset + INDEX_X) = rGradNpT(i, INDEX_X);
-        result(INDEX_2D_PLANE_STRAIN_YY, offset + INDEX_Y) = rGradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_X) = rGradNpT(i, INDEX_Y);
-        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_Y) = rGradNpT(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_XX, offset + INDEX_X) = rDN_DX(i, INDEX_X);
+        result(INDEX_2D_PLANE_STRAIN_YY, offset + INDEX_Y) = rDN_DX(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_X) = rDN_DX(i, INDEX_Y);
+        result(INDEX_2D_PLANE_STRAIN_XY, offset + INDEX_Y) = rDN_DX(i, INDEX_X);
     }
 
     return result;

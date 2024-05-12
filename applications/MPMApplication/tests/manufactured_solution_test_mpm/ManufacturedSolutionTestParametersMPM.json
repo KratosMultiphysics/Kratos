@@ -1,0 +1,54 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "beam",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "MPM_Material",
+        "domain_size"                     : 2,
+        "echo_level"                      : 1,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "TO_BE_DEFINED_IN_TEST_FILE_Body"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "ManufacturedSolutionTestMaterialsMPM.json"
+        },
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 1000,
+        "grid_model_import_settings"      : {
+            "input_type"     : "mdpa",
+            "input_filename" : "TO_BE_DEFINED_IN_TEST_FILE_Grid"
+        },
+        "pressure_dofs"                   : true,
+        "stabilization"                   : "to_be_defined",
+        "linear_solver_settings"          : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        },
+        "auxiliary_variables_list"        : ["NORMAL","IS_STRUCTURE","BODY_FORCE"]
+    },
+    "processes"        : {
+        "constraints_process_list"     : [],
+        "loads_process_list"           : [],
+        "list_other_processes"         : [],
+        "initial_conditions_processes" : [],
+        "gravity"                      : []
+    },
+    "output_processes" : {
+        "gid_output_processes" : [],
+        "vtk_output_processes" : []
+    },
+    "analysis_stage"   : "KratosMultiphysics.MPMApplication.particle_mechanics_analysis"
+}

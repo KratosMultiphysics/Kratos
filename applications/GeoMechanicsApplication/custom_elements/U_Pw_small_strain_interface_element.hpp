@@ -45,8 +45,10 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    /// Default Constructor
-    UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainInterfaceElement(IndexType NewId = 0)
+        : UPwBaseElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
@@ -164,10 +166,10 @@ protected:
 
         double                                                    IntegrationCoefficient;
         double                                                    JointWidth;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UMatrix;
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PMatrix;
+        BoundedMatrix<double, TNumNodes, TNumNodes>               PPMatrix;
         BoundedMatrix<double, TDim, TDim>                         DimMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TDim>             UDimMatrix;
         BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
@@ -210,8 +212,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     virtual void InitializeElementVariables(InterfaceElementVariables& rVariables,
                                             const GeometryType&        Geom,
@@ -293,9 +295,7 @@ protected:
                                     unsigned int               GPoint);
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
-
-    void CalculateSoilDensity(InterfaceElementVariables& rVariables);
-
+    
     void SetConstitutiveParameters(InterfaceElementVariables&   rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 

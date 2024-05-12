@@ -27,9 +27,7 @@
 #include "includes/define_python.h"
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
-#include "custom_python/add_custom_controls_to_python.h"
 #include "custom_python/add_custom_responses_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_response_utilities_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -52,8 +50,6 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
         ;
 
     AddCustomResponsesToPython(m);
-    AddCustomControlsToPython(m);
-    AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
     AddCustomFiltersToPython(m);
@@ -175,6 +171,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SCALAR );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SCALAR_SOURCE );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_RADIUS );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_SOLVERS_USING_NODES);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VECTOR);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VECTOR_SOURCE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_STRAIN_ENERGY );

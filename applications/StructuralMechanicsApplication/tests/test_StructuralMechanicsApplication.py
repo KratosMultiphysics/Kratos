@@ -28,6 +28,7 @@ from test_set_moving_load_process import TestSetMovingLoadProcess as TTestSetMov
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_small_displacement_mixed_volumetric_strain import TestPatchTestSmallDisplacementMixedVolumetricStrain as TTestPatchTestSmallDisplacementMixedVolumetricStrain
+from test_patch_test_small_displacement_shifted_boundary import TestPatchTestSmallDisplacementShiftedBoundary as TestPatchTestSmallDisplacementShiftedBoundary
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -96,6 +97,7 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -154,6 +156,7 @@ from structural_mechanics_test_factory import Simple3D2NTrussNonLinearTensionPla
 from structural_mechanics_test_factory import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T3D2NBeamCrNonLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
+from structural_mechanics_test_factory import SimpleSemiRigid3D2NBeamCrLinearTest as T3D2NBeamCrLinearSemiRigidTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest as T3D2NNLDispCtrlTest
@@ -278,6 +281,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallDisplacementMixedVolumetricStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestSmallDisplacementShiftedBoundary]))
     # Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
@@ -339,6 +343,7 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
@@ -388,6 +393,7 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
+    nightSuite.addTest(T3D2NBeamCrLinearSemiRigidTest('test_execution'))
     nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
     # Shell tests
     nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))

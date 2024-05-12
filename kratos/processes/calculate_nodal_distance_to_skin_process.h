@@ -25,8 +25,69 @@ namespace Kratos
 ///@addtogroup Kratos Core
 ///@{
 
+///@}
 ///@name Kratos Classes
 ///@{
+
+/**
+ * @class NodalValueRetrieverBaseClass
+ * @ingroup KratosCore
+ * @brief A class for retrieving nodal values (base dummy class).
+ * @details This class provides methods to retrieve nodal values. This is a dummy class to be specialized
+ */
+class NodalValueRetrieverBaseClass
+{
+public:
+    // Default Constructor
+    NodalValueRetrieverBaseClass() = default;
+
+    // Default Destructor
+    virtual ~NodalValueRetrieverBaseClass() = default;
+
+    /**
+     * @brief This method gets the current value of the rVariable
+     * @param rNode The node iterator to be get
+     * @param rVariable The variable to be get
+     * @return The value of the variable
+     */
+    virtual double& GetValue(
+        Node& rNode,
+        const Variable<double>& rVariable
+        )
+    {
+        KRATOS_ERROR << "This method is not implemented" << std::endl;
+    }
+};
+
+/**
+ * @class NodalValueRetriever
+ * @ingroup KratosCore
+ * @brief A class for retrieving nodal values.
+ * @details This class provides methods to retrieve nodal values.
+ * @tparam THistorical If the variable is part of the historical database of from the non-historical database
+ */
+template<bool THistorical = true>
+class KRATOS_API(KRATOS_CORE) NodalValueRetriever
+    : public NodalValueRetrieverBaseClass
+{
+public:
+    // Default Constructor
+    NodalValueRetriever() = default;
+
+    // Default Destructor
+    ~NodalValueRetriever() override = default;
+
+    /**
+     * @brief This method gets the current value of the rVariable
+     * @param rNode The node iterator to be get
+     * @param rVariable The variable to be get
+     * @return The value of the variable
+     */
+    double& GetValue(
+        Node& rNode,
+        const Variable<double>& rVariable
+        ) override;
+};
 
 /**
  * @class CalculateNodalDistanceToSkinProcess
@@ -48,21 +109,6 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Construct a new Calculate Nodal Distance To Skin Process object
-     * @details This constructor considers the model parts of the volume and skin
-     * @param rVolumeModelPart Model part containing the volume elements
-     * @param rSkinModelPart Model part containing the skin to compute the distance to as conditions
-     * @param HistoricalVariable If the variable is part of the historical database of from the non-historical database
-     * @param rDistanceVariableName The distance variable considered
-     */
-    CalculateNodalDistanceToSkinProcess(
-        ModelPart& rVolumeModelPart,
-        ModelPart& rSkinModelPart,
-        const bool HistoricalVariable = true,
-        const std::string& rDistanceVariableName = ""
-        );
 
     /**
      * @brief Construct a new Calculate Nodal Distance To Skin Process object
@@ -140,11 +186,20 @@ private:
     /// Reference to the skin model part.
     ModelPart& mrSkinModelPart;
 
-    /// Flag indicating whether historical variable is enabled.
-    bool mHistoricalVariable;
-
     /// Pointer to the distance variable.
     const Variable<double>* mpDistanceVariable = &DISTANCE;
+
+    /// Pointer to the skin saved distance variable.
+    const Variable<double>* mpSkinDistanceVariable = &DISTANCE;
+
+    /// The flag to check if the distance is saved in the skin
+    Flags mIdVisitedFlag = VISITED;
+
+    /// This flag is used in order to check if the values are historical
+    bool mHistoricalValue = true;
+
+    /// This flag is used in order to save the highest distance in the found geometries of the skin
+    bool mSaveDistanceInSkin = false;
 
     ///@}
     ///@name Private Operators

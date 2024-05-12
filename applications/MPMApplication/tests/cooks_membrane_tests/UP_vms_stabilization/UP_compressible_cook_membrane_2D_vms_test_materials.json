@@ -1,0 +1,1 @@
+{"properties":[{"Material":{"Tables":{},"Variables":{"DENSITY":1.0,"MATERIAL_POINTS_PER_ELEMENT":3,"POISSON_RATIO":0.3,"THICKNESS":1.0,"YOUNG_MODULUS":250.0},"constitutive_law":{"name":"HyperElasticNeoHookeanPlaneStrainUP2DLaw"}},"model_part_name":"Initial_MPM_Material.Parts_Material_domain_Hyperelastic","properties_id":1}]}
