@@ -57,14 +57,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( GeometricalProjectionUtilities );
 
     // Some geometrical definitions
-    typedef Node                                              NodeType;
-    typedef Point                                               PointType;
+    using PointType = Point;
 
     /// Index type definition
-    typedef std::size_t                                         IndexType;
+    using IndexType = std::size_t;
 
     /// Size type definition
-    typedef std::size_t                                          SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -310,7 +309,7 @@ public:
         double DeltaXi = 0.5
         )
     {
-//         rResultingPoint.clear();
+        //rResultingPoint.clear();
 
         double old_delta_xi = 0.0;
 
