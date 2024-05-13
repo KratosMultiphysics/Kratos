@@ -31,7 +31,7 @@ public:
 
     GeoThermalFilterLaw();
 
-    explicit GeoThermalFilterLaw(std::size_t NumberOfDimensions);
+    explicit GeoThermalFilterLaw(SizeType NumberOfDimensions);
 
     ConstitutiveLaw::Pointer Clone() const override;
 

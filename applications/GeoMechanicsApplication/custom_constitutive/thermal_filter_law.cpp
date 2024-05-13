@@ -19,7 +19,7 @@ namespace Kratos
 
 GeoThermalFilterLaw::GeoThermalFilterLaw() : mNumberOfDimensions{1} {}
 
-GeoThermalFilterLaw::GeoThermalFilterLaw(std::size_t NumberOfDimensions)
+GeoThermalFilterLaw::GeoThermalFilterLaw(SizeType NumberOfDimensions)
     : mNumberOfDimensions{NumberOfDimensions}
 {
     KRATOS_ERROR_IF(mNumberOfDimensions != 1)
