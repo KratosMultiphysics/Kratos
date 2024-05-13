@@ -707,7 +707,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(
     global_values[7] = r_displ_2[1];
     global_values[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
 
-    // We rotate to local axes
+    // We rotate to local tangent s,y axes
     noalias(rNodalValues) = prod(trans(global_size_T), global_values);
 }
 
