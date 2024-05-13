@@ -1,8 +1,8 @@
-# Test Cases for Water Pore Pressure Line Element
+# Test Cases for Water Pore Pressure Point Flux
 
 **Author:** [Mohamed Nabi](https://github.com/mnabideltares)
 
-**Source files:** [Water pore pressure line element](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_pressure_line_element)
+**Source files:** [Water pore pressure point flux](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_pressure_point_flux)
 
 ## Case Specification
 In this water-pressure test case, a 3 [m] deep soil is considered, with everywhere set to 10 $\mathrm{[Pa]}$ as initial condition. Then the top boundary is set to 0 $\mathrm{[Pa]}$ and a water flux of 100 \mathrm{[W/m^2]}$ is imposed at the bottom boundary. The simulation spans 50 hours to allow for a transition from the intial condition to a linear pressure profile along the depth. This test is conducted for various configurations, including 2D2N, 2D3N, 2D4N, 2D5N, 3D2N and 3D3N line elements. The pressure distribution along the depth is then evaluated with its analytical results.
