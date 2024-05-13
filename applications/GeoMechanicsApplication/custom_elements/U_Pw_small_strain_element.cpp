@@ -1175,12 +1175,11 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor
     const PropertiesType& rProp = this->GetProperties();
 
     if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-        const double          InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-        StressStrainUtilities EquivalentStress;
-        const double          epsV      = EquivalentStress.CalculateTrace(rVariables.StrainVector);
-        const double          ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
-        const double          eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
-        const double          permLog10 = (eCurrent - ePrevious) * InverseCK;
+        const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+        const double epsV      = StressStrainUtilities::CalculateTrace(rVariables.StrainVector);
+        const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
+        const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+        const double permLog10 = (eCurrent - ePrevious) * InverseCK;
         return std::pow(10.0, permLog10);
     }
 
