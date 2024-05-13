@@ -37,8 +37,7 @@ Matrix GeoThermalFilterLaw::CalculateThermalFilterMatrix(const Properties& rProp
 {
     KRATOS_TRY
 
-    auto result = ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
-    return result;
+    return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
 
     KRATOS_CATCH("")
 }
