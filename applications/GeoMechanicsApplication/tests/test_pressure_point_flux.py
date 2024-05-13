@@ -18,7 +18,7 @@ class KratosGeoMechanicsTransientPressurePointFluxTests(KratosUnittest.TestCase)
         pass
         
     def check_water_pressure(self, test_name, etalon_value):
-        file_path = test_helper.get_file_path(os.path.join('test_pressure_line_element', test_name))
+        file_path = test_helper.get_file_path(os.path.join('test_pressure_point_flux', test_name))
         simulation = test_helper.run_kratos(file_path)
         pressure = test_helper.get_water_pressure(simulation)
         self.assertAlmostEqual(etalon_value, pressure[2])
