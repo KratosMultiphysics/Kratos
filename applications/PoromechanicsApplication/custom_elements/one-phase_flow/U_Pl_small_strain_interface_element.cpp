@@ -199,7 +199,12 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const
 
     // Auxiliar output variables
     unsigned int NumGPoints = mConstitutiveLawVector.size();
-    std::vector<double> JointWidthContainer(NumGPoints);
+    
+    // Define the variables to compute the nodal values
+    ExtrapolationVariables MyExtrapolationVariables;
+    MyExtrapolationVariables.JointWidthContainer.resize(NumGPoints);
+    MyExtrapolationVariables.MidPlaneLiquidPressureContainer.resize(NumGPoints);
+    this->CalculateOnIntegrationPoints(MID_PLANE_LIQUID_PRESSURE, MyExtrapolationVariables.MidPlaneLiquidPressureContainer, rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -210,19 +215,19 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const
 
         noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
 
-        JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
+        MyExtrapolationVariables.JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
 
         this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], InitialJointWidth, GPoint);
 
         noalias(Np) = row(NContainer,GPoint);
 
-        //compute constitutive tensor and/or stresses
+        //Compute constitutive tensor and/or stresses
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
     }
 
     if(rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
-        this->ExtrapolateGPValues(JointWidthContainer);
+        this->ExtrapolateGPValues(MyExtrapolationVariables);
     }
 
     KRATOS_CATCH( "" )
@@ -231,7 +236,7 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const ExtrapolationVariables& MyExtrapolationVariables)
 {
     array_1d<double,2> DamageContainer; // 2 LobattoPoints
 
@@ -245,10 +250,16 @@ void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector
     const double& Area = rGeom.Area();
 
     array_1d<double,4> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0]*Area;
-    NodalJointWidth[1] = JointWidthContainer[1]*Area;
-    NodalJointWidth[2] = JointWidthContainer[1]*Area;
-    NodalJointWidth[3] = JointWidthContainer[0]*Area;
+    NodalJointWidth[0] = MyExtrapolationVariables.JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = MyExtrapolationVariables.JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = MyExtrapolationVariables.JointWidthContainer[1]*Area;
+    NodalJointWidth[3] = MyExtrapolationVariables.JointWidthContainer[0]*Area;
+
+    array_1d<double,4> NodalMidPlaneLiquidPressure;
+    NodalMidPlaneLiquidPressure[0] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalMidPlaneLiquidPressure[1] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalMidPlaneLiquidPressure[2] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalMidPlaneLiquidPressure[3] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
 
     array_1d<double,4> NodalDamage;
     NodalDamage[0] = DamageContainer[0]*Area;
@@ -260,6 +271,7 @@ void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) += NodalMidPlaneLiquidPressure[i];        
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -269,7 +281,7 @@ void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const std::vector
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const ExtrapolationVariables& MyExtrapolationVariables)
 {
     array_1d<double,3> DamageContainer; // 3 LobattoPoints
 
@@ -283,12 +295,20 @@ void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector
     const double& Area = rGeom.Area();
 
     array_1d<double,6> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0]*Area;
-    NodalJointWidth[1] = JointWidthContainer[1]*Area;
-    NodalJointWidth[2] = JointWidthContainer[2]*Area;
-    NodalJointWidth[3] = JointWidthContainer[0]*Area;
-    NodalJointWidth[4] = JointWidthContainer[1]*Area;
-    NodalJointWidth[5] = JointWidthContainer[2]*Area;
+    NodalJointWidth[0] = MyExtrapolationVariables.JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = MyExtrapolationVariables.JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = MyExtrapolationVariables.JointWidthContainer[2]*Area;
+    NodalJointWidth[3] = MyExtrapolationVariables.JointWidthContainer[0]*Area;
+    NodalJointWidth[4] = MyExtrapolationVariables.JointWidthContainer[1]*Area;
+    NodalJointWidth[5] = MyExtrapolationVariables.JointWidthContainer[2]*Area;
+
+    array_1d<double,6> NodalMidPlaneLiquidPressure;
+    NodalMidPlaneLiquidPressure[0] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalMidPlaneLiquidPressure[1] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalMidPlaneLiquidPressure[2] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
+    NodalMidPlaneLiquidPressure[3] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalMidPlaneLiquidPressure[4] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalMidPlaneLiquidPressure[5] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
 
     array_1d<double,6> NodalDamage;
     NodalDamage[0] = DamageContainer[0]*Area;
@@ -302,6 +322,7 @@ void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) += NodalMidPlaneLiquidPressure[i];        
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -311,7 +332,7 @@ void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const std::vector
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector<double>& JointWidthContainer)
+void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const ExtrapolationVariables& MyExtrapolationVariables)
 {
     array_1d<double,4> DamageContainer; // 4 LobattoPoints
 
@@ -325,14 +346,24 @@ void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector
     const double& Area = rGeom.Area();
 
     array_1d<double,8> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0]*Area;
-    NodalJointWidth[1] = JointWidthContainer[1]*Area;
-    NodalJointWidth[2] = JointWidthContainer[2]*Area;
-    NodalJointWidth[3] = JointWidthContainer[3]*Area;
-    NodalJointWidth[4] = JointWidthContainer[0]*Area;
-    NodalJointWidth[5] = JointWidthContainer[1]*Area;
-    NodalJointWidth[6] = JointWidthContainer[2]*Area;
-    NodalJointWidth[7] = JointWidthContainer[3]*Area;
+    NodalJointWidth[0] = MyExtrapolationVariables.JointWidthContainer[0]*Area;
+    NodalJointWidth[1] = MyExtrapolationVariables.JointWidthContainer[1]*Area;
+    NodalJointWidth[2] = MyExtrapolationVariables.JointWidthContainer[2]*Area;
+    NodalJointWidth[3] = MyExtrapolationVariables.JointWidthContainer[3]*Area;
+    NodalJointWidth[4] = MyExtrapolationVariables.JointWidthContainer[0]*Area;
+    NodalJointWidth[5] = MyExtrapolationVariables.JointWidthContainer[1]*Area;
+    NodalJointWidth[6] = MyExtrapolationVariables.JointWidthContainer[2]*Area;
+    NodalJointWidth[7] = MyExtrapolationVariables.JointWidthContainer[3]*Area;
+
+    array_1d<double,8> NodalMidPlaneLiquidPressure;
+    NodalJointWidth[0] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalJointWidth[1] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalJointWidth[2] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
+    NodalJointWidth[3] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[3]*Area;
+    NodalJointWidth[4] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalJointWidth[5] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalJointWidth[6] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
+    NodalJointWidth[7] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[3]*Area;
 
     array_1d<double,8> NodalDamage;
     NodalDamage[0] = DamageContainer[0]*Area;
@@ -348,6 +379,7 @@ void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const std::vector
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) += NodalMidPlaneLiquidPressure[i];        
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
