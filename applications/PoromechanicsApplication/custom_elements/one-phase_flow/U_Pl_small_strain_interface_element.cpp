@@ -422,8 +422,7 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         
         // Obtain the shape functions
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-        // const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = Geom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
+        
         // Vector containing the results at Lobatto Points
         std::vector<double> GPValues(NumGPoints);
 
