@@ -1182,9 +1182,9 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor
         const double          eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double          permLog10 = (eCurrent - ePrevious) * InverseCK;
         return pow(10.0, permLog10);
-    } else {
-        return 1.0;
     }
+
+    return 1.0;
 
     KRATOS_CATCH("")
 }
