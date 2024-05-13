@@ -39,11 +39,11 @@ public:
      * @name type definitions
      * @{
      */
-    using MatrixType          = Matrix;
-    using VectorType          = Vector;
-    using IndexType           = unsigned int;
-    using SizeType            = unsigned int;
-    using Fourth_Order_Tensor = DenseVector<DenseVector<Matrix>>;
+    using MatrixType            = Matrix;
+    using VectorType            = Vector;
+    using IndexType             = unsigned int;
+    using SizeType              = unsigned int;
+    using FourthOrderTensorType = DenseVector<DenseVector<Matrix>>;
 
     /**
      * @}
@@ -664,7 +664,7 @@ public:
         }
     }
 
-    static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor, Matrix& Matrix)
+    static inline void TensorToMatrix(FourthOrderTensorType& Tensor, Matrix& Matrix)
     {
         // Symmetric fourth order tensor:
         //  Cijkl = Cjilk
