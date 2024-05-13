@@ -1033,7 +1033,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.F            = this->CalculateDeformationGradient(GPoint);
             Variables.StrainVector = this->CalculateStrain(
                 Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
-            Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables);
+            Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
@@ -1319,7 +1319,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
-        Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables);
+        Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1590,7 +1590,7 @@ void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables
     KRATOS_CATCH("")
 }
 
-double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables) const
+double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const
 {
     KRATOS_TRY
 
@@ -1598,7 +1598,7 @@ double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(Element
 
     if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
         const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-        const double epsV      = StressStrainUtilities::CalculateTrace(rVariables.StrainVector);
+        const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
         const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
         const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double permLog10 = (eCurrent - ePrevious) * InverseCK;

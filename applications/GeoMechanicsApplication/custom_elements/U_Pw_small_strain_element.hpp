@@ -228,7 +228,7 @@ protected:
 
     void InitializeBiotCoefficients(ElementVariables& rVariables, bool hasBiotCoefficient = false);
 
-    double CalculatePermeabilityUpdateFactor(ElementVariables& rVariables) const;
+    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
