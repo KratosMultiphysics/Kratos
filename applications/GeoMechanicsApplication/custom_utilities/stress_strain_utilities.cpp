@@ -43,7 +43,8 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVecto
 
 double StressStrainUtilities::CalculateTrace(const Vector& rStressVector)
 {
-    const Matrix StressTensor = MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
+    const Matrix StressTensor =
+        MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     double trace = 0.0;
     for (std::size_t i = 0; i < StressTensor.size1(); ++i) {

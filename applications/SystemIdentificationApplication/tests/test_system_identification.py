@@ -18,7 +18,7 @@ class TestSystemIdentification(UnitTest.TestCase):
 
         data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
         ref_data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data_ref.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
-        self.assertMatrixAlmostEqual(data, ref_data, 9)
+        self.assertTrue(numpy.allclose(data, ref_data, 1e-12, 1e-12))
 
     def test_SystemIdentification(self):
         model = Kratos.Model()
