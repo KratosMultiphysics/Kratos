@@ -19,6 +19,11 @@
 
 namespace Kratos {
 
+ColorConnectedCellsInTouch::ColorConnectedCellsInTouch(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
+
 void ColorConnectedCellsInTouch::Apply() const
 {
     Parameters parameters = GetParameters();
@@ -50,6 +55,7 @@ void ColorConnectedCellsInTouch::Apply() const
     }
 }
 
+
 void ColorConnectedCellsInTouch::ApplyColorToConnectedCellsInTouchWithGeometry(
     const Geometry<Node>& rGeometry,
     const int InsideColor,
@@ -75,6 +81,7 @@ void ColorConnectedCellsInTouch::ApplyColorToConnectedCellsInTouchWithGeometry(
         }
     }
 }
+
 
 void ColorConnectedCellsInTouch::ColorConnectedCellsToThisCell(
     const std::size_t I,

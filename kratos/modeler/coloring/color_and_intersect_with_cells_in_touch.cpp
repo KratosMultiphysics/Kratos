@@ -20,6 +20,11 @@
 
 namespace Kratos {
 
+ColorAndIntersectWithCellsInTouch::ColorAndIntersectWithCellsInTouch(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
+
 void ColorAndIntersectWithCellsInTouch::Apply() const
 {
     auto parameters = GetParameters();
@@ -52,6 +57,7 @@ void ColorAndIntersectWithCellsInTouch::Apply() const
     }
 }
 
+
 Parameters ColorAndIntersectWithCellsInTouch::GetDefaultParameters() const {
     return Parameters(R"({
         "type" : "Undefined_coloring_type",
@@ -62,6 +68,7 @@ Parameters ColorAndIntersectWithCellsInTouch::GetDefaultParameters() const {
         "outside_color": 0
     })");
 }
+
 
 void ColorAndIntersectWithCellsInTouch::ApplyColorToCellsInTouchWithGeometryAndComputeIntersection(
     const Element::GeometryType& rGeometry,

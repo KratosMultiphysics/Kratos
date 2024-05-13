@@ -24,9 +24,9 @@ namespace Kratos {
 class ColorCellsWithCenterInSphereArounNodes: public VoxelMesherColoring {
 
 public:
-    ColorCellsWithCenterInSphereArounNodes(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
-        VoxelMesherColoring(rModeler, ColoringParameters)
-    {}
+    ColorCellsWithCenterInSphereArounNodes(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters);
+
+    ~ColorCellsWithCenterInSphereArounNodes() override = default;
 
     void Apply() const override;
 

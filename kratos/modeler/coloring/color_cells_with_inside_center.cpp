@@ -20,6 +20,11 @@
 
 namespace Kratos {
 
+ColorCellsWithInsideCenter::ColorCellsWithInsideCenter(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
+
 void ColorCellsWithInsideCenter::Apply() const
 {
     auto parameters = GetParameters();

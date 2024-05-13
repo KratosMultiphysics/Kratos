@@ -24,9 +24,9 @@ namespace Kratos {
 class ColorCellFaces: public VoxelMesherColoring {
 
 public:
-    ColorCellFaces(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
-        VoxelMesherColoring(rModeler, ColoringParameters)
-    {}
+    ColorCellFaces(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters);
+
+    ~ColorCellFaces() override = default;
 
     void Apply() const override;
 

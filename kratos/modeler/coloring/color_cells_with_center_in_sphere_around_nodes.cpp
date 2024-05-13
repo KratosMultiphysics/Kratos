@@ -21,6 +21,11 @@
 
 namespace Kratos {
 
+ColorCellsWithCenterInSphereArounNodes::ColorCellsWithCenterInSphereArounNodes(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
+
 void ColorCellsWithCenterInSphereArounNodes::Apply() const
 {
     const ModelPart& r_input_model_part = GetInputModelPart();

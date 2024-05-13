@@ -24,9 +24,9 @@ namespace Kratos {
 class ColorCellsWithInsideCenter: public VoxelMesherColoring {
 
 public:
-    ColorCellsWithInsideCenter(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
-        VoxelMesherColoring(rModeler, ColoringParameters)
-    {}
+    ColorCellsWithInsideCenter(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters);
+
+    ~ColorCellsWithInsideCenter() override = default;
 
     void Apply() const override;
 };

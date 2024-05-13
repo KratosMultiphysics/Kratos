@@ -24,9 +24,9 @@ namespace Kratos {
 class ColorOuterFacesOfCellsWithColors: public VoxelMesherColoring {
 
 public:
-    ColorOuterFacesOfCellsWithColors(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
-        VoxelMesherColoring(rModeler, ColoringParameters)
-    {}
+    ColorOuterFacesOfCellsWithColors(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters);
+
+    ~ColorOuterFacesOfCellsWithColors() override = default;
 
     void Apply() const override;
 

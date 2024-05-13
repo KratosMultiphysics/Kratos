@@ -20,6 +20,11 @@
 
 namespace Kratos {
 
+ColorCellFaces::ColorCellFaces(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
+
 void ColorCellFaces::Apply() const
 {
     auto parameters = GetParameters();

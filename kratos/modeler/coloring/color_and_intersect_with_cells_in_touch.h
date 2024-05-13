@@ -25,9 +25,9 @@ namespace Kratos {
 class ColorAndIntersectWithCellsInTouch: public VoxelMesherColoring {
 
 public:
-    ColorAndIntersectWithCellsInTouch(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
-        VoxelMesherColoring(rModeler, ColoringParameters)
-    {}
+    ColorAndIntersectWithCellsInTouch(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters);
+
+    ~ColorAndIntersectWithCellsInTouch() override = default;
 
     void Apply() const override;
 

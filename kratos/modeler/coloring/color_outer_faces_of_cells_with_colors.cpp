@@ -20,6 +20,10 @@
 
 namespace Kratos {
 
+ColorOuterFacesOfCellsWithColors::ColorOuterFacesOfCellsWithColors(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
 
 void ColorOuterFacesOfCellsWithColors::Apply() const
 {
@@ -45,6 +49,7 @@ void ColorOuterFacesOfCellsWithColors::Apply() const
         }
     }
 }
+
 
 void ColorOuterFacesOfCellsWithColors::ApplyColorIfOuterFace(
     const int InterfaceColor,

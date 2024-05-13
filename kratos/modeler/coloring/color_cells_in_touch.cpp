@@ -20,6 +20,11 @@
 
 namespace Kratos {
 
+ColorCellsInTouch::ColorCellsInTouch(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters):
+    VoxelMesherColoring(rModeler, ColoringParameters)
+{}
+
+
 void ColorCellsInTouch::Apply() const
 {
     auto parameters = GetParameters();
@@ -50,6 +55,7 @@ void ColorCellsInTouch::Apply() const
         KRATOS_ERROR << "The input_entities  " << parameters["input_entities"] << " is not supported. The supported input_entities are  elements and conditions" << std::endl;
     }
 }
+
 
 void ColorCellsInTouch::ApplyColorToCellsInTouchWithGeometry(
     const Geometry<Node>& rGeometry,
