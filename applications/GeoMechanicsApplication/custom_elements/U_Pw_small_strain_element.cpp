@@ -1561,6 +1561,22 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(const Matrix& rDe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                                                             const std::vector<Matrix>& rBs,
+                                                                             const Vector& rDisplacements,
+                                                                             bool UseHenckyStrain) const
+{
+    std::vector<Vector> result;
+    std::transform(
+        rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
+        [this, &rDisplacements, UseHenckyStrain](const auto& rDeformationGradient, const auto& rB) {
+        return CalculateStrain(rDeformationGradient, rB, rDisplacements, UseHenckyStrain);
+    });
+
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
 {
     return prod(rB, rDisplacements);
@@ -1570,6 +1586,30 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeterminantsOfDeformationGradients(
+    const std::vector<Matrix>& rDeformationGradients) const
+{
+    std::vector<double> result(rDeformationGradients.size());
+    std::transform(
+        rDeformationGradients.cbegin(), rDeformationGradients.cend(), result.begin(),
+        [](const auto& rDeformationGradient) { return MathUtils<>::Det(rDeformationGradient); });
+
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradients() const
+{
+    std::vector<Matrix> result;
+    for (unsigned int GPoint = 0;
+         GPoint < this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()); ++GPoint) {
+        result.push_back(CalculateDeformationGradient(GPoint));
+    }
+
+    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
