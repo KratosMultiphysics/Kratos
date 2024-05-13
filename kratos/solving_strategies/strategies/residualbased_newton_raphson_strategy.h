@@ -879,33 +879,24 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
-    Vector GetCurrentSolution(ModelPart &rModelPart){
-        int NumberOfNodes = rModelPart.NumberOfNodes();
-        int number_of_dofs_per_node = mNonconveregedVariablesToStore.size();
-        Vector a = ZeroVector(NumberOfNodes * number_of_dofs_per_node);
-        for (auto& node : rModelPart.Nodes()) {
-            for (int dof = 0; dof < number_of_dofs_per_node; ++dof) {
-                const auto& variable = KratosComponents<Variable<double>>::Get( mNonconveregedVariablesToStore.at(dof));
-            int index = (node.Id() - 1) * number_of_dofs_per_node + dof;
-            a[index] = node.GetSolutionStepValue(variable);
-                }
-            }
+    Vector GetCurrentSolution(auto &r_dof_set){
+        Vector a = ZeroVector(r_dof_set.size());
+        for (auto& r_dof : r_dof_set) {
+            a[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
+        }
         return a;
         }
 
-    Matrix GetNonconvergedSolutionsMatrix(){
-            return mNonconveregedSolutionsMatrix;
+    std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
+            return std::make_tuple(mNonconveregedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet()) ;
         }
 
-    void SetUpNonconvergedSolutionsGathering(Parameters ThisParameters){
-        for (const auto& r_var_name : ThisParameters["variables_to_store"].GetStringArray()) {
-            if(KratosComponents<Variable<double>>::Has(r_var_name)) {
-                const auto& var = KratosComponents<Variable<double>>::Get(r_var_name);
-                mNonconveregedVariablesToStore.push_back(r_var_name);
-            } else {
-                KRATOS_ERROR << "Variable \""<< r_var_name << "\" not valid" << std::endl;
-            }
-        }
+    // Matrix GetNonconvergedSolutions(){
+    //         return mNonconveregedSolutionsMatrix;
+    //     }
+
+
+    void SetUpNonconvergedSolutionsGathering(){
         mStoreNonconvergedSolutionsFlag = true;
     }
 
@@ -927,10 +918,9 @@ class ResidualBasedNewtonRaphsonStrategy
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
         if (mStoreNonconvergedSolutionsFlag == true){
-            Vector initial = GetCurrentSolution(BaseType::GetModelPart());
+            Vector initial = GetCurrentSolution(r_dof_set);
             NonconvergedSolutions.push_back(initial);
         }
-
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -971,8 +961,8 @@ class ResidualBasedNewtonRaphsonStrategy
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-        if (mStoreNonconvergedSolutionsFlag==true){
-            Vector first = GetCurrentSolution(BaseType::GetModelPart());
+        if (mStoreNonconvergedSolutionsFlag == true){
+            Vector first = GetCurrentSolution(r_dof_set);
             NonconvergedSolutions.push_back(first);
         }
 
@@ -1044,7 +1034,7 @@ class ResidualBasedNewtonRaphsonStrategy
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
             if (mStoreNonconvergedSolutionsFlag == true){
-                Vector ith = GetCurrentSolution(BaseType::GetModelPart());
+                Vector ith = GetCurrentSolution(r_dof_set);
                 NonconvergedSolutions.push_back(ith);
             }
 
@@ -1091,11 +1081,10 @@ class ResidualBasedNewtonRaphsonStrategy
         if (mCalculateReactionsFlag == true)
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
-
         if (mStoreNonconvergedSolutionsFlag == true){
-            mNonconveregedSolutionsMatrix = ZeroMatrix( r_model_part.NumberOfNodes()*mNonconveregedVariablesToStore.size(), NonconvergedSolutions.size() );
+            mNonconveregedSolutionsMatrix = ZeroMatrix( r_dof_set.size(), NonconvergedSolutions.size() );
             for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
-                for (std::size_t j = 0; j < r_model_part.NumberOfNodes()*mNonconveregedVariablesToStore.size(); ++j) {
+                for (std::size_t j = 0; j < r_dof_set.size(); ++j) {
                     mNonconveregedSolutionsMatrix(j, i) = NonconvergedSolutions[i](j);
                 }
             }
