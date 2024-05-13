@@ -48,7 +48,6 @@ void GenerateTetrahedralElementsWithCellColor::Generate(ModelPart& rModelPart, P
     ModelPart::NodesContainerType new_nodes;
     ModelPart::ElementsContainerType new_elements;
 
-    KRATOS_INFO("Modeler") << "        Generating elements ... " << std::endl;
     Element::NodesArrayType cell_nodes(8);
     for (std::size_t k = 0; k < number_of_cells[2]; k++) {
         for (std::size_t j = 0; j < number_of_cells[1]; j++) {
