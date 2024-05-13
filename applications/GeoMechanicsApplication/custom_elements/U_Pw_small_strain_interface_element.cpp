@@ -199,7 +199,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        this->CalculateSoilDensity(Variables);
+        Variables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
+            Variables.DegreeOfSaturation, this->GetProperties());
 
         GeoElementUtilities::AssembleDensityMatrix(DensityMatrix, Variables.Density);
 
@@ -1989,22 +1990,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddMixBodyForc
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateSoilDensity(InterfaceElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    rVariables.Density = rVariables.DegreeOfSaturation * rVariables.Porosity * rVariables.FluidDensity +
-                         (1.0 - rVariables.Porosity) * rVariables.SolidDensity;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateSoilGamma(InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    this->CalculateSoilDensity(rVariables);
+    rVariables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
+        rVariables.DegreeOfSaturation, this->GetProperties());
 
     noalias(rVariables.SoilGamma) = rVariables.Density * rVariables.BodyAcceleration;
 
