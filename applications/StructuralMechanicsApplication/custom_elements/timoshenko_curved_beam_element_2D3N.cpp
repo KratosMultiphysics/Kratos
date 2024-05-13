@@ -200,13 +200,13 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
     const auto r_geom = GetGeometry();
     GlobalSizeVector r_dN_dxi;
     double k0 = 0.0;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
+    GetFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, J, xi);
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
         const double &nodal_angle = r_geom[i].FastGetSolutionStepValue(SHEAR_ANGLE);
         k0 += nodal_angle * r_dN_dxi[u_coord];
     }
-    return k0 / J;
+    return k0;
 }
 
 /***********************************************************************************/
@@ -563,7 +563,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
     const double k_s = GetBendingShearStiffnessRatio();
 
     // v'' + ks * v'''' + k0 * u' + dk0*u
-    noalias(rN) = d2N + k_s * d4N + k0 * dNu+ dk0_ds * Nu;
+    noalias(rN) = d2N + k_s * d4N + k0 * dNu + dk0_ds * Nu;
 }
 
 /***********************************************************************************/
@@ -690,10 +690,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(
     global_size_T(8, 6) = T3(2, 0);
     global_size_T(8, 7) = T3(2, 1);
     global_size_T(8, 8) = T3(2, 2);
-
-
-
-
 
     const auto& r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
     const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
@@ -858,7 +854,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double J  = GetJacobian(xi);
         const double k0 = GetGeometryCurvature(J, xi);
         const double jacobian_weight = weight * J;
-        const double angle = GetAngle(xi);
+        // const double angle = GetAngle(xi);
 
         GetNodalValuesVector(nodal_values, angle1, angle2, angle3);
 
@@ -896,7 +892,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) -= d_el_du * N * jacobian_weight;
         // noalias(local_rhs) -= aux_array * N * jacobian_weight;
         noalias(local_lhs) += outer_prod(d_el_du, d_el_du) * dN_dEl * jacobian_weight;
-
         noalias(local_lhs) += outer_prod(dNu, dNu) * N * jacobian_weight;
         noalias(local_lhs) += outer_prod(dN_shape, dN_shape) * N * jacobian_weight;
 
@@ -909,7 +904,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) -= N_s * V * jacobian_weight;
 
         // Now we add the body forces contributions
-        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
+        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, 0.0);
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
@@ -987,7 +982,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double J  = GetJacobian(xi);
         const double k0 = GetGeometryCurvature(J, xi);
         const double jacobian_weight = weight * J;
-        const double angle = GetAngle(xi);
+        // const double angle = GetAngle(xi);
 
         GetNodalValuesVector(nodal_values, angle1, angle2, angle3);
 
@@ -1032,7 +1027,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(local_rhs) -= N_s * V * jacobian_weight;
 
         // Now we add the body forces contributions
-        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, angle);
+        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, 0.0);
         noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
@@ -1105,7 +1100,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
     const double angle3
 )
 {
-    BoundedMatrix<double, 3, 3> T1, T2, T3;;
+    BoundedMatrix<double, 3, 3> T1, T2, T3;
     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
     BoundedVector<double, 9> local_rhs;
     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
@@ -1168,7 +1163,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
     const double angle3
 )
 {
-    BoundedMatrix<double, 3, 3> T1, T2, T3;;
+    BoundedMatrix<double, 3, 3> T1, T2, T3;
     BoundedMatrix<double, 9, 9> global_size_T, aux_product;
     BoundedVector<double, 9> local_rhs;
     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
@@ -1250,11 +1245,15 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
         cl_values.SetStressVector(stress_vector);
         GlobalSizeVector nodal_values(SystemSize);
 
+        const double angle1 = GetAngle(-1.0);
+        const double angle2 = GetAngle(1.0);
+        const double angle3 = GetAngle(0.0);
+
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
-            const double angle = GetAngle(xi);
-            GetNodalValuesVector(nodal_values, 0,0,0);
+            // const double angle = GetAngle(xi);
+            GetNodalValuesVector(nodal_values, angle1, angle2, angle3);
             const double J = GetJacobian(xi);
 
             CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
