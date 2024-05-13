@@ -1033,7 +1033,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.F            = this->CalculateDeformationGradient(GPoint);
             Variables.StrainVector = this->CalculateStrain(
                 Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
-            this->CalculatePermeabilityUpdateFactor(Variables);
+            Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables);
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
@@ -1319,7 +1319,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
-        this->CalculatePermeabilityUpdateFactor(Variables);
+        Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1590,7 +1590,7 @@ void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables) const
+double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1602,9 +1602,9 @@ void SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(ElementVa
         const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
         const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double permLog10 = (eCurrent - ePrevious) * InverseCK;
-        rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
+        return pow(10.0, permLog10);
     } else {
-        rVariables.PermeabilityUpdateFactor = 1.0;
+        return 1.0;
     }
 
     KRATOS_CATCH("")

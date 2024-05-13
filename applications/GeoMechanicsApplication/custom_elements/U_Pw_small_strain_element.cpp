@@ -658,7 +658,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             Variables.F            = this->CalculateDeformationGradient(GPoint);
             Variables.StrainVector = this->CalculateStrain(
                 Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
-            this->CalculatePermeabilityUpdateFactor(Variables);
+            Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables);
             permeability_update_factors.push_back(Variables.PermeabilityUpdateFactor);
         }
 
@@ -1062,7 +1062,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
-        this->CalculatePermeabilityUpdateFactor(Variables);
+        Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1168,7 +1168,7 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables) const
+double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1181,9 +1181,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(E
         const double          ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
         const double          eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double          permLog10 = (eCurrent - ePrevious) * InverseCK;
-        rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
+        return pow(10.0, permLog10);
     } else {
-        rVariables.PermeabilityUpdateFactor = 1.0;
+        return 1.0;
     }
 
     KRATOS_CATCH("")
