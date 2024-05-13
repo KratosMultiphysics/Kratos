@@ -167,6 +167,9 @@ KRATOS_TEST_CASE_IN_SUITE(VoxelMeshGeneratorModelerWithRefinement, KratosCoreFas
     std::vector<double> y_key_planes {-0.035,-0.03,-0.025,-0.02,-0.0175,-0.015,-0.0125,-0.01,-0.0075,-0.005,-0.0025,0,0.0025,0.005,0.0075,0.01,0.0125,0.015,0.0175,0.02,0.0225,0.025,0.0275,0.03,0.0325};
     std::vector<double> z_key_planes {0.025,0.03,0.034,0.038,0.042,0.046,0.05,0.0525,0.055,0.0575,0.06,0.0625,0.065,0.0675,0.07,0.0725,0.075,0.0775,0.08,0.0825,0.085,0.0875,0.09,0.0925};
 
+    // delete work file
+    std::remove("cube_skin_mesh.mdpa");
+
     KRATOS_EXPECT_VECTOR_NEAR(x_key_planes, voxel_mesher.GetKeyPlanes(0), 1e-6);
     KRATOS_EXPECT_VECTOR_NEAR(y_key_planes, voxel_mesher.GetKeyPlanes(1), 1e-6);
     KRATOS_EXPECT_VECTOR_NEAR(z_key_planes, voxel_mesher.GetKeyPlanes(2), 1e-6);
