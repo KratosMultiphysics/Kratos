@@ -121,10 +121,7 @@ ModelPart& VoxelMeshGeneratorModeler::ReadModelParts(){
     KRATOS_ERROR_IF_NOT( mParameters.Has("input_model_part_name") )
         << "Missing \"input_model_part_name\" in VoxelMeshGeneratorModeler Parameters." << std::endl;
 
-    const std::string input_model_part_name = mParameters["input_model_part_name"].GetString();
-    mpInputModelPart = mpModel->HasModelPart(input_model_part_name)
-        ? &mpModel->GetModelPart(input_model_part_name)
-        : &mpModel->CreateModelPart(input_model_part_name);
+    mpInputModelPart = &CreateAndGetModelPart(mParameters["input_model_part_name"].GetString());
 
     KRATOS_ERROR_IF_NOT(mParameters.Has("mdpa_file_name")) << "mdpa_file_name not defined" << std::endl;
 
@@ -138,11 +135,7 @@ ModelPart& VoxelMeshGeneratorModeler::ReadModelParts(){
     }
 
     // Create the target model
-    const std::string output_model_part_name = mParameters["output_model_part_name"].GetString();
-    ModelPart& main_model_part = mpModel->HasModelPart(output_model_part_name)
-            ? mpModel->GetModelPart(output_model_part_name)
-            : mpModel->CreateModelPart(output_model_part_name);
-    return main_model_part;
+    return CreateAndGetModelPart(mParameters["output_model_part_name"].GetString());
 }
 
 
@@ -221,10 +214,7 @@ void VoxelMeshGeneratorModeler::GenerateEntities(
 
 ModelPart& VoxelMeshGeneratorModeler::CreateAndGetModelPart(std::string const& FullName)
 {
-    if (mpModel->HasModelPart(FullName)) {
-        return mpModel->GetModelPart(FullName);
-    }
-    return mpModel->CreateModelPart(FullName);
+    return mpModel->HasModelPart(FullName) ? mpModel->GetModelPart(FullName) : mpModel->CreateModelPart(FullName);
 }
 
 
