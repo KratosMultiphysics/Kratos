@@ -879,7 +879,7 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
-    Vector GetCurrentSolution(auto &r_dof_set){
+    Vector GetCurrentSolution(DofsArrayType &r_dof_set){
         Vector a = ZeroVector(r_dof_set.size());
         for (auto& r_dof : r_dof_set) {
             a[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
