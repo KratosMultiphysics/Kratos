@@ -12,6 +12,7 @@
 
 #include "custom_utilities/math_utilities.h"
 #include "testing/testing.h"
+#include "includes/checks.h"
 
 namespace Kratos::Testing
 {
