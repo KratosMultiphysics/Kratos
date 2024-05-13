@@ -46,15 +46,6 @@ public:
 
     virtual void Apply() const = 0;
 
-    class Factory {
-    public:
-        Factory() {}
-
-        virtual ~Factory() = default;
-
-        virtual VoxelMesherColoring::Pointer Create(VoxelMeshGeneratorModeler& rModeler, Parameters ColoringParameters) const = 0;
-    };
-
 protected:
 
     Parameters GetParameters() const;
