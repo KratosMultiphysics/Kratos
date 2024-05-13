@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -73,7 +74,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
     const auto strain_vectors = this->CalculateStrains(
@@ -159,7 +160,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
                                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        rOutput = this->CalculateDeterminantsOfDeformationGradients(this->CalculateDeformationGradients());
+        rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
     } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }

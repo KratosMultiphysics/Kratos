@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_utilities/math_utilities.h"
 
 namespace Kratos
 {
@@ -139,7 +140,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = this->CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -200,7 +201,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = this->CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -463,7 +464,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = this->CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 

@@ -23,6 +23,7 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
@@ -318,7 +319,7 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -545,7 +546,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1148,7 +1149,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto determinants_of_deformation_gradients =
-            CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+            GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
         const auto strain_vectors = CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1295,7 +1296,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto integration_coefficients =
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
     const auto strain_vectors = CalculateStrains(
@@ -1362,7 +1363,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -2173,17 +2174,6 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
 {
     return *mpStressStatePolicy;
-}
-
-std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDeterminantsOfDeformationGradients(
-    const std::vector<Matrix>& rDeformationGradients) const
-{
-    std::vector<double> result(rDeformationGradients.size());
-    std::transform(
-        rDeformationGradients.cbegin(), rDeformationGradients.cend(), result.begin(),
-        [](const auto& rDeformationGradient) { return MathUtils<>::Det(rDeformationGradient); });
-
-    return result;
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()

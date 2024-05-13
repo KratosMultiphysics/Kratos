@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
@@ -153,7 +154,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -267,7 +268,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -326,7 +327,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -594,7 +595,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto determinants_of_deformation_gradients =
-            CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+            GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
         const auto strain_vectors = CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -731,7 +732,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto determinants_of_deformation_gradients =
-            CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+            GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
         const auto strain_vectors = CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -908,7 +909,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1037,7 +1038,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -1597,18 +1598,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeterminantsOfDeformationGradients(
-    const std::vector<Matrix>& rDeformationGradients) const
-{
-    std::vector<double> result(rDeformationGradients.size());
-    std::transform(
-        rDeformationGradients.cbegin(), rDeformationGradients.cend(), result.begin(),
-        [](const auto& rDeformationGradient) { return MathUtils<>::Det(rDeformationGradient); });
-
-    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

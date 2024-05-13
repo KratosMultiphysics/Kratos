@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -88,7 +89,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
-        this->CalculateDeterminantsOfDeformationGradients(deformation_gradients);
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = this->CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
@@ -151,7 +152,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        rOutput = this->CalculateDeterminantsOfDeformationGradients(this->CalculateDeformationGradients());
+        rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
     } else {
         UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }

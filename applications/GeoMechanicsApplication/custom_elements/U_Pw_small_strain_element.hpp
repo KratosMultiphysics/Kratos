@@ -288,7 +288,6 @@ protected:
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
-    std::vector<double> CalculateDeterminantsOfDeformationGradients(const std::vector<Matrix>& rDeformationGradients) const;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);

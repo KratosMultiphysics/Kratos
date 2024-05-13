@@ -31,7 +31,7 @@
 
 namespace Kratos
 {
-class GeoMechanicsMathUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoMechanicsMathUtilities
 {
 public:
     /**
