@@ -543,7 +543,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
 
 
     // v'' + ks * v'''' + k0 * u' + dk0*u
-    noalias(rN) = d2N + k_s * d4N + k0 * dNu + dk0_ds * Nu;
+    noalias(rN) = d2N + k_s * d4N + k0 * dNu+ dk0_ds * Nu;
 }
 
 /***********************************************************************************/
@@ -990,7 +990,6 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
         dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
         dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
     }
-    // return 0.0;
     return std::atan2(dy_dxi, dx_dxi);
 }
 
