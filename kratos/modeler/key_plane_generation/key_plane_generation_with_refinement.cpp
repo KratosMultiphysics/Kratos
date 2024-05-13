@@ -204,8 +204,7 @@ double KeyPlaneGenerationWithRefinement::ReturnLocalTheoreticalVoxelSize(std::ve
         auto& r_area = rRefinementAreas[i];
         double& r_lbound = r_area.first[Direction];
         double& r_ubound = r_area.second[Direction];
-        bool is_inside = (r_lbound<=Position && Position<=r_ubound);
-        if(is_inside)
+        if (r_lbound<=Position && Position<=r_ubound)
             dx = std::min(dx, rVoxelSizes[i][Direction]);
     }
     return dx;

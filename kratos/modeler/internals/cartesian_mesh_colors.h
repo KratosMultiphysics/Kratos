@@ -660,10 +660,8 @@ namespace Kratos
             if(Points.empty())
                 return;
 
-            Point min_point;
-            Point max_point;
-            max_point = *(Points.begin());
-            min_point = *(Points.begin());
+            Point min_point = *(Points.begin());
+            Point max_point = *(Points.begin());
             for(auto const& point : Points){
                 for(std::size_t i = 0; i<3; i++)
                 {
