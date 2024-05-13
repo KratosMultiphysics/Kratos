@@ -434,15 +434,15 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
             PressureVector[i] = Geom[i].FastGetSolutionStepValue(LIQUID_PRESSURE);
         }
 
-        //Loop over integration points (Lobatto)
-        Vector Np(TDim);                       // Check the size of Ncontainer!!!
+        // Loop over integration points (Lobatto)
+        Vector Np(NContainer.size2());
         for(unsigned int i=0; i < NumGPoints; i++)
         {
             noalias(Np) = row(NContainer,i);
             GPValues[i] = inner_prod(Np, PressureVector);
         }
 
-        //Printed on standard GiD Gauss points
+        // Printed on standard GiD Gauss points
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
