@@ -134,14 +134,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
     auto   damping_matrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
 
-    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, stiffness_matrix, 1e-4)
+    auto expected_damping_matrix = scalar_matrix(n, n, stiffness_matrix_value);
+
+    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 
     rayleigh_alpha = 1.0;
     rayleigh_beta  = 0.0;
     damping_matrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
 
-    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, mass_matrix, 1e-4)
+    expected_damping_matrix = scalar_matrix(n, n, mass_matrix_value);
+
+    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 
     rayleigh_alpha = 0.5;
     rayleigh_beta  = 0.5;
@@ -149,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
         rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
 
     const double expected_matrix_value = rayleigh_alpha * mass_matrix_value + rayleigh_beta * stiffness_matrix_value;
-    const auto expected_damping_matrix = scalar_matrix(n, n, expected_matrix_value);
+    expected_damping_matrix = scalar_matrix(n, n, expected_matrix_value);
 
     KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
