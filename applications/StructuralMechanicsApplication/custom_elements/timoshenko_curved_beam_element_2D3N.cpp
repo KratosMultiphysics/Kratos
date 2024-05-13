@@ -679,6 +679,7 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateAxialStrain(
     GetFirstDerivativesShapeFunctionsValues(dN, J, xi);
     const double k0 = GetGeometryCurvature(J, xi);
     return inner_prod(dNu - k0 * N, rNodalValues) + 0.5 * std::pow(inner_prod(dNu, rNodalValues), 2) + 0.5 * std::pow(inner_prod(dN, rNodalValues), 2);
+    // return inner_prod(dNu - k0 * N, rNodalValues) ;
 }
 
 /***********************************************************************************/
@@ -823,6 +824,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         // Axial contributions
         noalias(local_rhs) -= d_el_du * N * jacobian_weight;
+        // noalias(local_rhs) -= aux_array * N * jacobian_weight;
         noalias(local_lhs) += outer_prod(d_el_du, d_el_du) * dN_dEl * jacobian_weight;
 
         noalias(local_lhs) += outer_prod(dNu, dNu) * N * jacobian_weight;
@@ -947,6 +949,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
         // Axial contributions
         noalias(local_rhs) -= d_el_du * N * jacobian_weight;
+        // noalias(local_rhs) -= aux_array * N * jacobian_weight;
 
         // Bending contributions
         noalias(local_rhs) -= dN_theta * M * jacobian_weight;
@@ -987,6 +990,7 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
         dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
         dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
     }
+    // return 0.0;
     return std::atan2(dy_dxi, dx_dxi);
 }
 
