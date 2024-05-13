@@ -157,7 +157,7 @@ public:
                     break;
                 }
             }
-            is_inside = (is_inside) ? false:true;
+            is_inside = !is_inside
         }
 
         mIsValid = !is_inside; // Ray is not valid if is_inside is true after the last intersection
