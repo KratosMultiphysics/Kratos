@@ -31,19 +31,18 @@
 
 namespace Kratos
 {
-template <class TDataType>
-class GeoMechanicsMathUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoMechanicsMathUtilities
 {
 public:
     /**
      * @name type definitions
      * @{
      */
-    using MatrixType          = Matrix;
-    using VectorType          = Vector;
-    using IndexType           = unsigned int;
-    using SizeType            = unsigned int;
-    using Fourth_Order_Tensor = DenseVector<DenseVector<Matrix>>;
+    using MatrixType            = Matrix;
+    using VectorType            = Vector;
+    using IndexType             = unsigned int;
+    using SizeType              = unsigned int;
+    using FourthOrderTensorType = DenseVector<DenseVector<Matrix>>;
 
     /**
      * @}
@@ -156,7 +155,7 @@ public:
                 HelpA(i, i) = HelpA(i, i) - shift;
             }
 
-            GeoMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
+            GeoMechanicsMathUtilities::QRFactorization(HelpA, HelpQ, HelpR);
 
             HelpA = ZeroMatrix(dim, dim);
 
@@ -664,7 +663,7 @@ public:
         }
     }
 
-    static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor, Matrix& Matrix)
+    static inline void TensorToMatrix(FourthOrderTensorType& Tensor, Matrix& Matrix)
     {
         // Symmetric fourth order tensor:
         //  Cijkl = Cjilk
@@ -1086,6 +1085,9 @@ public:
         if (result_points.size() == 0) return false;
         else return true;
     }
+
+    [[nodiscard]] static std::vector<double> CalculateDeterminants(const std::vector<Matrix>& rMatrices);
+
 }; // class GeoMechanicsMathUtilities
 
 } // namespace Kratos

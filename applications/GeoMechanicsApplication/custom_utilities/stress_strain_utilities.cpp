@@ -11,7 +11,7 @@
 //
 
 #include "stress_strain_utilities.h"
-#include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include <cmath>
 

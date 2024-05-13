@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -84,9 +85,13 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
     const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
-
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+    const auto deformation_gradients = this->CalculateDeformationGradients();
+    const auto determinants_of_deformation_gradients =
+        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
+    const auto strain_vectors = this->CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -96,10 +101,9 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure
-        Variables.F            = this->CalculateDeformationGradient(GPoint);
-        Variables.detF         = MathUtils<>::Det(Variables.F);
-        Variables.StrainVector = this->CalculateStrain(
-            Variables.F, Variables.B, Variables.DisplacementVector, Variables.UseHenckyStrain);
+        Variables.F            = deformation_gradients[GPoint];
+        Variables.detF         = determinants_of_deformation_gradients[GPoint];
+        Variables.StrainVector = strain_vectors[GPoint];
 
         // set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
@@ -148,10 +152,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
-        rOutput.clear();
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            rOutput.emplace_back(MathUtils<>::Det(this->CalculateDeformationGradient(GPoint)));
-        }
+        rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
     } else {
         UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -165,14 +166,13 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     rOutput.resize(this->GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod));
 
     if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            rOutput[GPoint] = this->CalculateDeformationGradient(GPoint);
-        }
+        rOutput = this->CalculateDeformationGradients();
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            rOutput[GPoint] = MathUtils<>::StrainVectorToTensor(
-                this->CalculateGreenLagrangeStrain(this->CalculateDeformationGradient(GPoint)));
-        }
+        const auto deformation_gradients = this->CalculateDeformationGradients();
+        std::transform(deformation_gradients.begin(), deformation_gradients.end(), rOutput.begin(),
+                       [this](const Matrix& rDeformationGradient) {
+            return MathUtils<>::StrainVectorToTensor(this->CalculateGreenLagrangeStrain(rDeformationGradient));
+        });
     } else {
         UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
