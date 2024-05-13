@@ -98,7 +98,7 @@ public:
         }
     }
 
-    /** 
+    /**
      * @brief Add nodes to ModelPart from an ordered container. 
      * @details By assuming that the input is ordered (by increasing Id), the nodes can be added more efficiently. Note that the function makes no check of the ordering, it is the responsability of the caller to ensure that it is correct.
      * @tparam TIteratorType Iterator type for the nodes to add.
@@ -150,30 +150,37 @@ public:
         )
     {
         // Some definitions
-        const std::size_t current_size = rThisEntities.size();
         const std::size_t number_of_entities = rEntitiesConnectivities.size();
-        rThisEntities.reserve(current_size + number_of_entities);
 
         // Number of nodes per entity
         const std::size_t number_of_nodes_per_entity = rPrototypeEntity.GetGeometry().size();
 
+        const std::size_t current_size = rThisEntities.size();
+        rThisEntities.reserve(current_size + number_of_entities);
+
+        // Define a TLS struct to store the entity nodes
+        struct TLS {
+            TLS (const std::size_t NumberEntities) : entity_nodes(NumberEntities) {}
+            typename TEntity::NodesArrayType entity_nodes;
+        };
+
         // From connectivities generate entities
-        const auto entities_vector = IndexPartition<IndexType>(number_of_entities).for_each<AccumReduction<typename TEntity::Pointer>>([&](const IndexType i) {
-            typename TEntity::NodesArrayType temp_entity_nodes;
-            temp_entity_nodes.reserve(number_of_nodes_per_entity);
-            for(std::size_t j = 0; j < number_of_nodes_per_entity; ++j){
-                const std::size_t node_id = rEntitiesConnectivities[i][j];
+        const auto entities_vector = IndexPartition<IndexType>(number_of_entities).for_each<AccumReduction<typename TEntity::Pointer>>(TLS(number_of_nodes_per_entity), [&](const IndexType i, TLS& rTLS) {
+            const auto& r_nodes_ids = rEntitiesConnectivities[i];
+            for(std::size_t j = 0; j < number_of_nodes_per_entity; ++j) {
+                const std::size_t node_id = r_nodes_ids[j];
                 auto it_node = rThisNodes.find(node_id);
-                KRATOS_ERROR_IF(it_node == rThisNodes.end()) << "Node with Id " << node_id << " does not exist in the nodes array." << std::endl;
-                temp_entity_nodes.push_back(*(it_node.base()));
+                rTLS.entity_nodes(j) = *(it_node.base());
             }
 
             // Add the entity to the list
-            return rPrototypeEntity.Create(i + 1, temp_entity_nodes, pProperties);
+            return rPrototypeEntity.Create(i + 1, rTLS.entity_nodes, pProperties);
         });
 
         // Add the entities to the list
-        rThisEntities.insert(entities_vector.begin(), entities_vector.end());
+        for (std::size_t i = 0; i < number_of_entities; ++i) {
+            rThisEntities.push_back(entities_vector[i]);
+        }
     }
 
     /**
@@ -234,28 +241,33 @@ public:
         // Number of nodes per entity
         const std::size_t number_of_nodes_per_entity = rPrototypeEntity.GetGeometry().size();
 
+        // Define a TLS struct to store the entity nodes
+        struct TLS {
+            TLS (const std::size_t NumberEntities) : entity_nodes(NumberEntities) {}
+            typename TEntity::NodesArrayType entity_nodes;
+        };
+
         // From connectivities generate entities
-        const auto entities_vector = IndexPartition<IndexType>(number_of_entities).for_each<AccumReduction<typename TEntity::Pointer>>([&](const IndexType i) {
-            typename TEntity::NodesArrayType temp_entity_nodes;
-            temp_entity_nodes.reserve(number_of_nodes_per_entity);
-            for(std::size_t j = 0 ; j < number_of_nodes_per_entity; ++j){
-                const std::size_t node_id = rEntitiesConnectivities[i][j];
+        const auto entities_vector = IndexPartition<IndexType>(number_of_entities).for_each<AccumReduction<typename TEntity::Pointer>>(TLS(number_of_nodes_per_entity), [&](const IndexType i, TLS& rTLS) {
+            const auto& r_nodes_ids = rEntitiesConnectivities[i];
+            for(std::size_t j = 0; j < number_of_nodes_per_entity; ++j) {
+                const std::size_t node_id = r_nodes_ids[j];
                 auto it_node = rThisNodes.find(node_id);
-                KRATOS_ERROR_IF(it_node == rThisNodes.end()) << "Node with Id " << node_id << " does not exist in the nodes array." << std::endl;
-                temp_entity_nodes.push_back(*(it_node.base()));
+                rTLS.entity_nodes(j) = *(it_node.base());
             }
 
             // Properties iterator
             auto it_properties = rThisProperties.find(rPropertiesIds[i]);
-            KRATOS_ERROR_IF(it_properties == rThisProperties.end()) << "Properties with Id " << rPropertiesIds[i] << " does not exist in the properties array." << std::endl;
             Properties::Pointer p_properties = *(it_properties.base());
 
             // Add the entity to the list
-            return rPrototypeEntity.Create(rEntitiesIds[i], temp_entity_nodes, p_properties);
+            return rPrototypeEntity.Create(rEntitiesIds[i], rTLS.entity_nodes, p_properties);
         });
 
         // Add the entities to the list
-        rThisEntities.insert(entities_vector.begin(), entities_vector.end());
+        for (std::size_t i = 0; i < number_of_entities; ++i) {
+            rThisEntities.push_back(entities_vector[i]);
+        }
     }
 
     /**
