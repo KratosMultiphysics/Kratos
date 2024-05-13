@@ -1594,10 +1594,10 @@ double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const V
 {
     KRATOS_TRY
 
-    if (const auto& rProp = this->GetProperties(); rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-        const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+    if (const auto& r_prop = this->GetProperties(); r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+        const double InverseCK = r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR];
         const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
-        const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
+        const double ePrevious = r_prop[POROSITY] / (1.0 - r_prop[POROSITY]);
         const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double permLog10 = (eCurrent - ePrevious) * InverseCK;
         return std::pow(10.0, permLog10);
