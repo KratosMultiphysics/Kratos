@@ -478,33 +478,21 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 {
     KRATOS_TRY
 
-    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
-
     const GeometryType&   r_geom = GetGeometry();
     const PropertiesType& r_prop = this->GetProperties();
     const SizeType        element_size =
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
-    // Compute Mass Matrix
     MatrixType mass_matrix = ZeroMatrix(element_size, element_size);
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(element_size, element_size);
+    MatrixType stiffness_matrix(element_size, element_size);
+    this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    this->CalculateMaterialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
-
-    // Compute Damping Matrix
-    if (rDampingMatrix.size1() != element_size)
-        rDampingMatrix.resize(element_size, element_size, false);
-    noalias(rDampingMatrix) = ZeroMatrix(element_size, element_size);
-
-    if (r_prop.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += r_prop[RAYLEIGH_ALPHA] * mass_matrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * mass_matrix;
-
-    if (r_prop.Has(RAYLEIGH_BETA))
-        noalias(rDampingMatrix) += r_prop[RAYLEIGH_BETA] * StiffnessMatrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+    rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
+        r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
+        mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
@@ -2036,7 +2024,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateStrain(const Matrix& rDeformatio
         const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
     }
-    
+
     return this->CalculateCauchyStrain(rB, rDisplacements);
 }
 

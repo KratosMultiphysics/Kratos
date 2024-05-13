@@ -10,7 +10,6 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "testing/testing.h"
@@ -118,6 +117,45 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     // clang-format on
 
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+{
+    constexpr std::size_t n = 10;
+
+    constexpr double mass_matrix_value = 10;
+    const auto       mass_matrix       = scalar_matrix(n, n, mass_matrix_value);
+
+    constexpr double stiffness_matrix_value = 20;
+    const auto       stiffness_matrix       = scalar_matrix(n, n, stiffness_matrix_value);
+
+    double rayleigh_alpha = 0.0;
+    double rayleigh_beta  = 1.0;
+    auto   damping_matrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
+
+    auto expected_damping_matrix = scalar_matrix(n, n, stiffness_matrix_value);
+
+    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
+
+    rayleigh_alpha = 1.0;
+    rayleigh_beta  = 0.0;
+    damping_matrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
+
+    expected_damping_matrix = scalar_matrix(n, n, mass_matrix_value);
+
+    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
+
+    rayleigh_alpha = 0.5;
+    rayleigh_beta  = 0.5;
+    damping_matrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        rayleigh_alpha, rayleigh_beta, mass_matrix, stiffness_matrix);
+
+    const double expected_matrix_value = rayleigh_alpha * mass_matrix_value + rayleigh_beta * stiffness_matrix_value;
+    expected_damping_matrix = scalar_matrix(n, n, expected_matrix_value);
+
+    KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
 
 } // namespace Kratos::Testing

@@ -36,5 +36,10 @@ public:
     static Vector CalculateDetJsInitialConfiguration(const Geometry<Node>& rGeom,
                                                      const GeometryData::IntegrationMethod IntegrationMethod);
 
+    static Matrix CalculateDampingMatrix(double        RayleighAlpha,
+                                         double        RayleighBeta,
+                                         const Matrix& rMassMatrix,
+                                         const Matrix& rStiffnessMatrix);
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
