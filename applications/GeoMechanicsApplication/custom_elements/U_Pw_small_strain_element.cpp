@@ -1181,7 +1181,7 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor
         const double          ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
         const double          eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double          permLog10 = (eCurrent - ePrevious) * InverseCK;
-        return pow(10.0, permLog10);
+        return std::pow(10.0, permLog10);
     }
 
     return 1.0;
