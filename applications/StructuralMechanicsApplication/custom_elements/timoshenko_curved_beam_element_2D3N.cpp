@@ -175,28 +175,38 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
     const double xi
     )
 {
-    GlobalSizeVector r_dN_dxi, r_d2N_dxi2;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues (r_dN_dxi,   xi);
-    GetLocalSecondDerivativesNu0ShapeFunctionsValues(r_d2N_dxi2, xi);
+    // GlobalSizeVector r_dN_dxi, r_d2N_dxi2;
+    // GetLocalFirstDerivativesNu0ShapeFunctionsValues (r_dN_dxi,   xi);
+    // GetLocalSecondDerivativesNu0ShapeFunctionsValues(r_d2N_dxi2, xi);
+    // const auto r_geom = GetGeometry();
+
+    // double dx_dxi = 0.0;
+    // double dy_dxi = 0.0;
+
+    // double d2x_dxi2 = 0.0;
+    // double d2y_dxi2 = 0.0;
+
+    // for (IndexType i = 0; i < NumberOfNodes; ++i) {
+    //     const IndexType u_coord = DoFperNode * i;
+    //     const auto &r_coords_node = r_geom[i].GetInitialPosition();
+    //     dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
+    //     dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+
+    //     d2x_dxi2 += r_coords_node[0] * r_d2N_dxi2[u_coord];
+    //     d2y_dxi2 += r_coords_node[1] * r_d2N_dxi2[u_coord];
+    // }
+    // return (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3);
+
     const auto r_geom = GetGeometry();
-
-    double dx_dxi = 0.0;
-    double dy_dxi = 0.0;
-
-    double d2x_dxi2 = 0.0;
-    double d2y_dxi2 = 0.0;
-
+    GlobalSizeVector r_dN_dxi;
+    double k0 = 0.0;
+    GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].GetInitialPosition();
-        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
-        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
-
-        d2x_dxi2 += r_coords_node[0] * r_d2N_dxi2[u_coord];
-        d2y_dxi2 += r_coords_node[1] * r_d2N_dxi2[u_coord];
+        const double &nodal_angle = r_geom[i].FastGetSolutionStepValue(SHEAR_ANGLE);
+        k0 += nodal_angle * r_dN_dxi[u_coord];
     }
-    // return 0.0;
-    return (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3);
+    return k0 / J;
 }
 
 /***********************************************************************************/
@@ -509,28 +519,39 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
     const double xi
     )
 {
-    GlobalSizeVector r_dN_dxi, r_d2N_dxi2;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues (r_dN_dxi,   xi);
-    GetLocalSecondDerivativesNu0ShapeFunctionsValues(r_d2N_dxi2, xi);
+    // GlobalSizeVector r_dN_dxi, r_d2N_dxi2;
+    // GetLocalFirstDerivativesNu0ShapeFunctionsValues (r_dN_dxi,   xi);
+    // GetLocalSecondDerivativesNu0ShapeFunctionsValues(r_d2N_dxi2, xi);
+    // const auto r_geom = GetGeometry();
+
+    // double dx_dxi = 0.0;
+    // double dy_dxi = 0.0;
+
+    // double d2x_dxi2 = 0.0;
+    // double d2y_dxi2 = 0.0;
+
+    // for (IndexType i = 0; i < NumberOfNodes; ++i) {
+    //     const IndexType u_coord = DoFperNode * i;
+    //     const auto &r_coords_node = r_geom[i].GetInitialPosition();
+    //     dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
+    //     dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+
+    //     d2x_dxi2 += r_coords_node[0] * r_d2N_dxi2[u_coord];
+    //     d2y_dxi2 += r_coords_node[1] * r_d2N_dxi2[u_coord];
+    // }
+
+    // const double dk0_ds = -3.0 / std::pow(J, 6) * (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) * (dx_dxi * d2x_dxi2 + dy_dxi * d2y_dxi2);
+
     const auto r_geom = GetGeometry();
-
-    double dx_dxi = 0.0;
-    double dy_dxi = 0.0;
-
-    double d2x_dxi2 = 0.0;
-    double d2y_dxi2 = 0.0;
+    GlobalSizeVector d2N_dxi2;
+    GetSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, J, xi);
+    double dk0_ds = 0.0;
 
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].GetInitialPosition();
-        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
-        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
-
-        d2x_dxi2 += r_coords_node[0] * r_d2N_dxi2[u_coord];
-        d2y_dxi2 += r_coords_node[1] * r_d2N_dxi2[u_coord];
+        const double &nodal_angle = r_geom[i].FastGetSolutionStepValue(SHEAR_ANGLE);
+        dk0_ds += nodal_angle * d2N_dxi2[u_coord];
     }
-
-    const double dk0_ds = -3.0 / std::pow(J, 6) * (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) * (dx_dxi * d2x_dxi2 + dy_dxi * d2y_dxi2);
 
     GlobalSizeVector d2N, d4N, dNu, Nu;
     GetSecondDerivativesShapeFunctionsValues (d2N,  J, xi);
@@ -540,7 +561,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
 
     const double k0 = GetGeometryCurvature(J, xi);
     const double k_s = GetBendingShearStiffnessRatio();
-
 
     // v'' + ks * v'''' + k0 * u' + dk0*u
     noalias(rN) = d2N + k_s * d4N + k0 * dNu+ dk0_ds * Nu;
@@ -646,7 +666,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(
     global_values[8] = r_geom[2].FastGetSolutionStepValue(ROTATION_Z);
 
     // We rotate to local axes
-    noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+    // noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+    noalias(rNodalValues) = global_values;
 }
 
 /***********************************************************************************/
@@ -915,6 +936,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double jacobian_weight = weight * J;
         const double angle = GetAngle(xi);
 
+        // KRATOS_WATCH(k0)
+
         GetNodalValuesVector(nodal_values, 0.0);
 
         // We fill the strain vector with El, kappa and Gamma_sy
@@ -968,6 +991,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(local_rhs) = ZeroVector(SystemSize);
     } // IP loop
     KRATOS_CATCH("");
+
+        KRATOS_WATCH(Id())
+        KRATOS_WATCH(GetAngle(-1.0)*180/Globals::Pi)
+        KRATOS_WATCH(GetAngle(1.0) *180/Globals::Pi)
+        KRATOS_WATCH(GetAngle(0.0) *180/Globals::Pi)
 }
 
 /***********************************************************************************/
@@ -977,20 +1005,31 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
     const double xi
     )
 {
-    GlobalSizeVector r_dN_dxi;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
+    // GlobalSizeVector r_dN_dxi;
+    // GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
+    // const auto r_geom = GetGeometry();
+
+    // double dx_dxi = 0.0;
+    // double dy_dxi = 0.0;
+
+    // for (IndexType i = 0; i < NumberOfNodes; ++i) {
+    //     const IndexType u_coord = DoFperNode * i;
+    //     const auto &r_coords_node = r_geom[i].GetInitialPosition();
+    //     dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
+    //     dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+    // }
+    // return std::atan2(dy_dxi, dx_dxi);
+
     const auto r_geom = GetGeometry();
-
-    double dx_dxi = 0.0;
-    double dy_dxi = 0.0;
-
+    GlobalSizeVector Nu;
+    double angle = 0.0;
+    GetNu0ShapeFunctionsValues(Nu, xi);
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].GetInitialPosition();
-        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
-        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+        const double &nodal_angle = r_geom[i].FastGetSolutionStepValue(SHEAR_ANGLE);
+        angle += nodal_angle * Nu[u_coord];
     }
-    return std::atan2(dy_dxi, dx_dxi);
+    return angle;
 }
 
 /***********************************************************************************/
