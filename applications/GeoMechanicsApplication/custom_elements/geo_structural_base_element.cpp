@@ -266,17 +266,12 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixTyp
 {
     KRATOS_TRY
 
-    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
-
-    // Compute Mass Matrix
     MatrixType mass_matrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    // Compute Stiffness matrix
     MatrixType stiffness_matrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
     this->CalculateStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    // Compute Damping Matrix
     rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         rCurrentProcessInfo[RAYLEIGH_ALPHA], rCurrentProcessInfo[RAYLEIGH_BETA], mass_matrix, stiffness_matrix);
 

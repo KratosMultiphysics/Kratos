@@ -323,19 +323,14 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 {
     KRATOS_TRY
 
-    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
-
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    // Compute Mass Matrix
     MatrixType mass_matrix(N_DOF, N_DOF);
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    // Compute Stiffness matrix
     MatrixType stiffness_matrix(N_DOF, N_DOF);
     this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    // Compute Damping Matrix
     const PropertiesType& r_prop = this->GetProperties();
     rDampingMatrix               = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
