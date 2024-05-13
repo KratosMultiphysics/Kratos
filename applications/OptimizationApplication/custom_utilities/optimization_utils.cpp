@@ -97,7 +97,7 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
         return rEntity.GetProperties().Id();
     });
 
-    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.PropertiesArray(), [](const auto pProperties) {
+    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.GetRootModelPart().PropertiesArray(), [](const auto pProperties) {
         return pProperties->Id();
     });
 
@@ -135,7 +135,7 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     ModelPart& rDestinationModelPart,
     const ModelPart& rOriginModelPart)
 {
-    rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+    rDestinationModelPart.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList());
 }
 
 bool OptimizationUtils::IsSolutionStepVariablesListASubSet(

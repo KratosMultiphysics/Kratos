@@ -38,6 +38,10 @@ void ControlUtils::AssignEquivalentProperties(
         << "Number of entities mismatch [ rSourceContainer.size() = " << number_of_entities
         << ", rDestinationContainer.size() = " << rDestinationContainer.size() << " ].\n";
 
+    // TODO: Temporarily fix for the pointer vector set not being ordered.
+    rSourceContainer.Unique();
+    rDestinationContainer.Unique();
+
     IndexPartition<IndexType>(number_of_entities).for_each([&rSourceContainer, &rDestinationContainer](const auto Index) {
         auto& r_destination_entity = *(rDestinationContainer.begin() + Index);
         auto p_itr = rSourceContainer.find(r_destination_entity.Id());

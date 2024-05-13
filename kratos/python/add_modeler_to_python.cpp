@@ -83,6 +83,10 @@ void  AddModelerToPython(pybind11::module& m)
         {rModeler.GenerateModelPart(origin_model_part, destination_model_part,
             KratosComponents<Element>::Get(rElementName), KratosComponents<Condition>::Get(rConditionName));})
     .def("GenerateModelPart",&GeneratePartialModelPart)
+    .def("GenerateModelPartWithConditions",
+        [] (ConnectivityPreserveModeler& rModeler, ModelPart& origin_model_part, ModelPart& destination_model_part, const std::string& rConditionName)
+        {rModeler.GenerateModelPart(origin_model_part, destination_model_part,
+            KratosComponents<Condition>::Get(rConditionName));})
     ;
 
     py::class_< EdgeSwapping2DModeler, EdgeSwapping2DModeler::Pointer, Modeler >(m,"EdgeSwapping2DModeler")
