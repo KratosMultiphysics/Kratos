@@ -666,11 +666,11 @@ public:
 
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor, Matrix& Matrix)
     {
-        // Simetrias seguras
+        // Symmetric fourth order tensor:
         //  Cijkl = Cjilk
         //  Cijkl = Cklji
         if (Tensor[0].size() == 3) {
-            // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 3x3
+            // Fourth-order tensor whose components correspond to a 3x3 matrix
             if (Matrix.size1() != 6 || Matrix.size2() != 6) Matrix.resize(6, 6, false);
             Matrix(0, 0) = Tensor[0][0](0, 0);
             Matrix(0, 1) = Tensor[0][0](1, 1);
@@ -714,7 +714,7 @@ public:
             Matrix(5, 4) = Tensor[1][2](0, 2);
             Matrix(5, 5) = Tensor[1][2](1, 2);
         } else {
-            // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 2x2
+            // Fourth-order tensor whose components correspond to a 2x2 matrix
             if (Matrix.size1() != 3 || Matrix.size2() != 3) Matrix.resize(3, 3, false);
             Matrix(0, 0) = Tensor[0][0](0, 0);
             Matrix(0, 1) = Tensor[0][0](1, 1);
