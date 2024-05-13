@@ -242,7 +242,7 @@ protected:
 
     void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
 
-    void CalculatePermeabilityUpdateFactor(ElementVariables& rVariables);
+    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
