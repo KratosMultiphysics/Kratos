@@ -31,7 +31,6 @@
 
 namespace Kratos
 {
-template <class TDataType>
 class GeoMechanicsMathUtilities
 {
 public:
@@ -156,7 +155,7 @@ public:
                 HelpA(i, i) = HelpA(i, i) - shift;
             }
 
-            GeoMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
+            GeoMechanicsMathUtilities::QRFactorization(HelpA, HelpQ, HelpR);
 
             HelpA = ZeroMatrix(dim, dim);
 
@@ -1086,6 +1085,9 @@ public:
         if (result_points.size() == 0) return false;
         else return true;
     }
+
+    [[nodiscard]] static std::vector<double> CalculateDeterminants(const std::vector<Matrix>& rMatrices);
+
 }; // class GeoMechanicsMathUtilities
 
 } // namespace Kratos
