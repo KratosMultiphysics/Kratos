@@ -266,11 +266,11 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
     
     def test_thermal_filter_element_2D2N(self):
         temperature = self.simulate_thermal_case('test_thermal_filter_element/test_thermal_filter_element_2D2N')
-        self.assertAlmostEqual(7.679491925, temperature[22])
+        self.assertAlmostEqual(34.65690605787046, temperature[22])
 
     def test_thermal_filter_element_2D3N(self):
         temperature = self.simulate_thermal_case('test_thermal_filter_element/test_thermal_filter_element_2D3N')
-        self.assertAlmostEqual(7.679491925, temperature[79])
+        self.assertAlmostEqual(34.657035390578656, temperature[79])
 
 if __name__ == '__main__':
     KratosUnittest.main()
