@@ -141,8 +141,10 @@ public:
      * in GLOBAL beam axes
      */
     void GetNodalValuesVector(
-        GlobalSizeVector& rNodalValues,
-        const double angle);
+        GlobalSizeVector &rNodalValues,
+        const double angle1,
+        const double angle2,
+        const double angle3);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -277,12 +279,16 @@ public:
 
     void RotateRHS(
         VectorType &rRHS,
-        const double angle);
+        const double angle1,
+        const double angle2,
+        const double angle3);
 
     void RotateAll(
         MatrixType &rLHS,
         VectorType &rRHS,
-        const double angle);
+        const double angle1,
+        const double angle2,
+        const double angle3);
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
