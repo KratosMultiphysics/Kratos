@@ -40,7 +40,7 @@ PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition(IndexType           
 template <unsigned int TDim, unsigned int TNumNodes>
 PwPointFluxCondition<TDim, TNumNodes>::~PwPointFluxCondition() = default;
 
-template< unsigned int TDim, unsigned int TNumNodes >
+template <unsigned int TDim, unsigned int TNumNodes>
 void PwPointFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
                                                          const ProcessInfo& CurrentProcessInfo)
 {
