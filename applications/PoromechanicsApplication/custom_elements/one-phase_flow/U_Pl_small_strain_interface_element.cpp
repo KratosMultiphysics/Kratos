@@ -356,14 +356,14 @@ void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const Extrapolati
     NodalJointWidth[7] = MyExtrapolationVariables.JointWidthContainer[3]*Area;
 
     array_1d<double,8> NodalMidPlaneLiquidPressure;
-    NodalJointWidth[0] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
-    NodalJointWidth[1] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
-    NodalJointWidth[2] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
-    NodalJointWidth[3] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[3]*Area;
-    NodalJointWidth[4] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
-    NodalJointWidth[5] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
-    NodalJointWidth[6] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
-    NodalJointWidth[7] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[3]*Area;
+    NodalMidPlaneLiquidPressure[0] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalMidPlaneLiquidPressure[1] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalMidPlaneLiquidPressure[2] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
+    NodalMidPlaneLiquidPressure[3] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[3]*Area;
+    NodalMidPlaneLiquidPressure[4] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[0]*Area;
+    NodalMidPlaneLiquidPressure[5] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[1]*Area;
+    NodalMidPlaneLiquidPressure[6] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[2]*Area;
+    NodalMidPlaneLiquidPressure[7] = MyExtrapolationVariables.MidPlaneLiquidPressureContainer[3]*Area;
 
     array_1d<double,8> NodalDamage;
     NodalDamage[0] = DamageContainer[0]*Area;
