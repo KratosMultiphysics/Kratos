@@ -38,7 +38,7 @@ PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition(IndexType           
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwPointFluxCondition<TDim, TNumNodes>::CalculateRHS(VectorType&        rRightHandSideVector,
+void PwPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRightHandSideVector,
                                                          const ProcessInfo& CurrentProcessInfo)
 {
     rRightHandSideVector[0] = this->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);

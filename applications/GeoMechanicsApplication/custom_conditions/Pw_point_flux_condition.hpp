@@ -44,7 +44,7 @@ public:
     }
  
 protected:
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
 private:
     friend class Serializer;
