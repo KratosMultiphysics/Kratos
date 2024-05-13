@@ -1171,9 +1171,7 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp = this->GetProperties();
-
-    if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+    if (const auto& rProp = this->GetProperties(); rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
         const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
         const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
         const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
