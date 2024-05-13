@@ -483,33 +483,21 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 {
     KRATOS_TRY
 
-    // Rayleigh Method: Damping Matrix = alpha*M + beta*K
-
     const GeometryType&   r_geom = GetGeometry();
     const PropertiesType& r_prop = this->GetProperties();
     const SizeType        element_size =
         r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
 
-    // Compute Mass Matrix
     MatrixType mass_matrix = ZeroMatrix(element_size, element_size);
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(element_size, element_size);
+    MatrixType stiffness_matrix(element_size, element_size);
+    this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    this->CalculateMaterialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
-
-    // Compute Damping Matrix
-    if (rDampingMatrix.size1() != element_size)
-        rDampingMatrix.resize(element_size, element_size, false);
-    noalias(rDampingMatrix) = ZeroMatrix(element_size, element_size);
-
-    if (r_prop.Has(RAYLEIGH_ALPHA)) noalias(rDampingMatrix) += r_prop[RAYLEIGH_ALPHA] * mass_matrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * mass_matrix;
-
-    if (r_prop.Has(RAYLEIGH_BETA))
-        noalias(rDampingMatrix) += r_prop[RAYLEIGH_BETA] * StiffnessMatrix;
-    else noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
+    rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+        r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
+        r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
+        mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
@@ -1043,7 +1031,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             // Compute strain, need to update porosity
             Variables.F            = deformation_gradients[GPoint];
             Variables.StrainVector = strain_vectors[GPoint];
-            this->CalculatePermeabilityUpdateFactor(Variables);
+            Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
@@ -1322,7 +1310,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
-        this->CalculatePermeabilityUpdateFactor(Variables);
+        Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1597,22 +1585,20 @@ void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(ElementVariables& rVariables)
+double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp = this->GetProperties();
-
-    if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-        const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-        const double epsV      = StressStrainUtilities::CalculateTrace(rVariables.StrainVector);
-        const double ePrevious = rProp[POROSITY] / (1.0 - rProp[POROSITY]);
+    if (const auto& r_prop = this->GetProperties(); r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+        const double InverseCK = r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+        const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
+        const double ePrevious = r_prop[POROSITY] / (1.0 - r_prop[POROSITY]);
         const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
         const double permLog10 = (eCurrent - ePrevious) * InverseCK;
-        rVariables.PermeabilityUpdateFactor = pow(10.0, permLog10);
-    } else {
-        rVariables.PermeabilityUpdateFactor = 1.0;
+        return std::pow(10.0, permLog10);
     }
+
+    return 1.0;
 
     KRATOS_CATCH("")
 }

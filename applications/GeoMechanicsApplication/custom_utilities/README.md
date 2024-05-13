@@ -58,8 +58,16 @@ $$M = \int_\Omega N_{u}^T \rho N_u d\Omega$$
 
 Where $\Omega$ is the domain, $N_u$ is the displacement shape function and $\rho$ is the density matrix that holds density for all directions.
 
+### Damping Matrix (D)
+
+The mathematical definition is:
+$$D = \alpha_R M + \beta_R K$$
+
+Where $M$ and $K$ are the mass and stiffness  matrices respectively and $\alpha_R$ and $\beta_R$ are the coefficients from the Rayleigh Method.
+
 File equation_of_motion_utilities.hpp includes 
 -  CalculateMassMatrix function
+-  CalculateDampingMatrix function
 -  CalculateIntegrationCoefficientsInitialConfiguration function that calculates integration coefficient for all integration points
 
 ## Stress strain utilities
