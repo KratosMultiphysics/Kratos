@@ -7,7 +7,7 @@ class KratosGeoMechanicsTransientPressurePointFluxTests(KratosUnittest.TestCase)
     """
     This class contains benchmark tests which are checked with the regression on a previously obtained value.
     """
-    etalon_value1 = -24000.0
+    etalon_value1 = -21000.0
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.

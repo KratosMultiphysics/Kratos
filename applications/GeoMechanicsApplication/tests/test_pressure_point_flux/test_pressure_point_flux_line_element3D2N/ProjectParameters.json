@@ -63,11 +63,8 @@
     "line_search_tolerance"              : 0.5,
     "rotation_dofs"                      : true,
     "linear_solver_settings" : {
-      "solver_type"                      : "bicgstab",
-      "tolerance"                        : 1.0e-6,
-      "max_iteration"                    : 1000,
-      "scaling"                          : true,
-      "preconditioner_type"              : "ilu0"
+      "solver_type"                      : "LinearSolversApplication.sparse_lu",
+      "scaling"                          : true
     },
     "problem_domain_sub_model_part_list" : ["filter"],
     "processes_sub_model_part_list"      : ["Start","Gravity","top","bottom"],

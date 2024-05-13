@@ -36,8 +36,6 @@ public:
 
     PwPointFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~PwPointFluxCondition() override;
-
     Condition::Pointer Create(IndexType NewId,
         NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties) const override
@@ -47,8 +45,7 @@ public:
     }
  
 protected:
-    void CalculateRHS(VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo&) override;
 
 private:
     friend class Serializer;
