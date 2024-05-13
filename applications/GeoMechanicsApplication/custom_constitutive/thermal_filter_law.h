@@ -18,22 +18,20 @@
 namespace Kratos
 {
 
-class RetentionLaw;
-
 /**
- * @class GeoThermalDispersionLaw
+ * @class GeoThermalFilterLaw
  * @ingroup GeoMechanicsApplication
- * @brief This class defines the thermal dispersion for heat cases
+ * @brief This class defines the thermal filter for heat cases
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalFilterLaw : public ConstitutiveLaw
 {
 public:
-    /// Counted pointer of GeoThermalDispersionLaw
+    /// Counted pointer of GeoThermalFilterLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalFilterLaw);
 
     GeoThermalFilterLaw();
 
-    explicit GeoThermalFilterLaw(SizeType NumberOfDimensions);
+    explicit GeoThermalFilterLaw(std::size_t NumberOfDimensions);
 
     ConstitutiveLaw::Pointer Clone() const override;
 

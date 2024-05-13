@@ -23,7 +23,7 @@ GeoThermalFilterLaw::GeoThermalFilterLaw(std::size_t NumberOfDimensions)
     : mNumberOfDimensions{NumberOfDimensions}
 {
     KRATOS_ERROR_IF(mNumberOfDimensions != 1)
-        << "Got invalid number of dimensions: " << mNumberOfDimensions << std::endl;
+        << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions << std::endl;
 }
 
 ConstitutiveLaw::Pointer GeoThermalFilterLaw::Clone() const
@@ -31,14 +31,13 @@ ConstitutiveLaw::Pointer GeoThermalFilterLaw::Clone() const
     return Kratos::make_shared<GeoThermalFilterLaw>(*this);
 }
 
-SizeType GeoThermalFilterLaw::WorkingSpaceDimension() { return 1; }
+SizeType GeoThermalFilterLaw::WorkingSpaceDimension() { return mNumberOfDimensions; }
 
 Matrix GeoThermalFilterLaw::CalculateThermalFilterMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY
 
-    Matrix result = ZeroMatrix(1, 1);
-    result(0, 0) = rProp[THERMAL_CONDUCTIVITY_WATER];
+    auto result = ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
     return result;
 
     KRATOS_CATCH("")

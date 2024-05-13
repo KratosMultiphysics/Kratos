@@ -68,7 +68,7 @@
       "preconditioner_type"              : "ilu0"
     },
     "problem_domain_sub_model_part_list" : ["filter","soil"],
-    "processes_sub_model_part_list"      : ["initial","right","left","pipe"],
+    "processes_sub_model_part_list"      : ["initial","right","left","pipe_top","pipe_bottom"],
     "body_domain_sub_model_part_list"    : ["filter","soil"]
   },
   "output_processes": {
@@ -122,7 +122,7 @@
         "model_part_name"                : "PorousDomain.right",
         "variable_name"                  : "TEMPERATURE",
         "is_fixed"                       : true,
-        "value"                          : 25.0,
+        "value"                          : 0.0,
         "table"                          : 0
     }
   },{
@@ -133,22 +133,31 @@
       "model_part_name"                  : "PorousDomain.left",
       "variable_name"                    : "TEMPERATURE",
       "is_fixed"                         : true,
-      "value"                            : 25.0,
-      "table"                            : 0
-    }
-  },{
-    "python_module"                      : "apply_scalar_constraint_table_process",
-    "kratos_module"                      : "KratosMultiphysics.GeoMechanicsApplication",
-    "process_name"                       : "ApplyScalarConstraintTableProcess",
-    "Parameters" : {
-      "model_part_name"                  : "PorousDomain.pipe",
-      "variable_name"                    : "TEMPERATURE",
-      "is_fixed"                         : true,
       "value"                            : 0.0,
       "table"                            : 0
     }
   }],
-  "loads_process_list": [],
+  "loads_process_list": [{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.pipe_top",
+            "variable_name":   "NORMAL_HEAT_FLUX",
+            "value":           100.0,
+            "table":           0
+        }
+    },{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.pipe_bottom",
+            "variable_name":   "NORMAL_HEAT_FLUX",
+            "value":           100.0,
+            "table":           0
+        }
+    }],
       "auxiliar_process_list": []
   }
 }
