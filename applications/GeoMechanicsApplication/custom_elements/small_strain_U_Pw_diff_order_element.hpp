@@ -306,6 +306,13 @@ protected:
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
+    std::vector<Matrix> CalculateConstitutiveMatricesAndStressVectors(
+        const std::vector<Matrix>& rBMatrices,
+        const std::vector<Matrix>& rDeformationGradients,
+        const std::vector<double>& rDeterminantsOfDeformationGradients,
+        const std::vector<Vector>& rStrainVectors,
+        ElementVariables&          rVariables,
+        ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 

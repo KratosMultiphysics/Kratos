@@ -1289,6 +1289,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
     const auto strain_vectors = CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    const auto constitutive_matrices = this->CalculateConstitutiveMatricesAndStressVectors(
+        b_matrices, deformation_gradients, determinants_of_deformation_gradients, strain_vectors,
+        Variables, ConstitutiveParameters);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1299,13 +1302,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.F            = deformation_gradients[GPoint];
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
-
-        // set gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        // compute constitutive tensor and/or stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -2168,6 +2165,33 @@ Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()
     std::transform(this->GetGeometry().begin(),
                    this->GetGeometry().begin() + mpPressureGeometry->PointsNumber(), result.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    return result;
+}
+
+std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateConstitutiveMatricesAndStressVectors(
+    const std::vector<Matrix>&   rBMatrices,
+    const std::vector<Matrix>&   rDeformationGradients,
+    const std::vector<double>&   rDeterminantsOfDeformationGradients,
+    const std::vector<Vector>&   rStrainVectors,
+    ElementVariables&            rVariables,
+    ConstitutiveLaw::Parameters& rConstitutiveParameters)
+{
+    std::vector<Matrix> result;
+    for (unsigned int GPoint = 0; GPoint < rBMatrices.size(); ++GPoint) {
+        rVariables.B            = rBMatrices[GPoint];
+        rVariables.F            = rDeformationGradients[GPoint];
+        rVariables.detF         = rDeterminantsOfDeformationGradients[GPoint];
+        rVariables.StrainVector = rStrainVectors[GPoint];
+
+        // set gauss points variables to constitutive law parameters
+        this->SetConstitutiveParameters(rVariables, rConstitutiveParameters);
+
+        // compute constitutive tensor and/or stresses
+        rConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
+        result.push_back(rConstitutiveParameters.GetConstitutiveMatrix());
+    }
+
     return result;
 }
 
