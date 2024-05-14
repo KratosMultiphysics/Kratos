@@ -15,7 +15,7 @@ The boundary conditions are shown below:
 
 The picture below illustrates the pressure profile resulting from the simulation (as an example the 2D2N test is shown below).
 
-<img src="documentation_data/test_pressure_point_flux_line_element_2d2n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="600">
+<img src="documentation_data/test_pressure_point_flux_line_element_2d2n_result.svg" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="600">
 
 These results are associated with the final time step after the solution reaches a steady state. The results for both test configurations are identical. The analytical solution is:
 
