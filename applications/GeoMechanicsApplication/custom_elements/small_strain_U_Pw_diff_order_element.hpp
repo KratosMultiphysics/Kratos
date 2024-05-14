@@ -242,7 +242,7 @@ protected:
 
     void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
 
-    void CalculatePermeabilityUpdateFactor(ElementVariables& rVariables);
+    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
@@ -293,11 +293,19 @@ protected:
 
     void AssignPressureToIntermediateNodes();
 
-    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
-    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector      CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
+    virtual Vector      CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
+    virtual Vector      CalculateStrain(const Matrix& rDeformationGradient,
+                                        const Matrix& rB,
+                                        const Vector& rDisplacements,
+                                        bool          UseHenckyStrain) const;
+    std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                         const std::vector<Matrix>& rBs,
+                                         const Vector&              rDisplacements,
+                                         bool                       UseHenckyStrain) const;
 
-    Matrix CalculateDeformationGradient(unsigned int GPoint) const;
+    Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
+    std::vector<Matrix> CalculateDeformationGradients() const;
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 
@@ -308,11 +316,11 @@ protected:
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
 
-    void CalculateSoilDensity(ElementVariables& rVariables);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;
+
+    Vector GetPressureSolutionVector();
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
