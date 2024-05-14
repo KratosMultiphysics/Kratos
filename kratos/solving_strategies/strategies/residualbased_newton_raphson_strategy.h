@@ -879,26 +879,45 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Gets the current solution vector
+     * @param rDofSet The set of degrees of freedom (DOFs)
+     * @return A vector containing the current solution values for the given DOF set
+     * @details This method retrieves the current solution values for the provided DOF set. Each value is accessed using the equation ID associated with each DOF.
+     */
     Vector GetCurrentSolution(DofsArrayType& rDofSet){
-        Vector a = ZeroVector(rDofSet.size());
+        Vector this_solution = ZeroVector(rDofSet.size());
         for (auto& r_dof : rDofSet) {
-            a[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
+            this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         }
-        return a;
+        return this_solution;
     }
 
+    /**
+     * @brief Gets the matrix of non-converged solutions and the DOF set
+     * @return A tuple containing the matrix of non-converged solutions and the DOF set
+     * @details This method returns a tuple where the first element is a matrix of non-converged solutions and the second element is the corresponding DOF set.
+     */
     std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
-            return std::make_tuple(mNonconveregedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet()) ;
-        }
+        return std::make_tuple(mNonconveregedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet());
+    }
 
+    /**
+     * @brief Sets up the gathering of non-converged solutions
+     * @details This method enables the storage of non-converged solutions at each iteration by setting the appropriate flag.
+     */
     void SetUpNonconvergedSolutionsGathering(){
         mStoreNonconvergedSolutionsFlag = true;
     }
 
+    /**
+     * @brief Gets the number of iterations performed
+     * @return The number of iterations performed during the solution process
+     * @details This method returns the count of iterations that were executed in the solution process.
+     */
     unsigned int GetNumberOfIterations(){
         return mNumberOfIterations;
     }
-
 
 
     /**
@@ -1313,15 +1332,30 @@ class ResidualBasedNewtonRaphsonStrategy
 
     bool mKeepSystemConstantDuringIterations; // Flag to allow keeping system matrix constant during iterations
 
+    /**
+     * @brief This vector stores the non-converged solutions at each iteration
+     * @details Each entry in the vector represents the solution vector at a given iteration which did not meet the convergence criteria.
+     */
     std::vector<Vector> NonconvergedSolutions;
 
+    /**
+     * @brief This matrix stores the non-converged solutions
+     * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
+     */
     Matrix mNonconveregedSolutionsMatrix;
 
-    std::vector<std::string> mNonconveregedVariablesToStore;
+    /**
+     * @brief Flag indicating whether to store non-converged solutions
+     * @details Only when set to true (by calling the SetUpNonconvergedSolutionsGathering method) will the non-converged solutions at each iteration be stored.
+     */
+    bool mStoreNonconvergedSolutionsFlag = false;
 
-    bool  mStoreNonconvergedSolutionsFlag = false;
-
+    /**
+     * @brief The number of iterations performed
+     * @details This variable stores the count of iterations performed during the solution process.
+     */
     unsigned int mNumberOfIterations;
+
 
     ///@}
     ///@name Private Operators
