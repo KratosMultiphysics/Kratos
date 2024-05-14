@@ -879,13 +879,13 @@ class ResidualBasedNewtonRaphsonStrategy
         KRATOS_CATCH("");
     }
 
-    Vector GetCurrentSolution(DofsArrayType &r_dof_set){
-        Vector a = ZeroVector(r_dof_set.size());
-        for (auto& r_dof : r_dof_set) {
+    Vector GetCurrentSolution(DofsArrayType& rDofSet){
+        Vector a = ZeroVector(rDofSet.size());
+        for (auto& r_dof : rDofSet) {
             a[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         }
         return a;
-        }
+    }
 
     std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
             return std::make_tuple(mNonconveregedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet()) ;
