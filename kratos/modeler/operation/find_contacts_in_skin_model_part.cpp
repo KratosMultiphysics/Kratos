@@ -234,7 +234,7 @@ void FindContactsInSkinModelPart::GetCellNeihgbourColorsConnectedByFace(
         int j_tmp = rCellIndexes[1]+j[index];
         int k_tmp = rCellIndexes[2]+k[index];
         if(IsElementInsideBounds(rColors, i_tmp, j_tmp, k_tmp)){
-            array_1d<std::size_t, 3> indexes{ (std::size_t)i_tmp, (std::size_t)j_tmp, (std::size_t)k_tmp};
+            array_1d<std::size_t, 3> indexes{ static_cast<std::size_t>(i_tmp), static_cast<std::size_t>(j_tmp), static_cast<std::size_t>(k_tmp)};
             double mtmp_color = rColors.GetElementalColor(i_tmp, j_tmp, k_tmp);
             rNeighbourColors.push_back(std::lround(mtmp_color));
             rNeighbourIndexes.push_back(indexes);
