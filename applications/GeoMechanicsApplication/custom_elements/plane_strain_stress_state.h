@@ -20,8 +20,8 @@ namespace Kratos
 class PlaneStrainStressState : public StressStatePolicy
 {
 public:
-    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rGradNpT,
-                                          const Vector&         rNp,
+    [[nodiscard]] Matrix CalculateBMatrix(const Matrix&         rDN_DX,
+                                          const Vector&         rN,
                                           const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                          double DetJ,
