@@ -891,11 +891,6 @@ class ResidualBasedNewtonRaphsonStrategy
             return std::make_tuple(mNonconveregedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet()) ;
         }
 
-    // Matrix GetNonconvergedSolutions(){
-    //         return mNonconveregedSolutionsMatrix;
-    //     }
-
-
     void SetUpNonconvergedSolutionsGathering(){
         mStoreNonconvergedSolutionsFlag = true;
     }
