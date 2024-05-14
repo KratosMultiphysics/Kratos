@@ -249,9 +249,6 @@ protected:
     void CalculateDerivativesOnInitialConfiguration(
         double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
-    void SetConstitutiveParameters(ElementVariables&            rVariables,
-                                   ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
-
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
                                            double detJ) const;
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,

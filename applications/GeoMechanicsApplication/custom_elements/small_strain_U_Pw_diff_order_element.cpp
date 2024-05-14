@@ -334,8 +334,9 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        // set gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -549,7 +550,9 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
         // set gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -1153,7 +1156,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.StrainVector = strain_vectors[GPoint];
 
             // set gauss points variables to constitutive law parameters
-            this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+            ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+                ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+                Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
             // compute constitutive tensor and/or stresses
             noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -1301,7 +1306,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.StrainVector = strain_vectors[GPoint];
 
         // set gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         // compute constitutive tensor and/or stresses
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
@@ -1366,7 +1373,9 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
         Variables.StrainVector = strain_vectors[GPoint];
 
         // set gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -1690,24 +1699,6 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     }
 
     return result;
-}
-
-void SmallStrainUPwDiffOrderElement::SetConstitutiveParameters(ElementVariables& rVariables,
-                                                               ConstitutiveLaw::Parameters& rConstitutiveParameters) const
-{
-    KRATOS_TRY
-
-    rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
-    rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-
-    // Needed parameters for consistency with the general constitutive law
-    rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.DNu_DX);
-    rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Nu);
-
-    rConstitutiveParameters.SetDeterminantF(rVariables.detF);
-    rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
-
-    KRATOS_CATCH("")
 }
 
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
