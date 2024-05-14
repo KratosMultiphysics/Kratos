@@ -33,7 +33,6 @@
 
 namespace Kratos
 {
-using SizeType = std::size_t;
 
 /// Default constructor.
 VoxelMeshGeneratorModeler::VoxelMeshGeneratorModeler() : Modeler()

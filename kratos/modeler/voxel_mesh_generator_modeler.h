@@ -42,9 +42,6 @@ public:
     /// Pointer definition of Modeler
     KRATOS_CLASS_POINTER_DEFINITION(VoxelMeshGeneratorModeler);
 
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-
     ///@}
     ///@name Life Cycle
     ///@{
