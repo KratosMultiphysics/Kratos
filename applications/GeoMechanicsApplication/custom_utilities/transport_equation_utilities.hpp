@@ -15,6 +15,7 @@
 // Project includes
 
 // Application includes
+#include "custom_retention/retention_law.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -79,6 +80,38 @@ public:
     {
         return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
     }
-    
+
+    static double CalculateSoilDensity(double DegreeOfSaturation, const Properties& rProp)
+    {
+        return DegreeOfSaturation * rProp[POROSITY] * rProp[DENSITY_WATER] +
+               (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
+    }
+
+    static Vector CalculateSoilDensities(const Vector& rDegreesSaturation, const Properties& rProp)
+    {
+        Vector result(rDegreesSaturation.size());
+        std::transform(rDegreesSaturation.cbegin(), rDegreesSaturation.cend(), result.begin(),
+                       [&rProp](const auto& degree_saturation) {
+            return CalculateSoilDensity(degree_saturation, rProp);
+        });
+        return result;
+    }
+
+    static Vector CalculateDegreesSaturation(const Vector& rPressureSolution,
+                                             const Matrix& rNContainer,
+                                             const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                                             const Properties&  rProp,
+                                             const ProcessInfo& rCurrentProcessInfo)
+    {
+        RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
+        Vector                   result(rRetentionLawVector.size());
+        for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
+            const double fluid_pressure = inner_prod(row(rNContainer, g_point), rPressureSolution);
+            retention_parameters.SetFluidPressure(fluid_pressure);
+            result(g_point) = rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
+        }
+        return result;
+    }
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

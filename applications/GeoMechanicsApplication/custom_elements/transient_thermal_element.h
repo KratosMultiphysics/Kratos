@@ -71,9 +71,14 @@ public:
         GeometryType::ShapeFunctionsGradientsType dN_dX_container;
         Vector                                    det_J_container;
 
+        // ShapreFunctionsIntegrationsPointsGradients does not allow for the line element in 2D/3D configuration
+        // and will produce errors. To circumvent this, the dN_dX_container is separately computed with correct
+        // dimensions for the line element.
         if (GetGeometry().LocalSpaceDimension() == 1) {
             GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
             dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                           dN_dX_container.begin(), std::divides<>());
         } 
         else {
             GetGeometry().ShapeFunctionsIntegrationPointsGradients(dN_dX_container, det_J_container,
@@ -242,6 +247,7 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
+        const auto& r_properties = GetProperties();
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
@@ -249,6 +255,9 @@ private:
              integration_point_index < r_integration_points.size(); ++integration_point_index) {
             result[integration_point_index] = r_integration_points[integration_point_index].Weight() *
                                               rDetJContainer[integration_point_index];
+            if (GetGeometry().LocalSpaceDimension() == 1) {
+                result[integration_point_index] *= r_properties[CROSS_AREA];
+            }
         }
 
         return result;

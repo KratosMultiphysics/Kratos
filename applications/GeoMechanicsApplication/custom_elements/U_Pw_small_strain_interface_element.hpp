@@ -295,9 +295,7 @@ protected:
                                     unsigned int               GPoint);
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
-
-    void CalculateSoilDensity(InterfaceElementVariables& rVariables);
-
+    
     void SetConstitutiveParameters(InterfaceElementVariables&   rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
