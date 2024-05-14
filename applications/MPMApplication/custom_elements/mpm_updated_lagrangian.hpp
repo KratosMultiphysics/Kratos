@@ -232,6 +232,7 @@ protected:
 
         double DynamicCoefficient;
         Vector DynamicRHS;
+        Vector DiscreteAcceleration;
 
         // Pressure at gauss points and pressure gradient
         double PressureGP;

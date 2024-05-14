@@ -316,6 +316,10 @@ public:
         if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
         {
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+
+
+            std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!! "<<"\n";
+            pause();
         }
 
         return is_converged;

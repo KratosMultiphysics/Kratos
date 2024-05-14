@@ -301,7 +301,7 @@ public:
 
 
         // Step 2 - loop over the mp for computing residuals and interpolate it to the nodes
-        std::cout << ".............numberofMP" << rModelPart.Elements().size()<<"\n";
+       // std::cout << ".............numberofMP" << rModelPart.Elements().size()<<"\n";
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         for (int k = 0; k < nelements; k++) {
             auto it_elem = el_begin + k;
