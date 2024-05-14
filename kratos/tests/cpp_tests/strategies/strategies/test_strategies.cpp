@@ -275,7 +275,7 @@ namespace Kratos
                 auto [NonconveregedSolutionsMatrix,Dofs]= pstrategy->GetNonconvergedSolutions();
 
                 unsigned int expected_rows = Dofs.size();
-                unsigned int expected_cols = pstrategy->GetNumberOfIterations() + 1; //+1 because zeroth is included
+                unsigned int expected_cols = model_part.GetProcessInfo()[NL_ITERATION_NUMBER] + 1; //+1 because zeroth is included
 
                 KRATOS_CHECK_EQUAL(NonconveregedSolutionsMatrix.size1(), expected_rows);
                 KRATOS_CHECK_EQUAL(NonconveregedSolutionsMatrix.size2(), expected_cols);

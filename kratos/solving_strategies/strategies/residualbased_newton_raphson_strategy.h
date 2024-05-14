@@ -911,16 +911,6 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief Gets the number of iterations performed
-     * @return The number of iterations performed during the solution process
-     * @details This method returns the count of iterations that were executed in the solution process.
-     */
-    unsigned int GetNumberOfIterations(){
-        return mNumberOfIterations;
-    }
-
-
-    /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     bool SolveSolutionStep() override
@@ -1103,7 +1093,6 @@ class ResidualBasedNewtonRaphsonStrategy
                 }
             }
             NonconvergedSolutions.clear();
-            mNumberOfIterations = iteration_number;
         }
 
         return is_converged;
@@ -1350,11 +1339,6 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool mStoreNonconvergedSolutionsFlag = false;
 
-    /**
-     * @brief The number of iterations performed
-     * @details This variable stores the count of iterations performed during the solution process.
-     */
-    unsigned int mNumberOfIterations;
 
 
     ///@}
