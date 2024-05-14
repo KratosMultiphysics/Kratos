@@ -602,8 +602,8 @@ private:
     const GeoThermalDispersionLaw mGeoThermalDispersion2DLaw{ConstitutiveLaw::SizeType(2)};
     const GeoThermalDispersionLaw mGeoThermalDispersion3DLaw{ConstitutiveLaw::SizeType(3)};
 
-    const GeoThermalFilterLaw mGeoThermalFilter2DLaw{std::size_t(1)};
-    const GeoThermalFilterLaw mGeoThermalFilter3DLaw{std::size_t(1)};
+    const GeoThermalFilterLaw mGeoThermalFilter2DLaw{ConstitutiveLaw::SizeType(1)};
+    const GeoThermalFilterLaw mGeoThermalFilter3DLaw{ConstitutiveLaw::SizeType(1)};
 
     ///@}
 

@@ -31,8 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
 
     const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalFilterMatrix(*cond_prop, info);
 
-    Matrix expected_solution = ZeroMatrix(1, 1);
-    expected_solution(0, 0)  = 1000.0;
+    Matrix expected_solution = ScalarMatrix(1, 1, 1000.0);
 
     constexpr double tolerance{1.0e-6};
 
@@ -43,9 +42,15 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
 KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsFilterDimensionValue, KratosGeoMechanicsFastSuite)
 {
     constexpr SizeType dimension = 1;
-    GeoThermalDispersionLaw geo_thermal_filter_law(dimension);
+    GeoThermalFilterLaw geo_thermal_filter_law(dimension);
 
     KRATOS_EXPECT_EQ(geo_thermal_filter_law.WorkingSpaceDimension(), dimension);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestFilterThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuite)
+{
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalFilterLaw law{2},
+        "Got invalid number of dimensions. The dimension has to be 1, but got: 2")
 }
 
 } // namespace Kratos::Testing
