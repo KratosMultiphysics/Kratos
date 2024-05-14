@@ -235,7 +235,6 @@ namespace Kratos
         {
             Model current_model;
 
-            constexpr double tolerance_test = 1e-6;
             constexpr double tolerance_residual_criteria = 1e-15;  // with this tolerance, I expect the strategy to reach the maximum number of iterations, i.e. 10
 
 
