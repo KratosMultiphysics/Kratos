@@ -21,11 +21,9 @@ namespace Kratos
 
 class ConstitutiveLawUtilities
 {
-
 public:
-
     static int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
 }; /* Class ConstitutiveLawUtilities*/
 
-}
+} // namespace Kratos
