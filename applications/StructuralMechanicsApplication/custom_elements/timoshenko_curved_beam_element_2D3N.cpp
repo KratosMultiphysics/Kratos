@@ -1301,8 +1301,8 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
     const double xi
     )
 {
-    GlobalSizeVector r_dN_dxi;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues(r_dN_dxi, xi);
+    GlobalSizeVector dN_dxi;
+    GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
     const auto r_geom = GetGeometry();
 
     double dx_dxi = 0.0;
@@ -1311,21 +1311,10 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
     for (IndexType i = 0; i < NumberOfNodes; ++i) {
         const IndexType u_coord = DoFperNode * i;
         const auto &r_coords_node = r_geom[i].GetInitialPosition();
-        dx_dxi += r_coords_node[0] * r_dN_dxi[u_coord];
-        dy_dxi += r_coords_node[1] * r_dN_dxi[u_coord];
+        dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
+        dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
     }
     return std::atan2(dy_dxi, dx_dxi);
-
-    // const auto r_geom = GetGeometry();
-    // GlobalSizeVector Nu;
-    // double angle = 0.0;
-    // GetNu0ShapeFunctionsValues(Nu, xi);
-    // for (IndexType i = 0; i < NumberOfNodes; ++i) {
-    //     const IndexType u_coord = DoFperNode * i;
-    //     const double &nodal_angle = r_geom[i].FastGetSolutionStepValue(SHEAR_ANGLE);
-    //     angle += nodal_angle * Nu[u_coord];
-    // }
-    // return angle;
 }
 
 /***********************************************************************************/
