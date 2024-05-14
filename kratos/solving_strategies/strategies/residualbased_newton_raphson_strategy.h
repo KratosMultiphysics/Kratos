@@ -886,7 +886,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @details This method retrieves the current solution values for the provided DOF set. Each value is accessed using the equation ID associated with each DOF.
      */
     Vector GetCurrentSolution(DofsArrayType& rDofSet){
-        Vector this_solution = ZeroVector(rDofSet.size());
+        Vector this_solution(rDofSet.size());
         for (auto& r_dof : rDofSet) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         }
