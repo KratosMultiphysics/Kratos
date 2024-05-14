@@ -24,7 +24,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PwPointFluxCondition : public PwCondition<TDim,TNumNodes>
 {
 public:
-    using GeometryType = Geometry<Node>;
+    using GeometryType   = Geometry<Node>;
     using PropertiesType = Properties;
     using NodesArrayType = GeometryType::PointsArrayType;
     using BaseType       = PwCondition<TDim, TNumNodes>;
@@ -44,7 +44,7 @@ public:
     }
  
 protected:
-    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&) override;
 
 private:
     friend class Serializer;

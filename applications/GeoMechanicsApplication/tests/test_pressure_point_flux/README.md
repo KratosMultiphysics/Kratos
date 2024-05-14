@@ -5,7 +5,7 @@
 **Source files:** [Water pore pressure point flux](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_pressure_point_flux)
 
 ## Case Specification
-In this water-pressure test case, a 3 [m] deep soil is considered, with everywhere set to 10 $\mathrm{[Pa]}$ as initial condition. Then the top boundary is set to 0 $\mathrm{[Pa]}$ and a water flux of 100 $\mathrm{[W/m^2]}$ is imposed at the bottom boundary. The simulation spans 50 hours to allow for a transition from the intial condition to a linear pressure profile along the depth. This test is conducted for various configurations, including 2D2N, 2D3N, 2D4N, 2D5N, 3D2N and 3D3N line elements. The pressure distribution along the depth is then evaluated with its analytical results.
+In this water-pressure test case, a 3 [m] deep soil is considered, with everywhere set to 10 $\mathrm{[Pa]}$ as initial condition. Then the top boundary is set to 0 $\mathrm{[Pa]}$ and a water flux of 100 $\mathrm{[m^3/s]}$ is imposed at the bottom boundary. The simulation spans 50 hours to allow for a transition from the intial condition to a linear pressure profile along the depth. This test is conducted for two configurations, including 2D2N and 3D2N line elements. The pressure distribution along the depth is then evaluated with its steady state analytical results.
 
 The boundary conditions are shown below:
 
@@ -13,9 +13,9 @@ The boundary conditions are shown below:
 
 ## Results
 
-The picture below illustrates the pressure profile resulting from the simulation (as an example the 2D3N test is shown below).
+The picture below illustrates the pressure profile resulting from the simulation (as an example the 2D2N test is shown below).
 
-<img src="documentation_data/test_pressure_point_flux_line_element_2d3n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="600">
+<img src="documentation_data/test_pressure_point_flux_line_element_2d2n_result.png" alt="Pressure along depth at the last time step" title="Pressure along the depth at the last time step" width="600">
 
 These results are associated with the final time step after the solution reaches a steady state. The results for both test configurations are identical. The analytical solution is:
 

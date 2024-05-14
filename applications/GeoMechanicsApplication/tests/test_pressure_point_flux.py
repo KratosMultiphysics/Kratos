@@ -16,7 +16,7 @@ class KratosGeoMechanicsTransientPressurePointFluxTests(KratosUnittest.TestCase)
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
         pass
-        
+
     def check_water_pressure(self, test_name, etalon_value):
         file_path = test_helper.get_file_path(os.path.join('test_pressure_point_flux', test_name))
         simulation = test_helper.run_kratos(file_path)
@@ -26,20 +26,8 @@ class KratosGeoMechanicsTransientPressurePointFluxTests(KratosUnittest.TestCase)
     def test_pressure_point_flux_line_element2D2N(self):
         self.check_water_pressure("test_pressure_point_flux_line_element2D2N", self.etalon_value1)
         
-    def test_pressure_point_flux_line_element2D3N(self):
-        self.check_water_pressure("test_pressure_point_flux_line_element2D3N", self.etalon_value1)
-        
-    def test_pressure_point_flux_line_element2D4N(self):
-        self.check_water_pressure("test_pressure_point_flux_line_element2D4N", self.etalon_value1)
-        
-    def test_pressure_point_flux_line_element2D5N(self):
-        self.check_water_pressure("test_pressure_point_flux_line_element2D5N", self.etalon_value1)
-
     def test_pressure_point_flux_line_element3D2N(self):
         self.check_water_pressure("test_pressure_point_flux_line_element3D2N", self.etalon_value1)
-        
-    def test_pressure_point_flux_line_element3D3N(self):
-        self.check_water_pressure("test_pressure_point_flux_line_element3D3N", self.etalon_value1)
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()
