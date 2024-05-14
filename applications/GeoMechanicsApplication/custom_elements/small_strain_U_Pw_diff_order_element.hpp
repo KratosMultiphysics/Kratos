@@ -306,9 +306,10 @@ protected:
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
-    std::vector<Matrix> CalculateConstitutiveMatricesAndStressVectors(
+    std::vector<Matrix> CalculateConstitutiveMatricesAndOptionalStressVectors(
         const std::vector<Matrix>&                       rDeformationGradients,
         std::vector<Vector>&                             rStrainVectors,
+        std::vector<Vector>&                             rStressVectors,
         ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
         const Matrix&                                    rNuContainer,
         const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer);
