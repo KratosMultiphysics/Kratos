@@ -92,7 +92,7 @@ class RomNeuralNetworkTrainer(object):
         _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
         _, hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", self.mu_train)
-        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)
+        sigma_vec =  self.data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(self.mu_train))
 
         phisig_inv_inf = np.linalg.inv(np.diag(sigma_vec[:n_inf]))@phi[:,:n_inf].T
         phisig_inv_sup = np.linalg.inv(np.diag(sigma_vec[n_inf:n_sup]))@phi[:,n_inf:n_sup].T
