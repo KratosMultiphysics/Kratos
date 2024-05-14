@@ -920,6 +920,7 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TSchemeType::Pointer p_scheme = GetScheme();
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
+        std::vector<Vector> NonconvergedSolutions;
 
         if (mStoreNonconvergedSolutionsFlag) {
             Vector initial = GetCurrentSolution(r_dof_set);
@@ -1092,7 +1093,6 @@ class ResidualBasedNewtonRaphsonStrategy
                     mNonconveregedSolutionsMatrix(j, i) = NonconvergedSolutions[i](j);
                 }
             }
-            NonconvergedSolutions.clear();
         }
 
         return is_converged;
@@ -1320,12 +1320,6 @@ class ResidualBasedNewtonRaphsonStrategy
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
 
     bool mKeepSystemConstantDuringIterations; // Flag to allow keeping system matrix constant during iterations
-
-    /**
-     * @brief This vector stores the non-converged solutions at each iteration
-     * @details Each entry in the vector represents the solution vector at a given iteration which did not meet the convergence criteria.
-     */
-    std::vector<Vector> NonconvergedSolutions;
 
     /**
      * @brief This matrix stores the non-converged solutions
