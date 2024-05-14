@@ -23,7 +23,8 @@ GeoThermalFilterLaw::GeoThermalFilterLaw(SizeType NumberOfDimensions)
     : mNumberOfDimensions{NumberOfDimensions}
 {
     KRATOS_ERROR_IF(mNumberOfDimensions != 1)
-        << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions << std::endl;
+        << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions
+        << std::endl;
 }
 
 ConstitutiveLaw::Pointer GeoThermalFilterLaw::Clone() const
