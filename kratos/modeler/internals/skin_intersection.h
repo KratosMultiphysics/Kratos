@@ -250,12 +250,12 @@ private:
         const std::size_t num_nodes = rGeom.PointsNumber();
         const auto& r_integration_points = rGeom.IntegrationPoints(Method);
         const std::size_t num_gauss = r_integration_points.size();
+        std::size_t new_point_offset = rIntegrationPointData.size();
 
         Matrix shape_functions = rGeom.ShapeFunctionsValues(Method);
         Vector det_j;
         rGeom.DeterminantOfJacobian(det_j, Method);
 
-        std::size_t offset = rIntegrationPointData.size();
         for (std::size_t g = 0; g < num_gauss; g++) {
             Vector data = ZeroVector(4);
             data[3] = r_integration_points[g].Weight() * det_j[g];
@@ -266,7 +266,7 @@ private:
             const auto& r_coordinates = rGeom[n].Coordinates();
             for (std::size_t g = 0; g < num_gauss; g++) {
                 for (std::size_t d = 0; d < 3; d++) {
-                    rIntegrationPointData[offset+g][d] += shape_functions(g, n)*r_coordinates[d];
+                    rIntegrationPointData[new_point_offset+g][d] += shape_functions(g, n)*r_coordinates[d];
                 }
             }
         }
