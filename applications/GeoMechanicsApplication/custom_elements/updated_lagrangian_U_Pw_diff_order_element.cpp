@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 #include "utilities/math_utils.h"
 
@@ -91,7 +92,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 

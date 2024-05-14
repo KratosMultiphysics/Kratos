@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -169,7 +170,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -283,7 +284,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -344,7 +345,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -618,7 +619,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.detF         = determinants_of_deformation_gradients[GPoint];
             Variables.StrainVector = strain_vectors[GPoint];
 
-            ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
                 ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
                 Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -749,7 +750,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.detF         = determinants_of_deformation_gradients[GPoint];
             Variables.StrainVector = strain_vectors[GPoint];
 
-            ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
                 ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
                 Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -926,7 +927,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -1056,7 +1057,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 

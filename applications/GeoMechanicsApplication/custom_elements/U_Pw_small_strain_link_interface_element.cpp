@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
+#include "custom_utilities/constitutive_law_utilities.hpp"
 
 namespace Kratos
 {
@@ -322,7 +323,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
 
-    ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+    ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
         ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
         Variables.GradNpT, Variables.F, Variables.detF);
 

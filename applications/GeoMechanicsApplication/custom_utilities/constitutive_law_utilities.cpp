@@ -26,4 +26,19 @@ int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThi
     return index - 1;
 }
 
+void ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                                                     Vector& rStrainVector,
+                                                                     Matrix& rConstitutiveMatrix,
+                                                                     const Vector& rN,
+                                                                     const Matrix& rGradNpT,
+                                                                     const Matrix& rF,
+                                                                     double        detF)
+{
+    rConstitutiveParameters.SetStrainVector(rStrainVector);
+    rConstitutiveParameters.SetConstitutiveMatrix(rConstitutiveMatrix);
+    rConstitutiveParameters.SetShapeFunctionsValues(rN);
+    rConstitutiveParameters.SetShapeFunctionsDerivatives(rGradNpT);
+    rConstitutiveParameters.SetDeformationGradientF(rF);
+    rConstitutiveParameters.SetDeterminantF(detF);
+}
 } // namespace Kratos

@@ -10,8 +10,8 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_utilities/constitutive_law_utilities.hpp"
 #include "includes/checks.h"
-#include "includes/constitutive_law.h"
 #include "testing/testing.h"
 
 using namespace Kratos;
@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
     const Matrix     shape_functions_derivatives = ScalarMatrix(3, 3, 5.0);
     const Matrix     deformation_gradient_F      = ScalarMatrix(3, 3, 10.0);
     constexpr double determinant_of_F            = 10.0;
-    ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+    ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
         ConstitutiveParameters, strain_vector, constitutive_matrix, N, shape_functions_derivatives,
         deformation_gradient_F, determinant_of_F);
 
