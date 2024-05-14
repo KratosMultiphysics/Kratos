@@ -12,14 +12,14 @@
 
 #pragma once
 
-#include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+#include "solving_strategies/schemes/scheme.h"
 #include <memory>
 
 namespace Kratos
 {
 
-template<class TSparseSpace, class TDenseSpace>
+template <class TSparseSpace, class TDenseSpace>
 class SchemeFactory
 {
 public:
@@ -27,12 +27,13 @@ public:
 
     static std::shared_ptr<SchemeType> Create(const Parameters& rSolverSettings)
     {
-        KRATOS_ERROR_IF_NOT(rSolverSettings.Has("scheme_type")) << "scheme_type is not defined, aborting";
-        KRATOS_ERROR_IF_NOT(rSolverSettings.Has("solution_type")) << "solution_type is not defined, aborting";
+        KRATOS_ERROR_IF_NOT(rSolverSettings.Has("scheme_type"))
+            << "scheme_type is not defined, aborting";
+        KRATOS_ERROR_IF_NOT(rSolverSettings.Has("solution_type"))
+            << "solution_type is not defined, aborting";
 
         if (rSolverSettings["scheme_type"].GetString() == "Backward_Euler" &&
-            rSolverSettings["solution_type"].GetString() == "Quasi-Static")
-        {
+            rSolverSettings["solution_type"].GetString() == "Quasi-Static") {
             return std::make_shared<BackwardEulerQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>();
         }
 
@@ -40,4 +41,4 @@ public:
     }
 };
 
-}
+} // namespace Kratos
