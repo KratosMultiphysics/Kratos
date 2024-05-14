@@ -912,7 +912,7 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         auto& r_dof_set = p_builder_and_solver->GetDofSet();
 
-        if (mStoreNonconvergedSolutionsFlag == true){
+        if (mStoreNonconvergedSolutionsFlag) {
             Vector initial = GetCurrentSolution(r_dof_set);
             NonconvergedSolutions.push_back(initial);
         }
