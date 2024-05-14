@@ -615,31 +615,80 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
 
     const double k_s = GetBendingShearStiffnessRatio();
 
-    const double xi_pow_2 = std::pow(xi, 2);
-
-    const double J1_pow_2 = std::pow(J1, 2);
-    const double J1_pow_3 = std::pow(J1, 3);
-
-    const double J2_pow_2 = std::pow(J2, 2);
-    const double J2_pow_3 = std::pow(J2, 3);
-
-    const double J3_pow_2 = std::pow(J3, 2);
-    const double J3_pow_3 = std::pow(J3, 3);
-
-    const double k_s_pow_2 = std::pow(k_s, 2);
-    const double k_s_pow_3 = std::pow(k_s, 3);
-
-    rd3N[0] = (-60.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi_pow_2 + 24 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi + 6 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 + 360.0 * J1_pow_3 * J2_pow_2 * k01 * k_s * xi_pow_2 - 288.0 * J1_pow_3 * J2_pow_2 * k01 * k_s * xi - 720.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi_pow_2 + 648.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi + 72.0 * J1_pow_3 * J3_pow_2 * k01 * k_s + 4320.0 * J1_pow_3 * k01 * k_s_pow_2 * xi_pow_2 - 4320.0 * J1_pow_3 * k01 * k_s_pow_2 * xi) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-    rd3N[1] = (360.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 60.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 720.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_2 + 1152.0 * J1_pow_2 * J2_pow_2 * k_s * xi + 3960.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 - 3096.0 * J1_pow_2 * J3_pow_2 * k_s * xi - 864.0 * J1_pow_2 * J3_pow_2 * k_s - 12960.0 * J1_pow_2 * k_s_pow_2 * xi_pow_2 + 12960.0 * J1_pow_2 * k_s_pow_2 * xi + 1080.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 504.0 * J2_pow_2 * J3_pow_2 * k_s * xi - 576.0 * J2_pow_2 * J3_pow_2 * k_s + 4320.0 * J2_pow_2 * k_s_pow_2 * xi_pow_2 + 4320.0 * J2_pow_2 * k_s_pow_2 * xi + 8640.0 * J3_pow_2 * k_s_pow_2 * xi_pow_2 - 8640.0 * J3_pow_2 * k_s_pow_2) / (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * k_s + 156.0 * J1_pow_2 * J3_pow_2 * k_s - 1296.0 * J1_pow_2 * k_s_pow_2 + 156.0 * J2_pow_2 * J3_pow_2 * k_s - 1296.0 * J2_pow_2 * k_s_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 - 17280.0 * k_s_pow_3);
-    rd3N[2] = (60 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi_pow_2 - 24 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi - 6 * J1_pow_3 * J2_pow_2 * J3_pow_2 - 360.0 * J1_pow_3 * J2_pow_2 * k_s * xi_pow_2 + 288.0 * J1_pow_3 * J2_pow_2 * k_s * xi + 720.0 * J1_pow_3 * J3_pow_2 * k_s * xi_pow_2 - 648.0 * J1_pow_3 * J3_pow_2 * k_s * xi - 72.0 * J1_pow_3 * J3_pow_2 * k_s - 4320.0 * J1_pow_3 * k_s_pow_2 * xi_pow_2 + 4320.0 * J1_pow_3 * k_s_pow_2 * xi) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-
-    rd3N[3] = (-60 * J1_pow_2 *J2_pow_3 *J3_pow_2 * k02 * xi_pow_2 - 24 * J1_pow_2 *J2_pow_3 *J3_pow_2 * k02 * xi + 6 * J1_pow_2 *J2_pow_3 *J3_pow_2 * k02 + 360.0 * J1_pow_2 *J2_pow_3 * k02 * k_s * xi_pow_2 + 288.0 * J1_pow_2 *J2_pow_3 * k02 * k_s * xi - 720.0 *J2_pow_3 *J3_pow_2 * k02 * k_s * xi_pow_2 - 648.0 *J2_pow_3 *J3_pow_2 * k02 * k_s * xi + 72.0 *J2_pow_3 *J3_pow_2 * k02 * k_s + 4320.0 *J2_pow_3 * k02 * k_s_pow_2 * xi_pow_2 + 4320.0 *J2_pow_3 * k02 * k_s_pow_2 * xi) / (4.0 * J1_pow_2 *J2_pow_2 *J3_pow_2 - 48.0 * J1_pow_2 *J2_pow_2 * k_s + 78.0 * J1_pow_2 *J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 *J2_pow_2 *J3_pow_2 * k_s - 648.0 *J2_pow_2 * k_s_pow_2 + 1296.0 *J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-    rd3N[4] = (-360.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi + 60.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 + 720.0 * J1_pow_2 * J2_pow_2 * k_s * xi_pow_2 + 1152.0 * J1_pow_2 * J2_pow_2 * k_s * xi - 1080.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 504.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 576.0 * J1_pow_2 * J3_pow_2 * k_s - 4320.0 * J1_pow_2 * k_s_pow_2 * xi_pow_2 + 4320.0 * J1_pow_2 * k_s_pow_2 * xi - 3960.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 - 3096.0 * J2_pow_2 * J3_pow_2 * k_s * xi + 864.0 * J2_pow_2 * J3_pow_2 * k_s + 12960.0 * J2_pow_2 * k_s_pow_2 * xi_pow_2 + 12960.0 * J2_pow_2 * k_s_pow_2 * xi - 8640.0 * J3_pow_2 * k_s_pow_2 * xi_pow_2 + 8640.0 * J3_pow_2 * k_s_pow_2) / (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * k_s + 156.0 * J1_pow_2 * J3_pow_2 * k_s - 1296.0 * J1_pow_2 * k_s_pow_2 + 156.0 * J2_pow_2 * J3_pow_2 * k_s - 1296.0 * J2_pow_2 * k_s_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 - 17280.0 * k_s_pow_3);
-    rd3N[5] = (60.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi_pow_2 + 24.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi - 6.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 - 360.0 * J1_pow_2 * J2_pow_3 * k_s * xi_pow_2 - 288.0 * J1_pow_2 * J2_pow_3 * k_s * xi + 720.0 * J2_pow_3 * J3_pow_2 * k_s * xi_pow_2 + 648.0 * J2_pow_3 * J3_pow_2 * k_s * xi - 72.0 * J2_pow_3 * J3_pow_2 * k_s - 4320.0 * J2_pow_3 * k_s_pow_2 * xi_pow_2 - 4320.0 * J2_pow_3 * k_s_pow_2 * xi) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-
-    rd3N[6] = (-120.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * k03 * xi_pow_2 + 24.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * k03 - 900.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_2 + 576.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi + 324.0 * J1_pow_2 * J3_pow_3 * k03 * k_s - 900.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi_pow_2 - 576.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi + 324.0 * J2_pow_2 * J3_pow_3 * k03 * k_s - 4320.0 * J3_pow_3 * k03 * k_s_pow_2 * xi_pow_2 + 4320.0 * J3_pow_3 * k03 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
-    rd3N[7] = (48.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 576.0 * J1_pow_2 * J2_pow_2 * k_s * xi - 720.0 * J1_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 648.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 72.0 * J1_pow_2 * J3_pow_2 * k_s + 4320.0 * J1_pow_2 * k_s_pow_2 * xi_pow_2 - 4320.0 * J1_pow_2 * k_s_pow_2 * xi + 720.0 * J2_pow_2 * J3_pow_2 * k_s * xi_pow_2 + 648.0 * J2_pow_2 * J3_pow_2 * k_s * xi - 72.0 * J2_pow_2 * J3_pow_2 * k_s - 4320.0 * J2_pow_2 * k_s_pow_2 * xi_pow_2 - 4320.0 * J2_pow_2 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
-    rd3N[8] = (120.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 + 900.0 * J1_pow_2 * J3_pow_3 * k_s * xi_pow_2 - 576.0 * J1_pow_2 * J3_pow_3 * k_s * xi - 324.0 * J1_pow_2 * J3_pow_3 * k_s + 900.0 * J2_pow_2 * J3_pow_3 * k_s * xi_pow_2 + 576.0 * J2_pow_2 * J3_pow_3 * k_s * xi - 324.0 * J2_pow_2 * J3_pow_3 * k_s + 4320.0 * J3_pow_3 * k_s_pow_2 * xi_pow_2 - 4320.0 * J3_pow_3 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
+    const double crd3N0 = std::pow(k_s, 3);
+    const double crd3N1 = std::pow(J1, 2);
+    const double crd3N2 = std::pow(k_s, 2);
+    const double crd3N3 = 648.0*crd3N2;
+    const double crd3N4 = std::pow(J2, 2);
+    const double crd3N5 = std::pow(J3, 2);
+    const double crd3N6 = crd3N2*crd3N5;
+    const double crd3N7 = crd3N1*crd3N4;
+    const double crd3N8 = crd3N7*k_s;
+    const double crd3N9 = crd3N5*k_s;
+    const double crd3N10 = 78.0*crd3N9;
+    const double crd3N11 = crd3N5*crd3N7;
+    const double crd3N12 = 1.0/(-8640.0*crd3N0 + crd3N1*crd3N10 - crd3N1*crd3N3 + crd3N10*crd3N4 + 4.0*crd3N11 - crd3N3*crd3N4 + 1296.0*crd3N6 - 48.0*crd3N8);
+    const double crd3N13 = 6*crd3N5;
+    const double crd3N14 = 4320.0*crd3N2;
+    const double crd3N15 = crd3N14*xi;
+    const double crd3N16 = crd3N4*crd3N5;
+    const double crd3N17 = std::pow(xi, 2);
+    const double crd3N18 = 60*crd3N17;
+    const double crd3N19 = 24*xi;
+    const double crd3N20 = crd3N4*k_s;
+    const double crd3N21 = 360.0*crd3N17;
+    const double crd3N22 = crd3N9*xi;
+    const double crd3N23 = 648.0*crd3N22;
+    const double crd3N24 = 288.0*xi;
+    const double crd3N25 = 72.0*crd3N9;
+    const double crd3N26 = crd3N14*crd3N17;
+    const double crd3N27 = crd3N17*crd3N9;
+    const double crd3N28 = 720.0*crd3N27;
+    const double crd3N29 = crd3N25 + crd3N26 - crd3N28;
+    const double crd3N30 = std::pow(J1, 3)*crd3N12*(crd3N13*crd3N4 - crd3N15 - crd3N16*crd3N18 + crd3N16*crd3N19 + crd3N20*crd3N21 - crd3N20*crd3N24 + crd3N23 + crd3N29);
+    const double crd3N31 = 1296.0*crd3N2;
+    const double crd3N32 = 156.0*crd3N9;
+    const double crd3N33 = 1.0/(-17280.0*crd3N0 - crd3N1*crd3N31 + crd3N1*crd3N32 + 8.0*crd3N11 - crd3N31*crd3N4 + crd3N32*crd3N4 + 2592.0*crd3N6 - 96.0*crd3N8);
+    const double crd3N34 = 8640.0*crd3N6;
+    const double crd3N35 = crd3N15*crd3N4;
+    const double crd3N36 = crd3N26*crd3N4;
+    const double crd3N37 = crd3N17*crd3N34;
+    const double crd3N38 = 12960.0*crd3N2;
+    const double crd3N39 = crd3N1*xi;
+    const double crd3N40 = 576.0*crd3N9;
+    const double crd3N41 = 60.0*crd3N11;
+    const double crd3N42 = 864.0*crd3N9;
+    const double crd3N43 = crd3N17*crd3N38;
+    const double crd3N44 = crd3N11*crd3N21;
+    const double crd3N45 = 504.0*crd3N22;
+    const double crd3N46 = 1080.0*crd3N27;
+    const double crd3N47 = 3960.0*crd3N27;
+    const double crd3N48 = 720.0*crd3N17*crd3N8;
+    const double crd3N49 = 3096.0*crd3N22;
+    const double crd3N50 = crd3N11*xi;
+    const double crd3N51 = -96.0*crd3N50 + 1152.0*crd3N8*xi;
+    const double crd3N52 = crd3N1*crd3N5;
+    const double crd3N53 = crd3N1*k_s;
+    const double crd3N54 = std::pow(J2, 3)*crd3N12*(crd3N1*crd3N13 + crd3N15 - crd3N18*crd3N52 - crd3N19*crd3N52 + crd3N21*crd3N53 - crd3N23 + crd3N24*crd3N53 + crd3N29);
+    const double crd3N55 = crd3N1*crd3N15;
+    const double crd3N56 = crd3N1*crd3N26;
+    const double crd3N57 = 324.0*crd3N2;
+    const double crd3N58 = 24.0*crd3N7;
+    const double crd3N59 = 39.0*crd3N9;
+    const double crd3N60 = 1.0/(-4320.0*crd3N0 - crd3N1*crd3N57 + crd3N1*crd3N59 + 2.0*crd3N11 - crd3N4*crd3N57 + crd3N4*crd3N59 - crd3N58*k_s + 648.0*crd3N6);
+    const double crd3N61 = 324.0*k_s;
+    const double crd3N62 = 576.0*xi;
+    const double crd3N63 = 900.0*crd3N17;
+    const double crd3N64 = std::pow(J3, 3)*crd3N60*(-crd3N1*crd3N61 - crd3N14 + 120.0*crd3N17*crd3N7 + crd3N20*crd3N62 + crd3N20*crd3N63 + crd3N26 - 576.0*crd3N39*k_s - crd3N4*crd3N61 + crd3N53*crd3N63 - crd3N58);
+    rd3N[0]=crd3N30*k01;
+    rd3N[1]=crd3N33*(-crd3N1*crd3N42 - crd3N1*crd3N43 + crd3N1*crd3N47 - crd3N1*crd3N49 - crd3N34 + crd3N35 + crd3N36 + crd3N37 + crd3N38*crd3N39 - crd3N4*crd3N40 + crd3N4*crd3N45 + crd3N4*crd3N46 - crd3N41 + crd3N44 - crd3N48 + crd3N51);
+    rd3N[2]=-crd3N30;
+    rd3N[3]=crd3N54*k02;
+    rd3N[4]=crd3N33*(crd3N1*crd3N40 + crd3N1*crd3N45 - crd3N1*crd3N46 + crd3N34 - crd3N37 + crd3N38*crd3N4*xi + crd3N4*crd3N42 + crd3N4*crd3N43 - crd3N4*crd3N47 - crd3N4*crd3N49 + crd3N41 - crd3N44 + crd3N48 + crd3N51 + crd3N55 - crd3N56);
+    rd3N[5]=-crd3N54;
+    rd3N[6]=-crd3N64*k03;
+    rd3N[7]=crd3N60*(crd3N1*crd3N23 + crd3N1*crd3N25 - crd3N1*crd3N28 + crd3N23*crd3N4 - crd3N25*crd3N4 + crd3N28*crd3N4 - crd3N35 - crd3N36 + 48.0*crd3N50 - crd3N55 + crd3N56 - crd3N62*crd3N8);
+    rd3N[8]=crd3N64;
 
     rd3N /= std::pow(J, 3);
 }
@@ -665,31 +714,64 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFourthDerivativesShapeFunctionsVa
 
     const double k_s = GetBendingShearStiffnessRatio();
 
-    const double xi_pow_2 = std::pow(xi, 2);
-
-    const double J1_pow_2 = std::pow(J1, 2);
-    const double J1_pow_3 = std::pow(J1, 3);
-
-    const double J2_pow_2 = std::pow(J2, 2);
-    const double J2_pow_3 = std::pow(J2, 3);
-
-    const double J3_pow_2 = std::pow(J3, 2);
-    const double J3_pow_3 = std::pow(J3, 3);
-
-    const double k_s_pow_2 = std::pow(k_s, 2);
-    const double k_s_pow_3 = std::pow(k_s, 3);
-
-    rd4N[0] = (-120.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 * xi + 24 * J1_pow_3 * J2_pow_2 * J3_pow_2 * k01 + 720.0 * J1_pow_3 * J2_pow_2 * k01 * k_s * xi - 288.0 * J1_pow_3 * J2_pow_2 * k01 * k_s - 1440.0 * J1_pow_3 * J3_pow_2 * k01 * k_s * xi + 648.0 * J1_pow_3 * J3_pow_2 * k01 * k_s + 8640.0 * J1_pow_3 * k01 * k_s_pow_2 * xi - 4320.0 * J1_pow_3 * k01 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-    rd4N[1] = (720.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 96.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 1440.0 * J1_pow_2 * J2_pow_2 * k_s * xi + 1152.0 * J1_pow_2 * J2_pow_2 * k_s + 7920.0 * J1_pow_2 * J3_pow_2 * k_s * xi - 3096.0 * J1_pow_2 * J3_pow_2 * k_s - 25920.0 * J1_pow_2 * k_s_pow_2 * xi + 12960.0 * J1_pow_2 * k_s_pow_2 + 2160.0 * J2_pow_2 * J3_pow_2 * k_s * xi + 504.0 * J2_pow_2 * J3_pow_2 * k_s + 8640.0 * J2_pow_2 * k_s_pow_2 * xi + 4320.0 * J2_pow_2 * k_s_pow_2 + 17280.0 * J3_pow_2 * k_s_pow_2 * xi) / (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * k_s + 156.0 * J1_pow_2 * J3_pow_2 * k_s - 1296.0 * J1_pow_2 * k_s_pow_2 + 156.0 * J2_pow_2 * J3_pow_2 * k_s - 1296.0 * J2_pow_2 * k_s_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 - 17280.0 * k_s_pow_3);
-    rd4N[2] = (120.0 * J1_pow_3 * J2_pow_2 * J3_pow_2 * xi - 24 * J1_pow_3 * J2_pow_2 * J3_pow_2 - 720.0 * J1_pow_3 * J2_pow_2 * k_s * xi + 288.0 * J1_pow_3 * J2_pow_2 * k_s + 1440.0 * J1_pow_3 * J3_pow_2 * k_s * xi - 648.0 * J1_pow_3 * J3_pow_2 * k_s - 8640.0 * J1_pow_3 * k_s_pow_2 * xi + 4320.0 * J1_pow_3 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-
-    rd4N[3] = (-120 * pow(J1, 2) * pow(J2, 3) * pow(J3, 2) * k02 * xi - 24 * pow(J1, 2) * pow(J2, 3) * pow(J3, 2) * k02 + 720.0 * pow(J1, 2) * pow(J2, 3) * k02 * k_s * xi + 288.0 * pow(J1, 2) * pow(J2, 3) * k02 * k_s - 1440.0 * pow(J2, 3) * pow(J3, 2) * k02 * k_s * xi - 648.0 * pow(J2, 3) * pow(J3, 2) * k02 * k_s + 8640.0 * pow(J2, 3) * k02 * pow(k_s, 2) * xi + 4320.0 * pow(J2, 3) * k02 * pow(k_s, 2)) / (4.0 * pow(J1, 2) * pow(J2, 2) * pow(J3, 2) - 48.0 * pow(J1, 2) * pow(J2, 2) * k_s + 78.0 * pow(J1, 2) * pow(J3, 2) * k_s - 648.0 * pow(J1, 2) * pow(k_s, 2) + 78.0 * pow(J2, 2) * pow(J3, 2) * k_s - 648.0 * pow(J2, 2) * pow(k_s, 2) + 1296.0 * pow(J3, 2) * pow(k_s, 2) - 8640.0 * pow(k_s, 3));
-    rd4N[4] = (-720.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 * xi - 96.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 + 1440.0 * J1_pow_2 * J2_pow_2 * k_s * xi + 1152.0 * J1_pow_2 * J2_pow_2 * k_s - 2160.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 504.0 * J1_pow_2 * J3_pow_2 * k_s - 8640.0 * J1_pow_2 * k_s_pow_2 * xi + 4320.0 * J1_pow_2 * k_s_pow_2 - 7920.0 * J2_pow_2 * J3_pow_2 * k_s * xi - 3096.0 * J2_pow_2 * J3_pow_2 * k_s + 25920.0 * J2_pow_2 * k_s_pow_2 * xi + 12960.0 * J2_pow_2 * k_s_pow_2 - 17280.0 * J3_pow_2 * k_s_pow_2 * xi) / (8.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 96.0 * J1_pow_2 * J2_pow_2 * k_s + 156.0 * J1_pow_2 * J3_pow_2 * k_s - 1296.0 * J1_pow_2 * k_s_pow_2 + 156.0 * J2_pow_2 * J3_pow_2 * k_s - 1296.0 * J2_pow_2 * k_s_pow_2 + 2592.0 * J3_pow_2 * k_s_pow_2 - 17280.0 * k_s_pow_3);
-    rd4N[5] = (120.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 * xi + 24.0 * J1_pow_2 * J2_pow_3 * J3_pow_2 - 720.0 * J1_pow_2 * J2_pow_3 * k_s * xi - 288.0 * J1_pow_2 * J2_pow_3 * k_s + 1440.0 * J2_pow_3 * J3_pow_2 * k_s * xi + 648.0 * J2_pow_3 * J3_pow_2 * k_s - 8640.0 * J2_pow_3 * k_s_pow_2 * xi - 4320.0 * J2_pow_3 * k_s_pow_2) / (4.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 48.0 * J1_pow_2 * J2_pow_2 * k_s + 78.0 * J1_pow_2 * J3_pow_2 * k_s - 648.0 * J1_pow_2 * k_s_pow_2 + 78.0 * J2_pow_2 * J3_pow_2 * k_s - 648.0 * J2_pow_2 * k_s_pow_2 + 1296.0 * J3_pow_2 * k_s_pow_2 - 8640.0 * k_s_pow_3);
-
-    rd4N[6] = (-240.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * k03 * xi - 1800.0 * J1_pow_2 * J3_pow_3 * k03 * k_s * xi + 576.0 * J1_pow_2 * J3_pow_3 * k03 * k_s - 1800.0 * J2_pow_2 * J3_pow_3 * k03 * k_s * xi - 576.0 * J2_pow_2 * J3_pow_3 * k03 * k_s - 8640.0 * J3_pow_3 * k03 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
-    rd4N[7] = (48.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 576.0 * J1_pow_2 * J2_pow_2 * k_s - 1440.0 * J1_pow_2 * J3_pow_2 * k_s * xi + 648.0 * J1_pow_2 * J3_pow_2 * k_s + 8640.0 * J1_pow_2 * k_s_pow_2 * xi - 4320.0 * J1_pow_2 * k_s_pow_2 + 1440.0 * J2_pow_2 * J3_pow_2 * k_s * xi + 648.0 * J2_pow_2 * J3_pow_2 * k_s - 8640.0 * J2_pow_2 * k_s_pow_2 * xi - 4320.0 * J2_pow_2 * k_s_pow_2) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
-    rd4N[8] = (240.0 * J1_pow_2 * J2_pow_2 * J3_pow_3 * xi + 1800.0 * J1_pow_2 * J3_pow_3 * k_s * xi - 576.0 * J1_pow_2 * J3_pow_3 * k_s + 1800.0 * J2_pow_2 * J3_pow_3 * k_s * xi + 576.0 * J2_pow_2 * J3_pow_3 * k_s + 8640.0 * J3_pow_3 * k_s_pow_2 * xi) / (2.0 * J1_pow_2 * J2_pow_2 * J3_pow_2 - 24.0 * J1_pow_2 * J2_pow_2 * k_s + 39.0 * J1_pow_2 * J3_pow_2 * k_s - 324.0 * J1_pow_2 * k_s_pow_2 + 39.0 * J2_pow_2 * J3_pow_2 * k_s - 324.0 * J2_pow_2 * k_s_pow_2 + 648.0 * J3_pow_2 * k_s_pow_2 - 4320.0 * k_s_pow_3);
+    const double crd4N0 = std::pow(k_s, 2);
+    const double crd4N1 = 4320.0*crd4N0;
+    const double crd4N2 = std::pow(J2, 2);
+    const double crd4N3 = std::pow(J3, 2);
+    const double crd4N4 = 24*crd4N3;
+    const double crd4N5 = 288.0*k_s;
+    const double crd4N6 = crd4N3*k_s;
+    const double crd4N7 = 648.0*crd4N6;
+    const double crd4N8 = crd4N2*xi;
+    const double crd4N9 = 120*crd4N3;
+    const double crd4N10 = 720.0*k_s;
+    const double crd4N11 = crd4N0*xi;
+    const double crd4N12 = 8640.0*crd4N11;
+    const double crd4N13 = crd4N6*xi;
+    const double crd4N14 = 1440.0*crd4N13;
+    const double crd4N15 = -crd4N12 + crd4N14;
+    const double crd4N16 = std::pow(k_s, 3);
+    const double crd4N17 = std::pow(J1, 2);
+    const double crd4N18 = 648.0*crd4N0;
+    const double crd4N19 = crd4N0*crd4N3;
+    const double crd4N20 = crd4N17*crd4N2;
+    const double crd4N21 = crd4N20*k_s;
+    const double crd4N22 = 78.0*crd4N6;
+    const double crd4N23 = crd4N20*crd4N3;
+    const double crd4N24 = 1.0/(-8640.0*crd4N16 - crd4N17*crd4N18 + crd4N17*crd4N22 - crd4N18*crd4N2 + 1296.0*crd4N19 + crd4N2*crd4N22 - 48.0*crd4N21 + 4.0*crd4N23);
+    const double crd4N25 = std::pow(J1, 3)*crd4N24*(crd4N1 - crd4N10*crd4N8 + crd4N15 - crd4N2*crd4N4 + crd4N2*crd4N5 - crd4N7 + crd4N8*crd4N9);
+    const double crd4N26 = 1296.0*crd4N0;
+    const double crd4N27 = 156.0*crd4N6;
+    const double crd4N28 = 1.0/(-17280.0*crd4N16 - crd4N17*crd4N26 + crd4N17*crd4N27 + 2592.0*crd4N19 - crd4N2*crd4N26 + crd4N2*crd4N27 - 96.0*crd4N21 + 8.0*crd4N23);
+    const double crd4N29 = crd4N1*crd4N2;
+    const double crd4N30 = 12960.0*crd4N0;
+    const double crd4N31 = 1152.0*crd4N21;
+    const double crd4N32 = crd4N2*crd4N6;
+    const double crd4N33 = crd4N12*crd4N2;
+    const double crd4N34 = 96.0*crd4N23;
+    const double crd4N35 = crd4N17*crd4N6;
+    const double crd4N36 = 25920.0*crd4N11;
+    const double crd4N37 = crd4N6*crd4N8;
+    const double crd4N38 = crd4N13*crd4N17;
+    const double crd4N39 = 17280.0*crd4N19*xi - 1440.0*crd4N21*xi + 720.0*crd4N23*xi;
+    const double crd4N40 = crd4N17*xi;
+    const double crd4N41 = std::pow(J2, 3)*crd4N24*(-crd4N1 - crd4N10*crd4N40 + crd4N15 + crd4N17*crd4N4 - crd4N17*crd4N5 + crd4N40*crd4N9 + crd4N7);
+    const double crd4N42 = -crd4N1*crd4N17 + crd4N12*crd4N17;
+    const double crd4N43 = 576.0*k_s;
+    const double crd4N44 = crd4N2*crd4N43;
+    const double crd4N45 = 1800.0*k_s;
+    const double crd4N46 = 324.0*crd4N0;
+    const double crd4N47 = 1.0/(-4320.0*crd4N16 - crd4N17*crd4N46 + 648.0*crd4N19 - crd4N2*crd4N46 - 24.0*crd4N21 + 2.0*crd4N23 + 39.0*crd4N32 + 39.0*crd4N35);
+    const double crd4N48 = std::pow(J3, 3)*crd4N47*(crd4N12 - crd4N17*crd4N43 + 240.0*crd4N20*xi + crd4N40*crd4N45 + crd4N44 + crd4N45*crd4N8);
+    rd4N[0]=-crd4N25*k01;
+    rd4N[1]=crd4N28*(crd4N17*crd4N30 - crd4N17*crd4N36 + crd4N29 + crd4N31 + 504.0*crd4N32 + crd4N33 - crd4N34 - 3096.0*crd4N35 + 2160.0*crd4N37 + 7920.0*crd4N38 + crd4N39);
+    rd4N[2]=crd4N25;
+    rd4N[3]=-crd4N41*k02;
+    rd4N[4]=-crd4N28*(-crd4N2*crd4N30 - crd4N2*crd4N36 - crd4N31 + 3096.0*crd4N32 + crd4N34 - 504.0*crd4N35 + 7920.0*crd4N37 + 2160.0*crd4N38 + crd4N39 + crd4N42);
+    rd4N[5]=crd4N41;
+    rd4N[6]=-crd4N48*k03;
+    rd4N[7]=crd4N47*(-crd4N14*crd4N17 - crd4N17*crd4N44 + crd4N17*crd4N7 + crd4N2*crd4N7 + 48.0*crd4N23 - crd4N29 - crd4N33 + 1440.0*crd4N37 + crd4N42);
+    rd4N[8]=crd4N48;
 
     rd4N /= std::pow(J, 4);
 }
