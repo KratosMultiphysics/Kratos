@@ -226,20 +226,20 @@ public:
         if (std::abs(MaxStress) > std::abs(MinStress)) {
             if (std::abs(MaxStress) / InitialThreshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
                 rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MaxStress) / InitialThreshold) + 2.6));
-                rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
+                // rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
                 rRelaxationFactor = rFirstCycleRelaxationFactor;
             } else {
                 rRelaxationFactor = rFirstCycleRelaxationFactor * std::pow((static_cast<double>(LocalNumberOfCycles)), -0.004);
-                rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
+                // rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
             }
         } else {
             if (std::abs(MinStress) / InitialThreshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
                 rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MinStress) / InitialThreshold) + 2.6));
-                rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
+                // rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
                 rRelaxationFactor = rFirstCycleRelaxationFactor;
             } else {
                 rRelaxationFactor = rFirstCycleRelaxationFactor * std::pow((static_cast<double>(LocalNumberOfCycles)), -0.004);
-                rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
+                // rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
             }
         }
     }
@@ -315,7 +315,8 @@ public:
                  
                 if (std::isnan(rN_f)) {
                     rN_f = std::numeric_limits<double>::infinity();
-                    
+                    rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+
                     // const double equivalent_max_stress = (0.5 * MaxStress * (1.0 - ReversionFactor)) / (1.0 - (std::pow(((MaxStress * (1.0 + ReversionFactor)) / (2.0 * UltimateStress)), 2.0))); // Gerber mean stress correction
                     // const double reference_reversion_factor = - 0.999;
         
@@ -342,7 +343,7 @@ public:
                     if (equivalent_max_stress > Se) {
                         const double reference_reversion_factor = - 0.999;
            
-                        rSth = Se;
+                        rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
                         rAlphat = ALFAF + (0.5 + 0.5 * (reference_reversion_factor)) * AUXR1;
                         
                         rN_f = std::pow(10.0,std::pow(-std::log((equivalent_max_stress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
