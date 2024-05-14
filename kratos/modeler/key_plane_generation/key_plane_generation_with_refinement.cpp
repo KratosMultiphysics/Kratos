@@ -123,7 +123,7 @@ std::pair<array_1d<std::vector<double>,3>,array_1d<std::vector<double>,3>> KeyPl
                                                 const array_1d<double,3>& rGlobalVoxelSize){
     array_1d<std::vector<double>,3> partitions;
     array_1d<std::vector<double>,3> partitions_voxel_sizes;
-    for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
+    for(std::size_t i_direction = 0 ; i_direction < 3 ; i_direction++){
         std::vector<double>& r_i_partition = partitions[i_direction];
         // TODO: Adding reserve
         r_i_partition.push_back(rGlobalBoundingBox.first[i_direction]);
@@ -138,7 +138,7 @@ std::pair<array_1d<std::vector<double>,3>,array_1d<std::vector<double>,3>> KeyPl
         // if there are more than 2, we loop in the inner ones and if they are too close we remove them
     }
     // Now we fill the proposed voxel size
-    for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
+    for(std::size_t i_direction = 0 ; i_direction < 3 ; i_direction++){
         std::vector<double>& r_i_partitions_voxel_sizes = partitions_voxel_sizes[i_direction];
         std::vector<double>& r_i_partition = partitions[i_direction];
         for (std::size_t i = 1;  i < r_i_partition.size(); ++i) {
@@ -149,7 +149,7 @@ std::pair<array_1d<std::vector<double>,3>,array_1d<std::vector<double>,3>> KeyPl
     }
     // Now we loop over the partitions and if 2 of them are too close we replace them for one in the middle
     constexpr double K=0.1;
-    for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
+    for(std::size_t i_direction = 0 ; i_direction < 3 ; i_direction++){
         std::vector<double>& r_i_partitions_voxel_sizes = partitions_voxel_sizes[i_direction];
         std::vector<double>& r_i_partition = partitions[i_direction];
         bool keep_merging = true;
@@ -211,7 +211,7 @@ double KeyPlaneGenerationWithRefinement::ReturnLocalTheoreticalVoxelSize(std::ve
 }
 
 void KeyPlaneGenerationWithRefinement::GenerateKeyplanes(array_1d<std::vector<double>,3>& rPartitionLimits, array_1d<std::vector<double>,3>& rTheoreticalVoxelSize) {
-    for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
+    for(std::size_t i_direction = 0 ; i_direction < 3 ; i_direction++){
         std::vector<double>& r_i_partition = rPartitionLimits[i_direction];
         std::vector<double>& r_i_voxel_size = rTheoreticalVoxelSize[i_direction];
         KRATOS_ERROR_IF(r_i_partition.size() != r_i_voxel_size.size()+1) << "Partitions and theoretical voxel size does not match "
@@ -220,9 +220,9 @@ void KeyPlaneGenerationWithRefinement::GenerateKeyplanes(array_1d<std::vector<do
         for(std::size_t i = 0; i+1 < r_i_partition.size(); ++i){ // Last one will be added manually
             double h = r_i_partition[i+1] - r_i_partition[i];
             double& r_theoretical_dx = r_i_voxel_size[i];
-            int number_of_divisions = std::ceil(h/r_theoretical_dx); // so that the effective voxel size  is smaller than dx
+            std::size_t number_of_divisions = std::ceil(h/r_theoretical_dx); // so that the effective voxel size  is smaller than dx
             double dx = h/number_of_divisions;
-            for(int j=0; j<number_of_divisions; ++j){
+            for(std::size_t j=0; j<number_of_divisions; ++j){
                 AddKeyPlane(i_direction, r_i_partition[i] + j*dx);
             }
         }
@@ -237,7 +237,7 @@ array_1d<double,3> KeyPlaneGenerationWithRefinement::ComputEffectiveVoxelSize(co
                                             const array_1d<double,3>& rMaxCoordinate,
                                             const array_1d<double,3>& rInputVoxelSize){
     array_1d<double,3> voxel_size;
-    for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
+    for(std::size_t i_direction = 0 ; i_direction < 3 ; i_direction++){
         const double length = (rMaxCoordinate[i_direction] - rMinCoordinate[i_direction]);
         KRATOS_ERROR_IF_NOT(length>0.0) << "Negative or zero length of voxelization bounding box in " << i_direction << " direction" << std::endl;
         std::size_t number_of_divisions = static_cast<std::size_t>(std::round(length / rInputVoxelSize[i_direction]));

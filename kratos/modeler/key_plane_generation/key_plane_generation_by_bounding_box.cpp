@@ -38,13 +38,13 @@ void KeyPlaneGenerationByBoundingBox::Generate()
     Generate(parameters);
 }
 
-void KeyPlaneGenerationByBoundingBox::Generate(Parameters parameters) 
+void KeyPlaneGenerationByBoundingBox::Generate(Parameters parameters)
 {
     array_1d<double,3> voxel_sizes = parameters["voxel_sizes"].GetVector();
     array_1d<double,3> min_point = parameters["min_point"].GetVector();
     array_1d<double,3> max_point = parameters["max_point"].GetVector();
 
-    for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
+    for(std::size_t i_direction = 0 ; i_direction < 3 ; i_direction++){
         double input_voxel_size = voxel_sizes[i_direction];
         const double min_coordinate = min_point[i_direction];
         const double max_coordinate = max_point[i_direction];

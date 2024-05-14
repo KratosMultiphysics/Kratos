@@ -266,14 +266,14 @@ private:
     bool CheckPassingThroughByExtraRays(typename std::vector<std::pair<double, const TGeometryType*>>::iterator Begin, typename std::vector<std::pair<double, const TGeometryType*>>::iterator End, double Tolerance, double Delta){
         const std::array<double, 8> delta_u{Delta, Delta, 0.00, -Delta, -Delta, -Delta, 0.00, Delta};
         const std::array<double, 8> delta_v{0.00, Delta, Delta, Delta, 0.00, -Delta, -Delta, -Delta};
-        const std::array<int, 4> axes{1,2,0,1};
+        const std::array<std::size_t, 4> axes{1,2,0,1};
 
-        const int i_u = axes[mDirection];
-        const int i_v = axes[mDirection+1];
+        const std::size_t i_u = axes[mDirection];
+        const std::size_t i_v = axes[mDirection+1];
 
         std::size_t no_hit_cases = 0;
 
-        for(int i_ray = 0 ; i_ray < 8 ; i_ray++){
+        for(std::size_t i_ray = 0 ; i_ray < 8 ; i_ray++){
             CartesianRay extra_ray(mDirection, mPoint1, mPoint2);
             extra_ray.mPoint1[i_u] += delta_u[i_ray];
             extra_ray.mPoint1[i_v] += delta_v[i_ray];
