@@ -19,7 +19,7 @@
 
 namespace Kratos {
 typedef std::pair<array_1d<double,3>, array_1d<double,3>> BoundingBoxType;
-void KeyPlaneGenerationWithRefinement::ValidateParameters() 
+void KeyPlaneGenerationWithRefinement::ValidateParameters()
 {
     KRATOS_TRY;
     Parameters parameters = this->GetParameters();
@@ -141,8 +141,8 @@ std::pair<array_1d<std::vector<double>,3>,array_1d<std::vector<double>,3>> KeyPl
     for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
         std::vector<double>& r_i_partitions_voxel_sizes = partitions_voxel_sizes[i_direction];
         std::vector<double>& r_i_partition = partitions[i_direction];
-        for (int i = 0;  i != (int)r_i_partition.size()-1; ++i) {
-            const double pos = 0.5*(r_i_partition[i] + r_i_partition[i+1]);
+        for (std::size_t i = 1;  i < r_i_partition.size(); ++i) {
+            const double pos = 0.5*(r_i_partition[i-1] + r_i_partition[i]);
             const double dx = ReturnLocalTheoreticalVoxelSize(rRefinementAreas, rVoxelSizes, rGlobalBoundingBox, rGlobalVoxelSize, i_direction, pos);
             r_i_partitions_voxel_sizes.push_back(dx);
         }
@@ -164,7 +164,7 @@ std::pair<array_1d<std::vector<double>,3>,array_1d<std::vector<double>,3>> KeyPl
             keep_merging = false;
             if(r_i_partition.size()>3){
                 // The first one and the last one cannot be removed or moved.
-                for (int i = 1;  i+1 < (int) r_i_partition.size()-1; ++i) { //This is to ensure we don't remove the last one nor the first one so i+1 is the end - 1
+                for (std::size_t i = 1;  i+2 < r_i_partition.size(); ++i) { //This is to ensure we don't remove the last one nor the first one so i+1 is the end - 1
                     const double l = std::abs(r_i_partition[i+1] - r_i_partition[i]);
                     const double theoretical_l = r_i_partitions_voxel_sizes[i];
                     // If they are too close we are going to merge them
@@ -200,7 +200,7 @@ double KeyPlaneGenerationWithRefinement::ReturnLocalTheoreticalVoxelSize(std::ve
                                                 double Position){
     KRATOS_ERROR_IF(Position<rGlobalBoundingBox.first[Direction] || Position>rGlobalBoundingBox.second[Direction]) << "Trying to obtain the voxel size of a position outside the global bounding box." <<std::endl;
     double dx = rGlobalVoxelSize[Direction];
-    for(int i = 0; i < (int)rRefinementAreas.size(); ++i){
+    for(std::size_t i = 0; i < rRefinementAreas.size(); ++i){
         auto& r_area = rRefinementAreas[i];
         double& r_lbound = r_area.first[Direction];
         double& r_ubound = r_area.second[Direction];
@@ -214,10 +214,10 @@ void KeyPlaneGenerationWithRefinement::GenerateKeyplanes(array_1d<std::vector<do
     for(int i_direction = 0 ; i_direction < 3 ; i_direction++){
         std::vector<double>& r_i_partition = rPartitionLimits[i_direction];
         std::vector<double>& r_i_voxel_size = rTheoreticalVoxelSize[i_direction];
-        KRATOS_ERROR_IF(r_i_partition.size() != r_i_voxel_size.size()+1) << "Partitions and theoretical voxel size does not match " 
+        KRATOS_ERROR_IF(r_i_partition.size() != r_i_voxel_size.size()+1) << "Partitions and theoretical voxel size does not match "
             << r_i_partition.size() <<"!=" << r_i_voxel_size.size()<<"+1" << std::endl;
         AddKeyPlane(i_direction, r_i_partition.front() - r_i_voxel_size.front()); // We add a KeyPlane that corresponds to the Bounding box -dx so that later we don't have any issue finding contacts
-        for(int i = 0; i< (int) r_i_partition.size()-1; ++i){ // Last one will be added manually
+        for(std::size_t i = 0; i+1 < r_i_partition.size(); ++i){ // Last one will be added manually
             double h = r_i_partition[i+1] - r_i_partition[i];
             double& r_theoretical_dx = r_i_voxel_size[i];
             int number_of_divisions = std::ceil(h/r_theoretical_dx); // so that the effective voxel size  is smaller than dx
