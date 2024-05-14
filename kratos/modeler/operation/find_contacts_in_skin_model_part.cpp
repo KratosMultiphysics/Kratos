@@ -171,10 +171,10 @@ void FindContactsInSkinModelPart::GetClosestContactColorFromNeighbours(
     int& rTemporaryColor) const
 {
     constexpr double angle_threshold = 0.3;
-    int i = 0;
+    auto neighbor_colors_iterator = rNeighbourColors.begin();
     for(auto& ind: rNeighbourIndexes){
         auto cell_center = rColors.GetCenterOfElement(ind[0], ind[1], ind[2]);
-        const int neigh_color = rNeighbourColors[i];
+        const int neigh_color = *(neighbor_colors_iterator++);
         array_1d<double,3> dist = cell_center - rConditionCenter;
         double dist_modulus = norm_2(dist);
         array_1d<double,3> unit_dist;
@@ -193,7 +193,6 @@ void FindContactsInSkinModelPart::GetClosestContactColorFromNeighbours(
             rMinDistance = dist_modulus;
             rTemporaryColor = neigh_color;
         }
-        i++;
     }
 }
 
@@ -229,10 +228,10 @@ void FindContactsInSkinModelPart::GetCellNeihgbourColorsConnectedByFace(
     array_1d<int,6> i{-1,1,0,0,0,0};
     array_1d<int,6> j{0,0,-1,1,0,0};
     array_1d<int,6> k{0,0,0,0,-1,1};
-    for (int index = 0; index < 6; index++) {
-        int i_tmp = rCellIndexes[0]+i[index];
-        int j_tmp = rCellIndexes[1]+j[index];
-        int k_tmp = rCellIndexes[2]+k[index];
+    for (int idx = 0; idx < 6; idx++) {
+        int i_tmp = rCellIndexes[0]+i[idx];
+        int j_tmp = rCellIndexes[1]+j[idx];
+        int k_tmp = rCellIndexes[2]+k[idx];
         if(IsElementInsideBounds(rColors, i_tmp, j_tmp, k_tmp)){
             array_1d<std::size_t, 3> indexes{ static_cast<std::size_t>(i_tmp), static_cast<std::size_t>(j_tmp), static_cast<std::size_t>(k_tmp)};
             double mtmp_color = rColors.GetElementalColor(i_tmp, j_tmp, k_tmp);
