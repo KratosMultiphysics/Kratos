@@ -956,7 +956,7 @@ class ResidualBasedNewtonRaphsonStrategy
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
-        if (mStoreNonconvergedSolutionsFlag == true){
+        if (mStoreNonconvergedSolutionsFlag) {
             Vector first = GetCurrentSolution(r_dof_set);
             NonconvergedSolutions.push_back(first);
         }
