@@ -308,7 +308,6 @@ protected:
     std::vector<Matrix> CalculateDeformationGradients() const;
     std::vector<Matrix> CalculateConstitutiveMatricesAndStressVectors(
         const std::vector<Matrix>&                       rDeformationGradients,
-        const std::vector<double>&                       rDeterminantsOfDeformationGradients,
         std::vector<Vector>&                             rStrainVectors,
         ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
         const Matrix&                                    rNuContainer,
