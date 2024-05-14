@@ -658,7 +658,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Auxiliary variables
         const double&          MinimumJointWidth = rProp[MINIMUM_JOINT_WIDTH];
@@ -999,8 +1001,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
 
         Vector TotalStressVector(mStressVector[0].size());
 
-        // set Gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Auxiliary variables
         const double&          MinimumJointWidth = rProp[MINIMUM_JOINT_WIDTH];
@@ -1250,7 +1253,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
     // Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
-    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+    ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
+        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -1324,7 +1330,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     // Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
-    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+    ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
+        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth       = Prop[MINIMUM_JOINT_WIDTH];
@@ -1443,22 +1452,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability   = 1.0;
     rVariables.BishopCoefficient      = 1.0;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetConstitutiveParameters(
-    InterfaceElementVariables& rVariables, ConstitutiveLaw::Parameters& rConstitutiveParameters)
-{
-    KRATOS_TRY
-
-    rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
-    rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Np);
-    rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);
-    rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
-    rConstitutiveParameters.SetDeterminantF(rVariables.detF);
 
     KRATOS_CATCH("")
 }

@@ -321,7 +321,10 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
     // Element variables
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
-    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+
+    ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+        ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
+        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];

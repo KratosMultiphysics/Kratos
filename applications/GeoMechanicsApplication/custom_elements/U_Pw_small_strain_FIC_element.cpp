@@ -154,8 +154,9 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -215,8 +216,9 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Compute ConstitutiveTensor
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
@@ -478,9 +480,10 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         Variables.F            = deformation_gradients[GPoint];
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
-
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(

@@ -91,8 +91,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        ConstitutiveLaw::Parameters::SetSixConstitutiveParameters(
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
+            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         // Compute constitutive tensor and stresses
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
