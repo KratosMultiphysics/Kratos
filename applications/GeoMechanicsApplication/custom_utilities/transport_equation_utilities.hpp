@@ -106,7 +106,8 @@ public:
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
         Vector                   result(rRetentionLawVector.size());
         for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
-            const double fluid_pressure = inner_prod(row(rNContainer, g_point), rPressureSolution);
+            const double fluid_pressure = RetentionLaw::Parameters::CalculateFluidPressure(
+                row(rNContainer, g_point), rPressureSolution);
             retention_parameters.SetFluidPressure(fluid_pressure);
             result(g_point) = rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
         }

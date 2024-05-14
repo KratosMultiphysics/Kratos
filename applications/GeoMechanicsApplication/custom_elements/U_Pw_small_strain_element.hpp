@@ -293,8 +293,7 @@ protected:
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
-    void   InitializeProperties(ElementVariables& rVariables);
-    double CalculateFluidPressure(const ElementVariables& rVariables);
+    void InitializeProperties(ElementVariables& rVariables);
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 

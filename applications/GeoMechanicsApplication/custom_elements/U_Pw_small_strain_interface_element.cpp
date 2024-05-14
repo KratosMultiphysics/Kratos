@@ -600,7 +600,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            Variables.FluidPressure = CalculateFluidPressure(Variables);
+            Variables.FluidPressure =
+                RetentionLaw::Parameters::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
             SetRetentionParameters(Variables, RetentionParameters);
 
             if (rVariable == DEGREE_OF_SATURATION)
@@ -2104,22 +2105,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetRetentionParameters(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateFluidPressure(const InterfaceElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    return inner_prod(rVariables.Np, rVariables.PressureVector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateRetentionResponse(
     InterfaceElementVariables& rVariables, RetentionLaw::Parameters& rRetentionParameters, unsigned int GPoint)
 {
     KRATOS_TRY
 
-    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
+    rVariables.FluidPressure =
+        RetentionLaw::Parameters::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
     SetRetentionParameters(rVariables, rRetentionParameters);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);

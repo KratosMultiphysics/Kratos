@@ -1153,7 +1153,8 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
 
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-        Variables.FluidPressure = CalculateFluidPressure(Variables);
+        Variables.FluidPressure =
+            RetentionLaw::Parameters::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
         RetentionParameters.SetFluidPressure(Variables.FluidPressure);
 
         Variables.RelativePermeability =
@@ -1748,23 +1749,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetRetentionParameters(const Elemen
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidPressure(const ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    return inner_prod(rVariables.Np, rVariables.PressureVector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateRetentionResponse(ElementVariables& rVariables,
                                                                         RetentionLaw::Parameters& rRetentionParameters,
                                                                         unsigned int GPoint)
 {
     KRATOS_TRY
 
-    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
+    rVariables.FluidPressure =
+        RetentionLaw::Parameters::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
     SetRetentionParameters(rVariables, rRetentionParameters);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
