@@ -89,11 +89,15 @@ namespace
 
         auto & entry = Registry::GetItem("CurrentContext");
 
-        if (entry.HasItem("value")) {
-            entry.RemoveItem("value");
+        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
+        std::vector<std::string> keys;
+        std::transform(entry.cbegin(), entry.cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
+
+        for (auto sub_key: keys) {
+            entry.RemoveItem(sub_key);
         }
 
-        entry.AddItem<std::string>("value", rCurrentSource);
+        Registry::AddItem<RegistryItem>("CurrentContext."+rCurrentSource);
     }
 
     std::string Registry::GetCurrentSource()
@@ -108,11 +112,16 @@ namespace
         auto & entry = Registry::GetItem("CurrentContext");
 
         // If no context set, set the default one
-        if (!entry.HasItem("value")) {
-            entry.AddItem<std::string>("value", std::string("KratosMultiphysics"));
+        if(entry.size() == 0){
+            Registry::AddItem<RegistryItem>("CurrentContext.KratosMultiphysics");
         }
 
-        return Registry::GetItem("CurrentContext.value").GetValue<std::string>();
+        // If more than one context set, throw an error
+        if(entry.size() > 1){
+            KRATOS_ERROR << "More than one context set in the registry" << std::endl;
+        }
+
+        return entry.begin()->first;
     }
 
     std::size_t Registry::size()
