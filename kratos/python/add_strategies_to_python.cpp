@@ -655,7 +655,7 @@ namespace Kratos:: Python
             .def("SetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
             .def("GetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
             .def("GetNonconvergedSolutions", &ResidualBasedNewtonRaphsonStrategyType::GetNonconvergedSolutions)
-            .def("SetUpNonconvergedSolutionsGathering", &ResidualBasedNewtonRaphsonStrategyType::SetUpNonconvergedSolutionsGathering)
+            .def("SetUpNonconvergedSolutionsFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUpNonconvergedSolutionsFlag)
             ;
 
         // ARC-LENGTH

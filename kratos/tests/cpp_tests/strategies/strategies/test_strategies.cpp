@@ -255,7 +255,7 @@ namespace Kratos
             const double delta_time = 1.0e-4;
             const unsigned int number_iterations = 1;
 
-            pstrategy-> SetUpNonconvergedSolutionsGathering();
+            pstrategy-> SetUpNonconvergedSolutionsFlag(true);
 
             for (unsigned int iter = 0; iter < number_iterations; ++iter) {
                 time += delta_time;
