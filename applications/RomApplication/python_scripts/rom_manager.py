@@ -134,8 +134,8 @@ class RomManager(object):
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
-    def TestNeuralNetworkReconstruction(self):
-        self._LaunchTestNeuralNetworkReconstruction()
+    def TestNeuralNetworkReconstruction(self, mu_train, mu_validation):
+        self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
 
     def Test(self, mu_test=[None]):
@@ -539,13 +539,13 @@ class RomManager(object):
         rom_nn_trainer.EvaluateNetwork(model_name)
 
 
-    def _LaunchTestNeuralNetworkReconstruction(self):
+    def _LaunchTestNeuralNetworkReconstruction(self,mu_train, mu_validation):
         if not have_tensorflow:
             err_msg = f'Tensorflow module not found. Please install Tensorflow in to use the "ann_enhanced" option.'
             raise Exception(err_msg)
 
-        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters)
-        model_name=self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_name"].GetString()
+        rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
+        model_name, _ = self.data_base.get_hashed_mu_for_table("Neural_Network", mu_train)
         rom_nn_trainer.EvaluateNetwork(model_name)
 
     def InitializeDummySimulationForBasisOutputProcess(self):
