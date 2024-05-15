@@ -395,6 +395,10 @@ void BilinearCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
             rStressVector[1] = 0.0;
         }
     }
+
+        //Add initial stresses  
+       const Element::GeometryType& geometry = rValues.GetElementGeometry();
+       InterfaceElementUtilities::AddInitialInterfaceStresses3D(rStressVector, rValues, geometry);
 }
 
 } // Namespace Kratos

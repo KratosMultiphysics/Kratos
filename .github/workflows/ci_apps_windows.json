@@ -11,7 +11,7 @@
     "DEMApplication",
     "ChimeraApplication",
     "IgaApplication",
-    "ParticleMechanicsApplication",
+    "MPMApplication",
     "MappingApplication",
     "CoSimulationApplication",
     "StatisticsApplication",

@@ -57,6 +57,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianFICElement
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType       = UPwSmallStrainFICElement<TDim, TNumNodes>;
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
@@ -87,7 +88,7 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
+    explicit UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -117,8 +118,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~UPwUpdatedLagrangianFICElement() override {}
+    ~UPwUpdatedLagrangianFICElement() = default;
 
     /**
      * @brief Creates a new element
@@ -221,8 +221,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -271,27 +271,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianFICElement& operator=(const UPwUpdatedLagrangianFICElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianFICElement(const UPwUpdatedLagrangianFICElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianFICElement
 
 ///@}

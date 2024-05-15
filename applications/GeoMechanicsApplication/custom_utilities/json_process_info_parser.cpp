@@ -17,12 +17,10 @@ namespace Kratos
 std::vector<ProcessParameters> JsonProcessInfoParser::GetProcessList(const Parameters& rProcessParameters) const
 {
     std::vector<ProcessParameters> result;
-    const std::vector<std::string> process_list_names = {"constraints_process_list",
-                                                         "loads_process_list",
-                                                         "auxiliar_process_list"};
+    const std::vector<std::string> process_list_names = {
+        "constraints_process_list", "loads_process_list", "auxiliar_process_list"};
 
-    for (const auto& process_list_name : process_list_names)
-    {
+    for (const auto& process_list_name : process_list_names) {
         const auto processes_for_list = AddProcessesForList(process_list_name, rProcessParameters);
         result.insert(result.end(), processes_for_list.begin(), processes_for_list.end());
     }
@@ -30,18 +28,17 @@ std::vector<ProcessParameters> JsonProcessInfoParser::GetProcessList(const Param
     return result;
 }
 
-std::vector<ProcessParameters> JsonProcessInfoParser::AddProcessesForList(const std::string& rProcessListName, const Parameters& rProcessParameters) const {
-    if (!rProcessParameters.Has(rProcessListName))
-    {
+std::vector<ProcessParameters> JsonProcessInfoParser::AddProcessesForList(const std::string& rProcessListName,
+                                                                          const Parameters& rProcessParameters) const
+{
+    if (!rProcessParameters.Has(rProcessListName)) {
         return {};
     }
 
     std::vector<ProcessParameters> result;
-    for (Parameters process : rProcessParameters[rProcessListName])
-    {
+    for (Parameters process : rProcessParameters[rProcessListName]) {
         const std::string process_name_entry = "process_name";
-        if (process.Has(process_name_entry))
-        {
+        if (process.Has(process_name_entry)) {
             result.emplace_back(process[process_name_entry].GetString(), process["Parameters"]);
         }
     }
@@ -49,5 +46,4 @@ std::vector<ProcessParameters> JsonProcessInfoParser::AddProcessesForList(const 
     return result;
 }
 
-}
-
+} // namespace Kratos

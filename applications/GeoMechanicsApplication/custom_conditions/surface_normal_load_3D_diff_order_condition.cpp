@@ -15,6 +15,7 @@
 
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_utilities/math_utilities.hpp"
 
 namespace Kratos
 {
@@ -36,37 +37,28 @@ Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType NewId
     return Condition::Pointer(new SurfaceNormalLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SurfaceNormalLoad3DDiffOrderCondition::
-CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
+void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
+                                                                     unsigned int PointNumber)
 {
     KRATOS_TRY
 
-    double NormalVector[3];
+    Vector normal_vector(3);
+    MathUtils<double>::CrossProduct(normal_vector, column(rVariables.JContainer[PointNumber], 0),
+                                    column(rVariables.JContainer[PointNumber], 1));
 
-    NormalVector[0] = rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](2,1) -
-                      rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](1,1);
+    const auto& r_geometry                   = GetGeometry();
 
-    NormalVector[1] = rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](0,1) -
-                      rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](2,1);
+    Vector normal_stresses(r_geometry.PointsNumber());
+    std::transform(r_geometry.begin(), r_geometry.end(), normal_stresses.begin(), [](const auto& r_node) {
+        return r_node.FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    });
 
-    NormalVector[2] = rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](1,1) -
-                      rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](0,1);
-    
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    double NormalStress = 0.0;
-    rVariables.ConditionVector.resize(3,false);
+    // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
+    // should switch sign, such that positive normal contact stress is defined inwards.
+    const double normal_stress = -1 * MathUtils<>::Dot(rVariables.Nu, normal_stresses);
+    rVariables.ConditionVector = normal_stress * normal_vector;
 
-    for ( SizeType i = 0; i < NumUNodes; ++i ) {
-        NormalStress += rVariables.Nu[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-    }
-
-    rVariables.ConditionVector[0] = NormalStress * NormalVector[0];
-    rVariables.ConditionVector[1] = NormalStress * NormalVector[1];
-    rVariables.ConditionVector[2] = NormalStress * NormalVector[2];
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -92,7 +84,7 @@ void SurfaceNormalLoad3DDiffOrderCondition::
 
     for ( SizeType i = 0; i < NumUNodes; ++i ) {
         Index = i * 3;
-        
+
         rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[Index+1] += rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[Index+2] += rVariables.Nu[i] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
