@@ -17,30 +17,25 @@
 namespace Kratos
 {
 
-GeoThermalFilterLaw::GeoThermalFilterLaw() : mNumberOfDimensions{1} {}
+GeoThermalFilterLaw::GeoThermalFilterLaw() : GeoThermalLaw() {}
 
 GeoThermalFilterLaw::GeoThermalFilterLaw(SizeType NumberOfDimensions)
-    : mNumberOfDimensions{NumberOfDimensions}
+    : GeoThermalLaw(NumberOfDimensions)
 {
     KRATOS_ERROR_IF(mNumberOfDimensions != 1)
         << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions
         << std::endl;
 }
 
-ConstitutiveLaw::Pointer GeoThermalFilterLaw::Clone() const
+GeoThermalLaw::Pointer GeoThermalFilterLaw::Clone() const
 {
     return Kratos::make_shared<GeoThermalFilterLaw>(*this);
 }
 
-SizeType GeoThermalFilterLaw::WorkingSpaceDimension() { return mNumberOfDimensions; }
-
-Matrix GeoThermalFilterLaw::CalculateThermalFilterMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const
+Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties&  rProp,
+                                                             const ProcessInfo& rProcessInfo) const
 {
-    KRATOS_TRY
-
     return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
-
-    KRATOS_CATCH("")
 }
 
 } // Namespace Kratos

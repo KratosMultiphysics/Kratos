@@ -30,7 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
     GeoThermalFilterLaw geo_thermal_filter_law(dimension);
     ProcessInfo         info;
 
-    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalFilterMatrix(*cond_prop, info);
+    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*cond_prop, info);
 
     Matrix expected_solution = ScalarMatrix(1, 1, 1000.0);
 

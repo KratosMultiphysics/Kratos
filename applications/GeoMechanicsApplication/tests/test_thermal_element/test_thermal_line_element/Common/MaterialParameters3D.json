@@ -3,9 +3,6 @@
     "model_part_name"                      : "PorousDomain.filter",
     "properties_id"                        : 1,
     "Material" : {
-      "constitutive_law": {
-        "name"                             : "GeoThermalDispersion3DLaw" 
-      },                                     
       "Variables" : {                         
         "DENSITY_SOLID"                    : 2650.0,
         "DENSITY_WATER"                    : 1000.0,
@@ -17,7 +14,8 @@
         "THERMAL_CONDUCTIVITY_SOLID_XX"    : 2.65,
         "THERMAL_CONDUCTIVITY_WATER"       : 4800,
         "DYNAMIC_VISCOSITY"                : 0.001,
-        "CROSS_AREA"                       : 1.0
+        "CROSS_AREA"                       : 1.0,
+        "THERMAL_LAW"                      : "GeoThermalDispersionLaw"
       },
       "Tables": {}
     }

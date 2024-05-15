@@ -15,6 +15,7 @@
 #pragma once
 
 #include "custom_constitutive/thermal_dispersion_law.h"
+#include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -269,9 +270,20 @@ private:
         const ProcessInfo&                               rCurrentProcessInfo) const
     {
         const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
+        unique_ptr<GeoThermalLaw> law;
 
-        GeoThermalDispersionLaw law{number_of_dimensions};
-        const auto constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
+        if (GetProperties().Has(THERMAL_LAW)) {
+            const std::string& rThermalLawName = GetProperties()[THERMAL_LAW];
+            if (rThermalLawName == "GeoThermalDispersionLaw") {
+                law = make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+            } else if (rThermalLawName == "GeoThermalFilterLaw") {
+                law = make_unique<GeoThermalFilterLaw>(number_of_dimensions);
+            } else {
+                KRATOS_ERROR << "Undefined THERMAL_LAW! " << rThermalLawName << std::endl;
+            }
+        }
+
+        const auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
