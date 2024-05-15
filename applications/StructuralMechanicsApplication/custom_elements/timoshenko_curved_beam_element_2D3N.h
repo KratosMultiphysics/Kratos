@@ -273,7 +273,9 @@ public:
 
     void RotateLHS(
         MatrixType &rLHS,
-        const double angle);
+        const double angle1,
+        const double angle2,
+        const double angle3);
 
     double GetAngle(const double xi);
 
