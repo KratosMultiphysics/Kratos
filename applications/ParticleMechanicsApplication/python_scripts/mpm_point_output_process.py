@@ -167,4 +167,3 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
 def ComputeEucledianDistance(particle, point):
     distance = math.sqrt(math.pow(particle[0] - point[0],2) + math.pow(particle[1] - point[1],2) + math.pow(particle[2] - point[2],2))
     return distance
-
