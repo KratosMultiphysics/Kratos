@@ -37,11 +37,11 @@ public:
 
     PwPointFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
-    {
-        return Kratos::make_intrusive<PwPointFluxCondition>(
-            NewId, this->GetGeometry().Create(rThisNodes), pProperties);
-    }
+    ~PwPointFluxCondition() override = default;
+
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   rThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
  
 protected:
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&) override;

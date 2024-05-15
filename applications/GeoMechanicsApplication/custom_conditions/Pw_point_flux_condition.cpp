@@ -38,6 +38,14 @@ PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition(IndexType           
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwPointFluxCondition<TDim, TNumNodes>::Create(IndexType             NewId,
+                                                                 NodesArrayType const& rThisNodes,
+                                                                 PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_intrusive<PwPointFluxCondition>(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void PwPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&)
 {
     rRightHandSideVector[0] = this->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
