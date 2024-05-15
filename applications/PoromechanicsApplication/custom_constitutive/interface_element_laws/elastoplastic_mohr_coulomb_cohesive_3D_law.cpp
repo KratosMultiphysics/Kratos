@@ -97,6 +97,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::InitializeMaterial( const Properties
     mOldPlasticStrainVector[0] = 0.0;
     mOldPlasticStrainVector[1] = 0.0;
     mOldPlasticStrainVector[2] = 0.0;
+    mSlipTendency = 0.0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -180,6 +181,18 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::FinalizeMaterialResponseCauchy (Para
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+double& ElastoPlasticMohrCoulombCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+    if (rThisVariable == SLIP_TENDENCY) 
+    {
+        rValue = mSlipTendency;
+    }
+    
+    return rValue;
+}
+
+//----------------------------------------------------------------------------------------
 
 Vector& ElastoPlasticMohrCoulombCohesive3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
@@ -335,10 +348,10 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
 
         // Compute the slip tendency
         if (rEPlasticVariables.YieldFunction_MC == 0.0) {
-            rEPlasticVariables.SlipTendency = 1.0;        
+            mSlipTendency = 1.0;        
         }
         else
-            rEPlasticVariables.SlipTendency = abs(ts) / (c - tn*tanPhi);
+            mSlipTendency = abs(ts) / (c - tn*tanPhi);
 
     } else if ((rEPlasticVariables.YieldFunction_MC > 0.0) && (rEPlasticVariables.YieldFunction_CutOff < 0.0)){ // ------ Return to the Mohr-Coulomb surface
         
@@ -366,7 +379,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
         }
 
         // Compute the slip tendency
-        rEPlasticVariables.SlipTendency = 1.0;
+        mSlipTendency = 1.0;
 
     }else{ // ------------------------------------------------------------------------------------------- Return to the point which both surfaces intersect
 
@@ -389,7 +402,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
         }
 
         // Compute the slip tendency
-        rEPlasticVariables.SlipTendency = 1.0;
+        mSlipTendency = 1.0;
     }
 
 }
