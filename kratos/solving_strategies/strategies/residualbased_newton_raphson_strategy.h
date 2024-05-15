@@ -1094,7 +1094,7 @@ class ResidualBasedNewtonRaphsonStrategy
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
         if (mStoreNonconvergedSolutionsFlag) {
-            mNonconvergedSolutionsMatrix = ZeroMatrix( r_dof_set.size(), NonconvergedSolutions.size() );
+            mNonconvergedSolutionsMatrix = Matrix( r_dof_set.size(), NonconvergedSolutions.size() );
             for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
                 for (std::size_t j = 0; j < r_dof_set.size(); ++j) {
                     mNonconvergedSolutionsMatrix(j, i) = NonconvergedSolutions[i](j);
