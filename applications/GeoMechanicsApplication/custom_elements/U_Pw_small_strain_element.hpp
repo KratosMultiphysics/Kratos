@@ -222,8 +222,6 @@ protected:
 
     void SetConstitutiveParameters(ElementVariables& rVariables, ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
-    void SetRetentionParameters(const ElementVariables& rVariables, RetentionLaw::Parameters& rRetentionParameters);
-
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
     void InitializeBiotCoefficients(ElementVariables& rVariables, bool hasBiotCoefficient = false);
@@ -294,7 +292,7 @@ protected:
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
     void   InitializeProperties(ElementVariables& rVariables);
-    double CalculateFluidPressure(const ElementVariables& rVariables);
+    [[nodiscard]] double CalculateFluidPressure(const ElementVariables& rVariables) const;
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
