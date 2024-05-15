@@ -39,8 +39,7 @@ class TestRomDatabase(KratosUnittest.TestCase):
             query = "SELECT name FROM sqlite_master WHERE type='table';"
             tables = pd.read_sql_query(query, conn)
             expected_tables = [
-                'FOM_Fit', 'ROM_Fit', 'HROM_Fit', 'FOM_Test', 'ROM_Test', 'HROM_Test',
-                'RightBasis', 'SingularValues_Solution', 'LeftBasis', 'PetrovGalerkinSnapshots',
+                'FOM', 'ROM', 'HROM', 'RightBasis', 'SingularValues_Solution', 'LeftBasis', 'PetrovGalerkinSnapshots',
                 'ResidualsProjected', 'SingularValues_Residuals', 'HROM_Elements', 'HROM_Weights', 'Neural_Network'
             ]
             self.assertEqual(sorted(tables['name']), sorted(expected_tables), "Not all expected tables were created.")
@@ -51,15 +50,15 @@ class TestRomDatabase(KratosUnittest.TestCase):
             db = RomDatabase(self.parameters, self.mu_names, self.database_name)
             mu_test = [0.1, 0.01, 0.001]
             numpy_array = np.array([mu_test])
-            db.add_to_database("FOM_Fit", mu_test, numpy_array)
-            exists, _ = db.check_if_in_database("FOM_Fit", mu_test)
+            db.add_to_database("FOM", mu_test, numpy_array)
+            exists, _ = db.check_if_in_database("FOM", mu_test)
             self.assertTrue(exists, "Data was not added correctly to the database.")
 
     def test_file_operations(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             db = RomDatabase(self.parameters, self.mu_names, self.database_name)
             numpy_array = np.array([1, 2, 3])
-            hash_mu, _ = db.get_hashed_mu_for_table("FOM_Fit", [1, 2, 3])
+            hash_mu, _ = db.get_hashed_mu_for_table("FOM", [1, 2, 3])
             db.save_as_npy(numpy_array, hash_mu)
             file_path = db.npys_directory / f"{hash_mu}.npy"
             self.assertTrue(file_path.exists(), "Numpy file was not saved correctly.")

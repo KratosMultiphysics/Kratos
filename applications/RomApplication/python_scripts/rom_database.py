@@ -41,17 +41,11 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         table_definitions = {
-            "FOM_Fit": '''CREATE TABLE IF NOT EXISTS FOM_Fit
+            "FOM": '''CREATE TABLE IF NOT EXISTS FOM
                         (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
-            "ROM_Fit": '''CREATE TABLE IF NOT EXISTS ROM_Fit
+            "ROM": '''CREATE TABLE IF NOT EXISTS ROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
-            "HROM_Fit": '''CREATE TABLE IF NOT EXISTS HROM_Fit
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
-            "FOM_Test": '''CREATE TABLE IF NOT EXISTS FOM_Test
-                        (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
-            "ROM_Test": '''CREATE TABLE IF NOT EXISTS ROM_Test
-                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
-            "HROM_Test": '''CREATE TABLE IF NOT EXISTS HROM_Test
+            "HROM": '''CREATE TABLE IF NOT EXISTS HROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
@@ -99,17 +93,11 @@ class RomDatabase(object):
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
         tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int = self.get_curret_params()
-        if table_name == 'FOM_Fit':
+        if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
-        elif table_name == 'ROM_Fit':
+        elif table_name == 'ROM':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type,table_name)
-        elif table_name == 'HROM_Fit':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
-        elif table_name == 'FOM_Test':
-            hash_mu = self.hash_parameters(serialized_mu, table_name)
-        elif table_name == 'ROM_Test':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, table_name)
-        elif table_name == 'HROM_Test':
+        elif table_name == 'HROM':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         elif table_name == 'ResidualsProjected':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
@@ -175,22 +163,13 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
 
-        if table_name == 'FOM_Fit':
+        if table_name == 'FOM':
             cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
                         (serialized_mu, file_name))
-        elif table_name == 'ROM_Fit':
+        elif table_name == 'ROM':
             cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (serialized_mu, tol_sol, projection_type, file_name))
-        elif table_name == 'HROM_Fit':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, tol_res, projection_type, file_name))
-        elif table_name == 'FOM_Test':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
-                        (serialized_mu, file_name))
-        elif table_name == 'ROM_Test':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, projection_type, file_name))
-        elif table_name == 'HROM_Test':
+        elif table_name == 'HROM':
             cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
                         (serialized_mu, tol_sol, tol_res, projection_type, file_name))
         elif table_name == 'ResidualsProjected':
@@ -264,7 +243,7 @@ class RomDatabase(object):
         return dict(zip(self.mu_names , mu))
 
 
-    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM_Fit'):
+    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM'):
         if mu_list == [None]: #this happens when no mu is passed, the simulation run is the one in the ProjectParameters.json
             mu_list_unique = mu_list
         else:

@@ -55,8 +55,8 @@ class RomNeuralNetworkTrainer(object):
 
     def _GetTrainingData(self, n_inf, n_sup):
 
-        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM_Fit')
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM_Fit')
+        S_train = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name=f'FOM')
+        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
 
         _, hash_basis = self.data_base.check_if_in_database("RightBasis", self.mu_train)
         phi = self.data_base.get_single_numpy_from_database(hash_basis)
@@ -84,7 +84,7 @@ class RomNeuralNetworkTrainer(object):
 
     def _GetEvaluationData(self, model_properties):
 
-        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM_Fit')
+        S_val = self.data_base.get_snapshots_matrix_from_database(self.mu_validation, table_name=f'FOM')
 
         n_inf = model_properties['modes'][0]
         n_sup = model_properties['modes'][1]

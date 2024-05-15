@@ -26,7 +26,7 @@ class SeededNN_RomManager(RomManager):
     def launch_test(self):
         try:
             self._LaunchTrainROM([None])
-            self._LaunchTrainFOM([None])
+            self._LaunchFOM([None])
             error = self._LaunchTrainNeuralNetwork([None], [None])
         except Exception as e:
             print(f"An error occurred: {e}")
