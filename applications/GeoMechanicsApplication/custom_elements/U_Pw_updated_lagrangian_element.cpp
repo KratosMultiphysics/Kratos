@@ -91,7 +91,8 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->VoigtSize);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
