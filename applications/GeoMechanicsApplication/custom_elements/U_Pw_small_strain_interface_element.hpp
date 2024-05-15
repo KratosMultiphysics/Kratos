@@ -281,10 +281,7 @@ protected:
     template <class TValueType>
     void InterpolateOutputValues(std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues);
 
-    void SetRetentionParameters(const InterfaceElementVariables& rVariables,
-                                RetentionLaw::Parameters&        rRetentionParameters);
-
-    double CalculateFluidPressure(const InterfaceElementVariables& rVariables);
+    [[nodiscard]] double CalculateFluidPressure(const InterfaceElementVariables& rVariables) const;
 
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix);
 
@@ -295,9 +292,7 @@ protected:
                                     unsigned int               GPoint);
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
-
-    void CalculateSoilDensity(InterfaceElementVariables& rVariables);
-
+    
     void SetConstitutiveParameters(InterfaceElementVariables&   rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 

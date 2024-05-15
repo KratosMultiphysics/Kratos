@@ -521,9 +521,16 @@ namespace Kratos:: Python
 
         auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
         sparse_space_binder.def("TwoNorm", TwoNorm);
-        //the dot product of two vectors
+        // The dot product of two vectors
         sparse_space_binder.def("Dot", Dot);
         sparse_space_binder.def("TransposeMult", TransposeMult);
+        // Size functions
+        sparse_space_binder.def("Size", &SparseSpaceType::Size);
+        sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
+        sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        // Information functions
+        sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
+        sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 
