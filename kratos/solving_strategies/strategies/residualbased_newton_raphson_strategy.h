@@ -905,11 +905,13 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief Sets up the gathering of non-converged solutions
-     * @details This method enables the storage of non-converged solutions at each iteration by setting the appropriate flag.
-     */
-    void SetUpNonconvergedSolutionsGathering(){
-        mStoreNonconvergedSolutionsFlag = true;
+    * @brief Sets the state for storing non-converged solutions.
+    * @param state The state to set for storing non-converged solutions (true to enable, false to disable).
+    * @details This method enables or disables the storage of non-converged solutions at each iteration
+    * by setting the appropriate flag. When the flag is set to true, non-converged solutions will be stored.
+    */
+    void SetUpNonconvergedSolutionsFlag(bool state) {
+        mStoreNonconvergedSolutionsFlag = state;
     }
 
     /**
