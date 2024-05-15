@@ -1559,16 +1559,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(Vector
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrain(const Matrix& rDeformationGradient,
-                                                               const Matrix& rB,
-                                                               const Vector& rDisplacements,
-                                                               bool          UseHenckyStrain) const
-{
-    return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
-                           : this->CalculateCauchyStrain(rB, rDisplacements);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
                                                                              const std::vector<Matrix>& rBs,
                                                                              const Vector& rDisplacements,
@@ -1578,7 +1568,8 @@ std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrains(con
     std::transform(
         rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
         [this, &rDisplacements, UseHenckyStrain](const auto& rDeformationGradient, const auto& rB) {
-        return CalculateStrain(rDeformationGradient, rB, rDisplacements, UseHenckyStrain);
+        return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
+                               : this->CalculateCauchyStrain(rB, rDisplacements);
     });
 
     return result;

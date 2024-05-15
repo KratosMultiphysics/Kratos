@@ -2025,27 +2025,16 @@ std::vector<Vector> SmallStrainUPwDiffOrderElement::CalculateStrains(const std::
                                                                      bool UseHenckyStrain) const
 {
     std::vector<Vector> result;
+    const SizeType      VoigtSize =
+        (GetGeometry().WorkingSpaceDimension() == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     std::transform(
         rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
-        [this, &rDisplacements, UseHenckyStrain](const auto& rDeformationGradient, const auto& rB) {
-        return CalculateStrain(rDeformationGradient, rB, rDisplacements, UseHenckyStrain);
+        [this, &rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
+        return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
+                               : this->CalculateCauchyStrain(rB, rDisplacements);
     });
 
     return result;
-}
-
-Vector SmallStrainUPwDiffOrderElement::CalculateStrain(const Matrix& rDeformationGradient,
-                                                       const Matrix& rB,
-                                                       const Vector& rDisplacements,
-                                                       bool          UseHenckyStrain) const
-{
-    if (UseHenckyStrain) {
-        const SizeType Dim       = GetGeometry().WorkingSpaceDimension();
-        const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-        return StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize);
-    }
-
-    return this->CalculateCauchyStrain(rB, rDisplacements);
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
