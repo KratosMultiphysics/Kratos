@@ -18,8 +18,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition() 
-    : PwCondition<TDim, TNumNodes>()
+PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition() : PwCondition<TDim, TNumNodes>()
 {
 }
 
