@@ -704,8 +704,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto determinants_of_deformation_gradients =
             GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-        const auto strain_vectors = CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+        auto       strain_vectors        = CalculateStrains(deformation_gradients, b_matrices,
+                                                            Variables.DisplacementVector, Variables.UseHenckyStrain);
         const auto constitutive_matrices = CalculateConstitutiveMatricesAndOptionalStressVectors(
             deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
             Variables.NContainer, Variables.DN_DXContainer);
