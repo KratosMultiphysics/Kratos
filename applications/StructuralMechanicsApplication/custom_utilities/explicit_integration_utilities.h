@@ -58,8 +58,13 @@ namespace ExplicitIntegrationUtilities
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::NodesContainerType NodesArrayType;
 
+    // Lumping method
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef GeometryType::LumpingMethods LumpingMethods;
+
     /**
-     * @brief This method computes the necessry delta time to avoid numerical instabilities
+     * @brief This method computes the necessary delta time to avoid numerical instabilities
      * @param rModelPart The model of the problem to solve
      * @param ThisParameters The configuration parameters
      * @return The critical delta time
@@ -70,7 +75,7 @@ namespace ExplicitIntegrationUtilities
         );
 
     /**
-     * @brief This method computes the necessry delta time to avoid numerical instabilities (inner method)
+     * @brief This method computes the necessary delta time to avoid numerical instabilities (inner method)
      * @param rModelPart The model of the problem to solve
      * @param TimeStepPredictionLevel The prediction level
      * @param MaxDeltaTime The max delta time
@@ -86,5 +91,18 @@ namespace ExplicitIntegrationUtilities
         const double MassFactor
         );
 
+    /**
+     * @brief This method computes the lumping factors of the elements
+     * @param rModelPart The model of the problem to solve
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeLumpingFactors(
+        ModelPart& rModelPart,
+        const LumpingMethods LumpingMethod = LumpingMethods::ROW_SUM
+        );
+        
 }; // namespace ExplicitIntegrationUtilities
 }  // namespace Kratos
