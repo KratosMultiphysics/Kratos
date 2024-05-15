@@ -880,15 +880,17 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief Gets the current solution vector
-     * @param rDofSet The set of degrees of freedom (DOFs)
-     * @return A vector containing the current solution values for the given DOF set
-     * @details This method retrieves the current solution values for the provided DOF set. Each value is accessed using the equation ID associated with each DOF.
-     */
-    void GetCurrentSolution(DofsArrayType& rDofSet,Vector& this_solution){
+    * @brief Gets the current solution vector
+    * @param rDofSet The set of degrees of freedom (DOFs)
+    * @param this_solution The vector that will be filled with the current solution values
+    * @details This method retrieves the current solution values for the provided DOF set.
+    * The provided solution vector will be resized to match the size of the DOF set if necessary,
+    * and will be filled with the solution values corresponding to each DOF. Each value is accessed
+    * using the equation ID associated with each DOF.
+    */
+    void GetCurrentSolution(DofsArrayType& rDofSet, Vector& this_solution) {
         this_solution.resize(rDofSet.size());
-        block_for_each(rDofSet, [&](const auto& r_dof)
-        {
+        block_for_each(rDofSet, [&](const auto& r_dof) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         });
     }
