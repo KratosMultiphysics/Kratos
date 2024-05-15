@@ -228,7 +228,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
         #TODO OR
         # Avoid zeros with positive epsilon
-        tol = 1.0e-12
+        tol = 1.0e-10
         for node in self.GetComputingModelPart().Nodes:
             dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             if abs(dist) < tol:

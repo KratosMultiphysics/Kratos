@@ -125,9 +125,9 @@ void ShiftedBoundaryWallCondition<TDim>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
-    //AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    AddNitscheImposition(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-    AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector);
+    //AddDirichletPenalization(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
     //KRATOS_ERROR << "STOP" << std::endl;
@@ -359,7 +359,8 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
 template<std::size_t TDim>
 void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
     MatrixType& rLHS,
-    VectorType& rRHS)
+    VectorType& rRHS,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = this->GetGeometry();
     const std::size_t local_size = rLHS.size1();
@@ -381,7 +382,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
 
     const double weight = GetValue(INTEGRATION_WEIGHT);
     const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
-    const double pen_coeff = 1000.0;
+    const double pen_coeff = rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
     // Add penalty contribution of the integration point (u=0)
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
@@ -393,7 +394,7 @@ void ShiftedBoundaryWallCondition<TDim>::AddDirichletPenalization(
                 }
             }
             // (p=0)
-            aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node);
+            //aux_LHS(i_node * BlockSize + TDim, j_node * BlockSize + TDim) += pen_coeff * weight * r_N(i_node) * r_N(j_node);
         }
     }
 

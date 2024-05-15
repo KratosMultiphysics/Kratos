@@ -248,7 +248,8 @@ protected:
      */
     void AddDirichletPenalization(
         MatrixType& rLHS,
-        VectorType& rRHS);
+        VectorType& rRHS,
+        const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief This function builds the strain matrix from the shape function derivatives utilizing voigt notation.
