@@ -901,7 +901,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @details This method returns a tuple where the first element is a matrix of non-converged solutions and the second element is the corresponding DOF set.
      */
     std::tuple<Matrix, DofsArrayType> GetNonconvergedSolutions(){
-        return std::make_tuple(mNonconveregedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet());
+        return std::make_tuple(mNonconvergedSolutionsMatrix, GetBuilderAndSolver()->GetDofSet());
     }
 
     /**
@@ -1094,10 +1094,10 @@ class ResidualBasedNewtonRaphsonStrategy
             p_builder_and_solver->CalculateReactions(p_scheme, r_model_part, rA, rDx, rb);
 
         if (mStoreNonconvergedSolutionsFlag) {
-            mNonconveregedSolutionsMatrix = ZeroMatrix( r_dof_set.size(), NonconvergedSolutions.size() );
+            mNonconvergedSolutionsMatrix = ZeroMatrix( r_dof_set.size(), NonconvergedSolutions.size() );
             for (std::size_t i = 0; i < NonconvergedSolutions.size(); ++i) {
                 for (std::size_t j = 0; j < r_dof_set.size(); ++j) {
-                    mNonconveregedSolutionsMatrix(j, i) = NonconvergedSolutions[i](j);
+                    mNonconvergedSolutionsMatrix(j, i) = NonconvergedSolutions[i](j);
                 }
             }
         }
@@ -1332,7 +1332,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @brief This matrix stores the non-converged solutions
      * @details The matrix is structured such that each column represents the solution vector at a specific non-converged iteration.
      */
-    Matrix mNonconveregedSolutionsMatrix;
+    Matrix mNonconvergedSolutionsMatrix;
 
     /**
      * @brief Flag indicating whether to store non-converged solutions
