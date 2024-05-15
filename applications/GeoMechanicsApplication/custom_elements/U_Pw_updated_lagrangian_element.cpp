@@ -106,7 +106,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
-        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
+        ConstitutiveLawUtilities::SetConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 

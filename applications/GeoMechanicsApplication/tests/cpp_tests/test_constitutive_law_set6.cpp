@@ -13,6 +13,7 @@
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "includes/checks.h"
 #include "testing/testing.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
@@ -24,18 +25,14 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
     ConstitutiveLaw::Parameters ConstitutiveParameters;
 
     Vector strain_vector(3);
-    strain_vector(0)           = 1.0;
-    strain_vector(1)           = 2.0;
-    strain_vector(2)           = 3.0;
+    strain_vector <<= 1.0, 2.0, 3.0;
     Matrix constitutive_matrix = IdentityMatrix(5, 5);
     Vector N(3);
-    N(0)                                         = 0.1;
-    N(1)                                         = 0.2;
-    N(2)                                         = 0.5;
+    N <<= 0.1, 0.2, 0.5;
     const Matrix     shape_functions_derivatives = ScalarMatrix(3, 3, 5.0);
     const Matrix     deformation_gradient_F      = ScalarMatrix(3, 3, 10.0);
     constexpr double determinant_of_F            = 10.0;
-    ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
+    ConstitutiveLawUtilities::SetConstitutiveParameters(
         ConstitutiveParameters, strain_vector, constitutive_matrix, N, shape_functions_derivatives,
         deformation_gradient_F, determinant_of_F);
 

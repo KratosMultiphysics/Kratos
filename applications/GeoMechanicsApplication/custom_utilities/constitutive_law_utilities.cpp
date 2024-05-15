@@ -26,13 +26,13 @@ int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThi
     return index - 1;
 }
 
-void ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                                                     Vector& rStrainVector,
-                                                                     Matrix& rConstitutiveMatrix,
-                                                                     const Vector& rN,
-                                                                     const Matrix& rGradNpT,
-                                                                     const Matrix& rF,
-                                                                     double        detF)
+void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                                         Vector&       rStrainVector,
+                                                         Matrix&       rConstitutiveMatrix,
+                                                         const Vector& rN,
+                                                         const Matrix& rGradNpT,
+                                                         const Matrix& rF,
+                                                         double        detF)
 {
     rConstitutiveParameters.SetStrainVector(rStrainVector);
     rConstitutiveParameters.SetConstitutiveMatrix(rConstitutiveMatrix);

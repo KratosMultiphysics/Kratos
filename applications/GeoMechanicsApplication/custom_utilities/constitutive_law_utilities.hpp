@@ -25,13 +25,13 @@ class ConstitutiveLawUtilities
 public:
     static int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
-    static void SetSixMechanicsConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                                      Vector&       rStrainVector,
-                                                      Matrix&       rConstitutiveMatrix,
-                                                      const Vector& rN,
-                                                      const Matrix& rGradNpT,
-                                                      const Matrix& rF,
-                                                      double        detF);
+    static void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                          Vector&                      rStrainVector,
+                                          Matrix&                      rConstitutiveMatrix,
+                                          const Vector&                rN,
+                                          const Matrix&                rGradNpT,
+                                          const Matrix&                rF,
+                                          double                       detF);
 
 }; /* Class ConstitutiveLawUtilities*/
 

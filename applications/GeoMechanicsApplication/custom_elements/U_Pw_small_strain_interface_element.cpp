@@ -659,7 +659,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
+        ConstitutiveLawUtilities::SetConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -1002,7 +1002,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
 
         Vector TotalStressVector(mStressVector[0].size());
 
-        ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
+        ConstitutiveLawUtilities::SetConstitutiveParameters(
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
             Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
@@ -1255,9 +1255,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
 
-    ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
-        ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
-        Variables.GradNpT, Variables.F, Variables.detF);
+    ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
+                                                        Variables.ConstitutiveMatrix, Variables.Np,
+                                                        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -1332,9 +1332,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     InterfaceElementVariables Variables;
     this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
 
-    ConstitutiveLawUtilities::SetSixMechanicsConstitutiveParameters(
-        ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
-        Variables.GradNpT, Variables.F, Variables.detF);
+    ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveParameters, Variables.StrainVector,
+                                                        Variables.ConstitutiveMatrix, Variables.Np,
+                                                        Variables.GradNpT, Variables.F, Variables.detF);
 
     // Auxiliary variables
     const double&          MinimumJointWidth       = Prop[MINIMUM_JOINT_WIDTH];
