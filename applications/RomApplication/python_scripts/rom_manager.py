@@ -147,13 +147,13 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test, 'FOM_Test')
+                self._LaunchFOM(mu_test, gid_and_vtk_name='FOM_Test')
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                self._LaunchROM(mu_test, 'ROM_Test')
+                self._LaunchROM(mu_test, gid_and_vtk_name='ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                self._LaunchHROM(mu_test,'HOM_Test')
+                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
 
         #######################
 
@@ -161,12 +161,12 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test,'FOM_Test')
+                self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                self._LaunchROM(mu_test,'ROM_Test')
+                self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                self._LaunchHROM(mu_test,'HROM_Test')
+                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
         #######################################
 
 
@@ -174,13 +174,13 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test,'FOM_Test')
+                self._LaunchFOM(mu_test,gid_and_vtk_name='FOM_Test')
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                self._LaunchROM(mu_test,'ROM_Test')
+                self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                self._LaunchHROM(mu_test,'HROM_Test')
+                self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
