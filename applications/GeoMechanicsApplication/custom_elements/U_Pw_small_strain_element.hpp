@@ -275,11 +275,6 @@ protected:
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
-    std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
-                                         const std::vector<Matrix>& rBs,
-                                         const Vector&              rDisplacements,
-                                         bool                       UseHenckyStrain) const;
-
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
 
