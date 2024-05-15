@@ -10,7 +10,10 @@
 //  Main authors:    Richard Faasse
 //
 
+#include <algorithm>
+
 #include "math_utilities.h"
+#include "utilities/math_utils.h"
 
 std::vector<double> Kratos::GeoMechanicsMathUtilities::CalculateDeterminants(const std::vector<Matrix>& rMatrices)
 {

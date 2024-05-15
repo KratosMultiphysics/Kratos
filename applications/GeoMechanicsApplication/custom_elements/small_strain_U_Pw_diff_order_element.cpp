@@ -918,7 +918,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             this->CalculateKinematics(Variables, GPoint);
 
             Variables.FluidPressure = CalculateFluidPressure(Variables);
-            SetRetentionParameters(Variables, RetentionParameters);
+            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
 
             if (rVariable == DEGREE_OF_SATURATION)
                 rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
@@ -1022,8 +1022,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                     BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
             }
 
-            CalculateFluidPressure(Variables);
-            SetRetentionParameters(Variables, RetentionParameters);
+            Variables.FluidPressure = CalculateFluidPressure(Variables);
+            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
 
             const double RelativePermeability =
                 mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
@@ -2101,16 +2101,6 @@ double SmallStrainUPwDiffOrderElement::CalculateFluidPressure(const ElementVaria
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::SetRetentionParameters(const ElementVariables& rVariables,
-                                                            RetentionLaw::Parameters& rRetentionParameters) const
-{
-    KRATOS_TRY
-
-    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables& rVariables,
                                                                 RetentionLaw::Parameters& rRetentionParameters,
                                                                 unsigned int GPoint)
@@ -2118,7 +2108,7 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
     KRATOS_TRY
 
     rVariables.FluidPressure = CalculateFluidPressure(rVariables);
-    SetRetentionParameters(rVariables, rRetentionParameters);
+    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
     rVariables.DerivativeOfSaturation =

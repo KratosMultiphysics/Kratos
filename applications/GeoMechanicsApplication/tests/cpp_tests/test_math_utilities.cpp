@@ -11,7 +11,9 @@
 //
 
 #include "custom_utilities/math_utilities.h"
+#include "includes/checks.h"
 #include "testing/testing.h"
+#include "includes/checks.h"
 
 namespace Kratos::Testing
 {
@@ -23,7 +25,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeo
     const std::vector<double> results = GeoMechanicsMathUtilities::CalculateDeterminants(matrices);
 
     const std::vector<double> expected_results = {3.0, 0.0, 8.0};
-    KRATOS_CHECK_VECTOR_NEAR(results, expected_results, 1.0e-12);
+    KRATOS_CHECK_VECTOR_NEAR(results, expected_results, 1.0e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput, KratosGeoMechanicsFastSuite)

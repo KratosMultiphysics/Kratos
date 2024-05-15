@@ -307,6 +307,7 @@ protected:
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
 
+    [[nodiscard]] double CalculateFluidPressure(const ElementVariables& rVariables) const;
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
     ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
@@ -320,11 +321,6 @@ protected:
                                         std::vector<Vector>& rStrainVectors,
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
-
-    double CalculateFluidPressure(const ElementVariables& rVariables) const;
-
-    void SetRetentionParameters(const ElementVariables&   rVariables,
-                                RetentionLaw::Parameters& rRetentionParameters) const;
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
