@@ -885,12 +885,10 @@ class ResidualBasedNewtonRaphsonStrategy
      * @return A vector containing the current solution values for the given DOF set
      * @details This method retrieves the current solution values for the provided DOF set. Each value is accessed using the equation ID associated with each DOF.
      */
-    Vector GetCurrentSolution(DofsArrayType& rDofSet){
-        Vector this_solution(rDofSet.size());
+    void GetCurrentSolution(DofsArrayType& rDofSet,Vector& this_solution){
         for (auto& r_dof : rDofSet) {
             this_solution[r_dof.EquationId()] = r_dof.GetSolutionStepValue();
         }
-        return this_solution;
     }
 
     /**
@@ -923,7 +921,8 @@ class ResidualBasedNewtonRaphsonStrategy
         std::vector<Vector> NonconvergedSolutions;
 
         if (mStoreNonconvergedSolutionsFlag) {
-            Vector initial = GetCurrentSolution(r_dof_set);
+            Vector initial(r_dof_set.size());
+            GetCurrentSolution(r_dof_set,initial);
             NonconvergedSolutions.push_back(initial);
         }
 
@@ -967,7 +966,8 @@ class ResidualBasedNewtonRaphsonStrategy
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
         if (mStoreNonconvergedSolutionsFlag) {
-            Vector first = GetCurrentSolution(r_dof_set);
+            Vector first(r_dof_set.size());
+            GetCurrentSolution(r_dof_set,first);
             NonconvergedSolutions.push_back(first);
         }
 
@@ -1039,7 +1039,8 @@ class ResidualBasedNewtonRaphsonStrategy
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
 
             if (mStoreNonconvergedSolutionsFlag == true){
-                Vector ith = GetCurrentSolution(r_dof_set);
+                Vector ith(r_dof_set.size());
+                GetCurrentSolution(r_dof_set,ith);
                 NonconvergedSolutions.push_back(ith);
             }
 
