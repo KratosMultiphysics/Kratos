@@ -202,9 +202,14 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( const
     
     // Define the variables to compute the nodal values
     ExtrapolationVariables MyExtrapolationVariables;
+    
     MyExtrapolationVariables.JointWidthContainer.resize(NumGPoints);
+    
     MyExtrapolationVariables.MidPlaneLiquidPressureContainer.resize(NumGPoints);
     this->CalculateOnIntegrationPoints(MID_PLANE_LIQUID_PRESSURE, MyExtrapolationVariables.MidPlaneLiquidPressureContainer, rCurrentProcessInfo);
+
+    MyExtrapolationVariables.SlipTendencyContainer.resize(NumGPoints);
+    this->CalculateOnIntegrationPoints(SLIP_TENDENCY, MyExtrapolationVariables.SlipTendencyContainer, rCurrentProcessInfo);
 
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -267,12 +272,19 @@ void UPlSmallStrainInterfaceElement<2,4>::ExtrapolateGPValues (const Extrapolati
     NodalDamage[2] = DamageContainer[1]*Area;
     NodalDamage[3] = DamageContainer[0]*Area;
 
+    array_1d<double,4> NodalSlipTendency;
+    NodalSlipTendency[0] = MyExtrapolationVariables.SlipTendencyContainer[0]*Area;
+    NodalSlipTendency[1] = MyExtrapolationVariables.SlipTendencyContainer[1]*Area;
+    NodalSlipTendency[2] = MyExtrapolationVariables.SlipTendencyContainer[1]*Area;
+    NodalSlipTendency[3] = MyExtrapolationVariables.SlipTendencyContainer[0]*Area;
+
     for(unsigned int i = 0; i < 4; i++) //NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) += NodalMidPlaneLiquidPressure[i];        
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_SLIP_TENDENCY) += NodalSlipTendency[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -318,12 +330,21 @@ void UPlSmallStrainInterfaceElement<3,6>::ExtrapolateGPValues (const Extrapolati
     NodalDamage[4] = DamageContainer[1]*Area;
     NodalDamage[5] = DamageContainer[2]*Area;
 
+    array_1d<double,6> NodalSlipTendency;
+    NodalSlipTendency[0] = MyExtrapolationVariables.SlipTendencyContainer[0]*Area;
+    NodalSlipTendency[1] = MyExtrapolationVariables.SlipTendencyContainer[1]*Area;
+    NodalSlipTendency[2] = MyExtrapolationVariables.SlipTendencyContainer[2]*Area;
+    NodalSlipTendency[3] = MyExtrapolationVariables.SlipTendencyContainer[0]*Area;
+    NodalSlipTendency[4] = MyExtrapolationVariables.SlipTendencyContainer[1]*Area;
+    NodalSlipTendency[5] = MyExtrapolationVariables.SlipTendencyContainer[2]*Area;
+
     for(unsigned int i = 0; i < 6; i++) //NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) += NodalMidPlaneLiquidPressure[i];        
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_SLIP_TENDENCY) += NodalSlipTendency[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -375,12 +396,23 @@ void UPlSmallStrainInterfaceElement<3,8>::ExtrapolateGPValues (const Extrapolati
     NodalDamage[6] = DamageContainer[2]*Area;
     NodalDamage[7] = DamageContainer[3]*Area;
 
+    array_1d<double,8> NodalSlipTendency;
+    NodalSlipTendency[0] = MyExtrapolationVariables.SlipTendencyContainer[0]*Area;
+    NodalSlipTendency[1] = MyExtrapolationVariables.SlipTendencyContainer[1]*Area;
+    NodalSlipTendency[2] = MyExtrapolationVariables.SlipTendencyContainer[2]*Area;
+    NodalSlipTendency[3] = MyExtrapolationVariables.SlipTendencyContainer[3]*Area;
+    NodalSlipTendency[4] = MyExtrapolationVariables.SlipTendencyContainer[0]*Area;
+    NodalSlipTendency[5] = MyExtrapolationVariables.SlipTendencyContainer[1]*Area;
+    NodalSlipTendency[6] = MyExtrapolationVariables.SlipTendencyContainer[2]*Area;
+    NodalSlipTendency[7] = MyExtrapolationVariables.SlipTendencyContainer[3]*Area;
+
     for(unsigned int i = 0; i < 8; i++) //NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) += NodalMidPlaneLiquidPressure[i];        
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
+        rGeom[i].FastGetSolutionStepValue(NODAL_SLIP_TENDENCY) += NodalSlipTendency[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -474,6 +506,23 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         }
 
         // Printed on standard GiD Gauss points
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+        if ( rValues.size() != OutputGPoints )
+            rValues.resize( OutputGPoints );
+
+        this->InterpolateOutputDoubles(rValues,GPValues);
+    }
+    else if(rVariable == SLIP_TENDENCY)
+    {
+        //Variables computed on Lobatto points
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+        std::vector<double> GPValues(NumGPoints);
+
+        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+            GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
+
+        //Printed on standard GiD
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );

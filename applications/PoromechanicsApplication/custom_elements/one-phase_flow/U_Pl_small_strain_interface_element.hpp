@@ -158,6 +158,7 @@ protected:
     {
         std::vector<double> JointWidthContainer;
         std::vector<double> MidPlaneLiquidPressureContainer;
+        std::vector<double> SlipTendencyContainer;
     };
 
     /// Member Variables
