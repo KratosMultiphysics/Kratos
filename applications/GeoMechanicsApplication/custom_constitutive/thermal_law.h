@@ -42,7 +42,7 @@ public:
 
     virtual GeoThermalLaw::Pointer Clone() const = 0;
 
-    std::size_t WorkingSpaceDimension() { return mNumberOfDimensions; }
+    std::size_t WorkingSpaceDimension() const { return mNumberOfDimensions; }
 
     virtual Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const
     {
@@ -50,7 +50,7 @@ public:
     }
 
 protected:
-    SizeType mNumberOfDimensions;
+    std::size_t mNumberOfDimensions = 0;
 
 private:
     friend class Serializer;
