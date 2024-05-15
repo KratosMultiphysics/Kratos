@@ -306,13 +306,20 @@ protected:
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
-    std::vector<Matrix> CalculateConstitutiveMatricesAndOptionalStressVectors(
-        const std::vector<Matrix>&                       rDeformationGradients,
-        std::vector<Vector>&                             rStrainVectors,
-        std::vector<Vector>&                             rStressVectors,
-        ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
-        const Matrix&                                    rNuContainer,
-        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer);
+
+    ///
+    /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
+    ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
+    ///        the function could calculate the stress, the constitutive matrix, the strains, or a combination.
+    ///        In our elements we generally always calculate the constitutive matrix and sometimes the stress.
+    ///
+    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&   rDeformationGradients,
+                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                        const Matrix&                rNuContainer,
+                                        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
+                                        std::vector<Vector>& rStrainVectors,
+                                        std::vector<Vector>& rStressVectors,
+                                        std::vector<Matrix>& rConstitutiveMatrices);
 
     double CalculateFluidPressure(const ElementVariables& rVariables) const;
 

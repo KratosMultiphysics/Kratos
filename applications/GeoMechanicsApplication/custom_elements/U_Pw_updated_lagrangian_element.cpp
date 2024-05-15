@@ -90,9 +90,10 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     const auto deformation_gradients = this->CalculateDeformationGradients();
     auto       strain_vectors        = this->CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
-    const auto constitutive_matrices = this->CalculateConstitutiveMatricesAndOptionalStressVectors(
-        deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
-        Variables.NContainer, Variables.DN_DXContainer);
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NContainer, Variables.DN_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
 
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);

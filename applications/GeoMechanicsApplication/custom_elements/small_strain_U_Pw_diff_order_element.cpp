@@ -1135,12 +1135,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         Vector TotalStressVector(mStressVector[0].size());
 
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
-        const auto deformation_gradients = CalculateDeformationGradients();
-        auto       strain_vectors        = CalculateStrains(deformation_gradients, b_matrices,
-                                                            Variables.DisplacementVector, Variables.UseHenckyStrain);
-        const auto constitutive_matrices = this->CalculateConstitutiveMatricesAndOptionalStressVectors(
-            deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
-            Variables.NuContainer, Variables.DNu_DXContainer);
+        const auto          deformation_gradients = CalculateDeformationGradients();
+        auto                strain_vectors = CalculateStrains(deformation_gradients, b_matrices,
+                                                              Variables.DisplacementVector, Variables.UseHenckyStrain);
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NuContainer, Variables.DNu_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1274,11 +1275,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto integration_coefficients =
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
-    auto       strain_vectors        = CalculateStrains(deformation_gradients, b_matrices,
-                                                        Variables.DisplacementVector, Variables.UseHenckyStrain);
-    const auto constitutive_matrices = this->CalculateConstitutiveMatricesAndOptionalStressVectors(
-        deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
-        Variables.NuContainer, Variables.DNu_DXContainer);
+    auto                strain_vectors = CalculateStrains(deformation_gradients, b_matrices,
+                                                          Variables.DisplacementVector, Variables.UseHenckyStrain);
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NuContainer, Variables.DNu_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1335,9 +1337,10 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = CalculateStrains(deformation_gradients, b_matrices,
                                                         Variables.DisplacementVector, Variables.UseHenckyStrain);
-    const auto constitutive_matrices = this->CalculateConstitutiveMatricesAndOptionalStressVectors(
-        deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
-        Variables.NuContainer, Variables.DNu_DXContainer);
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NuContainer, Variables.DNu_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -2147,13 +2150,14 @@ Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()
     return result;
 }
 
-std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateConstitutiveMatricesAndOptionalStressVectors(
+void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
     const std::vector<Matrix>&                       rDeformationGradients,
-    std::vector<Vector>&                             rStrainVectors,
-    std::vector<Vector>&                             rStressVectors,
     ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
     const Matrix&                                    rNuContainer,
-    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer)
+    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
+    std::vector<Vector>&                             rStrainVectors,
+    std::vector<Vector>&                             rStressVectors,
+    std::vector<Matrix>&                             rConstitutiveMatrices)
 {
     std::vector<Matrix> result;
     const SizeType      VoigtSize =
@@ -2173,13 +2177,10 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateConstitutiveMatrice
         rConstitutiveParameters.SetDeformationGradientF(rDeformationGradients[GPoint]);
 
         // compute constitutive tensor and/or stresses
-
         rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
-        result.push_back(constitutive_matrix);
+        rConstitutiveMatrices.push_back(constitutive_matrix);
     }
-
-    return result;
 }
 
 } // Namespace Kratos
