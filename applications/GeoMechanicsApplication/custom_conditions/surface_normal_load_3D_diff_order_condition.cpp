@@ -14,7 +14,7 @@
 
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
-#include "custom_utilities/math_utilities.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
