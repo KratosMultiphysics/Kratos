@@ -248,10 +248,11 @@ class RomDatabase(object):
             mu_list_unique = mu_list
         else:
             unique_tuples = set(tuple(item) for item in mu_list)
-            mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_lust
+            mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_list
         SnapshotsMatrix = []
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
+        unavailable_cases = []
         for mu in mu_list_unique:
             hash_mu, _ = self.get_hashed_mu_for_table(table_name, mu)
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
@@ -260,7 +261,10 @@ class RomDatabase(object):
                 SnapshotsMatrix.append(self.get_single_numpy_from_database(result[0]))
             else:
                 print(f"No entry found for hash {hash_mu}")
+                unavailable_cases.append(mu)
         conn.close()
+        if len(unavailable_cases)>0:
+            KratosMultiphysics.Logger.PrintWarning(f"Retrieved snapshots matrix does not contain {len(unavailable_cases)} cases:  {unavailable_cases} ")
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
 
 
