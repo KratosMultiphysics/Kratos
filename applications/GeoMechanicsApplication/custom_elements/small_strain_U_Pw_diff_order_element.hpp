@@ -307,8 +307,6 @@ protected:
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
 
-    void SetRetentionParameters(const ElementVariables&   rVariables,
-                                RetentionLaw::Parameters& rRetentionParameters) const;
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,

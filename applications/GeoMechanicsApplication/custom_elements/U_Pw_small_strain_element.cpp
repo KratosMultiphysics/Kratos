@@ -1738,17 +1738,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetConstitutiveParameters(ElementVa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::SetRetentionParameters(const ElementVariables& rVariables,
-                                                                    RetentionLaw::Parameters& rRetentionParameters)
-{
-    KRATOS_TRY
-
-    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateRetentionResponse(ElementVariables& rVariables,
                                                                         RetentionLaw::Parameters& rRetentionParameters,
                                                                         unsigned int GPoint)
@@ -1757,7 +1746,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateRetentionResponse(ElementV
 
     rVariables.FluidPressure =
         RetentionLaw::Parameters::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
-    SetRetentionParameters(rVariables, rRetentionParameters);
+    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
     rVariables.DerivativeOfSaturation =
