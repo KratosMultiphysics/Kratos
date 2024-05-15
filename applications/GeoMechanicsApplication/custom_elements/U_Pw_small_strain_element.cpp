@@ -269,26 +269,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto strain_vectors = CalculateStrains(deformation_gradients, b_matrices,
+                                           Variables.DisplacementVector, Variables.UseHenckyStrain);
 
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute infinitesimal strain
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        // Set gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        // Compute Stress
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-    }
+    CalculateConstitutiveMatricesAndOptionalStressVectors(deformation_gradients, strain_vectors,
+                                                          mStressVector, ConstitutiveParameters,
+                                                          Variables.NContainer, Variables.DN_DXContainer);
 
     KRATOS_CATCH("")
 }
@@ -596,36 +582,23 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto determinants_of_deformation_gradients =
             GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-        const auto strain_vectors = CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+        auto strain_vectors = CalculateStrains(deformation_gradients, b_matrices,
+                                               Variables.DisplacementVector, Variables.UseHenckyStrain);
 
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            const PropertiesType& rProp = this->GetProperties();
+        const PropertiesType& rProp = this->GetProperties();
 
-            ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
-            ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-            ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-            // Compute Np, GradNpT, B and StrainVector
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.B = b_matrices[GPoint];
+        const auto constitutive_matrices = CalculateConstitutiveMatricesAndOptionalStressVectors(
+            deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
+            Variables.NContainer, Variables.DN_DXContainer);
 
-            // Compute infinitesimal strain
-            Variables.F            = deformation_gradients[GPoint];
-            Variables.detF         = determinants_of_deformation_gradients[GPoint];
-            Variables.StrainVector = strain_vectors[GPoint];
-
-            // set Gauss points variables to constitutive law parameters
-            this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-            // compute constitutive tensor and/or stresses
-            noalias(Variables.StressVector) = mStressVector[GPoint];
-            ConstitutiveParameters.SetStressVector(Variables.StressVector);
-
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
-            rOutput[GPoint] = Variables.ConstitutiveMatrix(variable_index, variable_index);
-        }
+        std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
+                       [variable_index](const Matrix& constitutive_matrix) {
+            return constitutive_matrix(variable_index, variable_index);
+        });
     } else if (r_prop.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         rOutput.clear();
@@ -733,25 +706,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
         const auto strain_vectors = CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+        const auto constitutive_matrices = CalculateConstitutiveMatricesAndOptionalStressVectors(
+            deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
+            Variables.NContainer, Variables.DN_DXContainer);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
-            Variables.B = b_matrices[GPoint];
-
-            // Compute infinitesimal strain
-            Variables.F            = deformation_gradients[GPoint];
-            Variables.detF         = determinants_of_deformation_gradients[GPoint];
-            Variables.StrainVector = strain_vectors[GPoint];
-
-            // Set Gauss points variables to constitutive law parameters
-            this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-            // Compute constitutive tensor and/or stresses
-            noalias(Variables.StressVector) = mStressVector[GPoint];
-            ConstitutiveParameters.SetStressVector(Variables.StressVector);
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+            Variables.B                  = b_matrices[GPoint];
+            Variables.F                  = deformation_gradients[GPoint];
+            Variables.detF               = determinants_of_deformation_gradients[GPoint];
+            Variables.StrainVector       = strain_vectors[GPoint];
+            Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
@@ -908,26 +874,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto       strain_vectors        = CalculateStrains(deformation_gradients, b_matrices,
+                                                        Variables.DisplacementVector, Variables.UseHenckyStrain);
+    const auto constitutive_matrices = CalculateConstitutiveMatricesAndOptionalStressVectors(
+        deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
+        Variables.NContainer, Variables.DN_DXContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute infinitesimal strain
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        // Set Gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        // Compute constitutive tensor
-        noalias(Variables.StressVector) = mStressVector[GPoint];
-        ConstitutiveParameters.SetStressVector(Variables.StressVector);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+        Variables.B                  = b_matrices[GPoint];
+        Variables.F                  = deformation_gradients[GPoint];
+        Variables.detF               = determinants_of_deformation_gradients[GPoint];
+        Variables.StrainVector       = strain_vectors[GPoint];
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient =
@@ -1037,30 +996,24 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
-    const auto strain_vectors = CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto       strain_vectors        = CalculateStrains(deformation_gradients, b_matrices,
+                                                        Variables.DisplacementVector, Variables.UseHenckyStrain);
+    const auto constitutive_matrices = CalculateConstitutiveMatricesAndOptionalStressVectors(
+        deformation_gradients, strain_vectors, mStressVector, ConstitutiveParameters,
+        Variables.NContainer, Variables.DN_DXContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute infinitesimal strain
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        // Set Gauss points variables to constitutive law parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        Variables.B                  = b_matrices[GPoint];
+        Variables.F                  = deformation_gradients[GPoint];
+        Variables.detF               = determinants_of_deformation_gradients[GPoint];
+        Variables.StrainVector       = strain_vectors[GPoint];
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         // Compute Nu and BodyAcceleration
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-
-        // Compute constitutive tensor and stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1940,6 +1893,40 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
     Vector result(TNumNodes);
     std::transform(this->GetGeometry().begin(), this->GetGeometry().end(), result.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateConstitutiveMatricesAndOptionalStressVectors(
+    const std::vector<Matrix>&                       rDeformationGradients,
+    std::vector<Vector>&                             rStrainVectors,
+    std::vector<Vector>&                             rStressVectors,
+    ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
+    const Matrix&                                    rNuContainer,
+    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer)
+{
+    std::vector<Matrix> result;
+
+    const auto determinants_of_deformation_gradients =
+        GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
+
+    for (unsigned int GPoint = 0; GPoint < rDeformationGradients.size(); ++GPoint) {
+        Matrix constitutive_matrix(VoigtSize, VoigtSize);
+        rConstitutiveParameters.SetConstitutiveMatrix(constitutive_matrix);
+
+        rConstitutiveParameters.SetStrainVector(rStrainVectors[GPoint]);
+        rConstitutiveParameters.SetShapeFunctionsDerivatives(rDNu_DXContainer[GPoint]);
+        rConstitutiveParameters.SetShapeFunctionsValues(row(rNuContainer, GPoint));
+        rConstitutiveParameters.SetDeterminantF(determinants_of_deformation_gradients[GPoint]);
+        rConstitutiveParameters.SetDeformationGradientF(rDeformationGradients[GPoint]);
+
+        // compute constitutive tensor and/or stresses
+
+        rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
+        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
+        result.push_back(constitutive_matrix);
+    }
+
     return result;
 }
 

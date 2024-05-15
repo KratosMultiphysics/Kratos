@@ -302,6 +302,14 @@ protected:
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
 
+    std::vector<Matrix> CalculateConstitutiveMatricesAndOptionalStressVectors(
+        const std::vector<Matrix>&                       rDeformationGradients,
+        std::vector<Vector>&                             rStrainVectors,
+        std::vector<Vector>&                             rStressVectors,
+        ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
+        const Matrix&                                    rNuContainer,
+        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer);
+
     void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
     void ResetHydraulicDischarge();
