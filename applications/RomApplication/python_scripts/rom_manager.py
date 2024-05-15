@@ -132,7 +132,6 @@ class RomManager(object):
                 counter+=1
                 self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
-            self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
     def TestNeuralNetworkReconstruction(self):
