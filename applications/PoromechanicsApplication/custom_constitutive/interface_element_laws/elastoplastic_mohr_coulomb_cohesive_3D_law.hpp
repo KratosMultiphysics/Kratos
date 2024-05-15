@@ -108,6 +108,9 @@ protected:
         // Vector normal to the plastic potential surface
         Vector np_MC;
         Vector np_TC;
+
+        // Slip tendency
+        double SlipTendency;
     };
 
     // Member Variables

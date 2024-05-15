@@ -269,7 +269,10 @@ double ElastoPlasticMohrCoulombCohesive3DLaw::GetShearResultantStressVector(Vect
 // This method computes the traction vector and the plastic multiplier based on a Backward-Euler integration scheme.
 // The implementation does not consider any softening or hardening rule.
 
-void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector, Matrix& rConstitutiveMatrix, Vector& TrialStressVector, Matrix& ElasticConstitutiveMatrix, ConstitutiveLawVariables& rVariables, ElastoPlasticConstitutiveLawVariables& rEPlasticVariables, Parameters& rValues)
+void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector, Matrix& rConstitutiveMatrix, 
+                                                          Vector& TrialStressVector, Matrix& ElasticConstitutiveMatrix, 
+                                                          ConstitutiveLawVariables& rVariables, ElastoPlasticConstitutiveLawVariables& rEPlasticVariables, 
+                                                          Parameters& rValues)
 {
     // Get the size of the strain vector
     const Vector& StrainVector = rValues.GetStrainVector();
@@ -298,7 +301,10 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
     rStressVector = TrialStressVector;             
 
     // Get the shear resultant
-    double ts = this->GetShearResultantStressVector(rStressVector);                
+    double ts = this->GetShearResultantStressVector(rStressVector);
+
+    // Get the normal component of the stress vector
+    double tn = rStressVector[VoigtSize-1];              
     
     // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
     this->DerivativesPlasticPotentialSurface(rStressVector, rVariables, rEPlasticVariables, rValues);
@@ -327,6 +333,13 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
             rConstitutiveMatrix(VoigtSize-1, VoigtSize-1) = 0.0;
         }  
 
+        // Compute the slip tendency
+        if (rEPlasticVariables.YieldFunction_MC == 0.0) {
+            rEPlasticVariables.SlipTendency = 1.0;        
+        }
+        else
+            rEPlasticVariables.SlipTendency = abs(ts) / (c - tn*tanPhi);
+
     } else if ((rEPlasticVariables.YieldFunction_MC > 0.0) && (rEPlasticVariables.YieldFunction_CutOff < 0.0)){ // ------ Return to the Mohr-Coulomb surface
         
         // Result from the product between n^T * Tel * np
@@ -352,6 +365,9 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
             noalias(rConstitutiveMatrix) = ElasticConstitutiveMatrix - outer_prod(Tel_np,Tel_n) / n_Tel_np;
         }
 
+        // Compute the slip tendency
+        rEPlasticVariables.SlipTendency = 1.0;
+
     }else{ // ------------------------------------------------------------------------------------------- Return to the point which both surfaces intersect
 
         // Compute the plastic multipliers
@@ -371,6 +387,9 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
         if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
             this->ConstitutiveMatrixInstersectionYieldSurfaces(rStressVector,rConstitutiveMatrix, rVariables);
         }
+
+        // Compute the slip tendency
+        rEPlasticVariables.SlipTendency = 1.0;
     }
 
 }
