@@ -82,11 +82,6 @@ public:
             return mFluidPressure.value();
         }
 
-        [[nodiscard]] static double CalculateFluidPressure(const Vector& rN, const Vector& rPressureVector)
-        {
-            return inner_prod(rN, rPressureVector);
-        }
-
         const ProcessInfo& GetProcessInfo() const { return mrCurrentProcessInfo; }
 
         const Properties& GetMaterialProperties() const { return mrMaterialProperties; }

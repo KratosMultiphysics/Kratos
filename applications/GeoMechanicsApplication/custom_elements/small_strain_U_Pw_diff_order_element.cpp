@@ -917,8 +917,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
-            Variables.FluidPressure =
-                RetentionLaw::Parameters::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
+            Variables.FluidPressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+                Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(Variables.FluidPressure);
 
             if (rVariable == DEGREE_OF_SATURATION)
@@ -1023,8 +1023,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                     BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
             }
 
-            Variables.FluidPressure =
-                RetentionLaw::Parameters::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
+            Variables.FluidPressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+                Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(Variables.FluidPressure);
 
             const double RelativePermeability =
@@ -2122,7 +2122,7 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
     KRATOS_TRY
 
     rVariables.FluidPressure =
-        RetentionLaw::Parameters::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
+        GeoTransportEquationUtilities::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
     rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
