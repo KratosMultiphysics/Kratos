@@ -54,7 +54,7 @@ class RomManager(object):
                     err_msg = f'Data preparation for ann_enhanced ROM requires "print_singular_values" option to be True in the ROM parameters.'
                     raise Exception(err_msg)
                 self._LaunchTrainROM(mu_train)
-                self._LaunchFOM(mu_validation)
+                self._LaunchFOM(mu_validation) #What to do here with the gid and vtk results?
                 self.TrainAnnEnhancedROM(mu_train,mu_validation)
                 #TODO implement online stage for ann_enhanced
                 #self._ChangeRomFlags(simulation_to_run = "GalerkinROM_ANN?")
@@ -147,13 +147,13 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test)
+                self._LaunchFOM(mu_test, 'FOM_Test')
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                self._LaunchROM(mu_test)
+                self._LaunchROM(mu_test, 'ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                self._LaunchTestHROM(mu_test)
+                self._LaunchHROM(mu_test,'HOM_Test')
 
         #######################
 
@@ -161,12 +161,12 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test)
+                self._LaunchFOM(mu_test,'FOM_Test')
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                self._LaunchROM(mu_test)
+                self._LaunchROM(mu_test,'ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                self._LaunchTestHROM(mu_test)
+                self._LaunchHROM(mu_test,'HROM_Test')
         #######################################
 
 
@@ -174,13 +174,13 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in testing_stages):
-                self._LaunchFOM(mu_test)
+                self._LaunchFOM(mu_test,'FOM_Test')
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                self._LaunchROM(mu_test)
+                self._LaunchROM(mu_test,'ROM_Test')
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                self._LaunchTestHROM(mu_test)
+                self._LaunchHROM(mu_test,'HROM_Test')
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -280,7 +280,7 @@ class RomManager(object):
 
 
 
-    def _LaunchFOM(self, mu_train):
+    def _LaunchFOM(self, mu_train, gid_and_vtk_name='FOM_Fit'):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         for Id, mu in enumerate(mu_train):
@@ -288,7 +288,7 @@ class RomManager(object):
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-                parameters_copy = self._StoreResultsByName(parameters_copy,"FOM",mu,Id)
+                parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
@@ -318,7 +318,7 @@ class RomManager(object):
 
 
 
-    def _LaunchROM(self, mu_train):
+    def _LaunchROM(self, mu_train, gid_and_vtk_name='ROM_Fit'):
         """
         This method should be parallel capable
         """
@@ -330,7 +330,7 @@ class RomManager(object):
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-                parameters_copy = self._StoreResultsByName(parameters_copy,"ROM",mu,Id)
+                parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
@@ -358,7 +358,7 @@ class RomManager(object):
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             PetrovGalerkinTrainingUtility = None
             for Id, mu in enumerate(mu_train):
-                in_database, hash_mu = self.data_base.check_if_in_database("PetrovGalerkinSnapshots", mu)
+                in_database, _ = self.data_base.check_if_in_database("PetrovGalerkinSnapshots", mu)
                 if not in_database:
                     parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                     parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
@@ -443,7 +443,7 @@ class RomManager(object):
             HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
 
-    def _LaunchHROM(self, mu_train):
+    def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit'):
         """
         This method should be parallel capable
         """
@@ -455,7 +455,7 @@ class RomManager(object):
             if not in_database:
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
-                parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Fit',mu,Id)
+                parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
