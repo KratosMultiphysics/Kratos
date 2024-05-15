@@ -32,8 +32,7 @@ GeoThermalLaw::Pointer GeoThermalFilterLaw::Clone() const
     return Kratos::make_shared<GeoThermalFilterLaw>(*this);
 }
 
-Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties&  rProp,
-                                                             const ProcessInfo& rProcessInfo) const
+Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const
 {
     return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
 }

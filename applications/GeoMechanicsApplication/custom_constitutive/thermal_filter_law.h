@@ -35,7 +35,7 @@ public:
 
     GeoThermalLaw::Pointer Clone() const override;
 
-    Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const override;
+    Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const override;
 
 private:
     friend class Serializer;
