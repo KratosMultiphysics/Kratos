@@ -1473,7 +1473,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
 
     if (rVariable == AXIAL_FORCE ||
         rVariable == BENDING_MOMENT ||
-        rVariable == SHEAR_FORCE)
+        rVariable == SHEAR_FORCE ||
+        rVariable == INITIAL_GEOMETRIC_CURVATURE)
     {
         const auto &r_geometry = GetGeometry();
 
@@ -1508,8 +1509,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
                 rOutput[IP] = r_generalized_stresses[0];
             else if (rVariable == BENDING_MOMENT)
                 rOutput[IP] = r_generalized_stresses[1];
-            else
+            else if (rVariable == SHEAR_FORCE)
                 rOutput[IP] = r_generalized_stresses[2];
+            else
+                rOutput[IP] = GetGeometryCurvature(J, xi);
         }
     }
 }
