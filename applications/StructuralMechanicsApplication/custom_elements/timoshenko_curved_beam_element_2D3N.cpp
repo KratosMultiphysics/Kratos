@@ -1061,12 +1061,12 @@ array_1d<double, 3> LinearTimoshenkoCurvedBeamElement2D3N::GetLocalAxesBodyForce
 {
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 
-    // const double c = std::cos(angle);
-    // const double s = std::sin(angle);
-    // array_1d<double, 3> local_body_force = ZeroVector(3);
-    // local_body_force[0] = c * body_force[0] + s * body_force[1];
-    // local_body_force[1] = -s * body_force[0] + c * body_force[1];
-    return body_force;
+    const double c = std::cos(angle);
+    const double s = std::sin(angle);
+    array_1d<double, 3> local_body_force = ZeroVector(3);
+    local_body_force[0] = c * body_force[0] + s * body_force[1];
+    local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    return local_body_force;
 }
 
 /***********************************************************************************/
@@ -1172,7 +1172,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(rRHS) -= N_s * V * jacobian_weight;
 
         // Now we add the body forces contributions
-        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, 0.0);
+        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
         noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(rRHS) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
@@ -1285,7 +1285,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(rRHS) -= N_s * V * jacobian_weight;
 
         // Now we add the body forces contributions
-        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, 0.0);
+        auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
         noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
         noalias(rRHS) += N_shape * local_body_forces[1] * jacobian_weight * area;
 
