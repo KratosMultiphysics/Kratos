@@ -782,7 +782,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.B = this->CalculateBMatrix(Variables.GradNpTInitialConfiguration, Variables.Np);
 
             // Compute infinitesimal strain
-            Variables.StrainVector = this->CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
+            Variables.StrainVector =
+                StressStrainUtilities::CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -1569,16 +1570,10 @@ std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateStrains(con
         rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
         [this, &rDisplacements, UseHenckyStrain](const auto& rDeformationGradient, const auto& rB) {
         return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
-                               : this->CalculateCauchyStrain(rB, rDisplacements);
+                               : StressStrainUtilities::CalculateCauchyStrain(rB, rDisplacements);
     });
 
     return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
-{
-    return prod(rB, rDisplacements);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -152,4 +152,8 @@ Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& r
                   IdentityMatrix(rDeformationGradient.size1()));
 }
 
+Vector StressStrainUtilities::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements)
+{
+    return prod(rB, rDisplacements);
+}
 } // namespace Kratos

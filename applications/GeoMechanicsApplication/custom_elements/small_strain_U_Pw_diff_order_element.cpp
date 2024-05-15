@@ -1094,7 +1094,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = this->CalculateBMatrix(Variables.DNu_DXInitialConfiguration, Variables.Nu);
 
             // Compute infinitesimal strain
-            Variables.StrainVector = this->CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
+            Variables.StrainVector =
+                StressStrainUtilities::CalculateCauchyStrain(Variables.B, Variables.DisplacementVector);
 
             if (rOutput[GPoint].size() != Variables.StrainVector.size())
                 rOutput[GPoint].resize(Variables.StrainVector.size(), false);
@@ -2031,15 +2032,10 @@ std::vector<Vector> SmallStrainUPwDiffOrderElement::CalculateStrains(const std::
         rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
         [this, &rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
         return UseHenckyStrain ? StressStrainUtilities::CalculateHenckyStrain(rDeformationGradient, VoigtSize)
-                               : this->CalculateCauchyStrain(rB, rDisplacements);
+                               : StressStrainUtilities::CalculateCauchyStrain(rB, rDisplacements);
     });
 
     return result;
-}
-
-Vector SmallStrainUPwDiffOrderElement::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const
-{
-    return prod(rB, rDisplacements);
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const

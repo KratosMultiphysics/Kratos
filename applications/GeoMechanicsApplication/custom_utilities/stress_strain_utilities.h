@@ -32,6 +32,7 @@ public:
     static double CalculateVonMisesStrain(const Vector& rStrainVector);
     static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
+    static Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);

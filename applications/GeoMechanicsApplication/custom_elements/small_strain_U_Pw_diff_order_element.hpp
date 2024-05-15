@@ -294,7 +294,6 @@ protected:
     void AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
-    virtual Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
 
     std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
                                          const std::vector<Matrix>& rBs,
