@@ -1018,7 +1018,8 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateAxialStrain(
     GetShapeFunctionsValues(N, J, xi);
     GetFirstDerivativesShapeFunctionsValues(dN, J, xi);
     const double k0 = GetGeometryCurvature(J, xi);
-    return inner_prod(dNu - k0 * N, rNodalValues) + 0.5 * std::pow(inner_prod(dNu, rNodalValues), 2) + 0.5 * std::pow(inner_prod(dN, rNodalValues), 2);
+    return inner_prod(dNu - k0 * N, rNodalValues) + 0.5 * std::pow(inner_prod(dNu, rNodalValues), 2) +
+        0.5 * std::pow(inner_prod(dN, rNodalValues), 2);
 }
 
 /***********************************************************************************/
@@ -1193,6 +1194,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
+    KRATOS_ERROR << "do not enter here" << std::endl;
     // KRATOS_TRY;
     // const auto &r_props = GetProperties();
     // const auto &r_geometry = GetGeometry();
@@ -1545,7 +1547,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
 
     global_size_T.clear();
 
