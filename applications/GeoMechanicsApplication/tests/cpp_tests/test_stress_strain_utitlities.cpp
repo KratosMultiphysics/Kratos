@@ -13,6 +13,7 @@
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "testing/testing.h"
+#include "utilities/math_utils.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
