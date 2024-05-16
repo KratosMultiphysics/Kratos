@@ -33,6 +33,8 @@ public:
 
     GeoThermalLaw() {}
 
+    virtual ~GeoThermalLaw() = default;
+
     virtual GeoThermalLaw::Pointer Clone() const = 0;
 
     std::size_t WorkingSpaceDimension() const { return mNumberOfDimensions; }

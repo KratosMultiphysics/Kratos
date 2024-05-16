@@ -33,6 +33,8 @@ public:
 
     explicit GeoThermalFilterLaw(SizeType NumberOfDimensions);
 
+    ~GeoThermalFilterLaw() override = default;
+
     GeoThermalLaw::Pointer Clone() const override;
 
     Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const override;
