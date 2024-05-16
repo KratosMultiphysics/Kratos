@@ -1894,8 +1894,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
         rConstitutiveParameters.SetStrainVector(rStrainVectors[GPoint]);
         rConstitutiveParameters.SetShapeFunctionsDerivatives(rDNu_DXContainer[GPoint]);
         rConstitutiveParameters.SetShapeFunctionsValues(row(rNuContainer, GPoint));
-        rConstitutiveParameters.SetDeterminantF(determinants_of_deformation_gradients[GPoint]);
         rConstitutiveParameters.SetDeformationGradientF(rDeformationGradients[GPoint]);
+        rConstitutiveParameters.SetDeterminantF(determinants_of_deformation_gradients[GPoint]);
         rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
 
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
