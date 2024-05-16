@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-class VoxelMesherKeyPlaneGeneration {
+class KRATOS_API(KRATOS_CORE) VoxelMesherKeyPlaneGeneration {
 
     VoxelMeshGeneratorModeler& mrModeler;
     Parameters mParameters;
