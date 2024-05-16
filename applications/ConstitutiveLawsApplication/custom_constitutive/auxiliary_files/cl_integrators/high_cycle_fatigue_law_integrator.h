@@ -215,32 +215,20 @@ public:
      * @param AdvanceStrategyApplied Bool that indicates if the AITS is active
      */
 
-    static void CalculateRelaxationFactor(const double MaxStress, 
-                                           const double MinStress,                                   
-                                           const double InitialThreshold,
+    static void CalculateRelaxationFactor(const double UniaxialStress,     
+                                           const double Threshold,
                                            unsigned int LocalNumberOfCycles,
                                            double& rFirstCycleRelaxationFactor,
                                            double& rRelaxationFactor,
-                                           bool AdvanceStrategyApplied)
+                                           bool FirstNonlinearity)
     {       
-        if (std::abs(MaxStress) > std::abs(MinStress)) {
-            if (std::abs(MaxStress) / InitialThreshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
-                rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MaxStress) / InitialThreshold) + 2.6));
-                // rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
-                rRelaxationFactor = rFirstCycleRelaxationFactor;
-            } else {
-                rRelaxationFactor = rFirstCycleRelaxationFactor * std::pow((static_cast<double>(LocalNumberOfCycles)), -0.004);
-                // rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
-            }
+        if (UniaxialStress / Threshold > 1.0 && FirstNonlinearity){
+            rFirstCycleRelaxationFactor = std::min(rFirstCycleRelaxationFactor, (-1.6 * (UniaxialStress / Threshold) + 2.6));
+            rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
+            rRelaxationFactor = rFirstCycleRelaxationFactor;
         } else {
-            if (std::abs(MinStress) / InitialThreshold > 1.0 && rFirstCycleRelaxationFactor >= 1.0 && !AdvanceStrategyApplied){
-                rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-1.6 * (std::abs(MinStress) / InitialThreshold) + 2.6));
-                // rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
-                rRelaxationFactor = rFirstCycleRelaxationFactor;
-            } else {
-                rRelaxationFactor = rFirstCycleRelaxationFactor * std::pow((static_cast<double>(LocalNumberOfCycles)), -0.004);
-                // rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
-            }
+            rRelaxationFactor = rFirstCycleRelaxationFactor * std::pow((static_cast<double>(LocalNumberOfCycles)), -0.004);
+            rRelaxationFactor = (rRelaxationFactor > 0.0) ? rRelaxationFactor : 0.0;
         }
     }
 
