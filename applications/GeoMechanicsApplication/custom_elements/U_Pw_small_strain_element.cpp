@@ -1881,9 +1881,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
     std::vector<Vector>&                             rStressVectors,
     std::vector<Matrix>&                             rConstitutiveMatrices)
 {
-    rStrainVectors.resize(rDeformationGradients.size());
-    rStressVectors.resize(rDeformationGradients.size());
-    rConstitutiveMatrices.resize(rDeformationGradients.size());
+    if (rStrainVectors.size() != rDeformationGradients.size()) {
+        rStrainVectors.resize(rDeformationGradients.size());
+        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(VoigtSize));
+    }
+    if (rStressVectors.size() != rDeformationGradients.size()) {
+        rStressVectors.resize(rDeformationGradients.size());
+        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(VoigtSize));
+    }
+    if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
+        rConstitutiveMatrices.resize(rDeformationGradients.size());
+        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(VoigtSize, VoigtSize));
+    }
 
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);

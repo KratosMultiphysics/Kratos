@@ -2149,9 +2149,21 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
     std::vector<Vector>&                             rStressVectors,
     std::vector<Matrix>&                             rConstitutiveMatrices)
 {
-    rStrainVectors.resize(rDeformationGradients.size());
-    rStressVectors.resize(rDeformationGradients.size());
-    rConstitutiveMatrices.resize(rDeformationGradients.size());
+    const SizeType voigt_size =
+        GetGeometry().WorkingSpaceDimension() == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
+
+    if (rStrainVectors.size() != rDeformationGradients.size()) {
+        rStrainVectors.resize(rDeformationGradients.size());
+        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(voigt_size));
+    }
+    if (rStressVectors.size() != rDeformationGradients.size()) {
+        rStressVectors.resize(rDeformationGradients.size());
+        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(voigt_size));
+    }
+    if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
+        rConstitutiveMatrices.resize(rDeformationGradients.size());
+        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(voigt_size, voigt_size));
+    }
 
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
