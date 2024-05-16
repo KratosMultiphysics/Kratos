@@ -2149,12 +2149,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
     for (unsigned int GPoint = 0; GPoint < rDeformationGradients.size(); ++GPoint) {
-        rConstitutiveParameters.SetConstitutiveMatrix(rConstitutiveMatrices[GPoint]);
-        rConstitutiveParameters.SetStrainVector(rStrainVectors[GPoint]);
-        rConstitutiveParameters.SetShapeFunctionsDerivatives(rDNu_DXContainer[GPoint]);
-        rConstitutiveParameters.SetShapeFunctionsValues(row(rNuContainer, GPoint));
-        rConstitutiveParameters.SetDeformationGradientF(rDeformationGradients[GPoint]);
-        rConstitutiveParameters.SetDeterminantF(determinants_of_deformation_gradients[GPoint]);
+        ConstitutiveLawUtilities::SetConstitutiveParameters(
+            rConstitutiveParameters, rStrainVectors[GPoint], rConstitutiveMatrices[GPoint],
+            row(rNuContainer, GPoint), rDNu_DXContainer[GPoint], rDeformationGradients[GPoint],
+            determinants_of_deformation_gradients[GPoint]);
         rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
 
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
