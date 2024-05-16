@@ -2149,27 +2149,23 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
     std::vector<Vector>&                             rStressVectors,
     std::vector<Matrix>&                             rConstitutiveMatrices)
 {
-    std::vector<Matrix> result;
-    const SizeType      VoigtSize =
-        (GetGeometry().WorkingSpaceDimension() == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    rStrainVectors.resize(rDeformationGradients.size());
+    rStressVectors.resize(rDeformationGradients.size());
+    rConstitutiveMatrices.resize(rDeformationGradients.size());
 
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
     for (unsigned int GPoint = 0; GPoint < rDeformationGradients.size(); ++GPoint) {
-        Matrix constitutive_matrix(VoigtSize, VoigtSize);
-        rConstitutiveParameters.SetConstitutiveMatrix(constitutive_matrix);
-
+        rConstitutiveParameters.SetConstitutiveMatrix(rConstitutiveMatrices[GPoint]);
         rConstitutiveParameters.SetStrainVector(rStrainVectors[GPoint]);
         rConstitutiveParameters.SetShapeFunctionsDerivatives(rDNu_DXContainer[GPoint]);
         rConstitutiveParameters.SetShapeFunctionsValues(row(rNuContainer, GPoint));
         rConstitutiveParameters.SetDeterminantF(determinants_of_deformation_gradients[GPoint]);
         rConstitutiveParameters.SetDeformationGradientF(rDeformationGradients[GPoint]);
-
-        // compute constitutive tensor and/or stresses
         rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
+
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
-        rConstitutiveMatrices.push_back(constitutive_matrix);
     }
 }
 
