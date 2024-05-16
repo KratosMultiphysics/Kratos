@@ -42,21 +42,6 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-int UPwUpdatedLagrangianElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
-{
-    KRATOS_TRY
-
-    // Base class checks for positive area and Id > 0
-    // Verify generic variables
-    int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
-
-    return ierr;
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
                                                                 const ProcessInfo& rCurrentProcessInfo,
