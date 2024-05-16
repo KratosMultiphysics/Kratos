@@ -242,7 +242,7 @@ protected:
 
     void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
 
-    void CalculatePermeabilityUpdateFactor(ElementVariables& rVariables);
+    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
@@ -252,9 +252,10 @@ protected:
     void SetConstitutiveParameters(ElementVariables&            rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters) const;
 
-    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                   unsigned int PointNumber,
-                                                   double       detJ);
+    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
+                                           double detJ) const;
+    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                                         const Vector& rDetJs) const;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -286,30 +287,37 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
 
-    virtual void CalculateBMatrix(Matrix& rB, const Matrix& DNu_DX, const Vector& Np);
+    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
+    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
+                                           const Matrix& rNContainer) const;
 
     void AssignPressureToIntermediateNodes();
 
-    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient);
-    virtual void   CalculateCauchyStrain(ElementVariables& rVariables);
-    virtual void   CalculateStrain(ElementVariables& rVariables, unsigned int GPoint);
+    virtual Vector      CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
+    virtual Vector      CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
+    virtual Vector      CalculateStrain(const Matrix& rDeformationGradient,
+                                        const Matrix& rB,
+                                        const Vector& rDisplacements,
+                                        bool          UseHenckyStrain) const;
+    std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                         const std::vector<Matrix>& rBs,
+                                         const Vector&              rDisplacements,
+                                         bool                       UseHenckyStrain) const;
 
-    virtual void CalculateDeformationGradient(ElementVariables& rVariables, unsigned int GPoint);
+    Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
+    std::vector<Matrix> CalculateDeformationGradients() const;
 
-    double CalculateFluidPressure(const ElementVariables& rVariables) const;
-
-    void SetRetentionParameters(const ElementVariables&   rVariables,
-                                RetentionLaw::Parameters& rRetentionParameters) const;
+    [[nodiscard]] double CalculateFluidPressure(const ElementVariables& rVariables) const;
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
 
-    void CalculateSoilDensity(ElementVariables& rVariables);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;
+
+    Vector GetPressureSolutionVector();
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

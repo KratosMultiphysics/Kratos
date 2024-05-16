@@ -13,12 +13,16 @@
             }
         },
         {
-            "type": "connectivity_preserving_model_part_duplication_controller",
+            "type": "connectivity_preserving_model_part_controller",
             "settings": {
-                "source_model_part_name": "AdjointStructure",
-                "destination_model_part_name": "Structure",
-                "destination_element_name": "ShellThinElement3D3N",
-                "destination_condition_name": "LineLoadCondition3D2N"
+                "transformation_settings": [
+                    {
+                        "source_model_part_name": "AdjointStructure",
+                        "destination_model_part_name": "Structure",
+                        "destination_element_name": "ShellThinElement3D3N",
+                        "destination_condition_name": "LineLoadCondition3D2N"
+                    }
+                ]
             }
         }
     ],
@@ -77,8 +81,12 @@
                     0.0,
                     30000000000.0
                 ],
-                "filtering": {
-                    "filter_type": "entity_nodal_entity_filter"
+                "filter_settings": {
+                    "filter_type": "explicit_filter",
+                    "filter_radius_settings": {
+                        "filter_radius": 5.0,
+                        "filter_radius_type": "constant"
+                    }
                 }
             }
         }
@@ -89,7 +97,7 @@
             "echo_level": 0,
             "line_search": {
                 "type": "const_step",
-                "init_step": 1e+8,
+                "init_step": 0.01,
                 "gradient_scaling": "inf_norm"
             },
             "conv_settings": {

@@ -262,6 +262,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
+    KRATOS_REGISTER_CONDITION("PwPointFluxCondition2D1N", mPwPointFluxCondition2D1N)
+    KRATOS_REGISTER_CONDITION("PwPointFluxCondition3D1N", mPwPointFluxCondition3D1N)
+
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N)
@@ -313,6 +316,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D6N", mGeoTNormalFluxCondition3D6N)
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
+
+    KRATOS_REGISTER_CONDITION("GeoThermalPointFluxCondition2D1N", mGeoThermalPointFluxCondition2D1N)
+    KRATOS_REGISTER_CONDITION("GeoThermalPointFluxCondition3D1N", mGeoThermalPointFluxCondition3D1N)
 
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D2N", mGeoTMicroClimateFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D3N", mGeoTMicroClimateFluxCondition2D3N)
