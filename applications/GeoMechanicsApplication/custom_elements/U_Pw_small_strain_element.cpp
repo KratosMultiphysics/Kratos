@@ -270,9 +270,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
     KRATOS_CATCH("")
 }
@@ -592,9 +589,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NContainer, Variables.DN_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
-            ConstitutiveLawUtilities::SetConstitutiveParameters(
-                ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-                Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
                        [variable_index](const Matrix& constitutive_matrix) {
@@ -717,9 +711,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.F                  = deformation_gradients[GPoint];
             Variables.StrainVector       = strain_vectors[GPoint];
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-            ConstitutiveLawUtilities::SetConstitutiveParameters(
-                ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-                Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
@@ -887,9 +878,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient =
@@ -1010,9 +998,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Compute Nu and BodyAcceleration
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);

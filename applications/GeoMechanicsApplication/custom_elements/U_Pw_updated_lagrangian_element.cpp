@@ -90,9 +90,6 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Compute Np, Nu and BodyAcceleration
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);

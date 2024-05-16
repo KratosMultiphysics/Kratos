@@ -1156,9 +1156,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.F                  = deformation_gradients[GPoint];
             Variables.StrainVector       = strain_vectors[GPoint];
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-            ConstitutiveLawUtilities::SetConstitutiveParameters(
-                ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-                Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
             Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
@@ -1300,9 +1297,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1363,9 +1357,6 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
 
         // calculating weighting coefficient for integration
         Variables.IntegrationCoefficient =

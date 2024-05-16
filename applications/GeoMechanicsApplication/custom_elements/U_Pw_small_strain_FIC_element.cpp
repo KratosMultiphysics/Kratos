@@ -153,9 +153,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         this->SaveGPConstitutiveTensor(ConstitutiveTensorContainer, Variables.ConstitutiveMatrix, GPoint);
 
@@ -211,9 +208,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         // Compute DtStress
         noalias(Variables.StrainVector) = prod(Variables.B, Variables.VelocityVector);
@@ -471,9 +465,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
 
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
