@@ -39,18 +39,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
     KRATOS_EXPECT_NEAR(thermal_filter_matrix(0, 0), expected_solution(0, 0), tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsFilterDimensionValue, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestFilterLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuite)
 {
-    constexpr SizeType  dimension = 1;
-    GeoThermalFilterLaw geo_thermal_filter_law(dimension);
-
-    KRATOS_EXPECT_EQ(geo_thermal_filter_law.WorkingSpaceDimension(), dimension);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(TestFilterThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuite)
-{
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        GeoThermalFilterLaw law{2},
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalFilterLaw law{2},
         "Got invalid number of dimensions. The dimension has to be 1, but got: 2")
 }
 

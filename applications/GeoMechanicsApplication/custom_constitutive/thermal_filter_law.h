@@ -35,11 +35,11 @@ public:
 
     ~GeoThermalFilterLaw() override = default;
 
-    GeoThermalLaw::Pointer Clone() const override;
-
     Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const override;
 
 private:
+    std::size_t mNumberOfDimensions = 0;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

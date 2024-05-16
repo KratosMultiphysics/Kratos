@@ -270,22 +270,22 @@ private:
         const ProcessInfo&                               rCurrentProcessInfo) const
     {
         const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
-        unique_ptr<GeoThermalLaw> law;
+        std::unique_ptr<GeoThermalLaw> law;
 
         if (GetProperties().Has(THERMAL_LAW)) {
             const std::string& rThermalLawName = GetProperties()[THERMAL_LAW];
             if (rThermalLawName == "GeoThermalDispersionLaw") {
-                law = make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+                law = std::make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
             } 
             else if (rThermalLawName == "GeoThermalFilterLaw") {
-                law = make_unique<GeoThermalFilterLaw>(number_of_dimensions);
+                law = std::make_unique<GeoThermalFilterLaw>(number_of_dimensions);
             } 
             else {
                 KRATOS_ERROR << "Undefined THERMAL_LAW! " << rThermalLawName << std::endl;
             }
         } 
         else {
-            law = make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+            law = std::make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
         }
 
         const auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);

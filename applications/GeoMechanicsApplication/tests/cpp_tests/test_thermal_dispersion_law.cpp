@@ -101,12 +101,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsCorrectValue, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TestDispersionLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuite)
 {
-    constexpr SizeType dimension = 3;
-    GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
-
-    KRATOS_EXPECT_EQ(geo_thermal_dispersion_3D_law.WorkingSpaceDimension(), dimension);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalFilterLaw law{0}, "Got invalid number of dimensions: 0")
 }
 
 } // namespace Kratos::Testing

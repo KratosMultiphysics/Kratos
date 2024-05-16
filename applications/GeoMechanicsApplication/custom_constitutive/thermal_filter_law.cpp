@@ -17,19 +17,14 @@
 namespace Kratos
 {
 
-GeoThermalFilterLaw::GeoThermalFilterLaw() { mNumberOfDimensions = 1; }
+GeoThermalFilterLaw::GeoThermalFilterLaw() : mNumberOfDimensions{1} {}
 
 GeoThermalFilterLaw::GeoThermalFilterLaw(SizeType NumberOfDimensions)
+    : mNumberOfDimensions{NumberOfDimensions}
 {
-    mNumberOfDimensions = NumberOfDimensions;
     KRATOS_ERROR_IF(mNumberOfDimensions != 1)
         << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions
         << std::endl;
-}
-
-GeoThermalLaw::Pointer GeoThermalFilterLaw::Clone() const
-{
-    return Kratos::make_shared<GeoThermalFilterLaw>(*this);
 }
 
 Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const

@@ -35,27 +35,14 @@ public:
 
     virtual ~GeoThermalLaw() = default;
 
-    virtual GeoThermalLaw::Pointer Clone() const = 0;
-
-    std::size_t WorkingSpaceDimension() const { return mNumberOfDimensions; }
-
     virtual Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
                                                     const ProcessInfo& rProcessInfo) const = 0;
-
-protected:
-    std::size_t mNumberOfDimensions = 0;
 
 private:
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("NumberOfDimensions", mNumberOfDimensions);
-    }
+    virtual void save(Serializer& rSerializer) const {}
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("NumberOfDimensions", mNumberOfDimensions);
-    }
+    virtual void load(Serializer& rSerializer) {}
 };
 } // namespace Kratos.
