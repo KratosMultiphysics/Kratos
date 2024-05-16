@@ -281,8 +281,6 @@ protected:
     template <class TValueType>
     void InterpolateOutputValues(std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues);
 
-    [[nodiscard]] double CalculateFluidPressure(const InterfaceElementVariables& rVariables) const;
-
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix);
 
     void InitializeBiotCoefficients(InterfaceElementVariables& rVariables, const bool& hasBiotCoefficient = false);

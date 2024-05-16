@@ -289,14 +289,27 @@ protected:
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
-    void   InitializeProperties(ElementVariables& rVariables);
-    [[nodiscard]] double CalculateFluidPressure(const ElementVariables& rVariables) const;
+    void InitializeProperties(ElementVariables& rVariables);
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
+
+    ///
+    /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
+    ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
+    ///        the function could calculate the stress, the constitutive matrix, the strains, or a combination.
+    ///        In our elements we generally always calculate the constitutive matrix and sometimes the stress.
+    ///
+    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&   rDeformationGradients,
+                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                        const Matrix&                rNuContainer,
+                                        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
+                                        std::vector<Vector>& rStrainVectors,
+                                        std::vector<Vector>& rStressVectors,
+                                        std::vector<Matrix>& rConstitutiveMatrices);
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
