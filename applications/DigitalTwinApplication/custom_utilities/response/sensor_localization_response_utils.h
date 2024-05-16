@@ -68,6 +68,10 @@ private:
 
     const double mAllowedDissimilarity;
 
+    double mNumerator;
+
+    double mDenominator;
+
     double mValue;
 
     std::vector<double> mDomainSizeRatio;
