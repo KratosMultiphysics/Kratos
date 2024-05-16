@@ -501,7 +501,7 @@ double& MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolum
 {
     KRATOS_TRY
 
-    rVolumetricStrainFunction = rVariables.detF0*rVariables.detF - 1;
+    rVolumetricStrainFunction = (1- (1/rVariables.detFT)); //rVariables.detFT - 1; // rVariables.detF0*rVariables.detF - 1;
     return rVolumetricStrainFunction;
 
     KRATOS_CATCH( "" )
@@ -572,6 +572,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
 	     //rRightHandSideVector[index_p] -= (1.0 - 1.0 / rVariables.detFT) * r_N(0, i) * rIntegrationWeight;
         index_p += (dimension + 1);
     }
+    //std::cout<<"material point id: "<< this->Id() <<" volumetric_strains "<<VolumetricStrainFunction<<"\n";
 
     KRATOS_CATCH( "" )
 }
@@ -611,8 +612,17 @@ void MPMUpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRigh
         h: characteristic water depth
         c_tau : [0.1, 1]
         */
-        double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
-        alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
+        //double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
+        //alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
+
+        const double& viscosity=GetProperties().Has(DYNAMIC_VISCOSITY);
+
+        double factor_value = 8.0; //JMR deffault value
+        if (dimension == 3)
+            factor_value = 10.0; //JMC deffault value
+
+
+        alpha_stabilization = alpha_stabilization * factor_value / viscosity;
 
     }
     else
@@ -917,8 +927,18 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
         h: characteristic water depth
         c_tau : [0.1, 1]
         */
-        double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
-        alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
+        //double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
+        //alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
+
+        const double& viscosity=GetProperties().Has(DYNAMIC_VISCOSITY);
+
+        double factor_value = 8.0; //JMR deffault value
+        if (dimension == 3)
+            factor_value = 10.0; //JMC deffault value
+
+
+        alpha_stabilization = alpha_stabilization * factor_value / viscosity;
+
 
     }
     else

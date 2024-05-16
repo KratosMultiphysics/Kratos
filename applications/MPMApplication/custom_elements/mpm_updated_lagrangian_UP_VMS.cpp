@@ -254,7 +254,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
         The material points will have constant mass as defined at the beginning.
         However, the density and volume (integration weight) are changing every time step.*/
         // Update MP_Density
-        mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
+        mMP.density = (GetProperties()[DENSITY])/ Variables.detFT;
 
 
         // Compute other variables needed for stabilization
@@ -328,7 +328,7 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
         : false;
     const int current_step = rCurrentProcessInfo.GetValue(STEP);
     rVariables.DiscreteAcceleration =ZeroVector(3);
-    if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) ==2) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+   // if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) ==2) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
 
     // Compute Residual Projection in integration points
@@ -405,15 +405,21 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
 {
     KRATOS_TRY
 
+    GeometryType& r_geometry = GetGeometry();
     // Add computations for the tau stabilization
 
-    const double constant1=1.0;
+    const double constant1=0.25;
     const double constant2=1.0;
     double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
 
+    //double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
+
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
     rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
+
+
+    //std::cout<< "viscosity" << rVariables.ShearModulus << "\n";
 
     KRATOS_CATCH( "" )
 }
@@ -681,6 +687,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
 
         index_p += (dimension + 1);
     }
+
+
+    //std::cout<<"material point id: "<< this->Id() <<" volumetric_strains "<<VolumetricStrainFunction<<"\n";
 
     KRATOS_CATCH( "" )
 }
