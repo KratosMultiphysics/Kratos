@@ -70,8 +70,21 @@ public:
 
         GeometryType::ShapeFunctionsGradientsType dN_dX_container;
         Vector                                    det_J_container;
-        GetGeometry().ShapeFunctionsIntegrationPointsGradients(dN_dX_container, det_J_container,
-                                                               GetIntegrationMethod());
+
+        // ShapreFunctionsIntegrationsPointsGradients does not allow for the line element in 2D/3D configuration
+        // and will produce errors. To circumvent this, the dN_dX_container is separately computed with correct
+        // dimensions for the line element.
+        if (GetGeometry().LocalSpaceDimension() == 1) {
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                           dN_dX_container.begin(), std::divides<>());
+        } 
+        else {
+            GetGeometry().ShapeFunctionsIntegrationPointsGradients(dN_dX_container, det_J_container,
+                                                                   GetIntegrationMethod());
+        }
+        
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto conductivity_matrix =
             CalculateConductivityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
@@ -86,6 +99,22 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
+        if (GetGeometry().LocalSpaceDimension() == 1)
+        {
+            switch (TNumNodes) {
+            case 2:
+            case 3:
+                return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            case 4:
+                return GeometryData::IntegrationMethod::GI_GAUSS_3;
+            case 5:
+                return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            default:
+                KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
+                             << std::endl;
+            }
+        }
+
         switch (TNumNodes) {
         case 3:
         case 4:
@@ -100,8 +129,7 @@ public:
         case 15:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected "
-                            "number of nodes: "
+            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: "
                          << TNumNodes << std::endl;
         }
     }
@@ -219,6 +247,7 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
+        const auto& r_properties = GetProperties();
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
@@ -226,6 +255,9 @@ private:
              integration_point_index < r_integration_points.size(); ++integration_point_index) {
             result[integration_point_index] = r_integration_points[integration_point_index].Weight() *
                                               rDetJContainer[integration_point_index];
+            if (GetGeometry().LocalSpaceDimension() == 1) {
+                result[integration_point_index] *= r_properties[CROSS_AREA];
+            }
         }
 
         return result;
@@ -236,9 +268,10 @@ private:
         const Vector&                                    rIntegrationCoefficients,
         const ProcessInfo&                               rCurrentProcessInfo) const
     {
-        GeoThermalDispersionLaw law{TDim};
-        const auto              constitutive_matrix =
-            law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
+        const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
+
+        GeoThermalDispersionLaw law{number_of_dimensions};
+        const auto constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;

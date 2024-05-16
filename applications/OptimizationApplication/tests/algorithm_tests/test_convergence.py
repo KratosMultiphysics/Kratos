@@ -12,7 +12,7 @@ class TestConvergence(kratos_unittest.TestCase):
         cls.CreateElements()
 
         cls.optimization_problem = OptimizationProblem()
-        ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(1)
+        ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(10)
 
     @classmethod
     def CreateElements(cls):
@@ -60,8 +60,104 @@ class TestConvergence(kratos_unittest.TestCase):
         self.optimization_problem.AdvanceStep()
         algorithm_data.GetBufferedData()["search_direction"] = search_direction / 100000
         self.assertTrue(convergence_criterium.IsConverged())
+
+    def test_L2_max(self):
+        param = Kratos.Parameters("""{
+            "type"              : "l2_norm",
+            "max_iter"          : 2,
+            "tolerance"         : 1e-4
+        }""")
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
+        search_direction = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
+        KratosOA.CollectiveExpressionIO.Read(search_direction, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
+        algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        self.assertFalse(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        self.assertTrue(convergence_criterium.IsConverged())
+
+    def test_AverAbsDelta(self):
+        param = Kratos.Parameters("""{
+            "type"              : "aver_abs_delta",
+            "max_iter"          : 10,
+            "tolerance"         : 2e-3
+        }""")
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
+        algorithm_data.GetBufferedData()["std_obj_value"] = 5
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.2
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.3
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.2
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.3
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.2222
+        self.assertTrue(convergence_criterium.IsConverged())
+
+    def test_AverAbsDelta_max(self):
+        param = Kratos.Parameters("""{
+            "type"              : "aver_abs_delta",
+            "max_iter"          : 2,
+            "tolerance"         : 2e-3
+        }""")
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
+        algorithm_data.GetBufferedData()["std_obj_value"] = 5
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.2
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 4.3
+        self.assertTrue(convergence_criterium.IsConverged())
+
+    def test_TargetValue(self):
+        param = Kratos.Parameters("""{
+            "type"              : "target_value",
+            "max_iter"          : 10,
+            "target_value"      : 0.001
+        }""")
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.1
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.01
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.001
+        self.assertTrue(convergence_criterium.IsConverged())
+
+    def test_TargetValue_max(self):
+        param = Kratos.Parameters("""{
+            "type"              : "target_value",
+            "max_iter"          : 2,
+            "target_value"      : 0.001
+        }""")
+        algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
+        convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
+        algorithm_data.GetBufferedData()["std_obj_value"] = 1
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.1
+        self.assertFalse(convergence_criterium.IsConverged())
+        self.optimization_problem.AdvanceStep()
+        algorithm_data.GetBufferedData()["std_obj_value"] = 0.01
         self.assertTrue(convergence_criterium.IsConverged())
 
 if __name__ == "__main__":

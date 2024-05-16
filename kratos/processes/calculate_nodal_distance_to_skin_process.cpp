@@ -79,6 +79,8 @@ CalculateNodalDistanceToSkinProcess::CalculateNodalDistanceToSkinProcess(
 
     // Assign distance variable
     mpDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["distance_variable"].GetString());
+    mpSkinDistanceVariable = &KratosComponents<Variable<double>>::Get(ThisParameters["skin_distance_variable"].GetString());
+    mIdVisitedFlag = KratosComponents<Flags>::Get(ThisParameters["visited_skin_flag"].GetString());
 
     // Check it is serial
     KRATOS_ERROR_IF(mrVolumeModelPart.IsDistributed()) << "Distributed computation still not supported. Please update implementation as soon as MPI search is merged. See https://github.com/KratosMultiphysics/Kratos/pull/11719" << std::endl;
@@ -108,13 +110,14 @@ void CalculateNodalDistanceToSkinProcess::Execute()
 
     const std::function<void(ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins)> distance_lambda_historical_save_skin = [this, &p_variable_retriever](ModelPart::NodesContainerType& rNodes, GeometricalObjectsBins& rBins) {
         const auto& r_variable = *mpDistanceVariable;
+        const auto& r_skin_variable = *mpSkinDistanceVariable;
         for (Node& rNode: rNodes) {
             auto result = rBins.SearchNearest(rNode);
             const double value = result.GetDistance();
             auto p_result = result.Get().get();
-            if (p_result->GetValue(r_variable) < value) {
-                p_result->SetValue(r_variable, value);
-                p_result->Set(VISITED);
+            if (p_result->GetValue(r_skin_variable) < value) {
+                p_result->SetValue(r_skin_variable, value);
+                p_result->Set(mIdVisitedFlag);
             }
             p_variable_retriever->GetValue(rNode, r_variable) = value;
         }
@@ -160,7 +163,9 @@ const Parameters CalculateNodalDistanceToSkinProcess::GetDefaultParameters() con
         "skin_model_part"           : "",
         "distance_database"         : "nodal_historical",
         "save_max_distance_in_skin" : false,
-        "distance_variable"         : "DISTANCE"
+        "distance_variable"         : "DISTANCE",
+        "skin_distance_variable"    : "DISTANCE",
+        "visited_skin_flag"         : "VISITED"
     })");
     return default_parameters;
 }

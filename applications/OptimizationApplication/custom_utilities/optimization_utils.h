@@ -93,6 +93,10 @@ public:
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
 
+    static bool IsSolutionStepVariablesListASubSet(
+        const ModelPart& rMainSetModelPart,
+        const ModelPart& rSubSetModelPart);
+
     static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,
         Parameters Settings);
