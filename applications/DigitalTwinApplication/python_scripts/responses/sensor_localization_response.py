@@ -65,7 +65,7 @@ class SensorLocalizationResponse(ResponseFunction):
         return None
 
     def CalculateValue(self) -> float:
-        ComponentDataView(self, self.optimization_problem).GetUnBufferedData().SetValue("cluster_sizes", self.utils.GetClusterSizes(), overwrite=True)
+        # ComponentDataView(self, self.optimization_problem).GetUnBufferedData().SetValue("cluster_sizes", self.utils.GetClusterSizes(), overwrite=True)
         return self.utils.CalculateValue()
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
