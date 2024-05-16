@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "custom_retention/retention_law_factory.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
@@ -32,22 +31,14 @@ public:
     /// Counted pointer of GeoThermalLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalLaw);
 
-    GeoThermalLaw() : mNumberOfDimensions{2} {};
-
-    explicit GeoThermalLaw(std::size_t NumberOfDimensions) : mNumberOfDimensions{NumberOfDimensions}
-    {
-        KRATOS_ERROR_IF(mNumberOfDimensions < 1 || mNumberOfDimensions > 3)
-            << "Got invalid number of dimensions: " << mNumberOfDimensions << std::endl;
-    }
+    GeoThermalLaw() {}
 
     virtual GeoThermalLaw::Pointer Clone() const = 0;
 
     std::size_t WorkingSpaceDimension() const { return mNumberOfDimensions; }
 
-    virtual Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const
-    {
-        return ZeroMatrix(1, 1);
-    }
+    virtual Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
+                                                    const ProcessInfo& rProcessInfo) const = 0;
 
 protected:
     std::size_t mNumberOfDimensions = 0;

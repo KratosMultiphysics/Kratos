@@ -17,11 +17,11 @@
 namespace Kratos
 {
 
-GeoThermalFilterLaw::GeoThermalFilterLaw() : GeoThermalLaw() {}
+GeoThermalFilterLaw::GeoThermalFilterLaw() { mNumberOfDimensions = 1; }
 
 GeoThermalFilterLaw::GeoThermalFilterLaw(SizeType NumberOfDimensions)
-    : GeoThermalLaw(NumberOfDimensions)
 {
+    mNumberOfDimensions = NumberOfDimensions;
     KRATOS_ERROR_IF(mNumberOfDimensions != 1)
         << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions
         << std::endl;

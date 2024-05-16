@@ -13,16 +13,17 @@
 //
 
 #include "custom_constitutive/thermal_dispersion_law.h"
+#include "custom_retention/retention_law_factory.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-GeoThermalDispersionLaw::GeoThermalDispersionLaw() : GeoThermalLaw() {}
+GeoThermalDispersionLaw::GeoThermalDispersionLaw() { mNumberOfDimensions = 2; }
 
 GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
-    : GeoThermalLaw(NumberOfDimensions)
 {
+    mNumberOfDimensions = NumberOfDimensions;
     KRATOS_ERROR_IF(mNumberOfDimensions < 1 || mNumberOfDimensions > 3)
         << "Got invalid number of dimensions: " << mNumberOfDimensions << std::endl;
 }
