@@ -600,7 +600,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            Variables.FluidPressure = CalculateFluidPressure(Variables);
+            Variables.FluidPressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+                Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(Variables.FluidPressure);
 
             if (rVariable == DEGREE_OF_SATURATION)
@@ -2093,22 +2094,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFl
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateFluidPressure(const InterfaceElementVariables& rVariables) const
-{
-    KRATOS_TRY
-
-    return inner_prod(rVariables.Np, rVariables.PressureVector);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateRetentionResponse(
     InterfaceElementVariables& rVariables, RetentionLaw::Parameters& rRetentionParameters, unsigned int GPoint)
 {
     KRATOS_TRY
 
-    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
+    rVariables.FluidPressure =
+        GeoTransportEquationUtilities::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
     rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
