@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
 KRATOS_TEST_CASE_IN_SUITE(TestDispersionLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuite)
 {
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalFilterLaw law{0}, "Got invalid number of dimensions: 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalDispersionLaw law{0}, "Got invalid number of dimensions: 0")
 }
 
 } // namespace Kratos::Testing

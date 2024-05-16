@@ -23,26 +23,19 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
 
-    auto cond_prop = r_model_part.CreateNewProperties(0);
-    cond_prop->SetValue(THERMAL_CONDUCTIVITY_WATER, 1000.0);
+    auto p_cond_prop = r_model_part.CreateNewProperties(0);
+    p_cond_prop->SetValue(THERMAL_CONDUCTIVITY_WATER, 1000.0);
 
-    const SizeType      dimension = 1;
-    GeoThermalFilterLaw geo_thermal_filter_law(dimension);
+    GeoThermalFilterLaw geo_thermal_filter_law;
     ProcessInfo         info;
 
-    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*cond_prop, info);
+    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*p_cond_prop, info);
 
     Matrix expected_solution = ScalarMatrix(1, 1, 1000.0);
 
     constexpr double tolerance{1.0e-6};
 
-    KRATOS_EXPECT_NEAR(thermal_filter_matrix(0, 0), expected_solution(0, 0), tolerance);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(TestFilterLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuite)
-{
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalFilterLaw law{2},
-        "Got invalid number of dimensions. The dimension has to be 1, but got: 2")
+    KRATOS_EXPECT_MATRIX_NEAR(thermal_filter_matrix, expected_solution, tolerance);
 }
 
 } // namespace Kratos::Testing

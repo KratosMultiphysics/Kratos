@@ -20,18 +20,10 @@
 namespace Kratos
 {
 
-/**
- * @class GeoThermalDispersionLaw
- * @ingroup GeoMechanicsApplication
- * @brief This class defines the thermal dispersion for heat cases
- */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalLaw
 {
 public:
-    /// Counted pointer of GeoThermalLaw
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalLaw);
-
-    GeoThermalLaw() {}
 
     virtual ~GeoThermalLaw() = default;
 
@@ -41,8 +33,8 @@ public:
 private:
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const {}
+    virtual void save(Serializer& rSerializer) const = 0;
 
-    virtual void load(Serializer& rSerializer) {}
+    virtual void load(Serializer& rSerializer) = 0;
 };
 } // namespace Kratos.

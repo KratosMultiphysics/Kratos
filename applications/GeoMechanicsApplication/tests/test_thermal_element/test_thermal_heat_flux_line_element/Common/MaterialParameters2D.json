@@ -4,6 +4,7 @@
       "properties_id":           1,
       "Material": {
           "Variables": {
+              "THERMAL_LAW_NAME"              : "GeoThermalDispersionLaw",
               "DENSITY_SOLID"                 :  2650,
               "DENSITY_WATER"                 :  1000,
               "POROSITY"                      :  0.36,
@@ -13,8 +14,7 @@
               "SPECIFIC_HEAT_CAPACITY_WATER"  :  3795.0,
               "THERMAL_CONDUCTIVITY_SOLID_XX" :  1.50,
               "THERMAL_CONDUCTIVITY_WATER"    :  0.48,
-              "CROSS_AREA"                    :  0.3,
-              "THERMAL_LAW"                   : "GeoThermalDispersionLaw"
+              "CROSS_AREA"                    :  0.3
          },
          "Tables": {}
       }

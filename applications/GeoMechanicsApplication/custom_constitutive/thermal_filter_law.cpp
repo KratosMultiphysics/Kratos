@@ -17,16 +17,6 @@
 namespace Kratos
 {
 
-GeoThermalFilterLaw::GeoThermalFilterLaw() : mNumberOfDimensions{1} {}
-
-GeoThermalFilterLaw::GeoThermalFilterLaw(SizeType NumberOfDimensions)
-    : mNumberOfDimensions{NumberOfDimensions}
-{
-    KRATOS_ERROR_IF(mNumberOfDimensions != 1)
-        << "Got invalid number of dimensions. The dimension has to be 1, but got: " << mNumberOfDimensions
-        << std::endl;
-}
-
 Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const
 {
     return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);

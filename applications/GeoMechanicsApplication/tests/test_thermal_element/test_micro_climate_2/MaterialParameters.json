@@ -4,6 +4,7 @@
     "properties_id"                        : 1,
     "Material" : { 
       "Variables" : {
+        "THERMAL_LAW_NAME"                 : "GeoThermalDispersionLaw",
         "DENSITY_SOLID"                    : 1.700000e+03,
         "DENSITY_WATER"                    : 1000.0,
         "POROSITY"                         : 0.000000e+00,
@@ -26,8 +27,7 @@
         "ALPHA_COEFFICIENT"                : 1.900000e-01,
         "QF_COEFFICIENT"                   : 0.000000e+00,
         "SMIN_COEFFICIENT"                 : 0.000000e+00,
-        "SMAX_COEFFICIENT"                 : 4.000000e+04,
-        "THERMAL_LAW"                      : "GeoThermalDispersionLaw"
+        "SMAX_COEFFICIENT"                 : 4.000000e+04
       },
       "Tables": {
       }

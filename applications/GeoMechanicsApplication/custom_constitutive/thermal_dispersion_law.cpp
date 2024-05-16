@@ -19,8 +19,6 @@
 namespace Kratos
 {
 
-GeoThermalDispersionLaw::GeoThermalDispersionLaw() : mNumberOfDimensions{2} {}
-
 GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
     : mNumberOfDimensions{NumberOfDimensions}
 {
