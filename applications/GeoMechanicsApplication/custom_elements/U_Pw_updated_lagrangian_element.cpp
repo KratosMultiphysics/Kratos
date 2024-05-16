@@ -14,7 +14,6 @@
 
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 #include "utilities/math_utils.h"
 

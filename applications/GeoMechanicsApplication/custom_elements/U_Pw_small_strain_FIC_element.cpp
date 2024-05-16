@@ -13,7 +13,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 
 namespace Kratos
