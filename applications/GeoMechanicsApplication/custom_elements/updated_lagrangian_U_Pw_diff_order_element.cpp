@@ -73,12 +73,14 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
     const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
-    const auto strain_vectors = this->CalculateStrains(
+    auto strain_vectors = this->CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NuContainer, Variables.DNu_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -87,16 +89,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         Variables.B = b_matrices[GPoint];
 
         // Compute strain
-        Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
-        Variables.StrainVector = strain_vectors[GPoint];
-
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        // Compute constitutive tensor and stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+        Variables.F                  = deformation_gradients[GPoint];
+        Variables.StrainVector       = strain_vectors[GPoint];
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
