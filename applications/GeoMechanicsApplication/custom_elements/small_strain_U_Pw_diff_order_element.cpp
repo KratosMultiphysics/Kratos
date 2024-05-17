@@ -1351,23 +1351,6 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
 
     GeoElementUtilities::AssembleUUBlockMatrix(rStiffnessMatrix, stiffness_matrix);
 
-    /*for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B, strains)
-        // this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute infinitesimal strain
-        Variables.F                  = deformation_gradients[GPoint];
-        Variables.StrainVector       = strain_vectors[GPoint];
-        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-
-        // calculating weighting coefficient for integration
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-        // Contributions of material stiffness to the left hand side
-        this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
-    }*/
-
     KRATOS_CATCH("")
 }
 
