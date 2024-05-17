@@ -868,17 +868,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
+        // this->CalculateKinematics(Variables, GPoint);
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+        // this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
 
         // Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);

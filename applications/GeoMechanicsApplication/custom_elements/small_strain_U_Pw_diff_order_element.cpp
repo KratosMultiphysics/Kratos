@@ -1343,10 +1343,12 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto integration_coefficients =
+        CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
-        this->CalculateKinematics(Variables, GPoint);
+        // this->CalculateKinematics(Variables, GPoint);
         Variables.B = b_matrices[GPoint];
 
         // Compute infinitesimal strain
@@ -1355,8 +1357,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         // calculating weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions of material stiffness to the left hand side
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
