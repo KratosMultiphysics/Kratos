@@ -1163,12 +1163,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     GlobalSizeVector nodal_values, aux_array, d_el_du;
 
-    const double angle1 = GetAngle(-1.0);
-    const double angle2 = GetAngle(1.0);
-    const double angle3 = GetAngle(0.0);
-
-    GetNodalValuesVector(nodal_values, angle1, angle2, angle3);
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+
+    MatrixType local_lhs = rLHS;
+    VectorType local_rhs = rRHS;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -1178,7 +1176,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double J  = GetJacobian(xi);
         const double k0 = GetGeometryCurvature(J, xi);
         const double jacobian_weight = weight * J;
+        const double angle = GetAngle(xi);
 
+        GetNodalValuesVector(nodal_values, angle, angle, angle);
 
         // We fill the strain vector with El, kappa and Gamma_sy
         CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
@@ -1211,26 +1211,35 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(d_el_du) = aux_array + du * dNu + dv * dN_shape;
 
         // Axial contributions
-        noalias(rRHS) -= d_el_du * N * jacobian_weight;
-        noalias(rLHS) += outer_prod(d_el_du, d_el_du) * dN_dEl * jacobian_weight;
-        noalias(rLHS) += outer_prod(dNu, dNu) * N * jacobian_weight;
-        noalias(rLHS) += outer_prod(dN_shape, dN_shape) * N * jacobian_weight;
+        noalias(local_rhs) -= d_el_du * N * jacobian_weight;
+        noalias(local_lhs) += outer_prod(d_el_du, d_el_du) * dN_dEl * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dNu, dNu) * N * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dN_shape, dN_shape) * N * jacobian_weight;
 
         // Bending contributions
-        noalias(rLHS) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
-        noalias(rRHS) -= dN_theta * M * jacobian_weight;
+        noalias(local_lhs) += outer_prod(dN_theta, dN_theta) * dM_dkappa * jacobian_weight;
+        noalias(local_rhs) -= dN_theta * M * jacobian_weight;
 
         // Shear contributions
-        noalias(rLHS) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
-        noalias(rRHS) -= N_s * V * jacobian_weight;
+        noalias(local_lhs) += outer_prod(N_s, N_s) * dV_dgamma * jacobian_weight;
+        noalias(local_rhs) -= N_s * V * jacobian_weight;
 
         // Now we add the body forces contributions
         auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
-        noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
-        noalias(rRHS) += N_shape * local_body_forces[1] * jacobian_weight * area;
+        noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
+        noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
+
+        RotateAll(local_lhs, local_rhs, angle, angle, angle);
+
+        noalias(rLHS) += local_lhs;
+        noalias(rRHS) += local_rhs;
+
+        noalias(local_lhs) = ZeroMatrix(SystemSize, SystemSize);
+        noalias(local_rhs) = ZeroVector(SystemSize);
 
     } // IP loop
-    RotateAll(rLHS, rRHS, angle1, angle2, angle3);
+    KRATOS_WATCH(rLHS - trans(rLHS))
+    KRATOS_WATCH(rRHS)
     KRATOS_CATCH("");
 }
 
@@ -1350,6 +1359,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     }
     noalias(rRHS) = ZeroVector(SystemSize);
 
+    VectorType local_rhs = rRHS;
+
     const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
@@ -1370,11 +1381,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
-    const double angle1 = GetAngle(-1.0);
-    const double angle2 = GetAngle(1.0);
-    const double angle3 = GetAngle(0.0);
-
-    GetNodalValuesVector(nodal_values, angle1, angle2, angle3);
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
 
@@ -1383,7 +1389,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double J  = GetJacobian(xi);
         const double k0 = GetGeometryCurvature(J, xi);
         const double jacobian_weight = weight * J;
-        // const double angle = GetAngle(xi);
+        const double angle = GetAngle(xi);
+        GetNodalValuesVector(nodal_values, angle, angle, angle);
 
         // We fill the strain vector with El, kappa and Gamma_sy
         CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
@@ -1416,21 +1423,24 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(d_el_du) = aux_array + du * dNu + dv * dN_shape;
 
         // Axial contributions
-        noalias(rRHS) -= d_el_du * N * jacobian_weight;
+        noalias(local_rhs) -= d_el_du * N * jacobian_weight;
 
         // Bending contributions
-        noalias(rRHS) -= dN_theta * M * jacobian_weight;
+        noalias(local_rhs) -= dN_theta * M * jacobian_weight;
 
         // Shear contributions
-        noalias(rRHS) -= N_s * V * jacobian_weight;
+        noalias(local_rhs) -= N_s * V * jacobian_weight;
 
         // Now we add the body forces contributions
         auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
-        noalias(rRHS) += Nu      * local_body_forces[0] * jacobian_weight * area;
-        noalias(rRHS) += N_shape * local_body_forces[1] * jacobian_weight * area;
+        noalias(local_rhs) += Nu      * local_body_forces[0] * jacobian_weight * area;
+        noalias(local_rhs) += N_shape * local_body_forces[1] * jacobian_weight * area;
+
+        RotateRHS(local_rhs, angle, angle, angle);
+        noalias(rRHS) += local_rhs;
+        noalias(local_rhs) = ZeroVector(SystemSize);
 
     } // IP loop
-    RotateRHS(rRHS, angle1, angle2, angle3);
     KRATOS_CATCH("");
 }
 
