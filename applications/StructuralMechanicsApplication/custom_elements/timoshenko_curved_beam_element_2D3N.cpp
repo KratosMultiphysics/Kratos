@@ -1238,8 +1238,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) = ZeroVector(SystemSize);
 
     } // IP loop
-    KRATOS_WATCH(rLHS - trans(rLHS))
-    KRATOS_WATCH(rRHS)
     KRATOS_CATCH("");
 }
 
