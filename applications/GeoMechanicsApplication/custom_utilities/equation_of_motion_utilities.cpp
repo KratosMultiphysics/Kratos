@@ -75,7 +75,7 @@ Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(const Matrix
 
 Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
                                                               const std::vector<Matrix>& rConstitutiveMatrices,
-                                                              std::vector<double> rIntegrationCoefficients)
+                                                              const std::vector<double>& rIntegrationCoefficients)
 {
     Matrix result = ZeroMatrix(rBs[0].size2(), rBs[0].size2());
     for (unsigned int GPoint = 0; GPoint < rBs.size(); ++GPoint) {
