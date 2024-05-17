@@ -183,7 +183,6 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
         double detJ;
