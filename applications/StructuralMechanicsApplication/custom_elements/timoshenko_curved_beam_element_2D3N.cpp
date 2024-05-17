@@ -1681,15 +1681,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
         cl_values.SetStressVector(stress_vector);
         GlobalSizeVector nodal_values(SystemSize);
 
-        const double angle1 = GetAngle(-1.0);
-        const double angle2 = GetAngle(1.0);
-        const double angle3 = GetAngle(0.0);
-
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
-            // const double angle = GetAngle(xi);
-            GetNodalValuesVector(nodal_values, angle1, angle2, angle3);
+            const double angle = GetAngle(xi);
+            GetNodalValuesVector(nodal_values, angle, angle, angle);
             const double J = GetJacobian(xi);
 
             CalculateGeneralizedStrainsVector(strain_vector, J, xi, nodal_values);
