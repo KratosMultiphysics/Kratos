@@ -207,7 +207,7 @@ double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurren
     KRATOS_TRY;
     double tangent_modulus(0.00);
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    KRATOS_INFO("TrussElement3D2N::ReturnTangentModulus1D") << "Naar GrLag strain, ik wil linear!" << std::endl;
+    KRATOS_INFO("TrussElementLinear3D2N::ReturnTangentModulus1D") << "Naar linear! strain" << std::endl;
     strain_vector[0] = CalculateLinearStrain();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);

@@ -78,31 +78,54 @@ double& TrussBackboneConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters
         const auto axial_strain(rParameterValues.GetStrainVector()[0]);
         const auto un_re_loading_strain_amplitude =
             2. * TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain);
-        if (axial_strain > mAccumulatedStrain) {
-            // loading
-            rValue = TrussBackboneConstitutiveLaw::BackboneStiffness(rParameterValues.GetStrainVector()[0]);
-        } else if (axial_strain >= mAccumulatedStrain - un_re_loading_strain_amplitude) {
+        if (axial_strain >= mAccumulatedStrain ||
+            axial_strain <= mAccumulatedStrain - un_re_loading_strain_amplitude) {
+            // backbone
+            if (axial_strain > mAccumulatedStrain){
+                rValue = TrussBackboneConstitutiveLaw::BackboneStiffness(axial_strain);
+            } else {
+                // on backbone opposite side
+                auto accumulated_strain_increment = mAccumulatedStrain - un_re_loading_strain_amplitude - axial_strain;
+                rValue = TrussBackboneConstitutiveLaw::BackboneStiffness(mAccumulatedStrain+accumulated_strain_increment);
+            }
+        } else {
             // unloading reloading
             rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
-        } else {
-            // nog niet goed.
-            // loading opposite direction
-            rValue = TrussBackboneConstitutiveLaw::BackboneStiffness(rParameterValues.GetStrainVector()[0]);
         }
     } else {
         KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     }
+    KRATOS_INFO("TrussBackboneConstitutiveLaw::CalculateValue") << "stijfheid = " << rValue << std::endl;
     return rValue;
 }
 
 void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     // backbone loading, un- and reloading laws
-    const Flags& r_options = rValues.GetOptions();
     const auto   axial_strain(rValues.GetStrainVector()[0]);
     auto&        axial_stress_vector = rValues.GetStressVector();
     const auto   un_re_loading_strain_amplitude =
         2. * TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain);
+
+    bool on_back_bone = axial_strain >= mAccumulatedStrain ||
+                        axial_strain <= mAccumulatedStrain - un_re_loading_strain_amplitude;
+    if (on_back_bone) {
+        if (axial_strain >= mAccumulatedStrain){
+            axial_stress_vector[0] = TrussBackboneConstitutiveLaw::BackboneStress(axial_strain);
+        } else {
+            // on backbone opposite side
+            auto accumulated_strain_increment = mAccumulatedStrain - un_re_loading_strain_amplitude - axial_strain;
+            axial_stress_vector[0] = -TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain+accumulated_strain_increment);
+        }
+    } else {
+        // unloading reloading
+        axial_stress_vector[0] =
+            TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain) -
+            rValues.GetMaterialProperties()[YOUNG_MODULUS] * (mAccumulatedStrain - axial_strain);
+    }
+    rValues.SetStressVector(axial_stress_vector);
+
+/*
     if (axial_strain > mAccumulatedStrain) {
         // loading
         axial_stress_vector[0] = TrussBackboneConstitutiveLaw::BackboneStress(axial_strain);
@@ -121,13 +144,24 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
                                      (mAccumulatedStrain - un_re_loading_strain_amplitude);
         rValues.SetStressVector(axial_stress_vector);
     }
+*/
 }
 
 void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
     const auto axial_strain(rValues.GetStrainVector()[0]);
-    mAccumulatedStrain = std::max(mAccumulatedStrain, axial_strain);
+    const auto un_re_loading_strain_amplitude =
+        2. * TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain);
+
+    if (axial_strain > mAccumulatedStrain) {
+        mAccumulatedStrain = std::max(mAccumulatedStrain, axial_strain);
+    } else if (axial_strain < mAccumulatedStrain - un_re_loading_strain_amplitude) {
+        auto accumulated_strain_increment = std::abs(mAccumulatedStrain - un_re_loading_strain_amplitude - axial_strain);
+        mAccumulatedStrain += accumulated_strain_increment;
+    }
+    /* mAccumulatedStrain = std::max(mAccumulatedStrain, axial_strain); */
+    // mPreviousStrain = rValues.GetStrainVector()[0];
 }
 
 int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,

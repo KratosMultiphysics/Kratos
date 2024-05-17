@@ -92,6 +92,7 @@ public:
 
 private:
     double mAccumulatedStrain = 0.;
+    double mPreviousStrain = 0.;
 
     double BackboneStress(const double Strain) const;
     double BackboneStiffness(const double Strain) const;
