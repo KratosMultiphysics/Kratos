@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -54,29 +54,30 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit SteadyStatePwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    SteadyStatePwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    SteadyStatePwElement(IndexType                          NewId,
+                         GeometryType::Pointer              pGeometry,
+                         PropertiesType::Pointer            pProperties,
+                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwElement() override {}
+    ~SteadyStatePwElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -116,8 +117,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 

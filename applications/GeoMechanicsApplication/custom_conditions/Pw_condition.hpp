@@ -13,9 +13,7 @@
 //                   Aron Noordam
 //
 
-
-#if !defined(KRATOS_GEO_PW_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_PW_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -59,9 +57,11 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,
-                              NodesArrayType const& ThisNodes,
-                              PropertiesType::Pointer pProperties ) const override;
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
@@ -108,8 +108,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class PwCondition.
+};
+
+// class PwCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_PW_CONDITION_H_INCLUDED defined 

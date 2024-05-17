@@ -39,7 +39,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronization, Kratos
 
     // Call the function
     std::vector<double> all_points_coordinates;
-    std::vector<std::size_t> all_points_ids;
+    std::vector<long int> all_points_ids;
     SearchUtilities::SynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, all_points_ids, r_data_comm);
 
     // Check the results
@@ -48,8 +48,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronization, Kratos
     for (int i_rank = 0; i_rank < world_size; ++i_rank) {
         value = static_cast<double>(i_rank);
         value2 = 2 * value;
-        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2    ], static_cast<std::size_t>(i_rank * 2));
-        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2 + 1], static_cast<std::size_t>(i_rank * 2 + 1));
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2    ], i_rank * 2);
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2 + 1], i_rank * 2 + 1);
         for (int j = 0; j < 3; ++j) {
             KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j    ], value );
             KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j + 3], value2);
@@ -74,7 +74,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationWithRadi
 
     // Call the function
     std::vector<double> all_points_coordinates;
-    std::vector<std::size_t> all_points_ids;
+    std::vector<long int> all_points_ids;
     auto radius = SearchUtilities::SynchronousPointSynchronizationWithRadius(points.begin(), points.end(), all_points_coordinates, all_points_ids, local_radius, r_data_comm);
 
     // Check the results
@@ -85,8 +85,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationWithRadi
         value2 = 2 * value;
         KRATOS_EXPECT_DOUBLE_EQ(radius[i_rank * 2    ], value );
         KRATOS_EXPECT_DOUBLE_EQ(radius[i_rank * 2 + 1], value2);
-        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2    ], static_cast<std::size_t>(i_rank * 2));
-        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2 + 1], static_cast<std::size_t>(i_rank * 2 + 1));
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2    ], i_rank * 2);
+        KRATOS_EXPECT_EQ(all_points_ids[i_rank * 2 + 1], i_rank * 2 + 1);
         for (int j = 0; j < 3; ++j) {
             KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j    ], value );
             KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j + 3], value2);

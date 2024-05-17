@@ -19,7 +19,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -54,29 +54,30 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    TransientPwElement(IndexType                          NewId,
+                       GeometryType::Pointer              pGeometry,
+                       PropertiesType::Pointer            pProperties,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~TransientPwElement() override {}
+    ~TransientPwElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -153,8 +154,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo) override;
 
@@ -167,7 +168,7 @@ protected:
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) override;
     void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
 
     unsigned int GetNumberOfDOF() const override;

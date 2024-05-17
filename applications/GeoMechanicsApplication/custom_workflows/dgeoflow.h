@@ -67,9 +67,6 @@ public:
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
-    // Dof arrays
-    using result_type = SetIdentityFunction<Dof<double>>;
-
     static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
     static LinearSolverType::Pointer        setup_solver_dgeoflow();
     static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& rModelPart);

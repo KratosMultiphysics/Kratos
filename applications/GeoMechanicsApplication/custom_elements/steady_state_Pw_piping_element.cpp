@@ -24,8 +24,8 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType N
                                                                      NodesArrayType const& ThisNodes,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SteadyStatePwPipingElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new SteadyStatePwPipingElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
@@ -34,7 +34,8 @@ Element::Pointer SteadyStatePwPipingElement<TDim, TNumNodes>::Create(IndexType  
                                                                      GeometryType::Pointer pGeom,
                                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new SteadyStatePwPipingElement(NewId, pGeom, pProperties,
+                                                           this->GetStressStatePolicy().Clone()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -178,8 +179,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,
                                                                const ProcessInfo& CurrentProcessInfo,
-                                                               const bool CalculateStiffnessMatrixFlag,
-                                                               const bool CalculateResidualVectorFlag)
+                                                               bool CalculateStiffnessMatrixFlag,
+                                                               bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
     // Previous definitions
@@ -213,6 +214,9 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute Np, StrainVector, JointWidth, GradNpT
@@ -231,9 +235,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
