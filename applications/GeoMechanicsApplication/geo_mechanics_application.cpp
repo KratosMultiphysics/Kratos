@@ -354,6 +354,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw",   mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw",  mTrussBackboneConstitutiveLaw)
 
 
     //Register Variables
@@ -403,6 +404,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( OCR )
     KRATOS_REGISTER_VARIABLE( POISSON_UNLOADING_RELOADING )
 
+    KRATOS_REGISTER_VARIABLE( ACCUMULATED_STRAIN )
+    KRATOS_REGISTER_VARIABLE( TANGENT_MODULUS )
 
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_XX )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY_YY )

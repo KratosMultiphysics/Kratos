@@ -111,7 +111,7 @@ public:
      */
     double CalculateLinearStrain();
 
-
+    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
     /**
      * @brief This function updates the internal forces
      * @param rinternalForces The internal forces
