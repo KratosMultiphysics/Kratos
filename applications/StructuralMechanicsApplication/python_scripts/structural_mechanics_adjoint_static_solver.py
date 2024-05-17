@@ -32,6 +32,11 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.TEMPERATURE_SENSITIVITY)
+
+        #self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_TEMPERATURE)
+        #print(self.main_model_part.GetHistoricalVariablesNames())
+        #print(self.main_model_part.GetNonHistoricalVariablesNames())
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
@@ -97,6 +102,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, self.main_model_part)
+        
+        #KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_TEMPERATURE, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):

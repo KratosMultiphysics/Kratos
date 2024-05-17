@@ -243,10 +243,10 @@ public:
             apply_sensitivities_proxy, *rVariable.pDesignVariable,
             rModelPart.GetProcessInfo());
 
-        AssembleContainerContributions(
-            rModelPart.Conditions(), rResponseFunction, rSensitivityBuilderScheme,
-            apply_sensitivities_proxy, *rVariable.pDesignVariable,
-            rModelPart.GetProcessInfo());
+        // AssembleContainerContributions(
+        //     rModelPart.Conditions(), rResponseFunction, rSensitivityBuilderScheme,
+        //     apply_sensitivities_proxy, *rVariable.pDesignVariable,
+        //     rModelPart.GetProcessInfo());
 
         apply_sensitivities_proxy.SendAndApplyRemotely();
 

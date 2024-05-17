@@ -175,6 +175,10 @@ class MechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
+
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -210,6 +214,8 @@ class MechanicalSolver(PythonSolver):
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
+        #dofs_and_reactions_to_add.append(["TEMPERATURE", "REACTION_FLUX"])
+
         # Append user-defined DOFs and reactions in the ProjectParameters
         auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
             self.settings["auxiliary_dofs_list"],
@@ -217,6 +223,7 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add)
 
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+        print(dofs_and_reactions_to_add)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def GetDofsList(self):

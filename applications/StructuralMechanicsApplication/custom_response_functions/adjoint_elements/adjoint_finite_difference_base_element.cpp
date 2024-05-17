@@ -299,18 +299,52 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
 
-    Vector RHS;
-    this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+    const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
-    // Get pseudo-load from utility
-    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+    if( rDesignVariable == TEMPERATURE )
+    {
+        const std::vector<const FiniteDifferenceUtility::array_1d_component_type*> coord_directions = {&TEMPERATURE};
+        Vector derived_RHS;
+
+        if ( (rOutput.size1() != number_of_nodes) || (rOutput.size2() != local_size ) )
+            rOutput.resize( number_of_nodes, local_size, false);
+
+        IndexType index = 0;
+
+        Vector RHS;
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        for(auto& node_i : mpPrimalElement->GetGeometry())
+        {
+            //for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
+            //{
+                // Get pseudo-load contribution from utility
+            FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, *coord_directions[0],
+                                                                        node_i, delta, derived_RHS, rCurrentProcessInfo);
+
+            KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+
+            for(IndexType i = 0; i < derived_RHS.size(); ++i)
+                rOutput(index, i) = derived_RHS[i];
+            //}
+            index++;
+        }
+        //std::cout << "sensitivity matrix is " << rOutput << std::endl;
+    }
+    else
+    {
+        Vector RHS;
+        this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+        // Get pseudo-load from utility
+        FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, 
+                                                                  rOutput, rCurrentProcessInfo);
+    }
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
-    {
-        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-        const SizeType local_size = number_of_nodes * num_dofs_per_node;
+    {     
         rOutput = ZeroMatrix(0, local_size);
     }
 

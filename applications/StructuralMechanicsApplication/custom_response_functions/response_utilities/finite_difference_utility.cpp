@@ -168,7 +168,7 @@ namespace Kratos
 
     std::size_t FiniteDifferenceUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
     {
-        if( rDesignVariable == SHAPE_SENSITIVITY_X )
+        if( rDesignVariable == SHAPE_SENSITIVITY_X || rDesignVariable == TEMPERATURE)
             return 0;
         else if( rDesignVariable == SHAPE_SENSITIVITY_Y )
             return 1;

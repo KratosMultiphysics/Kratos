@@ -82,6 +82,42 @@ public:
             rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
             rNode.Coordinates()[coord_dir] -= rPertubationSize;
         }
+        if( rDesignVariable == TEMPERATURE )
+        {
+            //const IndexType coord_dir =
+            //    FiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+
+            // define working variables
+            Vector RHS_perturbed;
+
+            if (rOutput.size() != rRHS.size())
+                rOutput.resize(rRHS.size(), false);
+            //std::cout << " In finite difference utility header" << std::endl;
+            //std::cout << "design variable is " << rDesignVariable << std::endl;
+            //std::cout << "unperturbed rhs is " << rRHS << std::endl;
+            //std::cout << "unperturbed temp is " << rNode.FastGetSolutionStepValue(rDesignVariable) << std::endl;
+            // perturb the design variable
+            rNode.FastGetSolutionStepValue(rDesignVariable) += rPertubationSize;
+            //double& temp = rNode.FastGetSolutionStepValue(rDesignVariable);
+            //rNode.SetValue(rDesignVariable, (temp+rPertubationSize));
+            //rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            //rNode.Coordinates()[coord_dir] += rPertubationSize;
+            //std::cout << "perturbed temp is " << rNode.FastGetSolutionStepValue(rDesignVariable) << std::endl;
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+            //std::cout << "perturbed rhs is " << RHS_perturbed << std::endl;
+            
+            // compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (RHS_perturbed - rRHS) / rPertubationSize;
+            //std::cout << "difference of rhs is " << (RHS_perturbed - rRHS) << std::endl;
+            // unperturb the design variable
+            rNode.FastGetSolutionStepValue(rDesignVariable) -= rPertubationSize;
+            //std::cout << "reset temp is " << rNode.FastGetSolutionStepValue(rDesignVariable) << std::endl;
+            //rNode.SetValue(rDesignVariable, (temp-rPertubationSize));
+            //rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            //rNode.Coordinates()[coord_dir] -= rPertubationSize;
+        }
         else
         {
             KRATOS_WARNING("FiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;

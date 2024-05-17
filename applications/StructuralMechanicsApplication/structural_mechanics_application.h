@@ -113,6 +113,9 @@
 // Constitutive laws for the Timoshenko beams
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 
+// Thermal Constitutive law
+#include "custom_constitutive/thermal_elastic_isotropic_3d.h"
+
 
 namespace Kratos
 {
@@ -492,6 +495,8 @@ private:
     const UserProvidedLinearElasticLaw<2> mUserProvidedLinearElastic2DLaw;
     const UserProvidedLinearElasticLaw<3> mUserProvidedLinearElastic3DLaw;
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
+
+    const ThermalElasticIsotropic3D mThermalElasticIsotropic3D;
 
     ///@}
     ///@name Private Operators

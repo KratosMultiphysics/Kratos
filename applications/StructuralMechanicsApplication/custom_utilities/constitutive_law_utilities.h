@@ -330,5 +330,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     */
     static double CalculateShearModulus(const Properties& rProperties);
 
+    /**
+     * @brief This substracts the thermal strain contribution to a vector
+     */
+    static void SubstractThermalStrain(
+        ConstitutiveLaw::StrainVectorType &rStrainVector,
+        const double ReferenceTemperature,
+        ConstitutiveLaw::Parameters &rParameters,
+        const bool IsPlaneStrain = false
+        );
+
+    /**
+     * @brief This retrieves an interpolated nodal variable to a GP
+     */
+    static double CalculateInGaussPoint(
+        const Variable<double> &rVariableInput,
+        ConstitutiveLaw::Parameters &rParameters,
+        unsigned int step = 0
+        );
+
+        
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
