@@ -17,7 +17,7 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/timoshenko_curved_beam_element_2D3N.h"
+#include "timoshenko_curved_beam_element_2D3N.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
