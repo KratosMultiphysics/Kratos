@@ -1203,12 +1203,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
         GetShapeFunctionsValues(N_shape, J, xi);
         GetNu0ShapeFunctionsValues(Nu, xi);
+
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
-        noalias(aux_array) = dNu - k0 * N_shape;
 
         const double du = inner_prod(dNu, nodal_values);
         const double dv = inner_prod(dN_shape, nodal_values);
-        noalias(d_el_du) = aux_array + du * dNu + dv * dN_shape;
+        noalias(d_el_du) = dNu - k0 * N_shape + du * dNu + dv * dN_shape;
 
         // Axial contributions
         noalias(local_rhs) -= d_el_du * N * jacobian_weight;
@@ -1415,12 +1415,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
         GetShapeFunctionsValues(N_shape, J, xi);
         GetNu0ShapeFunctionsValues(Nu, xi);
+
         noalias(N_s) = dN_shape - N_theta + k0 * Nu;
-        noalias(aux_array) = dNu - k0 * N_shape;
 
         const double du = inner_prod(dNu, nodal_values);
         const double dv = inner_prod(dN_shape, nodal_values);
-        noalias(d_el_du) = aux_array + du * dNu + dv * dN_shape;
+        noalias(d_el_du) = dNu - k0 * N_shape + du * dNu + dv * dN_shape;
 
         // Axial contributions
         noalias(local_rhs) -= d_el_du * N * jacobian_weight;
