@@ -161,11 +161,12 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuite)
     Bs.push_back(B);
     Bs.push_back(B);
 
-    std::vector<Matrix> deformationGradients;
-    deformationGradients.push_back(B);
-    deformationGradients.push_back(B);
+    std::vector<Matrix> deformation_gradients;
+    Matrix              deformation_gradient = std::sqrt(3.) * IdentityMatrix(3);
+    deformation_gradients.push_back(deformation_gradient);
+    deformation_gradients.push_back(deformation_gradient);
 
-    auto strains = StressStrainUtilities::CalculateStrains(deformationGradients, Bs, displacements,
+    auto strains = StressStrainUtilities::CalculateStrains(deformation_gradients, Bs, displacements,
                                                            use_hencky_strain, voigt_size);
     Vector expected_strain(4);
     expected_strain <<= 0.3, 0.13, 0.08, 0.2;
@@ -176,12 +177,17 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuite)
     for (size_t i = 0; i < strains.size(); ++i)
         KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-10);
 
-    /*    use_hencky_strain = true;
-        strains = StressStrainUtilities::CalculateStrains(deformationGradients, Bs, displacements,
-                                                          use_hencky_strain, voigt_size);
-        for (size_t i = 0; i < strains.size(); ++i)
-            KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-10);
-            */
+    use_hencky_strain = true;
+    strains = StressStrainUtilities::CalculateStrains(deformation_gradients, Bs, displacements,
+                                                      use_hencky_strain, voigt_size);
+
+    expected_strain <<= 0.549306, 0.549306, 0.549306, 0;
+    expected_strains.clear();
+    expected_strains.push_back(expected_strain);
+    expected_strains.push_back(expected_strain);
+
+    for (size_t i = 0; i < strains.size(); ++i)
+        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-6);
 }
 
 } // namespace Kratos::Testing
