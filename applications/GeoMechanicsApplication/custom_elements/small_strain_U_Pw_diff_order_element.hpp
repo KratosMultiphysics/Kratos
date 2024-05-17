@@ -197,7 +197,6 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double Density;
 
         // Properties and processinfo variables
         bool IgnoreUndrained;

@@ -1832,7 +1832,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     const SizeType      Dim       = rGeom.WorkingSpaceDimension();
     const SizeType      NumUNodes = rGeom.PointsNumber();
 
-    rVariables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
+    const auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(
         rVariables.DegreeOfSaturation, this->GetProperties());
 
     Vector   BodyAcceleration = ZeroVector(Dim);
@@ -1847,7 +1847,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
         Index = i * Dim;
         for (SizeType idim = 0; idim < Dim; ++idim) {
             rRightHandSideVector[Index + idim] +=
-                rVariables.Nu[i] * rVariables.Density * BodyAcceleration[idim] *
+                rVariables.Nu[i] * soil_density * BodyAcceleration[idim] *
                 rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
