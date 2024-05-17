@@ -15,7 +15,7 @@
               "THERMAL_CONDUCTIVITY_SOLID_XX" :  1.50,
               "THERMAL_CONDUCTIVITY_SOLID_YY" :  1.50,
               "THERMAL_CONDUCTIVITY_SOLID_XY" :  0.0,
-              "THERMAL_CONDUCTIVITY_WATER"    :  0.48              
+              "THERMAL_CONDUCTIVITY_WATER"    :  0.48
          },
          "Tables": {}
       }

@@ -28,8 +28,14 @@ public:
 private:
     friend class Serializer;
 
-    void save(Serializer&) const override {}
+    void save(Serializer&) const override
+    {
+        // Nothing to serialize, since there are no data members, and its base class is abstract
+    }
 
-    void load(Serializer&) override {}
+    void load(Serializer&) override
+    {
+        // Nothing to serialize, since there are no data members, and its base class is abstract
+    }
 };
 } // namespace Kratos.
