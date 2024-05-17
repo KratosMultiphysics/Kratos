@@ -871,20 +871,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // this->CalculateKinematics(Variables, GPoint);
-        Variables.B                  = b_matrices[GPoint];
-        Variables.F                  = deformation_gradients[GPoint];
-        Variables.StrainVector       = strain_vectors[GPoint];
-        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
+    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+        b_matrices, constitutive_matrices, integration_coefficients);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-        // this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
-
-        // Compute stiffness matrix
-        this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
-    }
+    GeoElementUtilities::AssembleUUBlockMatrix(rStiffnessMatrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
@@ -1245,11 +1235,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
 {
     KRATOS_TRY
 
-    noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B), rVariables.ConstitutiveMatrix);
-    noalias(rVariables.UUMatrix) = prod(rVariables.UVoigtMatrix, rVariables.B) * rVariables.IntegrationCoefficient;
-
-    // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, rVariables.UUMatrix);
+    Matrix stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
+        rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }

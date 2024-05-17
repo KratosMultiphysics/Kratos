@@ -1346,7 +1346,12 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto integration_coefficients =
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
 
-    for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
+    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+        b_matrices, constitutive_matrices, integration_coefficients);
+
+    GeoElementUtilities::AssembleUUBlockMatrix(rStiffnessMatrix, stiffness_matrix);
+
+    /*for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
         // this->CalculateKinematics(Variables, GPoint);
         Variables.B = b_matrices[GPoint];
@@ -1361,7 +1366,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
 
         // Contributions of material stiffness to the left hand side
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
-    }
+    }*/
 
     KRATOS_CATCH("")
 }
@@ -1729,12 +1734,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 {
     KRATOS_TRY
 
-    Matrix StiffnessMatrix =
-        prod(trans(rVariables.B), Matrix(prod(rVariables.ConstitutiveMatrix, rVariables.B))) *
-        rVariables.IntegrationCoefficient;
+    Matrix stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
+        rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, StiffnessMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
