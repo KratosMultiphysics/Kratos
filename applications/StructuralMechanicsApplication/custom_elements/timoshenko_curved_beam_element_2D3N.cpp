@@ -224,6 +224,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
     const double xi
     )
 {
+
+    rN.clear();
+    rN[1] = 0.5 * xi * (xi - 1.0);
+    rN[4] = 0.5 * xi * (xi + 1.0);
+    rN[7] = 1.0 - std::pow(xi, 2);
+
+
+    /*
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
@@ -342,6 +350,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
     rN[6]=-cr_N90*k03;
     rN[7]=cr_N82*(-cr_N0*cr_N24*cr_N91 + cr_N0*cr_N93 - cr_N0*cr_N94 - cr_N11*cr_N79 + cr_N12*cr_N96 + cr_N13*cr_N36 + cr_N13*cr_N76 - cr_N13*cr_N78 - cr_N14*cr_N55 - cr_N14*cr_N59 - cr_N15*cr_N16 + cr_N16*cr_N66 + cr_N21*cr_N24 + cr_N30*cr_N93 - cr_N30*cr_N94 - cr_N37*cr_N95 + cr_N54*cr_N96 - cr_N55*cr_N64 + 2.0*cr_N68 + cr_N81 + cr_N9*cr_N95 + cr_N91*cr_N92 - cr_N92*xi);
     rN[8]=cr_N90;
+
+    */
 }
 
 /***********************************************************************************/
@@ -353,6 +363,17 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsVal
     const double xi
     )
 {
+
+    rdN.clear();
+    rdN[1] = xi - 0.5;
+    rdN[4] = xi + 0.5;
+    rdN[7] = -2.0 * xi;
+    rdN /= J;
+
+
+
+    /*
+
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
@@ -474,6 +495,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsVal
     rdN[8]=crdN94;
 
     rdN /= J;
+    */
 }
 
 /***********************************************************************************/
@@ -485,6 +507,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsVa
     const double xi
     )
 {
+    KRATOS_ERROR << "do not enter here" << std::endl;
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
@@ -603,6 +626,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
     const double xi
     )
 {
+    KRATOS_ERROR << "do not enter here" << std::endl;
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
@@ -702,6 +726,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFourthDerivativesShapeFunctionsVa
     const double xi
     )
 {
+    KRATOS_ERROR << "do not enter here" << std::endl;
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
@@ -785,6 +810,15 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNThetaShapeFunctionsValues(
     const double xi
     )
 {
+
+    rN.clear();
+    rN[2] = 0.5 * xi * (xi - 1.0);
+    rN[5] = 0.5 * xi * (xi + 1.0);
+    rN[8] = 1.0 - std::pow(xi, 2);
+
+
+
+    /*
     GlobalSizeVector dN, d3N, Nu;
     GetFirstDerivativesShapeFunctionsValues(dN,  J, xi);
     GetThirdDerivativesShapeFunctionsValues(d3N, J, xi);
@@ -794,6 +828,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNThetaShapeFunctionsValues(
     const double k_s = GetBendingShearStiffnessRatio();
     // v' + ks * v''' + k0 * u
     noalias(rN) = dN + k_s * d3N + k0 * Nu;
+    */
 }
 
 /***********************************************************************************/
@@ -828,6 +863,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
 
     // dk0_ds = dk0_dxi / J
     // const double dk0_ds = -3.0 / std::pow(J, 6) * (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) * (dx_dxi * d2x_dxi2 + dy_dxi * d2y_dxi2);
+
+
+    /*
     const double eps = 1.0e-8;
     const double Jpert = GetJacobian(xi + eps);
     const double dk0_ds = std::pow(J, 2) * (GetGeometryCurvature(J, xi + eps) -  GetGeometryCurvature(J, xi)) / eps;
@@ -843,6 +881,16 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
 
     // v'' + ks * v'''' + k0 * u' + dk0*u
     noalias(rN) = d2N + k_s * d4N + k0 * dNu + dk0_ds * Nu;
+
+    */
+
+    rN.clear();
+    rN[2] = xi - 0.5;
+    rN[5] = xi + 0.5;
+    rN[8] = -2.0 * xi;
+
+    rN /= J;
+
 }
 
 /***********************************************************************************/
