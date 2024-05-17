@@ -1713,7 +1713,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSid
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                    ElementVariables& rVariables) const
+                                                                    const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
