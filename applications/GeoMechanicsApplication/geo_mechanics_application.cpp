@@ -355,8 +355,6 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw",     mGeoThermalDispersion2DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion3DLaw",     mGeoThermalDispersion3DLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
@@ -381,6 +379,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
+    KRATOS_REGISTER_VARIABLE( THERMAL_LAW_NAME)
 
     // Variables for Micro-Climate boundary
     KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )

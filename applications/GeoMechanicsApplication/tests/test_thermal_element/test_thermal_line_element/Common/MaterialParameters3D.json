@@ -3,10 +3,8 @@
     "model_part_name"                      : "PorousDomain.filter",
     "properties_id"                        : 1,
     "Material" : {
-      "constitutive_law": {
-        "name"                             : "GeoThermalDispersion3DLaw" 
-      },                                     
-      "Variables" : {                         
+      "Variables" : {
+        "THERMAL_LAW_NAME"                 : "GeoThermalDispersionLaw",
         "DENSITY_SOLID"                    : 2650.0,
         "DENSITY_WATER"                    : 1000.0,
         "POROSITY"                         : 1.0,
