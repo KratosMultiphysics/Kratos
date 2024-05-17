@@ -840,6 +840,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
     const double xi
     )
 {
+
+    rN.clear();
+    rN[2] = xi - 0.5;
+    rN[5] = xi + 0.5;
+    rN[8] = -2.0 * xi;
+
+    rN /= J;
+
     // GlobalSizeVector dN_dxi, d2N_dxi2;
     // GetLocalFirstDerivativesNu0ShapeFunctionsValues (dN_dxi,   xi);
     // GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
@@ -883,14 +891,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
     noalias(rN) = d2N + k_s * d4N + k0 * dNu + dk0_ds * Nu;
 
     */
-
-    rN.clear();
-    rN[2] = xi - 0.5;
-    rN[5] = xi + 0.5;
-    rN[8] = -2.0 * xi;
-
-    rN /= J;
-
 }
 
 /***********************************************************************************/
