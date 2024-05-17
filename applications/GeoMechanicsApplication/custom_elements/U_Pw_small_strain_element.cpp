@@ -724,11 +724,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.FluidPressure =
                 GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(Variables.FluidPressure);
-            Variables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            const auto bishop_coefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
             noalias(TotalStressVector) = mStressVector[GPoint];
             noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
-                                          Variables.BishopCoefficient * Variables.FluidPressure * VoigtVector;
+                                          bishop_coefficient * Variables.FluidPressure * VoigtVector;
 
             if (rOutput[GPoint].size() != TotalStressVector.size())
                 rOutput[GPoint].resize(TotalStressVector.size(), false);
