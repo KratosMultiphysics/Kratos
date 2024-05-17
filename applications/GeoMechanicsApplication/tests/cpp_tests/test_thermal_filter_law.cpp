@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
 
     constexpr double tolerance{1.0e-6};
 
-    KRATOS_EXPECT_MATRIX_NEAR(thermal_filter_matrix, expected_solution, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(thermal_filter_matrix, expected_solution, tolerance)
 }
 
 } // namespace Kratos::Testing
