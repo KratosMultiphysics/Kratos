@@ -76,7 +76,7 @@ Where $M$ and $K$ are the mass and stiffness  matrices respectively and $\alpha_
 File equation_of_motion_utilities.h includes 
 -  CalculateMassMatrix function
 -  CalculateStiffnessMatrixGPoint provides a stiffness matrix for a specific integration point
--  CalculateStiffnessMatrix provides a stiffness matrix for all integration points
+-  CalculateStiffnessMatrix provides a stiffness matrix for an element
 -  CalculateDampingMatrix function
 -  CalculateIntegrationCoefficientsInitialConfiguration function that calculates integration coefficient for all integration points
 

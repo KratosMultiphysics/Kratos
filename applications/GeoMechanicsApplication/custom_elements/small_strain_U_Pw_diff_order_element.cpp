@@ -1717,10 +1717,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 {
     KRATOS_TRY
 
-    Matrix stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
+    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
         rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
 
-    // Distribute stiffness block matrix into the elemental matrix
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
     KRATOS_CATCH("")

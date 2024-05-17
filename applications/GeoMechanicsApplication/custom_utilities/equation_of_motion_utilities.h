@@ -45,9 +45,9 @@ public:
                                                  const Matrix& rConstitutiveMatrix,
                                                  double        IntegrationCoefficient);
 
-    static Matrix CalculateStiffnessMatrix(const std::vector<Matrix>& b_matrices,
-                                           const std::vector<Matrix>& constitutive_matrices,
-                                           const std::vector<double>& integration_coefficients);
+    static Matrix CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
+                                           const std::vector<Matrix>& rConstitutiveMatrices,
+                                           const std::vector<double>& rIntegrationCoefficients);
 
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

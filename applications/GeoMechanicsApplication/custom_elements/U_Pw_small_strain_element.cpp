@@ -1234,7 +1234,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
 {
     KRATOS_TRY
 
-    Matrix stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
+    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
         rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
@@ -1332,7 +1332,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(Vecto
     noalias(rVariables.UVector) =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
-    // Distribute stiffness block vector into elemental vector
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
 
     KRATOS_CATCH("")
