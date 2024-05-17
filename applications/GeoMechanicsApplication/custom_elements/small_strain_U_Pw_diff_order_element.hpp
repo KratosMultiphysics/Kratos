@@ -193,7 +193,6 @@ protected:
         Vector PressureDtVector;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
         double DerivativeOfSaturation;
         double RelativePermeability;

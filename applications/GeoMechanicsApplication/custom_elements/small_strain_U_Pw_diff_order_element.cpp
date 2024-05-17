@@ -923,9 +923,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
-            Variables.FluidPressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+            RetentionParameters.SetFluidPressure(fluid_pressure);
 
             if (rVariable == DEGREE_OF_SATURATION)
                 rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
@@ -1030,9 +1030,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                     BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
             }
 
-            Variables.FluidPressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+            RetentionParameters.SetFluidPressure(fluid_pressure);
 
             const double RelativePermeability =
                 mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
@@ -1164,14 +1164,14 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
             Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
-            Variables.FluidPressure =
+            const auto fluid_pressure =
                 GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
-            Variables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            RetentionParameters.SetFluidPressure(fluid_pressure);
+            const auto bishop_coefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
             noalias(TotalStressVector) = mStressVector[GPoint];
             noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
-                                          Variables.BishopCoefficient * Variables.FluidPressure * VoigtVector;
+                                          bishop_coefficient * fluid_pressure * VoigtVector;
 
             if (rOutput[GPoint].size() != TotalStressVector.size()) {
                 rOutput[GPoint].resize(TotalStressVector.size(), false);
@@ -1470,7 +1470,6 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Retention law
-    rVariables.FluidPressure          = 0.0;
     rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability   = 1.0;
@@ -2055,9 +2054,9 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
 {
     KRATOS_TRY
 
-    rVariables.FluidPressure =
+    const auto fluid_pressure =
         GeoTransportEquationUtilities::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
-    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
+    rRetentionParameters.SetFluidPressure(fluid_pressure);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
     rVariables.DerivativeOfSaturation =
