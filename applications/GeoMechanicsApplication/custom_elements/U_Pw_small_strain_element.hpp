@@ -179,7 +179,6 @@ protected:
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
         double DerivativeOfSaturation;
         double RelativePermeability;

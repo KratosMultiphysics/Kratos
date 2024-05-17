@@ -520,9 +520,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             // Compute Np, GradNpT, B and StrainVector
             this->CalculateKinematics(Variables, GPoint);
 
-            Variables.FluidPressure =
+            const auto fluid_pressure =
                 GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+            RetentionParameters.SetFluidPressure(fluid_pressure);
 
             if (rVariable == DEGREE_OF_SATURATION)
                 rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
@@ -721,14 +721,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
-            Variables.FluidPressure =
+            const auto fluid_pressure =
                 GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+            RetentionParameters.SetFluidPressure(fluid_pressure);
             const auto bishop_coefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
             noalias(TotalStressVector) = mStressVector[GPoint];
             noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
-                                          bishop_coefficient * Variables.FluidPressure * VoigtVector;
+                                          bishop_coefficient * fluid_pressure * VoigtVector;
 
             if (rOutput[GPoint].size() != TotalStressVector.size())
                 rOutput[GPoint].resize(TotalStressVector.size(), false);
@@ -1098,9 +1098,9 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
 
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
-        Variables.FluidPressure =
+        const auto fluid_pressure =
             GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
-        RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+        RetentionParameters.SetFluidPressure(fluid_pressure);
 
         Variables.RelativePermeability =
             mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
@@ -1199,7 +1199,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
     rVariables.UVoigtMatrix.resize(TNumNodes * TDim, VoigtSize, false);
 
     // Retention law
-    rVariables.FluidPressure          = 0.0;
     rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability   = 1.0;
@@ -1638,9 +1637,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateRetentionResponse(ElementV
 {
     KRATOS_TRY
 
-    rVariables.FluidPressure =
+    const auto fluid_pressure =
         GeoTransportEquationUtilities::CalculateFluidPressure(rVariables.Np, rVariables.PressureVector);
-    rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
+    rRetentionParameters.SetFluidPressure(fluid_pressure);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
     rVariables.DerivativeOfSaturation =

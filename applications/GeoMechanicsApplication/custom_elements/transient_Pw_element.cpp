@@ -522,7 +522,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
         rVariables.DN_DXContainer, rVariables.detJContainer, this->GetIntegrationMethod());
 
     // Retention law
-    rVariables.FluidPressure          = 0.0;
     rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability   = 1.0;
