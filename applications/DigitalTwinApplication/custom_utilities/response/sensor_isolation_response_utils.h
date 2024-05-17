@@ -49,7 +49,8 @@ public:
     SensorIsolationResponseUtils(
         ModelPart& rSensorModelPart,
         const IndexType MaxNumberOfNeighbors,
-        const double Radius);
+        const double Radius,
+        const double Beta);
 
     ///@}
     ///@name Public operations
@@ -73,9 +74,17 @@ private:
 
     const double mRadius;
 
+    const double mBeta;
+
+    double mNumerator;
+
+    double mDenominator;
+
     std::vector<ModelPart::NodeType::Pointer> mNodes;
 
     KDTree::Pointer mpSearchTree;
+
+    std::vector<double> mClusterStatus;
 
     ///@}
 };

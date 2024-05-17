@@ -23,7 +23,8 @@ class SensorDistanceBoltzmannOperatorResponse(ResponseFunction):
             "evaluated_model_part_names" : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ],
-            "beta": -600
+            "p" : 4,
+            "beta": 300.0
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -35,6 +36,8 @@ class SensorDistanceBoltzmannOperatorResponse(ResponseFunction):
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
+
+        self.p = parameters["p"].GetDouble()
         self.beta = parameters["beta"].GetDouble()
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
@@ -43,7 +46,7 @@ class SensorDistanceBoltzmannOperatorResponse(ResponseFunction):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
-        self.utils = KratosDT.SensorDistanceBoltzmannOperatorResponseUtils(self.model_part, self.beta)
+        self.utils = KratosDT.SensorDistanceBoltzmannOperatorResponseUtils(self.model_part, self.p, self.beta)
         self.utils.Initialize()
 
     def Check(self) -> None:

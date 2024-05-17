@@ -45,7 +45,7 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<SensorIsolationResponseUtils, SensorIsolationResponseUtils::Pointer>(m, "SensorIsolationResponseUtils")
-        .def(py::init<ModelPart&, const IndexType, const double>(), py::arg("sensor_model_part"), py::arg("max_number_of_neighbours"), py::arg("radius"))
+        .def(py::init<ModelPart&, const IndexType, const double, const double>(), py::arg("sensor_model_part"), py::arg("max_number_of_neighbours"), py::arg("radius"), py::arg("beta"))
         .def("Initialize", &SensorIsolationResponseUtils::Initialize)
         .def("CalculateValue", &SensorIsolationResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorIsolationResponseUtils::CalculateGradient)
@@ -59,7 +59,7 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<SensorDistanceBoltzmannOperatorResponseUtils, SensorDistanceBoltzmannOperatorResponseUtils::Pointer>(m, "SensorDistanceBoltzmannOperatorResponseUtils")
-        .def(py::init<ModelPart&, const double>(), py::arg("sensor_model_part"), py::arg("beta"))
+        .def(py::init<ModelPart&, const double, const double>(), py::arg("sensor_model_part"), py::arg("p"), py::arg("beta"))
         .def("Initialize", &SensorDistanceBoltzmannOperatorResponseUtils::Initialize)
         .def("CalculateValue", &SensorDistanceBoltzmannOperatorResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorDistanceBoltzmannOperatorResponseUtils::CalculateGradient)

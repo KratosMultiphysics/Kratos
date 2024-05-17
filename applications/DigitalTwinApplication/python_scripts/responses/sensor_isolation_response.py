@@ -26,7 +26,8 @@ class SensorIsolationResponse(ResponseFunction):
             "evaluated_model_part_names" : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ],
-            "isolation_distance": 0.0
+            "isolation_distance": 0.0,
+            "beta"              : 300.0
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -40,6 +41,7 @@ class SensorIsolationResponse(ResponseFunction):
         self.model_part: Optional[Kratos.ModelPart] = None
         self.optimization_problem = optimization_problem
         self.isolation_distance = parameters["isolation_distance"].GetDouble()
+        self.beta = parameters["beta"].GetDouble()
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosDT.SENSOR_STATUS]
@@ -47,7 +49,7 @@ class SensorIsolationResponse(ResponseFunction):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
-        self.utils = KratosDT.SensorIsolationResponseUtils(self.model_part, int(1e+6), self.isolation_distance)
+        self.utils = KratosDT.SensorIsolationResponseUtils(self.model_part, int(1e+6), self.isolation_distance, self.beta)
         self.utils.Initialize()
 
     def Check(self) -> None:
@@ -66,7 +68,7 @@ class SensorIsolationResponse(ResponseFunction):
 
     def CalculateValue(self) -> float:
         return self.utils.CalculateValue()
-    
+
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # make everything zeros
         for physical_variable, collective_expression in physical_variable_collective_expressions.items():

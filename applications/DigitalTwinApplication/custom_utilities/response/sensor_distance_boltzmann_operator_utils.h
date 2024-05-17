@@ -39,6 +39,7 @@ public:
 
     SensorDistanceBoltzmannOperatorResponseUtils(
         ModelPart& rSensorModelPart,
+        const double P,
         const double Beta);
 
     ///@}
@@ -59,15 +60,17 @@ private:
 
     ModelPart* mpSensorModelPart;
 
-    double mBeta;
+    double mP;
 
-    double mScaling;
+    double mBeta;
 
     double mNumerator;
 
     double mDenominator;
 
     Matrix mDistances;
+
+    Vector mSensorDistance;
 
     ///@}
 };

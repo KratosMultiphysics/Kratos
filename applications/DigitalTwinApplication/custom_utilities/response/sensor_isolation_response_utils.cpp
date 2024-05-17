@@ -12,6 +12,7 @@
 
 // System includes
 #include <iterator>
+#include <limits>
 
 // External includes
 
@@ -33,10 +34,12 @@ namespace Kratos {
 SensorIsolationResponseUtils::SensorIsolationResponseUtils(
     ModelPart& rSensorModelPart,
     const IndexType MaxNumberOfNeighbors,
-    const double Radius)
+    const double Radius,
+    const double Beta)
     : mpSensorModelPart(&rSensorModelPart),
       mMaxNumberOfNeighbors(MaxNumberOfNeighbors),
-      mRadius(Radius)
+      mRadius(Radius),
+      mBeta(Beta)
 {
 }
 
@@ -50,6 +53,8 @@ void SensorIsolationResponseUtils::Initialize()
     });
 
     mpSearchTree =  Kratos::make_shared<SensorIsolationResponseUtils::KDTree>(mNodes.begin(), mNodes.end(), 100);
+
+    mClusterStatus.resize(mNodes.size());
 
     KRATOS_CATCH("")
 }
@@ -68,7 +73,7 @@ double SensorIsolationResponseUtils::CalculateValue()
         std::vector<double> mResultingSquaredDistances;
     };
 
-    return block_for_each<SumReduction<double>>(mpSensorModelPart->Nodes(), KDTreeThreadLocalStorage(mMaxNumberOfNeighbors), [&](const auto& rNode, KDTreeThreadLocalStorage& rTLS){
+    std::tie(mNumerator, mDenominator) = block_for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>(mpSensorModelPart->Nodes(), KDTreeThreadLocalStorage(mMaxNumberOfNeighbors), [&](const auto& rNode, KDTreeThreadLocalStorage& rTLS){
         const auto number_of_neighbors = this->mpSearchTree->SearchInRadius(
                                             rNode,
                                             this->mRadius,
@@ -81,14 +86,22 @@ double SensorIsolationResponseUtils::CalculateValue()
             << this->mpSensorModelPart->FullName() << " with radii = " << this->mRadius << " [ max number of allowed neighbours = "
             << mMaxNumberOfNeighbors << " ].\n";
 
-        double result = 0.0;
-        if (rNode.GetValue(SENSOR_STATUS) >= 0.999) {
-            for (IndexType i = 1; i < number_of_neighbors; ++i) {
-                result += rTLS.mNeighbourEntityPoints[i]->GetValue(SENSOR_STATUS);
-            }
+        double& value = mClusterStatus[rNode.Id() - 1];
+        value = 0.0;
+
+        for (IndexType i = 1; i < number_of_neighbors; ++i) {
+            value += rTLS.mNeighbourEntityPoints[i]->GetValue(SENSOR_STATUS);
         }
-        return result;
+
+        value /= number_of_neighbors;
+        return std::make_tuple(value * std::exp(mBeta * value), std::exp(mBeta * value));
     });
+
+    if (mDenominator > std::numeric_limits<double>::epsilon()) {
+        return mNumerator / mDenominator;
+    } else {
+        return 0.0;
+    }
 }
 
 ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils::CalculateGradient()
@@ -112,25 +125,28 @@ ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils:
         *(p_expression->begin() + Index) = 0.0;
     });
 
-    block_for_each(mpSensorModelPart->Nodes(), KDTreeThreadLocalStorage(mMaxNumberOfNeighbors), [&](const auto& rNode, KDTreeThreadLocalStorage& rTLS){
-        const auto number_of_neighbors = this->mpSearchTree->SearchInRadius(
-                                            rNode,
-                                            this->mRadius,
-                                            rTLS.mNeighbourEntityPoints.begin(),
-                                            rTLS.mResultingSquaredDistances.begin(),
-                                            mMaxNumberOfNeighbors);
+    if (mDenominator > std::numeric_limits<double>::epsilon()) {
+        block_for_each(mpSensorModelPart->Nodes(), KDTreeThreadLocalStorage(mMaxNumberOfNeighbors), [&](const auto& rNode, KDTreeThreadLocalStorage& rTLS){
+            const auto number_of_neighbors = this->mpSearchTree->SearchInRadius(
+                                                rNode,
+                                                this->mRadius,
+                                                rTLS.mNeighbourEntityPoints.begin(),
+                                                rTLS.mResultingSquaredDistances.begin(),
+                                                mMaxNumberOfNeighbors);
 
-        KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
-            << "Maximum number of allowed neighbours reached when searching for neighbours in "
-            << this->mpSensorModelPart->FullName() << " with radii = " << this->mRadius << " [ max number of allowed neighbours = "
-            << mMaxNumberOfNeighbors << " ].\n";
+            KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
+                << "Maximum number of allowed neighbours reached when searching for neighbours in "
+                << this->mpSensorModelPart->FullName() << " with radii = " << this->mRadius << " [ max number of allowed neighbours = "
+                << mMaxNumberOfNeighbors << " ].\n";
 
-        if (rNode.GetValue(SENSOR_STATUS) >= 0.999) {
             for (IndexType i = 1; i < number_of_neighbors; ++i) {
-                AtomicAdd<double>(*(p_expression->begin() + rTLS.mNeighbourEntityPoints[i]->Id() - 1), 1.0);
+                const IndexType node_index = rTLS.mNeighbourEntityPoints[i]->Id() - 1;
+                const double cluster_status = mClusterStatus[node_index];
+                const double value = std::exp(mBeta * cluster_status) * (1 + mBeta * cluster_status - mNumerator * mBeta / mDenominator) / (mDenominator * number_of_neighbors);
+                AtomicAdd<double>(*(p_expression->begin() + rTLS.mNeighbourEntityPoints[i]->Id() - 1), value);
             }
-        }
-    });
+        });
+    }
 
     ContainerExpression<ModelPart::NodesContainerType> result(*mpSensorModelPart);
     result.SetExpression(p_expression);

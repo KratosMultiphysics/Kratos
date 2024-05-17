@@ -106,22 +106,23 @@ class TestSensorIsolationResponse(UnitTest.TestCase):
             loc = sensor.GetLocation()
             node: Kratos.Node = cls.sensor_model_part.CreateNewNode(i + 1, loc[0], loc[1], loc[2])
 
-        cls.sensor_model_part.GetNode(1).SetValue(KratosDT.SENSOR_STATUS, 1)            
-        cls.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 0.8)            
-        cls.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 0.7)            
-        cls.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 0.6)            
+        cls.sensor_model_part.GetNode(1).SetValue(KratosDT.SENSOR_STATUS, 1)
+        cls.sensor_model_part.GetNode(2).SetValue(KratosDT.SENSOR_STATUS, 0.8)
+        cls.sensor_model_part.GetNode(3).SetValue(KratosDT.SENSOR_STATUS, 0.7)
+        cls.sensor_model_part.GetNode(4).SetValue(KratosDT.SENSOR_STATUS, 0.6)
 
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
                 "sensors"
             ],
-            "isolation_distance": 10.0                                   
+            "isolation_distance": 10.0,
+            "beta"              : 300.0
         }""")
         cls.response = SensorIsolationResponse("test", cls.model, params, cls.optimization_problem)
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 2.1)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.525)
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()
@@ -135,6 +136,7 @@ class TestSensorIsolationResponse(UnitTest.TestCase):
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) + delta)
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) - delta)
+            print(fd_sensitivity, analytical_gradient[i])
             self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i])
 
 if __name__ == '__main__':

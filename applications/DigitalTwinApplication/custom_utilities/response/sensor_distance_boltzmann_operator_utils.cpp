@@ -30,8 +30,10 @@ namespace Kratos {
 
 SensorDistanceBoltzmannOperatorResponseUtils::SensorDistanceBoltzmannOperatorResponseUtils(
     ModelPart& rSensorModelPart,
+    const double P,
     const double Beta)
     : mpSensorModelPart(&rSensorModelPart),
+      mP(P),
       mBeta(Beta)
 {
 }
@@ -42,31 +44,14 @@ void SensorDistanceBoltzmannOperatorResponseUtils::Initialize()
 
     const IndexType n = mpSensorModelPart->NumberOfNodes();
     mDistances.resize(n, n, false);
+    mSensorDistance.resize(n);
     mDistances.clear();
-
-    const double max_distance = IndexPartition<IndexType>(n).for_each<MaxReduction<double>>([&](const auto i) {
-        double max_distance = 0.0;
-        for (IndexType j = i + 1; j < n; ++j) {
-            const auto distance = norm_2((mpSensorModelPart->NodesBegin() + i)->Coordinates() - (mpSensorModelPart->NodesBegin() + j)->Coordinates());
-            mDistances(i, j) = distance;
-
-            if (max_distance < distance) {
-                max_distance = distance;
-            }
-        }
-        return max_distance;
-    });
-
-    // For IEEE-compatible type double, overflow is guaranteed if 709.8 < num
-    // and underflow is guaranteed if num < -708.4. hence we calculate the optimum scaling
-    // to not to have overflow or under flow
-    mScaling = max_distance;
 
     IndexPartition<IndexType>(n).for_each([&](const auto i) {
         for (IndexType j = i + 1; j < n; ++j) {
-            const double distance_ratio = mDistances(i, j) / mScaling;
-            mDistances(j, i) = std::exp(mBeta * distance_ratio);
-            mDistances(i, j) = distance_ratio * mDistances(j, i);
+            // 1.0 is added so that distances are never zero, and the mP of distance
+            // is always greater than 1.0
+            mDistances(i, j) = std::pow(1 + norm_2((mpSensorModelPart->NodesBegin() + i)->Coordinates() - (mpSensorModelPart->NodesBegin() + j)->Coordinates()), mP);
         }
     });
 
@@ -80,19 +65,25 @@ double SensorDistanceBoltzmannOperatorResponseUtils::CalculateValue()
     const IndexType n = mDistances.size1();
 
     std::tie(mNumerator, mDenominator) = IndexPartition<IndexType>(n).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&](const auto i) {
-        double numerator = 0.0;
-        double denominator = 0.0;
         const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
+
+        double& sensor_distance = mSensorDistance[i];
+
+        sensor_distance = 0.0;
+        for (IndexType j = 0; j < i; ++j) {
+            const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
+            sensor_distance += sensor_status_i * sensor_status_j / mDistances(j, i);
+        }
         for (IndexType j = i + 1; j < n; ++j) {
             const double sensor_status_j = (mpSensorModelPart->NodesBegin() + j)->GetValue(SENSOR_STATUS);
-            numerator += sensor_status_i * sensor_status_j * mDistances(i, j);
-            denominator += sensor_status_i * sensor_status_j * mDistances(j, i);
+            sensor_distance += sensor_status_i * sensor_status_j / mDistances(i, j);
         }
-        return std::make_tuple(numerator, denominator);
+
+        return std::make_tuple(sensor_distance * std::exp(mBeta * sensor_distance), std::exp(mBeta * sensor_distance));
     });
 
     if (mDenominator > std::numeric_limits<double>::epsilon()) {
-        return mNumerator * mScaling / mDenominator;
+        return mNumerator / mDenominator;
     } else {
         return 0.0;
     }
@@ -106,32 +97,33 @@ ContainerExpression<ModelPart::NodesContainerType> SensorDistanceBoltzmannOperat
 
     const IndexType n = mDistances.size1();
 
-    auto p_expression = LiteralFlatExpression<double>::Create(n, {});
+    auto p_expression = LiteralFlatExpression<double>::Create(mpSensorModelPart->NumberOfNodes(), {});
+    IndexPartition<IndexType>(mpSensorModelPart->NumberOfNodes()).for_each([&p_expression](const auto Index) {
+        *(p_expression->begin() + Index) = 0.0;
+    });
 
     if (mDenominator > std::numeric_limits<double>::epsilon()) {
-        const double coeff_1 = mScaling / mDenominator;
-        const double coeff_2 = mNumerator * mScaling / (mDenominator * mDenominator);
         IndexPartition<IndexType>(n).for_each([&](const auto k) {
-            double numerator_derivative = 0.0;
-            double denominator_derivative = 0.0;
+            double& value = *(p_expression->begin() + k);
+            const double coeff = (1.0 + mBeta * mSensorDistance[k] - mNumerator * mBeta / mDenominator) * std::exp(mBeta * mSensorDistance[k]) / mDenominator;
 
             for (IndexType i = 0; i < k; ++i) {
-                const double sensor_status = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-                numerator_derivative += sensor_status * mDistances(i, k);
-                denominator_derivative += sensor_status * mDistances(k, i);
+                const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
+
+                double temp = coeff;
+                temp += (1.0 + mBeta * mSensorDistance[i] - mNumerator * mBeta / mDenominator) * std::exp(mBeta * mSensorDistance[i]) / mDenominator;
+
+                value += sensor_status_i * temp / mDistances(i, k);
             }
 
             for (IndexType i = k + 1; i < n; ++i) {
-                const double sensor_status = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
-                numerator_derivative += sensor_status * mDistances(k, i);
-                denominator_derivative += sensor_status * mDistances(i, k);
-            }
+                const double sensor_status_i = (mpSensorModelPart->NodesBegin() + i)->GetValue(SENSOR_STATUS);
 
-            *(p_expression->begin() + k) = coeff_1 * numerator_derivative - denominator_derivative * coeff_2;
-        });
-    } else {
-        IndexPartition<IndexType>(n).for_each([&](const auto Index) {
-            *(p_expression->begin() + Index) = 0.0;
+                double temp = coeff;
+                temp += (1.0 + mBeta * mSensorDistance[i] - mNumerator * mBeta / mDenominator) * std::exp(mBeta * mSensorDistance[i]) / mDenominator;
+
+                value += sensor_status_i * temp / mDistances(k, i);
+            }
         });
     }
 

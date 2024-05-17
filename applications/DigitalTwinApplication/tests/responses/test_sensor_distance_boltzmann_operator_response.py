@@ -22,13 +22,13 @@ class TestSensorDistanceBoltzmannOperatorResponseUtils(UnitTest.TestCase):
         cls.model_part.CreateNewNode(5, 10, 20, 0)
         cls.model_part.CreateNewNode(6, 10, 40, 0)
 
-        cls.response_utils = KratosDT.SensorDistanceBoltzmannOperatorResponseUtils(cls.model_part, -100)
+        cls.response_utils = KratosDT.SensorDistanceBoltzmannOperatorResponseUtils(cls.model_part, 2, 10.0)
         cls.response_utils.Initialize()
 
     def test_CalculateValue(self):
         for node in self.model_part.Nodes:
             node.SetValue(KratosDT.SENSOR_STATUS, 1.0)
-        self.assertAlmostEqual(self.response_utils.CalculateValue(), 2.0858093815810554)
+        self.assertAlmostEqual(self.response_utils.CalculateValue(), 0.14459399485010246)
 
     def test_CalculateGradient(self):
         for node in self.model_part.Nodes:
@@ -36,7 +36,7 @@ class TestSensorDistanceBoltzmannOperatorResponseUtils(UnitTest.TestCase):
         ref_value = self.response_utils.CalculateValue()
         analytical_gradient = self.response_utils.CalculateGradient().Evaluate()
 
-        delta = 1e-9
+        delta = 1e-8
         for i, node in enumerate(self.model_part.Nodes):
             node.SetValue(KratosDT.SENSOR_STATUS, node.GetValue(KratosDT.SENSOR_STATUS) + delta)
             fd_gradient = (self.response_utils.CalculateValue() - ref_value) / delta
@@ -145,14 +145,13 @@ class TestSensorDistanceBoltzmannOperatorResponse(UnitTest.TestCase):
         params = Kratos.Parameters("""{
             "evaluated_model_part_names" : [
                 "sensors"
-            ],
-            "beta": -300.0
+            ]
         }""")
         cls.response = SensorDistanceBoltzmannOperatorResponse("test", cls.model, params)
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.0001)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.5002241155767124)
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()
