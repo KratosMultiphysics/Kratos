@@ -1164,7 +1164,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
             Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
-            this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+            Variables.FluidPressure =
+                GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
+            RetentionParameters.SetFluidPressure(Variables.FluidPressure);
+            Variables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
             noalias(TotalStressVector) = mStressVector[GPoint];
             noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
