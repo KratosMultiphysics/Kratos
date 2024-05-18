@@ -383,7 +383,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        if (first_nonlinearity) {
+        double F = uniaxial_stress - threshold;
+
+        if (F > threshold_tolerance && first_nonlinearity) {
             HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(uniaxial_stress,
                                                                         threshold,          
                                                                         local_number_of_cycles,
@@ -399,7 +401,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         
         threshold /= (1 - damage);
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
-        const double F = uniaxial_stress - threshold;
+        F = uniaxial_stress - threshold;
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);        
 
