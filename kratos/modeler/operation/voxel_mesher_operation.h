@@ -24,7 +24,7 @@
 
 namespace Kratos {
 
-class VoxelMesherOperation {
+class KRATOS_API(KRATOS_CORE) VoxelMesherOperation {
 
     VoxelMeshGeneratorModeler& mrModeler;
     Parameters mParameters;

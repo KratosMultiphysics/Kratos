@@ -26,7 +26,7 @@
 
 namespace Kratos {
 
-class VoxelMesherColoring {
+class KRATOS_API(KRATOS_CORE) VoxelMesherColoring {
 
     VoxelMeshGeneratorModeler& mrModeler;
     Parameters mParameters;

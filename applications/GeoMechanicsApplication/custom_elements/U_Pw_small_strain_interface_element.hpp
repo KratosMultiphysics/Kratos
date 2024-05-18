@@ -291,9 +291,6 @@ protected:
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
 
-    void SetConstitutiveParameters(InterfaceElementVariables&   rVariables,
-                                   ConstitutiveLaw::Parameters& rConstitutiveParameters);
-
     Vector SetFullStressVector(const Vector& rStressVector);
 
 private:

@@ -158,4 +158,29 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
     KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeoMechanicsFastSuite)
+{
+    constexpr std::size_t voigt_size = 4;
+    constexpr std::size_t n          = 3;
+
+    const Matrix        b = ScalarMatrix(voigt_size, n, 0.5);
+    std::vector<Matrix> b_matrices;
+    b_matrices.push_back(b);
+    b_matrices.push_back(b);
+
+    const Matrix        constitutive = ScalarMatrix(voigt_size, voigt_size, 2.0);
+    std::vector<Matrix> constitutive_matrices;
+    constitutive_matrices.push_back(constitutive);
+    constitutive_matrices.push_back(constitutive);
+
+    std::vector<double> integration_coefficients{1.0, 2.0};
+
+    auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+        b_matrices, constitutive_matrices, integration_coefficients);
+
+    const auto expected_stiffness_matrix = ScalarMatrix(n, n, 24.0);
+
+    KRATOS_CHECK_MATRIX_NEAR(stiffness_matrix, expected_stiffness_matrix, 1e-4)
+}
+
 } // namespace Kratos::Testing
