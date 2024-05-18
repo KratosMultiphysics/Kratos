@@ -519,8 +519,9 @@ void UPlSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
         std::vector<double> GPValues(NumGPoints);
 
-        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+        for ( unsigned int i = 0;  i < NumGPoints; i++ ) {
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
+        }
 
         //Printed on standard GiD
         const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );

@@ -350,8 +350,9 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
         if (rEPlasticVariables.YieldFunction_MC == 0.0) {
             mSlipTendency = 1.0;        
         }
-        else
-            mSlipTendency = abs(ts) / (c - tn*tanPhi);
+        else {
+            mSlipTendency = abs(ts) / abs(c - tn*tanPhi);
+        }
 
     } else if ((rEPlasticVariables.YieldFunction_MC > 0.0) && (rEPlasticVariables.YieldFunction_CutOff < 0.0)){ // ------ Return to the Mohr-Coulomb surface
         
