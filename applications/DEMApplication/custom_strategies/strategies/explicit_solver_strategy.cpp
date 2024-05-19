@@ -2982,22 +2982,40 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEReadOldForces(void) {
       std::fstream f_old_elastic_forces;
-      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
-      if (!f_old_elastic_forces)
-        return;
+      std::fstream f_old_elastic_forces_walls;
 
-      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
-        int particle_id, n_neighbors;
-        f_old_elastic_forces >> particle_id >> n_neighbors;
-        for (int j = 0; j < n_neighbors; j++) {
-          double fx, fy, fz;
-          f_old_elastic_forces >> fx >> fy >> fz;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
-          mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
+      f_old_elastic_forces.open("OLD_FORCES.txt", std::ios::in);
+      f_old_elastic_forces_walls.open("OLD_FORCES_WALLS.txt", std::ios::in);
+
+      if (f_old_elastic_forces) {
+        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+          int particle_id, n_neighbors;
+          f_old_elastic_forces >> particle_id >> n_neighbors;
+          for (int j = 0; j < n_neighbors; j++) {
+            double fx, fy, fz;
+            f_old_elastic_forces >> fx >> fy >> fz;
+            mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][0] = fx;
+            mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][1] = fy;
+            mListOfSphericParticles[i]->mNeighbourElasticContactForces[j][2] = fz;
+          }
         }
+        f_old_elastic_forces.close();
       }
-      f_old_elastic_forces.close();
+
+      if (f_old_elastic_forces_walls) {
+        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+          int particle_id, n_neighbors;
+          f_old_elastic_forces_walls >> particle_id >> n_neighbors;
+          for (int j = 0; j < n_neighbors; j++) {
+            double fx, fy, fz;
+            f_old_elastic_forces_walls >> fx >> fy >> fz;
+            mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce[j][0] = fx;
+            mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce[j][1] = fy;
+            mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce[j][2] = fz;
+          }
+        }
+        f_old_elastic_forces_walls.close();
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -3328,17 +3346,30 @@ namespace Kratos {
         return;
 
       mRVE_FileElasticContactForces.open("rve_force_particles.txt", std::ios::out | std::ios::trunc);
+      mRVE_FileElasticContactForcesWalls.open("rve_force_particles_walls.txt", std::ios::out | std::ios::trunc);
+
       for (int i = 0; i < mListOfSphericParticles.size(); i++) {
         const int id = mListOfSphericParticles[i]->Id();
-        const int n_neighbors = mListOfSphericParticles[i]->mNeighbourElements.size();
-        mRVE_FileElasticContactForces << std::defaultfloat << id << " " << n_neighbors << " ";
-        for (int j = 0; j < n_neighbors; j++) {
+        const int n_neighbors_p = mListOfSphericParticles[i]->mNeighbourElements.size();
+        const int n_neighbors_w = mListOfSphericParticles[i]->mNeighbourRigidFaces.size();
+
+        mRVE_FileElasticContactForces << std::defaultfloat << id << " " << n_neighbors_p << " ";
+        for (int j = 0; j < n_neighbors_p; j++) {
           array_1d<double, 3> force = mListOfSphericParticles[i]->mNeighbourElasticContactForces[j];
           mRVE_FileElasticContactForces << std::fixed << std::setprecision(16) << force[0] << " " << force[1] << " " << force[2] << " ";
         }
         mRVE_FileElasticContactForces << std::endl;
+
+        mRVE_FileElasticContactForcesWalls << std::defaultfloat << id << " " << n_neighbors_w << " ";
+        for (int j = 0; j < n_neighbors_w; j++) {
+          array_1d<double, 3> force = mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce[j];
+          mRVE_FileElasticContactForcesWalls << std::fixed << std::setprecision(16) << force[0] << " " << force[1] << " " << force[2] << " ";
+        }
+        mRVE_FileElasticContactForcesWalls << std::endl;
       }
+
       mRVE_FileElasticContactForces.close();
+      mRVE_FileElasticContactForcesWalls.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------

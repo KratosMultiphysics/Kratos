@@ -374,6 +374,7 @@ namespace Kratos {
         std::ofstream mRVE_FileInnerVolumeParticles;
         std::ofstream mRVE_FileForceChain;
         std::ofstream mRVE_FileElasticContactForces;
+        std::ofstream mRVE_FileElasticContactForcesWalls;
         std::ofstream mRVE_FileRoseDiagram;
         std::ofstream mRVE_FileRoseDiagramInner;
         std::ofstream mRVE_FileRoseDiagramUniformity;
