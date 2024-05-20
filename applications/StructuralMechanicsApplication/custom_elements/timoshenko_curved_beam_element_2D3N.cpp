@@ -197,10 +197,9 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
     }
     // return ((dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3));
 
-    VectorType x_prime(3), x_prime2(3), x_prime_cube(3);
+    VectorType x_prime(3), x_prime2(3);
     x_prime.clear();
     x_prime2.clear();
-    x_prime_cube.clear();
 
     x_prime[0] = dx_dxi;
     x_prime[1] = dy_dxi;
@@ -210,9 +209,6 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
     x_prime2[1] = d2y_dxi2;
     x_prime2[2] = 0.0;
 
-    x_prime_cube[0] = dx_dxi * dx_dxi * dx_dxi;
-    x_prime_cube[1] = dy_dxi * dy_dxi * dy_dxi;
-    x_prime_cube[2] = 0.0;
     return norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
 }
 
