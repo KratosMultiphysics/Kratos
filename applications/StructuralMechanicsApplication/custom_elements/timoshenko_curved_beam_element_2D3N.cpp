@@ -195,21 +195,21 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
         d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
         d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
     }
-    // return ((dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3));
+    return ((dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3));
 
-    VectorType x_prime(3), x_prime2(3);
-    x_prime.clear();
-    x_prime2.clear();
+    // VectorType x_prime(3), x_prime2(3);
+    // x_prime.clear();
+    // x_prime2.clear();
 
-    x_prime[0] = dx_dxi;
-    x_prime[1] = dy_dxi;
-    x_prime[2] = 0.0;
+    // x_prime[0] = dx_dxi;
+    // x_prime[1] = dy_dxi;
+    // x_prime[2] = 0.0;
 
-    x_prime2[0] = d2x_dxi2;
-    x_prime2[1] = d2y_dxi2;
-    x_prime2[2] = 0.0;
+    // x_prime2[0] = d2x_dxi2;
+    // x_prime2[1] = d2y_dxi2;
+    // x_prime2[2] = 0.0;
 
-    return norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
+    // return norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
 }
 
 /***********************************************************************************/
@@ -990,46 +990,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(
     GlobalSizeVector global_values;
     BoundedMatrix<double, 9, 9> global_size_T;
     StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-
-    global_size_T.clear();
-
-    global_size_T(0, 0) = T1(0, 0);
-    global_size_T(0, 1) = T1(0, 1);
-    global_size_T(0, 2) = T1(0, 2);
-
-    global_size_T(1, 0) = T1(1, 0);
-    global_size_T(1, 1) = T1(1, 1);
-    global_size_T(1, 2) = T1(1, 2);
-
-    global_size_T(2, 0) = T1(2, 0);
-    global_size_T(2, 1) = T1(2, 1);
-    global_size_T(2, 2) = T1(2, 2);
-
-    global_size_T(3, 3) = T2(0, 0);
-    global_size_T(3, 4) = T2(0, 1);
-    global_size_T(3, 5) = T2(0, 2);
-
-    global_size_T(4, 3) = T2(1, 0);
-    global_size_T(4, 4) = T2(1, 1);
-    global_size_T(4, 5) = T2(1, 2);
-
-    global_size_T(5, 3) = T2(2, 0);
-    global_size_T(5, 4) = T2(2, 1);
-    global_size_T(5, 5) = T2(2, 2);
-
-    global_size_T(6, 6) = T3(0, 0);
-    global_size_T(6, 7) = T3(0, 1);
-    global_size_T(6, 8) = T3(0, 2);
-
-    global_size_T(7, 6) = T3(1, 0);
-    global_size_T(7, 7) = T3(1, 1);
-    global_size_T(7, 8) = T3(1, 2);
-
-    global_size_T(8, 6) = T3(2, 0);
-    global_size_T(8, 7) = T3(2, 1);
-    global_size_T(8, 8) = T3(2, 2);
+    StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T1, global_size_T);
 
     const auto& r_displ_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
     const auto& r_displ_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
