@@ -83,45 +83,25 @@ namespace
     void Registry::SetCurrentSource(std::string const & rCurrentSource)
     {
         // If context key not present, create it
-        if(!Registry::HasItem("CurrentContext")){
-           Registry::AddItem<RegistryItem>("CurrentContext");
+        if (Registry::HasItem("CurrentContext")){
+            Registry::RemoveItem("CurrentContext");
         }
 
-        auto & entry = Registry::GetItem("CurrentContext");
+        // It is needed to create a std::string explicitly copying the '"CurrentContext"+rCurrentSource' to avoid casting problems
+        // involing std::any_cast to a reference type which key references a string that may not be alive when invoked.
+        std::string context_key = std::string("CurrentContext" + rCurrentSource);
 
-        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
-        std::vector<std::string> keys;
-        std::transform(entry.cbegin(), entry.cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
-
-        for (auto sub_key: keys) {
-            entry.RemoveItem(sub_key);
-        }
-
-        Registry::AddItem<RegistryItem>("CurrentContext."+rCurrentSource);
+        Registry::AddItem<RegistryItem>(context_key);
     }
 
     std::string Registry::GetCurrentSource()
     {
-        using namespace std::literals;
-
         // If context key not present, create it
-        if(!Registry::HasItem("CurrentContext")){
-            Registry::AddItem<RegistryItem>("CurrentContext");
-        }
-
-        auto & entry = Registry::GetItem("CurrentContext");
-
-        // If no context set, set the default one
-        if(entry.size() == 0){
+        if (!Registry::HasItem("CurrentContext")){
             Registry::AddItem<RegistryItem>("CurrentContext.KratosMultiphysics");
         }
 
-        // If more than one context set, throw an error
-        if(entry.size() > 1){
-            KRATOS_ERROR << "More than one context set in the registry" << std::endl;
-        }
-
-        return entry.begin()->first;
+        return Registry::GetItem("CurrentContext").begin()->first;
     }
 
     std::size_t Registry::size()
