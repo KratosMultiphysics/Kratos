@@ -34,9 +34,9 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TrussBackboneConstitutiveLaw : public ConstitutiveLaw
 {
 public:
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw  BaseType;
-    typedef std::size_t      SizeType;
+    using ProcessInfoType = ProcessInfo;
+    using BaseType        = ConstitutiveLaw;
+    using SizeType        = std::size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION( TrussBackboneConstitutiveLaw );
 
@@ -100,12 +100,12 @@ private:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
         rSerializer.save("AccumulatedStrain", mAccumulatedStrain);
     }
 
     void load(Serializer& rSerializer) override {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
         rSerializer.load("AccumulatedStrain", mAccumulatedStrain);
     }
 

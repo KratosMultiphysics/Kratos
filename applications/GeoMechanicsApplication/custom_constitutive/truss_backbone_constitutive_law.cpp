@@ -125,26 +125,6 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
     }
     rValues.SetStressVector(axial_stress_vector);
 
-/*
-    if (axial_strain > mAccumulatedStrain) {
-        // loading
-        axial_stress_vector[0] = TrussBackboneConstitutiveLaw::BackboneStress(axial_strain);
-        rValues.SetStressVector(axial_stress_vector);
-    } else if (axial_strain >= mAccumulatedStrain - un_re_loading_strain_amplitude) {
-        // unloading reloading
-        axial_stress_vector[0] =
-            TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain) -
-            rValues.GetMaterialProperties()[YOUNG_MODULUS] * (mAccumulatedStrain - axial_strain);
-        rValues.SetStressVector(axial_stress_vector);
-    } else {
-        // loading opposite direction
-        /// nog niet goed!!
-        axial_stress_vector[0] = TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain) -
-                                 rValues.GetMaterialProperties()[YOUNG_MODULUS] *
-                                     (mAccumulatedStrain - un_re_loading_strain_amplitude);
-        rValues.SetStressVector(axial_stress_vector);
-    }
-*/
 }
 
 void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
@@ -168,7 +148,7 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
                                         const GeometryType& rElementGeometry,
                                         const ProcessInfo&  rCurrentProcessInfo) const
 {
-    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS))
     // andere input voor backbone nalopen
     return 0;
 }
@@ -179,7 +159,7 @@ double TrussBackboneConstitutiveLaw::BackboneStress(const double Strain) const
     return 0.5 * young_modulus * Strain;
 }
 
-double TrussBackboneConstitutiveLaw::BackboneStiffness(const double Strain) const
+double TrussBackboneConstitutiveLaw::BackboneStiffness([[maybe_unused]] double Strain) const
 {
     double young_modulus = 200.;
     return 0.5 * young_modulus;
