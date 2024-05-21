@@ -25,8 +25,8 @@ class StressStatePolicy
 public:
     virtual ~StressStatePolicy() = default;
 
-    [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rGradNpT,
-                                                  const Vector&         rNp,
+    [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rDN_DX,
+                                                  const Vector&         rN,
                                                   const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                                  double DetJ,

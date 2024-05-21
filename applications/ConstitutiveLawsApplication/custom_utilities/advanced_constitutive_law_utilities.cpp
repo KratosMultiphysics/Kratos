@@ -137,10 +137,9 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(
     const double J2thirds = J2 / 3.0;
 
     if constexpr (Dimension == 2) {
-        rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
-        rThirdVector[1] = rDeviator[0] * rDeviator[2] + J2thirds;
-        rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
-        rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
+        rThirdVector[0] = J2thirds;
+        rThirdVector[1] = J2thirds;
+        rThirdVector[2] = 0.0; // The szz should be added when 4-size is ready in plane strain
     } else {
         rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
         rThirdVector[1] = rDeviator[0] * rDeviator[2] - rDeviator[5] * rDeviator[5] + J2thirds;

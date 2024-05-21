@@ -3,7 +3,7 @@
         "problem_name":         "test_model",
         "start_time":           0.0,
         "end_time":             1.0,
-        "echo_level":           2,
+        "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
     },
@@ -23,7 +23,7 @@
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
-        "echo_level":                         2,
+        "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
