@@ -36,7 +36,7 @@ double SensorCoverageResponseUtils::CalculateValue(const SensorMaskStatus<TConta
     const auto& r_mask_statuses = rSensorMaskStatus.GetMaskStatuses();
     const auto& r_mask_local_container = rSensorMaskStatus.GetMaskLocalContainer();
 
-    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 1.0);
+    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 2.0);
 
     std::vector<double> local_values(2, 0.0);
     std::tie(local_values[0], local_values[1]) = IndexPartition<IndexType>(r_mask_statuses.size1()).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&r_mask_local_container, &r_mask_statuses, &clamper](const auto iEntity) {
@@ -46,7 +46,7 @@ double SensorCoverageResponseUtils::CalculateValue(const SensorMaskStatus<TConta
             value += r_sensor_statuses[i_sensor];
         }
         const double domain_size = (r_mask_local_container.begin() + iEntity)->GetGeometry().DomainSize();
-        return std::make_tuple(domain_size * clamper.Clamp(value), domain_size);
+        return std::make_tuple(domain_size * clamper.Clamp(value) * 0.5, domain_size);
     });
 
     const auto& global_values = rSensorMaskStatus.GetDataCommunicator().SumAll(local_values);
