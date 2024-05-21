@@ -89,7 +89,7 @@ namespace
 
         // It is needed to create a std::string explicitly copying the '"CurrentContext"+rCurrentSource' to avoid casting problems
         // involing std::any_cast to a reference type which key references a string that may not be alive when invoked.
-        std::string context_key = std::string("CurrentContext" + rCurrentSource);
+        std::string context_key = std::string("CurrentContext." + rCurrentSource);
 
         Registry::AddItem<RegistryItem>(context_key);
     }
