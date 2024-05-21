@@ -57,7 +57,7 @@ class ConnectivityPreservingModelPartController(ModelPartController):
             elif element_name != "":
                 connectivity_preserve_modeller.GenerateModelPart(source_model_part, destination_model_part, element_name)
             elif condition_name != "":
-                connectivity_preserve_modeller.GenerateModelPartWithConditions(source_model_part, destination_model_part, condition_name)
+                connectivity_preserve_modeller.GenerateModelPart(source_model_part, destination_model_part, condition_name)
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Duplicated {source_model_part.FullName()} in to {destination_model_part.FullName()}.")
 
