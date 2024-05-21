@@ -453,8 +453,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
-
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
@@ -470,7 +468,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        this->InitializeBiotCoefficients(Variables);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
