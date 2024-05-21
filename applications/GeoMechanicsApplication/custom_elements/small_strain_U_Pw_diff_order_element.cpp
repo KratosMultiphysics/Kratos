@@ -1156,11 +1156,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateKinematics(Variables, GPoint);
-            Variables.B                  = b_matrices[GPoint];
-            Variables.F                  = deformation_gradients[GPoint];
-            Variables.StrainVector       = strain_vectors[GPoint];
-            Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-            Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables);
+            Variables.BiotCoefficient = CalculateBiotCoefficient(constitutive_matrices[GPoint]);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1522,7 +1518,7 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     KRATOS_CATCH("")
 }
 
-double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const ElementVariables& rVariables) const
+double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
 {
     KRATOS_TRY
 
@@ -1533,7 +1529,7 @@ double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const ElementVar
         return rProp[BIOT_COEFFICIENT];
     } else {
         // calculate Bulk modulus from stiffness matrix
-        return 1.0 - CalculateBulkModulus(rVariables.ConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
+        return 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
     }
 
     KRATOS_CATCH("")
@@ -1545,7 +1541,7 @@ void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables
 
     const PropertiesType& rProp = this->GetProperties();
 
-    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables);
+    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables.ConstitutiveMatrix);
 
     if (rProp[IGNORE_UNDRAINED]) {
         rVariables.BiotModulusInverse =
