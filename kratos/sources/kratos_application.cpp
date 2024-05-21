@@ -312,7 +312,7 @@ void KratosApplication::DeregisterComponent(std::string const & rComponentName) 
     // Remove only if the application has this type of components registered
     if (Registry::HasItem(path)) {
 
-        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this intro a transform range when C++20 is available)
+        // Generate a temporal list with all the keys to avoid invalidating the iterator (Convert this into a transform range when C++20 is available)
         std::vector<std::string> keys;
         std::transform(Registry::GetItem(path).cbegin(), Registry::GetItem(path).cend(), std::back_inserter(keys), [](auto & key){return std::string(key.first);});
 
