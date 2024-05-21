@@ -97,7 +97,7 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
         return rEntity.GetProperties().Id();
     });
 
-    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.PropertiesArray(), [](const auto pProperties) {
+    auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.GetRootModelPart().PropertiesArray(), [](const auto pProperties) {
         return pProperties->Id();
     });
 
@@ -135,7 +135,19 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     ModelPart& rDestinationModelPart,
     const ModelPart& rOriginModelPart)
 {
-    rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+    rDestinationModelPart.SetNodalSolutionStepVariablesList(rOriginModelPart.pGetNodalSolutionStepVariablesList());
+}
+
+bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
+    const ModelPart& rMainSetModelPart,
+    const ModelPart& rSubSetModelPart)
+{
+    for (const auto& r_sub_variable : rSubSetModelPart.GetNodalSolutionStepVariablesList()) {
+        if (!rMainSetModelPart.GetNodalSolutionStepVariablesList().Has(r_sub_variable)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
