@@ -79,7 +79,7 @@ class SensorGeneratorAnalysis:
                     z_coord = corner_1[2] + distance[2] * (i_z + 1) / (number_of_sensors[2] + 1)
                     loc = Kratos.Point(x_coord, y_coord, z_coord)
                     shape_funcs = Kratos.Vector()
-                    elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-6)
+                    elem_id = point_locator.FindElement(loc, shape_funcs, Kratos.Configuration.Initial, 1e-8)
                     if elem_id != -1:
                         current_params = sensor_params.Clone()
                         current_params["location"].SetVector(loc)

@@ -42,8 +42,8 @@ DisplacementSensor::DisplacementSensor(
     }
 
     KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(this->GetLocation(), mLocalPoint))
-        << "The point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
-        << mElementId << ".";
+        << "The sensor \"" << this->GetName() << "\" at point " << this->GetLocation() << " is not inside or on the boundary of the geometry of element with id "
+        << mElementId << " at: \n" << rElement.GetGeometry();
 
     this->SetValue(SENSOR_ELEMENT_ID, static_cast<int>(mElementId));
 }
