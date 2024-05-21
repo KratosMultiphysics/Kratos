@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateCauchyStrain, KratosGeoMechanicsFastSuit
     Vector expected_strain(5);
     expected_strain <<= 0.55, 0.205, 0.11, 0.4, 0.35;
 
-    KRATOS_EXPECT_VECTOR_NEAR(strain, expected_strain, 1.E-10);
+    KRATOS_EXPECT_VECTOR_NEAR(strain, expected_strain, 1.E-10)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuite)
@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuite)
     expected_strains.push_back(expected_strain);
 
     for (size_t i = 0; i < strains.size(); ++i)
-        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-10);
+        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-10)
 
     use_hencky_strain = true;
     strains = StressStrainUtilities::CalculateStrains(deformation_gradients, Bs, displacements,
@@ -187,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuite)
     expected_strains.push_back(expected_strain);
 
     for (size_t i = 0; i < strains.size(); ++i)
-        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-6);
+        KRATOS_EXPECT_VECTOR_NEAR(strains[i], expected_strains[i], 1.E-6)
 }
 
 } // namespace Kratos::Testing
