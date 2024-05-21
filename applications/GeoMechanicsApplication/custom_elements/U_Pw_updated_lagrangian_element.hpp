@@ -119,8 +119,6 @@ public:
 
     ~UPwUpdatedLagrangianElement() = default;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
