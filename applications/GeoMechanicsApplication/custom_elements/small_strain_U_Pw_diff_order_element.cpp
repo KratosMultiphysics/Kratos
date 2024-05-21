@@ -1141,8 +1141,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
 
-        const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
-
         Vector TotalStressVector(mStressVector[0].size());
 
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
@@ -1162,7 +1160,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.F                  = deformation_gradients[GPoint];
             Variables.StrainVector       = strain_vectors[GPoint];
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-            Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
+            Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1282,7 +1280,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
-    const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto integration_coefficients =
@@ -1307,7 +1304,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        this->InitializeBiotCoefficients(Variables);
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
@@ -1525,15 +1522,14 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     KRATOS_CATCH("")
 }
 
-double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const ElementVariables& rVariables,
-                                                                const bool& hasBiotCoefficient) const
+double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
 
     // Properties variables
-    if (hasBiotCoefficient) {
+    if (rProp.Has(BIOT_COEFFICIENT)) {
         return rProp[BIOT_COEFFICIENT];
     } else {
         // calculate Bulk modulus from stiffness matrix
@@ -1543,14 +1539,13 @@ double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const ElementVar
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables& rVariables,
-                                                                const bool& hasBiotCoefficient)
+void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables& rVariables)
 {
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
 
-    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables, hasBiotCoefficient);
+    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables);
 
     if (rProp[IGNORE_UNDRAINED]) {
         rVariables.BiotModulusInverse =

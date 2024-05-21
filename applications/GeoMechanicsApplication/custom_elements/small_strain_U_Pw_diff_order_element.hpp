@@ -240,7 +240,7 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
+    void InitializeBiotCoefficients(ElementVariables& rVariables);
 
     double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
@@ -282,7 +282,7 @@ protected:
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
+    double CalculateBiotCoefficient(const ElementVariables& rVariables) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
