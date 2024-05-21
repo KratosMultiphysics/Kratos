@@ -54,9 +54,6 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/history_linear_elastic_3D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/history_linear_elastic_plane_strain_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/history_linear_elastic_plane_stress_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/custom_hardening_laws/exponential_damage_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/custom_hardening_laws/modified_exponential_damage_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/continuum_laws/custom_yield_criteria/simo_ju_yield_criterion.cpp

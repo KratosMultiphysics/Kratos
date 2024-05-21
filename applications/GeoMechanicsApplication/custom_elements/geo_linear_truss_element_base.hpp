@@ -53,7 +53,7 @@ public:
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoTrussElementLinearBase(){};
+    GeoTrussElementLinearBase() = default;
     GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoTrussElementLinearBase(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 

@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -382,8 +383,17 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
 {
     KRATOS_TRY
 
+    const GeometryType& rGeom      = this->GetGeometry();
+    const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
+
     if (rVariable == FLUID_FLUX_VECTOR) {
-        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        std::vector<double> permeability_update_factors(NumGPoints, 1.0);
+        const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+
+        for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
+        }
     } else {
         if (rOutput.size() != mRetentionLawVector.size())
             rOutput.resize(mRetentionLawVector.size());
@@ -424,8 +434,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                        VectorType&        rRightHandSideVector,
                                                        const ProcessInfo& rCurrentProcessInfo,
-                                                       const bool CalculateStiffnessMatrixFlag,
-                                                       const bool CalculateResidualVectorFlag)
+                                                       bool CalculateStiffnessMatrixFlag,
+                                                       bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -445,6 +455,9 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute GradNpT, B and StrainVector
@@ -459,9 +472,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -540,10 +551,11 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 {
     KRATOS_TRY;
 
-    this->CalculateCompressibilityMatrix(rVariables.PPMatrix, rVariables);
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PPMatrix;
+    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("");
 }
@@ -551,14 +563,16 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                            ElementVariables& rVariables)
+                                                                            const ElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    this->CalculatePermeabilityMatrix(rVariables.PDimMatrix, rVariables.PPMatrix, rVariables);
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PPMatrix;
+    rLeftHandSideMatrix += permeability_matrix;
 
     KRATOS_CATCH("");
 }
@@ -585,7 +599,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vector
 {
     KRATOS_TRY;
 
-    this->CalculatePermeabilityFlow(rVariables.PDimMatrix, rVariables.PPMatrix, rVariables.PVector, rVariables);
+    this->CalculatePermeabilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
 
     // Distribute permeability block vector into elemental vector
     rRightHandSideVector += rVariables.PVector;

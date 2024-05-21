@@ -23,19 +23,16 @@ namespace Kratos
 
 class ApplyConstantBoundaryHydrostaticPressureProcess : public Process
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantBoundaryHydrostaticPressureProcess);
 
-    ApplyConstantBoundaryHydrostaticPressureProcess(ModelPart& model_part,
-                                                    Parameters rParameters
-                                                    ) : Process(Flags()) , mrModelPart(model_part)
+    ApplyConstantBoundaryHydrostaticPressureProcess(ModelPart& model_part, Parameters rParameters)
+        : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
 
-        //only include validation with c++11 since raw_literals do not exist in c++03
-        Parameters default_parameters( R"(
+        // only include validation with c++11 since raw_literals do not exist in c++03
+        Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
@@ -44,7 +41,7 @@ public:
                 "reference_coordinate" : 0.0,
                 "specific_weight" : 10000.0,
                 "table" : 1
-            }  )" );
+            }  )");
 
         // Some values have to be input by the user since no meaningful default value exist. For
         // this reason, we try to access them, so that an error is thrown if they don't exist.
@@ -65,7 +62,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
     ApplyConstantBoundaryHydrostaticPressureProcess(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
     ApplyConstantBoundaryHydrostaticPressureProcess& operator=(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
@@ -92,10 +88,7 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyConstantBoundaryHydrostaticPressureProcess";
-    }
+    std::string Info() const override { return "ApplyConstantBoundaryHydrostaticPressureProcess"; }
 
     ModelPart& GetModelPart() { return mrModelPart; }
 
@@ -117,4 +110,4 @@ private:
     double       mSpecificWeight;
 };
 
-}
+} // namespace Kratos
