@@ -234,9 +234,6 @@ protected:
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&             rLeftHandSideMatrix,
-                                                   const ElementVariables& rVariables);
-
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,

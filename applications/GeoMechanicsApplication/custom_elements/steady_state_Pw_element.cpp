@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -188,11 +189,10 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                ElementVariables& rVariables)
 {
-    KRATOS_TRY;
-
-    this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
-
-    KRATOS_CATCH("");
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
+    rLeftHandSideMatrix += permeability_matrix;
 }
 
 //----------------------------------------------------------------------------------------

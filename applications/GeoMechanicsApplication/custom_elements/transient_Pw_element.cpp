@@ -540,7 +540,11 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       r
     KRATOS_TRY;
 
     this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
-    this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
+
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+        rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
+    rLeftHandSideMatrix += permeability_matrix;
 
     KRATOS_CATCH("");
 }
@@ -557,23 +561,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 
     // Distribute compressibility block matrix into the elemental matrix
     rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient);
-
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                            const ElementVariables& rVariables)
-{
-    KRATOS_TRY;
-
-    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
-
-    // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += permeability_matrix;
 
     KRATOS_CATCH("");
 }
