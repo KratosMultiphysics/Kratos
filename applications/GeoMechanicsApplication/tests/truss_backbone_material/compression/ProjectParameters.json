@@ -112,8 +112,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Fixed_Displacement",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
+            "active":          [true, true, true],
+            "is_fixed":        [true, true, true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -124,8 +124,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Midnode_Displacement",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [false,true,true],
+            "active":          [true, true, true],
+            "is_fixed":        [false, true, true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -137,8 +137,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Point_Load",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true, true],
-            "is_fixed":        [true,true,true],
+            "active":          [true, true, true],
+            "is_fixed":        [true, true, true],
             "value":           [1.0E-02,0.0,0.0],
             "table":           [1,0,0]
         }

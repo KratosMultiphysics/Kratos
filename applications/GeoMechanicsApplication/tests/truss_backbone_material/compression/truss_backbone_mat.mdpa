@@ -1,9 +1,9 @@
 Begin Table 1 TIME LINE_ACCELERATION
   0. 0.
-  1. 1.
-  2. 0.75
-  3. 1.
-  4. 2.
+  1. -1.
+  2. -0.75
+  3. -1.
+  4. -2.
 End Table
 
 Begin Properties 1
