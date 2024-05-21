@@ -615,7 +615,9 @@ void MPMUpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRigh
         //double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
         //alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
 
-        const double& viscosity=GetProperties().Has(DYNAMIC_VISCOSITY);
+        const double& viscosity=GetProperties()[DYNAMIC_VISCOSITY];
+
+
 
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)
@@ -930,7 +932,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
         //double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
         //alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
 
-        const double& viscosity=GetProperties().Has(DYNAMIC_VISCOSITY);
+        const double& viscosity=GetProperties()[DYNAMIC_VISCOSITY];
 
         double factor_value = 8.0; //JMR deffault value
         if (dimension == 3)

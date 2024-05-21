@@ -282,7 +282,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     {
         // Contribution to forces (in residual term) are calculated
         //#BODYFORCE
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass); //
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -328,7 +328,7 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
         : false;
     const int current_step = rCurrentProcessInfo.GetValue(STEP);
     rVariables.DiscreteAcceleration =ZeroVector(3);
-   // if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) ==2) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+    //if (STEP>1 && rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) ==2) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
 
     // Compute Residual Projection in integration points
@@ -408,15 +408,47 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
     GeometryType& r_geometry = GetGeometry();
     // Add computations for the tau stabilization
 
-    const double constant1=0.25;
+    const double constant1=1.0;
     const double constant2=1.0;
-    double characteristic_element_size;
-    ComputeElementSize(characteristic_element_size);
+    //double characteristic_element_size;
+    //ComputeElementSize(characteristic_element_size);
 
-    //double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
+    double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
 
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
     rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
+
+
+     if (GetProperties().Has(DYNAMIC_VISCOSITY)){
+        const double constant1=8000.0;
+        const double constant2=4000.0;
+        const double& viscosity=GetProperties()[DYNAMIC_VISCOSITY];
+        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        VectorType veloc_mp=ZeroVector(3);
+        double norm_veloc=0.0;
+        array_1d<double, 3 > nodal_veloc = ZeroVector(3);
+        for ( unsigned int j = 0; j < number_of_nodes; j++ ){
+            nodal_veloc = r_geometry[j].FastGetSolutionStepValue(VELOCITY,0);
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+               veloc_mp[k] += r_N(0, j) * nodal_veloc[k];
+            }
+        }
+        for (unsigned int k = 0; k < dimension; k++)
+        {
+            norm_veloc+=pow(veloc_mp[k],2);
+        }
+        norm_veloc=std::sqrt(norm_veloc);
+        //std::cout<<norm_veloc<<"\n";
+        //rVariables.ShearModulus = pow(viscosity,2)/ (mMP.density * pow(characteristic_element_size,2));
+        rVariables.tau1 = constant1*viscosity/pow(characteristic_element_size,2) + constant2*((mMP.density*norm_veloc)/characteristic_element_size);
+        rVariables.tau1 = pow(rVariables.tau1,-1);
+        rVariables.tau2 = pow(characteristic_element_size,2)/(rVariables.tau1);
+        //rVariables.tau1 = constant1 * (mMP.density* pow(characteristic_element_size,4)) / (2 * pow(rVariables.ShearModulus,2));
+        //rVariables.tau2 = 2 * constant2 * pow(rVariables.ShearModulus,2)/(mMP.density*pow(characteristic_element_size,2));
+         }
 
 
     //std::cout<< "viscosity" << rVariables.ShearModulus << "\n";
@@ -567,9 +599,9 @@ void MPMUpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables
 
     for (unsigned int idime = 0; idime < dimension; idime++)
     {
-           rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * current_MP_displacement[idime];
-           rVariables.DynamicRHS[idime] += rVariables.DynamicCoefficient * aux_MP_displacement[idime];
-           rVariables.DiscreteAcceleration[idime]=rVariables.DynamicCoefficient * aux_MP_displacement[idime];
+           //rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * current_MP_displacement[idime];
+           //rVariables.DynamicRHS[idime] += rVariables.DynamicCoefficient * aux_MP_displacement[idime];
+           //rVariables.DiscreteAcceleration[idime]=rVariables.DynamicCoefficient * aux_MP_displacement[idime];
            rVariables.DynamicRHS[idime] += coeff1 * density_mp * aux_MP_velocity[idime] + coeff2 * density_mp * aux_MP_acceleration[idime];
 
     }
@@ -646,8 +678,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
         unsigned int index_up = dimension * i + i;
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] - rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf1(i) * rIntegrationWeight;
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim] - rVariables.PressureGradient[jdim] - rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf2(indexi)  * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim]/rIntegrationWeight - rVariables.PressureGradient[jdim] - rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf1(i) * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim]/rIntegrationWeight - rVariables.PressureGradient[jdim] - rVariables.DynamicRHS[jdim] + rVariables.ResProjDisplGP[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
             rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)- VolumetricStrainFunction  + rVariables.ResProjPressGP) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             indexi++; //
@@ -680,7 +712,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
          for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-            rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime] - rVariables.DynamicRHS[idime] + rVariables.ResProjDisplGP[idime]) * rIntegrationWeight;
+            rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime]/rIntegrationWeight- rVariables.DynamicRHS[idime] + rVariables.ResProjDisplGP[idime]) * rIntegrationWeight;
          }
 
         rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - VolumetricStrainFunction + rVariables.ResProjPressGP) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
@@ -934,7 +966,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
 
 
     mMP.volume = mMP.mass / mMP.density;
-    Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
+    Vector volume_force = ((mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass)); ///mMP.volume 
 
 
     //std::cout<< "Nodes"<< number_of_nodes <<"\n";
