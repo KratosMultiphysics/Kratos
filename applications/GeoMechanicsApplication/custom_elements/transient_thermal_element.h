@@ -15,6 +15,7 @@
 #pragma once
 
 #include "custom_constitutive/thermal_dispersion_law.h"
+#include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -268,10 +269,8 @@ private:
         const Vector&                                    rIntegrationCoefficients,
         const ProcessInfo&                               rCurrentProcessInfo) const
     {
-        const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
-
-        GeoThermalDispersionLaw law{number_of_dimensions};
-        const auto constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
+        const auto law = CreateThermalLaw();
+        const auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -318,6 +317,29 @@ private:
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
+    }
+
+    std::unique_ptr<GeoThermalLaw> CreateThermalLaw() const
+    {
+        const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
+        std::unique_ptr<GeoThermalLaw> law;
+        
+        if (GetProperties().Has(THERMAL_LAW_NAME)) {
+            const std::string& rThermalLawName = GetProperties()[THERMAL_LAW_NAME];
+            if (rThermalLawName == "GeoThermalDispersionLaw") {
+                law = std::make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+            } 
+            else if (rThermalLawName == "GeoThermalFilterLaw") {
+                law = std::make_unique<GeoThermalFilterLaw>();
+            } 
+            else {
+                KRATOS_ERROR << "Undefined THERMAL_LAW_NAME! " << rThermalLawName << std::endl;
+            }
+        } 
+        else {
+            law = std::make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+        }
+        return law;
     }
 
     [[nodiscard]] DofsVectorType GetDofs() const

@@ -58,4 +58,31 @@ Vector GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(const Ge
     return det_Js_initial_configuration;
 }
 
+Matrix GeoEquationOfMotionUtilities::CalculateDampingMatrix(double        RayleighAlpha,
+                                                            double        RayleighBeta,
+                                                            const Matrix& rMassMatrix,
+                                                            const Matrix& rStiffnessMatrix)
+{
+    return RayleighAlpha * rMassMatrix + RayleighBeta * rStiffnessMatrix;
+}
+
+Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(const Matrix& rB,
+                                                                    const Matrix& rConstitutiveMatrix,
+                                                                    double IntegrationCoefficient)
+{
+    return prod(trans(rB), Matrix(prod(rConstitutiveMatrix, rB))) * IntegrationCoefficient;
+}
+
+Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
+                                                              const std::vector<Matrix>& rConstitutiveMatrices,
+                                                              const std::vector<double>& rIntegrationCoefficients)
+{
+    Matrix result = ZeroMatrix(rBs[0].size2(), rBs[0].size2());
+    for (unsigned int GPoint = 0; GPoint < rBs.size(); ++GPoint) {
+        result += CalculateStiffnessMatrixGPoint(rBs[GPoint], rConstitutiveMatrices[GPoint],
+                                                 rIntegrationCoefficients[GPoint]);
+    }
+    return result;
+}
+
 } /* namespace Kratos.*/
