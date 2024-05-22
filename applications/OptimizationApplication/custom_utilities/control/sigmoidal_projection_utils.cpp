@@ -352,23 +352,31 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeBeta(
                 IndexType number_of_positives{0}, number_of_negatives{0};
                 for (const auto& p_input : rListOfValueExpressions) {
                     const double value = p_input->GetExpression().Evaluate(EntityIndex, local_data_begin_index, i);
-                    if (value > 0.0) {
+                    if (value > 1e-6) {
                         number_of_positives++;
-                    } else if (value < 0.0) {
+                    } else if (value < -1e-6) {
                         number_of_negatives++;
                     }
                 }
 
-                double current_multiplier = 1.0;
-                if (number_of_positives == rListOfValueExpressions.size() || number_of_negatives == rListOfValueExpressions.size()) {
-                    // all values are either positive or negative in all iterations. Hence
-                    // increasing the update factor
+                double current_multiplier = r_beta_expression.Evaluate(EntityIndex, local_data_begin_index, i);
+                if (number_of_positives == rListOfValueExpressions.size()) {
+                    // all values in the history are positive. Seeing a steady growth.
+                    // hence increase the multiplier
                     current_multiplier *= UpdateFactor;
-                } else if (number_of_positives > 0 || number_of_negatives > 0) {
+                } else if (number_of_negatives == rListOfValueExpressions.size()) {
+                    // all values in the history are negative. Seeing a steady growth.
+                    // hence increase the multiplier
+                    current_multiplier *= UpdateFactor;
+                } else if (number_of_negatives == 0 && number_of_positives == 0) {
+                    // no growth observed. They are already at the boundaries. Try reducing the
+                    // multiplier to allow more freedom to move.
+                    current_multiplier = BetaMinValue;
+                } else {
                     current_multiplier /= UpdateFactor;
                 }
 
-                r_output_expression.SetData(local_data_begin_index, i, std::clamp(r_beta_expression.Evaluate(EntityIndex, local_data_begin_index, i) * current_multiplier, BetaMinValue, BetaMaxValue));
+                r_output_expression.SetData(local_data_begin_index, i, std::clamp(current_multiplier, BetaMinValue, BetaMaxValue));
             }
         });
 
