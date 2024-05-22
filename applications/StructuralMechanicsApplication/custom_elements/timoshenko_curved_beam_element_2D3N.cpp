@@ -205,9 +205,13 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
     x_prime[1] = dy_dxi;
     x_prime[2] = 0.0;
 
+    // x_prime /= norm_2(x_prime);
+
     x_prime2[0] = d2x_dxi2;
     x_prime2[1] = d2y_dxi2;
     x_prime2[2] = 0.0;
+
+    // x_prime2 /= norm_2(x_prime2);
 
     // return 0.0;
     return norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
@@ -1257,18 +1261,16 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double bending_moment = E * I * inner_prod(dN_theta, nodal_values);
         const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
 
-        // KRATOS_WATCH(axial_force)
-
-        noalias(local_rhs) -= jacobian_weight * axial_force * dNu; //
-        noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;//
+        noalias(local_rhs) -= jacobian_weight * axial_force * dNu;
+        noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;
         noalias(local_rhs) -= jacobian_weight * axial_force * du * dNu;
         noalias(local_rhs) -= jacobian_weight * axial_force * dv * dN_shape;
 
-        noalias(local_rhs) -= jacobian_weight * bending_moment * dN_theta;//
+        noalias(local_rhs) -= jacobian_weight * bending_moment * dN_theta;
 
-        noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu; //
-        noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape; //
-        noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;//
+        noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu;
+        noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape;
+        noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;
 
         GlobalSizeVector d_axial_du, d_bending_du, d_shear_du;
         d_axial_du.clear();
@@ -1503,10 +1505,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
-    const double angle1 = GetAngle(-1.0);
-    const double angle2 = GetAngle(1.0);
-    const double angle3 = GetAngle(0.0);
-
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
 
@@ -1516,7 +1514,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double k0 = GetGeometryCurvature(J, xi);
         const double jacobian_weight = weight * J;
         const double angle = GetAngle(xi);
-        GetNodalValuesVector(nodal_values, angle1, angle, angle);
+        GetNodalValuesVector(nodal_values, angle, angle, angle);
 
         BoundedMatrix<double, 9, 9> global_T;
         noalias(global_T) = GetGlobalSizeRotationMatrixGlobalToLocalAxes(xi);
