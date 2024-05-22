@@ -209,7 +209,8 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
     x_prime2[1] = d2y_dxi2;
     x_prime2[2] = 0.0;
 
-    return -norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
+    // return 0.0;
+    return norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
 }
 
 /***********************************************************************************/
@@ -1200,10 +1201,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         BoundedMatrix<double, 9, 9> global_T;
         noalias(global_T) = GetGlobalSizeRotationMatrixGlobalToLocalAxes(xi);
-        KRATOS_WATCH(nodal_values)
+        // KRATOS_WATCH(nodal_values)
         // we rotate to local axes
         nodal_values = prod(global_T, nodal_values);
-        KRATOS_WATCH(nodal_values)
+        // KRATOS_WATCH(nodal_values)
 
         const double E    = r_props[YOUNG_MODULUS];
         const double A    = r_props[CROSS_AREA];
@@ -1222,22 +1223,22 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         // deflection v
         N_shape.clear();
         dN_shape.clear();
-        N_shape[0] = N1;
-        N_shape[3] = N2;
-        N_shape[6] = N3;
-        dN_shape[0] = dN1;
-        dN_shape[3] = dN2;
-        dN_shape[6] = dN3;
+        N_shape[1] = N1;
+        N_shape[4] = N2;
+        N_shape[7] = N3;
+        dN_shape[1] = dN1;
+        dN_shape[4] = dN2;
+        dN_shape[7] = dN3;
 
         // axial u
         dNu.clear();
         Nu.clear();
-        Nu[1] = N1;
-        Nu[4] = N2;
-        Nu[7] = N3;
-        dNu[1] = dN1;
-        dNu[4] = dN2;
-        dNu[7] = dN3;
+        Nu[0] = N1;
+        Nu[3] = N2;
+        Nu[6] = N3;
+        dNu[0] = dN1;
+        dNu[3] = dN2;
+        dNu[6] = dN3;
 
         // rotation
         dN_theta.clear();
@@ -1541,22 +1542,22 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         // deflection v
         N_shape.clear();
         dN_shape.clear();
-        N_shape[0] = N1;
-        N_shape[3] = N2;
-        N_shape[6] = N3;
-        dN_shape[0] = dN1;
-        dN_shape[3] = dN2;
-        dN_shape[6] = dN3;
+        N_shape[1] = N1;
+        N_shape[4] = N2;
+        N_shape[7] = N3;
+        dN_shape[1] = dN1;
+        dN_shape[4] = dN2;
+        dN_shape[7] = dN3;
 
         // axial u
         dNu.clear();
         Nu.clear();
-        Nu[1] = N1;
-        Nu[4] = N2;
-        Nu[7] = N3;
-        dNu[1] = dN1;
-        dNu[4] = dN2;
-        dNu[7] = dN3;
+        Nu[0] = N1;
+        Nu[3] = N2;
+        Nu[6] = N3;
+        dNu[0] = dN1;
+        dNu[3] = dN2;
+        dNu[6] = dN3;
 
         // rotation
         dN_theta.clear();
@@ -1914,22 +1915,22 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             // deflection v
             N_shape.clear();
             dN_shape.clear();
-            N_shape[0] = N1;
-            N_shape[3] = N2;
-            N_shape[6] = N3;
-            dN_shape[0] = dN1;
-            dN_shape[3] = dN2;
-            dN_shape[6] = dN3;
+            N_shape[1] = N1;
+            N_shape[4] = N2;
+            N_shape[7] = N3;
+            dN_shape[1] = dN1;
+            dN_shape[4] = dN2;
+            dN_shape[7] = dN3;
 
             // axial u
             dNu.clear();
             Nu.clear();
-            Nu[1] = N1;
-            Nu[4] = N2;
-            Nu[7] = N3;
-            dNu[1] = dN1;
-            dNu[4] = dN2;
-            dNu[7] = dN3;
+            Nu[0] = N1;
+            Nu[3] = N2;
+            Nu[6] = N3;
+            dNu[0] = dN1;
+            dNu[3] = dN2;
+            dNu[6] = dN3;
 
             // rotation
             dN_theta.clear();

@@ -288,7 +288,7 @@ public:
 
         for (IndexType i = 0; i < NumberOfNodes; ++i) {
             const IndexType u_coord = DoFperNode * i;
-            const auto &r_coords_node = r_geom[i].Coordinates();
+            const auto &r_coords_node = r_geom[i].GetInitialPosition();
             dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
             dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
 
