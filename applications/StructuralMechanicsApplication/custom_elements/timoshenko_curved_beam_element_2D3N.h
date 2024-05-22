@@ -298,19 +298,19 @@ public:
 
         VectorType x_prime(3), x_prime2(3), t(3), n(3), b(3);
         x_prime.clear();
-        x_prime2.clear();
+        // x_prime2.clear();
         t.clear();
         n.clear();
         b.clear();
-        b[2] = 1.0;
+        b[2] = -1.0;
 
         x_prime[0] = dx_dxi;
         x_prime[1] = dy_dxi;
         x_prime[2] = 0.0;
 
-        x_prime2[0] = d2x_dxi2;
-        x_prime2[1] = d2y_dxi2;
-        x_prime2[2] = 0.0;
+        // x_prime2[0] = d2x_dxi2;
+        // x_prime2[1] = d2y_dxi2;
+        // x_prime2[2] = 0.0;
 
         noalias(t) = x_prime / norm_2(x_prime);
         noalias(n) = MathUtils<double>::CrossProduct(t, b);

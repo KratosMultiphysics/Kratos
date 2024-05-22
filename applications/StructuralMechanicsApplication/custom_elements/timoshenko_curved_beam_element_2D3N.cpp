@@ -1205,10 +1205,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         BoundedMatrix<double, 9, 9> global_T;
         noalias(global_T) = GetGlobalSizeRotationMatrixGlobalToLocalAxes(xi);
-        // KRATOS_WATCH(nodal_values)
+
         // we rotate to local axes
         nodal_values = prod(global_T, nodal_values);
-        // KRATOS_WATCH(nodal_values)
 
         const double E    = r_props[YOUNG_MODULUS];
         const double A    = r_props[CROSS_AREA];
@@ -1272,6 +1271,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape;
         noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;
 
+        // Now we add the body forces contributions
+        // auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
+        auto global_body_forces = StructuralMechanicsElementUtilities::GetBodyForce(*this, integration_points, IP);
+        const double local_body_forces_t = global_T(0, 0) * global_body_forces[0] + global_T(0, 1) * global_body_forces[1];
+        const double local_body_forces_n = global_T(1, 0) * global_body_forces[0] + global_T(1, 1) * global_body_forces[1];
+        noalias(local_rhs) += Nu      * local_body_forces_t * jacobian_weight * area;
+        noalias(local_rhs) += N_shape * local_body_forces_n * jacobian_weight * area;
+
         GlobalSizeVector d_axial_du, d_bending_du, d_shear_du;
         d_axial_du.clear();
         d_bending_du.clear();
@@ -1295,7 +1302,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(local_lhs) += jacobian_weight * outer_prod(d_shear_du, dN_shape);
         noalias(local_lhs) += -jacobian_weight * outer_prod(d_shear_du, N_theta);
 
-        // RotateAll(local_lhs, local_rhs, angle, angle, angle);
 
         noalias(rLHS) += prod(trans(global_T), Matrix(prod(local_lhs, global_T)));
         noalias(rRHS) += prod(trans(global_T), local_rhs);
@@ -1580,6 +1586,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape;
         noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;
 
+        // Now we add the body forces contributions
+        // auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
+        auto global_body_forces = StructuralMechanicsElementUtilities::GetBodyForce(*this, integration_points, IP);
+        const double local_body_forces_t = global_T(0, 0) * global_body_forces[0] + global_T(0, 1) * global_body_forces[1];
+        const double local_body_forces_n = global_T(1, 0) * global_body_forces[0] + global_T(1, 1) * global_body_forces[1];
+        noalias(local_rhs) += Nu      * local_body_forces_t * jacobian_weight * area;
+        noalias(local_rhs) += N_shape * local_body_forces_n * jacobian_weight * area;
+
         // RotateRHS(local_rhs, angle, angle, angle);
 
         noalias(rRHS) += prod(trans(global_T), local_rhs);
@@ -1659,7 +1673,6 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
         dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
         dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
     }
-    // return 0.0;
     return std::atan2(dy_dxi, dx_dxi);
 }
 
