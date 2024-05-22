@@ -271,6 +271,66 @@ public:
     void GetThirdDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double xi);
     void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
 
+
+
+    BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
+    {
+        GlobalSizeVector dN_dxi, d2N_dxi2;
+        GetLocalFirstDerivativesNu0ShapeFunctionsValues (dN_dxi,   xi);
+        GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
+        const auto& r_geom = GetGeometry();
+
+        double dx_dxi = 0.0;
+        double dy_dxi = 0.0;
+
+        double d2x_dxi2 = 0.0;
+        double d2y_dxi2 = 0.0;
+
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const IndexType u_coord = DoFperNode * i;
+            const auto &r_coords_node = r_geom[i].Coordinates();
+            dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
+            dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
+
+            d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
+            d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
+        }
+
+        VectorType x_prime(3), x_prime2(3), t(3), n(3), b(3);
+        x_prime.clear();
+        x_prime2.clear();
+        t.clear();
+        n.clear();
+        b.clear();
+        b[2] = 1.0;
+
+        x_prime[0] = dx_dxi;
+        x_prime[1] = dy_dxi;
+        x_prime[2] = 0.0;
+
+        x_prime2[0] = d2x_dxi2;
+        x_prime2[1] = d2y_dxi2;
+        x_prime2[2] = 0.0;
+
+        noalias(t) = x_prime / norm_2(x_prime);
+        noalias(n) = MathUtils<double>::CrossProduct(t, b);
+
+        BoundedMatrix<double, 3, 3> T;
+        T.clear();
+
+        T(0, 0) = t[0];
+        T(0, 1) = t[1];
+
+        T(1, 0) = n[0];
+        T(1, 1) = n[1];
+
+        T(2, 2) = 1.0;
+
+        BoundedMatrix<double, 9, 9> global_size_T;
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+        return global_size_T;
+    }
+
     void RotateLHS(
         MatrixType &rLHS,
         const double angle1,
