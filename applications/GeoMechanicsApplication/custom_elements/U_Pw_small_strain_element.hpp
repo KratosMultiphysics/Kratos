@@ -220,10 +220,6 @@ protected:
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    void SetConstitutiveParameters(ElementVariables& rVariables, ConstitutiveLaw::Parameters& rConstitutiveParameters);
-
-    void SetRetentionParameters(const ElementVariables& rVariables, RetentionLaw::Parameters& rRetentionParameters);
-
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
     void InitializeBiotCoefficients(ElementVariables& rVariables, bool hasBiotCoefficient = false);
@@ -275,16 +271,7 @@ protected:
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
-    virtual Vector      CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
-    virtual Vector      CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
-    virtual Vector      CalculateStrain(const Matrix& rDeformationGradient,
-                                        const Matrix& rB,
-                                        const Vector& rDisplacements,
-                                        bool          UseHenckyStrain) const;
-    std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
-                                         const std::vector<Matrix>& rBs,
-                                         const Vector&              rDisplacements,
-                                         bool                       UseHenckyStrain) const;
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
@@ -293,14 +280,27 @@ protected:
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
-    void   InitializeProperties(ElementVariables& rVariables);
-    double CalculateFluidPressure(const ElementVariables& rVariables);
+    void InitializeProperties(ElementVariables& rVariables);
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
+
+    ///
+    /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
+    ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
+    ///        the function could calculate the stress, the constitutive matrix, the strains, or a combination.
+    ///        In our elements we generally always calculate the constitutive matrix and sometimes the stress.
+    ///
+    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&   rDeformationGradients,
+                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                        const Matrix&                rNuContainer,
+                                        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
+                                        std::vector<Vector>& rStrainVectors,
+                                        std::vector<Vector>& rStressVectors,
+                                        std::vector<Matrix>& rConstitutiveMatrices);
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
