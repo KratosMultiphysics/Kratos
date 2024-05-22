@@ -333,7 +333,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
     SFGradAuxVariables     SFGradAuxVars;
 
     // create general parametes of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 

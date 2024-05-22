@@ -27,9 +27,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalFilterLawMatrix, KratosGeoMechanicsFas
     p_cond_prop->SetValue(THERMAL_CONDUCTIVITY_WATER, 1000.0);
 
     GeoThermalFilterLaw geo_thermal_filter_law;
-    ProcessInfo         info;
 
-    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*p_cond_prop, info);
+    const Matrix thermal_filter_matrix = geo_thermal_filter_law.CalculateThermalDispersionMatrix(*p_cond_prop);
 
     Matrix expected_solution = ScalarMatrix(1, 1, 1000.0);
 

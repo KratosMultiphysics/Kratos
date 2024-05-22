@@ -292,7 +292,7 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
     const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -342,7 +342,7 @@ void TransientPwElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo
     const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -451,7 +451,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);

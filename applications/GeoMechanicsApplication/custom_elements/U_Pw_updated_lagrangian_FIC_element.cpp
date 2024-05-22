@@ -70,7 +70,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, rCurrentProcessInfo);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =

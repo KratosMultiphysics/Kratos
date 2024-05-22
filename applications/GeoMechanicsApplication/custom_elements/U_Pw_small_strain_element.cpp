@@ -150,7 +150,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
@@ -303,7 +303,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
@@ -514,7 +514,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
@@ -689,7 +689,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // Create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         Vector VoigtVector(mStressVector[0].size());
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
@@ -915,8 +915,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
     const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
 
     const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
-        this->GetPressureSolutionVector(), N_container, mRetentionLawVector, this->GetProperties(),
-        rCurrentProcessInfo);
+        this->GetPressureSolutionVector(), N_container, mRetentionLawVector, this->GetProperties());
 
     const auto solid_densities =
         GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, this->GetProperties());
@@ -964,7 +963,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
     // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
@@ -1031,7 +1030,7 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     array_1d<double, TDim> GradPressureTerm;
 
     // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);

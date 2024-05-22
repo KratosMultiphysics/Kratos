@@ -100,10 +100,9 @@ public:
     static Vector CalculateDegreesSaturation(const Vector& rPressureSolution,
                                              const Matrix& rNContainer,
                                              const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
-                                             const Properties&  rProp,
-                                             const ProcessInfo& rCurrentProcessInfo)
+                                             const Properties& rProp)
     {
-        RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
+        RetentionLaw::Parameters retention_parameters(rProp);
         Vector                   result(rRetentionLawVector.size());
         for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
             const double fluid_pressure = CalculateFluidPressure(row(rNContainer, g_point), rPressureSolution);

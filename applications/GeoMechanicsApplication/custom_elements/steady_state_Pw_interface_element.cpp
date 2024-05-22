@@ -150,7 +150,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
     SFGradAuxVariables     SFGradAuxVars;
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);

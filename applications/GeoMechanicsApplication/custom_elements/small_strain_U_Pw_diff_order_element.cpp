@@ -315,7 +315,7 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(GetProperties());
 
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
@@ -456,7 +456,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     const PropertiesType& r_prop  = this->GetProperties();
 
     const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
-        this->GetPressureSolutionVector(), Np_container, mRetentionLawVector, r_prop, rCurrentProcessInfo);
+        this->GetPressureSolutionVector(), Np_container, mRetentionLawVector, r_prop);
 
     const auto solid_densities =
         GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, r_prop);
@@ -533,7 +533,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(GetProperties());
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     const auto determinants_of_deformation_gradients =
@@ -916,7 +916,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(GetProperties());
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -1005,7 +1005,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(GetProperties());
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
@@ -1135,7 +1135,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             VoigtVector[i] = 1.0;
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(GetProperties());
 
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
@@ -1261,7 +1261,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(rProp);
 
     // Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =

@@ -143,12 +143,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -160,12 +160,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -296,7 +296,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         const double& JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
         // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -475,7 +475,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     SFGradAuxVariables     SFGradAuxVars;
 
     // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
