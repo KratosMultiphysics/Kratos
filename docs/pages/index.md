@@ -150,7 +150,3 @@ Please, use the following references when citing Kratos in your work.
 # Activity
 
 ![Git Repository Activity](https://repobeats.axiom.co/api/embed/925787aa734f5f16ad8524017c7feb20d1a0f317.svg)
-
-# Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=KratosMultiphysics/Kratos&type=Date)](https://star-history.com/#KratosMultiphysics/Kratos&Date)
