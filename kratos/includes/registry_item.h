@@ -306,7 +306,11 @@ private:
     ///@{
 
     std::string mName;
+#if defined (__GNUC__) && __GNUC__ <= 8 && __GNUC_MINOR__ <= 3
+    boost::any mpValue;
+#else
     std::any mpValue;
+#endif
     std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}
