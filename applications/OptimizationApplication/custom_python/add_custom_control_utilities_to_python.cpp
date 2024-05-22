@@ -44,9 +44,42 @@ void AddSigmoidalProjectionUtils(pybind11::module& m)
         container_type = "element_expression";
     }
 
-    m.def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("ProjectForward", [](
+                                const ContainerExpression<TContainerType>& rInputExpression,
+                                const std::vector<double>& rXValues,
+                                const std::vector<double>& rYValues,
+                                const double Beta,
+                                const int PenaltyFactor) {
+                                    return SigmoidalProjectionUtils::ProjectForward<TContainerType>(rInputExpression, rXValues, rYValues, Beta, PenaltyFactor);
+                                }
+                            , py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("ProjectForward", [](
+                                const ContainerExpression<TContainerType>& rInputExpression,
+                                const std::vector<double>& rXValues,
+                                const std::vector<double>& rYValues,
+                                const ContainerExpression<TContainerType>& rBetaExpression,
+                                const int PenaltyFactor) {
+                                    return SigmoidalProjectionUtils::ProjectForward<TContainerType>(rInputExpression, rXValues, rYValues, rBetaExpression, PenaltyFactor);
+                                }
+                            , py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta_expression"), py::arg("penalty_factor"));
     m.def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
-    m.def("CalculateForwardProjectionGradient", &SigmoidalProjectionUtils::CalculateForwardProjectionGradient<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("CalculateForwardProjectionGradient", [](
+                                                    const ContainerExpression<TContainerType>& rInputExpression,
+                                                    const std::vector<double>& rXValues,
+                                                    const std::vector<double>& rYValues,
+                                                    const double Beta,
+                                                    const int PenaltyFactor){
+                                                        return SigmoidalProjectionUtils::CalculateForwardProjectionGradient<TContainerType>(rInputExpression, rXValues, rYValues, Beta, PenaltyFactor);
+}                                               , py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("CalculateForwardProjectionGradient", [](
+                                                    const ContainerExpression<TContainerType>& rInputExpression,
+                                                    const std::vector<double>& rXValues,
+                                                    const std::vector<double>& rYValues,
+                                                    const ContainerExpression<TContainerType>& rBetaExpression,
+                                                    const int PenaltyFactor){
+                                                        return SigmoidalProjectionUtils::CalculateForwardProjectionGradient<TContainerType>(rInputExpression, rXValues, rYValues, rBetaExpression, PenaltyFactor);
+}                                               , py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("ComputeBeta", &SigmoidalProjectionUtils::ComputeBeta<TContainerType>, py::arg("beta_expression"), py::arg("list_of_values"), py::arg("beta_min"), py::arg("beta_max"), py::arg("update_factor"));
 }
 } // namespace detail
 

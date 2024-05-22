@@ -49,6 +49,14 @@ public:
         const int PenaltyFactor);
 
     template<class TContainerType>
+    static ContainerExpression<TContainerType> ProjectForward(
+        const ContainerExpression<TContainerType>& rInputExpression,
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const ContainerExpression<TContainerType>& rBetaExpression,
+        const int PenaltyFactor);
+
+    template<class TContainerType>
     static ContainerExpression<TContainerType> ProjectBackward(
         const ContainerExpression<TContainerType>& rInputExpression,
         const std::vector<double>& rXValues,
@@ -63,6 +71,22 @@ public:
         const std::vector<double>& rYValues,
         const double Beta,
         const int PenaltyFactor);
+
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> CalculateForwardProjectionGradient(
+        const ContainerExpression<TContainerType>& rInputExpression,
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const ContainerExpression<TContainerType>& rBetaExpression,
+        const int PenaltyFactor);
+
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> ComputeBeta(
+        const ContainerExpression<TContainerType>& rBetaExpression,
+        const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rListOfValueExpressions,
+        const double BetaMinValue,
+        const double BetaMaxValue,
+        const double UpdateFactor);
 
     ///@}
 };

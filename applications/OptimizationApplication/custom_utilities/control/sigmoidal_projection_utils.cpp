@@ -183,6 +183,43 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
 }
 
 template<class TContainerType>
+ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
+    const ContainerExpression<TContainerType>& rInputExpression,
+    const std::vector<double>& rXValues,
+    const std::vector<double>& rYValues,
+    const ContainerExpression<TContainerType>& rBetaExpression,
+    const int PenaltyFactor)
+{
+    KRATOS_TRY
+
+    SigmoidalValueProjectionUtils::CheckXYVectors(rXValues,rYValues);
+
+    const auto& r_input_expression = rInputExpression.GetExpression();
+    const auto& r_beta_expression = rBetaExpression.GetExpression();
+    const IndexType local_size = rInputExpression.GetItemComponentCount();
+    const IndexType number_of_entities = rInputExpression.GetContainer().size();
+
+    ContainerExpression<TContainerType> output_container(*rInputExpression.pGetModelPart());
+    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities, rInputExpression.GetItemShape());
+    output_container.SetExpression(p_flat_data_expression);
+    auto& r_output_expression = *p_flat_data_expression;
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&r_input_expression, &r_output_expression, &rXValues, &rYValues, &r_beta_expression, PenaltyFactor, local_size](const IndexType EntityIndex) {
+            const IndexType local_data_begin_index = EntityIndex * local_size;
+            for (IndexType i = 0; i < local_size; ++i) {
+                const double input_value = r_input_expression.Evaluate(EntityIndex, local_data_begin_index, i);
+                const double beta = r_beta_expression.Evaluate(EntityIndex, local_data_begin_index, i);
+                const double projected_value = SigmoidalValueProjectionUtils::ProjectValueForward(input_value, rXValues, rYValues, beta, PenaltyFactor);
+                r_output_expression.SetData(local_data_begin_index, i, projected_value);
+            }
+        });
+
+    return output_container;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
     const ContainerExpression<TContainerType>& rInputExpression,
     const std::vector<double>& rXValues,
@@ -252,17 +289,117 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::CalculateForwardPr
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+ContainerExpression<TContainerType> SigmoidalProjectionUtils::CalculateForwardProjectionGradient(
+    const ContainerExpression<TContainerType>& rInputExpression,
+    const std::vector<double>& rXValues,
+    const std::vector<double>& rYValues,
+    const ContainerExpression<TContainerType>& rBetaExpression,
+    const int PenaltyFactor)
+{
+    KRATOS_TRY
+
+    SigmoidalValueProjectionUtils::CheckXYVectors(rXValues,rYValues);
+
+    const auto& r_input_expression = rInputExpression.GetExpression();
+    const auto& r_beta_expression = rBetaExpression.GetExpression();
+    const IndexType local_size = rInputExpression.GetItemComponentCount();
+    const IndexType number_of_entities = rInputExpression.GetContainer().size();
+
+    ContainerExpression<TContainerType> output_container(*rInputExpression.pGetModelPart());
+    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities, rInputExpression.GetItemShape());
+    output_container.SetExpression(p_flat_data_expression);
+    auto& r_output_expression = *p_flat_data_expression;
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&r_input_expression, &r_output_expression, &rXValues, &rYValues, &r_beta_expression, PenaltyFactor, local_size](const IndexType EntityIndex) {
+            const IndexType local_data_begin_index = EntityIndex * local_size;
+            for (IndexType i = 0; i < local_size; ++i) {
+                const double input_value = r_input_expression.Evaluate(EntityIndex, local_data_begin_index, i);
+                const double beta = r_beta_expression.Evaluate(EntityIndex, local_data_begin_index, i);
+                const double derivative_value = SigmoidalValueProjectionUtils::ComputeFirstDerivativeAtValue(input_value, rXValues, rYValues, beta, PenaltyFactor);
+                r_output_expression.SetData(local_data_begin_index, i, derivative_value);
+            }
+        });
+
+    return output_container;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeBeta(
+    const ContainerExpression<TContainerType>& rBetaExpression,
+    const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rListOfValueExpressions,
+    const double BetaMinValue,
+    const double BetaMaxValue,
+    const double UpdateFactor)
+{
+    KRATOS_TRY
+
+    const auto& r_beta_expression = rBetaExpression.GetExpression();
+    const IndexType local_size = r_beta_expression.GetItemComponentCount();
+    const IndexType number_of_entities = rBetaExpression.GetContainer().size();
+
+    ContainerExpression<TContainerType> output_container(*rBetaExpression.pGetModelPart());
+    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities, r_beta_expression.GetItemShape());
+    output_container.SetExpression(p_flat_data_expression);
+    auto& r_output_expression = *p_flat_data_expression;
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&rListOfValueExpressions, &r_output_expression, &r_beta_expression, local_size, BetaMinValue, BetaMaxValue, UpdateFactor](const IndexType EntityIndex) {
+            const IndexType local_data_begin_index = EntityIndex * local_size;
+
+            for (IndexType i = 0; i < local_size; ++i) {
+                IndexType number_of_positives{0}, number_of_negatives{0};
+                for (const auto& p_input : rListOfValueExpressions) {
+                    const double value = p_input->GetExpression().Evaluate(EntityIndex, local_data_begin_index, i);
+                    if (value > 0.0) {
+                        number_of_positives++;
+                    } else if (value < 0.0) {
+                        number_of_negatives++;
+                    }
+                }
+
+                double current_multiplier = 1.0;
+                if (number_of_positives == rListOfValueExpressions.size() || number_of_negatives == rListOfValueExpressions.size()) {
+                    // all values are either positive or negative in all iterations. Hence
+                    // increasing the update factor
+                    current_multiplier *= UpdateFactor;
+                } else if (number_of_positives > 0 || number_of_negatives > 0) {
+                    current_multiplier /= UpdateFactor;
+                }
+
+                r_output_expression.SetData(local_data_begin_index, i, std::clamp(r_beta_expression.Evaluate(EntityIndex, local_data_begin_index, i) * current_multiplier, BetaMinValue, BetaMaxValue));
+            }
+        });
+
+    return output_container;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
-#define KRATOS_INSTANTIATE_SIGMOIDAL_PROJECTION_UTIL_METHODS(CONTAINER_TYPE)                                                            \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectForward(         \
-        const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
-        const std::vector<double>&, const double, const int);                                                                           \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectBackward(        \
-        const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
-        const std::vector<double>&, const double, const int);                                                                           \
+#define KRATOS_INSTANTIATE_SIGMOIDAL_PROJECTION_UTIL_METHODS(CONTAINER_TYPE)                                                                        \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectForward(                     \
+        const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                                     \
+        const std::vector<double>&, const double, const int);                                                                                       \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectForward(                     \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                                 \
+        const std::vector<double>&, const std::vector<double>&,                                                                                     \
+        const ContainerExpression<CONTAINER_TYPE>&, const int);                                                                                     \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectBackward(                    \
+        const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                                     \
+        const std::vector<double>&, const double, const int);                                                                                       \
     template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::CalculateForwardProjectionGradient( \
-        const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
-        const std::vector<double>&, const double, const int);
+        const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                                     \
+        const std::vector<double>&, const double, const int);                                                                                       \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::CalculateForwardProjectionGradient( \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                                 \
+        const std::vector<double>&, const std::vector<double>&,                                                                                     \
+        const ContainerExpression<CONTAINER_TYPE>&, const int);                                                                                     \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ComputeBeta(                        \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                                 \
+        const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&,                                                                  \
+        const double, const double, double);
 
 KRATOS_INSTANTIATE_SIGMOIDAL_PROJECTION_UTIL_METHODS(ModelPart::NodesContainerType)
 KRATOS_INSTANTIATE_SIGMOIDAL_PROJECTION_UTIL_METHODS(ModelPart::ConditionsContainerType)
