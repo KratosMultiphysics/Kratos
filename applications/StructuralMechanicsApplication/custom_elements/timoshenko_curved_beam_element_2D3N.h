@@ -272,11 +272,10 @@ public:
     void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
 
 
-
-    BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
+    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix(const double xi)
     {
         GlobalSizeVector dN_dxi, d2N_dxi2;
-        GetLocalFirstDerivativesNu0ShapeFunctionsValues (dN_dxi,   xi);
+        GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
         GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
         const auto& r_geom = GetGeometry();
 
@@ -320,7 +319,15 @@ public:
         T(1, 1) = n[1];
 
         T(2, 2) = 1.0;
+        return T;
+    }
 
+
+    BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
+    {
+
+        BoundedMatrix<double, 3, 3> T;
+        noalias(T) = GetFrenetSerretMatrix(xi);
         BoundedMatrix<double, 9, 9> global_size_T;
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
         return global_size_T;

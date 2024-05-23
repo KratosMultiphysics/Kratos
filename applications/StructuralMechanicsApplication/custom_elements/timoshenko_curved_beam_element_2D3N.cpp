@@ -1261,25 +1261,15 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
 
         noalias(local_rhs) -= jacobian_weight * axial_force * dNu;
-        // KRATOS_WATCH("***********************************")
-        // KRATOS_WATCH(axial_force * dNu)
         noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;
-        // KRATOS_WATCH((-axial_force) * k0 * N_shape)
         noalias(local_rhs) -= jacobian_weight * axial_force * du * dNu;
-        // KRATOS_WATCH(axial_force * du * dNu)
         noalias(local_rhs) -= jacobian_weight * axial_force * dv * dN_shape;
-        // KRATOS_WATCH(axial_force * dv * dN_shape)
 
         noalias(local_rhs) -= jacobian_weight * bending_moment * dN_theta;
-        // KRATOS_WATCH(bending_moment * dN_theta)
 
         noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu;
-        // KRATOS_WATCH(shear_force * k0 * Nu)
         noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape;
-        // KRATOS_WATCH(shear_force  * dN_shape)
         noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;
-        // KRATOS_WATCH((-shear_force) * N_theta)
-        // KRATOS_WATCH("***********************************")
 
         // Now we add the body forces contributions
         // auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP, GetAngle(xi));
