@@ -23,10 +23,11 @@
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
-#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
-#include "integration/triangle_gauss_legendre_integration_points.h"
-#include "integration/hexahedron_gauss_lobatto_integration_points.h"
-#include "integration/tetrahedron_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
+// #include "integration/quadrilateral_gauss_lobatto_integration_points.h"
+// #include "integration/triangle_gauss_legendre_integration_points.h"
+// #include "integration/hexahedron_gauss_lobatto_integration_points.h"
+// #include "integration/tetrahedron_gauss_legendre_integration_points.h"
 
 
 namespace Kratos
@@ -510,7 +511,7 @@ protected:
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
-        const QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType& IntegrationPoints
+        const IntegrationPointsArrayType& IntegrationPoints
         ) const;
 
     /**
@@ -527,7 +528,7 @@ protected:
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
-        const QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType& IntegrationPoints,
+        const IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure = ConstitutiveLaw::StressMeasure_PK2
         ) const;
 
@@ -656,7 +657,7 @@ private:
         std::vector<TType>& rOutput)
     {
         const auto& r_geometry = GetGeometry();
-        const SizeType n_gauss = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints().size();
+        const SizeType n_gauss = r_geometry.IntegrationPoints(mThisIntegrationMethod).size();
 
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             mConstitutiveLawVector[i_gauss]->GetValue(rVariable, rOutput[i_gauss]);
@@ -681,7 +682,7 @@ private:
         const SizeType n_nodes = r_geometry.size();
         const SizeType dim = r_geometry.WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-        const auto& r_integration_points =  QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+        const auto& r_integration_points =  r_geometry.IntegrationPoints(mThisIntegrationMethod);
         const SizeType n_gauss = r_integration_points.size();
 
         // Create the kinematics container and fill the nodal data

@@ -16,7 +16,7 @@
 
 // Project includes
 #include "utilities/element_size_calculator.h"
-#include "utilities/geometry_utilities.h"
+// #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
 #include "includes/checks.h"
 
@@ -198,7 +198,7 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law Vector initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size()) {
@@ -258,7 +258,7 @@ void SmallDisplacementMixedStrainDisplacementElement::InitializeSolutionStep(
         cl_values.SetStressVector(this_constitutive_variables.StressVector);
         cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
@@ -319,7 +319,7 @@ void SmallDisplacementMixedStrainDisplacementElement::FinalizeSolutionStep(
         cl_values.SetStressVector(this_constitutive_variables.StressVector);
         cl_values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
-        const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             // Compute element kinematics B, F, DN_DX ...
@@ -386,7 +386,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     const SizeType n_gauss = r_integration_points.size();
 
     Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
@@ -495,7 +495,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     const SizeType n_gauss = r_integration_points.size();
 
     Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
@@ -677,6 +677,14 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const SizeType system_size = n_nodes * (strain_size + dim);
     const SizeType displ_size = n_nodes * dim;
 
+    Matrix lumped_M = rM;
+    lumped_M.clear();
+    for (IndexType i = 0; i < lumped_M.size1(); ++i) {
+        for (IndexType j = 0; j < lumped_M.size2(); ++j) {
+            lumped_M(i,i) += rM(i,j);
+        }
+    }
+
     // Assemble K
     for (IndexType i = 0; i < rK.size1(); ++i)
         for (IndexType j = 0; j < rK.size2(); ++j)
@@ -685,7 +693,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     // Assemble M
     for (IndexType i = 0; i < rM.size1(); ++i)
         for (IndexType j = 0; j < rM.size2(); ++j)
-            rLHS(i + displ_size, j + displ_size) = rM(i, j);
+            rLHS(i + displ_size, j + displ_size) = lumped_M(i, j);
 
     // Assemble Q
     for (IndexType i = 0; i < rQ.size1(); ++i)
@@ -706,7 +714,7 @@ void SmallDisplacementMixedStrainDisplacementElement::SetConstitutiveVariables(
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType& IntegrationPoints
+    const IntegrationPointsArrayType& IntegrationPoints
     ) const
 {
     // Here we essentially set the input parameters
@@ -726,7 +734,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateConstitutiveVaria
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType& IntegrationPoints,
+    const IntegrationPointsArrayType& IntegrationPoints,
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const
 {
@@ -762,7 +770,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     // Shape functions
     rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
@@ -856,7 +864,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType n_gauss = r_integration_points.size();
 
@@ -884,7 +892,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
     )
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = QuadrilateralGaussLobattoIntegrationPoints2().IntegrationPoints();
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType n_gauss = r_integration_points.size();
     if (rOutput.size() != n_gauss) {
