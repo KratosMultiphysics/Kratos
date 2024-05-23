@@ -90,10 +90,6 @@ private:
 
     double BackboneStress(const double Strain) const;
     double BackboneStiffness(const double Strain) const;
-
-    double CalculateUnReLoadCenter(const double                 Strain,
-                                   const double                 Stress,
-                                   ConstitutiveLaw::Parameters& rParameterValues) const;
     double CalculateUnReLoadAmplitude(ConstitutiveLaw::Parameters& rParameterValues) const;
     bool IsWithinUnReLoading(const double Strain, ConstitutiveLaw::Parameters& rParameterValues) const;
 
@@ -102,17 +98,17 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("AccumulatedStrain",   mAccumulatedStrain);
+        rSerializer.save("AccumulatedStrain", mAccumulatedStrain);
         rSerializer.save("PreviousAxialStrain", mPreviousAxialStrain);
-        rSerializer.save("UnReload",            mUnReLoadCenter);
+        rSerializer.save("UnReload", mUnReLoadCenter);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("AccumulatedStrain",   mAccumulatedStrain);
+        rSerializer.load("AccumulatedStrain", mAccumulatedStrain);
         rSerializer.load("PreviousAxialStrain", mPreviousAxialStrain);
-        rSerializer.load("UnReload",            mUnReLoadCenter);
+        rSerializer.load("UnReload", mUnReLoadCenter);
     }
 
 }; // Class TrussBackboneConstitutiveLaw

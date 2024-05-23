@@ -49,6 +49,7 @@ from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTes
 from test_pressure_line_element import KratosGeoMechanicsTransientPressureLineElementTests
 from test_pressure_point_flux import KratosGeoMechanicsTransientPressurePointFluxTests
 from settlement_workflow import KratosGeoMechanicsSettlementWorkflow
+from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -91,7 +92,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsConditionTests,
                         KratosGeoMechanicsPrescribedDerivatives,
                         KratosGeoMechanicsDirichletUTests,
-                        KratosGeoMechanicsNormalLoadHexaTests
+                        KratosGeoMechanicsNormalLoadHexaTests,
+                        KratosGeoMechanicsTrussBackboneMaterialTests
     ]
 
     # Create an array with the selected tests

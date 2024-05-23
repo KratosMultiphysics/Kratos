@@ -146,15 +146,6 @@ double TrussBackboneConstitutiveLaw::BackboneStiffness([[maybe_unused]] double S
     return 0.5 * young_modulus;
 }
 
-double TrussBackboneConstitutiveLaw::CalculateUnReLoadCenter(const double Strain,
-                                                             const double Stress,
-                                                             ConstitutiveLaw::Parameters& rParameterValues) const
-{
-    return Stress >= 0
-               ? Strain - TrussBackboneConstitutiveLaw::CalculateUnReLoadAmplitude(rParameterValues)
-               : Strain - TrussBackboneConstitutiveLaw::CalculateUnReLoadAmplitude(rParameterValues);
-}
-
 double TrussBackboneConstitutiveLaw::CalculateUnReLoadAmplitude(ConstitutiveLaw::Parameters& rParameterValues) const
 {
     return 2. * TrussBackboneConstitutiveLaw::BackboneStress(mAccumulatedStrain) /
