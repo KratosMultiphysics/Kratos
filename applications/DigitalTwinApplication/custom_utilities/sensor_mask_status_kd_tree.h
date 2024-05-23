@@ -48,7 +48,9 @@ public:
 
     SensorMaskStatusKDTree(
         typename SensorMaskStatus<TContainerType>::Pointer pSensorMaskStatus,
-        const IndexType NumberOfParallelTrees);
+        const IndexType NumberOfParallelTrees,
+        const bool ExactSearch,
+        const IndexType EchoLevel);
 
     ///@}
     ///@name Public operations
@@ -74,6 +76,10 @@ private:
     ///@{
 
     typename SensorMaskStatus<TContainerType>::Pointer mpSensorMaskStatus;
+
+    const bool mExactSearch;
+
+    const IndexType mEchoLevel;
 
     flann::Matrix<double> mData;
 

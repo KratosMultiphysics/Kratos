@@ -30,6 +30,7 @@ class SensorStatusRangedControl(Control):
             "controlled_model_part_names": [""],
             "mask_expression_name"       : "YOUNG_MODULUS_SENSITIVITY_mask",
             "penalty_factor"             : 3,
+            "exact_search"               : true,
             "output_all_fields"          : false,
             "beta_settings": [
                 {
@@ -50,6 +51,7 @@ class SensorStatusRangedControl(Control):
 
         self.controlled_physical_variables = [KratosDT.SENSOR_STATUS]
         self.output_all_fields = parameters["output_all_fields"].GetBool()
+        self.exact_search = parameters["exact_search"].GetBool()
         self.penalty_factor = parameters["penalty_factor"].GetInt()
         self.mask_expression_name = parameters["mask_expression_name"].GetString()
 
@@ -91,13 +93,13 @@ class SensorStatusRangedControl(Control):
         first_sensor = sensors_list[0]
         if self.mask_expression_name in first_sensor.GetNodalExpressionsMap().keys():
             self.sensor_mask_status = KratosDT.MaskUtils.SensorNodalMaskStatus(self.model_part, [sensor.GetNodalExpression(self.mask_expression_name) for sensor in sensors_list])
-            self.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorNodalMaskStatusKDTree(self.sensor_mask_status, 4)
+            self.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorNodalMaskStatusKDTree(self.sensor_mask_status, 4, self.exact_search, 1)
         elif self.mask_expression_name in first_sensor.GetConditionExpressionsMap().keys():
             self.sensor_mask_status = KratosDT.MaskUtils.SensorConditionMaskStatus(self.model_part, [sensor.GetConditionExpression(self.mask_expression_name) for sensor in sensors_list])
-            self.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorConditionMaskStatusKDTree(self.sensor_mask_status, 4)
+            self.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorConditionMaskStatusKDTree(self.sensor_mask_status, 4, self.exact_search, 1)
         elif self.mask_expression_name in first_sensor.GetElementExpressionsMap().keys():
             self.sensor_mask_status = KratosDT.MaskUtils.SensorElementMaskStatus(self.model_part, [sensor.GetElementExpression(self.mask_expression_name) for sensor in sensors_list])
-            self.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorElementMaskStatusKDTree(self.sensor_mask_status, 4)
+            self.sensor_mask_status_kd_tree = KratosDT.MaskUtils.SensorElementMaskStatusKDTree(self.sensor_mask_status, 4, self.exact_search, 1)
         else:
             raise RuntimeError(f"The sensor mask expression \"{self.mask_expression_name}\" not found in the list of sensors.")
 

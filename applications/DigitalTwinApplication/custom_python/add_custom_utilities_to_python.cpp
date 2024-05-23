@@ -88,7 +88,7 @@ void AddMaskUtilsToPython(
         ;
 
     py::class_<SensorMaskStatusKDTree<TContainerType>, typename SensorMaskStatusKDTree<TContainerType>::Pointer>(m, ("Sensor" + upper_prefix + "MaskStatusKDTree").c_str())
-        .def(py::init<typename SensorMaskStatus<TContainerType>::Pointer, IndexType>(), py::arg("sensor_mask_status"), py::arg("number_of_parallel_trees"))
+        .def(py::init<typename SensorMaskStatus<TContainerType>::Pointer, IndexType, bool, IndexType>(), py::arg("sensor_mask_status"), py::arg("number_of_parallel_trees"), py::arg("exact_search"), py::arg("echo_level"))
         .def("Update", &SensorMaskStatusKDTree<TContainerType>::Update)
         .def("GetEntitiesWithinRadius", &SensorMaskStatusKDTree<TContainerType>::GetEntitiesWithinRadius, py::arg("neighbour_indices_list"), py::arg("neighbour_square_distances_list"), py::arg("query_points_matrix"), py::arg("radius"))
         ;

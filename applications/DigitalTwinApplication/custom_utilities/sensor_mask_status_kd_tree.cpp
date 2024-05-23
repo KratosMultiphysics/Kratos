@@ -19,6 +19,7 @@
 // Project includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "digital_twin_application_variables.h"
@@ -31,8 +32,12 @@ namespace Kratos {
 template<class TContainerType>
 SensorMaskStatusKDTree<TContainerType>::SensorMaskStatusKDTree(
     typename SensorMaskStatus<TContainerType>::Pointer pSensorMaskStatus,
-    const IndexType NumberOfParallelTrees)
+    const IndexType NumberOfParallelTrees,
+    const bool ExactSearch,
+    const IndexType EchoLevel)
     : mpSensorMaskStatus(pSensorMaskStatus),
+      mExactSearch(ExactSearch),
+      mEchoLevel(EchoLevel),
       mData(mpSensorMaskStatus->GetMaskStatuses().data().begin(), mpSensorMaskStatus->GetMaskStatuses().size1(), mpSensorMaskStatus->GetMaskStatuses().size2()),
       mKDTree(mData, flann::KDTreeIndexParams(1)) // since we are using an exact search, there is no point in using more than one tree.
 {
@@ -47,12 +52,18 @@ void SensorMaskStatusKDTree<TContainerType>::GetEntitiesWithinRadius(
 {
     KRATOS_TRY
 
+    BuiltinTimer timer;
+
     flann::Matrix<double> queries(rQueries.data().begin(), rQueries.size1(), rQueries.size2());
 
     flann::SearchParams params;
     params.cores = 0; // uses all the cores available.
-    params.checks = flann::FLANN_CHECKS_UNLIMITED; // for an exact search within the radius.
+    if (mExactSearch) {
+        params.checks = flann::FLANN_CHECKS_UNLIMITED; // for an exact search within the radius.
+    }
     mKDTree.radiusSearch(queries, rIndices, rDistances, Radius, params);
+
+    KRATOS_INFO_IF("SensorMaskStatusKDTree", mEchoLevel > 0) << "Found neighbours in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -62,7 +73,11 @@ void SensorMaskStatusKDTree<TContainerType>::Update()
 {
     KRATOS_TRY
 
+    BuiltinTimer timer;
+
     mKDTree.buildIndex();
+
+    KRATOS_INFO_IF("SensorMaskStatusKDTree", mEchoLevel > 0) << "Updated KD tree in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
     KRATOS_CATCH("");
 }
