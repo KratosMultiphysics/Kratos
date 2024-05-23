@@ -467,7 +467,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
@@ -524,7 +524,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
         rVariables.DN_DXContainer, rVariables.detJContainer, this->GetIntegrationMethod());
 
     // Retention law
-    rVariables.FluidPressure          = 0.0;
     rVariables.DegreeOfSaturation     = 1.0;
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability   = 1.0;

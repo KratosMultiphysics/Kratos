@@ -179,12 +179,10 @@ protected:
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
         double detJ;

@@ -193,12 +193,10 @@ protected:
         Vector PressureDtVector;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double Density;
 
         // Properties and processinfo variables
         bool IgnoreUndrained;
