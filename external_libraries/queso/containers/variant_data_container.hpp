@@ -42,8 +42,13 @@ public:
     ///@name Operations
     ///@{
 
-    /// Returns Value
+    /// Returns Value (const)
     const ComponentType& Get() const{
+        return mComponents;
+    }
+
+    /// Returns Value (non-const)
+    ComponentType& Get(){
         return mComponents;
     }
 
@@ -57,8 +62,8 @@ private:
     ///@name Private Member variables
     ///@{
 
-    std::string mName{};
-    ComponentType mComponents{};
+    std::string mName;
+    ComponentType mComponents;
 
     ///@}
 
@@ -114,7 +119,7 @@ public:
     }
 
     /// Constructor with list of components
-    VariantDataContainer(ComponentVectorType Component) : mComponents(Component) {
+    VariantDataContainer(ComponentVectorType& Component) : mComponents(Component) {
     }
 
     /// Destructor
@@ -303,7 +308,7 @@ private:
     template<class type>
     const type* pFind( const std::string& rName ) const {
         for( auto& r_component : mComponents){
-            const auto p_value = std::get_if<type>(&r_component.Get());
+            const type* p_value = std::get_if<type>(&r_component.Get());
             if( p_value ){
                 if( r_component.Name() == rName ){
                     return p_value;
@@ -320,7 +325,7 @@ private:
     template<class type>
     type* pFind( const std::string& rName ) {
         for( auto& r_component : mComponents){
-            auto p_value = const_cast<type*>(std::get_if<type>(&r_component.Get()));
+            type* p_value = std::get_if<type>(&r_component.Get());
             if( p_value ){
                 if( r_component.Name() == rName ){
                     return p_value;

@@ -23,47 +23,44 @@ public:
     ///@{
 
     /// Default constructor
-    IntegrationPoint() : PointType()
-    {}
+    IntegrationPoint() : PointType(), mWeight(0.0)
+    {
+    }
 
     /// 2D Constructor
     IntegrationPoint(double x, double y, double weigth_) :
         PointType(x,y,0.0), mWeight(weigth_)
     {
-        mActiveFlag = true;
     }
 
     /// 3D Constructor
     IntegrationPoint(double x, double y, double z, double weigth_) :
         PointType(x,y,z), mWeight(weigth_)
     {
-        mActiveFlag = true;
     }
+
     /// 3D Constructor
     IntegrationPoint(const PointType& rPoint, double weigth_) :
         PointType(rPoint), mWeight(weigth_)
     {
-        mActiveFlag = true;
     }
 
     /// Destructor
-    ~IntegrationPoint() = default;
+    virtual ~IntegrationPoint() = default;
 
     /// Copy Constructor
     IntegrationPoint(const IntegrationPoint& rOther)
-        : PointType(rOther), mWeight(rOther.mWeight), mActiveFlag(rOther.mActiveFlag)
+        : PointType(rOther), mWeight(rOther.mWeight)
     {
     }
 
     /// Assignement operator
     IntegrationPoint& operator=(const IntegrationPoint& rOther)
     {
-        PointType::operator=(rOther);
-        if( this != &rOther) {
-            mWeight = rOther.mWeight;
-            mActiveFlag = rOther.mActiveFlag;
 
-        }
+        PointType::operator=(rOther);
+        mWeight = rOther.mWeight;
+
         return *this;
     }
 
@@ -71,20 +68,14 @@ public:
     ///@name Operations
     ///@{
 
-    double GetWeight() const{
+    /// Get integration weight
+    double Weight() const{
         return mWeight;
     }
 
+    /// Set integration weight
     void SetWeight(double weigth_){
         mWeight = weigth_;
-    }
-
-    void SetActive(bool value){
-        mActiveFlag = value;
-    }
-
-    bool IsActive(){
-        return mActiveFlag;
     }
 
     ///@}
@@ -92,7 +83,6 @@ private:
     ///@name Private member variables
     ///@{
     double mWeight;
-    bool mActiveFlag;
     ///@}
 }; // End class IntegrationPoint
 ///@} End QuESo classes

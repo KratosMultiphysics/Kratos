@@ -26,7 +26,7 @@ public:
     ///@{
 
     /// Default constructor
-    BoundaryIntegrationPoint() : IntegrationPoint()
+    BoundaryIntegrationPoint() : IntegrationPoint(), mNormal(0.0, 0.0, 0.0)
     {}
 
     /// 3D Constructor
@@ -48,11 +48,10 @@ public:
     BoundaryIntegrationPoint& operator=(const BoundaryIntegrationPoint& rOther)
     {
         IntegrationPoint::operator=(rOther);
-        if( this != &rOther) {
-            mNormal[0] = rOther.mNormal[0];
-            mNormal[1] = rOther.mNormal[1];
-            mNormal[2] = rOther.mNormal[2];
-        }
+        mNormal[0] = rOther.mNormal[0];
+        mNormal[1] = rOther.mNormal[1];
+        mNormal[2] = rOther.mNormal[2];
+
         return *this;
     }
 

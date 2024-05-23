@@ -300,7 +300,7 @@ public:
             const double det_j = el_ptr->DetJ();
             const auto& r_points = el_ptr->GetIntegrationPoints();
             for( const auto& r_point : r_points ){
-                volume += r_point.GetWeight()*det_j;
+                volume += r_point.Weight()*det_j;
             }
         }
 
