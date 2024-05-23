@@ -21,6 +21,7 @@ namespace queso {
 typedef std::size_t  SizeType;
 typedef std::size_t  IndexType;
 
+/// Here you can specify the types you want to use:
 typedef Vector3<double> PointType;
 typedef Vector3<double> Vector3d;
 typedef Vector3<IndexType> Vector3i;
