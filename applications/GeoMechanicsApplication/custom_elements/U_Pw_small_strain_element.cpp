@@ -709,19 +709,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             this->CalculateKinematics(Variables, GPoint);
-            Variables.B                  = b_matrices[GPoint];
-            Variables.F                  = deformation_gradients[GPoint];
-            Variables.StrainVector       = strain_vectors[GPoint];
-            Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-            Variables.BiotCoefficient    = biot_coefficients[GPoint];
-
             const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(fluid_pressure);
             const auto bishop_coefficient =
                 mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
-            rOutput[GPoint] = mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
+            rOutput[GPoint] = mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
                                                           bishop_coefficient * fluid_pressure * VoigtVector;
         }
     } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
