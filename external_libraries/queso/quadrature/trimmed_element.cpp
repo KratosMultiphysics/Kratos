@@ -93,7 +93,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
 
         // Assembly RHS
         row_index = 0;
-        const double weight = 1.0/3.0*point_it->GetWeight();
+        const double weight = 1.0/3.0*point_it->Weight();
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
             for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                 for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
@@ -138,7 +138,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
         auto point_it = (begin_points_it + i);
         // For all functions
         row_index = 0;
-        const double weight = point_it->GetWeight();
+        const double weight = point_it->Weight();
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
             for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
                 for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
@@ -242,30 +242,29 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     const double l2_norm_ct = std::sqrt( std::inner_product(rConstantTerms.begin(), rConstantTerms.end(), rConstantTerms.begin(), 0.0) );
 
     /// Assemble moment fitting matrix.
-    nnls::MatrixType fitting_matrix(number_of_functions, nnls::VectorType(number_reduced_points, 0.0));
-    IndexType row_index = 0;
-    for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
-        for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
-            for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
-                // Loop over all points
-                const auto points_it_begin = rIntegrationPoint.begin();
-                for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
-                    auto point_it = points_it_begin + column_index;
-
+    NNLS::MatrixType fitting_matrix(number_of_functions * number_reduced_points, 0.0);
+    const auto points_it_begin = rIntegrationPoint.begin();
+    for( IndexType column_index = 0; column_index < number_reduced_points; ++column_index ){
+        auto point_it = points_it_begin + column_index;
+        IndexType row_index = 0;
+        for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
+            for( IndexType i_y = 0; i_y <= order_v*ffactor; ++i_y ){
+                for( IndexType i_z = 0; i_z <= order_w*ffactor; ++i_z){
                     const double value = Polynomial::f_x(point_it->X(), i_x, a[0], b[0])
                                        * Polynomial::f_x(point_it->Y(), i_y, a[1], b[1])
                                        * Polynomial::f_x(point_it->Z(), i_z, a[2], b[2]);
-
-                    fitting_matrix[row_index][column_index] = value;
+                    // Matrix is serialized: Column first.
+                    fitting_matrix[column_index*number_of_functions + row_index] = value;
+                    row_index++;
                 }
-                row_index++;
             }
         }
     }
 
     // Solve non-negative Least-Square-Error problem.
     VectorType weights(number_reduced_points);
-    const double rel_residual = nnls::nnls(fitting_matrix, rConstantTerms, weights) / l2_norm_ct;
+    VectorType tmp_constant_terms(rConstantTerms); // NNLS::solve does modify input. Therefore, copy is required.
+    const double rel_residual = NNLS::solve(fitting_matrix, tmp_constant_terms, weights) / l2_norm_ct;
 
     // Write computed weights onto integration points
     for( IndexType i = 0; i < number_reduced_points; ++i){
@@ -305,14 +304,14 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
             /// In first iteration, revome all points but #number_of_functions
             // Sort integration points according to weight.
             std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
-                    return point_a.GetWeight() > point_b.GetWeight();
+                    return point_a.Weight() > point_b.Weight();
                 });
             // Only keep #number_of_functions integration points.
             rIntegrationPoint.erase(rIntegrationPoint.begin()+number_of_functions, rIntegrationPoint.end());
 
             // Additionally remove all points that are zero.
             rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point) {
-                return point.GetWeight() < ZEROTOL; }), rIntegrationPoint.end());
+                return point.Weight() < ZEROTOL; }), rIntegrationPoint.end());
 
             // Stop if no points are left.
             if( rIntegrationPoint.size() == 0 )
@@ -333,12 +332,12 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
             const auto begin_it = rIntegrationPoint.begin();
             for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
                 auto it = begin_it + i;
-                if( it->GetWeight() < min_value ) {
+                if( it->Weight() < min_value ) {
                     min_value_it = it;
-                    min_value = it->GetWeight();
+                    min_value = it->Weight();
                 }
-                if( it->GetWeight() > max_value ) {
-                    max_value = it->GetWeight();
+                if( it->Weight() > max_value ) {
+                    max_value = it->Weight();
                 }
             }
 
@@ -348,7 +347,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
             for(IndexType i = 0; i < rIntegrationPoint.size(); i++){
                 auto it = begin_it + i;
                 // TODO: Fix this > 2..4
-                if( it->GetWeight() < 1e-8*max_value && rIntegrationPoint.size() > min_number_of_points){
+                if( it->Weight() < 1e-8*max_value && rIntegrationPoint.size() > min_number_of_points){
                     rIntegrationPoint.erase(it);
                     point_is_eliminated = true;
                     counter++;
@@ -372,7 +371,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
         // Return previous solution.
         reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < ZEROTOL; }), reduced_points.end());
+            return point.Weight() < ZEROTOL; }), reduced_points.end());
 
         return prev_residual;
     }
@@ -380,7 +379,7 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
         // Return current solution.
         reduced_points.insert(reduced_points.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
         reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
-            return point.GetWeight() < ZEROTOL; }), reduced_points.end());
+            return point.Weight() < ZEROTOL; }), reduced_points.end());
 
         return global_residual;
     }
