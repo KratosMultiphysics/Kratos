@@ -1300,10 +1300,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        Variables.BiotCoefficient = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse =
-            this->CalculateBiotModulusInverse(Variables.BiotCoefficient, Variables.DegreeOfSaturation,
-                                              Variables.DerivativeOfSaturation, this->GetProperties());
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
@@ -1545,31 +1545,6 @@ double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rC
         // calculate Bulk modulus from stiffness matrix
         return 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
     }
-
-    KRATOS_CATCH("")
-}
-
-double SmallStrainUPwDiffOrderElement::CalculateBiotModulusInverse(double BiotCoefficient,
-                                                                   double DegreeOfSaturation,
-                                                                   double DerivativeOfSaturation,
-                                                                   const Properties& rProperties)
-{
-    KRATOS_TRY
-
-    double result = 0.0;
-
-    if (rProperties[IGNORE_UNDRAINED]) {
-        result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                 rProperties[POROSITY] / TINY;
-    } else {
-        result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                 rProperties[POROSITY] / rProperties[BULK_MODULUS_FLUID];
-    }
-
-    result *= DegreeOfSaturation;
-    result -= DerivativeOfSaturation * rProperties[POROSITY];
-
-    return result;
 
     KRATOS_CATCH("")
 }

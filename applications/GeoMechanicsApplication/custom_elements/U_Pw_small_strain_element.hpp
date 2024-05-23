@@ -222,8 +222,6 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
-    void InitializeBiotCoefficients(ElementVariables& rVariables);
-
     double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
@@ -269,7 +267,8 @@ protected:
                                         const ElementVariables&                 rVariables) const;
 
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables) const;
+    double CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const;
+    std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const;
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 

@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -453,6 +454,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -475,8 +477,10 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

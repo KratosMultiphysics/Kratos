@@ -701,6 +701,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NContainer, Variables.DN_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
+        const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -709,8 +710,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             Variables.F                  = deformation_gradients[GPoint];
             Variables.StrainVector       = strain_vectors[GPoint];
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-
-            Variables.BiotCoefficient = CalculateBiotCoefficient(Variables);
+            Variables.BiotCoefficient    = biot_coefficients[GPoint];
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -980,6 +980,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -995,7 +996,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        this->InitializeBiotCoefficients(Variables);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
@@ -1015,7 +1019,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const ElementVariables& rVariables) const
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const
+{
+    std::vector<double> result;
+    std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                   std::back_inserter(result), [this](const Matrix& rConstitutiveMatrix) {
+        return CalculateBiotCoefficient(rConstitutiveMatrix);
+    });
+
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
 {
     KRATOS_TRY
 
@@ -1026,34 +1042,9 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const El
         return rProp[BIOT_COEFFICIENT];
     } else {
         // Calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(rVariables.ConstitutiveMatrix);
+        const double BulkModulus = CalculateBulkModulus(rConstitutiveMatrix);
         return 1.0 - BulkModulus / rProp[BULK_MODULUS_SOLID];
     }
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::InitializeBiotCoefficients(ElementVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const PropertiesType& rProp = this->GetProperties();
-
-    // Properties variables
-    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables);
-
-    if (!rProp[IGNORE_UNDRAINED]) {
-        rVariables.BiotModulusInverse =
-            (rVariables.BiotCoefficient - rProp[POROSITY]) / rProp[BULK_MODULUS_SOLID] +
-            rProp[POROSITY] / rProp[BULK_MODULUS_FLUID];
-    } else {
-        rVariables.BiotModulusInverse =
-            (rVariables.BiotCoefficient - rProp[POROSITY]) / rProp[BULK_MODULUS_SOLID] + rProp[POROSITY] / TINY;
-    }
-
-    rVariables.BiotModulusInverse *= rVariables.DegreeOfSaturation;
-    rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation * rProp[POROSITY];
 
     KRATOS_CATCH("")
 }

@@ -240,11 +240,6 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    double CalculateBiotModulusInverse(double            BiotCoefficient,
-                                       double            DegreeOfSaturation,
-                                       double            DerivativeOfSaturation,
-                                       const Properties& rProperties);
-
     double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);

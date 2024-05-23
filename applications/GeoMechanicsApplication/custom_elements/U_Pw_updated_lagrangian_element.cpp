@@ -79,6 +79,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
 
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -97,8 +98,10 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

@@ -455,6 +455,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+    std::vector<double> biot_coefficients(NumGPoints, Prop[BIOT_COEFFICIENT]);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -468,7 +469,10 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        this->InitializeBiotCoefficients(Variables);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

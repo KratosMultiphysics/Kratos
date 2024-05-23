@@ -97,10 +97,10 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         // calculate Bulk modulus from stiffness matrix
-        Variables.BiotCoefficient = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse =
-            this->CalculateBiotModulusInverse(Variables.BiotCoefficient, Variables.DegreeOfSaturation,
-                                              Variables.DerivativeOfSaturation, this->GetProperties());
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
