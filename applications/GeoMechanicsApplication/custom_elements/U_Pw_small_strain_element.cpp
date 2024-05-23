@@ -1028,20 +1028,10 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoeffic
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
 {
-    KRATOS_TRY
-
     const PropertiesType& rProp = this->GetProperties();
-
-    // Properties variables
-    if (rProp.Has(BIOT_COEFFICIENT)) {
-        return rProp[BIOT_COEFFICIENT];
-    } else {
-        // Calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(rConstitutiveMatrix);
-        return 1.0 - BulkModulus / rProp[BULK_MODULUS_SOLID];
-    }
-
-    KRATOS_CATCH("")
+    return rProp.Has(BIOT_COEFFICIENT)
+               ? rProp[BIOT_COEFFICIENT]
+               : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

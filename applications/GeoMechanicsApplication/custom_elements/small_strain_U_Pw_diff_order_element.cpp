@@ -1521,19 +1521,10 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBiotCoefficients(co
 
 double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
 {
-    KRATOS_TRY
-
     const PropertiesType& rProp = this->GetProperties();
-
-    // Properties variables
-    if (rProp.Has(BIOT_COEFFICIENT)) {
-        return rProp[BIOT_COEFFICIENT];
-    } else {
-        // calculate Bulk modulus from stiffness matrix
-        return 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
-    }
-
-    KRATOS_CATCH("")
+    return rProp.Has(BIOT_COEFFICIENT)
+               ? rProp[BIOT_COEFFICIENT]
+               : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
 }
 
 double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const

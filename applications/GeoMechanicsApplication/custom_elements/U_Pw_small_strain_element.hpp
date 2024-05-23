@@ -264,9 +264,9 @@ protected:
                                         array_1d<double, TNumNodes>&            rPVector,
                                         const ElementVariables&                 rVariables) const;
 
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const;
-    std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const;
+    double               CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
+    [[nodiscard]] double CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const;
+    [[nodiscard]] std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const;
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 

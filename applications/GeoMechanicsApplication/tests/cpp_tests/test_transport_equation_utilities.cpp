@@ -45,8 +45,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgn
     const double derivative_of_saturation = 0.2;
 
     const auto large_number = 1e10;
-    KRATOS_EXPECT_TRUE(GeoTransportEquationUtilities::CalculateBiotModulusInverse(
-                           biot_coefficient, degree_of_saturation, derivative_of_saturation, properties) > large_number)
+    KRATOS_EXPECT_GT(GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+                         biot_coefficient, degree_of_saturation, derivative_of_saturation, properties),
+                     large_number);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesNotThrow_ForEmptyProperties, KratosGeoMechanicsFastSuite)

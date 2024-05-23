@@ -123,15 +123,14 @@ public:
                                                             double DerivativeOfSaturation,
                                                             const Properties& rProperties)
     {
-        const double denominator = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
+        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
         double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                        rProperties[POROSITY] / denominator;
+                        rProperties[POROSITY] / bulk_modulus_fluid;
 
         result *= DegreeOfSaturation;
         result -= DerivativeOfSaturation * rProperties[POROSITY];
 
         return result;
     }
-
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
