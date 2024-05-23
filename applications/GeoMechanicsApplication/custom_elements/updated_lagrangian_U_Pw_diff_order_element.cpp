@@ -98,8 +98,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 
         // calculate Bulk modulus from stiffness matrix
         Variables.BiotCoefficient = biot_coefficients[GPoint];
-        this->CalculateBiotModulusInverse(Variables, Variables.BiotCoefficient,
-                                          Variables.DegreeOfSaturation, Variables.DerivativeOfSaturation);
+        Variables.BiotModulusInverse =
+            this->CalculateBiotModulusInverse(Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+                                              Variables.DerivativeOfSaturation, this->GetProperties());
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
