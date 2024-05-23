@@ -45,9 +45,32 @@ public:
                                                      double        PermeabilityUpdateFactor,
                                                      double        IntegrationCoefficient)
     {
+        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
+                                           RelativePermeability * PermeabilityUpdateFactor,
+                                           IntegrationCoefficient);
+    }
+
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
+        const Matrix&                            rGradNpT,
+        double                                   DynamicViscosityInverse,
+        const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
+        double                                   RelativePermeability,
+        double                                   IntegrationCoefficient)
+    {
+        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
+                                           RelativePermeability, IntegrationCoefficient);
+    }
+
+    static inline Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
+                                                     double        DynamicViscosityInverse,
+                                                     const Matrix& rMaterialPermeabilityMatrix,
+                                                     double        RelativePermeability,
+                                                     double        IntegrationCoefficient)
+    {
         return -PORE_PRESSURE_SIGN_FACTOR * DynamicViscosityInverse *
                prod(rGradNpT, Matrix(prod(rMaterialPermeabilityMatrix, trans(rGradNpT)))) *
-               RelativePermeability * PermeabilityUpdateFactor * IntegrationCoefficient;
+               RelativePermeability * IntegrationCoefficient;
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
