@@ -8,10 +8,10 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "stress_strain_utilities.h"
-#include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
 #include <cmath>
 
@@ -173,5 +173,22 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
 
     return result;
 }
+
+const Vector& StressStrainUtilities::GetVoigtVector(std::size_t Dimension)
+{
+    return Dimension == N_DIM_3D ? VoigtVector3D : VoigtVector2D;
+}
+
+Vector StressStrainUtilities::DefineVoigtVector(std::size_t Dimension)
+{
+    Vector VoigtVector = ZeroVector(GetVoigtSize(Dimension));
+    for (unsigned int i = 0; i < GetStressTensorSize(Dimension); ++i)
+        VoigtVector[i] = 1.0;
+
+    return VoigtVector;
+}
+
+const Vector StressStrainUtilities::VoigtVector2D = StressStrainUtilities::DefineVoigtVector(2);
+const Vector StressStrainUtilities::VoigtVector3D = StressStrainUtilities::DefineVoigtVector(3);
 
 } // namespace Kratos

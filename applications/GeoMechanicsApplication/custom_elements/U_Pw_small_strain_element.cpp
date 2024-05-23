@@ -691,11 +691,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         // Create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-        Vector VoigtVector(mStressVector[0].size());
-        noalias(VoigtVector) = ZeroVector(VoigtVector.size());
-
-        for (unsigned int i = 0; i < StressTensorSize; ++i)
-            VoigtVector[i] = 1.0;
+        const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(TDim);
 
         const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
@@ -718,10 +714,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
-            const auto fluid_pressure =
-                GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
+            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+                Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(fluid_pressure);
-            const auto bishop_coefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            const auto bishop_coefficient =
+                mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
             rOutput[GPoint] = mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
                                                           bishop_coefficient * fluid_pressure * VoigtVector;
@@ -1164,8 +1161,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
     rVariables.detF = 1.0;
 
     // General Variables
-    rVariables.VoigtVector = ZeroVector(VoigtSize);
-    std::fill_n(rVariables.VoigtVector.begin(), StressTensorSize, 1.0);
+    rVariables.VoigtVector = StressStrainUtilities::GetVoigtVector(TDim);
 
     rVariables.B = ZeroMatrix(VoigtSize, TNumNodes * TDim);
 

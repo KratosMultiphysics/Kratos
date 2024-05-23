@@ -252,8 +252,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     // resize mStressVector:
-    const SizeType Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize = GetVoigtSize();
     if (mStressVector.size() != IntegrationPoints.size()) {
         mStressVector.resize(IntegrationPoints.size());
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
@@ -1130,11 +1129,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         const PropertiesType& rProp = this->GetProperties();
 
-        const SizeType VoigtSize   = mStressVector[0].size();
-        Vector         VoigtVector = ZeroVector(VoigtSize);
-        const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
-        for (unsigned int i = 0; i < StressTensorSize; ++i)
-            VoigtVector[i] = 1.0;
+        const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(Dim);
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
@@ -1160,10 +1155,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
             Variables.BiotCoefficient    = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
-            const auto fluid_pressure =
-                GeoTransportEquationUtilities::CalculateFluidPressure(Variables.Np, Variables.PressureVector);
+            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
+                Variables.Np, Variables.PressureVector);
             RetentionParameters.SetFluidPressure(fluid_pressure);
-            const auto bishop_coefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            const auto bishop_coefficient =
+                mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
 
             rOutput[GPoint] = mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
                                                           bishop_coefficient * fluid_pressure * VoigtVector;
@@ -1434,7 +1430,7 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     }
 
     // Variables computed at each integration point
-    const SizeType VoigtSize = (Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    const SizeType VoigtSize = GetVoigtSize();
 
     rVariables.B.resize(VoigtSize, NumUNodes * Dim, false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize, NumUNodes * Dim);
@@ -1716,15 +1712,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
-
-    Vector VoigtVector = ZeroVector(VoigtSize);
-
-    for (unsigned int i = 0; i < StressTensorSize; ++i)
-        VoigtVector[i] = 1.0;
+    const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(GetGeometry().WorkingSpaceDimension());
 
     Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
@@ -1836,9 +1824,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
     for (SizeType i = 0; i < NumUNodes; ++i) {
         Index = i * Dim;
         for (SizeType idim = 0; idim < Dim; ++idim) {
-            rRightHandSideVector[Index + idim] +=
-                rVariables.Nu[i] * soil_density * BodyAcceleration[idim] *
-                rVariables.IntegrationCoefficientInitialConfiguration;
+            rRightHandSideVector[Index + idim] += rVariables.Nu[i] * soil_density * BodyAcceleration[idim] *
+                                                  rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
 
@@ -1850,14 +1837,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      VoigtSize = (Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    const SizeType StressTensorSize = (Dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
-
-    Vector VoigtVector = ZeroVector(VoigtSize);
-    for (SizeType idim = 0; idim < StressTensorSize; ++idim)
-        VoigtVector[idim] = 1.0;
+    const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(GetGeometry().WorkingSpaceDimension());
 
     Matrix CouplingMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
                                          rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
@@ -1975,7 +1955,7 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
 
 SizeType SmallStrainUPwDiffOrderElement::GetVoigtSize() const
 {
-    return (GetGeometry().WorkingSpaceDimension() == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    return StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension());
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
