@@ -453,6 +453,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     std::vector<double> biot_coefficients(NumGPoints, Prop[BIOT_COEFFICIENT]);
@@ -474,6 +476,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
 
+        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side

@@ -156,9 +156,11 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
-    
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++) {
         // Compute GradNpT, B and StrainVector
@@ -171,6 +173,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
+        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
