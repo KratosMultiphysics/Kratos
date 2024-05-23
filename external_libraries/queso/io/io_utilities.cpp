@@ -410,11 +410,11 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
         const auto& points = el_ptr->GetIntegrationPoints();
         for( const auto& point : points ){
             if( Binary ){
-                double rw = point.GetWeight();
+                double rw = point.Weight();
                 WriteBinary(file, rw);
             }
             else {
-                file << point.GetWeight() << std::endl;
+                file << point.Weight() << std::endl;
             }
         }
     }
@@ -502,11 +502,11 @@ bool IO::WritePointsToVTK(const std::vector<Type>& rPoints,
         auto points_it = (begin_points_it_ptr + i);
 
         if( Binary ){
-            double rw = points_it->GetWeight();
+            double rw = points_it->Weight();
             WriteBinary(file, rw);
         }
         else {
-            file << points_it->GetWeight() << std::endl;
+            file << points_it->Weight() << std::endl;
         }
     }
     file << std::endl;
