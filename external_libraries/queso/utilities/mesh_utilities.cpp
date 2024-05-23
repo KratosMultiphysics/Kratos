@@ -201,7 +201,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             const double integrand = Math::Dot(normal, point);
-            const double integral = integrand * point.GetWeight();
+            const double integral = integrand * point.Weight();
             if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
                 volume += integral;
             }
@@ -222,7 +222,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             const double integrand = Math::Dot(normal, point);
-            const double integral = integrand * point.GetWeight();
+            const double integral = integrand * point.Weight();
             if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
                 volume += integral;
             }
@@ -245,7 +245,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
             const double integrand = normal[Dir]*point[Dir];
-            const double integral = integrand * point.GetWeight();
+            const double integral = integrand * point.Weight();
             if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
                 volume += integral;
             }
@@ -291,9 +291,9 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
-            total_volume_1 += normal[0]*point[0] * point.GetWeight();
-            total_volume_2 += normal[1]*point[1] * point.GetWeight();
-            total_volume_3 += normal[2]*point[2] * point.GetWeight();
+            total_volume_1 += normal[0]*point[0] * point.Weight();
+            total_volume_2 += normal[1]*point[1] * point.Weight();
+            total_volume_3 += normal[2]*point[2] * point.Weight();
         }
     }
     const double total_volume = std::abs(1.0/3.0*(total_volume_1 + total_volume_2 + total_volume_3));
