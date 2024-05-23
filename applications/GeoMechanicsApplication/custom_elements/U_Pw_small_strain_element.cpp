@@ -1030,29 +1030,25 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
 
     const PropertiesType& rProp = this->GetProperties();
 
-    array_1d<double, TDim> GradPressureTerm;
-
-    // Create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
+    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
+    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
+                   rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
+                   std::multiplies<>{});
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-        Variables.PermeabilityUpdateFactor = rPermeabilityUpdateFactors[GPoint];
 
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-            Variables.Np, Variables.PressureVector));
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
 
-        Variables.RelativePermeability =
-            mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
-
-        noalias(GradPressureTerm) = prod(trans(Variables.GradNpT), Variables.PressureVector);
-        noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
+        array_1d<double, TDim> GradPressureTerm = prod(trans(Variables.GradNpT), Variables.PressureVector);
+        GradPressureTerm += PORE_PRESSURE_SIGN_FACTOR * rProp[DENSITY_WATER] * Variables.BodyAcceleration;
 
         FluidFluxes.push_back(PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                              Variables.RelativePermeability * Variables.PermeabilityUpdateFactor *
+                              Variables.RelativePermeability *
                               prod(Variables.PermeabilityMatrix, GradPressureTerm));
     }
 
