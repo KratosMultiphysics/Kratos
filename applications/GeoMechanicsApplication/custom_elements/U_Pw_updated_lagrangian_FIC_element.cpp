@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -82,7 +83,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
+    const auto biot_coefficients =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Prop);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {

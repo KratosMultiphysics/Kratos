@@ -454,7 +454,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
+    const auto biot_coefficients =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Prop);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -474,8 +475,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
-            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
-            Variables.DerivativeOfSaturation, this->GetProperties());
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation, Variables.DerivativeOfSaturation, Prop);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

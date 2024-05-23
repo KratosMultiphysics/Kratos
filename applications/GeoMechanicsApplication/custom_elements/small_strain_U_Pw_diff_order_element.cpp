@@ -1146,7 +1146,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NuContainer, Variables.DNu_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
-        const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
+        const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+            constitutive_matrices, this->GetProperties());
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateKinematics(Variables, GPoint);
@@ -1277,7 +1278,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
+    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+        constitutive_matrices, this->GetProperties());
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1496,26 +1498,6 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     }
 
     KRATOS_CATCH("")
-}
-
-std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const
-{
-    std::vector<double> result;
-    std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                   std::back_inserter(result), [this](const Matrix& rConstitutiveMatrix) {
-        return CalculateBiotCoefficient(rConstitutiveMatrix);
-    });
-
-    return result;
-}
-
-double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
-{
-    const PropertiesType& rProp = this->GetProperties();
-    return rProp.Has(BIOT_COEFFICIENT)
-               ? rProp[BIOT_COEFFICIENT]
-               : 1.0 - GeoTransportEquationUtilities::CalculateBulkModulus(rConstitutiveMatrix) /
-                           rProp[BULK_MODULUS_SOLID];
 }
 
 double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const

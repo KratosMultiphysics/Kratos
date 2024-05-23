@@ -140,5 +140,27 @@ public:
         const SizeType index_G = rConstitutiveMatrix.size1() - 1;
         return rConstitutiveMatrix(0, 0) - (4.0 / 3.0) * rConstitutiveMatrix(index_G, index_G);
     }
+
+    [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
+                                                                       const Properties& rProperties)
+    {
+        std::vector<double> result;
+        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                       std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
+            return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
+        });
+
+        return result;
+    }
+
+private:
+    [[nodiscard]] static double CalculateBiotCoefficient(const Matrix&     rConstitutiveMatrix,
+                                                         const Properties& rProperties)
+    {
+        return rProperties.Has(BIOT_COEFFICIENT)
+                   ? rProperties[BIOT_COEFFICIENT]
+                   : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
+    }
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

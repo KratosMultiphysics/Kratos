@@ -705,7 +705,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NContainer, Variables.DN_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
-        const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
+        const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+            constitutive_matrices, this->GetProperties());
 
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             this->CalculateKinematics(Variables, GPoint);
@@ -975,7 +976,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
+    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+        constitutive_matrices, this->GetProperties());
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1011,28 +1013,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     }
 
     KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const
-{
-    std::vector<double> result;
-    std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                   std::back_inserter(result), [this](const Matrix& rConstitutiveMatrix) {
-        return CalculateBiotCoefficient(rConstitutiveMatrix);
-    });
-
-    return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
-{
-    const PropertiesType& rProp = this->GetProperties();
-    return rProp.Has(BIOT_COEFFICIENT)
-               ? rProp[BIOT_COEFFICIENT]
-               : 1.0 - GeoTransportEquationUtilities::CalculateBulkModulus(rConstitutiveMatrix) /
-                           rProp[BULK_MODULUS_SOLID];
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
