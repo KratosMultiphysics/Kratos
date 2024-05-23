@@ -55,7 +55,6 @@ TrussElement3D2N::msLocalSize>
 TrussElementLinear3D2N::CreateElementStiffnessMatrix(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_INFO("TrussElementLinear3D2N::CreateElementStiffnessMatrix") << "Naar Calculate C van Base el" << std::endl;
     KRATOS_TRY
     BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
         ZeroMatrix(msLocalSize, msLocalSize);
@@ -91,8 +90,6 @@ void TrussElementLinear3D2N::AddPrestressLinear(
 void TrussElementLinear3D2N::CalculateRightHandSide(
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_INFO("TrussElementLinear3D2N::Calculate RHS") << "RHS computation" << std::endl;
-
     KRATOS_TRY
     rRightHandSideVector = ZeroVector(msLocalSize);
 
@@ -111,8 +108,6 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
 void TrussElementLinear3D2N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_INFO("TrussElementLinear3D2N::CalculateLeftHandSide") << "LHS computation" << std::endl;
-
     KRATOS_TRY
 
     // resizing the matrices + create memory for LHS
@@ -207,7 +202,6 @@ double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurren
     KRATOS_TRY;
     double tangent_modulus(0.00);
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    KRATOS_INFO("TrussElementLinear3D2N::ReturnTangentModulus1D") << "Naar linear! strain" << std::endl;
     strain_vector[0] = CalculateLinearStrain();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -230,7 +224,6 @@ double TrussElementLinear3D2N::CalculateLinearStrain()
     CreateTransformationMatrix(transformation_matrix);
 
     current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
-    KRATOS_INFO("TrussElementLinear3D2N::CalculateLinearStrain") << "current_disp = " << current_disp << std::endl;
     const double length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double e = (current_disp[3]-current_disp[0])/length_0;
 
@@ -242,7 +235,6 @@ double TrussElementLinear3D2N::CalculateLinearStrain()
 void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    KRATOS_INFO("TrussElementLinear3D2N::UpdateInternalForces") << "InternalForces computation" << std::endl;
 
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);

@@ -18,8 +18,8 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
 #include "includes/checks.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -30,7 +30,6 @@ namespace Kratos
  * @author Wijtze Pieter Kikstra
  */
 
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TrussBackboneConstitutiveLaw : public ConstitutiveLaw
 {
 public:
@@ -38,7 +37,7 @@ public:
     using BaseType        = ConstitutiveLaw;
     using SizeType        = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION( TrussBackboneConstitutiveLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(TrussBackboneConstitutiveLaw);
 
     TrussBackboneConstitutiveLaw();
 
@@ -49,12 +48,11 @@ public:
     ~TrussBackboneConstitutiveLaw();
     void GetLawFeatures(Features& rFeatures) override;
 
-    void SetValue(const Variable<double>& rThisVariable,
-                  const double&           rValue,
-                  const ProcessInfo&      rCurrentProcessInfo) override;
+    void SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+    using ConstitutiveLaw::SetValue;
 
-    double& GetValue(const Variable<double>& rThisVariable,
-                     double&                 rValue) override;
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+    using ConstitutiveLaw::GetValue;
 
     array_1d<double, 3>& GetValue(const Variable<array_1d<double, 3>>& rThisVariable,
                                   array_1d<double, 3>&                 rValue) override;
@@ -62,20 +60,15 @@ public:
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>&      rThisVariable,
                            double&                      rValue) override;
+    using ConstitutiveLaw::CalculateValue;
 
     void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
-    bool RequiresInitializeMaterialResponse() override
-    {
-        return false;
-    }
+    bool RequiresInitializeMaterialResponse() override { return false; }
 
-    SizeType GetStrainSize() const override
-    {
-        return 1;
-    }
+    SizeType GetStrainSize() const override { return 1; }
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -91,23 +84,36 @@ public:
               const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
-    double mAccumulatedStrain = 0.;
+    double mAccumulatedStrain   = 0.;
     double mPreviousAxialStrain = 0.;
+    double mUnReLoadCenter      = 0.;
 
     double BackboneStress(const double Strain) const;
     double BackboneStiffness(const double Strain) const;
 
+    double CalculateUnReLoadCenter(const double                 Strain,
+                                   const double                 Stress,
+                                   ConstitutiveLaw::Parameters& rParameterValues) const;
+    double CalculateUnReLoadAmplitude(ConstitutiveLaw::Parameters& rParameterValues) const;
+    bool IsWithinUnReLoading(const double Strain, ConstitutiveLaw::Parameters& rParameterValues) const;
+
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.save("AccumulatedStrain", mAccumulatedStrain);
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("AccumulatedStrain",   mAccumulatedStrain);
+        rSerializer.save("PreviousAxialStrain", mPreviousAxialStrain);
+        rSerializer.save("UnReload",            mUnReLoadCenter);
     }
 
-    void load(Serializer& rSerializer) override {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("AccumulatedStrain", mAccumulatedStrain);
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("AccumulatedStrain",   mAccumulatedStrain);
+        rSerializer.load("PreviousAxialStrain", mPreviousAxialStrain);
+        rSerializer.load("UnReload",            mUnReLoadCenter);
     }
 
 }; // Class TrussBackboneConstitutiveLaw
-}  // namespace Kratos.
+} // namespace Kratos.
