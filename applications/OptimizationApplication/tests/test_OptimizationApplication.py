@@ -37,6 +37,7 @@ import control.test_master_control
 import control.material.test_material_properties_control
 import control.thickness.test_shell_thickness_control
 import control.shape.test_vm_shape_control
+import control.material.test_simp_control
 import filtering.implicit_filters_tests
 import filtering.explicit_filters_tests
 import test_component_data_view
@@ -107,6 +108,7 @@ def AssembleTestSuites():
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_simp_control.TestSimpControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControlShell]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.shape.test_vm_shape_control.TestVMShapeControlSolid]))
