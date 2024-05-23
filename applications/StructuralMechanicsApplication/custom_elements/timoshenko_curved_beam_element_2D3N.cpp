@@ -1997,6 +1997,44 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     }
 }
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    const SizeType number_of_integration_points = integration_points.size();
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize( number_of_integration_points );
+
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2) {
+        for (IndexType IP = 0; IP < number_of_integration_points; ++IP) {
+            rOutput[IP].clear();
+            const double xi = integration_points[IP].X();
+            const auto T = GetFrenetSerretMatrix(xi);
+            if (rVariable == LOCAL_AXIS_1) {
+                rOutput[IP][0] = T(0, 0);
+                rOutput[IP][1] = T(0, 1);
+            } else {
+                rOutput[IP][0] = T(1, 0);
+                rOutput[IP][1] = T(1, 1);
+            }
+        }
+    }
+
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

@@ -272,27 +272,25 @@ public:
     void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
 
 
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>> &rVariable,
+        std::vector<array_1d<double, 3>> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo);
+
     BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix(const double xi)
     {
-        GlobalSizeVector dN_dxi, d2N_dxi2;
+        GlobalSizeVector dN_dxi;
         GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
-        GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
         const auto& r_geom = GetGeometry();
 
         double dx_dxi = 0.0;
         double dy_dxi = 0.0;
-
-        double d2x_dxi2 = 0.0;
-        double d2y_dxi2 = 0.0;
 
         for (IndexType i = 0; i < NumberOfNodes; ++i) {
             const IndexType u_coord = DoFperNode * i;
             const auto &r_coords_node = r_geom[i].GetInitialPosition();
             dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
             dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
-
-            d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
-            d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
         }
 
         VectorType x_prime(3), t(3), n(3), b(3);
@@ -326,10 +324,45 @@ public:
     BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
     {
 
-        BoundedMatrix<double, 3, 3> T;
-        noalias(T) = GetFrenetSerretMatrix(xi);
+        BoundedMatrix<double, 3, 3> T1, T2, T3;
+        noalias(T1) = GetFrenetSerretMatrix(xi);
+        noalias(T2) = GetFrenetSerretMatrix(xi);
+        noalias(T3) = GetFrenetSerretMatrix(xi);
         BoundedMatrix<double, 9, 9> global_size_T;
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+        // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+        global_size_T.clear();
+
+
+        global_size_T(0, 0) = T1(0, 0);
+        global_size_T(0, 1) = T1(0, 1);
+        global_size_T(0, 2) = T1(0, 2);
+        global_size_T(1, 0) = T1(1, 0);
+        global_size_T(1, 1) = T1(1, 1);
+        global_size_T(1, 2) = T1(1, 2);
+        global_size_T(2, 0) = T1(2, 0);
+        global_size_T(2, 1) = T1(2, 1);
+        global_size_T(2, 2) = T1(2, 2);
+
+        global_size_T(3, 3) = T2(0, 0);
+        global_size_T(3, 4) = T2(0, 1);
+        global_size_T(3, 5) = T2(0, 2);
+        global_size_T(4, 3) = T2(1, 0);
+        global_size_T(4, 4) = T2(1, 1);
+        global_size_T(4, 5) = T2(1, 2);
+        global_size_T(5, 3) = T2(2, 0);
+        global_size_T(5, 4) = T2(2, 1);
+        global_size_T(5, 5) = T2(2, 2);
+
+        global_size_T(6, 6) = T3(0, 0);
+        global_size_T(6, 7) = T3(0, 1);
+        global_size_T(6, 8) = T3(0, 2);
+        global_size_T(7, 6) = T3(1, 0);
+        global_size_T(7, 7) = T3(1, 1);
+        global_size_T(7, 8) = T3(1, 2);
+        global_size_T(8, 6) = T3(2, 0);
+        global_size_T(8, 7) = T3(2, 1);
+        global_size_T(8, 8) = T3(2, 2);
+
         return global_size_T;
     }
 
