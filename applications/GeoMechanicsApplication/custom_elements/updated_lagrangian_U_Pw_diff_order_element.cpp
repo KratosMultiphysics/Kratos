@@ -81,6 +81,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -97,6 +98,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 
         // calculate Bulk modulus from stiffness matrix
         this->InitializeBiotCoefficients(Variables);
+        Variables.BiotCoefficient = biot_coefficients[GPoint];
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

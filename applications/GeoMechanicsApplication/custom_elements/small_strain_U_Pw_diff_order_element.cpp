@@ -1152,16 +1152,15 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NuContainer, Variables.DNu_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
+        const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateKinematics(Variables, GPoint);
-            Variables.BiotCoefficient = CalculateBiotCoefficient(constitutive_matrices[GPoint]);
-
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
             noalias(TotalStressVector) = mStressVector[GPoint];
-            noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * Variables.BiotCoefficient *
+            noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
                                           Variables.BishopCoefficient * Variables.FluidPressure * VoigtVector;
 
             if (rOutput[GPoint].size() != TotalStressVector.size()) {
@@ -1287,6 +1286,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         // compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -1301,6 +1301,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables);
+        Variables.BiotCoefficient = biot_coefficients[GPoint];
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
@@ -1516,6 +1517,17 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
     }
 
     KRATOS_CATCH("")
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const
+{
+    std::vector<double> result;
+    std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                   std::back_inserter(result), [this](const Matrix& rConstitutiveMatrix) {
+        return CalculateBiotCoefficient(rConstitutiveMatrix);
+    });
+
+    return result;
 }
 
 double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const
