@@ -1148,7 +1148,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                                              strain_vectors, mStressVector, constitutive_matrices);
         const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
 
-        // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             this->CalculateKinematics(Variables, GPoint);
             const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
@@ -1281,11 +1280,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const auto biot_coefficients = CalculateBiotCoefficients(constitutive_matrices);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute infinitesimal strain
+        Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];

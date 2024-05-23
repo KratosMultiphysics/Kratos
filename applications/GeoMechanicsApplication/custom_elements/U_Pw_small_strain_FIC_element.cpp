@@ -456,9 +456,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
@@ -469,12 +467,9 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
-
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];

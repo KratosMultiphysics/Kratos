@@ -83,20 +83,16 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = this->CalculateBiotCoefficients(constitutive_matrices);
 
-    // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
         Variables.B = b_matrices[GPoint];
 
-        // Compute strain
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // calculate Bulk modulus from stiffness matrix
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
