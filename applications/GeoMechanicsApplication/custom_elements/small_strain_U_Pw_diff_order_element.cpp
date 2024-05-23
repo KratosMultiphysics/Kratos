@@ -1300,8 +1300,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        this->InitializeBiotCoefficients(Variables);
         Variables.BiotCoefficient = biot_coefficients[GPoint];
+        this->CalculateBiotModulusInverse(Variables);
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
@@ -1547,13 +1547,11 @@ double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rC
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients(ElementVariables& rVariables)
+void SmallStrainUPwDiffOrderElement::CalculateBiotModulusInverse(ElementVariables& rVariables)
 {
     KRATOS_TRY
 
     const PropertiesType& rProp = this->GetProperties();
-
-    rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables.ConstitutiveMatrix);
 
     if (rProp[IGNORE_UNDRAINED]) {
         rVariables.BiotModulusInverse =

@@ -240,7 +240,7 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients(ElementVariables& rVariables);
+    void CalculateBiotModulusInverse(ElementVariables& rVariables);
 
     double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
