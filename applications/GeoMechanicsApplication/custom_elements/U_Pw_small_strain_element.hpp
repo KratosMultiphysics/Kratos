@@ -250,8 +250,7 @@ protected:
                                               array_1d<double, TNumNodes>&                 rPVector,
                                               const ElementVariables& rVariables) const;
 
-    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(
-        const Matrix& rNContainer, const array_1d<double, TNumNodes>& rNodalPressures) const;
+    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                            array_1d<double, TNumNodes>&                 rPVector,

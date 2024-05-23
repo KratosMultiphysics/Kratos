@@ -977,8 +977,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
-    const auto relative_permeability_values =
-        this->CalculateRelativePermeabilityValues(Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1378,17 +1378,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePermeabilityValues(
-    const Matrix& rNContainer, const array_1d<double, TNumNodes>& rNodalPressures) const
+    const std::vector<double>& rFluidPressures) const
 {
+    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
+
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
-    auto       result                       = std::vector<double>{};
-    const auto number_of_integration_points = mConstitutiveLawVector.size();
-    for (auto i = 0u; i < number_of_integration_points; ++i) {
-        retention_law_params.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-            row(rNContainer, i), rNodalPressures));
-        result.emplace_back(mRetentionLawVector[i]->CalculateRelativePermeability(retention_law_params));
-    }
+    auto result = std::vector<double>{};
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
+                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
+    });
     return result;
 }
 

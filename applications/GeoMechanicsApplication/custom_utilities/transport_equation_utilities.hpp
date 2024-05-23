@@ -152,6 +152,15 @@ public:
         return result;
     }
 
+    [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer, const Vector& rPressureVector)
+    {
+        auto result = std::vector<double>{};
+        for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
+            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
+        }
+        return result;
+    }
+
 private:
     [[nodiscard]] static double CalculateBiotCoefficient(const Matrix&     rConstitutiveMatrix,
                                                          const Properties& rProperties)
@@ -160,6 +169,5 @@ private:
                    ? rProperties[BIOT_COEFFICIENT]
                    : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
     }
-
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
