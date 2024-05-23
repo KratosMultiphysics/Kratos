@@ -30,6 +30,12 @@ class StructuralMechanicsAdjointDynamicAnalysis(StructuralMechanicsAnalysis):
         
         super().__init__(model, project_parameters)
 
+    def Initialize(self):
+        super().Initialize()
+
+        # dummy time step to correctly calculate the first DELTA_TIME
+        self._GetSolver().main_model_part.CloneTimeStep(self.time)
+
     def KeepAdvancingSolutionLoop(self):
         """Note that the adjoint problem is solved in reverse time"""
         return self.time > self.end_time
