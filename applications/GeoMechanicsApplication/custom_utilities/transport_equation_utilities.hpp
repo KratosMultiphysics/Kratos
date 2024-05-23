@@ -118,5 +118,30 @@ public:
         return inner_prod(rN, rPressureVector);
     }
 
+    [[nodiscard]] static double CalculateBiotModulusInverse(double BiotCoefficient,
+                                                            double DegreeOfSaturation,
+                                                            double DerivativeOfSaturation,
+                                                            const Properties& rProperties)
+    {
+        KRATOS_TRY
+
+        double result = 0.0;
+
+        if (rProperties[IGNORE_UNDRAINED]) {
+            result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                     rProperties[POROSITY] / TINY;
+        } else {
+            result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                     rProperties[POROSITY] / rProperties[BULK_MODULUS_FLUID];
+        }
+
+        result *= DegreeOfSaturation;
+        result -= DerivativeOfSaturation * rProperties[POROSITY];
+
+        return result;
+
+        KRATOS_CATCH("")
+    }
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
