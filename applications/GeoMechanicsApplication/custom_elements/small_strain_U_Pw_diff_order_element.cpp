@@ -1350,16 +1350,6 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     KRATOS_CATCH("")
 }
 
-double SmallStrainUPwDiffOrderElement::CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const
-{
-    KRATOS_TRY
-
-    const SizeType IndexG = ConstitutiveMatrix.size1() - 1;
-    return ConstitutiveMatrix(0, 0) - (4.0 / 3.0) * ConstitutiveMatrix(IndexG, IndexG);
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables& rVariables,
                                                                 const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1524,7 +1514,8 @@ double SmallStrainUPwDiffOrderElement::CalculateBiotCoefficient(const Matrix& rC
     const PropertiesType& rProp = this->GetProperties();
     return rProp.Has(BIOT_COEFFICIENT)
                ? rProp[BIOT_COEFFICIENT]
-               : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
+               : 1.0 - GeoTransportEquationUtilities::CalculateBulkModulus(rConstitutiveMatrix) /
+                           rProp[BULK_MODULUS_SOLID];
 }
 
 double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const

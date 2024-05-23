@@ -264,7 +264,6 @@ protected:
                                         array_1d<double, TNumNodes>&            rPVector,
                                         const ElementVariables&                 rVariables) const;
 
-    double               CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
     [[nodiscard]] double CalculateBiotCoefficient(const Matrix& rConstitutiveMatrix) const;
     [[nodiscard]] std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices) const;
 

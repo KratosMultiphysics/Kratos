@@ -12,6 +12,7 @@
 
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "testing/testing.h"
+#include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
@@ -52,13 +53,36 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgn
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesNotThrow_ForEmptyProperties, KratosGeoMechanicsFastSuite)
 {
-    Properties   properties;
-    const double biot_coefficient         = 1.0;
-    const double degree_of_saturation     = 0.3;
-    const double derivative_of_saturation = 0.2;
+    const Properties properties;
+    const double     biot_coefficient         = 1.0;
+    const double     degree_of_saturation     = 0.3;
+    const double     derivative_of_saturation = 0.2;
 
     KRATOS_EXPECT_TRUE(std::isnan(GeoTransportEquationUtilities::CalculateBiotModulusInverse(
         biot_coefficient, degree_of_saturation, derivative_of_saturation, properties)))
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_ReturnsZeroForZeroConstitutiveMatrix, KratosGeoMechanicsFastSuite)
+{
+    ZeroMatrix constitutive_matrix(3, 3);
+    KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateBulkModulus(constitutive_matrix), 0.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_Throws_WhenConstitutiveMatrixIsEmpty, KratosGeoMechanicsFastSuite)
+{
+    const Matrix constitutive_matrix;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto bulk_modulus =
+            GeoTransportEquationUtilities::CalculateBulkModulus(constitutive_matrix),
+        "Constitutive matrix is empty, aborting bulk modulus calculation.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_GivesExpectedResult_ForFilledConstitutiveMatrix, KratosGeoMechanicsFastSuite)
+{
+    Matrix constitutive_matrix(3, 3);
+    constitutive_matrix <<= 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
+
+    KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateBulkModulus(constitutive_matrix), -11.0);
 }
 
 } // namespace Kratos::Testing

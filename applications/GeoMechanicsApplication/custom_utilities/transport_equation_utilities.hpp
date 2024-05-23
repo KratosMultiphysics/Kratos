@@ -132,5 +132,13 @@ public:
 
         return result;
     }
+
+    [[nodiscard]] static double CalculateBulkModulus(const Matrix& rConstitutiveMatrix)
+    {
+        KRATOS_ERROR_IF(rConstitutiveMatrix.size1() == 0)
+            << "Constitutive matrix is empty, aborting bulk modulus calculation.\n";
+        const SizeType index_G = rConstitutiveMatrix.size1() - 1;
+        return rConstitutiveMatrix(0, 0) - (4.0 / 3.0) * rConstitutiveMatrix(index_G, index_G);
+    }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/

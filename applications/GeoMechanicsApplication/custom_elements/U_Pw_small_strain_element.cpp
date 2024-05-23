@@ -1031,7 +1031,8 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBiotCoefficient(const Ma
     const PropertiesType& rProp = this->GetProperties();
     return rProp.Has(BIOT_COEFFICIENT)
                ? rProp[BIOT_COEFFICIENT]
-               : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProp[BULK_MODULUS_SOLID];
+               : 1.0 - GeoTransportEquationUtilities::CalculateBulkModulus(rConstitutiveMatrix) /
+                           rProp[BULK_MODULUS_SOLID];
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1091,17 +1092,6 @@ double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor
     }
 
     return 1.0;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const
-{
-    KRATOS_TRY
-
-    const int IndexG = ConstitutiveMatrix.size1() - 1;
-    return ConstitutiveMatrix(0, 0) - (4.0 / 3.0) * ConstitutiveMatrix(IndexG, IndexG);
 
     KRATOS_CATCH("")
 }
