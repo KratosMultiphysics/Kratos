@@ -85,4 +85,53 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_GivesExpectedResult_ForFilledCons
     KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateBulkModulus(constitutive_matrix), -11.0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesExpectedResults_WhenPropertyHasBiotCoefficient,
+                          KratosGeoMechanicsFastSuite)
+{
+    const std::vector<Matrix> constitutive_matrices(2, ZeroMatrix(3, 3));
+
+    const double biot_coefficient = 1.2;
+    Properties   properties;
+    properties[BIOT_COEFFICIENT] = biot_coefficient;
+
+    const auto actual_values =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, properties);
+
+    const std::vector<double> expected_values(2, biot_coefficient);
+    KRATOS_CHECK_VECTOR_NEAR(expected_values, actual_values, 1e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesExpectedResults, KratosGeoMechanicsFastSuite)
+{
+    std::vector<Matrix> constitutive_matrices;
+    constitutive_matrices.emplace_back(ScalarMatrix(3, 3, 1.0));
+    constitutive_matrices.emplace_back(ScalarMatrix(3, 3, 3.0));
+
+    Properties properties;
+    properties[BULK_MODULUS_SOLID] = 1.0;
+
+    const auto actual_values =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, properties);
+
+    const std::vector<double> expected_values = {4.0 / 3.0, 2.0};
+    KRATOS_CHECK_VECTOR_NEAR(expected_values, actual_values, 1e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesInfResults_ForZeroBulkModulus, KratosGeoMechanicsFastSuite)
+{
+    std::vector<Matrix> constitutive_matrices;
+    constitutive_matrices.emplace_back(ScalarMatrix(3, 3, 1.0));
+    constitutive_matrices.emplace_back(ScalarMatrix(3, 3, 3.0));
+
+    Properties properties;
+    properties[BULK_MODULUS_SOLID] = 0.0;
+
+    const auto actual_values =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Properties());
+
+    // Due to a division by zero, we end up with inf
+    KRATOS_EXPECT_TRUE(std::all_of(actual_values.begin(), actual_values.end(),
+                                   [](const double value) { return std::isinf(value); }))
+}
+
 } // namespace Kratos::Testing
