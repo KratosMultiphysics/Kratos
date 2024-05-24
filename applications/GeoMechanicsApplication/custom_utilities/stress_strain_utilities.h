@@ -54,13 +54,12 @@ public:
 
     static const Vector& GetVoigtVector(std::size_t Dimension);
 
+private:
+    static double       CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
+    static double       CalculateDenominator(const Vector& rStressVector, double Phi);
+    static Vector       DefineVoigtVector(std::size_t Dimension);
     static const Vector VoigtVector2D;
     static const Vector VoigtVector3D;
-
-private:
-    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
-    static double CalculateDenominator(const Vector& rStressVector, double Phi);
-    static Vector DefineVoigtVector(std::size_t Dimension);
 };
 
 } // namespace Kratos
