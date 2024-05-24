@@ -275,12 +275,7 @@ private:
         GeoThermalDispersionLaw law{TDim};
 
         Vector discharge_vector = ZeroVector(TDim);
-        Matrix constitutive_matrix;
-
-        if (!mIsPressureCoupled) {
-            constitutive_matrix =
-                law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, mIsPressureCoupled, discharge_vector);
-        }
+        Matrix constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -289,7 +284,7 @@ private:
 
              if (mIsPressureCoupled) {
                  discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
-                 constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, mIsPressureCoupled, discharge_vector);
+                 constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, discharge_vector);
              }
  
             BoundedMatrix<double, TDim, TNumNodes> Temp =

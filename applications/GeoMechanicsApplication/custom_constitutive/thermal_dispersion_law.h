@@ -38,9 +38,9 @@ public:
 
     SizeType WorkingSpaceDimension() override;
 
+    Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const;
     Matrix CalculateThermalDispersionMatrix(const Properties& rProp,
                                             const ProcessInfo& rProcessInfo,
-                                            const bool isPressureCoupled,
                                             const Vector& dischargeVector) const;
 
 private:
