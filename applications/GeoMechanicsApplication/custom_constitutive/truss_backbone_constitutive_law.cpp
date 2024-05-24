@@ -91,8 +91,7 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
 {
     // backbone loading, un- and reloading laws
     const auto axial_strain(rValues.GetStrainVector()[0]);
-    const auto axial_strain_increment = axial_strain - mPreviousAxialStrain;
-    auto&      axial_stress_vector    = rValues.GetStressVector();
+    auto&      axial_stress_vector = rValues.GetStressVector();
     if (TrussBackboneConstitutiveLaw::IsWithinUnReLoading(axial_strain, rValues)) {
         // Un- or reloading
         axial_stress_vector[0] =
