@@ -128,21 +128,6 @@ public:
         return inner_prod(rN, rPressureVector);
     }
 
-    [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
-                                                            double DegreeOfSaturation,
-                                                            double DerivativeOfSaturation,
-                                                            const Properties& rProperties)
-    {
-        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
-        double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                        rProperties[POROSITY] / bulk_modulus_fluid;
-
-        result *= DegreeOfSaturation;
-        result -= DerivativeOfSaturation * rProperties[POROSITY];
-
-        return result;
-    }
-
     [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
                                                                         const std::vector<double>& rDegreesOfSaturation,
                                                                         const std::vector<double>& DerivativesOfSaturation,
@@ -185,5 +170,19 @@ private:
                    : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
     }
 
+    [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
+                                                            double DegreeOfSaturation,
+                                                            double DerivativeOfSaturation,
+                                                            const Properties& rProperties)
+    {
+        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
+        double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                        rProperties[POROSITY] / bulk_modulus_fluid;
+
+        result *= DegreeOfSaturation;
+        result -= DerivativeOfSaturation * rProperties[POROSITY];
+
+        return result;
+    }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
