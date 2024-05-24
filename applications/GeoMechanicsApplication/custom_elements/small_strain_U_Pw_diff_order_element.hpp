@@ -177,7 +177,6 @@ protected:
         Matrix ConstitutiveMatrix;
 
         // Variables needed for consistency with the general constitutive law
-        double detF;
         Matrix F;
 
         // needed for updated Lagrangian:

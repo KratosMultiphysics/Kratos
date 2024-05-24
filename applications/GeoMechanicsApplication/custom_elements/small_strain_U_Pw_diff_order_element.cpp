@@ -327,18 +327,14 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-        Variables.F = deformation_gradients[GPoint];
-
-        // Compute infinitesimal strain
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
+        Variables.B            = b_matrices[GPoint];
+        Variables.F            = deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
         ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
+            Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -550,12 +546,11 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
         ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
+            Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -1461,7 +1456,6 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     rVariables.StressVector.resize(VoigtSize, false);
 
     // Needed parameters for consistency with the general constitutive law
-    rVariables.detF = 1.0;
     rVariables.F.resize(Dim, Dim, false);
     noalias(rVariables.F) = identity_matrix<double>(Dim);
 
