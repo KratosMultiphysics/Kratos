@@ -1622,7 +1622,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSid
 
         const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
-            rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor,
+            rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor,
             rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, permeability_matrix);
     }

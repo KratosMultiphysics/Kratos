@@ -31,32 +31,6 @@ public:
         double                                   DynamicViscosityInverse,
         const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
         double                                   RelativePermeability,
-        double                                   PermeabilityUpdateFactor,
-        double                                   IntegrationCoefficient)
-    {
-        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse,
-                                           rMaterialPermeabilityMatrix, RelativePermeability,
-                                           PermeabilityUpdateFactor, IntegrationCoefficient);
-    }
-
-    static inline Matrix CalculatePermeabilityMatrix(const Matrix& rGradNpT,
-                                                     double        DynamicViscosityInverse,
-                                                     const Matrix& rMaterialPermeabilityMatrix,
-                                                     double        RelativePermeability,
-                                                     double        PermeabilityUpdateFactor,
-                                                     double        IntegrationCoefficient)
-    {
-        return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,
-                                           RelativePermeability * PermeabilityUpdateFactor,
-                                           IntegrationCoefficient);
-    }
-
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix(
-        const Matrix&                            rGradNpT,
-        double                                   DynamicViscosityInverse,
-        const BoundedMatrix<double, TDim, TDim>& rMaterialPermeabilityMatrix,
-        double                                   RelativePermeability,
         double                                   IntegrationCoefficient)
     {
         return CalculatePermeabilityMatrix(rGradNpT, DynamicViscosityInverse, rMaterialPermeabilityMatrix,

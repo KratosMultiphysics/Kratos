@@ -235,7 +235,7 @@ private:
             double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
             result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
-                RelativePermeability, 1.0, rIntegrationCoefficients[integration_point_index]);
+                RelativePermeability, rIntegrationCoefficients[integration_point_index]);
         }
         return result;
     }
