@@ -63,7 +63,7 @@ const Vector& ThreeDimensionalStressState::GetVoigtVector()
     return StressStrainUtilities::GetVoigtVector3D();
 }
 
-const SizeType ThreeDimensionalStressState::GetVoigtSize()
+const SizeType ThreeDimensionalStressState::GetVoigtSize() const
 {
     return StressStrainUtilities::GetVoigtSize3D();
 }

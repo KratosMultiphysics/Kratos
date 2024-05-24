@@ -66,7 +66,7 @@ const Vector& PlaneStrainStressState::GetVoigtVector()
     return StressStrainUtilities::GetVoigtVector2D();
 }
 
-const SizeType PlaneStrainStressState::GetVoigtSize()
+const SizeType PlaneStrainStressState::GetVoigtSize() const
 {
     return StressStrainUtilities::GetVoigtSize2D();
 }
