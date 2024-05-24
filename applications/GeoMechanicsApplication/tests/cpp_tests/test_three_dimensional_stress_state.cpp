@@ -112,4 +112,15 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStra
     KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    Vector voigt_vector = p_stress_state_policy->GetVoigtVector();
+
+    Vector expected_voigt_vector(6);
+    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0, 0.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
+}
+
 } // namespace Kratos::Testing

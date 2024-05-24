@@ -100,4 +100,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMecha
                                       "not implemented for axisymmetric configurations.")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<AxisymmetricStressState>();
+    Vector voigt_vector = p_stress_state_policy->GetVoigtVector();
+
+    Vector expected_voigt_vector(4);
+    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
+}
+
 } // namespace Kratos::Testing
