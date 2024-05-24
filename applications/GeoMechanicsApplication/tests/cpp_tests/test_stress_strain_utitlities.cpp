@@ -206,4 +206,29 @@ KRATOS_TEST_CASE_IN_SUITE(CheckGetVoigtVector, KratosGeoMechanicsFastSuite)
     expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckGetVoigtSize, KratosGeoMechanicsFastSuite)
+{
+    std::size_t dimension  = 2;
+    auto        voigt_size = StressStrainUtilities::GetVoigtSize(dimension);
+
+    KRATOS_EXPECT_EQ(voigt_size, VOIGT_SIZE_2D_PLANE_STRAIN);
+
+    dimension  = 3;
+    voigt_size = StressStrainUtilities::GetVoigtSize(dimension);
+    KRATOS_EXPECT_EQ(voigt_size, VOIGT_SIZE_3D);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckGetStressTensorSize, KratosGeoMechanicsFastSuite)
+{
+    std::size_t dimension          = 2;
+    auto        stress_tensor_size = StressStrainUtilities::GetStressTensorSize(dimension);
+
+    KRATOS_EXPECT_EQ(stress_tensor_size, STRESS_TENSOR_SIZE_2D);
+
+    dimension          = 3;
+    stress_tensor_size = StressStrainUtilities::GetStressTensorSize(dimension);
+    KRATOS_EXPECT_EQ(stress_tensor_size, STRESS_TENSOR_SIZE_3D);
+}
+
 } // namespace Kratos::Testing
