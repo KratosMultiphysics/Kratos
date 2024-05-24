@@ -204,7 +204,6 @@ protected:
         bool ConsiderGeometricStiffness;
 
         // stress/flow variables
-        double PermeabilityUpdateFactor;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;

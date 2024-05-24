@@ -1032,14 +1032,14 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector));
 
-            const double RelativePermeability =
-                mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            const auto relative_permeability =
+                mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters) *
+                GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactor(
+                    Variables.StrainVector, GetProperties());
 
             // Compute strain, need to update porosity
             Variables.F            = deformation_gradients[GPoint];
             Variables.StrainVector = strain_vectors[GPoint];
-            Variables.PermeabilityUpdateFactor = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactor(
-                Variables.StrainVector, GetProperties());
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
@@ -1048,8 +1048,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             Vector AuxFluidFlux = ZeroVector(Dim);
             AuxFluidFlux        = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
-                           RelativePermeability * Variables.PermeabilityUpdateFactor *
-                           prod(Variables.IntrinsicPermeability, GradPressureTerm);
+                           relative_permeability * prod(Variables.IntrinsicPermeability, GradPressureTerm);
 
             Vector FluidFlux = ZeroVector(3);
             for (unsigned int idim = 0; idim < Dim; ++idim)
@@ -1281,8 +1280,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
-    const auto relative_permeability_values = CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NpContainer, Variables.PressureVector));
+    auto relative_permeability_values =
+        CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NpContainer, Variables.PressureVector));
+    const auto permeability_update_factors =
+        GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
+    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
+                   permeability_update_factors.cbegin(), relative_permeability_values.begin(),
+                   std::multiplies{});
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1297,8 +1302,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
-        Variables.PermeabilityUpdateFactor = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactor(
-            Variables.StrainVector, GetProperties());
         Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1451,9 +1454,6 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     rVariables.DerivativeOfSaturation = 0.0;
     rVariables.RelativePermeability   = 1.0;
     rVariables.BishopCoefficient      = 1.0;
-
-    // permeability change
-    rVariables.PermeabilityUpdateFactor = 1.0;
 
     KRATOS_CATCH("")
 }
@@ -1622,8 +1622,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSid
 
         const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
-            rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor,
-            rVariables.IntegrationCoefficient);
+            rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, permeability_matrix);
     }
 
@@ -1833,8 +1832,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
     KRATOS_TRY
 
     Matrix PermeabilityMatrix =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-        rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor *
+        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, Matrix(prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)))) *
         rVariables.IntegrationCoefficient;
 
@@ -1851,10 +1849,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
 {
     KRATOS_TRY
 
-    Matrix GradNpTPerm = rVariables.DynamicViscosityInverse * GetProperties()[DENSITY_WATER] *
-                         rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor *
-                         prod(rVariables.DNp_DX, rVariables.IntrinsicPermeability) *
-                         rVariables.IntegrationCoefficient;
+    Matrix GradNpTPerm =
+        rVariables.DynamicViscosityInverse * GetProperties()[DENSITY_WATER] * rVariables.RelativePermeability *
+        prod(rVariables.DNp_DX, rVariables.IntrinsicPermeability) * rVariables.IntegrationCoefficient;
 
     const GeometryType& rGeom     = GetGeometry();
     const SizeType      Dim       = rGeom.WorkingSpaceDimension();
