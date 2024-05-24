@@ -279,32 +279,42 @@ public:
 
     BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix(const double xi)
     {
-        GlobalSizeVector dN_dxi;
-        GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
         const auto& r_geom = GetGeometry();
+        GlobalSizeVector dN_dxi, d2N_dxi2;
+        GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
+        GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
 
         double dx_dxi = 0.0;
         double dy_dxi = 0.0;
+
+        double d2x_dxi2 = 0.0;
+        double d2y_dxi2 = 0.0;
 
         for (IndexType i = 0; i < NumberOfNodes; ++i) {
             const IndexType u_coord = DoFperNode * i;
             const auto &r_coords_node = r_geom[i].GetInitialPosition();
             dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
             dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
+
+            d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
+            d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
         }
 
-        VectorType x_prime(3), t(3), n(3), b(3);
+        VectorType x_prime(3), x_2prime(3), t(3), n(3), b(3);
         x_prime.clear();
+        x_2prime.clear();
         t.clear();
         n.clear();
         b.clear();
-        b[2] = -1.0;
 
         x_prime[0] = dx_dxi;
         x_prime[1] = dy_dxi;
-        x_prime[2] = 0.0;
+
+        x_2prime[0] = d2x_dxi2;
+        x_2prime[1] = d2y_dxi2;
 
         noalias(t) = x_prime / norm_2(x_prime);
+        noalias(b) = MathUtils<double>::CrossProduct(x_prime, x_2prime) / norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
         noalias(n) = MathUtils<double>::CrossProduct(t, b);
 
         BoundedMatrix<double, 3, 3> T;
