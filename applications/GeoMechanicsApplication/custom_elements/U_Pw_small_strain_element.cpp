@@ -973,9 +973,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
-    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
+    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
         GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
     const auto permeability_update_factors = this->CalculatePermeabilityUpdateFactors(strain_vectors);
+    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
+                   permeability_update_factors.cbegin(), relative_permeability_values.begin(),
+                   std::multiplies{});
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -995,8 +998,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
-        Variables.RelativePermeability     = relative_permeability_values[GPoint];
-        Variables.PermeabilityUpdateFactor = permeability_update_factors[GPoint];
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1174,9 +1176,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
     if (!rVariables.IgnoreUndrained) {
         this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-        const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-            rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-            rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
+        const auto permeability_matrix =
+            GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+                rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+                rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, permeability_matrix);
     }
 
@@ -1374,7 +1377,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
 
     rPermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.PermeabilityUpdateFactor, rVariables.IntegrationCoefficient);
+        rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 
     noalias(rPVector) = -prod(rPermeabilityMatrix, rVariables.PressureVector);
 
@@ -1422,8 +1425,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidBodyFlow(BoundedMatri
     noalias(rPDimMatrix) = prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
     noalias(rPVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
-                        rVariables.RelativePermeability * rVariables.PermeabilityUpdateFactor *
-                        prod(rPDimMatrix, rVariables.BodyAcceleration);
+                        rVariables.RelativePermeability * prod(rPDimMatrix, rVariables.BodyAcceleration);
 
     KRATOS_CATCH("")
 }
