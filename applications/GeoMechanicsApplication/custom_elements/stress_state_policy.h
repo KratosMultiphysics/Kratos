@@ -34,7 +34,7 @@ public:
     [[nodiscard]] virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const = 0;
     [[nodiscard]] virtual std::unique_ptr<StressStatePolicy> Clone() const        = 0;
     [[nodiscard]] virtual const Vector&                      GetVoigtVector()     = 0;
-    [[nodiscard]] virtual const SizeType                     GetVoigtSize() const = 0;
+    [[nodiscard]] virtual SizeType                           GetVoigtSize() const = 0;
 };
 
 } // namespace Kratos
