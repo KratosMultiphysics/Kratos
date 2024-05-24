@@ -635,8 +635,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
 
-        const auto fluid_fluxes = CalculateFluidFluxes(
-            this->CalculatePermeabilityUpdateFactors(strain_vectors), rCurrentProcessInfo);
+        const auto fluid_fluxes =
+            CalculateFluidFluxes(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                                     strain_vectors, this->GetProperties()),
+                                 rCurrentProcessInfo);
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], fluid_fluxes[GPoint]);
         }
@@ -975,7 +977,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         constitutive_matrices, this->GetProperties());
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
         GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
-    const auto permeability_update_factors = this->CalculatePermeabilityUpdateFactors(strain_vectors);
+    const auto permeability_update_factors = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+        strain_vectors, this->GetProperties());
     std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                    permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                    std::multiplies{});
@@ -1052,37 +1055,6 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     }
 
     return FluidFluxes;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const
-{
-    KRATOS_TRY
-
-    if (const auto& r_prop = this->GetProperties(); r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-        const double InverseCK = r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-        const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
-        const double ePrevious = r_prop[POROSITY] / (1.0 - r_prop[POROSITY]);
-        const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
-        const double permLog10 = (eCurrent - ePrevious) * InverseCK;
-        return std::pow(10.0, permLog10);
-    }
-
-    return 1.0;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityUpdateFactors(
-    const std::vector<Vector>& rStrainVectors) const
-{
-    auto result = std::vector<double>{};
-    std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), std::back_inserter(result),
-                   [this](const auto& rStrainVector) {
-        return this->CalculatePermeabilityUpdateFactor(rStrainVector);
-    });
-    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

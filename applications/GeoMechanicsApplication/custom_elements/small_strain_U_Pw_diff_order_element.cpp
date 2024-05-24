@@ -1038,7 +1038,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             // Compute strain, need to update porosity
             Variables.F            = deformation_gradients[GPoint];
             Variables.StrainVector = strain_vectors[GPoint];
-            Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
+            Variables.PermeabilityUpdateFactor = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactor(
+                Variables.StrainVector, GetProperties());
 
             Vector GradPressureTerm(Dim);
             noalias(GradPressureTerm) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
@@ -1296,7 +1297,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
-        Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
+        Variables.PermeabilityUpdateFactor = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactor(
+            Variables.StrainVector, GetProperties());
         Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -1498,24 +1500,6 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables(ElementVariables& 
         rVariables.DeltaPressureVector[i] = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE) -
                                             rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
     }
-
-    KRATOS_CATCH("")
-}
-
-double SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const
-{
-    KRATOS_TRY
-
-    if (const auto& r_prop = this->GetProperties(); r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-        const double InverseCK = r_prop[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-        const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
-        const double ePrevious = r_prop[POROSITY] / (1.0 - r_prop[POROSITY]);
-        const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
-        const double permLog10 = (eCurrent - ePrevious) * InverseCK;
-        return std::pow(10.0, permLog10);
-    }
-
-    return 1.0;
 
     KRATOS_CATCH("")
 }

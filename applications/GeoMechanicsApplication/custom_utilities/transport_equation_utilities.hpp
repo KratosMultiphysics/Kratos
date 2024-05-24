@@ -16,6 +16,7 @@
 
 // Application includes
 #include "custom_retention/retention_law.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -181,6 +182,32 @@ public:
         for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
             result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
         }
+        return result;
+    }
+
+    [[nodiscard]] static double CalculatePermeabilityUpdateFactor(const Vector&     rStrainVector,
+                                                                  const Properties& rProperties)
+    {
+        if (rProperties[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+            const double InverseCK = rProperties[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+            const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
+            const double ePrevious = rProperties[POROSITY] / (1.0 - rProperties[POROSITY]);
+            const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+            const double permLog10 = (eCurrent - ePrevious) * InverseCK;
+            return std::pow(10.0, permLog10);
+        }
+
+        return 1.0;
+    }
+
+    [[nodiscard]] static std::vector<double> CalculatePermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors,
+                                                                                const Properties& rProperties)
+    {
+        auto result = std::vector<double>{};
+        std::transform(rStrainVectors.cbegin(), rStrainVectors.cend(), std::back_inserter(result),
+                       [&rProperties](const auto& rStrainVector) {
+            return CalculatePermeabilityUpdateFactor(rStrainVector, rProperties);
+        });
         return result;
     }
 
