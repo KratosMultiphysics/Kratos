@@ -1551,8 +1551,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
     rVariables.Porosity                = rProp[POROSITY];
     GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, rProp);
 
-    rVariables.PermeabilityUpdateFactor = 1.0;
-
     KRATOS_CATCH("")
 }
 

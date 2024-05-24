@@ -138,7 +138,6 @@ protected:
         double SolidDensity;
         double Density;
         double Porosity;
-        double PermeabilityUpdateFactor;
 
         double                            BiotCoefficient;
         double                            BiotModulusInverse;
