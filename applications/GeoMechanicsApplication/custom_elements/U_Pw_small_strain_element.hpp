@@ -220,7 +220,8 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
-    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
+    [[nodiscard]] double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
+    [[nodiscard]] std::vector<double> CalculatePermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
