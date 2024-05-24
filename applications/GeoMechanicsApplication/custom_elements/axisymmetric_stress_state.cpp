@@ -71,4 +71,8 @@ const Vector& AxisymmetricStressState::GetVoigtVector()
     return StressStrainUtilities::GetVoigtVector2D();
 }
 
+const SizeType AxisymmetricStressState::GetVoigtSize()
+{
+    return StressStrainUtilities::GetVoigtSize2D();
+}
 } // namespace Kratos

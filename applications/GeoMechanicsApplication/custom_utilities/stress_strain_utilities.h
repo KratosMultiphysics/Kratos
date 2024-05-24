@@ -44,7 +44,7 @@ public:
 
     static constexpr std::size_t GetVoigtSize(std::size_t Dimension)
     {
-        return Dimension == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
+        return Dimension == N_DIM_3D ? GetVoigtSize3D() : GetVoigtSize2D();
     }
 
     static constexpr std::size_t GetStressTensorSize(std::size_t Dimension)
@@ -54,6 +54,10 @@ public:
 
     static const Vector& GetVoigtVector2D();
     static const Vector& GetVoigtVector3D();
+
+    static constexpr SizeType GetVoigtSize2D() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
+
+    static constexpr SizeType GetVoigtSize3D() { return VOIGT_SIZE_3D; }
 
 private:
     static double       CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);

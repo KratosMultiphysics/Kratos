@@ -66,4 +66,9 @@ const Vector& PlaneStrainStressState::GetVoigtVector()
     return StressStrainUtilities::GetVoigtVector2D();
 }
 
+const SizeType PlaneStrainStressState::GetVoigtSize()
+{
+    return StressStrainUtilities::GetVoigtSize2D();
+}
+
 } // namespace Kratos

@@ -252,7 +252,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     // resize mStressVector:
-    const SizeType VoigtSize = StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension());
+    const SizeType VoigtSize = mpStressStatePolicy->GetVoigtSize();
     if (mStressVector.size() != IntegrationPoints.size()) {
         mStressVector.resize(IntegrationPoints.size());
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
@@ -322,7 +322,7 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+        mpStressStatePolicy->GetVoigtSize());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -539,7 +539,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+        mpStressStatePolicy->GetVoigtSize());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1008,8 +1008,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-            StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, mpStressStatePolicy->GetVoigtSize());
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1070,7 +1070,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType& IntegrationPointsNumber = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
 
     if (rOutput.size() != IntegrationPointsNumber) rOutput.resize(IntegrationPointsNumber);
 
@@ -1115,8 +1114,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         rOutput                          = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-            StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, mpStressStatePolicy->GetVoigtSize());
     } else if (rVariable == TOTAL_STRESS_VECTOR) {
         // Definition of variables
         ElementVariables Variables;
@@ -1135,8 +1134,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-            StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, mpStressStatePolicy->GetVoigtSize());
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NuContainer, Variables.DNu_DXContainer,
@@ -1268,7 +1267,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
     auto strain_vectors = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+        mpStressStatePolicy->GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
@@ -1331,7 +1330,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension()));
+        mpStressStatePolicy->GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
@@ -1412,8 +1411,7 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     }
 
     // Variables computed at each integration point
-    const SizeType VoigtSize =
-        StressStrainUtilities::StressStrainUtilities::GetVoigtSize(GetGeometry().WorkingSpaceDimension());
+    const SizeType VoigtSize = mpStressStatePolicy->GetVoigtSize();
 
     rVariables.B.resize(VoigtSize, NumUNodes * Dim, false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize, NumUNodes * Dim);

@@ -63,4 +63,9 @@ const Vector& ThreeDimensionalStressState::GetVoigtVector()
     return StressStrainUtilities::GetVoigtVector3D();
 }
 
+const SizeType ThreeDimensionalStressState::GetVoigtSize()
+{
+    return StressStrainUtilities::GetVoigtSize3D();
+}
+
 } // namespace Kratos
