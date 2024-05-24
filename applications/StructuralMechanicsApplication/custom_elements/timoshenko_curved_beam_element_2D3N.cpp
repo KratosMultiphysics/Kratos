@@ -1256,18 +1256,20 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double du = inner_prod(dNu, nodal_values);
         const double dv = inner_prod(dN_shape, nodal_values);
 
-        const double axial_force = E * A * (inner_prod(dNu, nodal_values) - k0 * inner_prod(N_shape, nodal_values) + 0.5 * (std::pow(du, 2)) + 0.5 * (std::pow(dv, 2)));
+        // const double axial_force = E * A * (inner_prod(dNu, nodal_values) - k0 * inner_prod(N_shape, nodal_values) + 0.5 * (std::pow(du, 2)) + 0.5 * (std::pow(dv, 2)));
+        const double axial_force = E * A * (inner_prod(dNu, nodal_values) + 0.5 * (std::pow(du, 2)) + 0.5 * (std::pow(dv, 2)));
         const double bending_moment = E * I * inner_prod(dN_theta, nodal_values);
-        const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
+        // const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
+        const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) - inner_prod(N_theta, nodal_values));
 
         noalias(local_rhs) -= jacobian_weight * axial_force * dNu;
-        noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;
+        // noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;
         noalias(local_rhs) -= jacobian_weight * axial_force * du * dNu;
         noalias(local_rhs) -= jacobian_weight * axial_force * dv * dN_shape;
 
         noalias(local_rhs) -= jacobian_weight * bending_moment * dN_theta;
 
-        noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu;
+        // noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu;
         noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape;
         noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;
 
@@ -1284,12 +1286,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         d_bending_du.clear();
         d_shear_du.clear();
 
-        noalias(d_axial_du) = E * A * (dNu - k0 * N_shape + du * dNu + dv * dN_shape);
+        // noalias(d_axial_du) = E * A * (dNu - k0 * N_shape + du * dNu + dv * dN_shape);
+        noalias(d_axial_du) = E * A * (dNu  + du * dNu + dv * dN_shape);
         noalias(d_bending_du) = E * I * dN_theta;
-        noalias(d_shear_du) = G * A_s * (k0 * Nu + dN_shape - N_theta);
+        // noalias(d_shear_du) = G * A_s * (k0 * Nu + dN_shape - N_theta);
+        noalias(d_shear_du) = G * A_s * (dN_shape - N_theta);
 
         noalias(local_lhs) += jacobian_weight * outer_prod(dNu, d_axial_du);
-        noalias(local_lhs) += -k0 * jacobian_weight * outer_prod(N_shape, d_axial_du);
+        // noalias(local_lhs) += -k0 * jacobian_weight * outer_prod(N_shape, d_axial_du);
         noalias(local_lhs) += du * jacobian_weight * outer_prod(dNu, d_axial_du);
         noalias(local_lhs) += axial_force * jacobian_weight * outer_prod(dNu, dNu);
         noalias(local_lhs) += dv * jacobian_weight * outer_prod(dN_shape, d_axial_du);
@@ -1298,7 +1302,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         noalias(local_lhs) += jacobian_weight * outer_prod(dN_theta, d_bending_du);
 
-        noalias(local_lhs) += jacobian_weight * outer_prod(d_shear_du, k0 * Nu);
+        // noalias(local_lhs) += jacobian_weight * outer_prod(d_shear_du, k0 * Nu);
         noalias(local_lhs) += jacobian_weight * outer_prod(d_shear_du, dN_shape);
         noalias(local_lhs) += -jacobian_weight * outer_prod(d_shear_du, N_theta);
 
@@ -1573,16 +1577,18 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         dN_theta[5] = dN2;
         dN_theta[8] = dN3;
 
-        const double axial_force = E * A * (inner_prod(dNu, nodal_values) - k0 * inner_prod(N_shape, nodal_values) + 0.5 * (std::pow(inner_prod(dNu, nodal_values), 2)) + 0.5 * (std::pow(inner_prod(dN_shape, nodal_values), 2)));
+        // const double axial_force = E * A * (inner_prod(dNu, nodal_values) - k0 * inner_prod(N_shape, nodal_values) + 0.5 * (std::pow(inner_prod(dNu, nodal_values), 2)) + 0.5 * (std::pow(inner_prod(dN_shape, nodal_values), 2)));
+        const double axial_force = E * A * (inner_prod(dNu, nodal_values) + 0.5 * (std::pow(inner_prod(dNu, nodal_values), 2)) + 0.5 * (std::pow(inner_prod(dN_shape, nodal_values), 2)));
         const double bending_moment = E * I * inner_prod(dN_theta, nodal_values);
-        const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
+        // const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
+        const double shear_force = G * A_s * (inner_prod(dN_shape, nodal_values) - inner_prod(N_theta, nodal_values));
 
         noalias(local_rhs) -= jacobian_weight * axial_force * dNu;
-        noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;
+        // noalias(local_rhs) -= jacobian_weight * (-axial_force) * k0 * N_shape;
         noalias(local_rhs) -= jacobian_weight * axial_force * inner_prod(dNu, nodal_values) * dNu;
         noalias(local_rhs) -= jacobian_weight * axial_force * inner_prod(dN_shape, nodal_values) * dN_shape;
         noalias(local_rhs) -= jacobian_weight * bending_moment * dN_theta;
-        noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu;
+        // noalias(local_rhs) -= jacobian_weight * shear_force * k0 * Nu;
         noalias(local_rhs) -= jacobian_weight * shear_force  * dN_shape;
         noalias(local_rhs) -= jacobian_weight * (-shear_force) * N_theta;
 
@@ -1954,9 +1960,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             dN_theta[8] = dN3;
 
 
-            strain_vector[0] =  (inner_prod(dNu, nodal_values) - k0 * inner_prod(N_shape, nodal_values) + 0.5 * (std::pow(inner_prod(dNu, nodal_values), 2)) + 0.5 * (std::pow(inner_prod(dN_shape, nodal_values), 2)));
+            // strain_vector[0] =  (inner_prod(dNu, nodal_values) - k0 * inner_prod(N_shape, nodal_values) + 0.5 * (std::pow(inner_prod(dNu, nodal_values), 2)) + 0.5 * (std::pow(inner_prod(dN_shape, nodal_values), 2)));
+            strain_vector[0] =  (inner_prod(dNu, nodal_values) + 0.5 * (std::pow(inner_prod(dNu, nodal_values), 2)) + 0.5 * (std::pow(inner_prod(dN_shape, nodal_values), 2)));
             strain_vector[1] =  inner_prod(dN_theta, nodal_values);
-            strain_vector[2] =  (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
+            // strain_vector[2] =  (inner_prod(dN_shape, nodal_values) + k0 * inner_prod(Nu, nodal_values) - inner_prod(N_theta, nodal_values));
+            strain_vector[2] =  (inner_prod(dN_shape, nodal_values)  - inner_prod(N_theta, nodal_values));
 
             Vector &r_generalized_stresses = cl_values.GetStressVector();
             r_generalized_stresses[0] = E * A * strain_vector[0];
