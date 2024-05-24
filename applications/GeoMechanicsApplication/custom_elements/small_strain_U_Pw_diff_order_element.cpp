@@ -1280,20 +1280,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
-    std::vector<double> degrees_of_saturation;
-    std::vector<double> derivatives_of_saturation;
-    const auto          fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NpContainer, Variables.PressureVector);
-
-    int counter = 0;
-    for (const auto fluid_pressure : fluid_pressures) {
-        RetentionParameters.SetFluidPressure(fluid_pressure);
-        degrees_of_saturation.push_back(mRetentionLawVector[counter]->CalculateSaturation(RetentionParameters));
-        derivatives_of_saturation.push_back(
-            mRetentionLawVector[counter]->CalculateDerivativeOfSaturation(RetentionParameters));
-        counter++;
-    }
-
+    const auto degrees_of_saturation = CalculateDegreesOfSaturation(fluid_pressures, RetentionParameters);
+    const auto derivatives_of_saturation =
+        CalculateDerivativesOfSaturation(fluid_pressures, RetentionParameters);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
 
@@ -1324,6 +1315,34 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     }
 
     KRATOS_CATCH("")
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSaturation(
+    const std::vector<double>& fluid_pressures, RetentionLaw::Parameters& RetentionParameters)
+{
+    std::vector<double> result;
+    std::transform(fluid_pressures.begin(), fluid_pressures.end(), mRetentionLawVector.begin(),
+                   std::back_inserter(result),
+                   [&RetentionParameters](double fluid_pressure, RetentionLaw::Pointer pRetentionLaw) {
+        RetentionParameters.SetFluidPressure(fluid_pressure);
+        return pRetentionLaw->CalculateDerivativeOfSaturation(RetentionParameters);
+    });
+
+    return result;
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation(
+    const std::vector<double>& fluid_pressures, RetentionLaw::Parameters& RetentionParameters)
+{
+    std::vector<double> result;
+    std::transform(fluid_pressures.begin(), fluid_pressures.end(), mRetentionLawVector.begin(),
+                   std::back_inserter(result),
+                   [&RetentionParameters](double fluid_pressure, RetentionLaw::Pointer pRetentionLaw) {
+        RetentionParameters.SetFluidPressure(fluid_pressure);
+        return pRetentionLaw->CalculateSaturation(RetentionParameters);
+    });
+
+    return result;
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
