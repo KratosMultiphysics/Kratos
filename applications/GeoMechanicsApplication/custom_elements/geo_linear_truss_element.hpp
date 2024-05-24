@@ -36,10 +36,10 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTrussElement
 {
 protected:
     // const values
-    static constexpr int mStressVectorSize    = 1;
-    Vector mInternalStresses                  = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
-    Vector mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
+    static constexpr int mStressVectorSize                  = 1;
+    Vector               mInternalStresses                  = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalized         = ZeroVector(mStressVectorSize);
+    Vector               mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoLinearTrussElement);
@@ -57,7 +57,7 @@ public:
 
     using GeoTrussElementBase<TDim, TNumNodes>::mpConstitutiveLaw;
 
-    GeoLinearTrussElement(){};
+    GeoLinearTrussElement() = default;
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoLinearTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
@@ -79,8 +79,8 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
@@ -92,7 +92,7 @@ public:
     void UpdateInternalForces(FullDofVectorType& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -101,6 +101,7 @@ public:
 
 private:
     friend class Serializer;
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);

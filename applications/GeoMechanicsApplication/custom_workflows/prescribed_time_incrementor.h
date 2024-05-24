@@ -17,7 +17,6 @@
 
 #include <vector>
 
-
 namespace Kratos
 {
 
@@ -27,14 +26,13 @@ public:
     explicit PrescribedTimeIncrementor(const std::vector<double>& increments);
 
     [[nodiscard]] bool WantNextStep(const TimeStepEndState& rPreviousState) const override;
-    [[nodiscard]] bool WantRetryStep(std::size_t             CycleNumber,
-                                     const TimeStepEndState& rPreviousState) const override;
+    [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const override;
     [[nodiscard]] double GetIncrement() const override;
-    void PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
+    void                 PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
     std::vector<double>                 mIncrements;
     std::vector<double>::const_iterator mPos;
 };
 
-}
+} // namespace Kratos

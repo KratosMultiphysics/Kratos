@@ -12,6 +12,7 @@
 
 // System includes
 #include <cmath>
+#include <numeric>
 
 // Project includes
 #include "utilities/parallel_utilities.h"
@@ -135,6 +136,54 @@ void OptimizationUtils::CopySolutionStepVariablesList(
     const ModelPart& rOriginModelPart)
 {
     rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+}
+
+bool OptimizationUtils::IsSolutionStepVariablesListASubSet(
+    const ModelPart& rMainSetModelPart,
+    const ModelPart& rSubSetModelPart)
+{
+    for (const auto& r_sub_variable : rSubSetModelPart.GetNodalSolutionStepVariablesList()) {
+        if (!rMainSetModelPart.GetNodalSolutionStepVariablesList().Has(r_sub_variable)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<std::vector<ModelPart*>> OptimizationUtils::GetComponentWiseModelParts(
+    Model& rModel,
+    Parameters Settings)
+{
+    KRATOS_TRY
+
+    std::vector<std::vector<ModelPart*>> result;
+
+    int number_of_components = -1;
+
+    for (auto it = Settings.begin(); it != Settings.end(); ++it) {
+        // first set the number of components by checking the first entry.
+        if (number_of_components == -1) {
+            number_of_components = it->size();
+            result.resize(number_of_components);
+        }
+
+        KRATOS_ERROR_IF_NOT(static_cast<int>(it->size()) == number_of_components)
+            << "Number of component mismatch [ Number of components required = "
+            << number_of_components << ", number of components specified for model part "
+            << it.name() << " = " << it->size() << " ]. Settings = \n" << Settings;
+
+        IndexType i_component = 0;
+        for (const auto& r_value : *it) {
+            if (r_value.GetBool()) {
+                result[i_component].push_back(&rModel.GetModelPart(it.name()));
+            }
+            ++i_component;
+        }
+    }
+
+    return result;
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations

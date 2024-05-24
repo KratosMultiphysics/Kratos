@@ -51,47 +51,53 @@ public:
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    /// Default Constructor
-    TransientPwInterfaceElement(IndexType NewId = 0)
+    explicit TransientPwInterfaceElement(IndexType NewId = 0)
         : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    TransientPwInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                const NodesArrayType&              ThisNodes,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    TransientPwInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    TransientPwInterfaceElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                PropertiesType::Pointer            pProperties,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    ~TransientPwInterfaceElement() override                                    = default;
+    ~TransientPwInterfaceElement()                                             = default;
     TransientPwInterfaceElement(const TransientPwInterfaceElement&)            = delete;
     TransientPwInterfaceElement& operator=(const TransientPwInterfaceElement&) = delete;
     TransientPwInterfaceElement(TransientPwInterfaceElement&&)                 = delete;
     TransientPwInterfaceElement& operator=(TransientPwInterfaceElement&&)      = delete;
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
@@ -107,61 +113,63 @@ public:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rValues,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rValues,
+                                      std::vector<array_1d<double, 3>>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
     void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                             std::vector<array_1d<double, 3>>& rOutput,
+                                             std::vector<array_1d<double, 3>>&    rOutput,
                                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rOutput,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+                                             std::vector<Matrix>&    rOutput,
+                                             const ProcessInfo&      rCurrentProcessInfo) override;
 
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,
-                                    const GeometryType& Geom,
-                                    const PropertiesType& Prop,
-                                    const ProcessInfo& CurrentProcessInfo) override;
+                                    const GeometryType&        Geom,
+                                    const PropertiesType&      Prop,
+                                    const ProcessInfo&         CurrentProcessInfo) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddCompressibilityMatrix(MatrixType&                rLeftHandSideMatrix,
                                               InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddPermeabilityMatrix(MatrixType&                rLeftHandSideMatrix,
                                            InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddRHS(VectorType&                rRightHandSideVector,
                             InterfaceElementVariables& rVariables,
-                            unsigned int GPoint) override;
+                            unsigned int               GPoint) override;
 
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
+    void CalculateAndAddCompressibilityFlow(VectorType&                rRightHandSideVector,
                                             InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
+    void CalculateAndAddPermeabilityFlow(VectorType&                rRightHandSideVector,
                                          InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
+    void CalculateAndAddFluidBodyFlow(VectorType&                rRightHandSideVector,
                                       InterfaceElementVariables& rVariables) override;
 
     unsigned int GetNumberOfDOF() const override;
 
 private:
+    [[nodiscard]] DofsVectorType GetDofs() const;
+
     /// Serialization
     friend class Serializer;
 

@@ -54,7 +54,7 @@ public:
     using GeoTrussElement<TDim, TNumNodes>::mInternalStressesFinalizedPrevious;
     using GeoTrussElement<TDim, TNumNodes>::mInternalStresses;
 
-    GeoCableElement(){};
+    GeoCableElement() = default;
     GeoCableElement(IndexType NewId, GeometryType::Pointer pGeometry);
     GeoCableElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
@@ -76,11 +76,11 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    void CreateElementStiffnessMatrix(MatrixType& rLocalStiffnessMatrix,
+    void CreateElementStiffnessMatrix(MatrixType&        rLocalStiffnessMatrix,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
@@ -93,18 +93,19 @@ public:
                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                      std::vector<array_1d<double, 3>>& rOutput,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
 private:
     // boolean for the cable --> does not resist to compression
     bool mIsCompressed;
 
     friend class Serializer;
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);

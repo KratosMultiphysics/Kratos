@@ -13,6 +13,8 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -84,8 +86,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        double integration_coefficient = this->CalculateIntegrationCoefficient(jacobians[g_point],
-                                                                                           r_integration_points[g_point].Weight());
+        double integration_coefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
         aux_abs_k_matrix = prod(absorbing_variables.KAbsMatrix, nu_matrix);
@@ -103,7 +106,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector
     this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     MatrixType global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-    GeoElementUtilities::AssembleUBlockMatrix< TDim, TNumNodes >(global_stiffness_matrix, stiffness_matrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
 
     this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
 }
@@ -159,8 +162,9 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        double integration_coefficient = this->CalculateIntegrationCoefficient(jacobians[g_point], 
-                                                                                           r_integration_points[g_point].Weight());
+        double integration_coefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            jacobians[g_point], r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
         aux_abs_matrix = prod(absorbing_variables.CAbsMatrix, nu_matrix);
@@ -178,71 +182,14 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
-
-    KRATOS_TRY
-
-        const GeometryType& r_geom = this->GetGeometry();
-
-        if (rValues.size() != CONDITION_SIZE) {
-            rValues.resize(CONDITION_SIZE, false);
-        }
-
-        if constexpr (TDim == 2) {
-            unsigned int index = 0;
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-                rValues[index++] = 0.0;
-            }
-        }
-        else if constexpr (TDim == 3) {
-            unsigned int index = 0;
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-                rValues[index++] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
-                rValues[index++] = 0.0;
-            }
-        }
-        else {
-            KRATOS_ERROR << "undefined dimension in GetValuesVector... illegal operation!!" << this->Id() << std::endl;
-        }
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(this->GetDofs(), Step);
 }
 
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_TRY
-
-    const GeometryType& r_geom = this->GetGeometry();
-
-    if (rValues.size() != CONDITION_SIZE)
-        rValues.resize(CONDITION_SIZE, false);
-
-    if constexpr(TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = 0.0;
-        }
-    }
-    else if constexpr (TDim == 3) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
-            rValues[index++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
-            rValues[index++] = 0.0;
-        }
-    }
-    else {
-        KRATOS_ERROR << "undefined dimension in GetFirstDerivativesVector... illegal operation!!" << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("")
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
 }
 
 
@@ -476,15 +423,13 @@ CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnes
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
-AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix)
+AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUUMatrix)
 {
 	// assemble left hand side vector
     rLeftHandSideMatrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
 
     //Adding contribution to left hand side
-    GeoElementUtilities::
-        AssembleUBlockMatrix< TDim, TNumNodes >(rLeftHandSideMatrix,
-            rUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, rUUMatrix);
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >

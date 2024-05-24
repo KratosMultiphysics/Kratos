@@ -22,16 +22,44 @@
 #include "utilities/math_utils.h"
 
 // Application includes
+#include "custom_constitutive/linear_elastic_law.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
+
+namespace
+{
+
+using namespace Kratos;
+
+void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
+{
+    block_for_each(rElements, [Whether](Element& rElement) {
+        auto pLinearElasticLaw =
+            dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
+        if (pLinearElasticLaw) pLinearElasticLaw->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
+    });
+}
+
+} // namespace
 
 namespace Kratos
 {
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters&)
-    : Process(Flags()), mrModelPart(model_part)
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, const Parameters& rK0Settings)
+    : Process(Flags()), mrModelPart(model_part), mSettings(rK0Settings)
 {
+}
+
+void ApplyK0ProcedureProcess::ExecuteInitialize()
+{
+    if (UseStandardProcedure())
+        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), true);
+}
+
+void ApplyK0ProcedureProcess::ExecuteFinalize()
+{
+    if (UseStandardProcedure())
+        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
@@ -47,11 +75,17 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 
 std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"; }
 
+bool ApplyK0ProcedureProcess::UseStandardProcedure() const
+{
+    const auto setting_name = std::string{"use_standard_procedure"};
+    return !mSettings.Has(setting_name) || mSettings[setting_name].GetBool();
+}
+
 void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
-    const Element::PropertiesType& rProp      = rElement.GetProperties();
-    const int k0_main_direction               = rProp[K0_MAIN_DIRECTION];
+    const Element::PropertiesType& rProp             = rElement.GetProperties();
+    const int                      k0_main_direction = rProp[K0_MAIN_DIRECTION];
     if (k0_main_direction < 0 || k0_main_direction > 1) {
         KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in ApplyK0ProcedureProcess: " << k0_main_direction
                      << std::endl;
@@ -96,7 +130,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement)
     rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
 
     // Loop over integration points
-    const Element::GeometryType& rGeom = rElement.GetGeometry();
+    const Element::GeometryType&                             rGeom = rElement.GetGeometry();
     const Element::GeometryType::IntegrationPointsArrayType& integration_points =
         rGeom.IntegrationPoints(rElement.GetIntegrationMethod());
     for (unsigned int g_point = 0; g_point < integration_points.size(); ++g_point) {

@@ -62,10 +62,10 @@ class ResponseRoutine:
             raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
 
     def Check(self):
-        pass
+        self.__response.Check()
 
     def Finalize(self):
-        pass
+        self.__response.Finalize()
 
     def GetResponseName(self):
         return self.__response.GetName()

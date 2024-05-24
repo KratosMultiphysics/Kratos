@@ -27,8 +27,8 @@ endif(POLICY CMP0057)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 4)
-set (KratosMultiphysics_PATCH_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 5)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -42,7 +42,6 @@ if(NOT DEFINED KRATOS_BINARY_DIR)
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
 option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
-
 
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
@@ -554,9 +553,25 @@ if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
     add_compile_definitions(KRATOS_ENABLE_PROFILING)
 endif()
 
-# include subdirectories
-add_subdirectory(external_libraries/gidpost)
-add_subdirectory(kratos)
+# Build exclusions and linking dirs.
+# The intended usage of this flags is to allow a defered/incremental compilation of core/applications.
+# Please do not use this options for regular development and never use this with REMOVE_INSTALL_DIRECTORIES=ON
+OPTION ( EXCLUDE_KRATOS_CORE "Force exclusion of the core" OFF )
+OPTION ( EXCLUDE_AUTOMATIC_DEPENDENCIES "Force exclusion of automatically added app dependencies" OFF )
+
+if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON AND (${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES ON))
+  message(FATAL_ERROR "REMOVE_INSTALL_DIRECTORIES cannot be enabled with EXCLUDE_KRATOS_CORE or EXCLUDE_AUTOMATIC_DEPENDENCIES")
+endif()
+
+if(${EXCLUDE_KRATOS_CORE} MATCHES ON OR ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES ON)
+  link_directories( ${CMAKE_INSTALL_PREFIX}/libs )
+endif()
+
+# Compile Kratos Core
+if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
+  add_subdirectory(external_libraries/gidpost)
+  add_subdirectory(kratos)
+endif()
 
 # Configure kratos applications
 message(STATUS "Configuring applications (ENV):")

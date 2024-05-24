@@ -22,7 +22,7 @@
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -57,6 +57,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianFICElement
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType       = UPwSmallStrainFICElement<TDim, TNumNodes>;
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
@@ -76,7 +77,6 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
     using UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus;
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
     using FICElementVariables = typename UPwSmallStrainFICElement<TDim, TNumNodes>::FICElementVariables;
@@ -87,31 +87,37 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
+    explicit UPwUpdatedLagrangianFICElement(IndexType NewId = 0)
         : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    UPwUpdatedLagrangianFICElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwUpdatedLagrangianFICElement(IndexType                          NewId,
+                                   const NodesArrayType&              ThisNodes,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwUpdatedLagrangianFICElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwUpdatedLagrangianFICElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwUpdatedLagrangianFICElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   PropertiesType::Pointer            pProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~UPwUpdatedLagrangianFICElement() override {}
+    ~UPwUpdatedLagrangianFICElement() = default;
 
     /**
      * @brief Creates a new element
@@ -129,8 +135,8 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     /**
@@ -140,8 +146,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<double>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     /**
      * @brief Calculate a Matrix Variable on the Element Constitutive Law
@@ -150,8 +156,8 @@ public:
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -211,11 +217,11 @@ protected:
      * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -264,27 +270,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainFICElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianFICElement& operator=(const UPwUpdatedLagrangianFICElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianFICElement(const UPwUpdatedLagrangianFICElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianFICElement
 
 ///@}

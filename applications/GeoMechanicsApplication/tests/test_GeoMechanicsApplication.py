@@ -24,8 +24,8 @@ from test_transient_groundwater_flow import KratosGeoMechanicsTransientGroundWat
 from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
-from test_absorbing_boundary import KratosGeoMechanicsAbsorbingBoundaryColumnTests
-from test_absorbing_boundary_validation import KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests
+from absorbing_boundary import KratosGeoMechanicsAbsorbingBoundaryColumnTests
+from absorbing_boundary_3D import KratosGeoMechanicsAbsorbingBoundaryColumn3DTests
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
 from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
@@ -42,6 +42,13 @@ from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
 from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
+from test_conditions import KratosGeoMechanicsConditionTests
+from test_prescribed_derivatives import KratosGeoMechanicsPrescribedDerivatives
+from test_dirichlet_u import KratosGeoMechanicsDirichletUTests
+from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTests
+from test_pressure_line_element import KratosGeoMechanicsTransientPressureLineElementTests
+from test_pressure_point_flux import KratosGeoMechanicsTransientPressurePointFluxTests
+from settlement_workflow import KratosGeoMechanicsSettlementWorkflow
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -80,8 +87,12 @@ def AssembleTestSuites():
                         KratosGeoMechanicsChangingWaterLevelTests,
                         KratosGeoMechanicsStrainMeasureTests,
                         KratosGeoMechanicsSetMultipleMovingLoadProcessTests,
-                        KratosGeoMechanicsRotationWithMovingLoadTests
-                        ]
+                        KratosGeoMechanicsRotationWithMovingLoadTests,
+                        KratosGeoMechanicsConditionTests,
+                        KratosGeoMechanicsPrescribedDerivatives,
+                        KratosGeoMechanicsDirichletUTests,
+                        KratosGeoMechanicsNormalLoadHexaTests
+    ]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
@@ -96,14 +107,17 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsTimeIntegrationTests
+                        KratosGeoMechanicsTimeIntegrationTests,
+                        KratosGeoMechanicsTransientPressureLineElementTests,
+                        KratosGeoMechanicsTransientPressurePointFluxTests,
+                        KratosGeoMechanicsSettlementWorkflow
                         ]
     night_test_cases.extend(small_test_cases)
 
     # Create an array with all long tests only for validations
     valid_test_cases = [
+                        KratosGeoMechanicsAbsorbingBoundaryColumn3DTests,
                         TestConsecutivePipeLines,
-                        KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests,
                         KratosGeoMechanicsBenchmarkSet1,
                         KratosGeoMechanicsBenchmarkSet2,
                         KratosGeoMechanicsTransientGroundWaterFlowTests,

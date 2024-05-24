@@ -47,41 +47,44 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
     using UPwSmallStrainElement<TDim, TNumNodes>::VoigtSize;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainFICElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
-    UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwSmallStrainFICElement(IndexType                          NewId,
+                             GeometryType::Pointer              pGeometry,
+                             PropertiesType::Pointer            pProperties,
+                             std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~UPwSmallStrainFICElement() override {}
+    ~UPwSmallStrainFICElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
+    Element::Pointer Create(IndexType               NewId,
+                            NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
@@ -131,13 +134,13 @@ protected:
         Matrix VoigtMatrix;
 
         /// Variables computed at each GP
-        BoundedMatrix<double, TDim, TDim * TNumNodes> StrainGradients;
-        array_1d<Vector, TNumNodes> ShapeFunctionsSecondOrderGradients;
-        array_1d<array_1d<double, TDim>, TDim> DtStressGradients;
+        BoundedMatrix<double, TDim, TDim * TNumNodes>       StrainGradients;
+        array_1d<Vector, TNumNodes>                         ShapeFunctionsSecondOrderGradients;
+        array_1d<array_1d<double, TDim>, TDim>              DtStressGradients;
         array_1d<std::vector<array_1d<double, TDim>>, TDim> ConstitutiveTensorGradients;
         /// Auxiliary variables
-        array_1d<double, TDim> DimVector;
-        Matrix DimVoigtMatrix;
+        array_1d<double, TDim>                        DimVector;
+        Matrix                                        DimVoigtMatrix;
         BoundedMatrix<double, TDim, TDim * TNumNodes> DimUMatrix;
     };
 
@@ -151,8 +154,8 @@ protected:
     double CalculateShearModulus(const Matrix& ConstitutiveMatrix) const;
 
     void SaveGPConstitutiveTensor(array_1d<Matrix, TDim>& rConstitutiveTensorContainer,
-                                  const Matrix& ConstitutiveMatrix,
-                                  const unsigned int& GPoint);
+                                  const Matrix&           ConstitutiveMatrix,
+                                  const unsigned int&     GPoint);
 
     void SaveGPDtStress(Matrix& rDtStressContainer, const Vector& StressVector, const unsigned int& GPoint);
 
@@ -160,17 +163,17 @@ protected:
 
     void ExtrapolateGPDtStress(const Matrix& DtStressContainer);
 
-    void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool CalculateStiffnessMatrixFlag,
-                      const bool CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeFICElementVariables(FICElementVariables& rFICVariables,
                                        const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
-                                       const GeometryType& Geom,
+                                       const GeometryType&   Geom,
                                        const PropertiesType& Prop,
-                                       const ProcessInfo& CurrentProcessInfo);
+                                       const ProcessInfo&    CurrentProcessInfo);
 
     void ExtrapolateShapeFunctionsGradients(array_1d<array_1d<double, TDim * TNumNodes>, TNumNodes>& rNodalShapeFunctionsGradients,
                                             const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer);
@@ -180,43 +183,43 @@ protected:
     void InitializeSecondOrderTerms(FICElementVariables& rFICVariables);
 
     void CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
-                                                     ElementVariables& rVariables);
+                                                     ElementVariables&    rVariables);
 
-    void CalculateAndAddLHSStabilization(MatrixType& rLeftHandSideMatrix,
-                                         ElementVariables& rVariables,
+    void CalculateAndAddLHSStabilization(MatrixType&          rLeftHandSideMatrix,
+                                         ElementVariables&    rVariables,
                                          FICElementVariables& rFICVariables);
 
-    void CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                             ElementVariables& rVariables,
+    void CalculateAndAddStrainGradientMatrix(MatrixType&          rLeftHandSideMatrix,
+                                             ElementVariables&    rVariables,
                                              FICElementVariables& rFICVariables);
 
-    void CalculateAndAddDtStressGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                               ElementVariables& rVariables,
+    void CalculateAndAddDtStressGradientMatrix(MatrixType&          rLeftHandSideMatrix,
+                                               ElementVariables&    rVariables,
                                                FICElementVariables& rFICVariables);
 
-    void CalculateConstitutiveTensorGradients(FICElementVariables& rFICVariables,
+    void CalculateConstitutiveTensorGradients(FICElementVariables&    rFICVariables,
                                               const ElementVariables& Variables);
 
-    void CalculateAndAddPressureGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                               ElementVariables& rVariables,
+    void CalculateAndAddPressureGradientMatrix(MatrixType&          rLeftHandSideMatrix,
+                                               ElementVariables&    rVariables,
                                                FICElementVariables& rFICVariables);
 
-    void CalculateAndAddRHSStabilization(VectorType& rRightHandSideVector,
-                                         ElementVariables& rVariables,
+    void CalculateAndAddRHSStabilization(VectorType&          rRightHandSideVector,
+                                         ElementVariables&    rVariables,
                                          FICElementVariables& rFICVariables);
 
-    void CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
-                                           ElementVariables& rVariables,
+    void CalculateAndAddStrainGradientFlow(VectorType&          rRightHandSideVector,
+                                           ElementVariables&    rVariables,
                                            FICElementVariables& rFICVariables);
 
-    void CalculateAndAddDtStressGradientFlow(VectorType& rRightHandSideVector,
-                                             ElementVariables& rVariables,
+    void CalculateAndAddDtStressGradientFlow(VectorType&          rRightHandSideVector,
+                                             ElementVariables&    rVariables,
                                              FICElementVariables& rFICVariables);
 
     void CalculateDtStressGradients(FICElementVariables& rFICVariables, const ElementVariables& Variables);
 
-    void CalculateAndAddPressureGradientFlow(VectorType& rRightHandSideVector,
-                                             ElementVariables& rVariables,
+    void CalculateAndAddPressureGradientFlow(VectorType&          rRightHandSideVector,
+                                             ElementVariables&    rVariables,
                                              FICElementVariables& rFICVariables);
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -21,18 +21,19 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
                                                                        NodesArrayType const& ThisNodes,
                                                                        PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new DrainedUPwSmallStrainElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new DrainedUPwSmallStrainElement(
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType NewId,
+Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                        GeometryType::Pointer pGeom,
                                                                        PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new DrainedUPwSmallStrainElement(NewId, pGeom, pProperties));
+    return Element::Pointer(new DrainedUPwSmallStrainElement(NewId, pGeom, pProperties,
+                                                             this->GetStressStatePolicy().Clone()));
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -57,7 +58,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom   = this->GetGeometry();
+    const GeometryType&   Geom = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
@@ -108,7 +109,7 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixTyp
 template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                                                        ElementVariables& rVariables,
-                                                                       unsigned int GPoint)
+                                                                       unsigned int      GPoint)
 {
     KRATOS_TRY;
 

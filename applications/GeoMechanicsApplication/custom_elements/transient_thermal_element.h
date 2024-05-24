@@ -16,7 +16,9 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "custom_utilities/thermal_utilities.hpp"
+#include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/dof_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -60,38 +62,37 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override
     {
-        KRATOS_TRY
-
-        rElementalDofList.resize(TNumNodes);
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
-        }
-
-        KRATOS_CATCH("")
+        rElementalDofList = GetDofs();
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        KRATOS_TRY
-
-        rResult.resize(TNumNodes, false);
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
-        }
-
-        KRATOS_CATCH("")
+        rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
     }
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
         GeometryType::ShapeFunctionsGradientsType dN_dX_container;
-        Vector det_J_container;
-        GetGeometry().ShapeFunctionsIntegrationPointsGradients(dN_dX_container, det_J_container,
-                                                               GetIntegrationMethod());
+        Vector                                    det_J_container;
+
+        // ShapreFunctionsIntegrationsPointsGradients does not allow for the line element in 2D/3D configuration
+        // and will produce errors. To circumvent this, the dN_dX_container is separately computed with correct
+        // dimensions for the line element.
+        if (GetGeometry().LocalSpaceDimension() == 1) {
+            GetGeometry().DeterminantOfJacobian(det_J_container, this->GetIntegrationMethod());
+            dN_dX_container = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+            std::transform(dN_dX_container.begin(), dN_dX_container.end(), det_J_container.begin(),
+                           dN_dX_container.begin(), std::divides<>());
+        } 
+        else {
+            GetGeometry().ShapeFunctionsIntegrationPointsGradients(dN_dX_container, det_J_container,
+                                                                   GetIntegrationMethod());
+        }
+        
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
 
         BoundedMatrix<double, TNumNodes, TNumNodes> convection_matrix = ZeroMatrix(TNumNodes, TNumNodes);
@@ -115,6 +116,22 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
+        if (GetGeometry().LocalSpaceDimension() == 1)
+        {
+            switch (TNumNodes) {
+            case 2:
+            case 3:
+                return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            case 4:
+                return GeometryData::IntegrationMethod::GI_GAUSS_3;
+            case 5:
+                return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            default:
+                KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: " << TNumNodes
+                             << std::endl;
+            }
+        }
+
         switch (TNumNodes) {
         case 3:
         case 4:
@@ -129,8 +146,7 @@ public:
         case 15:
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         default:
-            KRATOS_ERROR << "Can't return integration method: unexpected "
-                            "number of nodes: "
+            KRATOS_ERROR << "Can't return integration method: unexpected number of nodes: "
                          << TNumNodes << std::endl;
         }
     }
@@ -218,7 +234,7 @@ private:
     {
         if constexpr (TDim == 2) {
             const auto& r_geometry = GetGeometry();
-            auto pos               = std::find_if(r_geometry.begin(), r_geometry.end(),
+            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
                                                   [](const auto& node) { return node.Z() != 0.0; });
             KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
                 << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
@@ -255,6 +271,7 @@ private:
 
     Vector CalculateIntegrationCoefficients(const Vector& rDetJContainer) const
     {
+        const auto& r_properties = GetProperties();
         const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
 
         auto result = Vector{r_integration_points.size()};
@@ -262,6 +279,9 @@ private:
              integration_point_index < r_integration_points.size(); ++integration_point_index) {
             result[integration_point_index] = r_integration_points[integration_point_index].Weight() *
                                               rDetJContainer[integration_point_index];
+            if (GetGeometry().LocalSpaceDimension() == 1) {
+                result[integration_point_index] *= r_properties[CROSS_AREA];
+            }
         }
 
         return result;
@@ -269,13 +289,13 @@ private:
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-        const Vector& rIntegrationCoefficients,
-        const ProcessInfo& rCurrentProcessInfo) const
+        const Vector&                                    rIntegrationCoefficients,
+        const ProcessInfo&                               rCurrentProcessInfo) const
     {
-        GeoThermalDispersionLaw law{TDim};
-
         Vector discharge_vector = ZeroVector(TDim);
-        Matrix constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
+
+        const auto law = CreateThermalLaw();
+        auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -284,7 +304,7 @@ private:
 
              if (mIsPressureCoupled) {
                  discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
-                 constitutive_matrix = law.CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, discharge_vector);
+                 constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, discharge_vector);
              }
  
             BoundedMatrix<double, TDim, TNumNodes> Temp =
@@ -299,12 +319,11 @@ private:
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients,
                                                                         const ProcessInfo& rCurrentProcessInfo) const
     {
-        const auto& r_properties = GetProperties();
+        const auto&              r_properties = GetProperties();
         RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
-        auto retention_law      = RetentionLawFactory::Clone(r_properties);
-        const double saturation = retention_law->CalculateSaturation(parameters);
-        //const auto c_water = r_properties[POROSITY] * saturation * r_properties[DENSITY_WATER] *
-        //                    r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
+        auto                     retention_law = RetentionLawFactory::Clone(r_properties);
+        const double             saturation    = retention_law->CalculateSaturation(parameters);
+
         const auto c_solid = (1.0 - r_properties[POROSITY]) * r_properties[DENSITY_SOLID] *
                              r_properties[SPECIFIC_HEAT_CAPACITY_SOLID];
 
@@ -326,7 +345,7 @@ private:
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
-        auto result            = array_1d<double, TNumNodes>{};
+        auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
         std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
@@ -384,13 +403,16 @@ private:
     // ============================================================================================
     BoundedMatrix<double, TDim, TDim> CalculatePermeabilityMatrix() const
     {
-        const PropertiesType& rProp = this->GetProperties();
+        const PropertiesType&             rProp = this->GetProperties();
         BoundedMatrix<double, TDim, TDim> C;
 
         C(0, 0) = rProp[PERMEABILITY_XX];
-        C(0, 1) = rProp[PERMEABILITY_XY];
-        C(1, 0) = rProp[PERMEABILITY_XY];
-        C(1, 1) = rProp[PERMEABILITY_YY];
+
+        if (TDim == 2) {
+            C(0, 1) = rProp[PERMEABILITY_XY];
+            C(1, 0) = rProp[PERMEABILITY_XY];
+            C(1, 1) = rProp[PERMEABILITY_YY];
+        }
         
         if (TDim == 3) {
             C(2, 2) = rProp[PERMEABILITY_ZZ];
@@ -448,10 +470,36 @@ private:
             mWaterViscosity[integration_point_index] =
                 ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(N, rGeom);
         }
-    
     }
 
 
+    std::unique_ptr<GeoThermalLaw> CreateThermalLaw() const
+    {
+        const std::size_t number_of_dimensions = GetGeometry().LocalSpaceDimension();
+        std::unique_ptr<GeoThermalLaw> law;
+        
+        if (GetProperties().Has(THERMAL_LAW_NAME)) {
+            const std::string& rThermalLawName = GetProperties()[THERMAL_LAW_NAME];
+            if (rThermalLawName == "GeoThermalDispersionLaw") {
+                law = std::make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+            } 
+            else if (rThermalLawName == "GeoThermalFilterLaw") {
+                law = std::make_unique<GeoThermalFilterLaw>();
+            } 
+            else {
+                KRATOS_ERROR << "Undefined THERMAL_LAW_NAME! " << rThermalLawName << std::endl;
+            }
+        } 
+        else {
+            law = std::make_unique<GeoThermalDispersionLaw>(number_of_dimensions);
+        }
+        return law;
+    }
+
+    [[nodiscard]] DofsVectorType GetDofs() const
+    {
+        return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), TEMPERATURE);
+    }
 
     friend class Serializer;
 

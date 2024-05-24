@@ -57,7 +57,7 @@ namespace Kratos::Testing
         const auto& r_process_info = r_test_model_part.GetProcessInfo();
 
         // Set Dirichlet penalty constant and boundary value
-        p_element->SetValue(PENALTY_DIRICHLET, 1e0);
+        p_element->SetValue(PENALTY_COEFFICIENT, 1e0);
         p_element->SetValue(EMBEDDED_SCALAR, 0.0);
 
         // Set distances for uncut element

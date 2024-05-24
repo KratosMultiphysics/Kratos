@@ -728,11 +728,23 @@ public:
         return mpMasterSlaveConstraints->size();
     }
 
-    /** Inserts a master-slave constraint  in the mesh.
-    */
-    void AddMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint)
+    /// @brief Insert a @ref MasterSlaveConstraint.
+    /// @returns @a false if a constraint with identical ID already exists
+    ///          in the mesh and the insertion did not take place, @a true
+    ///          otherwise.
+    bool AddMasterSlaveConstraint(typename MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint)
     {
-        mpMasterSlaveConstraints->insert(mpMasterSlaveConstraints->begin(), pNewMasterSlaveConstraint);
+        const auto it_existing_constraint = mpMasterSlaveConstraints->find(pNewMasterSlaveConstraint->Id());
+        if (it_existing_constraint == mpMasterSlaveConstraints->end()) {
+            // PointerVectorSet::insert takes a position argument to insert the
+            // item at but ignores it, which makes it completely irrelevant to
+            // properly compute (an estimate) of the new constraint's position
+            // in the container => pass begin as position.
+            const auto it_insert_position = mpMasterSlaveConstraints->begin();
+            mpMasterSlaveConstraints->insert(it_insert_position, pNewMasterSlaveConstraint);
+            return true;
+        }
+        return false;
     }
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */

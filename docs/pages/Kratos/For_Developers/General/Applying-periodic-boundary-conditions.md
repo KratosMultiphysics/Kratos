@@ -1,7 +1,7 @@
 ---
-title: Applying periodic boundary conditions
+title: Applying Periodic Boundary Conditions
 keywords: 
-tags: [Applying-periodic-boundary-conditions.md]
+tags: [Applying Periodic Boundary Conditions]
 sidebar: kratos_for_developers
 summary: 
 ---
@@ -36,6 +36,7 @@ An example entry for such a process in the the processes list in the `ProjectPar
     }
 }
 ```
+
 From the above json parameters :  `python_module` , `kratos_module`, `process_name` are always the same.
 `Parameters` dictionary changes depending on the case. Explanation of the entries of `Parameters` dictionary is as follows : 
 
