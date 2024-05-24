@@ -47,7 +47,6 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
     using UPwSmallStrainElement<TDim, TNumNodes>::VoigtSize;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
