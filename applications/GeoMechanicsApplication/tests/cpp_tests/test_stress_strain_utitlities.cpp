@@ -192,16 +192,12 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(CheckGetVoigtVector, KratosGeoMechanicsFastSuite)
 {
-    std::size_t dimension    = 2;
-    Vector      voigt_vector = StressStrainUtilities::GetVoigtVector(dimension);
-
+    Vector voigt_vector = StressStrainUtilities::GetVoigtVector2D();
     Vector expected_voigt_vector(4);
     expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 
-    dimension    = 3;
-    voigt_vector = StressStrainUtilities::GetVoigtVector(dimension);
-
+    voigt_vector = StressStrainUtilities::GetVoigtVector3D();
     expected_voigt_vector.resize(6);
     expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)

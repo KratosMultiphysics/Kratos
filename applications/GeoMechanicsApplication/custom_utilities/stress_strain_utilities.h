@@ -52,7 +52,8 @@ public:
         return Dimension == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
     }
 
-    static const Vector& GetVoigtVector(std::size_t Dimension);
+    static const Vector& GetVoigtVector2D();
+    static const Vector& GetVoigtVector3D();
 
 private:
     static double       CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);

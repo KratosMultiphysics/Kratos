@@ -691,7 +691,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         // Create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
 
-        const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(TDim);
+        const Vector& VoigtVector = this->GetStressStatePolicy().GetVoigtVector();
 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
@@ -1099,7 +1099,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
     rVariables.detF = 1.0;
 
     // General Variables
-    rVariables.VoigtVector = StressStrainUtilities::GetVoigtVector(TDim);
+    rVariables.VoigtVector = this->GetStressStatePolicy().GetVoigtVector();
 
     rVariables.B = ZeroMatrix(VoigtSize, TNumNodes * TDim);
 

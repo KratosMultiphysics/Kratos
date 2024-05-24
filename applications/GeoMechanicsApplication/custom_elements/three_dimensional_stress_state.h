@@ -27,6 +27,7 @@ public:
                                                          const Geometry<Node>& rGeometry) const override;
     [[nodiscard]] Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const override;
     [[nodiscard]] std::unique_ptr<StressStatePolicy> Clone() const override;
+    [[nodiscard]] const Vector&                      GetVoigtVector() override;
 };
 
 } // namespace Kratos

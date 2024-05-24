@@ -174,10 +174,9 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
-const Vector& StressStrainUtilities::GetVoigtVector(std::size_t Dimension)
-{
-    return Dimension == N_DIM_3D ? VoigtVector3D : VoigtVector2D;
-}
+const Vector& StressStrainUtilities::GetVoigtVector2D() { return VoigtVector2D; }
+
+const Vector& StressStrainUtilities::GetVoigtVector3D() { return VoigtVector3D; }
 
 Vector StressStrainUtilities::DefineVoigtVector(std::size_t Dimension)
 {

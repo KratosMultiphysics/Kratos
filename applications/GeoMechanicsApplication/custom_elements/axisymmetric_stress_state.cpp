@@ -13,6 +13,7 @@
 
 #include "axisymmetric_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {
@@ -63,6 +64,11 @@ Vector AxisymmetricStressState::CalculateGreenLagrangeStrain(const Matrix& rDefo
 {
     KRATOS_ERROR << "The calculation of Green Lagrange strain is not implemented for axisymmetric "
                     "configurations.\n";
+}
+
+const Vector& AxisymmetricStressState::GetVoigtVector()
+{
+    return StressStrainUtilities::GetVoigtVector2D();
 }
 
 } // namespace Kratos

@@ -1127,7 +1127,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(Dim);
+        const Vector& VoigtVector = mpStressStatePolicy->GetVoigtVector();
 
         // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
@@ -1653,7 +1653,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 {
     KRATOS_TRY
 
-    const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(GetGeometry().WorkingSpaceDimension());
+    const Vector& VoigtVector = mpStressStatePolicy->GetVoigtVector();
 
     Matrix CouplingMatrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
@@ -1778,7 +1778,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 {
     KRATOS_TRY
 
-    const Vector& VoigtVector = StressStrainUtilities::GetVoigtVector(GetGeometry().WorkingSpaceDimension());
+    const Vector& VoigtVector = mpStressStatePolicy->GetVoigtVector();
 
     Matrix CouplingMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
                                          rVariables.B, VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
