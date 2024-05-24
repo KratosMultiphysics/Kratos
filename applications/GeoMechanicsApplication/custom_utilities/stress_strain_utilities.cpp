@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Richard Faasse,
 //                   Gennady Markelov
 //
 
@@ -182,9 +182,7 @@ const Vector& StressStrainUtilities::GetVoigtVector(std::size_t Dimension)
 Vector StressStrainUtilities::DefineVoigtVector(std::size_t Dimension)
 {
     Vector VoigtVector = ZeroVector(GetVoigtSize(Dimension));
-    for (unsigned int i = 0; i < GetStressTensorSize(Dimension); ++i)
-        VoigtVector[i] = 1.0;
-
+    std::fill_n(VoigtVector.begin(), GetStressTensorSize(Dimension), 1.0);
     return VoigtVector;
 }
 

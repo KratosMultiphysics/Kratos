@@ -8,7 +8,9 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    JMCarbonell,
-//                   Vahid Galavi
+//                   Vahid Galavi,
+//                   Richard Faasse,
+//                   Gennady Markelov
 //
 
 #pragma once
