@@ -994,7 +994,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateInverseBiotModulus(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);

@@ -29,7 +29,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, Krato
     const double derivative_of_saturation = 0.2;
 
     const double expected_value = -0.09999992485;
-    KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+    KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateInverseBiotModulus(
                                 biot_coefficient, degree_of_saturation, derivative_of_saturation, properties),
                             expected_value);
 }
@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgn
     const double derivative_of_saturation = 0.2;
 
     const auto large_number = 1e10;
-    KRATOS_EXPECT_GT(GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+    KRATOS_EXPECT_GT(GeoTransportEquationUtilities::CalculateInverseBiotModulus(
                          biot_coefficient, degree_of_saturation, derivative_of_saturation, properties),
                      large_number);
 }
@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesNotThrow_ForEmptyPrope
     const double     degree_of_saturation     = 0.3;
     const double     derivative_of_saturation = 0.2;
 
-    KRATOS_EXPECT_TRUE(std::isnan(GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+    KRATOS_EXPECT_TRUE(std::isnan(GeoTransportEquationUtilities::CalculateInverseBiotModulus(
         biot_coefficient, degree_of_saturation, derivative_of_saturation, properties)))
 }
 

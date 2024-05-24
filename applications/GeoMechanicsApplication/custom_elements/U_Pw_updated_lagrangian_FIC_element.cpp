@@ -113,7 +113,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateInverseBiotModulus(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
 

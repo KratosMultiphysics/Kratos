@@ -100,7 +100,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateInverseBiotModulus(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
 

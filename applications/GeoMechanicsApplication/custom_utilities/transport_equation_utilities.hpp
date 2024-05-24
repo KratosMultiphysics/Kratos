@@ -113,12 +113,22 @@ public:
         return result;
     }
 
+    [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer,
+                                                                     const Vector& rPressureVector)
+    {
+        auto result = std::vector<double>{};
+        for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
+            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
+        }
+        return result;
+    }
+
     [[nodiscard]] static double CalculateFluidPressure(const Vector& rN, const Vector& rPressureVector)
     {
         return inner_prod(rN, rPressureVector);
     }
 
-    [[nodiscard]] static double CalculateBiotModulusInverse(double BiotCoefficient,
+    [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
                                                             double DegreeOfSaturation,
                                                             double DerivativeOfSaturation,
                                                             const Properties& rProperties)
@@ -130,6 +140,19 @@ public:
         result *= DegreeOfSaturation;
         result -= DerivativeOfSaturation * rProperties[POROSITY];
 
+        return result;
+    }
+
+    [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
+                                                                        const std::vector<double>& rDegreesOfSaturation,
+                                                                        const std::vector<double>& DerivativesOfSaturation,
+                                                                        const Properties& rProperties)
+    {
+        std::vector<double> result;
+        for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
+            result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
+                                                         DerivativesOfSaturation[i], rProperties));
+        }
         return result;
     }
 

@@ -1280,6 +1280,22 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
+    std::vector<double> degrees_of_saturation;
+    std::vector<double> derivatives_of_saturation;
+    const auto          fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NpContainer, Variables.PressureVector);
+
+    int counter = 0;
+    for (const auto fluid_pressure : fluid_pressures) {
+        RetentionParameters.SetFluidPressure(fluid_pressure);
+        degrees_of_saturation.push_back(mRetentionLawVector[counter]->CalculateSaturation(RetentionParameters));
+        derivatives_of_saturation.push_back(
+            mRetentionLawVector[counter]->CalculateDerivativeOfSaturation(RetentionParameters));
+        counter++;
+    }
+
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1291,9 +1307,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
-            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
-            Variables.DerivativeOfSaturation, this->GetProperties());
+        Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
         Variables.PermeabilityUpdateFactor = this->CalculatePermeabilityUpdateFactor(Variables.StrainVector);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];

@@ -474,7 +474,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateInverseBiotModulus(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation, Variables.DerivativeOfSaturation, Prop);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
