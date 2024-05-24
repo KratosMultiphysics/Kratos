@@ -28,7 +28,7 @@ class TestSensorDistanceBoltzmannOperatorResponseUtils(UnitTest.TestCase):
     def test_CalculateValue(self):
         for node in self.model_part.Nodes:
             node.SetValue(KratosDT.SENSOR_STATUS, 1.0)
-        self.assertAlmostEqual(self.response_utils.CalculateValue(), 0.14459399485010246)
+        self.assertAlmostEqual(self.response_utils.CalculateValue(), 0.017251715710332946)
 
     def test_CalculateGradient(self):
         for node in self.model_part.Nodes:
@@ -151,7 +151,7 @@ class TestSensorDistanceBoltzmannOperatorResponse(UnitTest.TestCase):
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        self.assertAlmostEqual(self.response.CalculateValue(), 0.5002241155767124)
+        self.assertAlmostEqual(self.response.CalculateValue(), 0.12505493627507863)
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()

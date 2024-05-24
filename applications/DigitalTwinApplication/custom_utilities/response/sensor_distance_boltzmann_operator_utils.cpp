@@ -51,7 +51,10 @@ void SensorDistanceBoltzmannOperatorResponseUtils::Initialize()
         for (IndexType j = i + 1; j < n; ++j) {
             // 1.0 is added so that distances are never zero, and the mP of distance
             // is always greater than 1.0
-            mDistances(i, j) = std::pow(1 + norm_2((mpSensorModelPart->NodesBegin() + i)->Coordinates() - (mpSensorModelPart->NodesBegin() + j)->Coordinates()), mP);
+            // here we multiply everything by n so that, at the point of response value calculation
+            // the total summation will be divided by "n" which is good for scaling
+            // in the boltzmann operator.
+            mDistances(i, j) = n * std::pow(1 + norm_2((mpSensorModelPart->NodesBegin() + i)->Coordinates() - (mpSensorModelPart->NodesBegin() + j)->Coordinates()), mP);
         }
     });
 
