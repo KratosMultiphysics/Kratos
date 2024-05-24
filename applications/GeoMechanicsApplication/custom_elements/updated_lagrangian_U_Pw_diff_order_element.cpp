@@ -87,9 +87,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         constitutive_matrices, this->GetProperties());
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NpContainer, Variables.PressureVector);
-    const auto degrees_of_saturation = CalculateDegreesOfSaturation(fluid_pressures, RetentionParameters);
+    const auto degrees_of_saturation = this->CalculateDegreesOfSaturation(fluid_pressures, RetentionParameters);
     const auto derivatives_of_saturation =
-        CalculateDerivativesOfSaturation(fluid_pressures, RetentionParameters);
+        this->CalculateDerivativesOfSaturation(fluid_pressures, RetentionParameters);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
 

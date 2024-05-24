@@ -180,7 +180,6 @@ protected:
 
         /// Retention Law parameters
         double DegreeOfSaturation;
-        double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
 
@@ -280,6 +279,11 @@ protected:
     void CalculateRetentionResponse(ElementVariables&         rVariables,
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
+
+    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& fluid_pressures,
+                                                     RetentionLaw::Parameters& RetentionParameters);
+    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& fluid_pressures,
+                                                         RetentionLaw::Parameters& RetentionParameters);
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
