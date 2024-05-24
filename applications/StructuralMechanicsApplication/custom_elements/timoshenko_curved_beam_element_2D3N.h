@@ -324,45 +324,10 @@ public:
     BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
     {
 
-        BoundedMatrix<double, 3, 3> T1, T2, T3;
-        noalias(T1) = GetFrenetSerretMatrix(xi);
-        noalias(T2) = GetFrenetSerretMatrix(xi);
-        noalias(T3) = GetFrenetSerretMatrix(xi);
+        BoundedMatrix<double, 3, 3> T;
+        noalias(T) = GetFrenetSerretMatrix(xi);
         BoundedMatrix<double, 9, 9> global_size_T;
-        // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-        global_size_T.clear();
-
-
-        global_size_T(0, 0) = T1(0, 0);
-        global_size_T(0, 1) = T1(0, 1);
-        global_size_T(0, 2) = T1(0, 2);
-        global_size_T(1, 0) = T1(1, 0);
-        global_size_T(1, 1) = T1(1, 1);
-        global_size_T(1, 2) = T1(1, 2);
-        global_size_T(2, 0) = T1(2, 0);
-        global_size_T(2, 1) = T1(2, 1);
-        global_size_T(2, 2) = T1(2, 2);
-
-        global_size_T(3, 3) = T2(0, 0);
-        global_size_T(3, 4) = T2(0, 1);
-        global_size_T(3, 5) = T2(0, 2);
-        global_size_T(4, 3) = T2(1, 0);
-        global_size_T(4, 4) = T2(1, 1);
-        global_size_T(4, 5) = T2(1, 2);
-        global_size_T(5, 3) = T2(2, 0);
-        global_size_T(5, 4) = T2(2, 1);
-        global_size_T(5, 5) = T2(2, 2);
-
-        global_size_T(6, 6) = T3(0, 0);
-        global_size_T(6, 7) = T3(0, 1);
-        global_size_T(6, 8) = T3(0, 2);
-        global_size_T(7, 6) = T3(1, 0);
-        global_size_T(7, 7) = T3(1, 1);
-        global_size_T(7, 8) = T3(1, 2);
-        global_size_T(8, 6) = T3(2, 0);
-        global_size_T(8, 7) = T3(2, 1);
-        global_size_T(8, 8) = T3(2, 2);
-
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
         return global_size_T;
     }
 
