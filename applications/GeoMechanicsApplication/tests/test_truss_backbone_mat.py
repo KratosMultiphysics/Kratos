@@ -3,9 +3,10 @@ import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
+
 class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
     """
-    This class contains a test for displacement Dirichlet boundary condition
+    This class contains tests for the truss backbone material
     """
 
     def setUp(self):
@@ -26,10 +27,10 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         """
         test_name    = r'truss_backbone_material\tension'
         project_path = test_helper.get_file_path(test_name)
-        simulation   = test_helper.run_kratos(project_path)
+        test_helper.run_kratos(project_path)
 
         # output
-        output_file_name = os.path.join(project_path, f'truss_backbone_mat.post.res')
+        output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
         output_data = []
         output_data.append(reader.read_output_from(output_file_name))
@@ -52,10 +53,10 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         """
         test_name    = r'truss_backbone_material\compression'
         project_path = test_helper.get_file_path(test_name)
-        simulation   = test_helper.run_kratos(project_path)
+        test_helper.run_kratos(project_path)
 
         # output
-        output_file_name = os.path.join(project_path, f'truss_backbone_mat.post.res')
+        output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
         output_data = []
         output_data.append(reader.read_output_from(output_file_name))
@@ -78,10 +79,10 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         """
         test_name    = r'truss_backbone_material\tension_compression'
         project_path = test_helper.get_file_path(test_name)
-        simulation   = test_helper.run_kratos(project_path)
+        test_helper.run_kratos(project_path)
 
         # output
-        output_file_name = os.path.join(project_path, f'truss_backbone_mat.post.res')
+        output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
         output_data = []
         output_data.append(reader.read_output_from(output_file_name))
@@ -104,10 +105,10 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         """
         test_name    = r'truss_backbone_material\compression_tension'
         project_path = test_helper.get_file_path(test_name)
-        simulation   = test_helper.run_kratos(project_path)
+        test_helper.run_kratos(project_path)
 
         # output
-        output_file_name = os.path.join(project_path, f'truss_backbone_mat.post.res')
+        output_file_name = os.path.join(project_path, 'truss_backbone_mat.post.res')
         reader = test_helper.GiDOutputFileReader()
         output_data = []
         output_data.append(reader.read_output_from(output_file_name))
