@@ -45,11 +45,14 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif solver_type == "adjoint_static":
             solver_module_name = "structural_mechanics_adjoint_static_solver"
 
+        elif solver_type == "adjoint_dynamic":
+            solver_module_name = "structural_mechanics_adjoint_dynamic_solver"
+
         elif solver_type == "prebuckling":
             solver_module_name = "structural_mechanics_prebuckling_solver"
 
         else:
-            available_solver_types = ["static", "dynamic", "eigen_value", "harmonic_analysis", "formfinding", "adjoint_static","prebuckling"]
+            available_solver_types = ["static", "dynamic", "eigen_value", "harmonic_analysis", "formfinding", "adjoint_static","adjoint_dynamic", "prebuckling"]
             try_import_custom_solver = True
 
     # Solvers for MPI parallelism
