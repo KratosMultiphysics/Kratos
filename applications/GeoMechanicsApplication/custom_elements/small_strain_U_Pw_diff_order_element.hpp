@@ -314,6 +314,11 @@ protected:
 
     Vector GetPressureSolutionVector();
 
+    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& fluid_pressures,
+                                                     RetentionLaw::Parameters& RetentionParameters);
+    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& fluid_pressures,
+                                                         RetentionLaw::Parameters& RetentionParameters);
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -345,10 +350,6 @@ private:
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 
-    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& fluid_pressures,
-                                                     RetentionLaw::Parameters& RetentionParameters);
-    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& fluid_pressures,
-                                                         RetentionLaw::Parameters& RetentionParameters);
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos
