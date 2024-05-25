@@ -153,7 +153,6 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(

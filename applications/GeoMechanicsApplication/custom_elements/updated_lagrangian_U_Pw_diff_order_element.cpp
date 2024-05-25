@@ -64,7 +64,6 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     if (CalculateResidualVectorFlag)
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(rProp);
 
     // Loop over integration points

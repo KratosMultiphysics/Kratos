@@ -332,7 +332,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);

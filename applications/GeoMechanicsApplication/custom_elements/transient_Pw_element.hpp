@@ -93,9 +93,9 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo&) override;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo&) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

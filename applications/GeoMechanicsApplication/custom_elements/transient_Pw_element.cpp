@@ -283,7 +283,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
@@ -291,7 +291,6 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
     const GeometryType& Geom       = this->GetGeometry();
     const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
@@ -303,30 +302,22 @@ void TransientPwElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessIn
     // reset hydraulic discharge
     this->ResetHydraulicDischarge();
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwElement<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo&)
 {
-    KRATOS_TRY;
-
     // nothing
-
-    KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo&)
 {
-    KRATOS_TRY;
-
     // nothing
-
-    KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -341,7 +332,6 @@ void TransientPwElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo
     const GeometryType& Geom       = this->GetGeometry();
     const unsigned int  NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
@@ -450,7 +440,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
@@ -540,7 +529,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
                                                              ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
 
@@ -549,7 +538,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       r
         rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
     rLeftHandSideMatrix += permeability_matrix;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

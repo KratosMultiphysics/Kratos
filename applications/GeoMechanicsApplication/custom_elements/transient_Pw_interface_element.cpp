@@ -147,7 +147,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const 
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
@@ -164,7 +163,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const Pr
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
@@ -295,7 +293,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         // VG: Perhaps a new parameter to get join width and not minimum joint width
         const double& JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
-        // create general parameters of retention law
         RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         // Loop over integration points
@@ -474,7 +471,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);

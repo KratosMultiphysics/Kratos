@@ -23,7 +23,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalFilterLaw : public GeoTher
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalFilterLaw);
 
-    Matrix CalculateThermalDispersionMatrix(const Properties& rProp) const override;
+    [[nodiscard]] Matrix CalculateThermalDispersionMatrix(const Properties& rProp) const override;
 
 private:
     friend class Serializer;
