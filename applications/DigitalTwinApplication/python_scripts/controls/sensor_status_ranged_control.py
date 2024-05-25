@@ -69,6 +69,8 @@ class SensorStatusRangedControl(Control):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
 
+        self.x_limits = [-100.0, 100.0]
+
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
@@ -80,7 +82,7 @@ class SensorStatusRangedControl(Control):
         # project backward the uniform physical control field and assign it to the control field
         self.physical_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
                                                 sensor_status,
-                                                [0, 1],
+                                                self.x_limits,
                                                 [0, 1],
                                                 self.beta,
                                                 self.penalty_factor)
@@ -165,7 +167,7 @@ class SensorStatusRangedControl(Control):
                     # compute and stroe projection derivatives for consistent filtering of the sensitivities
                     self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
                                                             self.physical_phi_field,
-                                                            [0, 1],
+                                                            self.x_limits,
                                                             [0, 1],
                                                             self.beta,
                                                             self.penalty_factor)
@@ -178,7 +180,7 @@ class SensorStatusRangedControl(Control):
         # project forward the filtered thickness field
         projected_sensor_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(
                                                 self.physical_phi_field,
-                                                [0, 1],
+                                                self.x_limits,
                                                 [0, 1],
                                                 self.beta,
                                                 self.penalty_factor)
@@ -194,7 +196,7 @@ class SensorStatusRangedControl(Control):
         # compute and stroe projection derivatives for consistent filtering of the sensitivities
         self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
                                                 self.physical_phi_field,
-                                                [0, 1],
+                                                self.x_limits,
                                                 [0, 1],
                                                 self.beta,
                                                 self.penalty_factor)
