@@ -1297,12 +1297,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+kp        Variables.RelativePermeability = relative_permeability_values[GPoint];
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
-        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
@@ -1978,8 +1978,6 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
     rVariables.DerivativeOfSaturation =
         mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
-    rVariables.RelativePermeability =
-        mRetentionLawVector[GPoint]->CalculateRelativePermeability(rRetentionParameters);
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
 
     KRATOS_CATCH("")

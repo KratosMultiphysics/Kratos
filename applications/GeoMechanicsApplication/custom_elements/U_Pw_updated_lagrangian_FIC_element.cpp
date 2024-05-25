@@ -110,6 +110,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
 
         // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
@@ -119,7 +120,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
             Variables.BiotCoefficient, Variables.DegreeOfSaturation,
             Variables.DerivativeOfSaturation, this->GetProperties());
 
-        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(

@@ -172,8 +172,8 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
 
-        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side

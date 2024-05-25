@@ -472,6 +472,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
 
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
@@ -479,7 +480,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
             Variables.BiotCoefficient, Variables.DegreeOfSaturation, Variables.DerivativeOfSaturation, Prop);
 
-        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
