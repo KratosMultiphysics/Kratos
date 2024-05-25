@@ -122,7 +122,7 @@ def SetPythonModulesForCppModules(list_of_python_cpp_libs: 'list[KratosPythonCpp
             for kratos_python_cpp_lib in list_of_python_cpp_libs:
                 if not kratos_python_cpp_lib.IsPythonModuleDefined():
                     kratos_module_dependent_module_names_dict[kratos_python_cpp_lib] = []
-                    for match_cpp_lib_import in re.finditer(f"from +{kratos_python_cpp_lib.GetCppLibModule()} +import +\*", lines):
+                    for match_cpp_lib_import in re.finditer(f"from +{kratos_python_cpp_lib.GetCppLibModule()} +import +\\*", lines):
                         kratos_python_cpp_lib.SetPythonModule(file_path)
                         for match_dependent_imports in re.finditer(f"import +([a-zA-Z0-9_.]+)", lines[:match_cpp_lib_import.start()]):
                             kratos_module_dependent_module_names_dict[kratos_python_cpp_lib].append(match_dependent_imports.group(1))
@@ -196,7 +196,6 @@ def Main():
     args: 'list[str]' = ["-o", str(kratos_library_path)]
     for k in list_of_cpp_libs:
         args.extend(["-p", k.GetCppLibModule()])
-    # args.extend(["-p", "Kratos", "-p", ])
     options = parse_options(args)
     generate_stubs(options)
 
