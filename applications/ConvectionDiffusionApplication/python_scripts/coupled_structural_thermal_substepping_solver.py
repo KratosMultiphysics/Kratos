@@ -13,7 +13,7 @@ class CoupledThermoMechanicalSubsteppingSolver(BaseThermoMech.CoupledThermoMecha
 
     def __init__(self, model, custom_settings):
 
-        super(CoupledThermoMechanicalSubsteppingSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
         self.var_utils = KratosMultiphysics.VariableUtils()
 
