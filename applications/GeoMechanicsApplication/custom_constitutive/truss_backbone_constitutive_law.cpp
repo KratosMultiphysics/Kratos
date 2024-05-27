@@ -46,7 +46,6 @@ array_1d<double, 3>& TrussBackboneConstitutiveLaw::GetValue(const Variable<array
                                                             array_1d<double, 3>& rValue)
 {
     KRATOS_ERROR << "Can't get the specified value for " << rThisVariable << std::endl;
-    return rValue;
 }
 
 void TrussBackboneConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
