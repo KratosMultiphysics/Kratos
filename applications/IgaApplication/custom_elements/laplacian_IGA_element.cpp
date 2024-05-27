@@ -5,7 +5,6 @@
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
-//
 //  Main authors:    Nicolò Antonelli
 //
 
@@ -88,9 +87,14 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable(); // HeatFlux
 
+    // reading integration points and local gradients
     const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
     const unsigned int number_of_points = r_geometry.size();
-    const unsigned int dim = r_geometry.WorkingSpaceDimension(); // dim = 3
+    const unsigned int dim = DN_De[0].size2();
     
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != number_of_points)
@@ -102,14 +106,10 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         rRightHandSideVector.resize(number_of_points,false);
     noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
 
-    // reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-
+    
     // Initialize DN_DX
-    Matrix DN_DX(number_of_points,2);
-    Matrix InvJ0(2,2);
+    Matrix DN_DX(number_of_points,dim);
+    Matrix InvJ0(dim,dim);
     Vector temp(number_of_points);
 
     // Initialize Jacobian
@@ -125,13 +125,22 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
     }
 
+    const double heat_flux_scalar = this->GetValue(HEAT_FLUX);
 
     double DetJ0;
-    Matrix Jacobian = ZeroMatrix(2,2);
+    Matrix Jacobian = ZeroMatrix(dim,dim);
     Jacobian(0,0) = J0[0](0,0);
     Jacobian(0,1) = J0[0](0,1);
     Jacobian(1,0) = J0[0](1,0);
     Jacobian(1,1) = J0[0](1,1);
+
+    if (dim > 2) {
+        Jacobian(0,2) = J0[0](0,2);
+        Jacobian(1,2) = J0[0](1,2);
+        Jacobian(2,0) = J0[0](2,0);
+        Jacobian(2,1) = J0[0](2,1);
+        Jacobian(2,2) = J0[0](2,2);
+    }
     // Calculating inverse jacobian and jacobian determinant
     MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
@@ -147,9 +156,7 @@ void LaplacianIGAElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity_gauss * prod(DN_DX, trans(DN_DX)); //
 
-        // Calculating the local RHS
-        const double qgauss = inner_prod(N, heat_flux_local);
-        noalias(rRightHandSideVector) += IntToReferenceWeight * qgauss * N;
+        noalias(rRightHandSideVector) += IntToReferenceWeight * heat_flux_scalar * N;
     }
 
 
@@ -292,7 +299,7 @@ void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProces
         std::ofstream output_file("txt_files/output_results_GPs.txt", std::ios::app);
         if (output_file.is_open()) {
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-        output_file << rOutput << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << integration_points[0].Weight() << std::endl;
+        output_file << rOutput << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() << " " << integration_points[0].Weight() << std::endl;
         output_file.close();
         }   
     }  

@@ -29,6 +29,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif solver_type == "static" or solver_type == "Static":
             solver_module_name = "structural_mechanics_static_solver"
+            
+        elif (solver_type == "iga_static" or solver_type == "IGA_Static"):
+            solver_module_name = "IGA_structural_mechanics_static_solver"
 
         elif solver_type == "eigen_value":
             solver_module_name = "structural_mechanics_eigensolver"

@@ -191,7 +191,6 @@ namespace Kratos
         // const double tau = 0.0;
 
         // KRATOS_WATCH(tau)
-        // exit(0);
 
 
         // Terms (w, v \cdot ...)

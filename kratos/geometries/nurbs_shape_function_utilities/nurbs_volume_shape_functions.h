@@ -17,6 +17,7 @@
 #include "geometries/nurbs_shape_function_utilities/nurbs_curve_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 #include "input_output/logger.h"
+#include <iomanip>
 
 namespace Kratos
 {
@@ -146,12 +147,14 @@ public:
         const SizeType PolynomialDegreeW,
         const SizeType DerivativeOrder)
     {
+
         const SizeType number_of_shape_function_rows = this->NumberOfShapeFunctionRows(DerivativeOrder);
         const SizeType number_of_nonzero_control_points = (PolynomialDegreeU + 1) * (PolynomialDegreeV + 1) * (PolynomialDegreeW + 1);
 
         mShapeFunctionsU.ResizeDataContainers(PolynomialDegreeU, DerivativeOrder);
-        mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, DerivativeOrder);
         mShapeFunctionsW.ResizeDataContainers(PolynomialDegreeW, DerivativeOrder);
+        mShapeFunctionsV.ResizeDataContainers(PolynomialDegreeV, DerivativeOrder);
+        
         mShapeFunctionValues.resize(number_of_nonzero_control_points * number_of_shape_function_rows);
         // mWeightedSums.resize(number_of_shape_function_rows);
 
@@ -351,6 +354,17 @@ public:
         mFirstNonzeroControlPointU = SpanU - PolynomialDegreeU() + 1;
         mFirstNonzeroControlPointV = SpanV - PolynomialDegreeV() + 1;
         mFirstNonzeroControlPointW = SpanW - PolynomialDegreeW() + 1;
+
+        // MODIFIED for printing also boundary GPs
+        std::ofstream outputFile("txt_files/Gauss_Point_coordinates_3D.txt", std::ios::app);
+        if (!outputFile.is_open())
+        {
+            std::cerr << "Failed to open the file for writing." << std::endl;
+            return;
+        }
+        outputFile << std::setprecision(14); // Set precision to 10^-14
+        outputFile << ParameterU << "  " << ParameterV <<  "  " << ParameterW <<"\n";
+        outputFile.close();
 
         // Compute 1D shape functions
         mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpan(rKnotsU, SpanU, ParameterU);

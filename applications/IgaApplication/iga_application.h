@@ -25,6 +25,7 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/plain_stress_element.h"
 #include "custom_elements/conv_diff_IGA_element.h"
 
 //conditions
@@ -43,6 +44,10 @@
 #include "custom_conditions/sbm_laplacian_neumann_condition.h"
 #include "custom_conditions/sbm_support_lagrange_condition.h"
 #include "custom_conditions/support_laplacian_lagrange_condition.h"
+#include "custom_conditions/support_plain_stress_condition.h"
+#include "custom_conditions/sbm_plain_stress_condition.h"
+#include "custom_conditions/load_plain_stress_condition.h"
+#include "custom_conditions/sbm_load_plain_stress_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -128,6 +133,7 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
+    const PlainStressElement mPlainStressElement;
     const ConvDiffIGAElement mConvDiffIGAElement; 
 
     //Conditions
@@ -146,6 +152,10 @@ private:
     const SBMLaplacianNeumannCondition mSBMLaplacianNeumannCondition;
     const SBMSupportLagrangeCondition mSBMSupportLagrangeCondition;
     const SupportLaplacianLagrangeCondition mSupportLaplacianLagrangeCondition;
+    const SupportPlainStressCondition mSupportPlainStressCondition;
+    const LoadPlainStressCondition mLoadPlainStressCondition;
+    const SBMPlainStressCondition mSBMPlainStressCondition;
+    const SBMLoadPlainStressCondition mSBMLoadPlainStressCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

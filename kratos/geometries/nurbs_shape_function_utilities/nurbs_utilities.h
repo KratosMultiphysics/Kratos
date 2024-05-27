@@ -68,7 +68,7 @@ namespace NurbsUtilities
     {
         double ParameterT_fake = ParameterT;
         for (unsigned i = 0; i<rKnots.size(); i++) {
-            if (std::abs(ParameterT-rKnots[i]) < 1e-14) {
+            if (std::abs(ParameterT-rKnots[i]) < 1e-13) {
                 ParameterT_fake = rKnots[i];
                 break;
             }

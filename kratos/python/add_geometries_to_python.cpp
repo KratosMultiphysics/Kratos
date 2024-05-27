@@ -48,7 +48,7 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
-#include "geometries/surface_in_nurbs_volume_geometry.h"
+#include "geometries/nurbs_surface_on_volume_geometry.h"
 
 namespace Kratos::Python
 {
@@ -354,7 +354,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
 
-    py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
+    py::class_<NurbsSurfaceOnVolumeGeometry<3, NodeContainerType>, NurbsSurfaceOnVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "NurbsSurfaceOnVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
         ;
 

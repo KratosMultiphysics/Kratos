@@ -16,6 +16,7 @@
 #include "input_output/cad_json_output.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "utilities/math_utils.h"
+#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
 
 namespace Kratos
@@ -58,7 +59,28 @@ namespace Kratos
             ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart("surrogate_model_part_outer");
             // Create the snakes coordiantes
             KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Starting the CreateTheSnakeCoordinates" << std::endl;
-            CreateTheSnakeCoordinates(knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, refinements_parameters, surrogate_model_part_inner, surrogate_model_part_outer);
+            // old --> // CreateTheSnakeCoordinates(knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, refinements_parameters, surrogate_model_part_inner, surrogate_model_part_outer);
+
+            // Skin model part refined after Snake Process
+            ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
+            ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
+            // Initial Skin model part coming from mdpa
+            ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
+                                            ? mpModel->GetModelPart("initial_skin_model_part_in")
+                                            : mpModel->CreateModelPart("initial_skin_model_part_in");
+            ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
+                                        ? mpModel->GetModelPart("initial_skin_model_part_out")
+                                        : mpModel->CreateModelPart("initial_skin_model_part_out");
+            ModelPart& iga_model_part = mpModel->HasModelPart("IgaModelPart")
+                                        ? mpModel->GetModelPart("IgaModelPart")
+                                        : mpModel->CreateModelPart("IgaModelPart");
+            
+            SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_in, skin_model_part_out, 
+                                                         initial_skin_model_part_in, initial_skin_model_part_out, 
+                                                         mEchoLevel, knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, 
+                                                         refinements_parameters, mParameters, 
+                                                         surrogate_model_part_inner, surrogate_model_part_outer) ;
+            
             KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
             cadJsonInputSBM.ReadModelPart(cad_model_part, surrogate_model_part_inner, surrogate_model_part_outer);
         }
@@ -330,48 +352,52 @@ namespace Kratos
         std::vector<int> idConditionOuterIntersection;
 
         // CREATE FIRST NODE FOR SKIN MODEL PART
-        auto initial_condition_out = initial_skin_model_part_out.GetCondition(1);
-        double x_true_boundary0_out = initial_condition_out.GetGeometry()[0].X();
-        double y_true_boundary0_out = initial_condition_out.GetGeometry()[0].Y();
-        skin_model_part_out.CreateNewNode(1, x_true_boundary0_out, y_true_boundary0_out, 0.0);
-        // Same for outer loops
-        for (auto &i_cond : initial_skin_model_part_out.Conditions()) {
-            double x_true_boundary1 = i_cond.GetGeometry()[0].X();
-            double y_true_boundary1 = i_cond.GetGeometry()[0].Y();
-            double x_true_boundary2 = i_cond.GetGeometry()[1].X();
-            double y_true_boundary2 = i_cond.GetGeometry()[1].Y();
-
-            // Check if point1 and point2 or the current condition is outside of the parameter space (ESSENTIAL)
-            bool isPoint1Out = ((x_true_boundary1 >= knot_vector_u_refined_out[knot_vector_u_refined_out.size()-1]) || (x_true_boundary1 <= knot_vector_u_refined_out[0]) || 
-                                (y_true_boundary1 >= knot_vector_v_refined_out[knot_vector_v_refined_out.size()-1]) || (y_true_boundary1 <= knot_vector_v_refined_out[0]));
+        if (initial_skin_model_part_out.Conditions().size() > 0) {
             
-            bool isPoint2Out = ((x_true_boundary2 >= knot_vector_u_refined_out[knot_vector_u_refined_out.size()-1]) || (x_true_boundary2 <= knot_vector_u_refined_out[0]) || 
-                                (y_true_boundary2 >= knot_vector_v_refined_out[knot_vector_v_refined_out.size()-1]) || (y_true_boundary2 <= knot_vector_v_refined_out[0]));
-            // Don't consider all the conditions which are outside the parameter space (ESSENTIAL)
-            if (isPoint1Out || isPoint2Out) {
-                // Point 2 out Point 1 in
-                if  (isPoint2Out && !isPoint1Out) {
-                    idConditionOuterIntersection.push_back(i_cond.Id());
+            // CREATE FIRST NODE FOR SKIN MODEL PART
+            auto initial_condition_out = initial_skin_model_part_out.GetCondition(1);
+            double x_true_boundary0_out = initial_condition_out.GetGeometry()[0].X();
+            double y_true_boundary0_out = initial_condition_out.GetGeometry()[0].Y();
+            skin_model_part_out.CreateNewNode(1, x_true_boundary0_out, y_true_boundary0_out, 0.0);
+            // Same for outer loops
+            for (auto &i_cond : initial_skin_model_part_out.Conditions()) {
+                double x_true_boundary1 = i_cond.GetGeometry()[0].X();
+                double y_true_boundary1 = i_cond.GetGeometry()[0].Y();
+                double x_true_boundary2 = i_cond.GetGeometry()[1].X();
+                double y_true_boundary2 = i_cond.GetGeometry()[1].Y();
+
+                // Check if point1 and point2 or the current condition is outside of the parameter space (ESSENTIAL)
+                bool isPoint1Out = ((x_true_boundary1 >= knot_vector_u_refined_out[knot_vector_u_refined_out.size()-1]) || (x_true_boundary1 <= knot_vector_u_refined_out[0]) || 
+                                    (y_true_boundary1 >= knot_vector_v_refined_out[knot_vector_v_refined_out.size()-1]) || (y_true_boundary1 <= knot_vector_v_refined_out[0]));
+                
+                bool isPoint2Out = ((x_true_boundary2 >= knot_vector_u_refined_out[knot_vector_u_refined_out.size()-1]) || (x_true_boundary2 <= knot_vector_u_refined_out[0]) || 
+                                    (y_true_boundary2 >= knot_vector_v_refined_out[knot_vector_v_refined_out.size()-1]) || (y_true_boundary2 <= knot_vector_v_refined_out[0]));
+                // Don't consider all the conditions which are outside the parameter space (ESSENTIAL)
+                if (isPoint1Out || isPoint2Out) {
+                    // Point 2 out Point 1 in
+                    if  (isPoint2Out && !isPoint1Out) {
+                        idConditionOuterIntersection.push_back(i_cond.Id());
+                    }
+                    // Point 1 out Point 2 in
+                    else if (isPoint1Out && !isPoint2Out){
+                        idConditionOuterIntersection.push_back(i_cond.Id());
+                    }
+                    continue;
                 }
-                // Point 1 out Point 2 in
-                else if (isPoint1Out && !isPoint2Out){
-                    idConditionOuterIntersection.push_back(i_cond.Id());
-                }
-                continue;
+                // Find the intersections of the skin boundary with the knot values
+                int knot_span_u_1st_point = x_true_boundary1 / knot_step_u_refined_out ;
+                int knot_span_u_2nd_point = x_true_boundary2 / knot_step_u_refined_out ;
+                int knot_span_v_1st_point = y_true_boundary1 / knot_step_v_refined_out ;
+                int knot_span_v_2nd_point = y_true_boundary2 / knot_step_v_refined_out ;
+                SnakeStep(initial_skin_model_part_out, knot_spans_available_outer, 0,  knot_span_u_1st_point, knot_span_u_2nd_point, knot_span_v_1st_point, knot_span_v_2nd_point,  x_true_boundary1, x_true_boundary2, y_true_boundary1, y_true_boundary2, knot_step_u_refined_out, knot_step_v_refined_out);
+            }        
+            // Read lambda parameters: 0.0 -> External,  0.5 -> Optimal
+            const double lambda_outer = mParameters["sbm_parameters"]["lambda_outer"].GetDouble();
+            idMatrixKnotSpansAvailable = 0;
+            if (initial_skin_model_part_out.Nodes().size() > 0) {
+                MarkKnotSpansAvailable(knot_spans_available_outer, idMatrixKnotSpansAvailable, testBins_out, initial_skin_model_part_out, lambda_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, knot_step_u_refined_out, knot_step_v_refined_out);
+                CreateSurrogateBuondaryFromSnake_outer (testBins_out, initial_skin_model_part_out, knot_spans_available_outer, idMatrixKnotSpansAvailable, surrogate_model_part_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, knot_vector_u_refined_out, knot_vector_v_refined_out);
             }
-            // Find the intersections of the skin boundary with the knot values
-            int knot_span_u_1st_point = x_true_boundary1 / knot_step_u_refined_out ;
-            int knot_span_u_2nd_point = x_true_boundary2 / knot_step_u_refined_out ;
-            int knot_span_v_1st_point = y_true_boundary1 / knot_step_v_refined_out ;
-            int knot_span_v_2nd_point = y_true_boundary2 / knot_step_v_refined_out ;
-            SnakeStep(initial_skin_model_part_out, knot_spans_available_outer, 0,  knot_span_u_1st_point, knot_span_u_2nd_point, knot_span_v_1st_point, knot_span_v_2nd_point,  x_true_boundary1, x_true_boundary2, y_true_boundary1, y_true_boundary2, knot_step_u_refined_out, knot_step_v_refined_out);
-        }        
-        // Read lambda parameters: 0.0 -> External,  0.5 -> Optimal
-        const double lambda_outer = mParameters["sbm_parameters"]["lambda_outer"].GetDouble();
-        idMatrixKnotSpansAvailable = 0;
-        if (initial_skin_model_part_out.Nodes().size() > 0) {
-            MarkKnotSpansAvailable(knot_spans_available_outer, idMatrixKnotSpansAvailable, testBins_out, initial_skin_model_part_out, lambda_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, knot_step_u_refined_out, knot_step_v_refined_out);
-            CreateSurrogateBuondaryFromSnake_outer (testBins_out, initial_skin_model_part_out, knot_spans_available_outer, idMatrixKnotSpansAvailable, surrogate_model_part_outer, insert_nb_per_span_u_refined_out, insert_nb_per_span_v_refined_out, knot_vector_u_refined_out, knot_vector_v_refined_out);
         }
     }   
 

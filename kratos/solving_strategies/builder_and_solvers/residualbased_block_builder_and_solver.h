@@ -36,7 +36,6 @@
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
 
-#include "utilities/nurbs_utilities/new_utility.h"
 #include "utilities/condition_number_utility.h"
 
 namespace Kratos
@@ -269,6 +268,12 @@ public:
         // outputFile.close();
         // KRATOS_WATCH(minimum_eigenvalue)
         // KRATOS_WATCH(condition_number)
+
+        std::ofstream outputFile("time_txt_files/dofs.txt", std::ios::app);
+        outputFile << std::scientific << std::setprecision(20); // Set precision to 10^-14
+        outputFile << A.size1()  <<"\n";
+        outputFile.close();
+
 
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;

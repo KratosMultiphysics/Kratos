@@ -485,7 +485,7 @@ namespace Clipper2Lib {
 
         loc = crossing_loc;
         Add(ip2);
-        if (ip == ip2)
+        if (std::abs(ip.x-ip2.x) < 100 && std::abs(ip.y-ip2.y) < 100)
         {
           // it's very likely that path[i] is on rect
           GetLocation(rect_, path[i], loc);

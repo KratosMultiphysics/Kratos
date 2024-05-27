@@ -23,6 +23,8 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
+#include "input_output/cad_json_input_sbm.h"
+#include "utilities/nurbs_utilities/snake_sbm_utilities.h"
 
 namespace Kratos {
 
@@ -47,6 +49,9 @@ public:
     typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
     typedef typename NurbsVolumeGeometryType::Pointer NurbsVolumeGeometryPointerType;
 
+    typedef PointerVector<Node> ContainerNodeType;
+    typedef PointerVector<Point> ContainerEmbeddedNodeType;
+    typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
     ///@}
     ///@name Life Cycle
@@ -114,6 +119,7 @@ private:
     void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
+    Parameters ReadParamatersFile(const std::string& rDataFileName) const;   
 };
 
 } // End namesapce Kratos

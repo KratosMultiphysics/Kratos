@@ -19,7 +19,7 @@
 #include "testing/testing.h"
 #include "containers/pointer_vector.h"
 #include "geometries/nurbs_volume_geometry.h"
-#include "geometries/surface_in_nurbs_volume_geometry.h"
+#include "geometries/nurbs_surface_on_volume_geometry.h"
 #include "geometries/quadrature_point_surface_in_volume_geometry.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -148,7 +148,7 @@ namespace Testing {
         auto p_triangle = Kratos::make_shared<Triangle3D3<NodeType>>( p_node_1, p_node_2, p_node_3);
 
         // Create surface in nurbs volume
-        SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cube, p_triangle);
+        NurbsSurfaceOnVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cube, p_triangle);
 
         // Create integration points and quadrature point geometries.
         std::vector<IntegrationPoint<3>> integration_points_created;
@@ -165,7 +165,7 @@ namespace Testing {
 
         // Check kratos geometry families
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface_On_Volume;
         KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryFamily(), geometry_family);
         KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryType(), geometry_type);
 
@@ -224,7 +224,7 @@ namespace Testing {
 
         auto p_quad = Kratos::make_shared<Quadrilateral3D4<NodeType>>( p_node_1, p_node_2, p_node_3, p_node_4 );
 
-        SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cube, p_quad);
+        NurbsSurfaceOnVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cube, p_quad);
 
         // Create integration points and quadrature point geometries.
         std::vector<IntegrationPoint<3>> integration_points_created;
@@ -236,7 +236,7 @@ namespace Testing {
 
         // Check kratos geometry families
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface_On_Volume;
         KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryFamily(), geometry_family);
         KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryType(), geometry_type);
 
@@ -331,7 +331,7 @@ namespace Testing {
         }
         auto p_quad_local_space = Kratos::make_shared<Quadrilateral3D8<NodeType>>(points_local_space);
 
-        SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cuboid, p_quad_local_space);
+        NurbsSurfaceOnVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(p_nurbs_cuboid, p_quad_local_space);
 
         // Create integration points and quadrature point geometries.
         std::vector<IntegrationPoint<3>> integration_points_created;
@@ -343,7 +343,7 @@ namespace Testing {
 
         // Check kratos geometry families
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
-        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Surface_On_Volume;
         KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryFamily(), geometry_family);
         KRATOS_EXPECT_EQ(surface_in_volume.GetGeometryType(), geometry_type);
 

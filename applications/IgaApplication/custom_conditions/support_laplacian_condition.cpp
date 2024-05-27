@@ -36,44 +36,57 @@ namespace Kratos
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
-
-        // Determine the integration: conservative -> initial; non-conservative -> current
-        Vector determinant_jacobian_vector(integration_points.size());
-        r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);
-
-        // Shape function derivatives (NEW) 
-        // Initialize Jacobian
-        GeometryType::JacobiansType J0;
-        // Initialize DN_DX
-        const unsigned int dim = 2;
-        Matrix DN_DX(number_of_nodes,3);
-        Matrix InvJ0(dim,dim);
-
-        // Compute the normals
-        array_1d<double, 3> tangent_parameter_space;
-        array_1d<double, 2> normal_physical_space;
-        array_1d<double, 3> normal_parameter_space;
-
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
         
-        // NEW FOR GENERAL JACOBIAN
-        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        GeometryType::JacobiansType J0;
+        const unsigned int dim = DN_De[0].size2();
+        Matrix DN_DX(number_of_nodes,dim);
+        Matrix InvJ0(dim,dim);
+        
+        r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
 
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double DetJ0;
 
-        Vector GP_parameter_coord(2); 
+        Vector GP_parameter_coord(3); 
         GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
+
+        //------------------------------------------------------
+        // PRINT BOUNADRY GAUSS POINT TO FILE
+        //------------------------------------------------------
+
+        std::ofstream output_file("txt_files/support_boundary_GPs_3D.txt", std::ios::app);
+        if (output_file.is_open()) {
+            output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
+            output_file << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z()  << std::endl;
+            output_file.close();
+        }
+
+        typedef typename GeometryType::CoordinatesArrayType  CoordinatesArrayType;
         
+        
+        // Compute the normals
+        array_1d<double, 3> tangent_parameter_space;
+        array_1d<double, 3> normal_physical_space;
+        array_1d<double, 3> normal_parameter_space;
+
+        // r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        // double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        
+        // KRATOS_WATCH(tangent_parameter_space)
+        // // NEW FOR GENERAL JACOBIAN
+        // normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        // normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude;  // By observations on the result of .Calculate(LOCAL_TANGENT
+        // normal_parameter_space[2] = 0;
+        
+        r_geometry.Calculate(NORMAL, normal_parameter_space);
+
         normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
 
-        // Stampa su file esterno le coordinate (projection[0],projection[1])
+        // KRATOS_WATCH(normal_parameter_space)
+
         std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
         outputFile << std::setprecision(14); // Set precision to 10^-14
-        outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
+        outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1] << " " << GP_parameter_coord[2] <<"\n";
         outputFile.close();
         
 
@@ -81,24 +94,24 @@ namespace Kratos
         {
             const Matrix& N = r_geometry.ShapeFunctionsValues();
 
-            Matrix Jacobian = ZeroMatrix(2,2);
-            Jacobian(0,0) = J0[point_number](0,0);
-            Jacobian(0,1) = J0[point_number](0,1);
-            Jacobian(1,0) = J0[point_number](1,0);
-            Jacobian(1,1) = J0[point_number](1,1);
+            Matrix Jacobian = ZeroMatrix(dim,dim);
+            Jacobian(0,0) = J0[0](0,0);
+            Jacobian(0,1) = J0[0](0,1);
+            Jacobian(1,0) = J0[0](1,0);
+            Jacobian(1,1) = J0[0](1,1);
+            if (dim > 2) {
+                Jacobian(0,2) = J0[0](0,2);
+                Jacobian(1,2) = J0[0](1,2);
+                Jacobian(2,0) = J0[0](2,0);
+                Jacobian(2,1) = J0[0](2,1);
+                Jacobian(2,2) = J0[0](2,2);
+            }
 
             // Calculating inverse jacobian and jacobian determinant
             MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-            Matrix InvJ0_23 = ZeroMatrix(2,3);
-            InvJ0_23(0,0) = InvJ0(0,0);
-            InvJ0_23(0,1) = InvJ0(0,1);
-            InvJ0_23(1,0) = InvJ0(1,0);
-            InvJ0_23(1,1) = InvJ0(1,1);
-            InvJ0_23(0,2) = 0;
-            InvJ0_23(1,2) = 0;
 
             // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias(DN_DX) = prod(DN_De[point_number],InvJ0_23);
+            noalias(DN_DX) = prod(DN_De[point_number],InvJ0);
             
             Matrix H = ZeroMatrix(1, number_of_nodes);
             Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
@@ -108,13 +121,15 @@ namespace Kratos
             {
                 H(0, i)            = N(point_number, i);
                 H_vector(i)        = N(point_number, i); 
-                DN_dot_n(0, i)     = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
-                DN_dot_n_vec(i)    = DN_DX(i, 0) * normal_physical_space[0] + DN_DX(i, 1) * normal_physical_space[1] ;
+
+                for (IndexType idim = 0; idim < dim; idim++) {
+                    DN_dot_n(0, i)   += DN_DX(i, idim) * normal_physical_space[idim];           
+                    DN_dot_n_vec(i)  += DN_DX(i, idim) * normal_physical_space[idim];
+                } 
                 
             }
-
             // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
+            double penalty_integration = penalty * integration_points[point_number].Weight() * std::abs(DetJ0);
 
             // Collins, Lozinsky & Scovazzi innovation
             double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
@@ -128,27 +143,19 @@ namespace Kratos
             // Assembly
             noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
             // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * std::abs(DetJ0) ;
             // Of the Dirichlet BCs -(GRAD_w* n,u) 
-            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
+            noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * std::abs(DetJ0) ;
 
 
 
             if (CalculateResidualVectorFlag) {
                 
-                // Vector u_D(number_of_nodes);
-                // for (IndexType i = 0; i < number_of_nodes; ++i)
-                // {
-                //     // u_D[i] = - temperature;
-                //     u_D[i] = - this->GetValue(TEMPERATURE);
-                // }
-                const double u_D_scalar = -this->GetValue(TEMPERATURE);
+                const double u_D_scalar = this->GetValue(TEMPERATURE);
 
-                noalias(rRightHandSideVector)  +=  H_vector * u_D_scalar * penalty_integration;
-                // noalias(rRightHandSideVector) += prod(prod(trans(H), H), u_D) * penalty_integration;
+                noalias(rRightHandSideVector) -=  H_vector * u_D_scalar * penalty_integration;
                 // Of the Dirichlet BCs
-                noalias(rRightHandSideVector) += Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
-                // noalias(rRightHandSideVector) += Guglielmo_innovation * prod(prod(trans(DN_dot_n), H), u_D) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
+                noalias(rRightHandSideVector) -= Guglielmo_innovation * DN_dot_n_vec * u_D_scalar * integration_points[point_number].Weight() * std::abs(DetJ0);
 
 
                 Vector temp(number_of_nodes);
@@ -165,7 +172,6 @@ namespace Kratos
         //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
         //     outputFile << r_geometry[i].GetId() << "  " << r_geometry[i].GetDof(TEMPERATURE).EquationId() <<"\n";
         //     outputFile.close();
-        //     // KRATOS_WATCH(r_geometry[i].GetDof(TEMPERATURE).EquationId() )
         // }
         KRATOS_CATCH("")
     }
@@ -211,5 +217,6 @@ namespace Kratos
             rElementalDofList.push_back(r_node.pGetDof(TEMPERATURE));
         }
     };
+
 
 } // Namespace Kratos

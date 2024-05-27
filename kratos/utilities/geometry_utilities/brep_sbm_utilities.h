@@ -52,6 +52,16 @@ namespace Kratos
             ModelPart& rSurrogateModelPart_inner, 
             ModelPart& rSurrogateModelPart_outer,
             IntegrationInfo& rIntegrationInfo);
+
+        
+        static void CreateBrepVolumeSBMIntegrationPoints(
+            IntegrationPointsArrayType& rIntegrationPoints,
+            const std::vector<double>& rSpansU,
+            const std::vector<double>& rSpansV,
+            const std::vector<double>& rSpansW,
+            ModelPart& rSurrogateModelPart_inner, 
+            ModelPart& rSurrogateModelPart_outer,
+            IntegrationInfo& rIntegrationInfo);
     
     private:
     

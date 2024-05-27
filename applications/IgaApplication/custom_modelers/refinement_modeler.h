@@ -22,7 +22,9 @@
 #include "modeler/modeler.h"
 
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_refinement_utilities.h"
+#include "geometries/nurbs_shape_function_utilities/nurbs_volume_refinement_utilities.h"
 #include "geometries/nurbs_surface_geometry.h"
+#include "geometries/nurbs_volume_geometry.h"
 
 namespace Kratos
 {

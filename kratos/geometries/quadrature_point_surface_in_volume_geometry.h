@@ -77,6 +77,22 @@ public:
         mLocalTangents = LocalTangents;
     }
 
+    // SBM
+    QuadraturePointSurfaceInVolumeGeometry(
+        const PointsArrayType& ThisPoints,
+        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const TangentMatrixType& LocalTangents,
+        GeometryType* pGeometryParent,
+        Vector& Normal)
+        : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
+    {
+        KRATOS_ERROR_IF( mLocalTangents.size1() != LocalTangents.size1() || mLocalTangents.size2() != LocalTangents.size2() )
+            << "QuadraturePointSurfaceInVolumeGeometry :: Dimensions of LocalTangents do not match (3,2). "
+            << "Given Dimensions are: (" << LocalTangents.size1() << "," << LocalTangents.size2() <<"). " << std::endl;
+        mLocalTangents = LocalTangents;
+        mNormal = Normal;
+    }
+
     /// Constructor with points, geometry shape function container and parent
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
@@ -142,6 +158,36 @@ public:
                 rOutput.resize(mLocalTangents.size1(),mLocalTangents.size2());
             }
             rOutput = mLocalTangents;
+        }
+    } 
+    
+    
+    /// Calculate with Matrix
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const override
+    {
+        if (rVariable == NORMAL) {
+            if( rOutput.size() != mNormal.size()){
+                rOutput.resize(mNormal.size());
+            }
+
+            if (mNormal.size() == 0) KRATOS_ERROR << "[QUADRATURE_POINT_IN_SURFACE_GEOMETRY]:: Normal not defined" << std::endl;
+            rOutput = mNormal;
+        }
+    }
+    
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == NORMAL) {
+            if( rOutput.size() != mNormal.size()){
+                rOutput.resize(mNormal.size());
+            }
+
+            if (mNormal.size() == 0) KRATOS_ERROR << "[QUADRATURE_POINT_IN_SURFACE_GEOMETRY]:: Normal not defined" << std::endl;
+            rOutput = mNormal;
         }
     }
 
@@ -265,6 +311,8 @@ private:
     ///@{
 
     TangentMatrixType mLocalTangents;
+
+    Vector mNormal;
 
     ///@}
     ///@name Serialization

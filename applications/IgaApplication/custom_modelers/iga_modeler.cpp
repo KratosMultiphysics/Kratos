@@ -231,7 +231,6 @@ namespace Kratos
             << " for " << rGeometryList.size() << " geometries"
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
-        
         // MODIFIED SBM
         using PointType = Node;
         using PointTypePointer = Node::Pointer;
@@ -254,36 +253,38 @@ namespace Kratos
 
         bool is_inner;     
         bool is_SBM = false;
-        Vector meshSizes_uv(2);
+        Vector meshSizes_uv;
         Vector parameterExternalCoordinates;
+        double radius;
         if (name.substr(0, 3) == "SBM") {
             is_inner = rParameters["is_inner"].GetBool();
             if (is_inner) { // INNER
                 for (auto &i_cond : skin_model_part_in.Conditions()) {
-                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
                 }
             } 
             else { // OUTER
                 for (auto &i_cond : skin_model_part_out.Conditions()) {
-                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry()[0].X(), i_cond.GetGeometry()[0].Y(), i_cond.GetGeometry()[0].Z())));
+                    points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
                 }
             }
 
             meshSizes_uv = mpModel->GetModelPart("surrogate_model_part_inner").GetProcessInfo().GetValue(MARKER_MESHES);
             parameterExternalCoordinates = mpModel->GetModelPart("surrogate_model_part_inner").GetProcessInfo().GetValue(LOAD_MESHES);
             is_SBM = true;
+
+            double meshSize = meshSizes_uv[0];
+            if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
+            if (meshSizes_uv.size() > 2) {if (meshSizes_uv[2] > meshSize) {meshSize = meshSizes_uv[2];}}
+            radius = sqrt(3)*(meshSize); 
+            // radius = 30*(meshSize);
         }
         DynamicBins testBins(points.begin(), points.end());
         
         
-        double meshSize = meshSizes_uv[0];
-        if (meshSizes_uv[1] > meshSize) {meshSize = meshSizes_uv[1];}
-        const double radius = sqrt(2)*(meshSize); 
-        // const double radius = 30*(meshSize);
         const int numberOfResults = 1e6; 
         ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
         std::vector<double> list_of_distances(numberOfResults);
-            
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
@@ -291,6 +292,9 @@ namespace Kratos
             for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
                 if (quadrature_method == "GAUSS") {
                     integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+                }
+                else if (quadrature_method == "EXTENDED_GAUSS") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
                 }
                 else if (quadrature_method == "GRID") {
                     integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
@@ -306,7 +310,10 @@ namespace Kratos
                     integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
                 }
             }
-
+            // TIME
+            // Inizia il timer
+            auto start = std::chrono::high_resolution_clock::now();
+            // TIME
             if (GeometryType == "SurfaceEdge"
                 && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
             {
@@ -429,31 +436,53 @@ namespace Kratos
             }
             // int lastIndex
             starting_brep_ids = rParameters["brep_ids"][rParameters["brep_ids"].size()-1].GetInt() + 1;
-            /// MODIFIED________________
+            // OUTER
             std::string conditionName = rParameters["iga_model_part"].GetString();
             if (conditionName.rfind("SBM", 0) == 0) { 
-                // OUTER
                 ModelPart& surrogateModelPart_outer = mpModel->GetModelPart("surrogate_model_part_outer");
-                int sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
-                for (SizeType j = 0; j < sizeSurrogateLoop_outer-1; ++j) {
-                    // Add the brep_ids of the internal boundary for SBMLaplacianCondition
-                    rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
-                    starting_brep_ids++;
+                if (surrogateModelPart_outer.Conditions().size() > 0) {
+                    // 2D
+                    if (surrogateModelPart_outer.GetCondition(1).GetGeometry().size() == 2) {
+                        int sizeSurrogateLoop_outer = surrogateModelPart_outer.Nodes().size();
+                        for (int j = 0; j < (sizeSurrogateLoop_outer-1); ++j) {
+                            // Add the brep_ids of the internal boundary for SBMLaplacianCondition
+                            rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                            starting_brep_ids++;
+                        }
+                        
+                    } else { // 3D
+                        int sizeSurrogateLoop = surrogateModelPart_outer.Conditions().size(); //lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+                        for (SizeType j = 0; j < sizeSurrogateLoop-1; ++j) {
+                            // Add the brep_ids of the internal boundary for SBMLaplacianCondition
+                            rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                            starting_brep_ids++;
+                        }
+                    }     
                 }
             }
         }
         else {
-            // INNER
+            // INNER   
             ModelPart& surrogateModelPart_inner = mpModel->GetModelPart("surrogate_model_part_inner");
-            int sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
+            if (surrogateModelPart_inner.Elements().size() > 0) {
 
-            for (int iel = 1; iel < surrogateModelPart_inner.Elements().size()+1; iel++) {
-                // Each element in the surrogate_model_part represents a surrogate boundary loop. First "node" is the initial ID of the first surrogate node and
-                // the second "node" is the last surrogate node of that loop. (We have done this in the case we have multiple surrogate boundaries and 1 model part)
-                Node& firstSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
-                Node& lastSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
-                int sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+                int sizeSurrogateLoop = surrogateModelPart_inner.Nodes().size();
 
+                for (int iel = 1; iel < surrogateModelPart_inner.Elements().size()+1; iel++) {
+                    // Each element in the surrogate_model_part represents a surrogate boundary loop. First "node" is the initial ID of the first surrogate node and
+                    // the second "node" is the last surrogate node of that loop. (We have done this in the case we have multiple surrogate boundaries and 1 model part)
+                    Node& firstSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[0]; // Element 1 because is the only surrogate loop
+                    Node& lastSurrogateNode = surrogateModelPart_inner.pGetElement(iel)->GetGeometry()[1];  // Element 1 because is the only surrogate loop
+                    int sizeSurrogateLoop = lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
+
+                    for (SizeType j = 0; j < sizeSurrogateLoop; ++j) {
+                        // Add the brep_ids of the internal boundary for SBMLaplacianCondition
+                        rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
+                        starting_brep_ids++;
+                    }
+                }
+            } else { // 3D
+                int sizeSurrogateLoop = surrogateModelPart_inner.Conditions().size(); //lastSurrogateNode.Id() - firstSurrogateNode.Id() + 1 ;
                 for (SizeType j = 0; j < sizeSurrogateLoop; ++j) {
                     // Add the brep_ids of the internal boundary for SBMLaplacianCondition
                     rGeometryList.push_back(rModelPart.pGetGeometry(starting_brep_ids));
@@ -529,32 +558,58 @@ namespace Kratos
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
         int countListClosestCondition = 0;
-        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
-        {
-            new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+        bool is2D = true;;
+        if(rSkinModelPart.GetCondition(1).GetGeometry().size() > 2) { is2D = false;}
 
-            int condId = listIdClosestCondition[countListClosestCondition];
+        if (is2D) {
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                new_condition_list.push_back(
+                    rReferenceCondition.Create(rIdCounter, (*it), pProperties));
 
-            Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
-            int condId2;  
-            if (condId == 1) { condId2 = rSkinModelPart.Conditions().size();}
-            else {condId2 = condId-1;}
-            Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+                int condId = listIdClosestCondition[countListClosestCondition];
 
-            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
-            if (isInner) {
-                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
-            } else {
-                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+                Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
+                int condId2;  
+                if (condId == 1) { condId2 = rSkinModelPart.Conditions().size();}
+                else {condId2 = condId-1;}
+                Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
+                if (isInner) {
+                    new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+                } else {
+                    new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+                }
+                for (SizeType i = 0; i < (*it)->size(); ++i) {
+                    // These are the control points associated with the basis functions involved in the condition we are creating
+                    rModelPart.AddNode((*it)->pGetPoint(i));
+                }
+                rIdCounter++;
+                countListClosestCondition++;
             }
-            for (SizeType i = 0; i < (*it)->size(); ++i) {
-                // These are the control points associated with the basis functions involved in the condition we are creating
-                rModelPart.AddNode((*it)->pGetPoint(i));
+        } else {
+            // 3D
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                new_condition_list.push_back(
+                    rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+
+                int condId = listIdClosestCondition[countListClosestCondition];
+                Condition::Pointer cond = &rSkinModelPart.GetCondition(condId);
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond}));
+                if (isInner) {
+                    new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+                } else {
+                    new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+                }
+                for (SizeType i = 0; i < (*it)->size(); ++i) {
+                    // These are the control points associated with the basis functions involved in the condition we are creating
+                    rModelPart.AddNode((*it)->pGetPoint(i));
+                }
+                rIdCounter++;
+                countListClosestCondition++;
             }
-            rIdCounter++;
-            countListClosestCondition++;
         }
+        
 
         rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
     }
@@ -729,6 +784,15 @@ namespace Kratos
         double v_initial = parameters_external_coordinates[1];
         double u_final   = parameters_external_coordinates[2];
         double v_final   = parameters_external_coordinates[3];
+
+        if (parameters_external_coordinates.size() > 4) {
+            double w_initial = parameters_external_coordinates[4];
+            double w_final   = parameters_external_coordinates[5];
+
+            if (std::abs(point[0]-w_initial) < tolerance || std::abs(point[1]-w_final) < tolerance) {
+                return true;
+            }
+        }
         
         if (std::abs(point[0]-u_initial) < tolerance || std::abs(point[1]-v_initial) < tolerance || 
             std::abs(point[0]-u_final  ) < tolerance || std::abs(point[1]-v_final  ) < tolerance) 
