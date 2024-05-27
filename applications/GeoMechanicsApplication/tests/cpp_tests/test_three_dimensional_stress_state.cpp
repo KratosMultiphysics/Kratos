@@ -123,4 +123,18 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtVector, K
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    KRATOS_EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_3D);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<ThreeDimensionalStressState>();
+    KRATOS_EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_3D);
+}
+
 } // namespace Kratos::Testing

@@ -106,10 +106,24 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtVector, Kratos
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<PlaneStrainStressState>();
     Vector voigt_vector = p_stress_state_policy->GetVoigtVector();
-    
+
     Vector expected_voigt_vector(4);
     expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<PlaneStrainStressState>();
+    KRATOS_EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_2D_PLANE_STRAIN);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuite)
+{
+    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
+        std::make_unique<PlaneStrainStressState>();
+    KRATOS_EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_2D);
 }
 
 } // namespace Kratos::Testing

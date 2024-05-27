@@ -13,7 +13,6 @@
 
 #include "axisymmetric_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {
