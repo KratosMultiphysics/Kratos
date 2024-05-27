@@ -342,7 +342,7 @@ namespace Kratos::MPMSearchElementUtility
                     }
                 } else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
-                        << element_itr->Id() << " is failed. Geometry is cleared." << std::endl;
+                        << element_itr->Id() << ", with Coordinate: "<< xg[0] << " is failed. Geometry is cleared." << std::endl;
                     element_itr->GetGeometry().clear();
                     element_itr->Reset(ACTIVE);
                     element_itr->Set(TO_ERASE);
