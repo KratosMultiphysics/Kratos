@@ -82,6 +82,7 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("ImportMaterialPointElement", ImportMaterialPointElementAccordingToDimension);
     }
 
 }  // namespace Python.
