@@ -42,29 +42,9 @@ public:
                                                 bool                       UseHenckyStrain,
                                                 std::size_t                VoigtSize);
 
-    static constexpr std::size_t GetVoigtSize(std::size_t Dimension)
-    {
-        return Dimension == N_DIM_3D ? GetVoigtSize3D() : GetVoigtSize2D();
-    }
-
-    static constexpr std::size_t GetStressTensorSize(std::size_t Dimension)
-    {
-        return Dimension == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
-    }
-
-    static const Vector& GetVoigtVector2D();
-    static const Vector& GetVoigtVector3D();
-
-    static constexpr SizeType GetVoigtSize2D() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
-
-    static constexpr SizeType GetVoigtSize3D() { return VOIGT_SIZE_3D; }
-
 private:
-    static double       CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
-    static double       CalculateDenominator(const Vector& rStressVector, double Phi);
-    static Vector       DefineVoigtVector(std::size_t Dimension);
-    static const Vector VoigtVector2D;
-    static const Vector VoigtVector3D;
+    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
+    static double CalculateDenominator(const Vector& rStressVector, double Phi);
 };
 
 } // namespace Kratos

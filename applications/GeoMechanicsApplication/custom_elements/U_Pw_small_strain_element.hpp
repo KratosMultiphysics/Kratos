@@ -124,8 +124,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-    static constexpr SizeType VoigtSize        = StressStrainUtilities::GetVoigtSize(TDim);
-    static constexpr SizeType StressTensorSize = StressStrainUtilities::GetStressTensorSize(TDim);
+    static constexpr SizeType StressTensorSize = StressStatePolicy::GetStressTensorSize(TDim);
 
     struct ElementVariables {
         /// Properties variables

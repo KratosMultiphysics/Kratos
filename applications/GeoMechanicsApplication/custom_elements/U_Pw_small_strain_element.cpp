@@ -157,7 +157,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -265,7 +266,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNonLinearIteration(const 
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
@@ -310,7 +312,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
     const auto determinants_of_deformation_gradients =
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
 
     Matrix StressContainer(NumGPoints, mStressVector[0].size());
     // Loop over integration points
@@ -388,7 +391,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
     array_1d<Matrix, TNumNodes> NodalStressTensor;
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
-        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressVector[iNode].resize(this->GetStressStatePolicy().GetVoigtSize());
         NodalStressTensor[iNode].resize(StressTensorSize, StressTensorSize);
     }
 
@@ -396,7 +399,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
     Matrix AuxNodalStress;
-    AuxNodalStress.resize(TNumNodes, VoigtSize);
+    AuxNodalStress.resize(TNumNodes, this->GetStressStatePolicy().GetVoigtSize());
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix, StressContainer);
 
     /* INFO:
@@ -583,7 +586,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
 
         const PropertiesType& rProp = this->GetProperties();
 
@@ -633,7 +637,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
 
         std::vector<double> permeability_update_factors;
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -696,7 +701,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              Variables.NContainer, Variables.DN_DXContainer,
@@ -745,9 +751,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
-        rOutput = StressStrainUtilities::CalculateStrains(deformation_gradients, b_matrices,
-                                                          Variables.DisplacementVector,
-                                                          Variables.UseHenckyStrain, VoigtSize);
+        rOutput                          = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
     } else if (rProp.Has(rVariable)) {
         // Map initial material property to Gauss points, as required for the output
         rOutput.clear();
@@ -857,7 +863,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
@@ -967,7 +974,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
@@ -1101,7 +1109,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
     // General Variables
     rVariables.VoigtVector = this->GetStressStatePolicy().GetVoigtVector();
 
-    rVariables.B = ZeroMatrix(VoigtSize, TNumNodes * TDim);
+    rVariables.B = ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(), TNumNodes * TDim);
 
     const GeometryType& rGeom      = this->GetGeometry();
     const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
@@ -1116,12 +1124,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
         rVariables.DN_DXContainer, rVariables.detJContainer, mThisIntegrationMethod);
 
     // Constitutive Law parameters
-    rVariables.StressVector.resize(VoigtSize, false);
-    rVariables.StrainVector.resize(VoigtSize, false);
-    rVariables.ConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+    rVariables.StressVector.resize(this->GetStressStatePolicy().GetVoigtSize(), false);
+    rVariables.StrainVector.resize(this->GetStressStatePolicy().GetVoigtSize(), false);
+    rVariables.ConstitutiveMatrix.resize(this->GetStressStatePolicy().GetVoigtSize(),
+                                         this->GetStressStatePolicy().GetVoigtSize(), false);
 
     // Auxiliary variables
-    rVariables.UVoigtMatrix.resize(TNumNodes * TDim, VoigtSize, false);
+    rVariables.UVoigtMatrix.resize(TNumNodes * TDim, this->GetStressStatePolicy().GetVoigtSize(), false);
 
     // Retention law
     rVariables.DegreeOfSaturation     = 1.0;
@@ -1751,15 +1760,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 {
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(VoigtSize));
+        std::fill(rStrainVectors.begin(), rStrainVectors.end(),
+                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rStressVectors.size() != rDeformationGradients.size()) {
         rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(VoigtSize));
+        std::fill(rStressVectors.begin(), rStressVectors.end(),
+                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
         rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(VoigtSize, VoigtSize));
+        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                  ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
+                             this->GetStressStatePolicy().GetVoigtSize()));
     }
 
     const auto determinants_of_deformation_gradients =

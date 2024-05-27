@@ -174,18 +174,4 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
-const Vector& StressStrainUtilities::GetVoigtVector2D() { return VoigtVector2D; }
-
-const Vector& StressStrainUtilities::GetVoigtVector3D() { return VoigtVector3D; }
-
-Vector StressStrainUtilities::DefineVoigtVector(std::size_t Dimension)
-{
-    Vector VoigtVector = ZeroVector(GetVoigtSize(Dimension));
-    std::fill_n(VoigtVector.begin(), GetStressTensorSize(Dimension), 1.0);
-    return VoigtVector;
-}
-
-const Vector StressStrainUtilities::VoigtVector2D = StressStrainUtilities::DefineVoigtVector(2);
-const Vector StressStrainUtilities::VoigtVector3D = StressStrainUtilities::DefineVoigtVector(3);
-
 } // namespace Kratos
