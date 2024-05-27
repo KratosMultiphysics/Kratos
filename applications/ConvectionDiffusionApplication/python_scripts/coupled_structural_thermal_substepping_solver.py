@@ -8,7 +8,6 @@ def CreateSolver(main_model_part, custom_settings):
     return CoupledThermoMechanicalSubsteppingSolver(main_model_part, custom_settings)
 
 class CoupledThermoMechanicalSubsteppingSolver(BaseThermoMech.CoupledThermoMechanicalSolver):
-
     """ A coupled one-way thermo-mechanical solver in which the time step of the two solvers is independent. It is assumed that the dt of the structural part is equal or lower than the thermal one.
     """
 
