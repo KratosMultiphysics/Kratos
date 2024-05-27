@@ -66,7 +66,7 @@ Vector AxisymmetricStressState::CalculateGreenLagrangeStrain(const Matrix& rDefo
                     "configurations.\n";
 }
 
-const Vector& AxisymmetricStressState::GetVoigtVector()
+const Vector& AxisymmetricStressState::GetVoigtVector() const
 {
     return StressStrainUtilities::GetVoigtVector2D();
 }

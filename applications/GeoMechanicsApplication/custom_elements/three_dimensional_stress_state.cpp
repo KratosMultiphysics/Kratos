@@ -58,7 +58,7 @@ std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
     return std::make_unique<ThreeDimensionalStressState>();
 }
 
-const Vector& ThreeDimensionalStressState::GetVoigtVector()
+const Vector& ThreeDimensionalStressState::GetVoigtVector() const
 {
     return StressStrainUtilities::GetVoigtVector3D();
 }

@@ -61,7 +61,7 @@ Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrain
     return result;
 }
 
-const Vector& PlaneStrainStressState::GetVoigtVector()
+const Vector& PlaneStrainStressState::GetVoigtVector() const
 {
     return StressStrainUtilities::GetVoigtVector2D();
 }
