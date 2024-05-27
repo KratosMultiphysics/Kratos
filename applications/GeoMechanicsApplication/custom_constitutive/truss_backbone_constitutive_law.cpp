@@ -18,20 +18,10 @@
 
 namespace Kratos
 {
-
-TrussBackboneConstitutiveLaw::TrussBackboneConstitutiveLaw() : ConstitutiveLaw() {}
-
-TrussBackboneConstitutiveLaw::TrussBackboneConstitutiveLaw(const TrussBackboneConstitutiveLaw& rOther)
-    : ConstitutiveLaw(rOther)
-{
-}
-
 ConstitutiveLaw::Pointer TrussBackboneConstitutiveLaw::Clone() const
 {
     return Kratos::make_shared<TrussBackboneConstitutiveLaw>(*this);
 }
-
-TrussBackboneConstitutiveLaw::~TrussBackboneConstitutiveLaw() = default;
 
 void TrussBackboneConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {

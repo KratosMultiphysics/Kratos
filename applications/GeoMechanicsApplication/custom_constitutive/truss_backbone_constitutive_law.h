@@ -39,13 +39,8 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(TrussBackboneConstitutiveLaw);
 
-    TrussBackboneConstitutiveLaw();
-
     ConstitutiveLaw::Pointer Clone() const override;
 
-    TrussBackboneConstitutiveLaw(const TrussBackboneConstitutiveLaw& rOther);
-
-    ~TrussBackboneConstitutiveLaw();
     void GetLawFeatures(Features& rFeatures) override;
 
     void SetValue(const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
