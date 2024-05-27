@@ -8,9 +8,9 @@ def Factory(settings, model):
 
 ## All the processes python should be derived from "Process"
 class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
-    """The process facilitates the discovery of neighboring nodes in a 
-    master model part within a designated radius for each node in the 
-    slave model part. Following this, it establishes a master-slave constraint 
+    """The process facilitates the discovery of neighboring nodes in a
+    master model part within a designated radius for each node in the
+    slave model part. Following this, it establishes a master-slave constraint
     and calculates its weights using a spatial function that employs radial basis functions.
 
     Public member variables:
@@ -45,16 +45,16 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         # Get the model part on which the MasterSlaveConstraints are going to be applied
         if not settings["model_part_name"].GetString():
             raise Exception("\'model_part_name\' not provided. Please specify the model part to apply to MasterSlaveConstraints to.")
-        model_part_name = settings["model_part_name"].GetString() #MasterSlaveConstraints are applied to computing model part 
+        model_part_name = settings["model_part_name"].GetString() #MasterSlaveConstraints are applied to computing model part
         self.computing_model_part = model.GetModelPart(model_part_name)
-        
-        # Get the slave model part 
+
+        # Get the slave model part
         if not settings["slave_model_part_name"].GetString():
             raise Exception("\'slave_model_part_name\' not provided. Please specify the slave model part.")
         slave_model_part_name = settings["slave_model_part_name"].GetString()
         self.slave_model_part = model.GetModelPart(slave_model_part_name)
-        
-        # Get the master model part 
+
+        # Get the master model part
         if not settings["master_model_part_name"].GetString():
             raise Exception("\'master_model_part_name\' not provided. Please specify the master model part.")
         master_model_part_name = settings["master_model_part_name"].GetString()
@@ -85,7 +85,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
             # Check if the variable exists in KratosGlobals
             if not KM.KratosGlobals.HasVariable(var_name):
                 err_msg = "\'{}\' variable in \'variable_names\' is not in KratosGlobals. Please check the provided value.".format(var_name)
-            
+
             var_type = KM.KratosGlobals.GetVariableType(var_name)  # Get the type of the variable
 
             # Check the variable type and add it to the variables_list accordingly
@@ -112,8 +112,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
 
         # The user may only need to set up the MasterSlaveConstraints only once
         if not self.reform_constraints_at_each_step:
-            for variable in self.variables_list:
-                self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+            self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, self.variables_list, self.minimum_number_of_neighbouring_nodes)
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -135,7 +134,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         # If MasterSlaveConstraints are updated every time step, these are to me removed before being re-assigned.
         if self.reform_constraints_at_each_step:
             self.__RemoveConstraints()
-        
+
     def __RemoveConstraints(self):
         #Remove master-slave constraints
         KM.VariableUtils().SetFlag(KM.TO_ERASE, True, self.computing_model_part.MasterSlaveConstraints)

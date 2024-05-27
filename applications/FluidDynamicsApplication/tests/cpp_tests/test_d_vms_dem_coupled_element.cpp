@@ -75,9 +75,6 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
         r_fluid_fraction = 1.0;
         Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
         r_permeability = ZeroMatrix(Dim, Dim);
-        for (unsigned int d = 0; d < Dim; ++d){
-            r_permeability(d,d) = 1.0e+30;
-        }
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};
@@ -114,21 +111,43 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {6.286527961,8.056113874,-0.05929579635,-6.100463608,5.687177253,-0.04745013508,-8.286558938,-7.630094687,-0.04034752758,5.077121113,-9.136569912,-0.05290654099}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {2.885342223,3.817976395,-0.05954391544,-3.764678983,2.452222894,-0.04746809897,-5.675304236,-5.32981538,-0.04009093622,1.144992949,-6.350031955,-0.05289704936}; // DVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
         i->Initialize(r_process_info); // Initialize constitutive law
-
         const auto& rElem = *i;
         rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        std::cout.precision(10);
-        //std::cout << i->Info() << RHS << std::endl;
-        //KRATOS_WATCH(RHS);
+
+        // std::cout << i->Info() << std::setprecision(10) << std::endl;
+        // KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-6);
+            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-5);
+        }
+    }
+    double porosity = 0.5;
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
+        r_fluid_fraction = porosity;
+    }
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        const auto& r_process_info = model_part.GetProcessInfo();
+        i->Initialize(r_process_info); // Initialize constitutive law
+        const auto& rElem = *i;
+        rElem.Check(r_process_info);
+        i->InitializeNonLinearIteration(r_process_info);
+        i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
+
+        for (unsigned int j = 0; j < output.size(); j++) {
+            if ((j+1) % (Dim+1) == 0){
+                KRATOS_CHECK_NEAR(RHS[j], porosity*output[j], 1e-4);}
+            else{
+                KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-4);}
+
         }
     }
 }

@@ -31,6 +31,11 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
 
+#include "modeler/coloring/voxel_mesher_coloring_factory.h"
+#include "modeler/key_plane_generation/key_plane_generation_factory.h"
+#include "modeler/entity_generation/voxel_mesher_entity_generation_factory.h"
+#include "modeler/operation/voxel_mesher_operation_factory.h"
+
 namespace Kratos {
 
 KratosApplication::KratosApplication(const std::string& ApplicationName)
@@ -215,6 +220,8 @@ void KratosApplication::RegisterKratosCore() {
 #endif
     KRATOS_REGISTER_MODELER("SerialModelPartCombinatorModeler", mSerialModelPartCombinatorModeler);
     KRATOS_REGISTER_MODELER("CombineModelPartModeler", mCombineModelPartModeler);
+    KRATOS_REGISTER_MODELER("ConnectivityPreserveModeler", mConnectivityPreserveModeler);
+    KRATOS_REGISTER_MODELER("VoxelMeshGeneratorModeler", mVoxelMeshGeneratorModeler);
 
     // Register general geometries:
     // Point register:
@@ -293,5 +300,11 @@ void KratosApplication::RegisterKratosCore() {
 
     // Register ConstitutiveLaw BaseClass
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
+
+    //Register Voxel Modeler modular components
+    RegisterVoxelMesherColoring();
+    RegisterVoxelMesherKeyPlaneGeneration();
+    RegisterVoxelMesherEntityGeneration();
+    RegisterVoxelMesherOperation();
 }
 }  // namespace Kratos.

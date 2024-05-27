@@ -11,26 +11,14 @@
 //
 
 #include <string>
-#include <iostream>
 
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-    namespace Testing
-    {
-
-        void AddWaterPressureDofs(ModelPart &rModelPart)
-        {
-            for (auto &r_node : rModelPart.Nodes())
-            {
-                r_node.AddDof(WATER_PRESSURE);
-            }
-        }
-
         KRATOS_TEST_CASE_IN_SUITE(CalculateEquilibriumPipeHeight, KratosGeoMechanicsFastSuite)
         {
 
@@ -101,7 +89,7 @@ namespace Kratos
             auto Geom = p_element->GetGeometry();
 
             // cast to piping element
-            auto PipeEl = static_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
+            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
 
             // calculate equilibrium height
             double expected_eq_height = PipeEl->CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
@@ -174,7 +162,7 @@ namespace Kratos
             auto Geom = p_element->GetGeometry();
 
             // cast to piping element
-            auto PipeEl = static_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
+            auto PipeEl = dynamic_cast<SteadyStatePwPipingElement<2, 4> *>(p_element.get());
 
             // calculate water pressure gradient
             double expected_gradient = PipeEl->CalculateHeadGradient(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
@@ -186,5 +174,4 @@ namespace Kratos
                 2,
                 1.0e-10);
         }
-    }
 }

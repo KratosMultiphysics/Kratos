@@ -399,7 +399,8 @@ namespace Kratos {
                                                                               contact_tau,
                                                                               failure_criterion_state,
                                                                               acumulated_damage,
-                                                                              time_steps);
+                                                                              time_steps,
+                                                                              calculation_area);
             }
         } // for each neighbor
 

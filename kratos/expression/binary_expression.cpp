@@ -102,6 +102,12 @@ const std::vector<std::size_t> BinaryExpression<TOperationType>::GetItemShape() 
 }
 
 template <class TOperationType>
+std::size_t BinaryExpression<TOperationType>::GetMaxDepth() const
+{
+    return std::max(this->mpLeft->GetMaxDepth(), this->mpRight->GetMaxDepth()) + 1;
+}
+
+template <class TOperationType>
 std::string BinaryExpression<TOperationType>::Info() const
 {
     std::stringstream msg;

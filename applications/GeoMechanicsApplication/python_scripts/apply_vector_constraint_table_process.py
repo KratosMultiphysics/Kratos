@@ -8,4 +8,4 @@ def Factory(settings, Model):
 
     params = settings["Parameters"]
     model_part = Model[params["model_part_name"].GetString()]
-    return Geo.ApplyVectorConstraintsTableProcess(model_part, params)
+    return Geo.ApplyVectorConstraintTableProcess(model_part, params)

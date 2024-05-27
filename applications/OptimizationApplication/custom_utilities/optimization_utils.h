@@ -18,6 +18,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
+#include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 // Application includes
 
@@ -34,6 +36,27 @@ public:
     ///@{
 
     using IndexType = std::size_t;
+
+    ///@}
+    ///@name Public classes
+    ///@{
+
+    template<class TEntityPointType>
+    struct KDTreeThreadLocalStorage
+    {
+        explicit KDTreeThreadLocalStorage(const IndexType MaxNumberOfNeighbors, const IndexType Stride)
+        {
+            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
+            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
+            mListOfWeights.resize(MaxNumberOfNeighbors);
+            mListOfDampedWeights.resize(Stride, std::vector<double>(MaxNumberOfNeighbors));
+        }
+
+        std::vector<TEntityPointType> mNeighbourEntityPoints;
+        std::vector<double> mResultingSquaredDistances;
+        std::vector<double> mListOfWeights;
+        std::vector<std::vector<double>> mListOfDampedWeights;
+    };
 
     ///@}
     ///@name Static operations
@@ -69,6 +92,14 @@ public:
     static void CopySolutionStepVariablesList(
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
+
+    static bool IsSolutionStepVariablesListASubSet(
+        const ModelPart& rMainSetModelPart,
+        const ModelPart& rSubSetModelPart);
+
+    static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
+        Model& rModel,
+        Parameters Settings);
 
     ///@}
 };

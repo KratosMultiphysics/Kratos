@@ -748,7 +748,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersSetMethods, KratosCoreFastSuite)
             matrix(2,1) = 6.0;
             tmp[key].SetMatrix(matrix);
             const auto& A = tmp[key].GetMatrix();
-            KRATOS_EXPECT_MATRIX_EQUAL(A,matrix);
+            KRATOS_EXPECT_MATRIX_EQ(A,matrix);
         } else {
             KRATOS_EXPECT_EXCEPTION_IS_THROWN(tmp[key].GetMatrix(), "");
         }
@@ -795,7 +795,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
     matrix(2,1) = 6.0;
     tmp.AddMatrix(key, matrix);
     const auto& A = tmp[key].GetMatrix();
-    KRATOS_EXPECT_MATRIX_EQUAL(A,matrix);
+    KRATOS_EXPECT_MATRIX_EQ(A,matrix);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsStringArray, KratosCoreFastSuite)
@@ -940,7 +940,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
     KRATOS_EXPECT_TRUE(tmp["matrix_value"].IsMatrix());
 
     const auto& A2 = tmp["matrix_value"].GetMatrix();
-    KRATOS_EXPECT_MATRIX_EQUAL(A2, mat);
+    KRATOS_EXPECT_MATRIX_EQ(A2, mat);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersNullvsNullValidation, KratosCoreFastSuite)

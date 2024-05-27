@@ -62,8 +62,8 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp 
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
     )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)

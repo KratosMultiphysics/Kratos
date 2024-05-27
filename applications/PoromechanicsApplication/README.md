@@ -4,17 +4,17 @@ The Poromechanics Application contains developments in coupled solid-pore fluid 
 
 ### Features:
 
-- UPw small displacement element for saturated porous media (with
+- UPl small displacement element for saturated porous media (with
 equal order interpolation, unstable under incompressible-undrained
 conditions)
 
-- Stable UPw small displacement element for saturated porous media
+- Stable UPl small displacement element for saturated porous media
 (with higher order interpolation for displacements)
 
-- FIC-Stabilized UPw small displacement element for saturated porous media
+- FIC-Stabilized UPl small displacement element for saturated porous media
 (with equal order interpolation for displacements)
 
-- UPw Quasi-zero-thickness interface elements for defining cracks and
+- UPl Quasi-zero-thickness interface elements for defining cracks and
 joints
 
 - Local linear elastic damage model (Simo-Ju and modified Von Mises)

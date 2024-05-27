@@ -15,6 +15,7 @@
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
+#include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
@@ -65,8 +66,9 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
                 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
-                                                                                 IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+            JContainer[GPoint], IntegrationPoints[GPoint].Weight());
                 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -83,14 +85,14 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
 {
     noalias(rVariables.PVector) = - rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
 
-    GeoElementUtilities::
-        AssemblePBlockVector< TDim, TNumNodes >(rRightHandSideVector,
-                                                rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwNormalFluxCondition<2,2>;
+template class UPwNormalFluxCondition<2,3>;
+template class UPwNormalFluxCondition<2,4>;
+template class UPwNormalFluxCondition<2,5>;
 template class UPwNormalFluxCondition<3,3>;
 template class UPwNormalFluxCondition<3,4>;
 

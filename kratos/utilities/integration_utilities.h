@@ -19,6 +19,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometrical_sensitivity_utility.h"
 namespace Kratos
 {
 
@@ -31,7 +32,7 @@ namespace Kratos
 class IntegrationUtilities
 {
 public:
-    /** 
+    /**
      * @brief This method returns the integration order for the exact mass matrix evaluation
      * @param rGeometry The geometry considered
      * @tparam TPointType The Point type
@@ -52,7 +53,7 @@ public:
         return integration_method;
     }
 
-    /** 
+    /**
      * @brief This method calculates and returns the domain size of the geometry from any geometry in a generic manner
      * @param rGeometry The geometry considered
      * @tparam TGeometryType The geometry type
@@ -72,7 +73,7 @@ public:
         return domain_size;
     }
 
-    /** 
+    /**
      * @brief This method calculates and returns the domain size of the geometry from any geometry in a generic manner
      * @param rGeometry The geometry considered
      * @param IntegrationMethod The integration method considered
@@ -96,7 +97,7 @@ public:
         return domain_size;
     }
 
-    /** 
+    /**
      * @brief This method calculates and returns the volume of the geometry from a 3D geometry
      * @param rGeometry The geometry considered
      * @tparam TPointType The Point type
@@ -117,7 +118,47 @@ public:
         return volume;
     }
 
-    /** 
+    /**
+     * @brief This method calculates derivative of the area for a 2D geometry.
+     *
+     * @tparam TPointType                   Point type.
+     * @param DerivativeNodeIndex           The node index for which the derivative is computed for.
+     * @param DerivativeDirectionIndex      The direction index of the node for which the derivative is computed for.
+     * @param rGeometry                     The geometry considered.
+     * @return double                       Area derivative.
+     */
+    template<class TPointType>
+    static inline double ComputeArea2DGeometryDerivative(
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex,
+        const Geometry<TPointType>& rGeometry)
+    {
+        const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
+        const auto& r_integration_points = rGeometry.IntegrationPoints( integration_method );
+
+        Matrix jacobian(2, 2);
+        Matrix shape_function_local_gradients(rGeometry.size(), 2), rdNdXDerivative;
+        double detJ_derivative;
+        ShapeParameter shape_param;
+
+        shape_param.NodeIndex = DerivativeNodeIndex;
+        shape_param.Direction = DerivativeDirectionIndex;
+
+        double area_derivative = 0.0;
+        for (unsigned int g = 0; g < r_integration_points.size(); g++) {
+            noalias(shape_function_local_gradients) = rGeometry.ShapeFunctionLocalGradient(g, integration_method);
+            rGeometry.Jacobian(jacobian, g, integration_method);
+
+            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian, shape_function_local_gradients);
+            geometrical_sensitivity_utility.CalculateSensitivity(shape_param, detJ_derivative, rdNdXDerivative);
+
+            area_derivative += detJ_derivative * r_integration_points[g].Weight();
+        }
+
+        return area_derivative;
+    }
+
+    /**
      * @brief This method calculates and returns the volume of the geometry from a 3D geometry
      * @param rGeometry The geometry considered
      * @tparam TPointType The Point type
@@ -136,6 +177,46 @@ public:
         }
 
         return volume;
+    }
+
+    /**
+     * @brief This method calculates derivative of the volume for a 3D geometry.
+     *
+     * @tparam TPointType                   Point type.
+     * @param DerivativeNodeIndex           The node index for which the derivative is computed for.
+     * @param DerivativeDirectionIndex      The direction index of the node for which the derivative is computed for.
+     * @param rGeometry                     The geometry considered.
+     * @return double                       Volume derivative.
+     */
+    template<class TPointType>
+    static inline double ComputeVolume3DGeometryDerivative(
+        const unsigned int DerivativeNodeIndex,
+        const unsigned int DerivativeDirectionIndex,
+        const Geometry<TPointType>& rGeometry)
+    {
+        const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
+        const auto& r_integration_points = rGeometry.IntegrationPoints( integration_method );
+
+        Matrix jacobian(3, 3);
+        Matrix shape_function_local_gradients(rGeometry.size(), 3), rdNdXDerivative;
+        double detJ_derivative;
+        ShapeParameter shape_param;
+
+        shape_param.NodeIndex = DerivativeNodeIndex;
+        shape_param.Direction = DerivativeDirectionIndex;
+
+        double volume_derivative = 0.0;
+        for (unsigned int g = 0; g < r_integration_points.size(); g++) {
+            noalias(shape_function_local_gradients) = rGeometry.ShapeFunctionLocalGradient(g, integration_method);
+            rGeometry.Jacobian(jacobian, g, integration_method);
+
+            GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian, shape_function_local_gradients);
+            geometrical_sensitivity_utility.CalculateSensitivity(shape_param, detJ_derivative, rdNdXDerivative);
+
+            volume_derivative += detJ_derivative * r_integration_points[g].Weight();
+        }
+
+        return volume_derivative;
     }
 
 };

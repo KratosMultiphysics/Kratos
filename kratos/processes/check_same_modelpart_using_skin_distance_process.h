@@ -72,7 +72,8 @@ public:
         Model& rModel,
         Parameters ThisParameters = Parameters(R"({})")
         )
-        : mrModel(rModel),
+        : mrSkinModelPart1(rModel.GetModelPart(ThisParameters["skin_model_part_1_name"].GetString())),
+          mrSkinModelPart2(rModel.GetModelPart(ThisParameters["skin_model_part_2_name"].GetString())),
           mThisParameters(ThisParameters)
     {
         KRATOS_TRY
@@ -159,8 +160,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    Model& mrModel;             /// The model containing the model parts
-    Parameters mThisParameters; /// The parameters containing the settings
+    ModelPart& mrSkinModelPart1; /// The modelpart containing the skin of the first model part
+    ModelPart& mrSkinModelPart2; /// The modelpart containing the skin of the second model part
+    Parameters mThisParameters;  /// The parameters containing the settings
 
     ///@}
     ///@name Private Operators

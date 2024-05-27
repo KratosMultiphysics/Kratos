@@ -27,6 +27,8 @@ The Mapping Application contains the core developments in mapping data between n
   - Nearest Neighbor
   - Nearest Element
   - Barycentric
+- Metamappers
+  - 3D/2D metamapper (metamapper which obtains the solution for the 3D destination model part from the original 2D solution)
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
 
 ### Dependencies
@@ -114,6 +116,17 @@ mapper.InverseMap(KM.TEMPERATURE, KM.AMBIENT_TEMPERATURE)
 # to the nodal quantities of VELOCITY on the origin-ModelPart
 
 mapper.InverseMap(KM.VELOCITY, KM.MESH_VELOCITY)
+```
+
+For the 3D/2D metamapper the settings to consider are the following, where `base_mapper` is the backend mapper to be considered.
+
+```json
+mapper_params = KM.Parameters("""{
+    "mapper_type"     : "projection_3D_2D",
+    "base_mapper"     : "nearest_neighbor",
+    "search_settings" : {},
+    "echo_level"      : 0
+}""")
 ```
 
 ### Advanced Usage

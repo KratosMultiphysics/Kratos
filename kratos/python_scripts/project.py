@@ -79,8 +79,10 @@ class Project:
         with open(save_folder_path / checkpoint_file_path, 'wb+') as checkpoint_file:
             # Serialize current model and stages
             serializer = KratosMultiphysics.StreamSerializer()
-            serializer.Set(KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
-            
+            serializer_flags = KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
+            serializer.Set(serializer_flags)
+
+            serializer.Save("SerializerFlags", serializer_flags) # Save the serializer flags (will be required for the loading)
             serializer.Save("Model", self.__model)
             stage_names_list = []
             stage_instances_list = []
@@ -115,12 +117,19 @@ class Project:
             for module_name in loaded_data["required_modules"]:
                 importlib.import_module(module_name)
 
+            # Load and prepare serializer
+            # This means to set the serializer flags before using it
+            serializer = loaded_data["serializer"]
+            serializer_flags = KratosMultiphysics.Flags()
+            serializer.Load("SerializerFlags", serializer_flags)
+            serializer.Set(serializer_flags)
+
             # Load model
-            loaded_data["serializer"].Load("Model", self.__model)
+            serializer.Load("Model", self.__model)
 
             # Load stages
             for stage_name, stage_instance in zip(loaded_data["stage_names"], loaded_data["stage_instances"]):
-                stage_instance.Load(loaded_data["serializer"]) # Take stage instance and restore it to its status before serialization
+                stage_instance.Load(serializer) # Take stage instance and restore it to its status before serialization
                 self.__active_stages[stage_name] = stage_instance # Append current stage instance to the active stages list
 
             # Load output data dictionary

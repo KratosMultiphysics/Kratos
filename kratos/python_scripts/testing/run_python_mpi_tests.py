@@ -18,7 +18,7 @@ def main():
     It takes no parameters and returns no values. The variables that are set by this function, as well as the tests
     that are executed, are determined by the command line arguments passed to the function. These arguments include:
 
-    -c, --command: The command to use to launch test cases. If not provided, the default 'runkratos' executable is used.
+    -c, --command: The command to use to launch test cases. If not provided, the default 'python' executable is used.
     -l, --level: The minimum level of detail of the tests. Choices are 'mpi_all' (default), 'mpi_nightly', 'mpi_small', and 'mpi_validation'.
     -v, --verbosity: The verbosity level. Choices are 0, 1 (default), and 2.
     -a, --applications: A list of applications to run, separated by ':'. All compiled applications will be run by default.
@@ -38,7 +38,7 @@ def main():
     # parse command line options
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-c', '--command', default=testing_utils.GetPython3Command(), help="Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used")
+    parser.add_argument('-c', '--command', default=testing_utils.GetPython3Command(), help="Use the provided command to launch test cases. If not provided, the default \'python\' executable is used")
     parser.add_argument('-l', '--level', default='mpi_all', choices=['mpi_all', 'mpi_nightly', 'mpi_small', 'mpi_validation'], help="Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'")
     parser.add_argument('-v', '--verbosity', default=1, type=int, choices=[0, 1, 2], help="Verbosity level: 0, 1 (Default), 2")
     parser.add_argument('-a', '--applications', default=applications, help="List of applications to run separated by \':\'. All compiled applications will be run by default")

@@ -157,11 +157,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
 
     Matrix dummy(4, 5);
     type_trait::CopyToContiguousData(dummy.data().begin(), test);
-    KRATOS_EXPECT_MATRIX_EQUAL(dummy, test);
+    KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     dummy = Matrix(4, 5, -2);
     type_trait::CopyFromContiguousData(dummy, test.data().begin());
-    KRATOS_EXPECT_MATRIX_EQUAL(dummy, test);
+    KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
@@ -411,7 +411,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 6; ++i) {
         for (unsigned int j = 0; j < 20; ++j) {
-            KRATOS_EXPECT_MATRIX_EQUAL(result.data()[i].data()[j], test.data()[i].data()[j]);
+            KRATOS_EXPECT_MATRIX_EQ(result.data()[i].data()[j], test.data()[i].data()[j]);
         }
     }
 }

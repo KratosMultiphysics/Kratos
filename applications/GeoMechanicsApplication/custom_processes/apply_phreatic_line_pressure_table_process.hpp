@@ -22,21 +22,18 @@ namespace Kratos
 
 class ApplyPhreaticLinePressureTableProcess : public ApplyConstantPhreaticLinePressureProcess
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPhreaticLinePressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    using TableType = Table<double,double>;
+    using TableType = Table<double, double>;
 
-    ApplyPhreaticLinePressureTableProcess(ModelPart& model_part,
-                                          Parameters rParameters
-                                         ) : ApplyConstantPhreaticLinePressureProcess(model_part, rParameters)
+    ApplyPhreaticLinePressureTableProcess(ModelPart& model_part, Parameters rParameters)
+        : ApplyConstantPhreaticLinePressureProcess(model_part, rParameters)
     {
         KRATOS_TRY
 
-        for (unsigned int i=0; i < mpTable.size(); ++i) {
+        for (unsigned int i = 0; i < mpTable.size(); ++i) {
             unsigned int TableId = rParameters["table"][i].GetInt();
             if (TableId > 0) {
                 mpTable[i] = model_part.pGetTable(TableId);
@@ -59,11 +56,11 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        const double Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
+        const double        Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
         array_1d<double, 2> deltaH;
-        for (unsigned int i=0; i < mpTable.size(); ++i) {
+        for (unsigned int i = 0; i < mpTable.size(); ++i) {
             if (mpTable[i]) {
                 deltaH[i] = mpTable[i]->GetValue(Time);
             } else {
@@ -76,8 +73,8 @@ public:
         y[1] = mSecondReferenceCoordinate[mGravityDirection];
         y += deltaH;
 
-        mSlope = (y[1] - y[0])
-               / (mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
+        mSlope = (y[1] - y[0]) / (mSecondReferenceCoordinate[mHorizontalDirection] -
+                                  mFirstReferenceCoordinate[mHorizontalDirection]);
 
         block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
             const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressurewithTable(rNode, y);
@@ -89,7 +86,8 @@ public:
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
-                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+                rNode.FastGetSolutionStepValue(var) =
+                    std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
             }
         });
 
@@ -97,28 +95,23 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "ApplyPhreaticLinePressureTableProcess";
-    }
+    std::string Info() const override { return "ApplyPhreaticLinePressureTableProcess"; }
 
 protected:
-
-    double CalculatePressurewithTable(const Node &rNode, const array_1d<double, 2> &y) const
+    double CalculatePressurewithTable(const Node& rNode, const array_1d<double, 2>& y) const
     {
         double horCoord = rNode.Coordinates()[mHorizontalDirection];
-        horCoord = std::max(horCoord, mMinHorizontalCoordinate);
-        horCoord = std::min(horCoord, mMaxHorizontalCoordinate);
+        horCoord        = std::max(horCoord, mMinHorizontalCoordinate);
+        horCoord        = std::min(horCoord, mMaxHorizontalCoordinate);
         const double height = mSlope * (horCoord - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
         const double distance = height - rNode.Coordinates()[mGravityDirection];
-        return - mSpecificWeight * distance;
+        return -mSpecificWeight * distance;
     }
 
 private:
     /// Member Variables
-    array_1d<TableType::Pointer,2> mpTable;
-    double mTimeUnitConverter;
-
+    array_1d<TableType::Pointer, 2> mpTable;
+    double                          mTimeUnitConverter;
 };
 
-}
+} // namespace Kratos
