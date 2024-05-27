@@ -15,6 +15,7 @@
 // Project includes
 
 // Application includes
+#include "custom_retention/retention_law.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -79,6 +80,87 @@ public:
     {
         return -PORE_PRESSURE_SIGN_FACTOR * BiotModulusInverse * outer_prod(rNp, rNp) * IntegrationCoefficient;
     }
-    
+
+    static double CalculateSoilDensity(double DegreeOfSaturation, const Properties& rProp)
+    {
+        return DegreeOfSaturation * rProp[POROSITY] * rProp[DENSITY_WATER] +
+               (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
+    }
+
+    static Vector CalculateSoilDensities(const Vector& rDegreesSaturation, const Properties& rProp)
+    {
+        Vector result(rDegreesSaturation.size());
+        std::transform(rDegreesSaturation.cbegin(), rDegreesSaturation.cend(), result.begin(),
+                       [&rProp](const auto& degree_saturation) {
+            return CalculateSoilDensity(degree_saturation, rProp);
+        });
+        return result;
+    }
+
+    static Vector CalculateDegreesSaturation(const Vector& rPressureSolution,
+                                             const Matrix& rNContainer,
+                                             const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                                             const Properties&  rProp,
+                                             const ProcessInfo& rCurrentProcessInfo)
+    {
+        RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
+        Vector                   result(rRetentionLawVector.size());
+        for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
+            const double fluid_pressure = CalculateFluidPressure(row(rNContainer, g_point), rPressureSolution);
+            retention_parameters.SetFluidPressure(fluid_pressure);
+            result(g_point) = rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
+        }
+        return result;
+    }
+
+    [[nodiscard]] static double CalculateFluidPressure(const Vector& rN, const Vector& rPressureVector)
+    {
+        return inner_prod(rN, rPressureVector);
+    }
+
+    [[nodiscard]] static double CalculateBiotModulusInverse(double BiotCoefficient,
+                                                            double DegreeOfSaturation,
+                                                            double DerivativeOfSaturation,
+                                                            const Properties& rProperties)
+    {
+        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
+        double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                        rProperties[POROSITY] / bulk_modulus_fluid;
+
+        result *= DegreeOfSaturation;
+        result -= DerivativeOfSaturation * rProperties[POROSITY];
+
+        return result;
+    }
+
+    [[nodiscard]] static double CalculateBulkModulus(const Matrix& rConstitutiveMatrix)
+    {
+        KRATOS_ERROR_IF(rConstitutiveMatrix.size1() == 0)
+            << "Constitutive matrix is empty, aborting bulk modulus calculation.\n";
+        const SizeType index_G = rConstitutiveMatrix.size1() - 1;
+        return rConstitutiveMatrix(0, 0) - (4.0 / 3.0) * rConstitutiveMatrix(index_G, index_G);
+    }
+
+    [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
+                                                                       const Properties& rProperties)
+    {
+        std::vector<double> result;
+        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                       std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
+            return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
+        });
+
+        return result;
+    }
+
+private:
+    [[nodiscard]] static double CalculateBiotCoefficient(const Matrix&     rConstitutiveMatrix,
+                                                         const Properties& rProperties)
+    {
+        return rProperties.Has(BIOT_COEFFICIENT)
+                   ? rProperties[BIOT_COEFFICIENT]
+                   : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
+    }
+
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
