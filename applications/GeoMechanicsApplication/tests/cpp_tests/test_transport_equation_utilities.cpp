@@ -134,4 +134,22 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesInfResults_ForZeroBulkM
                                    [](const double value) { return std::isinf(value); }))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(EachFluidPressureIsTheInnerProductOfShapeFunctionsAndPressure, KratosGeoMechanicsFastSuite)
+{
+    auto shape_function_values = Matrix{3, 3, 0.0};
+    // clang-format off
+    shape_function_values <<= 0.8, 0.2, 0.3,
+                              0.1, 0.7, 0.4,
+                              0.2, 0.5, 0.6;
+    // clang-format on
+
+    auto pore_water_pressures = Vector(3);
+    pore_water_pressures <<= 2.0, 3.0, 4.0;
+
+    const auto expected_fluid_pressures = std::vector<double>{3.4, 3.9, 4.3};
+    KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculateFluidPressures(
+                                  shape_function_values, pore_water_pressures),
+                              expected_fluid_pressures, 1e-12)
+}
+
 } // namespace Kratos::Testing

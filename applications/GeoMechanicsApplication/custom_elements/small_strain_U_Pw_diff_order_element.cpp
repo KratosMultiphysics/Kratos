@@ -1002,13 +1002,19 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, GetVoigtSize());
+        auto relative_permeability_values =
+            CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
+                Variables.NpContainer, Variables.PressureVector));
+        const auto permeability_update_factors =
+            GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
+        std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
+                       permeability_update_factors.cbegin(), relative_permeability_values.begin(),
+                       std::multiplies<>{});
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
@@ -1027,13 +1033,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                     BodyAcceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index++];
             }
 
-            RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-                Variables.Np, Variables.PressureVector));
-
-            const auto relative_permeability =
-                mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters) *
-                GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactor(
-                    Variables.StrainVector, GetProperties());
+            const auto relative_permeability = relative_permeability_values[GPoint];
 
             // Compute strain, need to update porosity
             Variables.F            = deformation_gradients[GPoint];

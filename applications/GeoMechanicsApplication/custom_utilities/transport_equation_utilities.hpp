@@ -115,6 +115,15 @@ public:
         return inner_prod(rN, rPressureVector);
     }
 
+    [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer, const Vector& rPressureVector)
+    {
+        auto result = std::vector<double>{};
+        for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
+            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
+        }
+        return result;
+    }
+
     [[nodiscard]] static double CalculateBiotModulusInverse(double BiotCoefficient,
                                                             double DegreeOfSaturation,
                                                             double DerivativeOfSaturation,
@@ -150,30 +159,6 @@ public:
         return result;
     }
 
-    [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer, const Vector& rPressureVector)
-    {
-        auto result = std::vector<double>{};
-        for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
-            result.emplace_back(CalculateFluidPressure(row(rNContainer, i), rPressureVector));
-        }
-        return result;
-    }
-
-    [[nodiscard]] static double CalculatePermeabilityUpdateFactor(const Vector&     rStrainVector,
-                                                                  const Properties& rProperties)
-    {
-        if (rProperties[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
-            const double InverseCK = rProperties[PERMEABILITY_CHANGE_INVERSE_FACTOR];
-            const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
-            const double ePrevious = rProperties[POROSITY] / (1.0 - rProperties[POROSITY]);
-            const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
-            const double permLog10 = (eCurrent - ePrevious) * InverseCK;
-            return std::pow(10.0, permLog10);
-        }
-
-        return 1.0;
-    }
-
     [[nodiscard]] static std::vector<double> CalculatePermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors,
                                                                                 const Properties& rProperties)
     {
@@ -192,6 +177,21 @@ private:
         return rProperties.Has(BIOT_COEFFICIENT)
                    ? rProperties[BIOT_COEFFICIENT]
                    : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
+    }
+
+    [[nodiscard]] static double CalculatePermeabilityUpdateFactor(const Vector&     rStrainVector,
+                                                                  const Properties& rProperties)
+    {
+        if (rProperties[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+            const double InverseCK = rProperties[PERMEABILITY_CHANGE_INVERSE_FACTOR];
+            const double epsV      = StressStrainUtilities::CalculateTrace(rStrainVector);
+            const double ePrevious = rProperties[POROSITY] / (1.0 - rProperties[POROSITY]);
+            const double eCurrent  = (1.0 + ePrevious) * std::exp(epsV) - 1.0;
+            const double permLog10 = (eCurrent - ePrevious) * InverseCK;
+            return std::pow(10.0, permLog10);
+        }
+
+        return 1.0;
     }
 }; /* Class GeoTransportEquationUtilities*/
 } /* namespace Kratos.*/
