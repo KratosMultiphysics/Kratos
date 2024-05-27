@@ -13,7 +13,7 @@
 
 
 // System includes
-
+#include <pybind11/stl.h>
 // External includes
 
 // Project includes
@@ -64,7 +64,19 @@ namespace Python{
         else if (dimension == 3) MaterialPointGeneratorUtility::GenerateMaterialPointCondition<3>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart);
     }
-
+    void ImportMaterialPointElementAccordingToDimension(
+        ModelPart& rBackgroundGridModelPart,
+        ModelPart& rInitialModelPart,
+        ModelPart& rMPMModelPart,
+        std::vector<std::array<double, 3>>&  rXgCoordinates,
+        std::string& rSubModelPartName)
+    {
+        const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        if (dimension == 2) MPMParticleGeneratorUtility::ImportMaterialPointElement<2>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
+        else if (dimension == 3) MPMParticleGeneratorUtility::ImportMaterialPointElement<3>(
+            rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
+    }
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         m.def("SearchElement", SearchElementAccordingToDimension);

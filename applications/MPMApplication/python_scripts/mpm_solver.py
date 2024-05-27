@@ -477,6 +477,16 @@ class MPMSolver(PythonSolver):
             raise Exception("::[MPMSolver]:: Time stepping not defined!")
 
     def __ExecuteCheckAndPrepare(self):
+        # # Verify the orientation of the skin in case of triangles mesh
+        # # if elem_num_nodes == 3:
+        mesh_orientation = KratosMultiphysics.TetrahedralMeshOrientationCheck
+        throw_errors = False
+        flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
+        flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
+        flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        KratosMultiphysics.TetrahedralMeshOrientationCheck(self.GetGridModelPart(), throw_errors, flags).Execute()
+        # # else:
+        # #     KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")
         # Specific active node and element check for MPM solver
         for node in self.grid_model_part.Nodes:
             if (node.Is(KratosMultiphysics.ACTIVE)):

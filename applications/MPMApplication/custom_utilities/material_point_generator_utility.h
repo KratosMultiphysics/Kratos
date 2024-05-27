@@ -70,6 +70,16 @@ namespace Kratos::MaterialPointGeneratorUtility
                                         ModelPart& rMPMModelPart,
                                         bool IsMixedFormulation=false);
     /**
+     * @brief Import material points or particles from given information
+     * @details Generating particles using expression
+     */
+    template<SizeType TDimension>
+    void ImportMaterialPointElement(ModelPart& rBackgroundGridModelPart,
+                                    ModelPart& rInitialModelPart,
+                                    ModelPart& rMPMModelPart,
+                                    std::vector<std::array<double, 3>>&  rXgCoordinates,
+                                    std::string& rSubModelPartName); 
+    /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions
      */

@@ -203,6 +203,146 @@ namespace Kratos::MaterialPointGeneratorUtility
             }
         }
     }
+    template<SizeType TDimension>
+    void ImportMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
+                                        ModelPart& rInitialModelPart,
+                                        ModelPart& rMPMModelPart,
+                                        std::vector<std::array<double, 3>>& rXgCoordinates,
+                                        std::string& rSubModelPartName) {
+        const bool IsAxisSymmetry = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
+            : false;
+
+        rMPMModelPart.CreateSubModelPart(rSubModelPartName);
+
+        // Initialize zero the variables needed
+        std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_velocity = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_acceleration = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+
+        std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
+        std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
+        std::vector<double> mp_pressure = { 0.0 };
+
+        std::vector<double> mp_mass(1);
+        std::vector<double> mp_volume(1);
+
+        // Determine element index: This convention is done in order for the purpose of visualization in GiD
+        const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements();
+        const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
+        unsigned int last_element_id;
+
+        if (rMPMModelPart.NumberOfElements() == 0)
+        {
+            last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements + 1);
+            std::cout << "rMPMModelPart doesn't have elements. Starting Id from: " << last_element_id << std::endl;
+        }
+        else
+        {
+            last_element_id = (number_nodes > number_elements) ? (number_nodes + rMPMModelPart.NumberOfElements() + 1) : (number_elements + rMPMModelPart.NumberOfElements() + 1);
+            std::cout << "rMPMModelPart ALREADY have elements. Starting Id from: " << last_element_id << std::endl;
+        }
+
+
+        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
+        SearchStructure.UpdateSearchDatabase();
+        typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
+
+
+
+
+        // Loop over the element of submodelpart and generate mpm element to be appended to the rMPMModelPart
+
+
+        // Properties::Pointer properties = i->pGetProperties();
+
+        // Check number of particles per element to be created
+        unsigned int particles_per_element;
+        particles_per_element = 1; // xxx harcoded for now
+
+        // Get geometry and dimension of the background grid
+        const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType(); // xxx not used for now
+        const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE]; // xxx not used for now
+        // const Geometry< Node >& r_geometry = i->GetGeometry(); // current element's geometry // xxx not used for now
+
+        // Get integration method and shape function values
+        // DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element, int_method, shape_functions_values, is_equal_int_volumes); // xxx not used for now
+
+        // Get volumes of the material points
+
+        // Set element type xxx fixed to MPMUpdatedLagrangian for now
+        std::string element_type_name = "MPMUpdatedLagrangian";
+
+        // Get new element
+        const Element& new_element = KratosComponents<Element>::Get(element_type_name);
+        Properties::Pointer properties = rMPMModelPart.GetSubModelPart(rSubModelPartName).pGetProperties(1);
+        // Loop over the material points
+        unsigned int integration_point_counter = 0; // xxx harcoded for now
+        //for (unsigned int integration_point_counter = 1; integration_point_counter < 70; integration_point_counter++)
+        for (auto& xg_coordinate : rXgCoordinates)
+        {
+            // Assign Coordinate
+            xg[0].clear();
+            xg[0][0] = xg_coordinate[0]; // xxx input
+            xg[0][1] = xg_coordinate[1];
+            xg[0][2] = xg_coordinate[2]; // xxx harcoded for now
+            // Assign volume
+            // double int_volumes = 0.0625; // xxx hardcoded for now volume input without thickness
+            mp_volume[0] = 0.0;
+
+            // Assign density
+            // double density = rMPMModelPart.GetSubModelPart(submodelpart_name).GetProperties(1)[DENSITY];
+            std::vector<double> MP_density = { 0.0 };
+            // mp_mass[0] = int_volumes*density;
+            //unsigned int PointNumber = 0; // xxx input material point ID
+
+            typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+            Element::Pointer pelem;
+            Vector N; // xxx dummy vector?
+
+            // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+            bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
+            if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+
+            pelem->Set(ACTIVE);
+            auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
+                pelem->pGetGeometry(), xg[0],
+                mp_volume[0]);
+
+            // Create new material point element
+            unsigned int new_element_id = last_element_id + integration_point_counter + 1;
+            Element::Pointer p_element = new_element.Create(new_element_id, p_new_geometry, properties);
+
+            const ProcessInfo process_info = ProcessInfo();
+
+            // Setting particle element's initial condition
+            p_element->SetValuesOnIntegrationPoints(MP_DENSITY, MP_density, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_MASS, mp_mass, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_COORD, xg, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
+            p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
+
+            // Add the MP Element to the model part
+            rMPMModelPart.GetSubModelPart(rSubModelPartName).AddElement(p_element);
+
+
+            // std::cout << "Generated material point:" << new_element_id << std::endl;
+            // std::cout << "Coordinate:" << xg << std::endl;
+            // last_element_id += integration_point_counter;
+            integration_point_counter = integration_point_counter + 1;
+        }
+        // std::cout << "Generated material point id ENDS AT:" << integration_point_counter << std::endl;
+        // std::cout << "mp_almansi_strain_vector:" << mp_almansi_strain_vector << std::endl;
+
+
+    }
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions
@@ -976,5 +1116,14 @@ namespace Kratos::MaterialPointGeneratorUtility
     template void GenerateMaterialPointCondition<3>(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
-
+    template void ImportMaterialPointElement<2>(ModelPart& rBackgroundGridModelPart,
+                                                ModelPart& rInitialModelPart,
+                                                ModelPart& rMPMModelPart,
+                                                std::vector<std::array<double, 3>>&  rXgCoordinates,
+                                                std::string& rSubModelPartName);
+    template void ImportMaterialPointElement<3>(ModelPart& rBackgroundGridModelPart,
+                                                ModelPart& rInitialModelPart,
+                                                ModelPart& rMPMModelPart,
+                                                std::vector<std::array<double, 3>>&  rXgCoordinates,
+                                                std::string& rSubModelPartName);
 } // end namespace Kratos::MaterialPointGeneratorUtility
