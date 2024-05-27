@@ -125,6 +125,7 @@ public:
         mSolvers.reserve(number_of_solver_parameters);
         for (IndexType i = 0; i < number_of_solver_parameters; ++i) {
             mSolvers.push_back(ConstructLinearSolverFromSettings(mParameters["solvers"][i]));
+            mRequiresAdditionalData.push_back(mSolvers.back()->AdditionalPhysicalDataIsNeeded());
         }
 
         // Set some member variables from the parameters
@@ -279,6 +280,9 @@ public:
             p_solver->Clear();
         }
 
+        // Clear the flags
+        mRequiresAdditionalData.clear();
+
         // Clear the data
         mCurrentSolverIndex = 0;
     }
@@ -309,8 +313,16 @@ public:
 
                 // Call initialize methods
                 InitializeSolutionStep(rA, rX, rB);
+
+                // Provide additional data if needed
+                if (mRequiresAdditionalData[mCurrentSolverIndex] && mpDoFSet != nullptr && mpModelPart != nullptr) {
+                    ProvideAdditionalData(rA, rX, rB, *mpDoFSet, *mpModelPart);
+                }
             }
         }
+        // Reset pointers (to ensure is called only when needed)
+        mpDoFSet = nullptr;
+        mpModelPart = nullptr;
         return success;
     }
 
@@ -339,8 +351,16 @@ public:
 
                 // // Call initialize methods (NOTE: does not exist the method for dense matrices)
                 // InitializeSolutionStep(rA, rX, rB);
+
+                // // Provide additional data if needed (NOTE: does not exist the method for dense matrices)
+                // if (mRequiresAdditionalData[mCurrentSolverIndex] && mpDoFSet != nullptr && mpModelPart != nullptr) {
+                //     ProvideAdditionalData(rA, rX, rB, *mpDoFSet, *mpModelPart);
+                // }
             }
         }
+        // // Reset pointers (to ensure is called only when needed)
+        // mpDoFSet = nullptr;
+        // mpModelPart = nullptr;
         return success;
     }
 
@@ -371,11 +391,7 @@ public:
      */
     bool AdditionalPhysicalDataIsNeeded() override
     {
-        bool additional_data_needed = false;
-        for (auto& p_solver : mSolvers) {
-            additional_data_needed = additional_data_needed || p_solver->AdditionalPhysicalDataIsNeeded();
-        }
-        return additional_data_needed;
+        return GetCurrentSolver()->AdditionalPhysicalDataIsNeeded();
     }
 
     /**
@@ -400,6 +416,12 @@ public:
         ) override
     {
         GetCurrentSolver()->ProvideAdditionalData(rA, rX, rB, rDoFSet, rModelPart);
+
+        // Prepare to provide additional data if needed in the next solver iteration
+        if (mpDoFSet == nullptr && mpModelPart == nullptr) {
+            mpDoFSet = &rDoFSet;
+            mpModelPart = &rModelPart;
+        }
     }
 
     /**
@@ -632,6 +654,15 @@ protected:
     /// The list of solvers to try
     std::vector<LinearSolverPointer> mSolvers;
 
+    /// The list of flags to know if additional data is required
+    std::vector<bool> mRequiresAdditionalData;
+
+    /// The DoF set (for providing additional data if needed)
+    ModelPart::DofsArrayType* mpDoFSet = nullptr;
+
+    /// The model part (for providing additional data if needed)
+    ModelPart* mpModelPart = nullptr;
+
     /// Flag to reset the solver index each try
     bool mResetSolverEachTry = false;
 
@@ -699,6 +730,9 @@ protected:
 
         // Add the new solver parameters to the collection
         mParameters["solvers"].Append(dummy_parameters);
+
+        // Append the boolean flag to the mRequiresAdditionalData vector
+        mRequiresAdditionalData.push_back(pSolver->AdditionalPhysicalDataIsNeeded());
     }
 
     /**
