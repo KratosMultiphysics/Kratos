@@ -215,15 +215,16 @@ public:
      * @param AdvanceStrategyApplied Bool that indicates if the AITS is active
      */
 
-    static void CalculateRelaxationFactor(const double UniaxialStress,     
+    static void CalculateRelaxationFactor(const double NominalUniaxialStress,
+                                          const double UniaxialResidualStress,    
                                            const double Threshold,
                                            unsigned int LocalNumberOfCycles,
                                            double& rFirstCycleRelaxationFactor,
                                            double& rRelaxationFactor,
                                            bool FirstNonlinearity)
     {       
-        if (UniaxialStress / Threshold > 1.0 && FirstNonlinearity){
-            rFirstCycleRelaxationFactor = std::min(rFirstCycleRelaxationFactor, (-1.6 * (UniaxialStress / Threshold) + 2.6));
+        if ((Threshold - NominalUniaxialStress) / UniaxialResidualStress < 1.0 && FirstNonlinearity){
+            rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (Threshold - NominalUniaxialStress) / UniaxialResidualStress);
             rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
             rRelaxationFactor = rFirstCycleRelaxationFactor;
         } else {
@@ -262,7 +263,8 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
 
         // Reduction factors applied to the fatigue limit
-        double const k_residual_stress = (1 - UniaxialResidualStress / UltimateStress);
+        double const k_residual_stress = 1 - (UniaxialResidualStress / UltimateStress); // Goodman mean stress correction
+        // double const k_residual_stress = 1 - std::pow((UniaxialResidualStress / UltimateStress), 2.0); // Gerber mean stress correction
         double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
 
