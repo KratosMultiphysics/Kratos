@@ -72,9 +72,9 @@ namespace Python{
         std::string& rSubModelPartName)
     {
         const auto dimension = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        if (dimension == 2) MPMParticleGeneratorUtility::ImportMaterialPointElement<2>(
+        if (dimension == 2) MaterialPointGeneratorUtility::ImportMaterialPointElement<2>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
-        else if (dimension == 3) MPMParticleGeneratorUtility::ImportMaterialPointElement<3>(
+        else if (dimension == 3) MaterialPointGeneratorUtility::ImportMaterialPointElement<3>(
             rBackgroundGridModelPart, rInitialModelPart, rMPMModelPart, rXgCoordinates, rSubModelPartName);
     }
     void  AddCustomUtilitiesToPython(pybind11::module& m)
