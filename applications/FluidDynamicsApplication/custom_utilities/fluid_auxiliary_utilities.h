@@ -61,7 +61,19 @@ public:
      * @return true The element is split
      * @return false The element is not split
      */
-    static inline bool IsSplit(const Vector& rElementDistancesVector);
+    static inline bool IsSplit(const Vector& rElementDistancesVector)
+    {
+        std::size_t n_pos(0);
+        std::size_t n_neg(0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] > 0.0)
+                n_pos++;
+            else
+                n_neg++;
+        }
+        return (n_pos > 0 && n_neg > 0) ? true : false;
+    }
 
     /**
      * @brief Checks if an element is positive
@@ -70,7 +82,16 @@ public:
      * @return true The element is positive
      * @return false The element is not positive
      */
-    static inline bool IsPositive(const Vector &rElementDistancesVector);
+    static inline bool IsPositive(const Vector &rElementDistancesVector)
+    {
+        std::size_t n_pos (0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] > 0.0)
+                n_pos++;
+        }
+        return (n_pos == pts_number) ? true : false;
+    }
 
     /**
      * @brief Checks if an element is negative
@@ -79,7 +100,16 @@ public:
      * @return true The element is negative
      * @return false The element is not negative
      */
-    static inline bool IsNegative(const Vector &rElementDistancesVector);
+    static inline bool IsNegative(const Vector &rElementDistancesVector)
+    {
+        std::size_t n_neg (0);
+        const std::size_t pts_number = rElementDistancesVector.size();
+        for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+            if (rElementDistancesVector[i_node] < 0.0)
+                n_neg++;
+        }
+        return n_neg == pts_number;
+    }
 
     /**
      * @brief Calculate the fluid volume

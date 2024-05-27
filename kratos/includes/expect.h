@@ -156,7 +156,7 @@ for (std::size_t _i = 0; _i < a.size1(); _i++) {                                
 }                                                                                    \
 }
 
-#define KRATOS_EXPECT_MATRIX_EQUAL(a, b) KRATOS_EXPECT_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
+#define KRATOS_EXPECT_MATRIX_EQ(a, b) KRATOS_EXPECT_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)                 \
 try {                                                                                   \

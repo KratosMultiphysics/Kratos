@@ -47,14 +47,14 @@
         "water_pressure_relative_tolerance":  1.0E-4,
         "water_pressure_absolute_tolerance":  1.0E-9,
         "min_iterations":                     30,
-        "max_iterations":                     1000,
+        "max_iterations":                     100,
         "number_cycles":                      1,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
-        "calculate_reactions":                false,
+        "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
         "second_alpha_value":                 1.0,
@@ -67,7 +67,7 @@
         "scaling": true
       },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Fixed_Based_Y","Fixed_Symmetry_X","Fixed_Point_XY","Top_Displacement","Fixity_right","Lateral_load","Top_load"],
+        "processes_sub_model_part_list":      ["Fixed_Base","Fixed_Symmetry_X","Top_Displacement","Lateral_load"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -93,8 +93,8 @@
                     "node_output": false,
                     "skin_output": false,
                     "plane_output": [],
-                    "nodal_results": [ "DISPLACEMENT", "TOTAL_DISPLACEMENT", "WATER_PRESSURE", "LINE_LOAD", "NORMAL_CONTACT_STRESS", "VOLUME_ACCELERATION" ],
-                    "gauss_point_results": [ "GREEN_LAGRANGE_STRAIN_TENSOR", "ENGINEERING_STRAIN_TENSOR", "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR", "VON_MISES_STRESS", "MEAN_EFFECTIVE_STRESS", "MEAN_STRESS", "ENGINEERING_VON_MISES_STRAIN", "ENGINEERING_VOLUMETRIC_STRAIN" ]
+                    "nodal_results": [],
+                    "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
                 }
@@ -107,7 +107,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Fixed_Based_Y",
+            "model_part_name": "PorousDomain.Fixed_Base",
             "variable_name":   "DISPLACEMENT",
             "active":          [false,true,false],
             "is_fixed":        [false,true,false],
@@ -138,30 +138,6 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,1,0]
         }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Fixity_right",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [false,false,false],
-            "is_fixed":        [false,false,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Fixed_Point_XY",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
     }],
     "loads_process_list": [{
         "python_module": "apply_normal_load_table_process",
@@ -173,25 +149,7 @@
             "active":               [true,false],
             "value":                [0.0,0.0],
             "table":                [2,0],
-            "fluid_pressure_type": "Uniform",
-            "gravity_direction":    1,
-            "reference_coordinate": 0.0,
-            "specific_weight":      9.81
-        }
-    },{
-        "python_module": "apply_normal_load_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyNormalLoadTableProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Top_load",
-            "variable_name":        "NORMAL_CONTACT_STRESS",
-            "active":               [false,false],
-            "value":                [0.0,0.0],
-            "table":                [3,0],
-            "fluid_pressure_type": "Uniform",
-            "gravity_direction":    1,
-            "reference_coordinate": 0.0,
-            "specific_weight":      9.81
+            "fluid_pressure_type": "Uniform"
         }
     }],
         "auxiliar_process_list": []

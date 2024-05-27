@@ -8,8 +8,16 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Jordi Cotela
+//                   Suneth Warnakulasuriya
 //
 
+// System includes
+#include <cmath>
+
+// Project includes
+#include "integration_utilities.h"
+
+// Include base h
 #include "element_size_calculator.h"
 
 namespace Kratos {
@@ -830,14 +838,7 @@ double ElementSizeCalculator<2,6>::AverageElementSizeDerivative(
 template<>
 double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
-
-    const double x10 = rGeometry[1].X() - rGeometry[0].X();
-    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-
-    const double x30 = rGeometry[3].X() - rGeometry[0].X();
-    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-
-    return std::sqrt(x10*y30-x30*y10);
+    return rGeometry.Length();
 }
 
 template<>
@@ -848,27 +849,16 @@ double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF(DerivativeNodeIndex > 3)
-        << "Invalid DerivativeNodeIndex [ DerivativeNodeIndex = " << DerivativeNodeIndex
-        << ", expected DerivativeNodeIndex < 4 ].\n";
+    const double area = rGeometry.Area();
+    const double area_derivative = IntegrationUtilities::ComputeArea2DGeometryDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, rGeometry);
 
-    KRATOS_DEBUG_ERROR_IF(DerivativeDirectionIndex > 1)
-        << "Invalid DerivativeDirectionIndex [ DerivativeDirectionIndex = " << DerivativeDirectionIndex
-        << ", expected DerivativeDirectionIndex < 2 ].\n";
-
-    const double x10 = rGeometry[1].X() - rGeometry[0].X();
-    const double x10_derivative = EdgeLengthDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, 1, 0, 0);
-
-    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    const double y10_derivative = EdgeLengthDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, 1, 0, 1);
-
-    const double x30 = rGeometry[3].X() - rGeometry[0].X();
-    const double x30_derivative = EdgeLengthDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, 3, 0, 0);
-
-    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-    const double y30_derivative = EdgeLengthDerivative(DerivativeNodeIndex, DerivativeDirectionIndex, 3, 0, 1);
-
-    return 0.5 * (x10_derivative*y30+x10*y30_derivative-x30_derivative*y10-x30*y10_derivative) / (x10*y30-x30*y10);
+    if (area > 0.0) {
+        return 0.5 * area_derivative / std::sqrt(area);
+    } else if (area < 0.0) {
+        return -0.5 * area_derivative / std::sqrt(-area);
+    } else {
+        return 0.0;
+    }
 
     KRATOS_CATCH("");
 }
@@ -877,10 +867,8 @@ double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
 template<>
 double ElementSizeCalculator<2,9>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
-
-    const double average_element_size = ElementSizeCalculator<2,4>::AverageElementSize(rGeometry);
-
-    return average_element_size;
+    // this is to compensate for the missing 2.0 in the geometry length computation.
+    return rGeometry.Length() * 2.0;
 }
 
 template<>
@@ -889,14 +877,29 @@ double ElementSizeCalculator<2,9>::AverageElementSizeDerivative(
     const unsigned int DerivativeDirectionIndex,
     const Geometry<Node >& rGeometry)
 {
+    Matrix jacobian(2, 2);
+    Matrix shape_function_local_gradients(rGeometry.size(), 2), rdNdXDerivative;
+    double detJ_derivative;
+    ShapeParameter shape_param;
 
-    double element_size_derivative = 0.0;
+    shape_param.NodeIndex = DerivativeNodeIndex;
+    shape_param.Direction = DerivativeDirectionIndex;
 
-    if (DerivativeNodeIndex < 4)
-        element_size_derivative = ElementSizeCalculator<2,4>::AverageElementSizeDerivative(DerivativeNodeIndex,DerivativeDirectionIndex,rGeometry);
+    rGeometry.ShapeFunctionsLocalGradients(shape_function_local_gradients, Point());
+    rGeometry.Jacobian(jacobian, Point());
 
-    return element_size_derivative;
+    GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian, shape_function_local_gradients);
+    geometrical_sensitivity_utility.CalculateSensitivity(shape_param, detJ_derivative, rdNdXDerivative);
 
+    const auto detJ = MathUtils<double>::Det2(jacobian);
+
+    if (detJ > 0.0) {
+        return detJ_derivative / (std::sqrt(detJ));
+    } else if (detJ < 0.0) {
+        return -detJ_derivative / (std::sqrt(-detJ));
+    } else {
+        return 0.0;
+    }
 }
 
 // Tetrahedra3D4 version.

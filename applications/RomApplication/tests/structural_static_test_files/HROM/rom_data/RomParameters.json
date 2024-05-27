@@ -2,22 +2,28 @@
     "rom_manager": false,
     "train_hrom": false,
     "run_hrom": true,
-    "rom_format":"numpy",
+    "rom_format": "numpy",
     "projection_strategy": "galerkin",
-    "train_petrov_galerkin": {
-        "train": false,
-        "basis_strategy": "residuals",
-        "include_phi": false
-    },
     "rom_settings": {
         "nodal_unknowns": [
             "DISPLACEMENT_X",
             "DISPLACEMENT_Y"
         ],
-        "number_of_rom_dofs": 2
+        "number_of_rom_dofs": 2,
+        "rom_bns_settings": {
+            "monotonicity_preserving": false
+        }
     },
     "hrom_settings": {
-        "hrom_format":"numpy"
+        "hrom_format": "numpy",
+        "element_selection_type": "empirical_cubature",
+        "element_selection_svd_truncation_tolerance": 0.0,
+        "create_hrom_visualization_model_part": true,
+        "echo_level": 0,
+        "include_condition_parents": false,
+        "initial_candidate_elements_model_part_list": [],
+        "initial_candidate_conditions_model_part_list": [],
+        "constraint_sum_weights": true
     },
     "nodal_modes": {
         "1": [
@@ -840,5 +846,6 @@
             "22": 47.114266621501415,
             "3": 0.885733378498582
         }
-    }
+    },
+    "assembling_strategy": "global"
 }

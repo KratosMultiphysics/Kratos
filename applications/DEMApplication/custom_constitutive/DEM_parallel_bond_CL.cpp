@@ -33,6 +33,11 @@ void DEM_parallel_bond::TransferParametersToProperties(const Parameters& paramet
     BaseClassType::TransferParametersToProperties(parameters, pProp);
 }
 
+std::string DEM_parallel_bond::GetTypeOfLaw() {
+        std::string type_of_law = "parallel_bond_CL";
+        return type_of_law;
+    }
+
 void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
     
     //two parts: discontinuum part and continuum part
@@ -158,7 +163,6 @@ void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
     }
 } // CHECK()
 
-// TODO: Calculate Contact Area = Calculate Bond area? --> Yes
 void DEM_parallel_bond::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
     KRATOS_TRY
@@ -170,6 +174,7 @@ void DEM_parallel_bond::CalculateContactArea(double radius, double other_radius,
     KRATOS_CATCH("")
 }
 
+//TODO: it seems this function never been called?
 double DEM_parallel_bond::CalculateContactArea(double radius, double other_radius, Vector& v) {
     
     KRATOS_TRY
@@ -188,16 +193,11 @@ double DEM_parallel_bond::CalculateContactArea(double radius, double other_radiu
     KRATOS_CATCH("")
 }
 
-void DEM_parallel_bond::GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
+void DEM_parallel_bond::GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
     
     KRATOS_TRY
 
-    if(vector_of_initial_areas.size()){
-        calculation_area = vector_of_initial_areas[neighbour_position];
-    }
-    else{
-        CalculateContactArea(radius, other_radius, calculation_area);
-    }
+    CalculateContactArea(radius, other_radius, calculation_area);
 
     KRATOS_CATCH("")
 }
@@ -446,10 +446,16 @@ void DEM_parallel_bond::CalculateViscoDampingCoeff(double &equiv_visco_damp_coef
     equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
     equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);
 
-    mUnbondedEquivViscoDampCoeffNormal = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-    mUnbondedEquivViscoDampCoeffTangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
-
     KRATOS_CATCH("")                    
+}
+
+void DEM_parallel_bond::CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
+                                                double UnbondedViscoDampingLocalContactForce[3],
+                                                SphericParticle* const element1,
+                                                SphericParticle* const element2){
+    KRATOS_TRY
+    KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl;
+    KRATOS_CATCH("")
 }
 
 void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
@@ -472,9 +478,7 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
     mBondedViscoDampingLocalContactForce[2] = 0.0;
 
     if (indentation > 0) {
-        mUnbondedViscoDampingLocalContactForce[0] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[0];
-        mUnbondedViscoDampingLocalContactForce[1] = -mUnbondedEquivViscoDampCoeffTangential * LocalRelVel[1];
-        mUnbondedViscoDampingLocalContactForce[2] = -mUnbondedEquivViscoDampCoeffNormal * LocalRelVel[2];
+        CalculateUnbondedViscoDampingForce(LocalRelVel, mUnbondedViscoDampingLocalContactForce, element1, element2);
     }
 
     if (!failure_id) {
@@ -880,27 +884,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
         }
 
-        if(( std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
-            && !(*mpProperties)[IS_UNBREAKABLE]) 
-        { //for tangential 
-            failure_type = 2; // failure in shear
-            contact_sigma = 0.0;
-            contact_tau = 0.0;
-            //If bond break in shear, the normal compressive force should still be there like before
-            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
-            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
-            //LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
-            ElasticLocalRotationalMoment[0] = 0.0;
-            ElasticLocalRotationalMoment[1] = 0.0;
-            ElasticLocalRotationalMoment[2] = 0.0;
-            ViscoLocalRotationalMoment[0] = 0.0;
-            ViscoLocalRotationalMoment[1] = 0.0;
-            ViscoLocalRotationalMoment[2] = 0.0;
-        } 
-        else if (contact_sigma < 0.0  /*break only in tension*/
+        if (contact_sigma < 0.0  /*break only in tension*/
                 && (-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_sigma_max) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
@@ -920,6 +904,26 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             ViscoLocalRotationalMoment[1] = 0.0;
             ViscoLocalRotationalMoment[2] = 0.0;
         }
+        else if(( std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
+            && !(*mpProperties)[IS_UNBREAKABLE]) 
+        { //for tangential 
+            failure_type = 2; // failure in shear
+            contact_sigma = 0.0;
+            contact_tau = 0.0;
+            //If bond break in shear, the normal compressive force should still be there like before
+            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
+            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
+            //LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
+            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
+            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
+            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            ElasticLocalRotationalMoment[0] = 0.0;
+            ElasticLocalRotationalMoment[1] = 0.0;
+            ElasticLocalRotationalMoment[2] = 0.0;
+            ViscoLocalRotationalMoment[0] = 0.0;
+            ViscoLocalRotationalMoment[1] = 0.0;
+            ViscoLocalRotationalMoment[2] = 0.0;
+        } 
     }
 
     KRATOS_CATCH("")    

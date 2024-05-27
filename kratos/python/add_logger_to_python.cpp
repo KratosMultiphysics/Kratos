@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //
@@ -20,9 +20,7 @@
 #include "input_output/file_logger_output.h"
 #include "input_output/logger_table_output.h"
 
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 namespace py = pybind11;
 
@@ -208,5 +206,4 @@ void  AddLoggerToPython(pybind11::module& m) {
     .value("CHECKING", Logger::Category::CHECKING);
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

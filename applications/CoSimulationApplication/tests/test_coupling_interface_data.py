@@ -250,7 +250,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "location"        : "node_non_historical"
         }""")
 
-        with self.assertRaisesRegex(Exception, 'The ModelPart named : "something" was not found either as root-ModelPart or as a flat name. The total input string was "something'):
+        with self.assertRaisesRegex(Exception, 'The ModelPart named : "something" was not found as root-ModelPart. The total input string was "something'):
             CouplingInterfaceData(settings, self.model)
 
     def test_GetHistoricalVariableDict(self):

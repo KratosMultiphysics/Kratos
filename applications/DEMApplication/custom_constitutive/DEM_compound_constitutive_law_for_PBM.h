@@ -34,6 +34,13 @@ public:
         return mCCL.InitializeContact(element1, element2, indentation);
     }
 
+    void CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
+                                                double UnbondedViscoDampingLocalContactForce[3],
+                                                SphericParticle* const element1,
+                                                SphericParticle* const element2) override{
+        return mCCL.CalculateViscoDampingForce(LocalRelVel, UnbondedViscoDampingLocalContactForce, element1, element2);                                            
+    }
+
 private:
 
     UnbondCL mCCL;

@@ -243,12 +243,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Vector& rPlasticStrain
         )
     {
-        array_1d<double, VoigtSize> deviator = ZeroVector(6);
-        array_1d<double, VoigtSize> h_capa = ZeroVector(6);
-        double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> h_capa = ZeroVector(VoigtSize);
+        double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain, I1;
 
         YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
-        const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
         CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
@@ -278,7 +278,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double Denominator
         )
     {
-        rTangent = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
+        noalias(rTangent) = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
     }
 
 

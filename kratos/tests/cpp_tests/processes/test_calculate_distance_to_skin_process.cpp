@@ -20,567 +20,556 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 
-namespace Kratos {
-  namespace Testing {
+namespace Kratos::Testing 
+{
 
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessQuadrilateral2D, KratosCoreFastSuite)
-	{
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
-		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
+KRATOS_TEST_CASE_IN_SUITE(DistanceProcessQuadrilateral2D, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
 
-		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   7,
-			"element_name":     "Element2D3N"
-		})");
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   7,
+        "element_name":     "Element2D3N"
+    })");
 
     Model current_model;
-		ModelPart &surface_part = current_model.CreateModelPart("Volume");
-		surface_part.AddNodalSolutionStepVariable(VELOCITY);
-		surface_part.AddNodalSolutionStepVariable(DISTANCE);
-		surface_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
-		StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
+    ModelPart &surface_part = current_model.CreateModelPart("Volume");
+    surface_part.AddNodalSolutionStepVariable(VELOCITY);
+    surface_part.AddNodalSolutionStepVariable(DISTANCE);
+    surface_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+    StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
 
-		// Generate the skin
+    // Generate the skin
     ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
-		skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
-		skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
-		skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
-		Properties::Pointer p_properties(new Properties(0));
-		skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
-
-		// Compute distance
-		CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
-
-		// GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/surface_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		// gid_io_fluid.InitializeMesh(0.00);
-		// gid_io_fluid.WriteMesh(surface_part.GetMesh());
-		// gid_io_fluid.FinalizeMesh();
-		// gid_io_fluid.InitializeResults(0, surface_part.GetMesh());
-		// gid_io_fluid.WriteNodalResults(DISTANCE, surface_part.Nodes(), 0, 0);
-		// gid_io_fluid.FinalizeResults();
-
-		// GidIO<> gid_io_skin("/home/rzorrilla/Desktop/skin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		// gid_io_skin.InitializeMesh(0.00);
-		// gid_io_skin.WriteMesh(skin_part.GetMesh());
-		// gid_io_skin.FinalizeMesh();
-		// gid_io_skin.InitializeResults(0, skin_part.GetMesh());
-		// gid_io_skin.FinalizeResults();
-
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -0.457143, 1e-6);
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessSquareRing2D, KratosCoreFastSuite)
-	{
-
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
-		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
-
-		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   12,
-			"element_name":     "Element2D3N"
-		})");
-
-    Model current_model;
-		ModelPart &surface_part = current_model.CreateModelPart("Volume");
-		surface_part.AddNodalSolutionStepVariable(VELOCITY);
-		surface_part.AddNodalSolutionStepVariable(DISTANCE);
-		surface_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
-		StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
-
-		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(901, 2.4, 2.4, 0.0);
-		skin_part.CreateNewNode(902, 7.6, 2.4, 0.0);
-		skin_part.CreateNewNode(903, 7.6, 7.6, 0.0);
-		skin_part.CreateNewNode(904, 2.4, 7.6, 0.0);
-		skin_part.CreateNewNode(905, 3.9, 3.9, 0.0);
-		skin_part.CreateNewNode(906, 6.1, 3.9, 0.0);
-		skin_part.CreateNewNode(907, 6.1, 6.1, 0.0);
-		skin_part.CreateNewNode(908, 3.9, 6.1, 0.0);
-		Properties::Pointer p_properties(new Properties(0));
-		skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 905, {{905,906}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 906, {{906,907}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 907, {{907,908}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 908, {{908,905}}, p_properties);
-
-		// Compute distance
-		CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
-
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 0.266667, 1e-6);
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -0.1, 1e-6);
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -0.566667, 1e-6);
-		KRATOS_EXPECT_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  0.733333, 1e-6);
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneDistanceProcess, KratosCoreFastSuite)
-	{
-
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
-		Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
-		Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
-		Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
-		Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
-		Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
-
-		Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
-
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   1,
-			"element_name":     "Element3D4N"
-		})");
-
-                Model current_model;
-		ModelPart &volume_part = current_model.CreateModelPart("Volume");
-		volume_part.AddNodalSolutionStepVariable(VELOCITY);
-		volume_part.AddNodalSolutionStepVariable(DISTANCE);
-		volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
-		StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
-
-		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(901, 0.0, 0.0, 2.0);
-		skin_part.CreateNewNode(902, 10.0, 0.0, 2.0);
-		skin_part.CreateNewNode(903, 10.0, 10.0, 2.0);
-		skin_part.CreateNewNode(904, 0.0, 10.0, 2.0);
-		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
-		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
-
-		// Compute distance
-		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
-
-		for (auto& node : volume_part.Nodes())
-			if (std::abs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
-				auto distance = std::abs(node.Z() - 2.00);
-				KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
-			}
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDistanceProcess, KratosCoreFastSuite)
-	{
-
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
-		Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
-		Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
-		Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
-		Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
-		Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
-
-		Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
-
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   2,
-			"element_name":     "Element3D4N"
-		})");
-
-    Model current_model;
-		ModelPart &volume_part = current_model.CreateModelPart("Volume");
-		volume_part.AddNodalSolutionStepVariable(VELOCITY);
-		volume_part.AddNodalSolutionStepVariable(DISTANCE);
-		volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
-		StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
-
-		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(901, 0.0, 0.0, 5.0);
-		skin_part.CreateNewNode(902, 10.0, 0.0, 5.0);
-		skin_part.CreateNewNode(903, 10.0, 10.0, 5.0);
-		skin_part.CreateNewNode(904, 0.0, 10.0, 5.0);
-		Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
-		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
-
-		// Compute distance
-		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
-
-		for (auto& node : volume_part.Nodes()) {
-			if (node.Id() < 10) {
-				KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), 17.3205, 1e-4);
-			} else {
-				KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), std::abs(node.Z() - 5.00), 1e-6);
-			}
-		}
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeDistanceProcess, KratosCoreFastSuite)
-	{
-
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
-		Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
-		Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
-		Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
-		Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
-		Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
-
-		Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
-
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   10,
-			"element_name":     "Element3D4N"
-		})");
-
-    Model current_model;
-		ModelPart &volume_part = current_model.CreateModelPart("Volume");
-		volume_part.AddNodalSolutionStepVariable(VELOCITY);
-		volume_part.AddNodalSolutionStepVariable(DISTANCE);
-		volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
-		StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
-
-		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
-		skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);
-		skin_part.CreateNewNode(903, 4.0, 6.0, 2.0);
-		skin_part.CreateNewNode(904, 4.0, 4.0, 7.0);
-		Properties::Pointer p_properties(new Properties(0));
-		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
-
-		// Compute distance
-		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
-
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-
-		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-		//gid_io_fluid.InitializeMesh(0.00);
-		//gid_io_fluid.WriteMesh(volume_part.GetMesh());
-		//gid_io_fluid.FinalizeMesh();
-		//gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
-		//gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
-		//gid_io_fluid.FinalizeResults();
-
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
-	{
-
-    Model current_model;
-		ModelPart &volume_part = current_model.CreateModelPart("Volume");
-		volume_part.AddNodalSolutionStepVariable(DISTANCE);
-		volume_part.CreateNewNode(1, 1.00, 1.00, -10.00);
-		volume_part.CreateNewNode(2, 1.00, 1.00, 10.00);
-		volume_part.CreateNewNode(3, 10.00, 0.00, 0.00);
-		volume_part.CreateNewNode(4, 0.00, 0.00, 0.00);
-
-		Properties::Pointer p_properties(new Properties(0));
-		volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
-
-		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(11, 0.0, 0.0, 2.0);
-		skin_part.CreateNewNode(12, 12.0, 0.0, 2.0);
-		skin_part.CreateNewNode(13, 0.0, 12.0, 2.0);
-		skin_part.CreateNewElement("Element3D3N", 1, { 11,12,13 }, p_properties);
-
-		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
-
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 12.00, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), 8.00, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
-
-
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(Tetrahedra5IntersectionDistanceProcess, KratosCoreFastSuite)
-	{
-
-    Model current_model;
-		ModelPart &volume_part = current_model.CreateModelPart("Volume");
-		volume_part.AddNodalSolutionStepVariable(DISTANCE);
-		volume_part.CreateNewNode(1, 2.50, 2.50, 0.00);
-		volume_part.CreateNewNode(2, 2.50, 2.50, 2.50);
-		volume_part.CreateNewNode(3, 2.50, 5.00, 2.50);
-		volume_part.CreateNewNode(4, 5.00, 5.00, 2.50);
-
-		Properties::Pointer p_properties(new Properties(0));
-		volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
-
-		// Generate the skin
-		ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.AddNodalSolutionStepVariable(VELOCITY);
-		skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
-		skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);
-		skin_part.CreateNewNode(903, 4.0, 6.0, 2.0);
-		skin_part.CreateNewNode(904, 4.0, 4.0, 7.0);
-
-		skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
-		skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
-
-		CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
-
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
-		KRATOS_EXPECT_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
-	}
-
-    KRATOS_TEST_CASE_IN_SUITE(DistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
-    {
-        Model current_model;
-
-        // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, -0.5, -0.5, 0.0);
-        Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, -0.5,  0.5, 0.0);
-        Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3,  0.5,  0.5, 0.0);
-        Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4,  0.5, -0.5, 0.0);
-
-        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-        Parameters mesher_parameters(R"(
-        {
-            "number_of_divisions": 7,
-            "element_name": "Element2D3N"
-        })");
-
-        ModelPart& volume_part = current_model.CreateModelPart("Volume");
-        volume_part.AddNodalSolutionStepVariable(DISTANCE);
-        volume_part.AddNodalSolutionStepVariable(TEMPERATURE);
-        StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
-
-        // Generate the cube skin
-        const double cube_radious = 0.25;
-        ModelPart& skin_part = current_model.CreateModelPart("Skin");
-        skin_part.AddNodalSolutionStepVariable(TEMPERATURE);
-        skin_part.CreateNewNode(1, -cube_radious, -cube_radious, 0.0);
-        skin_part.CreateNewNode(2, -cube_radious,  cube_radious, 0.0);
-        skin_part.CreateNewNode(3,  cube_radious,  cube_radious, 0.0);
-        skin_part.CreateNewNode(4,  cube_radious, -cube_radious, 0.0);
-        Properties::Pointer p_properties(new Properties(0));
-        skin_part.CreateNewElement("Element2D2N",  1, {{1,2}}, p_properties);
-        skin_part.CreateNewElement("Element2D2N",  2, {{2,3}}, p_properties);
-        skin_part.CreateNewElement("Element2D2N",  3, {{3,4}}, p_properties);
-        skin_part.CreateNewElement("Element2D2N",  4, {{4,1}}, p_properties);
-
-        // Set the embedded cube double variable
-        for (auto &i_node : skin_part.Nodes()) {
-            i_node.FastGetSolutionStepValue(TEMPERATURE) = 1.0;
-        }
-
-        // Compute the discontinuous distance function
-        CalculateDistanceToSkinProcess<2> dist_proc(volume_part, skin_part);
-        dist_proc.Execute();
-        dist_proc.CalculateEmbeddedVariableFromSkin(TEMPERATURE, TEMPERATURE);
-
-        // Check values
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(TEMPERATURE), 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(TEMPERATURE), 1.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(TEMPERATURE), 1.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(DistanceProcessArrayEmbeddedVariable, KratosCoreFastSuite)
-    {
-        Model current_model;
-
-        // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, -0.5, -0.5, 0.0);
-        Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, -0.5,  0.5, 0.0);
-        Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3,  0.5,  0.5, 0.0);
-        Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4,  0.5, -0.5, 0.0);
-
-        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-        Parameters mesher_parameters(R"(
-        {
-            "number_of_divisions": 7,
-            "element_name": "Element2D3N"
-        })");
-
-        ModelPart& volume_part = current_model.CreateModelPart("Volume");
-        volume_part.AddNodalSolutionStepVariable(DISTANCE);
-        StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
-
-        // Generate the cube skin
-        const double cube_radious = 0.25;
-        ModelPart& skin_part = current_model.CreateModelPart("Skin");
-        skin_part.AddNodalSolutionStepVariable(VELOCITY);
-        skin_part.CreateNewNode(1, -cube_radious, -cube_radious, 0.0);
-        skin_part.CreateNewNode(2, -cube_radious,  cube_radious, 0.0);
-        skin_part.CreateNewNode(3,  cube_radious,  cube_radious, 0.0);
-        skin_part.CreateNewNode(4,  cube_radious, -cube_radious, 0.0);
-        Properties::Pointer p_properties(new Properties(0));
-        skin_part.CreateNewElement("Element2D2N",  1, {{1,2}}, p_properties);
-        skin_part.CreateNewElement("Element2D2N",  2, {{2,3}}, p_properties);
-        skin_part.CreateNewElement("Element2D2N",  3, {{3,4}}, p_properties);
-        skin_part.CreateNewElement("Element2D2N",  4, {{4,1}}, p_properties);
-
-        // Set the embedded cube array variable
-        array_1d<double,3> velocity = ZeroVector(3);
-        velocity[0] = 1.0;
-        velocity[1] = 1.0;
-        for (auto &i_node : skin_part.Nodes()) {
-            i_node.FastGetSolutionStepValue(VELOCITY) = velocity;
-        }
-
-        // Compute the discontinuous distance function
-        CalculateDistanceToSkinProcess<2> dist_proc(volume_part, skin_part);
-        dist_proc.Execute();
-        dist_proc.CalculateEmbeddedVariableFromSkin(VELOCITY, EMBEDDED_VELOCITY);
-
-        // Check values
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
-        KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
-    }
-
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNewVariable2D, KratosCoreFastSuite)
-	{
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
-		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
-
-		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   2,
-			"element_name":     "Element2D3N"
-		})");
-
-    	Model current_model;
-		ModelPart &model_part = current_model.CreateModelPart("Volume");
-		// Declaring new distance variable, using TEMPERATURE
-		model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-		StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
-
-		// Generate the skin
-    	ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
-		skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
-		skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
-		skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
-		Properties::Pointer p_properties(new Properties(0));
-		skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
-
-
-		// Compute distance
-        Parameters parameters = Parameters(R"(
-        {
-            "distance_variable"                                     : "TEMPERATURE",
-            "elemental_distances_variable"                          : "EXTERNAL_FORCES_VECTOR"
-        })" );
-		CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
-		// check new variable
-		KRATOS_EXPECT_TRUE(model_part.pGetNode(1)->SolutionStepsDataHas(TEMPERATURE));
-		// check default is not defined
-		KRATOS_EXPECT_TRUE(!model_part.pGetNode(1)->SolutionStepsDataHas(DISTANCE));
-		// check new variable
-		KRATOS_EXPECT_TRUE(model_part.pGetElement(1)->Has(EXTERNAL_FORCES_VECTOR));
-		// check default is not defined
-		KRATOS_EXPECT_TRUE(!model_part.pGetElement(1)->Has(ELEMENTAL_DISTANCES));
-		KRATOS_EXPECT_NEAR((model_part.pGetNode(2))->FastGetSolutionStepValue(TEMPERATURE), 2.4, 1e-6);
-		KRATOS_EXPECT_NEAR((model_part.pGetNode(4))->FastGetSolutionStepValue(TEMPERATURE), 3.4, 1e-6);
-		KRATOS_EXPECT_NEAR((model_part.pGetNode(5))->FastGetSolutionStepValue(TEMPERATURE), -1.6, 1e-6);
-	}
-
-	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNonHistorical2D, KratosCoreFastSuite)
-	{
-		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
-		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
-		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
-		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
-
-		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
-
-		Parameters mesher_parameters(R"(
-		{
-			"number_of_divisions":   2,
-			"element_name":     "Element2D3N"
-		})");
-
-    	Model current_model;
-		ModelPart &model_part = current_model.CreateModelPart("Volume");
-		StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
-
-		// Generate the skin
-    	ModelPart &skin_part = current_model.CreateModelPart("Skin");
-		skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
-		skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
-		skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
-		skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
-		Properties::Pointer p_properties(new Properties(0));
-		skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
-		skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
-
-		// Compute distance
-        Parameters parameters = Parameters(R"(
-        {
-			"distance_database" : "nodal_non_historical"
-        })" );
-		CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
-
-		// Check values in non-historical database
-		KRATOS_EXPECT_NEAR((model_part.pGetNode(2))->GetValue(DISTANCE), 2.4, 1e-6);
-		KRATOS_EXPECT_NEAR((model_part.pGetNode(4))->GetValue(DISTANCE), 3.4, 1e-6);
-		KRATOS_EXPECT_NEAR((model_part.pGetNode(5))->GetValue(DISTANCE), -1.6, 1e-6);
-	}
-
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
+    skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
+    skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
+    skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
+
+    // Compute distance
+    CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
+
+    // GidIO<> gid_io_fluid("/home/rzorrilla/Desktop/surface_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // gid_io_fluid.InitializeMesh(0.00);
+    // gid_io_fluid.WriteMesh(surface_part.GetMesh());
+    // gid_io_fluid.FinalizeMesh();
+    // gid_io_fluid.InitializeResults(0, surface_part.GetMesh());
+    // gid_io_fluid.WriteNodalResults(DISTANCE, surface_part.Nodes(), 0, 0);
+    // gid_io_fluid.FinalizeResults();
+
+    // GidIO<> gid_io_skin("/home/rzorrilla/Desktop/skin_mesh", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // gid_io_skin.InitializeMesh(0.00);
+    // gid_io_skin.WriteMesh(skin_part.GetMesh());
+    // gid_io_skin.FinalizeMesh();
+    // gid_io_skin.InitializeResults(0, skin_part.GetMesh());
+    // gid_io_skin.FinalizeResults();
+
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -0.457143, 1e-6);
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  0.542857, 1e-6);
 }
-}  // namespace Kratos.
+
+KRATOS_TEST_CASE_IN_SUITE(DistanceProcessSquareRing2D, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
+
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   12,
+        "element_name":     "Element2D3N"
+    })");
+
+    Model current_model;
+    ModelPart &surface_part = current_model.CreateModelPart("Volume");
+    surface_part.AddNodalSolutionStepVariable(VELOCITY);
+    surface_part.AddNodalSolutionStepVariable(DISTANCE);
+    surface_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+    StructuredMeshGeneratorProcess(geometry, surface_part, mesher_parameters).Execute();
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(901, 2.4, 2.4, 0.0);
+    skin_part.CreateNewNode(902, 7.6, 2.4, 0.0);
+    skin_part.CreateNewNode(903, 7.6, 7.6, 0.0);
+    skin_part.CreateNewNode(904, 2.4, 7.6, 0.0);
+    skin_part.CreateNewNode(905, 3.9, 3.9, 0.0);
+    skin_part.CreateNewNode(906, 6.1, 3.9, 0.0);
+    skin_part.CreateNewNode(907, 6.1, 6.1, 0.0);
+    skin_part.CreateNewNode(908, 3.9, 6.1, 0.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 905, {{905,906}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 906, {{906,907}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 907, {{907,908}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 908, {{908,905}}, p_properties);
+
+    // Compute distance
+    CalculateDistanceToSkinProcess<2>(surface_part, skin_part).Execute();
+
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 0.266667, 1e-6);
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -0.1, 1e-6);
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -0.566667, 1e-6);
+    KRATOS_EXPECT_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  0.733333, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneDistanceProcess, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
+    Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
+    Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
+    Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
+    Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
+    Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
+
+    Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   1,
+        "element_name":     "Element3D4N"
+    })");
+
+    Model current_model;
+    ModelPart &volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(VELOCITY);
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+    StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(901, 0.0, 0.0, 2.0);
+    skin_part.CreateNewNode(902, 10.0, 0.0, 2.0);
+    skin_part.CreateNewNode(903, 10.0, 10.0, 2.0);
+    skin_part.CreateNewNode(904, 0.0, 10.0, 2.0);
+    Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
+    skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
+
+    // Compute distance
+    CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
+
+    for (auto& node : volume_part.Nodes())
+        if (std::abs(node.GetSolutionStepValue(DISTANCE)) < 1.00e16) { // There are no propagation in this version so I avoid numeric_limit::max() one
+            auto distance = std::abs(node.Z() - 2.00);
+            KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), distance, 1e-6);
+        }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDistanceProcess, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
+    Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
+    Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
+    Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
+    Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
+    Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
+
+    Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   2,
+        "element_name":     "Element3D4N"
+    })");
+
+    Model current_model;
+    ModelPart &volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(VELOCITY);
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+    StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(901, 0.0, 0.0, 5.0);
+    skin_part.CreateNewNode(902, 10.0, 0.0, 5.0);
+    skin_part.CreateNewNode(903, 10.0, 10.0, 5.0);
+    skin_part.CreateNewNode(904, 0.0, 10.0, 5.0);
+    Properties::Pointer p_properties = skin_part.CreateNewProperties(0);
+    skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 902, { 901,903,904 }, p_properties);
+
+    // Compute distance
+    CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
+
+    for (auto& node : volume_part.Nodes()) {
+        if (node.Id() < 10) {
+            KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), 17.3205, 1e-4);
+        } else {
+            KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), std::abs(node.Z() - 5.00), 1e-6);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeDistanceProcess, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
+    Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
+    Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
+    Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
+    Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
+    Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
+
+    Hexahedra3D8<Node> geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   10,
+        "element_name":     "Element3D4N"
+    })");
+
+    Model current_model;
+    ModelPart &volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(VELOCITY);
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+    StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
+    skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);
+    skin_part.CreateNewNode(903, 4.0, 6.0, 2.0);
+    skin_part.CreateNewNode(904, 4.0, 4.0, 7.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
+
+    // Compute distance
+    CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
+
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.414213, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+
+    //GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    //gid_io_fluid.InitializeMesh(0.00);
+    //gid_io_fluid.WriteMesh(volume_part.GetMesh());
+    //gid_io_fluid.FinalizeMesh();
+    //gid_io_fluid.InitializeResults(0, volume_part.GetMesh());
+    //gid_io_fluid.WriteNodalResults(DISTANCE, volume_part.Nodes(), 0, 0);
+    //gid_io_fluid.FinalizeResults();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart &volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    volume_part.CreateNewNode(1, 1.00, 1.00, -10.00);
+    volume_part.CreateNewNode(2, 1.00, 1.00, 10.00);
+    volume_part.CreateNewNode(3, 10.00, 0.00, 0.00);
+    volume_part.CreateNewNode(4, 0.00, 0.00, 0.00);
+
+    Properties::Pointer p_properties(new Properties(0));
+    volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(11, 0.0, 0.0, 2.0);
+    skin_part.CreateNewNode(12, 12.0, 0.0, 2.0);
+    skin_part.CreateNewNode(13, 0.0, 12.0, 2.0);
+    skin_part.CreateNewElement("Element3D3N", 1, { 11,12,13 }, p_properties);
+
+    CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
+
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 12.00, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), 8.00, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 2.00, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Tetrahedra5IntersectionDistanceProcess, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart &volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    volume_part.CreateNewNode(1, 2.50, 2.50, 0.00);
+    volume_part.CreateNewNode(2, 2.50, 2.50, 2.50);
+    volume_part.CreateNewNode(3, 2.50, 5.00, 2.50);
+    volume_part.CreateNewNode(4, 5.00, 5.00, 2.50);
+
+    Properties::Pointer p_properties(new Properties(0));
+    volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
+    skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);
+    skin_part.CreateNewNode(903, 4.0, 6.0, 2.0);
+    skin_part.CreateNewNode(904, 4.0, 4.0, 7.0);
+
+    skin_part.CreateNewElement("Element3D3N", 901, { 901,902,903 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 902, { 901,904,903 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 903, { 902,903,904 }, p_properties);
+    skin_part.CreateNewElement("Element3D3N", 904, { 901,902,904 }, p_properties);
+
+    CalculateDistanceToSkinProcess<3>(volume_part, skin_part).Execute();
+
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(1).GetSolutionStepValue(DISTANCE), 2.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(2).GetSolutionStepValue(DISTANCE), -0.132068, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
+{
+    Model current_model;
+
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, -0.5, -0.5, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, -0.5,  0.5, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3,  0.5,  0.5, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4,  0.5, -0.5, 0.0);
+
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions": 7,
+        "element_name": "Element2D3N"
+    })");
+
+    ModelPart& volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    volume_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+    // Generate the cube skin
+    const double cube_radious = 0.25;
+    ModelPart& skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    skin_part.CreateNewNode(1, -cube_radious, -cube_radious, 0.0);
+    skin_part.CreateNewNode(2, -cube_radious,  cube_radious, 0.0);
+    skin_part.CreateNewNode(3,  cube_radious,  cube_radious, 0.0);
+    skin_part.CreateNewNode(4,  cube_radious, -cube_radious, 0.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element2D2N",  1, {{1,2}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N",  2, {{2,3}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N",  3, {{3,4}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N",  4, {{4,1}}, p_properties);
+
+    // Set the embedded cube double variable
+    for (auto &i_node : skin_part.Nodes()) {
+        i_node.FastGetSolutionStepValue(TEMPERATURE) = 1.0;
+    }
+
+    // Compute the discontinuous distance function
+    CalculateDistanceToSkinProcess<2> dist_proc(volume_part, skin_part);
+    dist_proc.Execute();
+    dist_proc.CalculateEmbeddedVariableFromSkin(TEMPERATURE, TEMPERATURE);
+
+    // Check values
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(TEMPERATURE), 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(TEMPERATURE), 1.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(TEMPERATURE), 1.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DistanceProcessArrayEmbeddedVariable, KratosCoreFastSuite)
+{
+    Model current_model;
+
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, -0.5, -0.5, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, -0.5,  0.5, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3,  0.5,  0.5, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4,  0.5, -0.5, 0.0);
+
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions": 7,
+        "element_name": "Element2D3N"
+    })");
+
+    ModelPart& volume_part = current_model.CreateModelPart("Volume");
+    volume_part.AddNodalSolutionStepVariable(DISTANCE);
+    StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+    // Generate the cube skin
+    const double cube_radious = 0.25;
+    ModelPart& skin_part = current_model.CreateModelPart("Skin");
+    skin_part.AddNodalSolutionStepVariable(VELOCITY);
+    skin_part.CreateNewNode(1, -cube_radious, -cube_radious, 0.0);
+    skin_part.CreateNewNode(2, -cube_radious,  cube_radious, 0.0);
+    skin_part.CreateNewNode(3,  cube_radious,  cube_radious, 0.0);
+    skin_part.CreateNewNode(4,  cube_radious, -cube_radious, 0.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element2D2N",  1, {{1,2}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N",  2, {{2,3}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N",  3, {{3,4}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N",  4, {{4,1}}, p_properties);
+
+    // Set the embedded cube array variable
+    array_1d<double,3> velocity = ZeroVector(3);
+    velocity[0] = 1.0;
+    velocity[1] = 1.0;
+    for (auto &i_node : skin_part.Nodes()) {
+        i_node.FastGetSolutionStepValue(VELOCITY) = velocity;
+    }
+
+    // Compute the discontinuous distance function
+    CalculateDistanceToSkinProcess<2> dist_proc(volume_part, skin_part);
+    dist_proc.Execute();
+    dist_proc.CalculateEmbeddedVariableFromSkin(VELOCITY, EMBEDDED_VELOCITY);
+
+    // Check values
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
+    KRATOS_EXPECT_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNewVariable2D, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
+
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   2,
+        "element_name":     "Element2D3N"
+    })");
+
+    Model current_model;
+    ModelPart &model_part = current_model.CreateModelPart("Volume");
+    // Declaring new distance variable, using TEMPERATURE
+    model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
+    skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
+    skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
+    skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
+
+    // Compute distance
+    Parameters parameters = Parameters(R"(
+    {
+        "distance_variable"                                     : "TEMPERATURE",
+        "elemental_distances_variable"                          : "EXTERNAL_FORCES_VECTOR"
+    })" );
+    CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
+    // check new variable
+    KRATOS_EXPECT_TRUE(model_part.pGetNode(1)->SolutionStepsDataHas(TEMPERATURE));
+    // check default is not defined
+    KRATOS_EXPECT_TRUE(!model_part.pGetNode(1)->SolutionStepsDataHas(DISTANCE));
+    // check new variable
+    KRATOS_EXPECT_TRUE(model_part.pGetElement(1)->Has(EXTERNAL_FORCES_VECTOR));
+    // check default is not defined
+    KRATOS_EXPECT_TRUE(!model_part.pGetElement(1)->Has(ELEMENTAL_DISTANCES));
+    KRATOS_EXPECT_NEAR((model_part.pGetNode(2))->FastGetSolutionStepValue(TEMPERATURE), 2.4, 1e-6);
+    KRATOS_EXPECT_NEAR((model_part.pGetNode(4))->FastGetSolutionStepValue(TEMPERATURE), 3.4, 1e-6);
+    KRATOS_EXPECT_NEAR((model_part.pGetNode(5))->FastGetSolutionStepValue(TEMPERATURE), -1.6, 1e-6);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DistanceProcessNonHistorical2D, KratosCoreFastSuite)
+{
+    // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
+
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":   2,
+        "element_name":     "Element2D3N"
+    })");
+
+    Model current_model;
+    ModelPart &model_part = current_model.CreateModelPart("Volume");
+    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+
+    // Generate the skin
+    ModelPart &skin_part = current_model.CreateModelPart("Skin");
+    skin_part.CreateNewNode(901, 2.4, 3.4, 0.0);
+    skin_part.CreateNewNode(902, 7.6, 3.4, 0.0);
+    skin_part.CreateNewNode(903, 7.6, 6.6, 0.0);
+    skin_part.CreateNewNode(904, 2.4, 6.6, 0.0);
+    Properties::Pointer p_properties(new Properties(0));
+    skin_part.CreateNewElement("Element2D2N", 901, {{901,902}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 902, {{902,903}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 903, {{903,904}}, p_properties);
+    skin_part.CreateNewElement("Element2D2N", 904, {{904,901}}, p_properties);
+
+    // Compute distance
+    Parameters parameters = Parameters(R"(
+    {
+        "distance_database" : "nodal_non_historical"
+    })" );
+    CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
+
+    // Check values in non-historical database
+    KRATOS_EXPECT_NEAR((model_part.pGetNode(2))->GetValue(DISTANCE), 2.4, 1e-6);
+    KRATOS_EXPECT_NEAR((model_part.pGetNode(4))->GetValue(DISTANCE), 3.4, 1e-6);
+    KRATOS_EXPECT_NEAR((model_part.pGetNode(5))->GetValue(DISTANCE), -1.6, 1e-6);
+}
+
+}  // namespace Kratos::Testing.

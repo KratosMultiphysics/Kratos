@@ -23,11 +23,17 @@
 namespace Kratos
 {
 
-StlIO::StlIO(std::filesystem::path const& Filename, Parameters ThisParameters):
-    mParameters(ThisParameters)
+StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
+    : mParameters(ThisParameters)
 {
     mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     Kratos::shared_ptr<std::fstream> p_file = Kratos::make_shared<std::fstream>();
+
+    // Check if the file extension is .stl, if not add it
+    std::filesystem::path filePath = rFilename;
+    if(filePath.extension() != ".stl") {
+        filePath += ".stl";
+    }
 
     // set default mode to read
     std::fstream::openmode open_mode;
@@ -44,9 +50,16 @@ StlIO::StlIO(std::filesystem::path const& Filename, Parameters ThisParameters):
         KRATOS_ERROR << "Unsupported open mode: " << open_mode_str << std::endl;
     }
 
-    p_file->open(Filename.c_str(), open_mode);
+    p_file->open(filePath.c_str(), open_mode);
 
-    KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << Filename << std::endl;
+    // Checking read/write status
+    if (open_mode_str == "write") {
+        KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not create the output file  : " << filePath << std::endl;
+    } else if (open_mode_str == "append") {
+        KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the output file  : " << filePath << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << filePath << std::endl;
+    }
 
     // Store the pointer as a regular std::iostream
     mpInputStream = p_file;
@@ -65,12 +78,12 @@ StlIO::StlIO(
 Parameters StlIO::GetDefaultParameters()
 {
     return Parameters(R"({
-        "open_mode" : "read",
+        "open_mode"       : "read",
         "new_entity_type" : "geometry"
     })" );
 }
 
-void StlIO::ReadModelPart(ModelPart & rThisModelPart)
+void StlIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     if(!rThisModelPart.RecursivelyHasProperties(0)) {
         rThisModelPart.CreateNewProperties(0);
@@ -117,25 +130,62 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
     }
 }
 
-
-void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
+void StlIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
-    // write the solid block
-    (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
-    WriteEntityBlock(rThisModelPart.Elements());
-    WriteEntityBlock(rThisModelPart.Conditions());
-    WriteGeometryBlock(rThisModelPart.Geometries());
-    (*mpInputStream) << "endsolid\n";
+    // Get data communicator
+    const auto& r_data_communicator = rThisModelPart.GetCommunicator().GetDataCommunicator();
+
+    // If rank is not zeo we remove the stream to avoid conflict
+    if (r_data_communicator.Rank() != 0) {
+        mpInputStream = nullptr;
+    }
+    r_data_communicator.Barrier();
+
+    /* Write the solid block */
+    // Write header of the file
+    if (r_data_communicator.Rank() == 0) {
+        (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
+    }
+
+    // Depending on MPI/serial
+    if (r_data_communicator.IsDistributed()) { // MPI
+        // Write the elements blocks
+        WriteEntityBlockMPI(rThisModelPart.Elements(), r_data_communicator);
+        
+        // Write the conditions blocks
+        WriteEntityBlockMPI(rThisModelPart.Conditions(), r_data_communicator);
+        
+        // Write the geometries blocks
+        WriteGeometryBlockMPI(rThisModelPart.Geometries(), r_data_communicator);
+    } else { // Serial
+        // Write the elements blocks
+        WriteEntityBlock(rThisModelPart.Elements());
+        
+        // Write the conditions blocks
+        WriteEntityBlock(rThisModelPart.Conditions());
+        
+        // Write the geometries blocks
+        WriteGeometryBlock(rThisModelPart.Geometries());
+    }
+    
+    // Write footer of the file
+    if (r_data_communicator.Rank() == 0) {
+        (*mpInputStream) << "endsolid\n";
+    }
 }
 
 template<class TContainerType>
 void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
 {
+    // Retrieve reference of the stream
+    auto& r_stream = *mpInputStream;
+
+    // Write facets
     std::size_t num_degenerate_geometries = 0;
-    for (auto & r_entity : rThisEntities) {
-        const auto & r_geometry = r_entity.GetGeometry();
+    for (auto& r_entity : rThisEntities) {
+        const auto& r_geometry = r_entity.GetGeometry();
         if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
-            WriteFacet(r_geometry);
+            WriteFacet(r_geometry, r_stream);
         }
     }
     KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
@@ -145,10 +195,14 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
 
 void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
 {
+    // Retrieve reference of the stream
+    auto& r_stream = *mpInputStream;
+
+    // Write facets
     std::size_t num_degenerate_geometries = 0;
-    for (auto & r_geometry : rThisGeometries) {
+    for (auto& r_geometry : rThisGeometries) {
         if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
-            WriteFacet(r_geometry);
+            WriteFacet(r_geometry, r_stream);
         }
     }
     KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
@@ -156,20 +210,129 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
 
-
-void StlIO::WriteFacet(const GeometryType& rGeom) 
+template<class TContainerType>
+void StlIO::WriteEntityBlockMPI(
+    const TContainerType& rThisEntities,
+    const DataCommunicator& rDataCommunicator
+    )
 {
-    const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
-    (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
-    (*mpInputStream) << "        outer loop\n";
+    // Current partition stream
+    std::stringstream ss;
+
+    // Write facets
+    std::size_t num_degenerate_geometries = 0;
+    for (auto& r_entity : rThisEntities) {
+        const auto& r_geometry = r_entity.GetGeometry();
+        if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
+            WriteFacet(r_geometry, ss);
+        }
+    }
+
+    // Sum all partitions
+    unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
+    converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
+    
+    KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
+        << "Model part contained " << converted_num_degenerate_geometries
+        << " geometries with area = 0.0, skipping these geometries." << std::endl;
+
+    // Getting number of entities
+    unsigned int number_of_entities = rThisEntities.size();
+    number_of_entities = rDataCommunicator.SumAll(number_of_entities);
+
+    // Retrieve rank and pass to rank 0
+    if (number_of_entities > 0) {
+        const int rank = rDataCommunicator.Rank();
+        const int tag = 0;
+        if (rank == 0) {
+            // Retrieve reference of the stream
+            auto& r_stream = *mpInputStream;
+
+            // Add the corresponding 0 rank string
+            r_stream << ss.str();
+
+            // Now receive from other partitions
+            for (int i = 1; i < rDataCommunicator.Size(); ++i) {
+                std::string recv_string;
+                rDataCommunicator.Recv(recv_string, i, tag);
+                r_stream << recv_string;
+            }
+        } else {
+            // Send the stream to rank 0
+            rDataCommunicator.Send(ss.str(), 0, tag);
+        }
+    }
+}
+
+void StlIO::WriteGeometryBlockMPI(
+    const GeometriesMapType& rThisGeometries,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // Current partition stream
+    std::stringstream ss;
+
+    // Write facets
+    std::size_t num_degenerate_geometries = 0;
+    for (auto& r_geometry : rThisGeometries) {
+        if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
+            WriteFacet(r_geometry, ss);
+        }
+    }
+    
+    // Sum all partitions
+    unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
+    converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
+    
+    KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
+        << "Model part contained " << converted_num_degenerate_geometries
+        << " geometries with area = 0.0, skipping these geometries." << std::endl;
+
+    // Getting number of entities
+    unsigned int number_of_geometries = rThisGeometries.size();
+    number_of_geometries = rDataCommunicator.SumAll(number_of_geometries);
+
+    // Retrieve rank and pass to rank 0
+    if (number_of_geometries > 0) {
+        const int rank = rDataCommunicator.Rank();
+        const int tag = 0;
+        if (rank == 0) {
+            // Retrieve reference of the stream
+            auto& r_stream = *mpInputStream;
+
+            // Add the corresponding 0 rank string
+            r_stream << ss.str();
+
+            // Now receive from other partitions
+            for (int i = 1; i < rDataCommunicator.Size(); ++i) {
+                std::string recv_string;
+                rDataCommunicator.Recv(recv_string, i, tag);
+                r_stream << recv_string;
+            }
+        } else {
+            // Send the stream to rank 0
+            rDataCommunicator.Send(ss.str(), 0, tag);
+        }
+    }
+}
+
+template<class TStreamType>
+void StlIO::WriteFacet(
+    const GeometryType& rGeom,
+    TStreamType& rStream
+    ) 
+{
+    const auto& r_unit_normal = rGeom.UnitNormal(rGeom.Center());
+    rStream << "    facet normal " << r_unit_normal[0] << " " << r_unit_normal[1] << " " << r_unit_normal[2] << "\n";
+    rStream << "        outer loop\n";
 
     for (int i = 0; i < 3; i++) {
         const auto& r_node = rGeom[i];
-        (*mpInputStream) << "           vertex " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << "\n";
+        rStream << "           vertex " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << "\n";
     }
 
-    (*mpInputStream) << "        endloop\n";
-    (*mpInputStream) << "    endfacet\n";
+    rStream << "        endloop\n";
+    rStream << "    endfacet\n";
 }
 
 /// Turn back information as a string.
@@ -188,10 +351,10 @@ void StlIO::PrintData(std::ostream& rOStream) const{
 
 }
 
-
 bool StlIO::IsValidGeometry(
     const Geometry<Node>& rGeometry,
-    std::size_t& rNumDegenerateGeos) const 
+    IndexType& rNumDegenerateGeos
+    ) const 
 {
     // restrict to triangles only for now
     const bool is_triangle = (
@@ -205,8 +368,9 @@ bool StlIO::IsValidGeometry(
 }
 
 void StlIO::ReadSolid(
-    ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
+    ModelPart& rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
 {
     std::string word;
 
@@ -249,8 +413,9 @@ void StlIO::ReadSolid(
 }
 
 void StlIO::ReadFacet(
-    ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
+    ModelPart& rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
 {
     std::string word;
 
@@ -270,7 +435,8 @@ void StlIO::ReadFacet(
 
 void StlIO::ReadLoop(
     ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
 {
     std::string word;
 
@@ -307,6 +473,5 @@ void StlIO::ReadKeyword(std::string const& Keyword)
     *mpInputStream >> word; // Reading keyword
     KRATOS_ERROR_IF(word != Keyword) << "Invalid stl file. Looking for  \"" << Keyword << "\" keyword but \"" << word << "\" were found." << std::endl;
 }
+
 }  // namespace Kratos.
-
-

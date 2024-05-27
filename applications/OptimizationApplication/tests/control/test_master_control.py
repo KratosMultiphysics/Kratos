@@ -93,7 +93,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         container_expression_model_part_names = []
         for container_expression in empty_control_fields.GetContainerExpressions():
             self.assertTrue(isinstance(container_expression, Kratos.Expression.ElementExpression))
-            self.assertEqual(KratosOA.ExpressionUtils.NormInf(container_expression), 0.0)
+            self.assertEqual(Kratos.Expression.Utils.NormInf(container_expression), 0.0)
             container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
@@ -112,7 +112,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         for i, control in enumerate(self.master_control.GetListOfControls()):
             mapped_expression = mapped_gradients.GetContainerExpressions()[i]
             self.assertTrue(IsSameContainerExpression(mapped_expression, control.GetEmptyField()))
-            self.assertEqual(KratosOA.ExpressionUtils.NormInf(mapped_expression), 0.0)
+            self.assertEqual(Kratos.Expression.Utils.NormInf(mapped_expression), 0.0)
 
     def test_Update(self):
         update = self.master_control.GetEmptyField()

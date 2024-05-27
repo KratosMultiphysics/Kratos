@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -79,7 +77,7 @@ protected:
         double BiotModulusInverse;
 
         array_1d<double,TNumNodes> DtPressureVector;
-        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PPMatrix;
     };
 
     // Member Variables
@@ -130,5 +128,3 @@ private:
 }; // class UPwNormalFluxFICCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_NORMAL_FLUX_FIC_CONDITION_H_INCLUDED defined

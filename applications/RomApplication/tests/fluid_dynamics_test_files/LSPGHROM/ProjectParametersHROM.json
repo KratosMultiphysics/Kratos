@@ -1,0 +1,98 @@
+{
+    "analysis_stage": "KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis",
+    "problem_data"     : {
+        "problem_name"  : "couette_flow_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 100.0
+    },
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : []
+    },
+    "solver_settings"  : {
+        "model_part_name"             : "FluidModelPart",
+        "domain_size"                 : 2,
+        "solver_type"                 : "Monolithic",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "couette_flow_testHROM"
+        },
+        "material_import_settings"    : {
+            "materials_filename" : "../../../../FluidDynamicsApplication/tests/CouetteFlowTest/FluidMaterials.json"
+        },
+        "relative_velocity_tolerance" : 1e-6,
+        "absolute_velocity_tolerance" : 1e-8,
+        "relative_pressure_tolerance" : 1e-6,
+        "absolute_pressure_tolerance" : 1e-8,
+        "volume_model_part_name"      : "FluidParts_Fluid",
+        "skin_parts"                  : ["AutomaticInlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Bottom","VelocityConstraints2D_Top"],
+        "time_scheme"                 : "bossak",
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 10.0
+        },
+        "formulation"                 : {
+            "element_type"             : "vms"
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_Bottom"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.AutomaticInlet2D_Inlet",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,false],
+                "value"           : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Outlet2D_Outlet",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,false],
+                "value"           : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.VelocityConstraints2D_Top",
+                "variable_name"   : "VELOCITY",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,false],
+                "value"           : [1.0,0.0,null]
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 0.0,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "auxiliar_process_list"            : [],
+        "json_check_process_list"          : []
+    }
+}

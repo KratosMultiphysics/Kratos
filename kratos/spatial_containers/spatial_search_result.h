@@ -21,10 +21,9 @@
 // Project includes
 #include "includes/define.h"
 
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup Core
 ///@{
 
 ///@name Kratos Classes
@@ -109,13 +108,13 @@ public:
     ///@name Access
     ///@{
 
-    /// Returns the global pointer to the object
-    TPointerType Get() {
+    /// Returns the global pointer to the object (reference as GlobalPointer is a class and therefore we are copying values)
+    TPointerType& Get() {
         return mpObject;
     }
 
-    /// Returns a const global pointer to the object
-    TPointerType const Get() const {
+    /// Returns a const global pointer to the object (reference as GlobalPointer is a class and therefore we are copying values)
+    const TPointerType& Get() const {
         return mpObject;
     }
 
@@ -141,7 +140,7 @@ public:
         return mIsObjectFound;
     }
 
-    /// Getting if the ibject is found
+    /// Getting if the object is found
     void SetIsObjectFound(const bool IsObjectFound) {
         mIsObjectFound = IsObjectFound;
     }

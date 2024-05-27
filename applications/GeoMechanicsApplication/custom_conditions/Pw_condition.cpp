@@ -14,37 +14,32 @@
 
 // Application includes
 #include "custom_conditions/Pw_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer PwCondition<TDim,TNumNodes>::
-    Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
+                                                        NodesArrayType const&   ThisNodes,
+                                                        PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PwCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType NewId,
+                                                        Geometry<GeometricalObject::NodeType>::Pointer pGeom,
+                                                        Properties::Pointer pProperties) const
+{
+    return Condition::Pointer(new PwCondition(NewId, pGeom, pProperties));
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void PwCondition<TDim,TNumNodes>::
-    GetDofList(DofsVectorType& rConditionDofList,
-               const ProcessInfo& rCurrentProcessInfo) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const unsigned int nDof = 1;
-    const unsigned int conditionSize = TNumNodes * nDof;
-    if (rConditionDofList.size() != conditionSize)
-        rConditionDofList.resize( conditionSize );
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rConditionDofList[i] = rGeom[i].pGetDof(WATER_PRESSURE);
-    }
-   
-
-    KRATOS_CATCH( "" )
+    rConditionDofList = GetDofs();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -108,26 +103,10 @@ void PwCondition<TDim, TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void PwCondition<TDim,TNumNodes>::
-    EquationIdVector(EquationIdVectorType& rResult,
-                     const ProcessInfo& rCurrentProcessInfo) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-
-    unsigned int nDof = 1;
-    unsigned int conditionSize = TNumNodes * nDof;
-
-    if (rResult.size() != conditionSize)
-        rResult.resize( conditionSize,false );
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        rResult[i] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-    }
-   
-    KRATOS_CATCH( "" )
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -153,13 +132,20 @@ void PwCondition<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
+{
+    return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template class PwCondition<2,1>;
 template class PwCondition<2,2>;
+template class PwCondition<2,3>;
+template class PwCondition<2,4>;
+template class PwCondition<2,5>;
 template class PwCondition<3,1>;
 template class PwCondition<3,3>;
 template class PwCondition<3,4>;
-
-template class PwCondition<2,3>;
 
 } // Namespace Kratos.
