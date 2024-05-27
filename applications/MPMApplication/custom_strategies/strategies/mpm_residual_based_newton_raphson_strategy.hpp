@@ -319,7 +319,6 @@ public:
 
 
             std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!! "<<"\n";
-            pause();
         }
 
         return is_converged;
