@@ -124,8 +124,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-    static constexpr SizeType StressTensorSize = StressStatePolicy::GetStressTensorSize(TDim);
-
     struct ElementVariables {
         /// Properties variables
         bool   IgnoreUndrained;

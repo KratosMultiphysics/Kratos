@@ -390,6 +390,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& S
     array_1d<Vector, TNumNodes> NodalStressVector;    // List with stresses at each node
     array_1d<Matrix, TNumNodes> NodalStressTensor;
 
+    auto const StressTensorSize = this->GetStressStatePolicy().GetStressTensorSize();
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
         NodalStressVector[iNode].resize(this->GetStressStatePolicy().GetVoigtSize());
         NodalStressTensor[iNode].resize(StressTensorSize, StressTensorSize);
@@ -779,6 +780,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     if (rOutput.size() != NumGPoints) rOutput.resize(NumGPoints);
 
     if (rVariable == CAUCHY_STRESS_TENSOR) {
+        auto const StressTensorSize = this->GetStressStatePolicy().GetStressTensorSize();
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             rOutput[GPoint].resize(StressTensorSize, StressTensorSize, false);
             rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);

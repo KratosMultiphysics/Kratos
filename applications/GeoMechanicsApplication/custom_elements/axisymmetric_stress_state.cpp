@@ -69,4 +69,7 @@ Vector AxisymmetricStressState::CalculateGreenLagrangeStrain(const Matrix& rDefo
 const Vector& AxisymmetricStressState::GetVoigtVector() const { return VoigtVector2D; }
 
 SizeType AxisymmetricStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
+
+SizeType AxisymmetricStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
+
 } // namespace Kratos
