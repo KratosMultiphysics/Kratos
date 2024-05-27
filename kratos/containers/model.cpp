@@ -234,6 +234,16 @@ std::vector<std::string> Model::GetModelPartNames() const
     return model_parts_names;
 }
 
+DataValueContainer& Model::GetDataValueContainer()
+{
+    return mDataValueContainer;
+}
+
+const DataValueContainer& Model::GetDataValueContainer() const
+{
+    return mDataValueContainer;
+}
+
 std::string Model::Info() const
 {
     std::stringstream ss;
@@ -275,9 +285,6 @@ ModelPart* Model::RecursiveSearchByName(const std::string& ModelPartName, ModelP
 
 void Model::save(Serializer& rSerializer) const
 {
-    // Save the base class
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DataValueContainer );
-
     //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
     std::vector<std::string> aux_names;
     aux_names.reserve(mRootModelPartMap.size());
@@ -287,6 +294,7 @@ void Model::save(Serializer& rSerializer) const
     }
 
     rSerializer.save("ModelPartNames", aux_names);
+    rSerializer.save("ModelData", mDataValueContainer);
 
     for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it) {
         rSerializer.save(it->first, (it->second).get());
@@ -295,13 +303,11 @@ void Model::save(Serializer& rSerializer) const
 
 void Model::load(Serializer& rSerializer)
 {
-    // Load the base class
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DataValueContainer );
-
     //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
     std::vector<std::string> aux_names;
 
     rSerializer.load("ModelPartNames", aux_names);
+    rSerializer.load("ModelData", mDataValueContainer);
 
     for(IndexType i=0; i<aux_names.size(); ++i) {
         //NOTE: CreateModelPart CANNOT be used here

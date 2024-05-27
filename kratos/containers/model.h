@@ -56,14 +56,13 @@ namespace Kratos
 * @author Riccardo Rossi
 */
 class KRATOS_API(KRATOS_CORE) Model final
-    : public DataValueContainer
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Definition of the index type
-    typedef ModelPart::IndexType IndexType;
+    using IndexType = ModelPart::IndexType;
 
     /// Pointer definition of Model
     KRATOS_CLASS_POINTER_DEFINITION(Model);
@@ -152,26 +151,89 @@ public:
      */
     std::vector<std::string> GetModelPartNames() const;
 
+   /**
+     * @brief Gets the value associated with a given variable.
+     * @tparam TDataType The data type of the variable.
+     * @param rThisVariable The variable for which the value is to be retrieved.
+     * @return Reference to the value of the provided variable.
+     */
+    template<class TDataType>
+    TDataType& GetValue(const Variable<TDataType>& rThisVariable)
+    {
+        return mDataValueContainer.GetValue(rThisVariable);
+    }
+
+    /**
+     * @brief Gets the value associated with a given variable (const version).
+     * @tparam TDataType The data type of the variable.
+     * @param rThisVariable The variable for which the value is to be retrieved.
+     * @return Const reference to the value of the provided variable.
+     * @todo Make the variable of the constant version consistent with the one of the "classical" one
+     */
+    template<class TDataType> 
+    const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
+    {
+        return mDataValueContainer.GetValue(rThisVariable);
+    }
+
+    /**
+     * @brief Sets the value for a given variable.
+     * @tparam TDataType The data type of the variable.
+     * @param rThisVariable The variable for which the value is to be set.
+     * @param rValue The value to be set for the variable.
+     */
+    template<class TDataType>
+    void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
+    {
+        mDataValueContainer.SetValue(rThisVariable, rValue);
+    }
+
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns the data value container of the model
+     * @details This method is used to access the data value container of the model.
+     * @return The data value container of the model
+     */
+    DataValueContainer& GetDataValueContainer();
+
+    /**
+     * @brief This method returns the data value container of the model
+     * @details This method is used to access the data value container of the model.
+     * @return The data value container of the model
+     */
+    const DataValueContainer& GetDataValueContainer() const;
+
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if the data container has a value associated with a given variable.
+     * @tparam TDataType The data type of the variable.
+     * @param rThisVariable The variable for which the check is to be made.
+     * @return True if the variable has an associated value in the container, otherwise false.
+     */
+    template<class TDataType>
+    bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mDataValueContainer.Has(rThisVariable);
+    }
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    std::string Info() const;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const;
 
     ///@}
     ///@name Friends
@@ -215,7 +277,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
+    /// The map containing the list of model parts
+    std::map<std::string, std::unique_ptr<ModelPart>> mRootModelPartMap;
+
+    /// The data value container of the model
+    DataValueContainer mDataValueContainer;
 
     ///@}
     ///@name Private Operators
@@ -271,8 +337,8 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     ///@}
 
