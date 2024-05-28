@@ -96,9 +96,9 @@ private:
         Component("min_element_volume_ratio", 1.0e-3),
         Component("b_spline_mesh", true),
         Component("knot_vector_type", std::string("open_knot_vector")),
-        Component("lower_bound_uvw", PointType(-1.0, -1.0, -1.0)),
-        Component("upper_bound_uvw", PointType(1.0, 1.0, 1.0)),
-        Component("polynomial_order", Vector3i(2UL, 2UL, 2UL) ),
+        Component("lower_bound_uvw", PointType{-1.0, -1.0, -1.0}),
+        Component("upper_bound_uvw", PointType{1.0, 1.0, 1.0}),
+        Component("polynomial_order", Vector3i{2UL, 2UL, 2UL} ),
         Component("integration_method", IntegrationMethod::Gauss),
         Component("use_customized_trimmed_points", false) };
 

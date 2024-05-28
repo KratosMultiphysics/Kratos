@@ -7,11 +7,11 @@
 //// STL includes
 #include <limits>
 #include <memory>
+#include <array>
 //// Project includes
 #include "includes/logger.hpp"
 #include "includes/exception.hpp"
 #include "includes/timer.hpp"
-#include "containers/vector3.hpp"
 
 namespace queso {
 
@@ -21,10 +21,9 @@ namespace queso {
 typedef std::size_t  SizeType;
 typedef std::size_t  IndexType;
 
-/// Here you can specify the types you want to use:
-typedef Vector3<double> PointType;
-typedef Vector3<double> Vector3d;
-typedef Vector3<IndexType> Vector3i;
+typedef std::array<double,3> PointType;
+typedef std::array<double,3> Vector3d;
+typedef std::array<IndexType,3>  Vector3i;
 typedef std::pair<PointType, PointType> BoundingBoxType;
 
 ///@}
@@ -47,7 +46,9 @@ constexpr double SNAPTOL = 1e-12;
 constexpr double ZEROTOL = 1e-14;
 
 inline double RelativeSnapTolerance(const PointType& rLowerBound, const PointType& rUpperBound, double Tolerance = SNAPTOL){
-    const auto delta = (rUpperBound - rLowerBound);
+    const PointType delta{rUpperBound[0] - rLowerBound[0],
+                          rUpperBound[1] - rLowerBound[1],
+                          rUpperBound[2] - rLowerBound[2]};
     return std::max( std::max(delta[0], std::max(delta[1], delta[2]))*Tolerance, Tolerance);
 }
 
@@ -153,6 +154,12 @@ namespace Ptr {
     }
 } // End namespace Ptr
 
+
+template<typename type>
+std::ostream& operator<<(std::ostream& rOStream, const std::array<type, 3>& rThis)  {
+    rOStream << '(' << rThis[0] << ", " << rThis[1] << ", " << rThis[2] << ')';
+    return rOStream;
+}
 ///@}
 
 } // End namespace queso
