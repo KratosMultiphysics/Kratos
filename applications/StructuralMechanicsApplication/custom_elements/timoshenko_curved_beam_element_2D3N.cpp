@@ -958,12 +958,10 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateAxialStrain(
     const GlobalSizeVector& rNodalValues
     )
 {
-    GlobalSizeVector dNu, N, dN;
+    GlobalSizeVector dNu, dN;
     GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
-    GetShapeFunctionsValues(N, J, xi);
     GetFirstDerivativesShapeFunctionsValues(dN, J, xi);
-    const double k0 = GetGeometryCurvature(J, xi);
-    return inner_prod(dNu - k0 * N, rNodalValues) + 0.5 * std::pow(inner_prod(dNu, rNodalValues), 2) +
+    return inner_prod(dNu, rNodalValues) + 0.5 * std::pow(inner_prod(dNu, rNodalValues), 2) +
         0.5 * std::pow(inner_prod(dN, rNodalValues), 2);
 }
 
@@ -976,13 +974,11 @@ double LinearTimoshenkoCurvedBeamElement2D3N::CalculateShearStrain(
     const GlobalSizeVector& rNodalValues
     )
 {
-    GlobalSizeVector dN, Nu, Ntheta;
+    GlobalSizeVector dN, Ntheta;
     GetFirstDerivativesShapeFunctionsValues(dN, J, xi);
-    GetNu0ShapeFunctionsValues(Nu, xi);
     GetNThetaShapeFunctionsValues(Ntheta, J, xi);
-    const double k0 = GetGeometryCurvature(J, xi);
 
-    return inner_prod(dN + k0 * Nu - Ntheta, rNodalValues);
+    return inner_prod(dN - Ntheta, rNodalValues);
 }
 
 /***********************************************************************************/
