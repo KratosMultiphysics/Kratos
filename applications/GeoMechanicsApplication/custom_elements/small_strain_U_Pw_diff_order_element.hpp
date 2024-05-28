@@ -204,7 +204,6 @@ protected:
         bool ConsiderGeometricStiffness;
 
         // stress/flow variables
-        double PermeabilityUpdateFactor;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;
@@ -238,8 +237,6 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
-
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateDerivativesOnInitialConfiguration(
@@ -258,8 +255,6 @@ protected:
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
-
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
@@ -273,6 +268,7 @@ protected:
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) const;
 
+    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
