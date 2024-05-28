@@ -479,7 +479,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsVal
     rdN[8]=std::pow(J3, 3)*crdN87*(10.0*crdN20*crdN9 + crdN22 - 2160.0*crdN3*crdN49 - crdN32*crdN88 - 12.0*crdN49*crdN9 + crdN58 - crdN69*crdN89 + crdN69*crdN90 + crdN69*crdN91 + crdN80*crdN88 - crdN81*crdN89 - crdN81*crdN90 + crdN81*crdN91 + crdN84 + crdN85 + crdN86);
 
     rdN /= J;
-
 }
 
 /***********************************************************************************/
@@ -491,112 +490,96 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsVa
     const double xi
     )
 {
-    KRATOS_ERROR << "do not enter here" << std::endl;
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
     const double J3 = GetJacobian( 0.0);
 
-    // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J1, -1.0);
-    const double k02 = GetGeometryCurvature(J2,  1.0);
-    const double k03 = GetGeometryCurvature(J3,  0.0);
-
     const double k_s = GetBendingShearStiffnessRatio();
+    rd2N.clear();
 
-    const double crd2N0 = std::pow(k_s, 3);
-    const double crd2N1 = 8640.0*crd2N0;
-    const double crd2N2 = std::pow(J1, 2);
-    const double crd2N3 = std::pow(k_s, 2);
-    const double crd2N4 = 648.0*crd2N3;
-    const double crd2N5 = std::pow(J2, 2);
-    const double crd2N6 = std::pow(J3, 2);
-    const double crd2N7 = crd2N3*crd2N6;
-    const double crd2N8 = 1296.0*crd2N7;
-    const double crd2N9 = 48.0*k_s;
-    const double crd2N10 = crd2N2*crd2N9;
-    const double crd2N11 = crd2N6*k_s;
-    const double crd2N12 = 78.0*crd2N11;
-    const double crd2N13 = crd2N5*crd2N6;
-    const double crd2N14 = crd2N13*crd2N2;
-    const double crd2N15 = 1.0/(-crd2N1 - crd2N10*crd2N5 + crd2N12*crd2N2 + crd2N12*crd2N5 + 4.0*crd2N14 - crd2N2*crd2N4 - crd2N4*crd2N5 + crd2N8);
-    const double crd2N16 = 360.0*crd2N3;
-    const double crd2N17 = 2*crd2N6;
-    const double crd2N18 = 24.0*k_s;
-    const double crd2N19 = crd2N18*crd2N5;
-    const double crd2N20 = 54.0*crd2N11;
-    const double crd2N21 = std::pow(xi, 2);
-    const double crd2N22 = crd2N21*crd2N3;
-    const double crd2N23 = 2160.0*crd2N22;
-    const double crd2N24 = std::pow(xi, 3);
-    const double crd2N25 = 20*crd2N24;
-    const double crd2N26 = 6*xi;
-    const double crd2N27 = 12*crd2N21;
-    const double crd2N28 = crd2N5*k_s;
-    const double crd2N29 = 120.0*crd2N24;
-    const double crd2N30 = crd2N11*crd2N21;
-    const double crd2N31 = 324.0*crd2N30;
-    const double crd2N32 = 144.0*crd2N21;
-    const double crd2N33 = crd2N24*crd2N3;
-    const double crd2N34 = 1440.0*crd2N33;
-    const double crd2N35 = crd2N11*xi;
-    const double crd2N36 = 72.0*crd2N35;
-    const double crd2N37 = crd2N11*crd2N24;
-    const double crd2N38 = 240.0*crd2N37;
-    const double crd2N39 = crd2N34 + crd2N36 - crd2N38;
-    const double crd2N40 = std::pow(J1, 3)*crd2N15*(-crd2N13*crd2N25 + crd2N13*crd2N26 + crd2N13*crd2N27 + crd2N16 - crd2N17*crd2N5 + crd2N19 - crd2N20 - crd2N23 + crd2N28*crd2N29 - crd2N28*crd2N32 + crd2N31 + crd2N39);
-    const double crd2N41 = 1296.0*crd2N3;
-    const double crd2N42 = 8.0*crd2N14;
-    const double crd2N43 = 156.0*crd2N11;
-    const double crd2N44 = crd2N2*crd2N28;
-    const double crd2N45 = 96.0*crd2N44;
-    const double crd2N46 = -17280.0*crd2N0 + 2592.0*crd2N7;
-    const double crd2N47 = 1.0/(-crd2N2*crd2N41 + crd2N2*crd2N43 - crd2N41*crd2N5 + crd2N42 + crd2N43*crd2N5 - crd2N45 + crd2N46);
-    const double crd2N48 = 1656.0*crd2N3;
-    const double crd2N49 = 2376.0*crd2N3;
-    const double crd2N50 = crd2N34*crd2N5;
-    const double crd2N51 = 2880.0*crd2N24*crd2N7;
-    const double crd2N52 = 114.0*crd2N11;
-    const double crd2N53 = crd2N23*crd2N5;
-    const double crd2N54 = 414.0*crd2N11;
-    const double crd2N55 = 6480.0*crd2N22;
-    const double crd2N56 = 4320.0*crd2N33;
-    const double crd2N57 = 8640.0*crd2N7*xi;
-    const double crd2N58 = crd2N14*crd2N29;
-    const double crd2N59 = 360.0*crd2N37;
-    const double crd2N60 = 252.0*crd2N30;
-    const double crd2N61 = 1320.0*crd2N37;
-    const double crd2N62 = 576.0*crd2N35;
-    const double crd2N63 = 60.0*crd2N14*xi;
-    const double crd2N64 = 240.0*crd2N24*crd2N44;
-    const double crd2N65 = 864.0*crd2N35;
-    const double crd2N66 = 1548.0*crd2N30;
-    const double crd2N67 = crd2N14*crd2N21;
-    const double crd2N68 = 16.0*crd2N14 + 576.0*crd2N21*crd2N44 - 192.0*crd2N44 + crd2N46 - 48.0*crd2N67;
-    const double crd2N69 = crd2N2*crd2N6;
-    const double crd2N70 = crd2N2*k_s;
-    const double crd2N71 = std::pow(J2, 3)*crd2N15*(-crd2N16 + crd2N17*crd2N2 - crd2N18*crd2N2 + crd2N20 + crd2N23 - crd2N25*crd2N69 + crd2N26*crd2N69 - crd2N27*crd2N69 + crd2N29*crd2N70 - crd2N31 + crd2N32*crd2N70 + crd2N39);
-    const double crd2N72 = crd2N2*crd2N23;
-    const double crd2N73 = crd2N2*crd2N34;
-    const double crd2N74 = 324.0*crd2N3;
-    const double crd2N75 = 39.0*crd2N11;
-    const double crd2N76 = 1.0/(-4320.0*crd2N0 + 2.0*crd2N14 - crd2N19*crd2N2 - crd2N2*crd2N74 + crd2N2*crd2N75 - crd2N5*crd2N74 + crd2N5*crd2N75 + 648.0*crd2N7);
-    const double crd2N77 = 324.0*xi;
-    const double crd2N78 = crd2N2*crd2N5;
-    const double crd2N79 = 288.0*crd2N21;
-    const double crd2N80 = 300.0*crd2N24;
-    const double crd2N81 = std::pow(J3, 3)*crd2N76*(crd2N10 + 40.0*crd2N24*crd2N78 - crd2N28*crd2N77 + crd2N28*crd2N79 + crd2N28*crd2N80 - 4320.0*crd2N3*xi + crd2N34 - crd2N5*crd2N9 - crd2N70*crd2N77 - crd2N70*crd2N79 + crd2N70*crd2N80 - 24.0*crd2N78*xi);
-    const double crd2N82 = 1008.0*crd2N3;
-    const double crd2N83 = 132.0*crd2N11;
-    rd2N[0]=crd2N40*k01;
-    rd2N[1]=crd2N47*(-crd2N2*crd2N49 + crd2N2*crd2N54 + crd2N2*crd2N55 - crd2N2*crd2N56 + crd2N2*crd2N61 - crd2N2*crd2N65 - crd2N2*crd2N66 - crd2N48*crd2N5 + crd2N5*crd2N52 + crd2N5*crd2N59 + crd2N5*crd2N60 - crd2N5*crd2N62 + crd2N50 + crd2N51 + crd2N53 - crd2N57 + crd2N58 - crd2N63 - crd2N64 + crd2N68);
-    rd2N[2]=-crd2N40;
-    rd2N[3]=crd2N71*k02;
-    rd2N[4]=crd2N47*(-crd2N2*crd2N48 + crd2N2*crd2N52 - crd2N2*crd2N59 + crd2N2*crd2N60 + crd2N2*crd2N62 - crd2N49*crd2N5 + crd2N5*crd2N54 + crd2N5*crd2N55 + crd2N5*crd2N56 - crd2N5*crd2N61 + crd2N5*crd2N65 - crd2N5*crd2N66 - crd2N51 + crd2N57 - crd2N58 + crd2N63 + crd2N64 + crd2N68 + crd2N72 - crd2N73);
-    rd2N[5]=-crd2N71;
-    rd2N[6]=-crd2N81*k03;
-    rd2N[7]=crd2N76*(crd2N1 + crd2N2*crd2N31 + crd2N2*crd2N36 - crd2N2*crd2N38 + crd2N2*crd2N82 - crd2N2*crd2N83 + crd2N31*crd2N5 - crd2N36*crd2N5 + crd2N38*crd2N5 - crd2N42 - crd2N44*crd2N79 + crd2N45 + crd2N5*crd2N82 - crd2N5*crd2N83 - crd2N50 - crd2N53 + 24.0*crd2N67 - crd2N72 + crd2N73 - crd2N8);
-    rd2N[8]=crd2N81;
+	const double crd2N0 = std::pow(J1, 2);
+	const double crd2N1 = std::pow(k_s, 2);
+	const double crd2N2 = 1296.0*crd2N1;
+	const double crd2N3 = std::pow(J2, 2);
+	const double crd2N4 = std::pow(J3, 2);
+	const double crd2N5 = crd2N0*crd2N3;
+	const double crd2N6 = crd2N4*crd2N5;
+	const double crd2N7 = 8.0*crd2N6;
+	const double crd2N8 = crd2N4*k_s;
+	const double crd2N9 = 156.0*crd2N8;
+	const double crd2N10 = crd2N5*k_s;
+	const double crd2N11 = 96.0*crd2N10;
+	const double crd2N12 = std::pow(k_s, 3);
+	const double crd2N13 = crd2N1*crd2N4;
+	const double crd2N14 = -17280.0*crd2N12 + 2592.0*crd2N13;
+	const double crd2N15 = 1.0/(-crd2N0*crd2N2 + crd2N0*crd2N9 - crd2N11 + crd2N14 - crd2N2*crd2N3 + crd2N3*crd2N9 + crd2N7);
+	const double crd2N16 = crd2N1*crd2N3;
+	const double crd2N17 = crd2N0*crd2N1;
+	const double crd2N18 = std::pow(xi, 3);
+	const double crd2N19 = 1440.0*crd2N18;
+	const double crd2N20 = crd2N16*crd2N19;
+	const double crd2N21 = 2880.0*crd2N13*crd2N18;
+	const double crd2N22 = crd2N3*crd2N8;
+	const double crd2N23 = std::pow(xi, 2);
+	const double crd2N24 = 2160.0*crd2N23;
+	const double crd2N25 = crd2N16*crd2N24;
+	const double crd2N26 = crd2N0*crd2N8;
+	const double crd2N27 = 6480.0*crd2N23;
+	const double crd2N28 = 4320.0*crd2N18;
+	const double crd2N29 = 8640.0*crd2N13*xi;
+	const double crd2N30 = 120.0*crd2N18;
+	const double crd2N31 = crd2N30*crd2N6;
+	const double crd2N32 = 360.0*crd2N18;
+	const double crd2N33 = 252.0*crd2N23;
+	const double crd2N34 = 1320.0*crd2N18;
+	const double crd2N35 = 576.0*xi;
+	const double crd2N36 = 60.0*crd2N6*xi;
+	const double crd2N37 = 240.0*crd2N18;
+	const double crd2N38 = crd2N10*crd2N37;
+	const double crd2N39 = 864.0*xi;
+	const double crd2N40 = 1548.0*crd2N23;
+	const double crd2N41 = crd2N23*crd2N6;
+	const double crd2N42 = 576.0*crd2N10*crd2N23 - 192.0*crd2N10 + crd2N14 - 48.0*crd2N41 + 16.0*crd2N6;
+	const double crd2N43 = 8640.0*crd2N12;
+	const double crd2N44 = 1296.0*crd2N13;
+	const double crd2N45 = 48.0*k_s;
+	const double crd2N46 = crd2N0*crd2N45;
+	const double crd2N47 = 1.0/(-648.0*crd2N16 - 648.0*crd2N17 + 78.0*crd2N22 + 78.0*crd2N26 - crd2N3*crd2N46 - crd2N43 + crd2N44 + 4.0*crd2N6);
+	const double crd2N48 = 360.0*crd2N1;
+	const double crd2N49 = 2*crd2N4;
+	const double crd2N50 = 24.0*k_s;
+	const double crd2N51 = crd2N3*crd2N50;
+	const double crd2N52 = 54.0*crd2N8;
+	const double crd2N53 = crd2N1*crd2N24;
+	const double crd2N54 = crd2N3*crd2N4;
+	const double crd2N55 = 20*crd2N18;
+	const double crd2N56 = 6*xi;
+	const double crd2N57 = 12*crd2N23;
+	const double crd2N58 = crd2N3*k_s;
+	const double crd2N59 = 324.0*crd2N23;
+	const double crd2N60 = crd2N59*crd2N8;
+	const double crd2N61 = 144.0*crd2N23;
+	const double crd2N62 = crd2N1*crd2N19;
+	const double crd2N63 = 72.0*xi;
+	const double crd2N64 = -crd2N37*crd2N8 + crd2N62 + crd2N63*crd2N8;
+	const double crd2N65 = crd2N17*crd2N24;
+	const double crd2N66 = crd2N17*crd2N19;
+	const double crd2N67 = crd2N0*crd2N4;
+	const double crd2N68 = crd2N0*k_s;
+	const double crd2N69 = 1.0/(-crd2N0*crd2N51 - 4320.0*crd2N12 + 648.0*crd2N13 - 324.0*crd2N16 - 324.0*crd2N17 + 39.0*crd2N22 + 39.0*crd2N26 + 2.0*crd2N6);
+	const double crd2N70 = 288.0*crd2N23;
+	const double crd2N71 = 324.0*xi;
+	const double crd2N72 = 300.0*crd2N18;
+
+	rd2N[1]=crd2N15*(-1656.0*crd2N16 + crd2N17*crd2N27 - crd2N17*crd2N28 - 2376.0*crd2N17 + crd2N20 + crd2N21 + crd2N22*crd2N32 + crd2N22*crd2N33 - crd2N22*crd2N35 + 114.0*crd2N22 + crd2N25 + crd2N26*crd2N34 - crd2N26*crd2N39 - crd2N26*crd2N40 + 414.0*crd2N26 - crd2N29 + crd2N31 - crd2N36 - crd2N38 + crd2N42);
+	rd2N[2]=-std::pow(J1, 3)*crd2N47*(-crd2N3*crd2N49 + crd2N30*crd2N58 + crd2N48 + crd2N51 - crd2N52 - crd2N53 - crd2N54*crd2N55 + crd2N54*crd2N56 + crd2N54*crd2N57 - crd2N58*crd2N61 + crd2N60 + crd2N64);
+
+	rd2N[4]=crd2N15*(crd2N16*crd2N27 + crd2N16*crd2N28 - 2376.0*crd2N16 - 1656.0*crd2N17 - crd2N21 - crd2N22*crd2N34 + crd2N22*crd2N39 - crd2N22*crd2N40 + 414.0*crd2N22 - crd2N26*crd2N32 + crd2N26*crd2N33 + crd2N26*crd2N35 + 114.0*crd2N26 + crd2N29 - crd2N31 + crd2N36 + crd2N38 + crd2N42 + crd2N65 - crd2N66);
+	rd2N[5]=-std::pow(J2, 3)*crd2N47*(crd2N0*crd2N49 - crd2N0*crd2N50 + crd2N30*crd2N68 - crd2N48 + crd2N52 + crd2N53 - crd2N55*crd2N67 + crd2N56*crd2N67 - crd2N57*crd2N67 - crd2N60 + crd2N61*crd2N68 + crd2N64);
+
+	rd2N[7]=crd2N69*(-crd2N10*crd2N70 + crd2N11 + 1008.0*crd2N16 + 1008.0*crd2N17 - crd2N20 + crd2N22*crd2N37 + crd2N22*crd2N59 - crd2N22*crd2N63 - 132.0*crd2N22 - crd2N25 - crd2N26*crd2N37 + crd2N26*crd2N59 + crd2N26*crd2N63 - 132.0*crd2N26 + 24.0*crd2N41 + crd2N43 - crd2N44 - crd2N65 + crd2N66 - crd2N7);
+	rd2N[8]=std::pow(J3, 3)*crd2N69*(-4320.0*crd2N1*xi + 40.0*crd2N18*crd2N5 - crd2N3*crd2N45 + crd2N46 - 24.0*crd2N5*xi + crd2N58*crd2N70 - crd2N58*crd2N71 + crd2N58*crd2N72 + crd2N62 - crd2N68*crd2N70 - crd2N68*crd2N71 + crd2N68*crd2N72);
 
     rd2N /= std::pow(J, 2);
 }
@@ -610,93 +593,82 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetThirdDerivativesShapeFunctionsVal
     const double xi
     )
 {
-    KRATOS_ERROR << "do not enter here" << std::endl;
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
     const double J3 = GetJacobian( 0.0);
 
-    // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J1, -1.0);
-    const double k02 = GetGeometryCurvature(J2,  1.0);
-    const double k03 = GetGeometryCurvature(J3,  0.0);
-
     const double k_s = GetBendingShearStiffnessRatio();
 
-    const double crd3N0 = std::pow(k_s, 3);
-    const double crd3N1 = std::pow(J1, 2);
-    const double crd3N2 = std::pow(k_s, 2);
-    const double crd3N3 = 648.0*crd3N2;
-    const double crd3N4 = std::pow(J2, 2);
-    const double crd3N5 = std::pow(J3, 2);
-    const double crd3N6 = crd3N2*crd3N5;
-    const double crd3N7 = crd3N1*crd3N4;
-    const double crd3N8 = crd3N7*k_s;
-    const double crd3N9 = crd3N5*k_s;
-    const double crd3N10 = 78.0*crd3N9;
-    const double crd3N11 = crd3N5*crd3N7;
-    const double crd3N12 = 1.0/(-8640.0*crd3N0 + crd3N1*crd3N10 - crd3N1*crd3N3 + crd3N10*crd3N4 + 4.0*crd3N11 - crd3N3*crd3N4 + 1296.0*crd3N6 - 48.0*crd3N8);
-    const double crd3N13 = 6*crd3N5;
-    const double crd3N14 = 4320.0*crd3N2;
-    const double crd3N15 = crd3N14*xi;
-    const double crd3N16 = crd3N4*crd3N5;
-    const double crd3N17 = std::pow(xi, 2);
-    const double crd3N18 = 60*crd3N17;
-    const double crd3N19 = 24*xi;
-    const double crd3N20 = crd3N4*k_s;
-    const double crd3N21 = 360.0*crd3N17;
-    const double crd3N22 = crd3N9*xi;
-    const double crd3N23 = 648.0*crd3N22;
-    const double crd3N24 = 288.0*xi;
-    const double crd3N25 = 72.0*crd3N9;
-    const double crd3N26 = crd3N14*crd3N17;
-    const double crd3N27 = crd3N17*crd3N9;
-    const double crd3N28 = 720.0*crd3N27;
-    const double crd3N29 = crd3N25 + crd3N26 - crd3N28;
-    const double crd3N30 = std::pow(J1, 3)*crd3N12*(crd3N13*crd3N4 - crd3N15 - crd3N16*crd3N18 + crd3N16*crd3N19 + crd3N20*crd3N21 - crd3N20*crd3N24 + crd3N23 + crd3N29);
-    const double crd3N31 = 1296.0*crd3N2;
-    const double crd3N32 = 156.0*crd3N9;
-    const double crd3N33 = 1.0/(-17280.0*crd3N0 - crd3N1*crd3N31 + crd3N1*crd3N32 + 8.0*crd3N11 - crd3N31*crd3N4 + crd3N32*crd3N4 + 2592.0*crd3N6 - 96.0*crd3N8);
-    const double crd3N34 = 8640.0*crd3N6;
-    const double crd3N35 = crd3N15*crd3N4;
-    const double crd3N36 = crd3N26*crd3N4;
-    const double crd3N37 = crd3N17*crd3N34;
-    const double crd3N38 = 12960.0*crd3N2;
-    const double crd3N39 = crd3N1*xi;
-    const double crd3N40 = 576.0*crd3N9;
-    const double crd3N41 = 60.0*crd3N11;
-    const double crd3N42 = 864.0*crd3N9;
-    const double crd3N43 = crd3N17*crd3N38;
-    const double crd3N44 = crd3N11*crd3N21;
-    const double crd3N45 = 504.0*crd3N22;
-    const double crd3N46 = 1080.0*crd3N27;
-    const double crd3N47 = 3960.0*crd3N27;
-    const double crd3N48 = 720.0*crd3N17*crd3N8;
-    const double crd3N49 = 3096.0*crd3N22;
-    const double crd3N50 = crd3N11*xi;
-    const double crd3N51 = -96.0*crd3N50 + 1152.0*crd3N8*xi;
-    const double crd3N52 = crd3N1*crd3N5;
-    const double crd3N53 = crd3N1*k_s;
-    const double crd3N54 = std::pow(J2, 3)*crd3N12*(crd3N1*crd3N13 + crd3N15 - crd3N18*crd3N52 - crd3N19*crd3N52 + crd3N21*crd3N53 - crd3N23 + crd3N24*crd3N53 + crd3N29);
-    const double crd3N55 = crd3N1*crd3N15;
-    const double crd3N56 = crd3N1*crd3N26;
-    const double crd3N57 = 324.0*crd3N2;
-    const double crd3N58 = 24.0*crd3N7;
-    const double crd3N59 = 39.0*crd3N9;
-    const double crd3N60 = 1.0/(-4320.0*crd3N0 - crd3N1*crd3N57 + crd3N1*crd3N59 + 2.0*crd3N11 - crd3N4*crd3N57 + crd3N4*crd3N59 - crd3N58*k_s + 648.0*crd3N6);
-    const double crd3N61 = 324.0*k_s;
-    const double crd3N62 = 576.0*xi;
-    const double crd3N63 = 900.0*crd3N17;
-    const double crd3N64 = std::pow(J3, 3)*crd3N60*(-crd3N1*crd3N61 - crd3N14 + 120.0*crd3N17*crd3N7 + crd3N20*crd3N62 + crd3N20*crd3N63 + crd3N26 - 576.0*crd3N39*k_s - crd3N4*crd3N61 + crd3N53*crd3N63 - crd3N58);
-    rd3N[0]=crd3N30*k01;
-    rd3N[1]=crd3N33*(-crd3N1*crd3N42 - crd3N1*crd3N43 + crd3N1*crd3N47 - crd3N1*crd3N49 - crd3N34 + crd3N35 + crd3N36 + crd3N37 + crd3N38*crd3N39 - crd3N4*crd3N40 + crd3N4*crd3N45 + crd3N4*crd3N46 - crd3N41 + crd3N44 - crd3N48 + crd3N51);
-    rd3N[2]=-crd3N30;
-    rd3N[3]=crd3N54*k02;
-    rd3N[4]=crd3N33*(crd3N1*crd3N40 + crd3N1*crd3N45 - crd3N1*crd3N46 + crd3N34 - crd3N37 + crd3N38*crd3N4*xi + crd3N4*crd3N42 + crd3N4*crd3N43 - crd3N4*crd3N47 - crd3N4*crd3N49 + crd3N41 - crd3N44 + crd3N48 + crd3N51 + crd3N55 - crd3N56);
-    rd3N[5]=-crd3N54;
-    rd3N[6]=-crd3N64*k03;
-    rd3N[7]=crd3N60*(crd3N1*crd3N23 + crd3N1*crd3N25 - crd3N1*crd3N28 + crd3N23*crd3N4 - crd3N25*crd3N4 + crd3N28*crd3N4 - crd3N35 - crd3N36 + 48.0*crd3N50 - crd3N55 + crd3N56 - crd3N62*crd3N8);
-    rd3N[8]=crd3N64;
+    rd3N.clear();
+
+	const double crd3N0 = std::pow(k_s, 3);
+	const double crd3N1 = std::pow(J1, 2);
+	const double crd3N2 = std::pow(k_s, 2);
+	const double crd3N3 = 1296.0*crd3N2;
+	const double crd3N4 = std::pow(J2, 2);
+	const double crd3N5 = std::pow(J3, 2);
+	const double crd3N6 = crd3N2*crd3N5;
+	const double crd3N7 = crd3N1*crd3N4;
+	const double crd3N8 = crd3N7*k_s;
+	const double crd3N9 = crd3N5*k_s;
+	const double crd3N10 = 156.0*crd3N9;
+	const double crd3N11 = crd3N5*crd3N7;
+	const double crd3N12 = 1.0/(-17280.0*crd3N0 + crd3N1*crd3N10 - crd3N1*crd3N3 + crd3N10*crd3N4 + 8.0*crd3N11 - crd3N3*crd3N4 + 2592.0*crd3N6 - 96.0*crd3N8);
+	const double crd3N13 = 8640.0*crd3N6;
+	const double crd3N14 = 4320.0*crd3N2;
+	const double crd3N15 = crd3N14*xi;
+	const double crd3N16 = crd3N15*crd3N4;
+	const double crd3N17 = std::pow(xi, 2);
+	const double crd3N18 = crd3N14*crd3N17;
+	const double crd3N19 = crd3N18*crd3N4;
+	const double crd3N20 = crd3N13*crd3N17;
+	const double crd3N21 = 12960.0*crd3N2;
+	const double crd3N22 = crd3N1*xi;
+	const double crd3N23 = crd3N4*crd3N9;
+	const double crd3N24 = 60.0*crd3N11;
+	const double crd3N25 = crd3N1*crd3N9;
+	const double crd3N26 = crd3N17*crd3N21;
+	const double crd3N27 = 360.0*crd3N17;
+	const double crd3N28 = crd3N11*crd3N27;
+	const double crd3N29 = crd3N23*xi;
+	const double crd3N30 = 1080.0*crd3N17;
+	const double crd3N31 = 3960.0*crd3N17;
+	const double crd3N32 = 720.0*crd3N17;
+	const double crd3N33 = crd3N32*crd3N8;
+	const double crd3N34 = crd3N22*crd3N9;
+	const double crd3N35 = crd3N8*xi;
+	const double crd3N36 = crd3N11*xi;
+	const double crd3N37 = 1152.0*crd3N35 - 96.0*crd3N36;
+	const double crd3N38 = 648.0*crd3N2;
+	const double crd3N39 = 1.0/(-8640.0*crd3N0 - crd3N1*crd3N38 + 4.0*crd3N11 + 78.0*crd3N23 + 78.0*crd3N25 - crd3N38*crd3N4 + 1296.0*crd3N6 - 48.0*crd3N8);
+	const double crd3N40 = 6*crd3N5;
+	const double crd3N41 = crd3N4*crd3N5;
+	const double crd3N42 = 60*crd3N17;
+	const double crd3N43 = crd3N4*k_s;
+	const double crd3N44 = 648.0*crd3N9;
+	const double crd3N45 = crd3N44*xi;
+	const double crd3N46 = crd3N43*xi;
+	const double crd3N47 = 72.0*crd3N9;
+	const double crd3N48 = crd3N18 - crd3N32*crd3N9 + crd3N47;
+	const double crd3N49 = crd3N1*crd3N15;
+	const double crd3N50 = crd3N1*crd3N18;
+	const double crd3N51 = crd3N22*k_s;
+	const double crd3N52 = crd3N1*k_s;
+	const double crd3N53 = 324.0*crd3N2;
+	const double crd3N54 = 24.0*crd3N7;
+	const double crd3N55 = 1.0/(-4320.0*crd3N0 - crd3N1*crd3N53 + 2.0*crd3N11 + 39.0*crd3N23 + 39.0*crd3N25 - crd3N4*crd3N53 - crd3N54*k_s + 648.0*crd3N6);
+	const double crd3N56 = 324.0*k_s;
+	const double crd3N57 = 900.0*crd3N17;
+
+	rd3N[1]=crd3N12*(-crd3N1*crd3N26 - crd3N13 + crd3N16 + crd3N19 + crd3N20 + crd3N21*crd3N22 + crd3N23*crd3N30 - 576.0*crd3N23 - crd3N24 + crd3N25*crd3N31 - 864.0*crd3N25 + crd3N28 + 504.0*crd3N29 - crd3N33 - 3096.0*crd3N34 + crd3N37);
+	rd3N[2]=-std::pow(J1, 3)*crd3N39*(-crd3N15 + crd3N27*crd3N43 + crd3N4*crd3N40 - crd3N41*crd3N42 + 24*crd3N41*xi + crd3N45 - 288.0*crd3N46 + crd3N48);
+
+	rd3N[4]=crd3N12*(crd3N13 - crd3N20 + crd3N21*crd3N4*xi - crd3N23*crd3N31 + 864.0*crd3N23 + crd3N24 - crd3N25*crd3N30 + 576.0*crd3N25 + crd3N26*crd3N4 - crd3N28 - 3096.0*crd3N29 + crd3N33 + 504.0*crd3N34 + crd3N37 + crd3N49 - crd3N50);
+	rd3N[5]=-std::pow(J2, 3)*crd3N39*(crd3N1*crd3N40 - crd3N1*crd3N42*crd3N5 + crd3N15 - 24*crd3N22*crd3N5 + crd3N27*crd3N52 - crd3N45 + crd3N48 + 288.0*crd3N51);
+
+	rd3N[7]=crd3N55*(crd3N1*crd3N47 - crd3N16 - crd3N19 + crd3N22*crd3N44 + crd3N23*crd3N32 - crd3N25*crd3N32 + 648.0*crd3N29 - 576.0*crd3N35 + 48.0*crd3N36 - crd3N4*crd3N47 - crd3N49 + crd3N50);
+	rd3N[8]=std::pow(J3, 3)*crd3N55*(-crd3N1*crd3N56 - crd3N14 + 120.0*crd3N17*crd3N7 + crd3N18 - crd3N4*crd3N56 + crd3N43*crd3N57 + 576.0*crd3N46 - 576.0*crd3N51 + crd3N52*crd3N57 - crd3N54);
 
     rd3N /= std::pow(J, 3);
 }
@@ -710,77 +682,67 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFourthDerivativesShapeFunctionsVa
     const double xi
     )
 {
-    KRATOS_ERROR << "do not enter here" << std::endl;
     // Nodal values of the Jacobian
     const double J1 = GetJacobian(-1.0);
     const double J2 = GetJacobian( 1.0);
     const double J3 = GetJacobian( 0.0);
 
-    // Nodal values of the geometric curvatures
-    const double k01 = GetGeometryCurvature(J1, -1.0);
-    const double k02 = GetGeometryCurvature(J2,  1.0);
-    const double k03 = GetGeometryCurvature(J3,  0.0);
-
     const double k_s = GetBendingShearStiffnessRatio();
 
-    const double crd4N0 = std::pow(k_s, 2);
-    const double crd4N1 = 4320.0*crd4N0;
-    const double crd4N2 = std::pow(J2, 2);
-    const double crd4N3 = std::pow(J3, 2);
-    const double crd4N4 = 24*crd4N3;
-    const double crd4N5 = 288.0*k_s;
-    const double crd4N6 = crd4N3*k_s;
-    const double crd4N7 = 648.0*crd4N6;
-    const double crd4N8 = crd4N2*xi;
-    const double crd4N9 = 120*crd4N3;
-    const double crd4N10 = 720.0*k_s;
-    const double crd4N11 = crd4N0*xi;
-    const double crd4N12 = 8640.0*crd4N11;
-    const double crd4N13 = crd4N6*xi;
-    const double crd4N14 = 1440.0*crd4N13;
-    const double crd4N15 = -crd4N12 + crd4N14;
-    const double crd4N16 = std::pow(k_s, 3);
-    const double crd4N17 = std::pow(J1, 2);
-    const double crd4N18 = 648.0*crd4N0;
-    const double crd4N19 = crd4N0*crd4N3;
-    const double crd4N20 = crd4N17*crd4N2;
-    const double crd4N21 = crd4N20*k_s;
-    const double crd4N22 = 78.0*crd4N6;
-    const double crd4N23 = crd4N20*crd4N3;
-    const double crd4N24 = 1.0/(-8640.0*crd4N16 - crd4N17*crd4N18 + crd4N17*crd4N22 - crd4N18*crd4N2 + 1296.0*crd4N19 + crd4N2*crd4N22 - 48.0*crd4N21 + 4.0*crd4N23);
-    const double crd4N25 = std::pow(J1, 3)*crd4N24*(crd4N1 - crd4N10*crd4N8 + crd4N15 - crd4N2*crd4N4 + crd4N2*crd4N5 - crd4N7 + crd4N8*crd4N9);
-    const double crd4N26 = 1296.0*crd4N0;
-    const double crd4N27 = 156.0*crd4N6;
-    const double crd4N28 = 1.0/(-17280.0*crd4N16 - crd4N17*crd4N26 + crd4N17*crd4N27 + 2592.0*crd4N19 - crd4N2*crd4N26 + crd4N2*crd4N27 - 96.0*crd4N21 + 8.0*crd4N23);
-    const double crd4N29 = crd4N1*crd4N2;
-    const double crd4N30 = 12960.0*crd4N0;
-    const double crd4N31 = 1152.0*crd4N21;
-    const double crd4N32 = crd4N2*crd4N6;
-    const double crd4N33 = crd4N12*crd4N2;
-    const double crd4N34 = 96.0*crd4N23;
-    const double crd4N35 = crd4N17*crd4N6;
-    const double crd4N36 = 25920.0*crd4N11;
-    const double crd4N37 = crd4N6*crd4N8;
-    const double crd4N38 = crd4N13*crd4N17;
-    const double crd4N39 = 17280.0*crd4N19*xi - 1440.0*crd4N21*xi + 720.0*crd4N23*xi;
-    const double crd4N40 = crd4N17*xi;
-    const double crd4N41 = std::pow(J2, 3)*crd4N24*(-crd4N1 - crd4N10*crd4N40 + crd4N15 + crd4N17*crd4N4 - crd4N17*crd4N5 + crd4N40*crd4N9 + crd4N7);
-    const double crd4N42 = -crd4N1*crd4N17 + crd4N12*crd4N17;
-    const double crd4N43 = 576.0*k_s;
-    const double crd4N44 = crd4N2*crd4N43;
-    const double crd4N45 = 1800.0*k_s;
-    const double crd4N46 = 324.0*crd4N0;
-    const double crd4N47 = 1.0/(-4320.0*crd4N16 - crd4N17*crd4N46 + 648.0*crd4N19 - crd4N2*crd4N46 - 24.0*crd4N21 + 2.0*crd4N23 + 39.0*crd4N32 + 39.0*crd4N35);
-    const double crd4N48 = std::pow(J3, 3)*crd4N47*(crd4N12 - crd4N17*crd4N43 + 240.0*crd4N20*xi + crd4N40*crd4N45 + crd4N44 + crd4N45*crd4N8);
-    rd4N[0]=-crd4N25*k01;
-    rd4N[1]=crd4N28*(crd4N17*crd4N30 - crd4N17*crd4N36 + crd4N29 + crd4N31 + 504.0*crd4N32 + crd4N33 - crd4N34 - 3096.0*crd4N35 + 2160.0*crd4N37 + 7920.0*crd4N38 + crd4N39);
-    rd4N[2]=crd4N25;
-    rd4N[3]=-crd4N41*k02;
-    rd4N[4]=-crd4N28*(-crd4N2*crd4N30 - crd4N2*crd4N36 - crd4N31 + 3096.0*crd4N32 + crd4N34 - 504.0*crd4N35 + 7920.0*crd4N37 + 2160.0*crd4N38 + crd4N39 + crd4N42);
-    rd4N[5]=crd4N41;
-    rd4N[6]=-crd4N48*k03;
-    rd4N[7]=crd4N47*(-crd4N14*crd4N17 - crd4N17*crd4N44 + crd4N17*crd4N7 + crd4N2*crd4N7 + 48.0*crd4N23 - crd4N29 - crd4N33 + 1440.0*crd4N37 + crd4N42);
-    rd4N[8]=crd4N48;
+    rd4N.clear();
+
+	const double crd4N0 = std::pow(k_s, 3);
+	const double crd4N1 = std::pow(J1, 2);
+	const double crd4N2 = std::pow(k_s, 2);
+	const double crd4N3 = 1296.0*crd4N2;
+	const double crd4N4 = std::pow(J2, 2);
+	const double crd4N5 = std::pow(J3, 2);
+	const double crd4N6 = crd4N2*crd4N5;
+	const double crd4N7 = crd4N1*crd4N4;
+	const double crd4N8 = crd4N7*k_s;
+	const double crd4N9 = crd4N5*k_s;
+	const double crd4N10 = 156.0*crd4N9;
+	const double crd4N11 = crd4N5*crd4N7;
+	const double crd4N12 = 1.0/(-17280.0*crd4N0 + crd4N1*crd4N10 - crd4N1*crd4N3 + crd4N10*crd4N4 + 8.0*crd4N11 - crd4N3*crd4N4 + 2592.0*crd4N6 - 96.0*crd4N8);
+	const double crd4N13 = 4320.0*crd4N2;
+	const double crd4N14 = crd4N13*crd4N4;
+	const double crd4N15 = crd4N1*crd4N2;
+	const double crd4N16 = 1152.0*crd4N8;
+	const double crd4N17 = crd4N4*crd4N9;
+	const double crd4N18 = crd4N2*crd4N4;
+	const double crd4N19 = 8640.0*xi;
+	const double crd4N20 = crd4N18*crd4N19;
+	const double crd4N21 = 96.0*crd4N11;
+	const double crd4N22 = crd4N1*crd4N9;
+	const double crd4N23 = 25920.0*xi;
+	const double crd4N24 = 2160.0*xi;
+	const double crd4N25 = 7920.0*xi;
+	const double crd4N26 = 1440.0*xi;
+	const double crd4N27 = 720.0*crd4N11*xi - crd4N26*crd4N8 + 17280.0*crd4N6*xi;
+	const double crd4N28 = 24*crd4N5;
+	const double crd4N29 = 288.0*k_s;
+	const double crd4N30 = 648.0*crd4N9;
+	const double crd4N31 = crd4N4*xi;
+	const double crd4N32 = 120*crd4N5;
+	const double crd4N33 = 720.0*k_s;
+	const double crd4N34 = crd4N19*crd4N2;
+	const double crd4N35 = crd4N26*crd4N9 - crd4N34;
+	const double crd4N36 = 1.0/(-8640.0*crd4N0 + 4.0*crd4N11 - 648.0*crd4N15 + 78.0*crd4N17 - 648.0*crd4N18 + 78.0*crd4N22 + 1296.0*crd4N6 - 48.0*crd4N8);
+	const double crd4N37 = -crd4N1*crd4N13 + crd4N15*crd4N19;
+	const double crd4N38 = crd4N1*xi;
+	const double crd4N39 = 1.0/(-4320.0*crd4N0 + 2.0*crd4N11 - 324.0*crd4N15 + 39.0*crd4N17 - 324.0*crd4N18 + 39.0*crd4N22 + 648.0*crd4N6 - 24.0*crd4N8);
+	const double crd4N40 = 576.0*k_s;
+	const double crd4N41 = crd4N4*crd4N40;
+	const double crd4N42 = 1800.0*k_s;
+
+	rd4N[1]=crd4N12*(crd4N14 - crd4N15*crd4N23 + 12960.0*crd4N15 + crd4N16 + crd4N17*crd4N24 + 504.0*crd4N17 + crd4N20 - crd4N21 + crd4N22*crd4N25 - 3096.0*crd4N22 + crd4N27);
+	rd4N[2]=std::pow(J1, 3)*crd4N36*(crd4N13 - crd4N28*crd4N4 + crd4N29*crd4N4 - crd4N30 + crd4N31*crd4N32 - crd4N31*crd4N33 + crd4N35);
+
+	rd4N[4]=-crd4N12*(-crd4N16 + crd4N17*crd4N25 + 3096.0*crd4N17 - crd4N18*crd4N23 - 12960.0*crd4N18 + crd4N21 + crd4N22*crd4N24 - 504.0*crd4N22 + crd4N27 + crd4N37);
+	rd4N[5]=std::pow(J2, 3)*crd4N36*(crd4N1*crd4N28 - crd4N1*crd4N29 - crd4N13 + crd4N30 + crd4N32*crd4N38 - crd4N33*crd4N38 + crd4N35);
+
+	rd4N[7]=crd4N39*(crd4N1*crd4N30 - crd4N1*crd4N41 + 48.0*crd4N11 - crd4N14 + crd4N17*crd4N26 - crd4N20 - crd4N22*crd4N26 + crd4N30*crd4N4 + crd4N37);
+	rd4N[8]=std::pow(J3, 3)*crd4N39*(-crd4N1*crd4N40 + crd4N31*crd4N42 + crd4N34 + crd4N38*crd4N42 + crd4N41 + 240.0*crd4N7*xi);
 
     rd4N /= std::pow(J, 4);
 }
@@ -794,25 +756,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNThetaShapeFunctionsValues(
     const double xi
     )
 {
-
-    rN.clear();
-    rN[2] = 0.5 * xi * (xi - 1.0);
-    rN[5] = 0.5 * xi * (xi + 1.0);
-    rN[8] = 1.0 - std::pow(xi, 2);
-
-
-
-    /*
-    GlobalSizeVector dN, d3N, Nu;
+    GlobalSizeVector dN, d3N;
     GetFirstDerivativesShapeFunctionsValues(dN,  J, xi);
     GetThirdDerivativesShapeFunctionsValues(d3N, J, xi);
-    GetNu0ShapeFunctionsValues(Nu, xi);
 
-    const double k0 = GetGeometryCurvature(J, xi);
     const double k_s = GetBendingShearStiffnessRatio();
-    // v' + ks * v''' + k0 * u
-    noalias(rN) = dN + k_s * d3N + k0 * Nu;
-    */
+    // v' + ks * v'''
+    noalias(rN) = dN + k_s * d3N;
 }
 
 /***********************************************************************************/
@@ -825,56 +775,14 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesNThetaShapeFuncti
     )
 {
 
-    rN.clear();
-    rN[2] = xi - 0.5;
-    rN[5] = xi + 0.5;
-    rN[8] = -2.0 * xi;
-
-    rN /= J;
-
-    // GlobalSizeVector dN_dxi, d2N_dxi2;
-    // GetLocalFirstDerivativesNu0ShapeFunctionsValues (dN_dxi,   xi);
-    // GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
-    // const auto& r_geom = GetGeometry();
-
-    // double dx_dxi = 0.0;
-    // double dy_dxi = 0.0;
-
-    // double d2x_dxi2 = 0.0;
-    // double d2y_dxi2 = 0.0;
-
-    // for (IndexType i = 0; i < NumberOfNodes; ++i) {
-    //     const IndexType u_coord = DoFperNode * i;
-    //     const auto &r_coords_node = r_geom[i].GetInitialPosition();
-    //     dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
-    //     dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
-
-    //     d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
-    //     d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
-    // }
-
-    // dk0_ds = dk0_dxi / J
-    // const double dk0_ds = -3.0 / std::pow(J, 6) * (dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) * (dx_dxi * d2x_dxi2 + dy_dxi * d2y_dxi2);
-
-
-    /*
-    const double eps = 1.0e-8;
-    const double Jpert = GetJacobian(xi + eps);
-    const double dk0_ds = std::pow(J, 2) * (GetGeometryCurvature(J, xi + eps) -  GetGeometryCurvature(J, xi)) / eps;
-
-    GlobalSizeVector d2N, d4N, dNu, Nu;
+    GlobalSizeVector d2N, d4N;
     GetSecondDerivativesShapeFunctionsValues (d2N,  J, xi);
     GetFourthDerivativesShapeFunctionsValues (d4N, J, xi);
-    GetNu0ShapeFunctionsValues(Nu, xi);
-    GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
 
-    const double k0 = GetGeometryCurvature(J, xi);
     const double k_s = GetBendingShearStiffnessRatio();
 
-    // v'' + ks * v'''' + k0 * u' + dk0*u
-    noalias(rN) = d2N + k_s * d4N + k0 * dNu + dk0_ds * Nu;
-
-    */
+    // v'' + ks * v''''
+    noalias(rN) = d2N + k_s * d4N;
 }
 
 /***********************************************************************************/
