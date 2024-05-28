@@ -16,7 +16,6 @@
 #pragma once
 
 /* Project includes */
-#include "geo_mechanics_application_constants.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 
