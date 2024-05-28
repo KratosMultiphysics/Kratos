@@ -21,7 +21,7 @@ struct PointComparison {
     };
 };
 
-bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
+bool IO::WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
                         const char* Filename,
                         const bool Binary){
     std::ofstream file;
@@ -81,7 +81,7 @@ bool IO::WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
     return true;
 }
 
-bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
+bool IO::ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
                          const char* Filename){
 
     // Open file
@@ -92,7 +92,7 @@ bool IO::ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
     }
 }
 
-bool IO::WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
+bool IO::WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
                         const char* Filename,
                         const bool Binary) {
 
@@ -206,7 +206,8 @@ bool IO::WriteDisplacementToVTK(const std::vector<Vector3d>& rDisplacement,
     return true;
 }
 
-bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //PolygonMesh
+template<typename TElementType>
+bool IO::WriteElementsToVTK(const ElementContainer<TElementType>& rElementContainer, //PolygonMesh
                             const char* Filename,
                             const bool Binary){
 
@@ -326,8 +327,8 @@ bool IO::WriteElementsToVTK(const ElementContainer& rElementContainer, //Polygon
     return true;
 }
 
-
-bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
+template<typename TElementType>
+bool IO::WritePointsToVTK(const ElementContainer<TElementType>& rElementContainer,
                           const char* type,
                           const char* Filename,
                           const bool Binary){
@@ -360,7 +361,7 @@ bool IO::WritePointsToVTK(const ElementContainer& rElementContainer,
         const auto& el_ptr = (*(el_it_ptr_begin + i));
         const auto& r_points = el_ptr->GetIntegrationPoints();
         for( const auto& r_point : r_points ){
-            auto point_global = el_ptr->PointFromParamToGlobal(r_point);
+            auto point_global = el_ptr->PointFromParamToGlobal(r_point.data());
 
             if( Binary ){
                 WriteBinary(file, point_global[0]);
@@ -544,7 +545,7 @@ bool IO::STLIsInASCIIFormat(const char* Filename) {
 }
 
 
-bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
+bool IO::ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                 const char* Filename){
     // Open file
     std::ifstream file(Filename);
@@ -618,7 +619,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
 
         // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
         // the given vertices.
-        const PointType normal = TriangleMesh::Normal(vertices[0], vertices[1], vertices[2]);
+        const PointType normal = TriangleMeshInterface::Normal(vertices[0], vertices[1], vertices[2]);
 
         rTriangleMesh.AddNormal( normal );
 
@@ -629,7 +630,7 @@ bool IO::ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
     return rTriangleMesh.Check();
 }
 
-bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
+bool IO::ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
                                 const char* Filename){
 
     // Open file
@@ -716,7 +717,7 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
 
         // Note: STL are often given in single precision. Therefore, we have to compute the normals based on
         // the given vertices.
-        const PointType normal = TriangleMesh::Normal(vertices[0], vertices[1], vertices[2]);
+        const PointType normal = TriangleMeshInterface::Normal(vertices[0], vertices[1], vertices[2]);
 
         rTriangleMesh.AddNormal(normal);
 
@@ -732,6 +733,18 @@ bool IO::ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
     file.close();
     return rTriangleMesh.Check();
 }
+
+//// Explicit function instantiation
+template bool IO::WritePointsToVTK<Element<IntegrationPoint, BoundaryIntegrationPoint>>(
+                const ElementContainer<Element<IntegrationPoint, BoundaryIntegrationPoint>>& rElementContainer,
+                const char* type,
+                const char* Filename,
+                const bool Binary);
+
+template bool IO::WriteElementsToVTK<Element<IntegrationPoint, BoundaryIntegrationPoint>>(
+                const ElementContainer<Element<IntegrationPoint, BoundaryIntegrationPoint>>& rElementContainer,
+                const char* Filename,
+                const bool Binary);
 
 } // End namespace queso
 

@@ -24,33 +24,32 @@ namespace queso {
 class IO{
 
 public:
-
   ///@name Operations
   ///@{
 
-  /// @brief Write TriangleMesh to VTK-File
+  /// @brief Write TriangleMeshInterface to VTK-File
   /// @param rTriangleMesh
   /// @param Filename
   /// @param Binary
   /// @return bool
-  static bool WriteMeshToVTK(const TriangleMesh& rTriangleMesh,
+  static bool WriteMeshToVTK(const TriangleMeshInterface& rTriangleMesh,
                              const char* Filename,
                              const bool Binary);
 
-  /// @brief Write TriangleMesh to STL-File.
+  /// @brief Write TriangleMeshInterface to STL-File.
   /// @param rTriangleMesh
   /// @param Filename
   /// @param Binary
   /// @return bool
-  static bool WriteMeshToSTL(const TriangleMesh& rTriangleMesh,
+  static bool WriteMeshToSTL(const TriangleMeshInterface& rTriangleMesh,
                              const char* Filename,
                              const bool Binary);
 
-  /// @brief Read TriangleMesh from STL.
+  /// @brief Read TriangleMeshInterface from STL.
   /// @param rTriangleMesh
   /// @param Filename
   /// @return bool
-  static bool ReadMeshFromSTL(TriangleMesh& rTriangleMesh,
+  static bool ReadMeshFromSTL(TriangleMeshInterface& rTriangleMesh,
                               const char* Filename);
 
   /// @brief Write displacements to VTK-file. Append exisiting files, that contains vertices.
@@ -62,21 +61,25 @@ public:
                                      const char* Filename,
                                      const bool Binary);
   /// @brief Write element container to VTK-file.
+  /// @tparam TElementType
   /// @param rElementContainer
   /// @param Filename
   /// @param Binary
   /// @return bool
-  static bool WriteElementsToVTK(const ElementContainer& rElementContainer,
+  template<typename TElementType>
+  static bool WriteElementsToVTK(const ElementContainer<TElementType>& rElementContainer,
                                  const char* Filename,
                                  const bool Binary);
 
   /// @brief Write points to VTK. Interface for ElementContainer.
+  /// @tparam TElementType
   /// @param rElementContainer
   /// @param Type
   /// @param Filename
   /// @param Binary
   /// @return bool
-  static bool WritePointsToVTK(const ElementContainer& rElementContainer,
+  template<typename TElementType>
+  static bool WritePointsToVTK(const ElementContainer<TElementType>& rElementContainer,
                                const char* Type,
                                const char* Filename,
                                const bool Binary);
@@ -112,9 +115,9 @@ private:
     stream.write(reinterpret_cast<char*>(&var), sizeof(T));
   }
 
-  static bool ReadMeshFromSTL_Ascii(TriangleMesh& rTriangleMesh,
+  static bool ReadMeshFromSTL_Ascii(TriangleMeshInterface& rTriangleMesh,
                                     const char* Filename);
-  static bool ReadMeshFromSTL_Binary(TriangleMesh& rTriangleMesh,
+  static bool ReadMeshFromSTL_Binary(TriangleMeshInterface& rTriangleMesh,
                                     const char* Filename);
 
   static bool STLIsInASCIIFormat(const char* Filename);
