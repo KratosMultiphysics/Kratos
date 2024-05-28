@@ -248,6 +248,7 @@ private:
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D4N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangianUP2D3N;
+    const MPMUpdatedLagrangian mMPMUpdatedLagrangianUP3D4N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D4N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian3D8N;
     const MPMUpdatedLagrangian mMPMUpdatedLagrangianAxisymmetry2D3N;
