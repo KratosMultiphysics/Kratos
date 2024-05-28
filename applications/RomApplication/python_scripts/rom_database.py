@@ -47,6 +47,12 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
             "HROM": '''CREATE TABLE IF NOT EXISTS HROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
+            "NonconvergedFOM": '''CREATE TABLE IF NOT EXISTS NonconvergedFOM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
+            "NonconvergedROM": '''CREATE TABLE IF NOT EXISTS NonconvergedROM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT,  file_name TEXT)''',
+            "NonconvergedHROM": '''CREATE TABLE IF NOT EXISTS NonconvergedHROM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
             "SingularValues_Solution":'''CREATE TABLE IF NOT EXISTS SingularValues_Solution
@@ -104,6 +110,12 @@ class RomDatabase(object):
         elif table_name == 'ROM':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type,table_name)
         elif table_name == 'HROM':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
+        elif table_name == 'NonconvergedFOM':
+            hash_mu = self.hash_parameters(serialized_mu, table_name)
+        elif table_name == 'NonconvergedROM':
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type,table_name)
+        elif table_name == 'NonconvergedHROM':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         elif table_name == 'ResidualsProjected':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
@@ -182,6 +194,15 @@ class RomDatabase(object):
             cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
                         (serialized_mu, tol_sol, projection_type, file_name))
         elif table_name == 'HROM':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, tol_res, projection_type, file_name))
+        elif table_name == 'NonconvergedFOM':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
+                        (serialized_mu, file_name))
+        elif table_name == 'NonconvergedROM':
+            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
+                        (serialized_mu, tol_sol, projection_type, file_name))
+        elif table_name == 'NonconvergedHROM':
             cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
                         (serialized_mu, tol_sol, tol_res, projection_type, file_name))
         elif table_name == 'ResidualsProjected':

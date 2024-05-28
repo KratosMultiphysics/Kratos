@@ -2,6 +2,7 @@ import numpy as np
 import importlib
 import json
 from pathlib import Path
+import types
 from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 
 import KratosMultiphysics
@@ -293,6 +294,9 @@ class RomManager(object):
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+                NonConvergedSolutionsGathering = True #how to activate this?
+                if NonConvergedSolutionsGathering:
+                    simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
@@ -300,6 +304,9 @@ class RomManager(object):
                         BasisOutputProcess = process
                 SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                 self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
+                if NonConvergedSolutionsGathering:
+                    self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
+
 
 
     def _LauchComputeSolutionBasis(self, mu_train):
@@ -861,6 +868,28 @@ class RomManager(object):
                 pass  # Do nothing special
 
         return DefaultCustomSimulation(global_model, parameters)
+
+
+    def ActivateNonconvergedSolutionsGathering(self, simulation):
+
+        # Patch the RomAnalysis class to save the selected time steps results
+        def Initialize(cls):
+            super(type(simulation), cls).Initialize()
+            #cls._GetSolver()._GetSolutionStrategy().SetUpNonconvergedSolutionsFlag(True) # this assumes the strategy used contains this method
+            cls._GetSolver().solver.SetUpNonconvergedSolutionsFlag(True) # this assumes the strategy used contains this method
+            #we need to modify the geo mechanich newton raphson strategy
+
+        def GetNonconvergedSolutions(cls):
+            #a,_ = cls._GetSolver()._GetSolutionStrategy().GetNonconvergedSolutions()
+            a,_ = cls._GetSolver().solver.GetNonconvergedSolutions()
+            return np.array(a, copy=False)
+
+        simulation.Initialize  = types.MethodType(Initialize, simulation)
+        simulation.GetNonconvergedSolutions  = types.MethodType(GetNonconvergedSolutions, simulation)
+
+        return simulation
+
+
 
 
     def DefaultUpdateProjectParameters(self, parameters, mu=None):
