@@ -11,21 +11,21 @@ namespace queso {
 
 // Static member operations for Mapping
 PointType Mapping::PointFromGlobalToParam( const PointType& rGlobalCoord, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW){
-    const auto delta_xyz = rBoundXYZ.second - rBoundXYZ.first;
-    const auto delta_uvw = rBoundUVW.second - rBoundUVW.first;
+    const auto delta_xyz = Math::Subtract( rBoundXYZ.second, rBoundXYZ.first );
+    const auto delta_uvw = Math::Subtract( rBoundUVW.second, rBoundUVW.first );
 
-    return PointType( ( (rGlobalCoord[0] - rBoundXYZ.first[0]) / std::abs(delta_xyz[0]) * std::abs(delta_uvw[0]) ) + rBoundUVW.first[0],
+    return PointType{ ( (rGlobalCoord[0] - rBoundXYZ.first[0]) / std::abs(delta_xyz[0]) * std::abs(delta_uvw[0]) ) + rBoundUVW.first[0],
                       ( (rGlobalCoord[1] - rBoundXYZ.first[1]) / std::abs(delta_xyz[1]) * std::abs(delta_uvw[1]) ) + rBoundUVW.first[1],
-                      ( (rGlobalCoord[2] - rBoundXYZ.first[2]) / std::abs(delta_xyz[2]) * std::abs(delta_uvw[2]) ) + rBoundUVW.first[2] );
+                      ( (rGlobalCoord[2] - rBoundXYZ.first[2]) / std::abs(delta_xyz[2]) * std::abs(delta_uvw[2]) ) + rBoundUVW.first[2] };
 }
 
 PointType Mapping::PointFromParamToGlobal( const PointType& rLocalCoord, const BoundingBoxType& rBoundXYZ, const BoundingBoxType& rBoundUVW ) {
-    const auto delta_xyz = rBoundXYZ.second - rBoundXYZ.first;
-    const auto delta_uvw = rBoundUVW.second - rBoundUVW.first;
+    const auto delta_xyz = Math::Subtract( rBoundXYZ.second,  rBoundXYZ.first );
+    const auto delta_uvw = Math::Subtract( rBoundUVW.second,  rBoundUVW.first );
 
-    return PointType( ( (rLocalCoord[0] - rBoundUVW.first[0]) / std::abs(delta_uvw[0]) * std::abs(delta_xyz[0]) ) + rBoundXYZ.first[0],
+    return PointType{ ( (rLocalCoord[0] - rBoundUVW.first[0]) / std::abs(delta_uvw[0]) * std::abs(delta_xyz[0]) ) + rBoundXYZ.first[0],
                       ( (rLocalCoord[1] - rBoundUVW.first[1]) / std::abs(delta_uvw[1]) * std::abs(delta_xyz[1]) ) + rBoundXYZ.first[1],
-                      ( (rLocalCoord[2] - rBoundUVW.first[2]) / std::abs(delta_uvw[2]) * std::abs(delta_xyz[2]) ) + rBoundXYZ.first[2] );
+                      ( (rLocalCoord[2] - rBoundUVW.first[2]) / std::abs(delta_uvw[2]) * std::abs(delta_xyz[2]) ) + rBoundXYZ.first[2] };
 }
 
 Vector3i Mapping::GetMatrixIndicesFromVectorIndex(const IndexType Index, const Vector3i& rNumberOfElements) {
@@ -55,18 +55,16 @@ std::pair<PointType, PointType> Mapping::GetBoundingBoxFromIndex(const Vector3i&
 }
 
 std::pair<PointType, PointType> Mapping::GetBoundingBoxFromIndex(IndexType i, IndexType j, IndexType k, const PointType& rLowerBound, const PointType& rUpperBound, const Vector3i& rNumberOfElements)  {
-    const PointType indices_d( static_cast<double>(i), static_cast<double>(j), static_cast<double>(k) );
+    const PointType indices_d{ static_cast<double>(i), static_cast<double>(j), static_cast<double>(k) };
     PointType delta;
     delta[0] = std::abs(rUpperBound[0] - rLowerBound[0]) / (rNumberOfElements[0]);
     delta[1] = std::abs(rUpperBound[1] - rLowerBound[1]) / (rNumberOfElements[1]);
     delta[2] = std::abs(rUpperBound[2] - rLowerBound[2]) / (rNumberOfElements[2]);
-    return std::make_pair( rLowerBound + indices_d * delta,
-                            rLowerBound + (indices_d+1.0) * delta );
+    return std::make_pair( Math::Add( rLowerBound, Math::MultElementWise(delta, indices_d)),
+                           Math::Add( rLowerBound, Math::MultElementWise(delta, Math::Add({1.0, 1.0, 1.0}, indices_d))) );
 }
 
 // Member operations for Mapper
-
-
 Vector3i Mapper::GetMatrixIndicesFromVectorIndex(const IndexType Index ) const {
     return Mapping::GetMatrixIndicesFromVectorIndex(Index, mNumberOfElements);
 }

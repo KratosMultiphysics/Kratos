@@ -22,7 +22,7 @@ class MeshUtilities {
 public:
     ///@name Type Definitions
     ///@{
-    typedef Unique<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
 
     ///@}
     ///@name Public Operations
@@ -32,46 +32,46 @@ public:
     /// @param rTriangleMesh Triangle mesh to refine.
     /// @param MinNumberOfTriangles Minimum number of triangles in final mesh.
     /// @todo May needs improvement, more parameters etc.
-    static void Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTriangles);
+    static void Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles);
 
     /// @brief Appends rTriangleMesh by rNewMesh.
     /// @param rTriangleMesh Mesh to be appended.
     /// @param rNewMesh New mesh to be inserted in rTriangleMesh.
-    static void Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh);
+    static void Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh);
 
     /// @brief Append rTriangleMesh with some triangles in rNewMesh (given by Indices).
     /// @param rTriangleMesh Mesh to be appended.
     /// @param rNewMesh New mesh to be inserted in rTriangleMesh.
     /// @param rIndices Indices of triangles to be copied.
-    static void Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh, const std::vector<IndexType>& rIndices);
+    static void Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh, const std::vector<IndexType>& rIndices);
 
     ///@brief Return meshed cuboid.
     ///@param rLowerPoint
     ///@param rUpperPoint
-    ///@return Unique<TriangleMesh>
+    ///@return Unique<TriangleMeshInterface>
     static TriangleMeshPtrType pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint);
 
     /// @brief Returns surface area of triangle mesh.
     /// @param rTriangleMesh
     /// @return double.
-    static double Area(const TriangleMesh& rTriangleMesh);
+    static double Area(const TriangleMeshInterface& rTriangleMesh);
 
     ///@brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
     ///@param rTriangleMesh
     ///@return double
-    static double Volume(const TriangleMesh& rTriangleMesh);
+    static double Volume(const TriangleMeshInterface& rTriangleMesh);
 
     /// @brief Returns enclosed volume by triangle mesh. Uses divergence theorem to compute volume.
     /// Only applies divergence theorem in direction Dir: 0-x, 1-y, 2-z.
     /// @param rTriangleMesh
     /// @param Dir
     /// @return double
-    static double Volume(const TriangleMesh& rTriangleMesh, IndexType Dir);
+    static double Volume(const TriangleMeshInterface& rTriangleMesh, IndexType Dir);
 
     ///@brief Returns enclosed volume by triangle mesh (OMP-version). Uses divergence theorem to compute volume.
     ///@param rTriangleMesh
     ///@return double
-    static double VolumeOMP(const TriangleMesh& rTriangleMesh);
+    static double VolumeOMP(const TriangleMeshInterface& rTriangleMesh);
 
     ///@brief Returns a quaility measure of triangle mesh. This function computes the volume of the mesh using
     ///       the divergence theorem. It applies the divergence theorem individually in each space direction (volume_1, volume_2, volume_3).
@@ -80,23 +80,23 @@ public:
     ///       The maximum relative errors of volume_1, volume_2, volume_3 and directional_area is returned.
     ///@param rTriangleMesh
     ///@return double maximum error.
-    static double EstimateQuality(const TriangleMesh& rTriangleMesh);
+    static double EstimateQuality(const TriangleMeshInterface& rTriangleMesh);
 
     ///@brief Returns maximum aspect ratio of all triangles in triangle mesh.
     ///@param rTriangleMesh
     ///@return double
-    static double MaxAspectRatio(const TriangleMesh& rTriangleMesh);
+    static double MaxAspectRatio(const TriangleMeshInterface& rTriangleMesh);
 
     ///@brief Returns average aspect ratio of all triangles in triangle mesh.
     ///@param rTriangleMesh
     ///@return double
-    static double AverageAspectRatio(const TriangleMesh& rTriangleMesh);
+    static double AverageAspectRatio(const TriangleMeshInterface& rTriangleMesh);
 
 
     ///@brief Returns axis-aligned bounding box of triangle mesh.
     ///@param rTriangleMesh
     ///@return std::pair<PointType, PointType>
-    static std::pair<PointType, PointType> BoundingBox(const TriangleMesh& rTriangleMesh);
+    static std::pair<PointType, PointType> BoundingBox(const TriangleMeshInterface& rTriangleMesh);
 
     ///@}
 }; // End class MeshUtilities

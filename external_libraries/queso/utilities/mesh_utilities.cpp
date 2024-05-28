@@ -14,7 +14,7 @@ namespace queso {
 
 typedef MeshUtilities::TriangleMeshPtrType TriangleMeshPtrType;
 
-void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTriangles){
+void MeshUtilities::Refine(TriangleMeshInterface& rTriangleMesh, IndexType MinNumberOfTriangles){
     IndexType original_size = rTriangleMesh.NumOfTriangles();
     IndexType size = original_size;
 
@@ -35,9 +35,9 @@ void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTri
 
         const double area = rTriangleMesh.Area(pos);
         if( area > 0.5*max_area ){
-            IndexType e1 = rTriangleMesh.AddVertex( (p1 + p2)*0.5 );
-            IndexType e2 = rTriangleMesh.AddVertex( (p2 + p3)*0.5 );
-            IndexType e3 = rTriangleMesh.AddVertex( (p3 + p1)*0.5 );
+            IndexType e1 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p1, p2) );
+            IndexType e2 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p2, p3) );
+            IndexType e3 = rTriangleMesh.AddVertex( Math::AddAndMult(0.5, p3, p1) );
 
             const auto normal = rTriangleMesh.Normal(pos);
             rTriangleMesh.AddTriangle( {vertex_ids[0], e1, e3} );
@@ -66,14 +66,14 @@ void MeshUtilities::Refine(TriangleMesh& rTriangleMesh, IndexType MinNumberOfTri
     }
 }
 
-void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh){
+void MeshUtilities::Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh){
     std::vector<IndexType> indices(rNewMesh.NumOfTriangles());
     /// Fill vector with number of increasing values: 0,1,2..
     std::iota( indices.begin(), indices.end(), 0 );
     Append(rTriangleMesh, rNewMesh, indices);
 }
 
-void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNewMesh, const std::vector<IndexType>& rIndices){
+void MeshUtilities::Append(TriangleMeshInterface& rTriangleMesh, const TriangleMeshInterface& rNewMesh, const std::vector<IndexType>& rIndices){
 
     const IndexType initial_number_triangles = rTriangleMesh.NumOfTriangles();
     const IndexType initial_number_vertices = rTriangleMesh.NumOfVertices();
@@ -121,7 +121,7 @@ void MeshUtilities::Append(TriangleMesh& rTriangleMesh, const TriangleMesh& rNew
     }
 }
 
-Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
+Unique<TriangleMeshInterface> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, const PointType& rUpperPoint){
     //
     //     2_______3                 y
     //     /      /|                ´|`
@@ -181,7 +181,7 @@ Unique<TriangleMesh> MeshUtilities::pGetCuboid(const PointType& rLowerPoint, con
 }
 
 
-double MeshUtilities::Area(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::Area(const TriangleMeshInterface& rTriangleMesh){
     double area = 0.0;
     // Loop over all triangles
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i ){
@@ -190,17 +190,17 @@ double MeshUtilities::Area(const TriangleMesh& rTriangleMesh){
     return area;
 }
 
-double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            const double integrand = Math::Dot(normal, point);
+            const double integrand = Math::Dot(normal, point.data() );
             const double integral = integrand * point.Weight();
             if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
                 volume += integral;
@@ -210,18 +210,18 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh){
     return std::abs(1.0/3.0*volume);
 }
 
-double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::VolumeOMP(const TriangleMeshInterface& rTriangleMesh){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     // Loop over all triangles in omp parallel.
     #pragma omp parallel for reduction(+ : volume)
     for( int i = 0; i < static_cast<int>(num_triangles); ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
             const auto& normal = point.Normal();
-            const double integrand = Math::Dot(normal, point);
+            const double integrand = Math::Dot(normal, point.data() );
             const double integral = integrand * point.Weight();
             if( std::abs(integral) > 0.0 ) { // This skips possible NaN-values.
                 volume += integral;
@@ -231,7 +231,7 @@ double MeshUtilities::VolumeOMP(const TriangleMesh& rTriangleMesh){
     return std::abs(1.0/3.0*volume);
 }
 
-double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
+double MeshUtilities::Volume(const TriangleMeshInterface& rTriangleMesh, IndexType Dir){
     double volume = 0.0;
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
 
@@ -239,7 +239,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
 
     // Loop over all triangles
     for( IndexType i = 0; i < num_triangles; ++i ){
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
@@ -254,7 +254,7 @@ double MeshUtilities::Volume(const TriangleMesh& rTriangleMesh, IndexType Dir){
     return std::abs(volume);
 }
 
-double MeshUtilities::MaxAspectRatio(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::MaxAspectRatio(const TriangleMeshInterface& rTriangleMesh){
     double max_aspect_ratio = MIND;
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         const double aspect_ratio = rTriangleMesh.AspectRatio(i);
@@ -265,7 +265,7 @@ double MeshUtilities::MaxAspectRatio(const TriangleMesh& rTriangleMesh){
     return max_aspect_ratio;
 }
 
-double MeshUtilities::AverageAspectRatio(const TriangleMesh& rTriangleMesh){
+double MeshUtilities::AverageAspectRatio(const TriangleMeshInterface& rTriangleMesh){
     double average_aspect_ratio = 0.0;
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
         average_aspect_ratio += rTriangleMesh.AspectRatio(i);
@@ -273,7 +273,7 @@ double MeshUtilities::AverageAspectRatio(const TriangleMesh& rTriangleMesh){
     return average_aspect_ratio/rTriangleMesh.NumOfTriangles();
 }
 
-double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
+double MeshUtilities::EstimateQuality(const TriangleMeshInterface& rTriangleMesh ){
     const IndexType num_triangles = rTriangleMesh.NumOfTriangles();
     double total_volume_1 = 0.0;
     double total_volume_2 = 0.0;
@@ -284,10 +284,10 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
         const double area = rTriangleMesh.Area(i);
         const auto normal = rTriangleMesh.Normal(i);
         total_area += area;
-        directional_areas += normal * area;
+        Math::AddSelf(directional_areas, Math::Mult(area, normal) );
 
         // Get integration points
-        const auto p_points = rTriangleMesh.pGetIPsGlobal(i, 0);
+        const auto p_points = rTriangleMesh.pGetIPsGlobal<BoundaryIntegrationPoint>(i, 0);
         const auto& r_points = *p_points;
         // Loop over all points.
         for( const auto& point : r_points ){
@@ -301,14 +301,14 @@ double MeshUtilities::EstimateQuality(const TriangleMesh& rTriangleMesh ){
     const double error_v2 = std::abs(total_volume_2 - total_volume) / total_volume;
     const double error_v3 = std::abs(total_volume_3 - total_volume) / total_volume;
 
-    const double error_area = std::abs(1.0*directional_areas.Norm()) / std::abs(total_area);
+    const double error_area = Math::Norm(directional_areas) / std::abs(total_area);
 
     const double max_error = std::max(std::max(std::max( error_v1, error_v2), error_v3), error_area );
     return max_error;
 }
 
 
-std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMesh& rTriangleMesh) {
+std::pair<PointType, PointType> MeshUtilities::BoundingBox(const TriangleMeshInterface& rTriangleMesh) {
     PointType lower_bound = {MAXD, MAXD, MAXD};
     PointType upper_bound = {LOWESTD, LOWESTD, LOWESTD};
     for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
