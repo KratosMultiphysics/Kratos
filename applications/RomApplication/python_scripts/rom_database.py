@@ -64,7 +64,13 @@ class RomDatabase(object):
             "HROM_Weights": '''CREATE TABLE IF NOT EXISTS HROM_Weights
                         (id INTEGER PRIMARY KEY, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "Neural_Network": '''CREATE TABLE IF NOT EXISTS Neural_Network
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, file_name TEXT)'''
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, modes TEXT, layers_size TEXT, batch_size INTEGER, epochs INTEGER, scheduler TEXT, base_lr REAL, additional_params TEXT, model_number INTEGER, file_name TEXT)''',
+            "QoI_FOM": '''CREATE TABLE IF NOT EXISTS QoI_FOM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, is_active INTEGER , file_name TEXT)''',
+            "QoI_ROM": '''CREATE TABLE IF NOT EXISTS QoI_ROM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL,  type_of_projection TEXT, is_active INTEGER , file_name TEXT)''',
+            "QoI_HROM": '''CREATE TABLE IF NOT EXISTS QoI_HROM
+                        (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, is_active INTEGER  , file_name TEXT)'''
         }
         self.table_names = table_definitions.keys()
         for table_name, table_sql in table_definitions.items():
@@ -117,6 +123,12 @@ class RomDatabase(object):
             hash_mu= self.hash_parameters(serialized_mu, tol_sol,tol_res,projection_type,table_name)
         elif table_name == "Neural_Network":
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, table_name)
+        elif table_name == "QoI_FOM":
+            hash_mu = self.hash_parameters(serialized_mu, table_name)
+        elif table_name == "QoI_ROM":
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type,table_name)
+        elif table_name == "QoI_HROM":
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type,table_name)
         else:
             err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
             raise Exception(err_msg)
@@ -197,6 +209,51 @@ class RomDatabase(object):
         elif table_name == 'Neural_Network':
             cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                         (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
+        elif table_name == 'QoI_FOM':
+            if len(numpy_array) > 0:
+                cursor.execute(f'INSERT INTO {table_name} (parameters, file_name, is_active) VALUES (?, ?, ?)',
+                            (serialized_mu, file_name, True))
+                for key, value in numpy_array.items():
+                    # Check if the column exists
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    columns = [info[1] for info in cursor.fetchall()]
+                    if key not in columns:
+                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
+                    cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
+                    self.save_as_npy(value, file_name+key)
+            else:
+                cursor.execute(f'INSERT INTO {table_name} (parameters, file_name, is_active) VALUES (?, ?, ?)',
+                            (serialized_mu, file_name, False))
+        elif table_name == 'QoI_ROM':
+            if len(numpy_array) > 0:
+                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, type_of_projection, file_name, is_active) VALUES (?, ?, ?, ?, ?)',
+                            (serialized_mu, tol_sol, projection_type, file_name, True))
+                for key, value in numpy_array.items():
+                    # Check if the column exists
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    columns = [info[1] for info in cursor.fetchall()]
+                    if key not in columns:
+                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
+                    cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
+                    self.save_as_npy(value, file_name+key)
+            else:
+                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, type_of_projection, file_name, is_active) VALUES (?, ?, ?, ?, ?)',
+                            (serialized_mu, tol_sol, projection_type, file_name, False))
+        elif table_name == 'QoI_HROM':
+            if len(numpy_array) > 0:
+                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res, type_of_projection, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+                            (serialized_mu, tol_sol, tol_res, projection_type, file_name, True))
+                for key, value in numpy_array.items():
+                    # Check if the column exists
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    columns = [info[1] for info in cursor.fetchall()]
+                    if key not in columns:
+                        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {key} TEXT")
+                    cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
+                    self.save_as_npy(value, file_name+key)
+            else:
+                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res, type_of_projection, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+                            (serialized_mu, tol_sol, tol_res, projection_type, file_name, False))
         else:
             err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
             raise Exception(err_msg)
@@ -204,7 +261,7 @@ class RomDatabase(object):
         conn.commit()
         conn.close()
 
-        if table_name == "Neural_Network":
+        if table_name == "Neural_Network" or table_name == 'QoI_FOM' or table_name == 'QoI_ROM' or table_name == 'QoI_HROM':
             pass
         else:
             self.save_as_npy(numpy_array, file_name)
@@ -243,7 +300,7 @@ class RomDatabase(object):
         return dict(zip(self.mu_names , mu))
 
 
-    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM'):
+    def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM', QoI = None):
         if mu_list == [None]: #this happens when no mu is passed, the simulation run is the one in the ProjectParameters.json
             mu_list_unique = mu_list
         else:
@@ -258,7 +315,10 @@ class RomDatabase(object):
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
             result = cursor.fetchone()
             if result:
-                SnapshotsMatrix.append(self.get_single_numpy_from_database(result[0]))
+                file_name = result[0]
+                if QoI is not None:
+                    file_name = file_name+QoI
+                SnapshotsMatrix.append(self.get_single_numpy_from_database(file_name))
             else:
                 print(f"No entry found for hash {hash_mu}")
                 unavailable_cases.append(mu)

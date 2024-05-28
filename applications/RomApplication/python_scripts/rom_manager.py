@@ -294,7 +294,7 @@ class RomManager(object):
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
-                self.QoI_Fit_FOM.append(simulation.GetFinalData())
+                self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
@@ -336,7 +336,7 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
-                self.QoI_Fit_ROM.append(simulation.GetFinalData())
+                self.data_base.add_to_database("QoI_ROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
@@ -461,7 +461,7 @@ class RomManager(object):
                 analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
                 simulation.Run()
-                self.QoI_Fit_HROM.append(simulation.GetFinalData())
+                self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
                 for process in simulation._GetListOfOutputProcesses():
                     if isinstance(process, CalculateRomBasisOutputProcess):
                         BasisOutputProcess = process
@@ -486,6 +486,7 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
+            self.QoI_Run_FOM.append(simulation.GetFinalData())
 
 
     def _LaunchRunROM(self, mu_run):
@@ -980,12 +981,6 @@ class RomManager(object):
 
     def SetUpQuantityOfInterestContainers(self):
         #TODO implement more options if the QoI is too large to keep in RAM
-        self.QoI_Fit_FOM = []
-        self.QoI_Fit_ROM = []
-        self.QoI_Fit_HROM = []
-        self.QoI_Test_FOM = []
-        self.QoI_Test_ROM = []
-        self.QoI_Test_HROM = []
         self.QoI_Run_FOM = []
         self.QoI_Run_ROM = []
         self.QoI_Run_HROM = []
