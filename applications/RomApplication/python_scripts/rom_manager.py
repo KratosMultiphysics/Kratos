@@ -875,13 +875,10 @@ class RomManager(object):
         # Patch the RomAnalysis class to save the selected time steps results
         def Initialize(cls):
             super(type(simulation), cls).Initialize()
-            #cls._GetSolver()._GetSolutionStrategy().SetUpNonconvergedSolutionsFlag(True) # this assumes the strategy used contains this method
-            cls._GetSolver().solver.SetUpNonconvergedSolutionsFlag(True) # this assumes the strategy used contains this method
-            #we need to modify the geo mechanich newton raphson strategy
+            cls._GetSolver()._GetSolutionStrategy().SetUpNonconvergedSolutionsFlag(True) # this assumes the strategy used contains this method
 
         def GetNonconvergedSolutions(cls):
-            #a,_ = cls._GetSolver()._GetSolutionStrategy().GetNonconvergedSolutions()
-            a,_ = cls._GetSolver().solver.GetNonconvergedSolutions()
+            a,_ = cls._GetSolver()._GetSolutionStrategy().GetNonconvergedSolutions()
             return np.array(a, copy=False)
 
         simulation.Initialize  = types.MethodType(Initialize, simulation)
