@@ -19,7 +19,10 @@
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/kratos_export_api.h"
 #include "includes/serializer.h"
+#include "includes/smart_pointers.h"
+#include "includes/ublas_interface.h"
 
 #include <iosfwd>
 #include <memory>
