@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -443,8 +444,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     // create general parameters of retention law
     RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
 
-    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
-
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
@@ -455,10 +454,10 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Prop);
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
@@ -469,16 +468,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
-
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation, Variables.DerivativeOfSaturation, Prop);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

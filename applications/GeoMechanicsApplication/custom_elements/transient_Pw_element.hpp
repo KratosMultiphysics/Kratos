@@ -45,7 +45,6 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mConstitutiveLawVector;
     using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
