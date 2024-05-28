@@ -142,7 +142,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
             self.interpolate_sw_to_pfem_utility.InterpolateVariables(self.interface_model_part,self.input_model_part)
             self.corrective_factor = 1.0
-            self.ComputeCorrectiveFactor3D()
+            # self.ComputeCorrectiveFactor3D()          #uncomment for rectangular inlets
             for node in self.interface_model_part.Nodes:
                 
                 node_topography = node.GetValue(SW.TOPOGRAPHY)
@@ -221,7 +221,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
     def ComputeCorrectiveFactor3D(self):    ##to do implement correction
         all_nodes = 0
         base_nodes = 0
-        base_height = 0
+        base_height = 0                 #put the z-coordinate of the base of the inlet rectangle
         tolerance = 0.001
         for node in self.interface_model_part.Nodes:
             all_nodes = all_nodes + 1
