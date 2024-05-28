@@ -913,8 +913,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMa
         r_geom.IntegrationPoints(integration_method);
     const auto N_container = r_geom.ShapeFunctionsValues(integration_method);
 
-    const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
-        this->GetPressureSolutionVector(), N_container, mRetentionLawVector, this->GetProperties());
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        N_container, this->GetPressureSolutionVector());
+    const auto degrees_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     const auto solid_densities =
         GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, this->GetProperties());
