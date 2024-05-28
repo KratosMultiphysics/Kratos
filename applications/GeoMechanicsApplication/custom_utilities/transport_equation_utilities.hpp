@@ -106,11 +106,60 @@ public:
         RetentionLaw::Parameters retention_parameters(rProp, rCurrentProcessInfo);
         Vector                   result(rRetentionLawVector.size());
         for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
-            const double fluid_pressure = inner_prod(row(rNContainer, g_point), rPressureSolution);
+            const double fluid_pressure = CalculateFluidPressure(row(rNContainer, g_point), rPressureSolution);
             retention_parameters.SetFluidPressure(fluid_pressure);
             result(g_point) = rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
         }
         return result;
+    }
+
+    [[nodiscard]] static double CalculateFluidPressure(const Vector& rN, const Vector& rPressureVector)
+    {
+        return inner_prod(rN, rPressureVector);
+    }
+
+    [[nodiscard]] static double CalculateBiotModulusInverse(double BiotCoefficient,
+                                                            double DegreeOfSaturation,
+                                                            double DerivativeOfSaturation,
+                                                            const Properties& rProperties)
+    {
+        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
+        double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                        rProperties[POROSITY] / bulk_modulus_fluid;
+
+        result *= DegreeOfSaturation;
+        result -= DerivativeOfSaturation * rProperties[POROSITY];
+
+        return result;
+    }
+
+    [[nodiscard]] static double CalculateBulkModulus(const Matrix& rConstitutiveMatrix)
+    {
+        KRATOS_ERROR_IF(rConstitutiveMatrix.size1() == 0)
+            << "Constitutive matrix is empty, aborting bulk modulus calculation.\n";
+        const SizeType index_G = rConstitutiveMatrix.size1() - 1;
+        return rConstitutiveMatrix(0, 0) - (4.0 / 3.0) * rConstitutiveMatrix(index_G, index_G);
+    }
+
+    [[nodiscard]] static std::vector<double> CalculateBiotCoefficients(const std::vector<Matrix>& rConstitutiveMatrices,
+                                                                       const Properties& rProperties)
+    {
+        std::vector<double> result;
+        std::transform(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
+                       std::back_inserter(result), [&rProperties](const Matrix& rConstitutiveMatrix) {
+            return CalculateBiotCoefficient(rConstitutiveMatrix, rProperties);
+        });
+
+        return result;
+    }
+
+private:
+    [[nodiscard]] static double CalculateBiotCoefficient(const Matrix&     rConstitutiveMatrix,
+                                                         const Properties& rProperties)
+    {
+        return rProperties.Has(BIOT_COEFFICIENT)
+                   ? rProperties[BIOT_COEFFICIENT]
+                   : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
     }
 
 }; /* Class GeoTransportEquationUtilities*/

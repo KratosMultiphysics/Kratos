@@ -11,8 +11,8 @@
 //
 
 #include "stress_strain_utilities.h"
-#include "custom_utilities/math_utilities.h"
 #include "geo_mechanics_application_constants.h"
+#include "utilities/math_utils.h"
 #include <cmath>
 
 namespace Kratos
@@ -150,6 +150,28 @@ Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& r
 {
     return 0.5 * (prod(trans(rDeformationGradient), rDeformationGradient) -
                   IdentityMatrix(rDeformationGradient.size1()));
+}
+
+Vector StressStrainUtilities::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements)
+{
+    return prod(rB, rDisplacements);
+}
+
+std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                                            const std::vector<Matrix>& rBs,
+                                                            const Vector& rDisplacements,
+                                                            bool          UseHenckyStrain,
+                                                            std::size_t   VoigtSize)
+{
+    std::vector<Vector> result;
+    std::transform(
+        rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
+        [&rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
+        return UseHenckyStrain ? CalculateHenckyStrain(rDeformationGradient, VoigtSize)
+                               : CalculateCauchyStrain(rB, rDisplacements);
+    });
+
+    return result;
 }
 
 } // namespace Kratos
