@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
@@ -161,6 +162,9 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
         mRetentionLawVector[i]->InitializeMaterial(
             Prop, Geom, row(Geom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
     }
+
+    mIsThermalCoupled       = Geom[0].SolutionStepsDataHas(TEMPERATURE);
+    mUpdateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
 
     mIsInitialised = true;
 
@@ -461,6 +465,14 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         // Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+
+        // Contribute thermal effects if it is a coupled thermo-hydro problem
+        if (mIsThermalCoupled && mUpdateDensityViscosity) {
+            Variables.FluidDensity =
+                ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, Geom);
+            Variables.DynamicViscosityInverse =
+                1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, Geom);
+        }
 
         // Compute Nu and BodyAcceleration
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);

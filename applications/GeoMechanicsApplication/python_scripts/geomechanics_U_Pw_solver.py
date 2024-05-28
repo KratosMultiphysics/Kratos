@@ -25,6 +25,8 @@ class UPwSolver(GeoSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "geomechanics_U_Pw_solver",
             "model_part_name": "PorousDomain",
+            "thermal_pressure_coupled" : false,
+            "update_density_viscosity" : true,
             "domain_size": 2,
             "model_import_settings":{
                 "input_type": "mdpa",

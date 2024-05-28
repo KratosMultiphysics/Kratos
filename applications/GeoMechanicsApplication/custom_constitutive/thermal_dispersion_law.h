@@ -31,7 +31,9 @@ public:
     explicit GeoThermalDispersionLaw(SizeType NumberOfDimensions);
 
     Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const override;
-
+    Matrix CalculateThermalDispersionMatrix(const Properties& rProp,
+                                            const ProcessInfo& rProcessInfo,
+                                            const Vector& dischargeVector) const override;
 private:
     std::size_t mNumberOfDimensions = 2;
 

@@ -492,6 +492,7 @@ private:
 
     const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwNormalFluxCondition<2,3> mUPwNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+
     const UPwNormalFluxCondition<2,4> mUPwNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
     const UPwNormalFluxCondition<2,5> mUPwNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };

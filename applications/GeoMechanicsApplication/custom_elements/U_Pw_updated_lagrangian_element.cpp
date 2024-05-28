@@ -17,6 +17,7 @@
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {

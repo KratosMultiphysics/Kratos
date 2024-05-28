@@ -30,6 +30,10 @@ public:
     virtual Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
                                                     const ProcessInfo& rProcessInfo) const = 0;
 
+    virtual Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
+                                                    const ProcessInfo& rProcessInfo,
+                                                    const Vector&      rDischargeVector) const = 0;
+
 private:
     friend class Serializer;
 

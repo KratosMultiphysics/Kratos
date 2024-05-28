@@ -261,6 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalc
 
     Element::Pointer p_element = model_part.pGetElement(1);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->Initialize(r_current_process_info);
 
     Matrix left_hand_side_matrix;
     Vector right_hand_side;

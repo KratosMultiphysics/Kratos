@@ -59,6 +59,8 @@ class GeoMechanicalSolver(PythonSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "geomechanics_U_Pw_solver",
             "model_part_name": "PorousDomain",
+            "thermal_pressure_coupled" : false,
+            "update_density_viscosity" : true,
             "domain_size": 2,
             "model_import_settings":{
                 "input_type": "mdpa",
@@ -160,20 +162,24 @@ class GeoMechanicalSolver(PythonSolver):
         self._add_displacement_variables()
 
         # Add rotational variables
-        self._add_rotational_variables()
+        if self.settings["rotation_dofs"].GetBool():
+            self._add_rotational_variables()
 
         # Add dynamic variables
         self._add_dynamic_variables()
 
         # Variables for 2-phase types of calculations:
         ## Fluid Variables
-        self._add_water_variables()
+        if self.settings["solver_type"].GetString() == "Pw" or self.settings["solver_type"].GetString() == "U_Pw" or self.settings["thermal_pressure_coupled"].GetBool():
+            self._add_water_variables()
 
         # Add temperature variables
-        self._add_temperature_variables()
+        if self.settings["solver_type"].GetString() == "T" or self.settings["thermal_pressure_coupled"].GetBool():
+            self._add_temperature_variables()
 
         ## smoothing variables
-        self._add_smoothing_variables()
+        if self.settings["nodal_smoothing"].GetBool():
+            self._add_smoothing_variables()
 
         # Add variables that the user defined in the ProjectParameters
         if (self.settings.Has("auxiliary_variables_list")):
@@ -200,9 +206,17 @@ class GeoMechanicalSolver(PythonSolver):
         """This function prepares the ModelPart for being used by the PythonSolver
         """
         # Set ProcessInfo variables
+        # NB:This line of reading time_step is necessary for CoSim application
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
+                                                  self.settings["time_stepping"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.TIME_UNIT_CONVERTER, 1.0)
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.NODAL_SMOOTHING,
                                                   self.settings["nodal_smoothing"].GetBool())
+                                                  
+        self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.THERMO_HYDRO_COUPLED,
+                                                  self.settings["thermal_pressure_coupled"].GetBool())
+        self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.UPDATE_DENSITY_VISCOSITY,
+                                                  self.settings["update_density_viscosity"].GetBool())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:

@@ -175,6 +175,8 @@ protected:
 
 private:
     /// Member Variables
+    bool mIsThermalCoupled       = false;
+    bool mUpdateDensityViscosity = true;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     [[nodiscard]] DofsVectorType GetDofs() const;

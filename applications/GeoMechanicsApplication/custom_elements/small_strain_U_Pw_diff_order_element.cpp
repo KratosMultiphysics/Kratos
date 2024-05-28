@@ -23,9 +23,11 @@
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+
 
 namespace Kratos
 {
@@ -271,6 +273,9 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
     }
+
+    mIsThermalCoupled       = rGeom[0].SolutionStepsDataHas(TEMPERATURE);
+    mUpdateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
 
     mIsInitialised = true;
 
@@ -1278,6 +1283,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+
+        // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
+        if (mIsThermalCoupled && mUpdateDensityViscosity) {
+            Variables.Density =
+                ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, rGeom);
+            Variables.DynamicViscosityInverse =
+                1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, rGeom);
+        }
+
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];

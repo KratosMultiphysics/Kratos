@@ -57,6 +57,38 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
             result(x, z) = result(z, x);
         }
     }
+    
+    return result;
+}
+
+
+Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp,
+                                                                 const ProcessInfo& rProcessInfo,
+                                                                 const Vector& dischargeVector) const
+{
+    Matrix result = this->CalculateThermalDispersionMatrix(rProp, rProcessInfo);
+
+    double totalDischarge = MathUtils<>::Norm(dischargeVector);
+    if (totalDischarge > 0.0) {
+        const auto x    = static_cast<int>(indexThermalFlux::X);
+        const auto y    = static_cast<int>(indexThermalFlux::Y);
+        const double c2 = rProp[DENSITY_WATER] * rProp[SPECIFIC_HEAT_CAPACITY_WATER];
+        const double c3 = (rProp[LONGITUDINAL_DISPERSIVITY] - rProp[TRANSVERSE_DISPERSIVITY]) / totalDischarge;
+        const double c4 = rProp[TRANSVERSE_DISPERSIVITY] * totalDischarge;
+        result(x, x) += c2 * (c3 * dischargeVector[0] * dischargeVector[0] + c4);
+        result(x, y) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
+        result(y, x) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
+        result(y, y) += c2 * (c3 * dischargeVector[1] * dischargeVector[1] + c4);
+
+        if (mNumberOfDimensions == 3) {
+            const auto z = static_cast<int>(indexThermalFlux::Z);
+            result(z, z) += c2 * (c3 * dischargeVector[2] * dischargeVector[2] + c4);
+            result(x, z) += c2 * c3 * dischargeVector[0] * dischargeVector[2];
+            result(z, x) += c2 * c3 * dischargeVector[0] * dischargeVector[2];
+            result(y, z) += c2 * c3 * dischargeVector[1] * dischargeVector[2];
+            result(z, y) += c2 * c3 * dischargeVector[1] * dischargeVector[2];
+        }
+    }
 
     return result;
 }
