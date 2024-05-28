@@ -168,7 +168,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLef
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -70,7 +71,6 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
-    const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
     const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto integration_coefficients =
@@ -82,22 +82,23 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+        constitutive_matrices, this->GetProperties());
 
-    // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
         Variables.B = b_matrices[GPoint];
 
-        // Compute strain
         Variables.F                  = deformation_gradients[GPoint];
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
+            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
+            Variables.DerivativeOfSaturation, this->GetProperties());
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 

@@ -79,7 +79,6 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
