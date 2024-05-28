@@ -168,7 +168,6 @@ protected:
         Matrix GradNpTInitialConfiguration;
 
         Matrix                                    F;
-        double                                    detF;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;

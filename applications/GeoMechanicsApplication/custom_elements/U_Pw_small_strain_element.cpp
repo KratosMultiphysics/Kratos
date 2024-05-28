@@ -167,12 +167,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
         ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
+            Variables.GradNpT, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
         // Initialize constitutive law
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -321,12 +320,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
         ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Np, Variables.GradNpT, Variables.F, Variables.detF);
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Np,
+            Variables.GradNpT, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
         // Compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -1117,8 +1115,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
     rVariables.Np.resize(TNumNodes, false);
     rVariables.GradNpT.resize(TNumNodes, TDim, false);
     rVariables.F = identity_matrix<double>(TDim);
-
-    rVariables.detF = 1.0;
 
     // General Variables
     rVariables.VoigtVector = this->GetStressStatePolicy().GetVoigtVector();
