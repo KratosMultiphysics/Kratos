@@ -1063,8 +1063,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
         C_gamma.clear();
-        C_gamma(1, 1) = E * A;
-        C_gamma(2, 2) = G * A_s;
+        C_gamma(0, 0) = E * A;
+        C_gamma(1, 1) = G * A_s;
         frenet_serret.clear();
         BoundedVector<double, 2> N, Gamma;
         N.clear();
@@ -1092,7 +1092,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double curvature = inner_prod(B_b, nodal_values);
         const double bending_moment = E * I * curvature;
 
-        noalias(rRHS) += jacobian_weight * (prod(trans(B_s), N) + bending_moment * B_b);
+        noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N) + bending_moment * B_b);
         noalias(rLHS) += jacobian_weight * (prod(trans(B_s), Matrix(prod(C_gamma, B_s))) + E * I * outer_prod(B_b, B_b));
 
     } // IP loop
@@ -1153,8 +1153,90 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+        const double xi     = integration_points[IP].X();
+        const double weight = integration_points[IP].Weight();
+        const double J  = GetJacobian(xi);
+        const double jacobian_weight = weight * J;
 
+        GetNodalValuesVector(nodal_values);
 
+        const double E    = r_props[YOUNG_MODULUS];
+        const double A    = r_props[CROSS_AREA];
+        const double I    = r_props[I33];
+        const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_props);
+        const double A_s  = r_props[AREA_EFFECTIVE_Y];
+
+        const double N1 = 0.5 * xi * (xi - 1.0);
+        const double N2 = 0.5 * xi * (xi + 1.0);
+        const double N3 = 1.0 - std::pow(xi, 2);
+
+        const double dN1 = (xi - 0.5) / J;
+        const double dN2 = (xi + 0.5) / J;
+        const double dN3 = (-2.0 * xi) / J;
+
+        // deflection v
+        N_shape.clear();
+        dN_shape.clear();
+        N_shape[1] = N1;
+        N_shape[4] = N2;
+        N_shape[7] = N3;
+        dN_shape[1] = dN1;
+        dN_shape[4] = dN2;
+        dN_shape[7] = dN3;
+
+        // axial u
+        dNu.clear();
+        Nu.clear();
+        Nu[0] = N1;
+        Nu[3] = N2;
+        Nu[6] = N3;
+        dNu[0] = dN1;
+        dNu[3] = dN2;
+        dNu[6] = dN3;
+
+        // rotation
+        dN_theta.clear();
+        N_theta.clear();
+        N_theta[2] = N1;
+        N_theta[5] = N2;
+        N_theta[8] = N3;
+        dN_theta[2] = dN1;
+        dN_theta[5] = dN2;
+        dN_theta[8] = dN3;
+
+        // Initialize matrices and vectors...
+        BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
+        C_gamma.clear();
+        C_gamma(0, 0) = E * A;
+        C_gamma(1, 1) = G * A_s;
+        frenet_serret.clear();
+        BoundedVector<double, 2> N, Gamma;
+        N.clear();
+        Gamma.clear();
+        BoundedMatrix<double, 2, 9> B_s, aux_B_s;
+        B_s.clear();
+        aux_B_s.clear();
+        GlobalSizeVector B_b;
+        noalias(B_b) = dN_theta;
+
+        VectorType t, n;
+        GetTangentandTransverseUnitVectors(xi, t, n);
+        noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
+
+        // we fill aux_B_s
+        for (IndexType i = 0; i < SystemSize; ++i) {
+            aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
+            aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
+        }
+        noalias(B_s) = prod(frenet_serret, aux_B_s);
+
+        noalias(Gamma) = prod(B_s, nodal_values);
+        noalias(N) = prod(C_gamma, Gamma);
+
+        const double curvature = inner_prod(B_b, nodal_values);
+        const double bending_moment = E * I * curvature;
+
+        noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N) + bending_moment * B_b);
 
     } // IP loop
     KRATOS_CATCH("");
