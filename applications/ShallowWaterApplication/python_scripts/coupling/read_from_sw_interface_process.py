@@ -216,7 +216,9 @@ class ReadFromSwInterfaceProcess(KM.Process):
     #    for node in self.interface_model_part.Nodes:
     #        if (node.IsNot(KM.RIGID)):
     #            vel_x = node.GetValue(KM.VELOCITY_X)*flux_total/flux_moving
+    #            vel_y = node.GetValue(KM.VELOCITY_Y)*flux_total/flux_moving
     #            node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
+    #            node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
 
     def ComputeCorrectiveFactor3D(self):    ##to do implement correction
         all_nodes = 0
