@@ -58,4 +58,13 @@ std::unique_ptr<StressStatePolicy> ThreeDimensionalStressState::Clone() const
     return std::make_unique<ThreeDimensionalStressState>();
 }
 
+const Vector& ThreeDimensionalStressState::GetVoigtVector() const { return VoigtVector3D; }
+
+SizeType ThreeDimensionalStressState::GetVoigtSize() const { return GetVoigtSize3D(); }
+
+SizeType ThreeDimensionalStressState::GetStressTensorSize() const
+{
+    return GetStressTensorSize3D();
+}
+
 } // namespace Kratos
