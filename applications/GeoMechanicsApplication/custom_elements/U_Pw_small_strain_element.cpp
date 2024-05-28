@@ -978,9 +978,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         constitutive_matrices, this->GetProperties());
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
-    const auto degrees_of_saturation = CalculateDegreesOfSaturation(fluid_pressures, RetentionParameters);
-    const auto derivatives_of_saturation =
-        CalculateDerivativesOfSaturation(fluid_pressures, RetentionParameters);
+    const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
@@ -1027,28 +1026,30 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(
-    const std::vector<double>& rFluidPressures, RetentionLaw::Parameters& RetentionParameters)
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures)
 {
     std::vector<double> result;
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&RetentionParameters](auto fluid_pressure, auto pRetentionLaw) {
-        RetentionParameters.SetFluidPressure(fluid_pressure);
-        return pRetentionLaw->CalculateDerivativeOfSaturation(RetentionParameters);
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+        retention_law_params.SetFluidPressure(fluid_pressure);
+        return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
     });
 
     return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(
-    const std::vector<double>& rFluidPressures, RetentionLaw::Parameters& RetentionParameters)
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures)
 {
     std::vector<double> result;
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
     std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result), [&RetentionParameters](auto fluid_pressure, auto pRetentionLaw) {
-        RetentionParameters.SetFluidPressure(fluid_pressure);
-        return pRetentionLaw->CalculateSaturation(RetentionParameters);
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+        retention_law_params.SetFluidPressure(fluid_pressure);
+        return pRetentionLaw->CalculateSaturation(retention_law_params);
     });
 
     return result;

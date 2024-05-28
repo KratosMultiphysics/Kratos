@@ -270,10 +270,8 @@ protected:
                                     RetentionLaw::Parameters& rRetentionParameters,
                                     unsigned int              GPoint);
 
-    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures,
-                                                     RetentionLaw::Parameters& RetentionParameters);
-    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures,
-                                                         RetentionLaw::Parameters& RetentionParameters);
+    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
+    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the

@@ -449,9 +449,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     std::vector<double> biot_coefficients(NumGPoints, Prop[BIOT_COEFFICIENT]);
     const auto          fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
-    const auto degrees_of_saturation = this->CalculateDegreesOfSaturation(fluid_pressures, RetentionParameters);
-    const auto derivatives_of_saturation =
-        this->CalculateDerivativesOfSaturation(fluid_pressures, RetentionParameters);
+    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, Prop);
 
