@@ -9,7 +9,6 @@
 #include <array>
 //// Project includes
 #include "containers/element.hpp"
-#include "containers/integration_point.hpp"
 #include "quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
@@ -22,15 +21,20 @@ namespace queso {
  * @class  QuadratureSingleElement. Provides assembly opeartions for tensor-product quadrature rules of single non-trimmed element.
  * @author Manuel Messmer
  * @brief  Provides assembly for 3D quadrature rules.
+ * @tparam TElementType
  * @details Available Quadrature rules:
  *          {Gauss, Gauss_Reduced1, Gauss_Reduced2}
 */
+template<typename TElementType>
 class QuadratureSingleElement {
 
 public:
         ///@name Type Definitions
         ///@{
-        typedef std::vector<IntegrationPoint> IntegrationPointType;
+
+        typedef TElementType ElementType;
+        typedef typename ElementType::IntegrationPointType IntegrationPointType;
+        typedef typename ElementType::IntegrationPointVectorType IntegrationPointVectorType;
 
         ///@}
         ///@name Operations
@@ -40,7 +44,7 @@ public:
         /// @param rElement
         /// @param rOrder Order of quadrature rule.
         /// @param Method Integration method: Default - Gauss.
-        static void AssembleIPs(Element& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss);
+        static void AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss);
 
         /// @brief Assemble tensor product quadrature rules.
         /// @note This functions clears rIntegrationPoints.
@@ -49,7 +53,7 @@ public:
         /// @param rUpperBoundParam LowerBound of element in parametric space.
         /// @param rOrder Order of quadrature rule.
         /// @param Method Integration method: Default - Gauss.
-        static void AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
+        static void AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
                                 const Vector3i& rOrder, IntegrationMethodType Method = IntegrationMethod::Gauss );
         ///@}
 

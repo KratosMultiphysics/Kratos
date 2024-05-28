@@ -19,7 +19,8 @@ namespace queso {
 
 typedef std::vector<double> VectorType;
 
-void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree,
+template<typename TElementType>
+void QuadratureTrimmedElement<TElementType>::DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree,
                                                            SizeType MinNumPoints, const Vector3i& rIntegrationOrder){
     IndexType refinemen_level = rOctree.MaxRefinementLevel()+1;
     const IndexType max_iteration = 5UL;
@@ -27,14 +28,15 @@ void QuadratureTrimmedElement::DistributeIntegrationPoints(IntegrationPointVecto
     while( rIntegrationPoint.size() < MinNumPoints && iteration < max_iteration){
         rOctree.Refine(std::min<IndexType>(refinemen_level, 4UL), refinemen_level);
         rIntegrationPoint.clear();
-        rOctree.AddIntegrationPoints(rIntegrationPoint, rIntegrationOrder);
+        rOctree.template AddIntegrationPoints<TElementType>(rIntegrationPoint, rIntegrationOrder);
         refinemen_level++;
         iteration++;
     }
 }
 
-void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs,
-                                                    const Element& rElement, const Vector3i& rIntegrationOrder){
+template<typename TElementType>
+void QuadratureTrimmedElement<TElementType>::ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs,
+                                                    const ElementType& rElement, const Vector3i& rIntegrationOrder){
 
     // Initialize const variables.
     const auto bounds_xyz = rElement.GetBoundsXYZ();
@@ -73,7 +75,7 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
         // for f_x_x and f_x_int at each point.
         auto point_it = (begin_points_it_ptr + i);
         const auto& normal = point_it->Normal();
-        PointType point = *point_it;
+        PointType point = point_it->data();
 
         // X-Direction
         for( IndexType i_x = 0; i_x <= order_u*ffactor; ++i_x){
@@ -112,8 +114,9 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
-void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints,
-                                                    const Element& rElement, const Vector3i& rIntegrationOrder){
+template<typename TElementType>
+void QuadratureTrimmedElement<TElementType>::ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints,
+                                                    const ElementType& rElement, const Vector3i& rIntegrationOrder){
 
     // Initialize const variables.
     const PointType& a = rElement.GetBoundsUVW().first;
@@ -154,11 +157,12 @@ void QuadratureTrimmedElement::ComputeConstantTerms(VectorType& rConstantTerms, 
     }
 }
 
-double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel){
+template<typename TElementType>
+double QuadratureTrimmedElement<TElementType>::AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel){
 
     // Get boundary integration points.
     const auto p_trimmed_domain = rElement.pGetTrimmedDomain();
-    const auto p_boundary_ips = p_trimmed_domain->pGetBoundaryIps();
+    const auto p_boundary_ips = p_trimmed_domain->template pGetBoundaryIps<typename TElementType::BoundaryIntegrationPointType>();
 
     // Get constant terms.
     VectorType constant_terms{};
@@ -170,7 +174,7 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& 
     BoundingBoxType bounding_box_uvw = MakeBox( rElement.PointFromGlobalToParam(bounding_box.first),
                                                 rElement.PointFromGlobalToParam(bounding_box.second));
 
-    Octree<TrimmedDomainBase> octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
+    Octree<TrimmedDomain> octree(p_trimmed_domain, bounding_box, bounding_box_uvw);
 
     // Start point elimination.
     double residual = MAXD;
@@ -223,7 +227,8 @@ double QuadratureTrimmedElement::AssembleIPs(Element& rElement, const Vector3i& 
     return residual;
 }
 
-double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Vector3i& rIntegrationOrder){
+template<typename TElementType>
+double QuadratureTrimmedElement<TElementType>::MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const ElementType& rElement, const Vector3i& rIntegrationOrder){
 
 
     PointType a = rElement.GetBoundsUVW().first;
@@ -276,8 +281,8 @@ double QuadratureTrimmedElement::MomentFitting(const VectorType& rConstantTerms,
     return rel_residual;
 }
 
-
-double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Vector3i& rIntegrationOrder, double Residual) {
+template<typename TElementType>
+double QuadratureTrimmedElement<TElementType>::PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual) {
 
     /// Initialize variables.
     const SizeType ffactor = 1;
@@ -384,6 +389,9 @@ double QuadratureTrimmedElement::PointElimination(const VectorType& rConstantTer
         return global_residual;
     }
 }
+
+/// Explicit class instantiation
+template class QuadratureTrimmedElement<Element<IntegrationPoint, BoundaryIntegrationPoint>>;
 
 } // End namespace queso
 

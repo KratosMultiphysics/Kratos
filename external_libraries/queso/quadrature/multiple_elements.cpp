@@ -8,9 +8,8 @@
 
 namespace queso {
 
-typedef Element::IntegrationPoint1DVectorType IntegrationPoint1DVectorType;
-
-void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method){
+template<typename TElementType>
+void QuadratureMultipleElements<TElementType>::AssembleIPs(ElementContainerType& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method){
 
     // Loop over all 3 space dimensions
     // i = 0: x
@@ -22,7 +21,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         bool found = false;
         IndexType current_id = 1;
         IndexType next_id = 0;
-        std::vector<Element*> door_to_door_neighbours;
+        std::vector<ElementType*> door_to_door_neighbours;
         door_to_door_neighbours.reserve(20);
         // Check if element with index=1 is part of rElements.
         const auto first_element = rElements.pGetElement(1, found);
@@ -38,7 +37,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         std::size_t active_element_counter = 1;
         // Loop until all elements in rElements have beend visited/found
         while( active_element_counter < rElements.size() ){
-            Element* neighbour = nullptr;
+            ElementType* neighbour = nullptr;
 
             if(i == 0)
                 neighbour = rElements.pGetNextElementInX(current_id, next_id, found, local_end);
@@ -99,13 +98,13 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
         (*element_it)->SetVisited(false);
     }
 
-    std::vector<Element*> box_neighbours{};
+    std::vector<ElementType*> box_neighbours{};
     box_neighbours.reserve(10000);
-    std::vector<Element*>::iterator max_element_it{};
-    Element* neighbour = nullptr;
+    typename std::vector<ElementType*>::iterator max_element_it{};
+    ElementType* neighbour = nullptr;
 
     // Construct vector of sorted,unvisiteed elements.
-    std::vector<Element*> sorted_univisited_elements{};
+    std::vector<ElementType*> sorted_univisited_elements{};
     sorted_univisited_elements.insert(sorted_univisited_elements.begin(), rElements.begin_to_ptr(), rElements.end_to_ptr());
 
     // Erase all trimmed elements.
@@ -134,7 +133,7 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
 
         while( max_neighbour_coefficient > ZEROTOL && !stop ){
             std::array<double,6> neighbour_coeff = {0, 0, 0 ,0 ,0 ,0};
-            std::array<std::vector<Element*>,6> tmp_neighbours{};
+            std::array<std::vector<ElementType*>,6> tmp_neighbours{};
 
             // Check all four nighbours
             const auto element_it_begin = box_neighbours.begin();
@@ -214,7 +213,8 @@ void QuadratureMultipleElements::AssembleIPs(ElementContainer& rElements, const 
     }
 }
 
-bool QuadratureMultipleElements::AllElementsVisited(ElementContainer& rElements){
+template<typename TElementType>
+bool QuadratureMultipleElements<TElementType>::AllElementsVisited(ElementContainerType& rElements){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
     for(int i = 0; i < number_neighbours; ++i){
@@ -227,7 +227,8 @@ bool QuadratureMultipleElements::AllElementsVisited(ElementContainer& rElements)
     return true;
 }
 
-Element* QuadratureMultipleElements::NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction ){
+template<typename TElementType>
+TElementType* QuadratureMultipleElements<TElementType>::NextElement(ElementContainerType& rElements, std::size_t id, bool& found, int direction ){
     bool dummy_local_end;
     std::size_t dummy_next_id;
 
@@ -261,7 +262,8 @@ double linear_function(int x, int number_neighbours){
     return value;
 }
 
-void QuadratureMultipleElements::AssignNumberNeighbours(std::vector<Element*>& rElements, IndexType direction){
+template<typename TElementType>
+void QuadratureMultipleElements<TElementType>::AssignNumberNeighbours(std::vector<TElementType*>& rElements, IndexType direction){
     const auto element_it_begin = rElements.begin();
     const int number_neighbours = rElements.size();
 
@@ -275,7 +277,8 @@ void QuadratureMultipleElements::AssignNumberNeighbours(std::vector<Element*>& r
 
 }
 
-void QuadratureMultipleElements::StoreIntegrationPoints(std::vector<Element*>& rElements, std::array<int,3>& rNumberKnotspans,
+template<typename TElementType>
+void QuadratureMultipleElements<TElementType>::StoreIntegrationPoints(std::vector<TElementType*>& rElements, std::array<int,3>& rNumberKnotspans,
             const Vector3i& rIntegrationOrder, IntegrationMethodType Method){
     const auto element_it_begin = rElements.begin();
     // Find global extrem points (within box)
@@ -309,7 +312,7 @@ void QuadratureMultipleElements::StoreIntegrationPoints(std::vector<Element*>& r
         const auto lower_point_param = element_it->GetBoundsUVW().first;
         const auto upper_point_param = element_it->GetBoundsUVW().second;
 
-        std::array<Element::IntegrationPoint1DVectorType, 3> tmp_integration_points{};
+        std::array<typename ElementType::IntegrationPoint1DVectorType, 3> tmp_integration_points{};
 
         for( int direction = 0; direction < 3; ++direction){
             const double distance_global = global_upper_point_param[direction] - global_lower_point_param[direction];
@@ -348,9 +351,10 @@ void QuadratureMultipleElements::StoreIntegrationPoints(std::vector<Element*>& r
                 }
             }
         }
-
     }
-
 }
+
+/// Explicit class instantiation
+template class QuadratureMultipleElements<Element<IntegrationPoint, BoundaryIntegrationPoint>>;
 
 } // namespace queso

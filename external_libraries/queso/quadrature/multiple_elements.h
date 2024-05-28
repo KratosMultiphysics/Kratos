@@ -20,13 +20,15 @@ namespace queso {
  * @details Available Quadrature rules:
  *          {GGQ_Optimal, GGQ_Reduced1, GGQ_Reduced2}
 */
+template<typename TElementType>
 class QuadratureMultipleElements {
 
 public:
     ///@name Type Defintitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
+
+    typedef TElementType ElementType;
+    typedef ElementContainer<ElementType> ElementContainerType;
 
     ///@}
     ///@name Operations
@@ -37,19 +39,19 @@ public:
     /// @param rNumberOfElements
     /// @param rIntegrationOrder
     /// @param Method Integration method
-    static void AssembleIPs(ElementContainer& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method);
+    static void AssembleIPs(ElementContainerType& rElements, const Vector3i& rNumberOfElements, const Vector3i& rIntegrationOrder, IntegrationMethodType Method);
 
 private:
 
     ///@todo Refactor this
-    static void AssignNumberNeighbours(std::vector<Element*>& rElements, IndexType direction);
+    static void AssignNumberNeighbours(std::vector<ElementType*>& rElements, IndexType direction);
 
-    static Element* NextElement(ElementContainer& rElements, std::size_t id, bool& found, int direction );
+    static ElementType* NextElement(ElementContainerType& rElements, std::size_t id, bool& found, int direction );
 
-    static void StoreIntegrationPoints(std::vector<Element*>& rElements, std::array<int,3>& rNumberKnotspans,
+    static void StoreIntegrationPoints(std::vector<ElementType*>& rElements, std::array<int,3>& rNumberKnotspans,
             const Vector3i& rIntegrationOrder, IntegrationMethodType Method);
 
-    static bool AllElementsVisited(ElementContainer& rElements);
+    static bool AllElementsVisited(ElementContainerType& rElements);
 }; // End Class QuadratureMultipleElements
 
 ///@}

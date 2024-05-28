@@ -23,14 +23,18 @@ namespace queso {
  * @class  QuadratureTrimmedElement.
  * @author Manuel Messmer
  * @brief  Provides functions to create integration rules for trimmed elements.
+ * @tparam TElementType
 **/
+template<typename TElementType>
 class QuadratureTrimmedElement{
 public:
     ///@name Type Definition
     ///@{
-    typedef Element::IntegrationPointVectorType IntegrationPointVectorType;
+    typedef TElementType ElementType;
+    typedef typename ElementType::IntegrationPointVectorType IntegrationPointVectorType;
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPsVectorType;
+    typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
+    typedef std::vector<BoundaryIntegrationPointType> BoundaryIPsVectorType;
     typedef Unique<BoundaryIPsVectorType> BoundaryIPsVectorPtrType;
     typedef std::vector<double> VectorType;
 
@@ -48,7 +52,7 @@ public:
     ///@param rIntegrationOrder
     ///@param Residual Targeted residual
     ///@param EchoLevel Default: 0
-    static double AssembleIPs(Element& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel=0);
+    static double AssembleIPs(ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual, IndexType EchoLevel=0);
 
     ///@}
 protected:
@@ -62,14 +66,14 @@ protected:
     /// @param rOctree
     /// @param MinNumPoints Minimum Number of Points
     /// @param rIntegrationOrder Order of Gauss quadrature.
-    static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomainBase>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder);
+    static void DistributeIntegrationPoints(IntegrationPointVectorType& rIntegrationPoint, Octree<TrimmedDomain>& rOctree, SizeType MinNumPoints, const Vector3i& rIntegrationOrder);
 
     /// @brief Computes constant terms of moment fitting equation via volume integration points.
     /// @param[out] rConstantTerms
     /// @param pIntegrationPoints (Unique<T>)
     /// @param rElement
     /// @param rIntegrationOrder
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const Element& rElement, const Vector3i& rIntegrationOrder);
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const IntegrationPointVectorPtrType& pIntegrationPoints, const ElementType& rElement, const Vector3i& rIntegrationOrder);
 
     /// @brief Computes constant terms of moment fitting equation via boundary integration points. This functions uses the divergence theorem
     //         to transform the respective volume integrals to countour/surface integrals.
@@ -77,7 +81,7 @@ protected:
     /// @param pBoundaryIPs (Unique<T>)
     /// @param rElement
     /// @param rIntegrationOrder
-    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs, const Element& rElement, const Vector3i& rIntegrationOrder);
+    static void ComputeConstantTerms(VectorType& rConstantTerms, const BoundaryIPsVectorPtrType& pBoundaryIPs, const ElementType& rElement, const Vector3i& rIntegrationOrder);
 
     /// @brief Set-Up and solve moment fitting equation. Solve the moment fitting equation for the weights of the integration points.
     ///        Computed weights are directly assigned to rIntegrationPoint.
@@ -86,7 +90,7 @@ protected:
     /// @param rElement
     /// @param rIntegrationOrder
     /// @return double Relative residual ||ax -b||_L2 / ||b||_L2
-    static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const Element& rElement, const Vector3i& rIntegrationOrder);
+    static double MomentFitting(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, const ElementType& rElement, const Vector3i& rIntegrationOrder);
 
     /// @brief Start point elimination algorihtm. Final quadrature rule is stored in rElement.
     /// @param rConstantTerms
@@ -95,7 +99,7 @@ protected:
     /// @param rIntegrationOrder
     /// @param Residual targeted residual
     /// @return double achieved residual
-    static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, Element& rElement, const Vector3i& rIntegrationOrder, double Residual);
+    static double PointElimination(const VectorType& rConstantTerms, IntegrationPointVectorType& rIntegrationPoint, ElementType& rElement, const Vector3i& rIntegrationOrder, double Residual);
 }; // End Class
 
 

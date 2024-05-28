@@ -9,7 +9,8 @@
 
 namespace queso {
 
-void QuadratureSingleElement::AssembleIPs(Element& rElement, const Vector3i& rOrder, IntegrationMethodType Method)
+template<typename TElementType>
+void QuadratureSingleElement<TElementType>::AssembleIPs(ElementType& rElement, const Vector3i& rOrder, IntegrationMethodType Method)
 {
     auto& integration_points = rElement.GetIntegrationPoints();
 
@@ -19,7 +20,8 @@ void QuadratureSingleElement::AssembleIPs(Element& rElement, const Vector3i& rOr
     AssembleIPs(integration_points, lower_bound_param, upper_bound_param, rOrder, Method);
 }
 
-void QuadratureSingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
+template<typename TElementType>
+void QuadratureSingleElement<TElementType>::AssembleIPs(IntegrationPointVectorType& rIntegrationPoints, const PointType& rLowerBoundParam, const PointType& rUpperBoundParam,
         const Vector3i& rOrder, IntegrationMethodType Method ){
 
     const auto p_ip_list_u = IntegrationPointFactory1D::GetGauss(rOrder[0], Method);
@@ -51,6 +53,9 @@ void QuadratureSingleElement::AssembleIPs(IntegrationPointType& rIntegrationPoin
         }
     }
 }
+
+/// Explicit class instantiation
+template class QuadratureSingleElement<Element<IntegrationPoint, BoundaryIntegrationPoint>>;
 
 } // End namespace queso
 
