@@ -1648,7 +1648,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                   const ElementVariables& rVariables)
+                                                                   const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1773,7 +1773,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
-                                                                  ElementVariables& rVariables)
+                                                                  ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
