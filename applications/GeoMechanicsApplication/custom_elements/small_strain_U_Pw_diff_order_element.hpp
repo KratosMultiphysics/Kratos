@@ -203,7 +203,6 @@ protected:
         bool ConsiderGeometricStiffness;
 
         // stress/flow variables
-        double PermeabilityUpdateFactor;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;
@@ -237,8 +236,6 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
-
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateDerivativesOnInitialConfiguration(
@@ -253,11 +250,9 @@ protected:
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
-
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -267,11 +262,12 @@ protected:
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) const;
 
+    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
@@ -283,8 +279,6 @@ protected:
     void AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
-
-    SizeType GetVoigtSize() const;
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;

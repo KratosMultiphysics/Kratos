@@ -27,8 +27,7 @@ public:
 
     virtual ~GeoThermalLaw() = default;
 
-    virtual Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
-                                                    const ProcessInfo& rProcessInfo) const = 0;
+    [[nodiscard]] virtual Matrix CalculateThermalDispersionMatrix(const Properties& rProp) const = 0;
 
 private:
     friend class Serializer;

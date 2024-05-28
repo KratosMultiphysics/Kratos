@@ -67,8 +67,10 @@ public:
         */
 
     public:
-        Parameters(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
-            : mrCurrentProcessInfo(rCurrentProcessInfo), mrMaterialProperties(rMaterialProperties){};
+        explicit Parameters(const Properties& rMaterialProperties)
+            : mrMaterialProperties(rMaterialProperties)
+        {
+        }
 
         ~Parameters() = default;
 
@@ -82,13 +84,10 @@ public:
             return mFluidPressure.value();
         }
 
-        const ProcessInfo& GetProcessInfo() const { return mrCurrentProcessInfo; }
-
         const Properties& GetMaterialProperties() const { return mrMaterialProperties; }
 
     private:
         std::optional<double> mFluidPressure;
-        const ProcessInfo&    mrCurrentProcessInfo;
         const Properties&     mrMaterialProperties;
 
     }; // class Parameters end
