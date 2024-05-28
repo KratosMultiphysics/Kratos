@@ -14,24 +14,25 @@
 #if !defined(KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
 #define KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
-// Project includes
-#include "containers/array_1d.h"
 #include "custom_retention/retention_law.h"
-#include "custom_retention/retention_law_factory.h"
-#include "geometries/geometry.h"
+#include "geometries/geometry_data.h"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "utilities/math_utils.h"
 
-// Application includes
-#include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
-#include "stress_state_policy.h"
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace Kratos
 {
+
+class StressStatePolicy;
+
+template <class T, std::size_t N>
+class array_1d;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public Element
 {

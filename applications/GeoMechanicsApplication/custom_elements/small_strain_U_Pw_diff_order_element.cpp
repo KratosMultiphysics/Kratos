@@ -12,20 +12,25 @@
 //
 
 // Project includes
+#include "containers/array_1d.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_3.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
