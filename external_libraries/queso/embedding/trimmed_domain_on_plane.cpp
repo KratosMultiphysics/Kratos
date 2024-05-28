@@ -6,6 +6,7 @@
 //// Project includes
 #include "embedding/trimmed_domain_on_plane.h"
 #include "embedding/brep_operator.h"
+#include "embedding/trimmed_domain.h"
 #include "embedding/polygon.h"
 
 namespace queso
@@ -17,7 +18,7 @@ typedef TrimmedDomainOnPlane::Edge2D Edge2D;
 typedef TrimmedDomainOnPlane::Point2DType Point2DType;
 typedef TrimmedDomainOnPlane::Point2DSetType Point2DSetType;
 
-void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh)
+void TrimmedDomainOnPlane::CollectEdgesOnPlane(const TriangleMeshInterface &rTriangleMesh)
 {
     const auto& edges_on_planes = rTriangleMesh.GetEdgesOnPlanes();
     const IndexType plane_index = DIRINDEX3*2UL + static_cast<IndexType>(mUpperBoundary);
@@ -292,9 +293,9 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 tmp_point[DIRINDEX2] = v2_up[1];
                 IndexType v3 = p_new_mesh->AddVertex(tmp_point);
                 if (mUpperBoundary ^ mSwitchOrientation)
-                    p_new_mesh->AddTriangle(Vector3i(v1, v2, v3));
+                    p_new_mesh->AddTriangle(Vector3i{v1, v2, v3});
                 else
-                    p_new_mesh->AddTriangle(Vector3i(v2, v1, v3));
+                    p_new_mesh->AddTriangle(Vector3i{v2, v1, v3});
                 p_new_mesh->AddNormal(normal);
 
                 skip = true; // Skip polygon construction.
@@ -317,9 +318,9 @@ TriangleMeshPtrType TrimmedDomainOnPlane::TriangulateDomain() const
                 tmp_point[DIRINDEX2] = v1_up[1];
                 IndexType v3 = p_new_mesh->AddVertex(tmp_point);
                 if (mUpperBoundary ^ mSwitchOrientation)
-                    p_new_mesh->AddTriangle(Vector3i(v1, v2, v3));
+                    p_new_mesh->AddTriangle(Vector3i{v1, v2, v3});
                 else
-                    p_new_mesh->AddTriangle(Vector3i(v2, v1, v3));
+                    p_new_mesh->AddTriangle(Vector3i{v2, v1, v3});
                 p_new_mesh->AddNormal(normal);
 
                 skip = true; // Skip polygon construction.

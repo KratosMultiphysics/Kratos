@@ -34,7 +34,7 @@ public:
     ///@name Life cycle
     ///@{
     AABB_primitive(const Vector3d& rLowerBound, const Vector3d& rUpperBound) :
-        AABB_lohedges(rLowerBound.data(), rUpperBound.data())
+        AABB_lohedges(rLowerBound, rUpperBound)
     {
     }
 

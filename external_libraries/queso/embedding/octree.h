@@ -28,8 +28,6 @@ class Octree {
 private:
     ///@name Type Definitions
     ///@{
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
-    typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
 
     /**
      * @class  Octree::Node
@@ -64,12 +62,14 @@ private:
         void Refine(IndexType MinLevel, IndexType MaxLevel, const TOperator* pOperator);
 
         /// @brief Recursive function (walks through octree) to get integration points.
+        /// @tparam TElementType
         /// @details Distributes Gauss points (according to rOrder) and adds all points to pPoints that are
         ///          inside the domain.
         /// @param[out] pPoints IntegrationPointVectorType
         /// @param rOrder Order of Gauss quadrature.
         /// @param pOperator Operator to perfrom Inside/Outside test.
-        void GetIntegrationPoints(IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
+        template<typename TElementType>
+        void GetIntegrationPoints(typename TElementType::IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
 
         /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
         /// @param[out] rValue // Return value
@@ -148,17 +148,21 @@ public:
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
     ///        But only points that are inside the domain are considered.
     ///        Also see: AddIntegrationPoints()
+    /// @tparam TElementType
     /// @param rOrder Order of Gauss quadrature.
     /// @return IntegrationPointVectorPtrType
-    IntegrationPointVectorPtrType pGetIntegrationPoints(const Vector3i& rOrder) const;
+    template<typename TElementType>
+    Unique<std::vector<typename TElementType::IntegrationPointType>> pGetIntegrationPoints(const Vector3i& rOrder) const;
 
     /// @brief Add integration points to rPoints. Points are constructed on the leafs of the octree.
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
     ///        But only points that are inside the domain are considered.
     ///        Also see: pGetIntegrationPoints().
+    /// @tparam TElementType
     /// @param rPoints Vector of integration points.
     /// @param rOrder Order of Gauss quadrature.
-    void AddIntegrationPoints(IntegrationPointVectorType& rPoints, const Vector3i& rOrder) const;
+    template<typename TElementType>
+    void AddIntegrationPoints(std::vector<typename TElementType::IntegrationPointType>& rPoints, const Vector3i& rOrder) const;
 
     /// @brief Returns current refinement level of leaf nodes that are classified as inside.
     /// @return IndexType

@@ -8,7 +8,7 @@
 #include "aabb_tree/AABB_base.h"
 //// Project includes
 #include "embedding/aabb_primitive.h"
-#include "containers/triangle_mesh.hpp"
+#include "containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 
@@ -37,7 +37,7 @@ public:
     /// @param SkinThickness The skin thickness for fattened AABBs, as a fraction
     ///                      of the AABB_base base length.
     /// @param TouchIsOverlap Does touching count as overlapping in query operations?
-    AABB_tree(const TriangleMesh& TriangleMesh ) :
+    AABB_tree(const TriangleMeshInterface& TriangleMesh ) :
             aabb_base::Tree_base(3, 0.0, 16,  false)
     {
         mLowerBound = {MAXD, MAXD, MAXD};
@@ -47,17 +47,17 @@ public:
             const auto& p2 = TriangleMesh.P2(i);
             const auto& p3 = TriangleMesh.P3(i);
 
-            const PointType x_values(p1[0], p2[0], p3[0]);
-            const PointType y_values(p1[1], p2[1], p3[1]);
-            const PointType z_values(p1[2], p2[2], p3[2]);
+            const PointType x_values{p1[0], p2[0], p3[0]};
+            const PointType y_values{p1[1], p2[1], p3[1]};
+            const PointType z_values{p1[2], p2[2], p3[2]};
 
             auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
             auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
             auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
 
-            const PointType lower_bound(*x_min_max.first, *y_min_max.first, *z_min_max.first);
-            const PointType upper_bound(*x_min_max.second, *y_min_max.second, *z_min_max.second);
-            this->insertParticle(i, lower_bound.data(), upper_bound.data());
+            const PointType lower_bound{*x_min_max.first, *y_min_max.first, *z_min_max.first};
+            const PointType upper_bound{*x_min_max.second, *y_min_max.second, *z_min_max.second};
+            this->insertParticle(i, lower_bound, upper_bound);
 
             mLowerBound[0] = std::min<double>(*x_min_max.first, mLowerBound[0]);
             mUpperBound[0] = std::max<double>(*x_min_max.second, mUpperBound[0]);

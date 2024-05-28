@@ -33,7 +33,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Unique<TrimmedDomainBase> TrimmedDomainBasePtrType;
+    typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
     typedef std::vector<IntersectionStatusType> StatusVectorType;
 
     ///@}
@@ -44,7 +44,7 @@ public:
     ///@brief Builds AABB tree for given mesh.
     ///@param rTriangleMesh
     ///@param rParameters QuESo parameters.
-    BRepOperator(const TriangleMesh& rTriangleMesh, bool Closed=true)
+    BRepOperator(const TriangleMeshInterface& rTriangleMesh, bool Closed=true)
         : mTriangleMesh(rTriangleMesh), mGeometryQuery(rTriangleMesh, Closed)
     {
     }
@@ -59,10 +59,12 @@ public:
     bool IsInside(const PointType& rPoint) const;
 
     ///@brief Returns intersections state of element.
+    ///@tparam TElementType
     ///@note Calls: GetIntersectionState(const PointType& rLowerBound,  const PointType& rUpperBound, double Tolerance = SNAPTOL)
     ///@param rElement
     ///@return IntersectionStatus, enum: (0-Inside, 1-Outside, 2-Trimmed).
-    IntersectionStatus GetIntersectionState(const Element& rElement) const {
+    template<typename TElementType>
+    IntersectionStatus GetIntersectionState(const TElementType& rElement) const {
         const auto& lower_bound = rElement.GetBoundsXYZ().first;
         const auto& upper_bound = rElement.GetBoundsXYZ().second;
         return GetIntersectionState(lower_bound, upper_bound);
@@ -89,8 +91,8 @@ public:
     /// @param rUpperBound Upper bound of AABB.
     /// @param MinElementVolumeRatio Below this ratio elements are not considered.
     /// @param MinNumberOfBoundaryTriangles Min number of triangles in the closed surface mesh.
-    /// @return TrimmedDomainBasePtrType (Unique)
-    TrimmedDomainBasePtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
+    /// @return TrimmedDomainPtrType (Unique)
+    TrimmedDomainPtrType pGetTrimmedDomain(const PointType& rLowerBound, const PointType& rUpperBound,
         double MinElementVolumeRatio, IndexType MinNumberOfBoundaryTriangles ) const;
 
     ///@brief Clips triangle mesh by AABB.
@@ -99,8 +101,8 @@ public:
     ///@see pClipTriangleMeshUnique().
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<TriangleMeshInterface>. Clipped mesh.
+    Unique<TriangleMeshInterface> pClipTriangleMesh(const PointType& rLowerBound, const PointType& rUpperBound ) const;
 
     /// @brief Returns true, if AABB is intersected by at least one triangle.
     /// @param rLowerBound of AABB.
@@ -126,8 +128,8 @@ public:
     ///@see pClipTriangleMesh()
     ///@param rLowerBound Lower bound of AABB.
     ///@param rUpperBound Upper bound of AABB.
-    ///@return Unique<TriangleMesh>. Clipped mesh.
-    Unique<TriangleMesh> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
+    ///@return Unique<TriangleMeshInterface>. Clipped mesh.
+    Unique<TriangleMeshInterface> pClipTriangleMeshUnique(const PointType& rLowerBound, const PointType& rUpperBound ) const;
     ///@}
 
 private:
@@ -135,7 +137,7 @@ private:
     ///@name Private Members
     ///@{
 
-    const TriangleMesh& mTriangleMesh;
+    const TriangleMeshInterface& mTriangleMesh;
     GeometryQuery mGeometryQuery;
 
     ///@}

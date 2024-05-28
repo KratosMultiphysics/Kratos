@@ -32,7 +32,7 @@ public:
 
     /// Constructor
 
-    GeometryQuery(const TriangleMesh& rTriangleMesh, bool MeshIsClosed = true)
+    GeometryQuery(const TriangleMeshInterface& rTriangleMesh, bool MeshIsClosed = true)
         : mTriangleMesh(rTriangleMesh), mTree(rTriangleMesh), mMeshIsClosed(MeshIsClosed)
     {
     }
@@ -85,7 +85,7 @@ private:
     ///@name Private Members
     ///@{
 
-    const TriangleMesh& mTriangleMesh;
+    const TriangleMeshInterface& mTriangleMesh;
     AABB_tree mTree;
     bool mMeshIsClosed;
     ///@}

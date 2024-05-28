@@ -6,10 +6,10 @@
 
 //// STL includes
 #include <set>
+#include <vector>
 //// Project includes
 #include "includes/define.hpp"
-#include "embedding/trimmed_domain_base.h"
-
+#include "containers/triangle_mesh.hpp"
 
 namespace queso
 {
@@ -17,6 +17,7 @@ namespace queso
 ///@{
 
 class BRepOperator;
+class TrimmedDomain;
 
 /**
  * @class  TrimmedDomainOnPlane
@@ -45,9 +46,7 @@ public:
     typedef enum Orientation OrientationType;
     typedef std::array<double, 2> Point2DType;
     typedef Vector3d Point3DType;
-    typedef std::vector<BoundaryIntegrationPoint> BoundaryIPVectorType;
-    typedef Unique<BoundaryIPVectorType> BoundaryIPVectorPtrType;
-    typedef Unique<TriangleMesh> TriangleMeshPtrType;
+    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
 
     struct PointComparison {
         PointComparison(double Tolerance) : mTolerance(Tolerance){}
@@ -106,7 +105,7 @@ public:
     ///@{
 
     /// Constructor.
-    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomainBase *pTrimmedDomain, bool SwitchOrientation = false)
+    TrimmedDomainOnPlane(IndexType PlaneIndex, bool UpperBoundary, const Point3DType &LowerBound, const Point3DType &UpperBound, const TrimmedDomain* pTrimmedDomain, bool SwitchOrientation = false)
         : mUpperBoundary(UpperBoundary), mLowerBound(LowerBound), mUpperBound(UpperBound), mpTrimmedDomain(pTrimmedDomain), mSwitchOrientation(SwitchOrientation)
     {
         // Orientation
@@ -177,7 +176,7 @@ public:
     //    |     |</-- plane upper  Z
     //    |_____|/
     //
-    TriangleMeshPtrType pGetTriangulation(const TriangleMesh &rTriangleMesh, const BRepOperator* pOperator) {
+    TriangleMeshPtrType pGetTriangulation(const TriangleMeshInterface &rTriangleMesh, const BRepOperator* pOperator) {
         CollectEdgesOnPlane(rTriangleMesh);
         CloseContourEdges(pOperator);
         return TriangulateDomain();
@@ -209,7 +208,7 @@ private:
     ///        -----|----- Negative oriented.
     ///             V
     /// @param rTriangleMesh Clipped triangle mesh inside trimmed domain.
-    void CollectEdgesOnPlane(const TriangleMesh &rTriangleMesh);
+    void CollectEdgesOnPlane(const TriangleMeshInterface &rTriangleMesh);
 
     ///@brief Refine edges on trimmed domain on plane. See @details for more information.
     ///@details 1.) Checks if positive oriented edges span the entire AABB (we consider only the part that is inside the domain) in DIRINDEX1.
@@ -449,7 +448,7 @@ private:
     Point3DType mLowerBound; // Lower bound AABB
     Point3DType mUpperBound; // Upper bound AABB
 
-    const TrimmedDomainBase *mpTrimmedDomain; // Reuiqred for IsInside()-Test.
+    const TrimmedDomain* mpTrimmedDomain; // Reuiqred for IsInside()-Test.
 
     bool mSwitchOrientation; // Switch orientation of plane indices.
 

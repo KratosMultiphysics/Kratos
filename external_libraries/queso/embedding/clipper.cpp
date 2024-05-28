@@ -33,16 +33,16 @@ Unique<PolygonType> Clipper::ClipTriangle(const PointType& rV1, const PointType&
     }
 
     // Compute min/max values of bounding box around triangle.
-    const PointType x_values(rV1[0], rV2[0], rV3[0]);
-    const PointType y_values(rV1[1], rV2[1], rV3[1]);
-    const PointType z_values(rV1[2], rV2[2], rV3[2]);
+    const PointType x_values{rV1[0], rV2[0], rV3[0]};
+    const PointType y_values{rV1[1], rV2[1], rV3[1]};
+    const PointType z_values{rV1[2], rV2[2], rV3[2]};
 
     auto x_min_max = std::minmax_element(x_values.begin(), x_values.end());
     auto y_min_max = std::minmax_element(y_values.begin(), y_values.end());
     auto z_min_max = std::minmax_element(z_values.begin(), z_values.end());
 
-    PointType min_tri(*x_min_max.first, *y_min_max.first, *z_min_max.first);
-    PointType max_tri(*x_min_max.second, *y_min_max.second, *z_min_max.second);
+    PointType min_tri{*x_min_max.first, *y_min_max.first, *z_min_max.first};
+    PointType max_tri{*x_min_max.second, *y_min_max.second, *z_min_max.second};
 
     // Add triangle vertices to polygon.
     p_current_poly->AddVertex( rV1 );
@@ -188,9 +188,9 @@ PointType Clipper::FindIntersectionPointOnPlane(const PointType& rA,
         QuESo_ERROR << "No valid intersection.\n";
     }
 
-    PointType ret( rA[0] + t*(rB[0] - rA[0]),
+    PointType ret{ rA[0] + t*(rB[0] - rA[0]),
                    rA[1] + t*(rB[1] - rA[1]),
-                   rA[2] + t*(rB[2] - rA[2]) );
+                   rA[2] + t*(rB[2] - rA[2]) };
 
     auto status = ClassifyPointToPlane(ret, rPlane, ZEROTOL);
     if( status != ON_PLANE){

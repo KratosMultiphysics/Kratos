@@ -7,7 +7,6 @@
 /// STL includes
 #include <memory>
 /// Project includes
-#include "embedding/trimmed_domain_base.h"
 #include "embedding/geometry_query.h"
 #include "utilities/mesh_utilities.h"
 #include "embedding/trimmed_domain_on_plane.h"
@@ -23,11 +22,13 @@ namespace queso {
  * @brief  Provides geometrical operations e.g. to compute closed triangle mesh of trimmed domain (based on a clipped triangle mesh).
  * @details Uses AABB Tree for fast search.
 */
-class TrimmedDomain : public TrimmedDomainBase {
+class TrimmedDomain {
 
 public:
     ///@name Type Definitions
     ///@{
+
+    typedef Unique<TriangleMeshInterface> TriangleMeshPtrType;
 
     ///@}
     ///@name Life Cycle
@@ -42,8 +43,8 @@ public:
     /// @param SwitchPlaneOrientation If true, orientation of edges on TrimmedDomainOnPlane are switched.
     TrimmedDomain(TriangleMeshPtrType pTriangleMesh, const PointType& rLowerBound, const PointType& rUpperBound,
             const BRepOperator* pOperator, IndexType MinNumberOfTriangles = 100, bool SwitchPlaneOrientation = false )
-        : TrimmedDomainBase(std::move(pTriangleMesh), rLowerBound, rUpperBound),
-          mClippedMesh(GetTriangleMesh()), mGeometryQuery(mClippedMesh, false)
+        : mpTriangleMesh(std::move(pTriangleMesh)), mLowerBound(rLowerBound), mUpperBound(rUpperBound),
+          mpClippedMesh(mpTriangleMesh->Clone()), mGeometryQuery(*mpClippedMesh, false)
     {
         // Set relative snap tolerance.
         mSnapTolerance = RelativeSnapTolerance(mLowerBound, mUpperBound);
@@ -81,12 +82,21 @@ public:
 
             MeshUtilities::Refine(*(mpTriangleMesh.get()), MinNumberOfTriangles);
         }
-
     }
 
     ///@}
     ///@name Operations
     ///@{
+
+    ///@brief Returns true if point is inside TrimmedDomain. Returns false, if test was not successful.
+    ///@note Calls: IsInsideTrimmedDomain(rPoint, rSuccess). If you want to know if test was successful, you should directly call
+    ///      IsInsideTrimmedDomain(rPoint, rSuccess).
+    ///@param rPoint
+    ///@return bool
+    bool IsInsideTrimmedDomain(const PointType& rPoint) const {
+        bool success = true;
+        return IsInsideTrimmedDomain(rPoint, success);
+    }
 
     ///@brief Returns true if point is inside TrimmedDomain. Expects point to be inside AABB. Check is omitted.
     ///@brief Performs ray tracing in direction of the first triangle. Search for all intersection of ray. Inside/Outside is detected
@@ -94,11 +104,25 @@ public:
     ///@param rPoint
     ///@param[out] rSuccess Is set to false, if e.g. all triangles are detected as parallel and therefore give ambiguous results.
     ///@return bool
-    bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const override;
+    bool IsInsideTrimmedDomain(const PointType& rPoint, bool& rSuccess) const;
+
+    /// @brief Return ptr to Triangle mesh (Raw Ptr)
+    /// @return const TriangleMeshInterface*
+    const TriangleMeshInterface* const pGetTriangleMesh() const{
+        return mpTriangleMesh.get();
+    }
+
+    /// @brief Return reference to triangle mesh
+    /// @return const TriangleMeshInterface&
+    const TriangleMeshInterface& GetTriangleMesh() const{
+        return *(mpTriangleMesh.get());
+    }
 
     ///@brief Triangulates trimmed domain (Surface mesh of outer hull) and return boundary integration points.
+    /// @tparam BoundaryIntegrationPointType
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
-    BoundaryIPVectorPtrType pGetBoundaryIps() const;
+    template<typename BoundaryIntegrationPointType>
+    Unique<std::vector<BoundaryIntegrationPointType>> pGetBoundaryIps() const;
 
     ///@brief Returns intersections state of AABB. This is an interface for the octree.
     ///@note This test is only performed on the mClippedMesh to be more efficient.
@@ -111,7 +135,7 @@ public:
 
     /// @brief Returns bounding box of trimmed domain. (Might be smaller than the actual domain of element.)
     /// @return BoundingBox (std::pair: first - lower_bound, second - upper_bound)
-    const BoundingBox GetBoundingBoxOfTrimmedDomain() const override;
+    const BoundingBoxType GetBoundingBoxOfTrimmedDomain() const;
 
     ///@}
 private:
@@ -119,8 +143,11 @@ private:
     ///@}
     ///@name Private Members
     ///@{
+    TriangleMeshPtrType mpTriangleMesh;
+    PointType mLowerBound;
+    PointType mUpperBound;
 
-    TriangleMesh mClippedMesh;
+    Unique<TriangleMeshInterface> mpClippedMesh;
     GeometryQuery mGeometryQuery;
     double mSnapTolerance;
 
