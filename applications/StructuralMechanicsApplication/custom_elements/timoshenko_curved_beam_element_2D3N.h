@@ -140,11 +140,7 @@ public:
      * @brief Returns a 6 component vector including the values of the DoFs
      * in GLOBAL beam axes
      */
-    void GetNodalValuesVector(
-        GlobalSizeVector &rNodalValues,
-        const double angle1,
-        const double angle2,
-        const double angle3);
+    void GetNodalValuesVector(GlobalSizeVector &rNodalValues);
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -277,7 +273,10 @@ public:
         std::vector<array_1d<double, 3>> &rOutput,
         const ProcessInfo &rCurrentProcessInfo);
 
-    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix(const double xi)
+    /**
+     * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi
+    */
+    void GetTangentandTransverseUnitVectors(const double xi, VectorType& rt, VectorType& rn)
     {
         const auto& r_geom = GetGeometry();
         GlobalSizeVector dN_dxi, d2N_dxi2;
@@ -300,11 +299,13 @@ public:
             d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
         }
 
-        VectorType x_prime(3), x_2prime(3), t(3), n(3), b(3);
+        VectorType x_prime(3), x_2prime(3), b(3);
         x_prime.clear();
         x_2prime.clear();
-        t.clear();
-        n.clear();
+        rt.resize(3);
+        rn.resize(3);
+        rt.clear();
+        rn.clear();
         b.clear();
 
         x_prime[0] = dx_dxi;
@@ -313,33 +314,41 @@ public:
         x_2prime[0] = d2x_dxi2;
         x_2prime[1] = d2y_dxi2;
 
-        noalias(t) = x_prime / norm_2(x_prime);
+        noalias(rt) = x_prime / norm_2(x_prime);
         noalias(b) = MathUtils<double>::CrossProduct(x_prime, x_2prime) / norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
-        noalias(n) = MathUtils<double>::CrossProduct(t, b);
+        noalias(rn) = MathUtils<double>::CrossProduct(rt, b);
+    }
 
-        BoundedMatrix<double, 3, 3> T;
+    /**
+     * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
+    */
+    BoundedMatrix<double, 2, 2> GetFrenetSerretMatrix(
+        const double xi,
+        const VectorType& rt,
+        const VectorType& rn)
+    {
+        BoundedMatrix<double, 2, 2> T;
         T.clear();
 
-        T(0, 0) = t[0];
-        T(0, 1) = t[1];
+        T(0, 0) = rt[0];
+        T(0, 1) = rt[1];
 
-        T(1, 0) = n[0];
-        T(1, 1) = n[1];
+        T(1, 0) = rn[0];
+        T(1, 1) = rn[1];
 
-        T(2, 2) = 1.0;
         return T;
     }
 
 
-    BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
-    {
+    // BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
+    // {
 
-        BoundedMatrix<double, 3, 3> T;
-        noalias(T) = GetFrenetSerretMatrix(xi);
-        BoundedMatrix<double, 9, 9> global_size_T;
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-        return global_size_T;
-    }
+    //     BoundedMatrix<double, 3, 3> T;
+    //     noalias(T) = GetFrenetSerretMatrix(xi);
+    //     BoundedMatrix<double, 9, 9> global_size_T;
+    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
+    //     return global_size_T;
+    // }
 
     void RotateLHS(
         MatrixType &rLHS,
