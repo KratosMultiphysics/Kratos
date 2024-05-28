@@ -14,6 +14,13 @@
 #include "testing/testing.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
+namespace
+{
+
+constexpr auto tolerance = 1.0e-12;
+
+}
+
 namespace Kratos::Testing
 {
 
@@ -149,7 +156,52 @@ KRATOS_TEST_CASE_IN_SUITE(EachFluidPressureIsTheInnerProductOfShapeFunctionsAndP
     const auto expected_fluid_pressures = std::vector<double>{3.4, 3.9, 4.3};
     KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculateFluidPressures(
                                   shape_function_values, pore_water_pressures),
-                              expected_fluid_pressures, 1e-12)
+                              expected_fluid_pressures, tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFactorIsNotGiven, KratosGeoMechanicsFastSuite)
+{
+    const auto unused_strain_vectors = std::vector<Vector>(3, Vector{});
+    auto       properties            = Properties{};
+
+    const auto expected_factors = std::vector<double>(unused_strain_vectors.size(), 1.0);
+    KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                                  unused_strain_vectors, properties),
+                              expected_factors, tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFactorIsNonPositive, KratosGeoMechanicsFastSuite)
+{
+    const auto unused_strain_vectors = std::vector<Vector>(3, Vector{});
+    auto       properties            = Properties{};
+    properties[PERMEABILITY_CHANGE_INVERSE_FACTOR] = -1.0;
+
+    const auto expected_factors = std::vector<double>(unused_strain_vectors.size(), 1.0);
+    KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                                  unused_strain_vectors, properties),
+                              expected_factors, tolerance)
+
+    properties[PERMEABILITY_CHANGE_INVERSE_FACTOR] = 0.0;
+
+    KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                                  unused_strain_vectors, properties),
+                              expected_factors, tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorIsComputedFromStrainsAndPropertiesWhenChangeInverseFactorIsPositive, KratosGeoMechanicsFastSuite)
+{
+    auto test_strains = Vector{3};
+    test_strains <<= 0.001, 0.002, 0.0;
+    auto strain_vectors = std::vector<Vector>{test_strains, 2.0 * test_strains, 4.0 * test_strains};
+
+    auto properties                                = Properties{};
+    properties[PERMEABILITY_CHANGE_INVERSE_FACTOR] = 0.5;
+    properties[POROSITY]                           = 0.2;
+
+    const auto expected_factors = std::vector<double>{1.00433, 1.0087, 1.01753};
+    KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
+                                  strain_vectors, properties),
+                              expected_factors, 1e-5)
 }
 
 } // namespace Kratos::Testing
