@@ -179,12 +179,10 @@ protected:
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
         double detJ;
@@ -221,8 +219,6 @@ protected:
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
-
-    void InitializeBiotCoefficients(ElementVariables& rVariables, bool hasBiotCoefficient = false);
 
     double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
@@ -267,9 +263,6 @@ protected:
     virtual void CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
                                         array_1d<double, TNumNodes>&            rPVector,
                                         const ElementVariables&                 rVariables) const;
-
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
