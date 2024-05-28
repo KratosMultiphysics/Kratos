@@ -247,13 +247,6 @@ public:
     const double GetBendingShearStiffnessRatio();
 
     /**
-     * @brief Returns the curvature of the geometry
-     */
-    const double GetGeometryCurvature(
-        const double J,
-        const double xi);
-
-    /**
      * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
      * Also its derivatives
      * @param rN reference to the shape functions (or derivatives)
@@ -339,38 +332,6 @@ public:
         return T;
     }
 
-
-    // BoundedMatrix<double, 9, 9> GetGlobalSizeRotationMatrixGlobalToLocalAxes(const double xi)
-    // {
-
-    //     BoundedMatrix<double, 3, 3> T;
-    //     noalias(T) = GetFrenetSerretMatrix(xi);
-    //     BoundedMatrix<double, 9, 9> global_size_T;
-    //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-    //     return global_size_T;
-    // }
-
-    void RotateLHS(
-        MatrixType &rLHS,
-        const double angle1,
-        const double angle2,
-        const double angle3);
-
-    double GetAngle(const double xi);
-
-    void RotateRHS(
-        VectorType &rRHS,
-        const double angle1,
-        const double angle2,
-        const double angle3);
-
-    void RotateAll(
-        MatrixType &rLHS,
-        VectorType &rRHS,
-        const double angle1,
-        const double angle2,
-        const double angle3);
-
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
      * Also its derivative
@@ -391,7 +352,7 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues                 (GlobalSizeVector& rNu,                const double xi);
+    void GetNu0ShapeFunctionsValues                 (GlobalSizeVector& rNu,                 const double xi);
     void GetFirstDerivativesNu0ShapeFunctionsValues (GlobalSizeVector& rNu, const double J, const double xi);
     void GetSecondDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double J, const double xi);
     void GetLocalFirstDerivativesNu0ShapeFunctionsValues (GlobalSizeVector& rNu, const double xi);

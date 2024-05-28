@@ -170,56 +170,6 @@ const double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(const double xi)
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double LinearTimoshenkoCurvedBeamElement2D3N::GetGeometryCurvature(
-    const double J,
-    const double xi
-    )
-{
-    GlobalSizeVector dN_dxi, d2N_dxi2;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues (dN_dxi,   xi);
-    GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
-    const auto& r_geom = GetGeometry();
-
-    double dx_dxi = 0.0;
-    double dy_dxi = 0.0;
-
-    double d2x_dxi2 = 0.0;
-    double d2y_dxi2 = 0.0;
-
-    for (IndexType i = 0; i < NumberOfNodes; ++i) {
-        const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].GetInitialPosition();
-        dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
-        dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
-
-        d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
-        d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
-    }
-    // return ((dx_dxi * d2y_dxi2 - dy_dxi * d2x_dxi2) / std::pow(J, 3));
-
-    VectorType x_prime(3), x_prime2(3);
-    x_prime.clear();
-    x_prime2.clear();
-
-    x_prime[0] = dx_dxi;
-    x_prime[1] = dy_dxi;
-    x_prime[2] = 0.0;
-
-    // x_prime /= norm_2(x_prime);
-
-    x_prime2[0] = d2x_dxi2;
-    x_prime2[1] = d2y_dxi2;
-    x_prime2[2] = 0.0;
-
-    // x_prime2 /= norm_2(x_prime2);
-
-    // return 0.0;
-    return norm_2(MathUtils<double>::CrossProduct(x_prime, x_prime2)) / std::pow(norm_2(x_prime), 3);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 const double LinearTimoshenkoCurvedBeamElement2D3N::GetBendingShearStiffnessRatio()
 {
     const auto &r_props = GetProperties();
@@ -1003,9 +953,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
     GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
-    MatrixType local_lhs = rLHS;
-    VectorType local_rhs = rRHS;
-
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
 
@@ -1022,43 +969,50 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_props);
         const double A_s  = r_props[AREA_EFFECTIVE_Y];
 
-        const double N1 = 0.5 * xi * (xi - 1.0);
-        const double N2 = 0.5 * xi * (xi + 1.0);
-        const double N3 = 1.0 - std::pow(xi, 2);
+        // const double N1 = 0.5 * xi * (xi - 1.0);
+        // const double N2 = 0.5 * xi * (xi + 1.0);
+        // const double N3 = 1.0 - std::pow(xi, 2);
 
-        const double dN1 = (xi - 0.5) / J;
-        const double dN2 = (xi + 0.5) / J;
-        const double dN3 = (-2.0 * xi) / J;
+        // const double dN1 = (xi - 0.5) / J;
+        // const double dN2 = (xi + 0.5) / J;
+        // const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
-        N_shape.clear();
-        dN_shape.clear();
-        N_shape[1] = N1;
-        N_shape[4] = N2;
-        N_shape[7] = N3;
-        dN_shape[1] = dN1;
-        dN_shape[4] = dN2;
-        dN_shape[7] = dN3;
+        // N_shape.clear();
+        // dN_shape.clear();
+        // N_shape[1] = N1;
+        // N_shape[4] = N2;
+        // N_shape[7] = N3;
+        // dN_shape[1] = dN1;
+        // dN_shape[4] = dN2;
+        // dN_shape[7] = dN3;
 
         // axial u
-        dNu.clear();
-        Nu.clear();
-        Nu[0] = N1;
-        Nu[3] = N2;
-        Nu[6] = N3;
-        dNu[0] = dN1;
-        dNu[3] = dN2;
-        dNu[6] = dN3;
+        // dNu.clear();
+        // Nu.clear();
+        // Nu[0] = N1;
+        // Nu[3] = N2;
+        // Nu[6] = N3;
+        // dNu[0] = dN1;
+        // dNu[3] = dN2;
+        // dNu[6] = dN3;
 
         // rotation
-        dN_theta.clear();
-        N_theta.clear();
-        N_theta[2] = N1;
-        N_theta[5] = N2;
-        N_theta[8] = N3;
-        dN_theta[2] = dN1;
-        dN_theta[5] = dN2;
-        dN_theta[8] = dN3;
+        // dN_theta.clear();
+        // N_theta.clear();
+        // N_theta[2] = N1;
+        // N_theta[5] = N2;
+        // N_theta[8] = N3;
+        // dN_theta[2] = dN1;
+        // dN_theta[5] = dN2;
+        // dN_theta[8] = dN3;
+
+        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        GetShapeFunctionsValues(N_shape, J, xi);
+        GetNu0ShapeFunctionsValues(Nu, xi);
 
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
@@ -1175,34 +1129,41 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
-        N_shape.clear();
-        dN_shape.clear();
-        N_shape[1] = N1;
-        N_shape[4] = N2;
-        N_shape[7] = N3;
-        dN_shape[1] = dN1;
-        dN_shape[4] = dN2;
-        dN_shape[7] = dN3;
+        // N_shape.clear();
+        // dN_shape.clear();
+        // N_shape[1] = N1;
+        // N_shape[4] = N2;
+        // N_shape[7] = N3;
+        // dN_shape[1] = dN1;
+        // dN_shape[4] = dN2;
+        // dN_shape[7] = dN3;
 
         // axial u
-        dNu.clear();
-        Nu.clear();
-        Nu[0] = N1;
-        Nu[3] = N2;
-        Nu[6] = N3;
-        dNu[0] = dN1;
-        dNu[3] = dN2;
-        dNu[6] = dN3;
+        // dNu.clear();
+        // Nu.clear();
+        // Nu[0] = N1;
+        // Nu[3] = N2;
+        // Nu[6] = N3;
+        // dNu[0] = dN1;
+        // dNu[3] = dN2;
+        // dNu[6] = dN3;
 
         // rotation
-        dN_theta.clear();
-        N_theta.clear();
-        N_theta[2] = N1;
-        N_theta[5] = N2;
-        N_theta[8] = N3;
-        dN_theta[2] = dN1;
-        dN_theta[5] = dN2;
-        dN_theta[8] = dN3;
+        // dN_theta.clear();
+        // N_theta.clear();
+        // N_theta[2] = N1;
+        // N_theta[5] = N2;
+        // N_theta[8] = N3;
+        // dN_theta[2] = dN1;
+        // dN_theta[5] = dN2;
+        // dN_theta[8] = dN3;
+
+        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        GetShapeFunctionsValues(N_shape, J, xi);
+        GetNu0ShapeFunctionsValues(Nu, xi);
 
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
@@ -1245,212 +1206,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double LinearTimoshenkoCurvedBeamElement2D3N::GetAngle(
-    const double xi
-    )
-{
-    GlobalSizeVector dN_dxi;
-    GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
-    const auto r_geom = GetGeometry();
-
-    double dx_dxi = 0.0;
-    double dy_dxi = 0.0;
-
-    for (IndexType i = 0; i < NumberOfNodes; ++i) {
-        const IndexType u_coord = DoFperNode * i;
-        const auto &r_coords_node = r_geom[i].GetInitialPosition();
-        dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
-        dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
-    }
-    return std::atan2(dy_dxi, dx_dxi);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoCurvedBeamElement2D3N::RotateLHS(
-    MatrixType& rLHS,
-    const double angle1,
-    const double angle2,
-    const double angle3
-)
-{
-    BoundedMatrix<double, 3, 3> T1, T2, T3;
-    BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
-    StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-
-    global_size_T.clear();
-
-    global_size_T(0, 0) = T1(0, 0);
-    global_size_T(0, 1) = T1(0, 1);
-    global_size_T(0, 2) = T1(0, 2);
-
-    global_size_T(1, 0) = T1(1, 0);
-    global_size_T(1, 1) = T1(1, 1);
-    global_size_T(1, 2) = T1(1, 2);
-
-    global_size_T(2, 0) = T1(2, 0);
-    global_size_T(2, 1) = T1(2, 1);
-    global_size_T(2, 2) = T1(2, 2);
-
-    global_size_T(3, 3) = T2(0, 0);
-    global_size_T(3, 4) = T2(0, 1);
-    global_size_T(3, 5) = T2(0, 2);
-
-    global_size_T(4, 3) = T2(1, 0);
-    global_size_T(4, 4) = T2(1, 1);
-    global_size_T(4, 5) = T2(1, 2);
-
-    global_size_T(5, 3) = T2(2, 0);
-    global_size_T(5, 4) = T2(2, 1);
-    global_size_T(5, 5) = T2(2, 2);
-
-    global_size_T(6, 6) = T3(0, 0);
-    global_size_T(6, 7) = T3(0, 1);
-    global_size_T(6, 8) = T3(0, 2);
-
-    global_size_T(7, 6) = T3(1, 0);
-    global_size_T(7, 7) = T3(1, 1);
-    global_size_T(7, 8) = T3(1, 2);
-
-    global_size_T(8, 6) = T3(2, 0);
-    global_size_T(8, 7) = T3(2, 1);
-    global_size_T(8, 8) = T3(2, 2);
-
-    noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    noalias(rLHS) = prod(global_size_T, aux_product);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoCurvedBeamElement2D3N::RotateAll(
-    MatrixType& rLHS,
-    VectorType& rRHS,
-    const double angle1,
-    const double angle2,
-    const double angle3
-)
-{
-    // BoundedMatrix<double, 3, 3> T1, T2, T3;
-    // BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-    // BoundedVector<double, 9> local_rhs;
-    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
-    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
-    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-    // StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_size_T);
-
-    // global_size_T.clear();
-
-    // global_size_T(0, 0) = T1(0, 0);
-    // global_size_T(0, 1) = T1(0, 1);
-    // global_size_T(0, 2) = T1(0, 2);
-
-    // global_size_T(1, 0) = T1(1, 0);
-    // global_size_T(1, 1) = T1(1, 1);
-    // global_size_T(1, 2) = T1(1, 2);
-
-    // global_size_T(2, 0) = T1(2, 0);
-    // global_size_T(2, 1) = T1(2, 1);
-    // global_size_T(2, 2) = T1(2, 2);
-
-    // global_size_T(3, 3) = T2(0, 0);
-    // global_size_T(3, 4) = T2(0, 1);
-    // global_size_T(3, 5) = T2(0, 2);
-
-    // global_size_T(4, 3) = T2(1, 0);
-    // global_size_T(4, 4) = T2(1, 1);
-    // global_size_T(4, 5) = T2(1, 2);
-
-    // global_size_T(5, 3) = T2(2, 0);
-    // global_size_T(5, 4) = T2(2, 1);
-    // global_size_T(5, 5) = T2(2, 2);
-
-    // global_size_T(6, 6) = T3(0, 0);
-    // global_size_T(6, 7) = T3(0, 1);
-    // global_size_T(6, 8) = T3(0, 2);
-
-    // global_size_T(7, 6) = T3(1, 0);
-    // global_size_T(7, 7) = T3(1, 1);
-    // global_size_T(7, 8) = T3(1, 2);
-
-    // global_size_T(8, 6) = T3(2, 0);
-    // global_size_T(8, 7) = T3(2, 1);
-    // global_size_T(8, 8) = T3(2, 2);
-
-
-    // noalias(local_rhs) = rRHS;
-    // noalias(rRHS) = prod(global_size_T, local_rhs);
-
-    // noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    // noalias(rLHS) = prod(global_size_T, aux_product);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoCurvedBeamElement2D3N::RotateRHS(
-    VectorType& rRHS,
-    const double angle1,
-    const double angle2,
-    const double angle3
-)
-{
-    // BoundedMatrix<double, 3, 3> T1, T2, T3;
-    // BoundedMatrix<double, 9, 9> global_size_T, aux_product;
-    // BoundedVector<double, 9> local_rhs;
-    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T1, angle1);
-    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T2, angle2);
-    // StructuralMechanicsElementUtilities::BuildRotationMatrixForBeam(T3, angle3);
-
-    // global_size_T.clear();
-
-    // global_size_T(0, 0) = T1(0, 0);
-    // global_size_T(0, 1) = T1(0, 1);
-    // global_size_T(0, 2) = T1(0, 2);
-
-    // global_size_T(1, 0) = T1(1, 0);
-    // global_size_T(1, 1) = T1(1, 1);
-    // global_size_T(1, 2) = T1(1, 2);
-
-    // global_size_T(2, 0) = T1(2, 0);
-    // global_size_T(2, 1) = T1(2, 1);
-    // global_size_T(2, 2) = T1(2, 2);
-
-    // global_size_T(3, 3) = T2(0, 0);
-    // global_size_T(3, 4) = T2(0, 1);
-    // global_size_T(3, 5) = T2(0, 2);
-
-    // global_size_T(4, 3) = T2(1, 0);
-    // global_size_T(4, 4) = T2(1, 1);
-    // global_size_T(4, 5) = T2(1, 2);
-
-    // global_size_T(5, 3) = T2(2, 0);
-    // global_size_T(5, 4) = T2(2, 1);
-    // global_size_T(5, 5) = T2(2, 2);
-
-    // global_size_T(6, 6) = T3(0, 0);
-    // global_size_T(6, 7) = T3(0, 1);
-    // global_size_T(6, 8) = T3(0, 2);
-
-    // global_size_T(7, 6) = T3(1, 0);
-    // global_size_T(7, 7) = T3(1, 1);
-    // global_size_T(7, 8) = T3(1, 2);
-
-    // global_size_T(8, 6) = T3(2, 0);
-    // global_size_T(8, 7) = T3(2, 1);
-    // global_size_T(8, 8) = T3(2, 2);
-
-
-    // noalias(local_rhs) = rRHS;
-    // noalias(rRHS) = prod(global_size_T, local_rhs);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
@@ -1484,7 +1239,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
-            const double angle = GetAngle(xi);
             GetNodalValuesVector(nodal_values);
             const double J = GetJacobian(xi);
 
@@ -1560,10 +1314,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
                 rOutput[IP] = r_generalized_stresses[1];
             else if (rVariable == SHEAR_FORCE)
                 rOutput[IP] = r_generalized_stresses[2];
-            else if (rVariable == INITIAL_GEOMETRIC_CURVATURE)
-                rOutput[IP] = GetGeometryCurvature(J, xi);
-            else if (rVariable == SHEAR_ANGLE)
-                rOutput[IP] = angle;
         }
     }
 }
