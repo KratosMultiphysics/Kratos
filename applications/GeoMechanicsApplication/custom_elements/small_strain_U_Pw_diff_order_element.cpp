@@ -1273,7 +1273,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-    
+
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
@@ -1314,12 +1314,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSaturation(
-    const std::vector<double>& fluid_pressures, RetentionLaw::Parameters& RetentionParameters)
+    const std::vector<double>& rFluidPressures, RetentionLaw::Parameters& RetentionParameters)
 {
     std::vector<double> result;
-    std::transform(fluid_pressures.begin(), fluid_pressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result),
-                   [&RetentionParameters](double fluid_pressure, RetentionLaw::Pointer pRetentionLaw) {
+    std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
+                   std::back_inserter(result), [&RetentionParameters](auto fluid_pressure, auto pRetentionLaw) {
         RetentionParameters.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(RetentionParameters);
     });
@@ -1328,12 +1327,11 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSatura
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation(
-    const std::vector<double>& fluid_pressures, RetentionLaw::Parameters& RetentionParameters)
+    const std::vector<double>& rFluidPressures, RetentionLaw::Parameters& RetentionParameters)
 {
     std::vector<double> result;
-    std::transform(fluid_pressures.begin(), fluid_pressures.end(), mRetentionLawVector.begin(),
-                   std::back_inserter(result),
-                   [&RetentionParameters](double fluid_pressure, RetentionLaw::Pointer pRetentionLaw) {
+    std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
+                   std::back_inserter(result), [&RetentionParameters](auto fluid_pressure, auto pRetentionLaw) {
         RetentionParameters.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(RetentionParameters);
     });

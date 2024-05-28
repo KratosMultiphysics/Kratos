@@ -1023,10 +1023,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(
-    const std::vector<double>& fluid_pressures, RetentionLaw::Parameters& RetentionParameters)
+    const std::vector<double>& rFluidPressures, RetentionLaw::Parameters& RetentionParameters)
 {
     std::vector<double> result;
-    std::transform(fluid_pressures.begin(), fluid_pressures.end(), mRetentionLawVector.begin(),
+    std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
                    std::back_inserter(result), [&RetentionParameters](auto fluid_pressure, auto pRetentionLaw) {
         RetentionParameters.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateDerivativeOfSaturation(RetentionParameters);
@@ -1037,10 +1037,10 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(
-    const std::vector<double>& fluid_pressures, RetentionLaw::Parameters& RetentionParameters)
+    const std::vector<double>& rFluidPressures, RetentionLaw::Parameters& RetentionParameters)
 {
     std::vector<double> result;
-    std::transform(fluid_pressures.begin(), fluid_pressures.end(), mRetentionLawVector.begin(),
+    std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
                    std::back_inserter(result), [&RetentionParameters](auto fluid_pressure, auto pRetentionLaw) {
         RetentionParameters.SetFluidPressure(fluid_pressure);
         return pRetentionLaw->CalculateSaturation(RetentionParameters);

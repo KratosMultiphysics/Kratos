@@ -313,9 +313,9 @@ protected:
 
     Vector GetPressureSolutionVector();
 
-    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& fluid_pressures,
+    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures,
                                                      RetentionLaw::Parameters& RetentionParameters);
-    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& fluid_pressures,
+    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures,
                                                          RetentionLaw::Parameters& RetentionParameters);
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
