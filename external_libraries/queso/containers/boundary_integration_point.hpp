@@ -26,7 +26,7 @@ public:
     ///@{
 
     /// Default constructor
-    BoundaryIntegrationPoint() : IntegrationPoint(), mNormal(0.0, 0.0, 0.0)
+    BoundaryIntegrationPoint() : IntegrationPoint(), mNormal{0.0, 0.0, 0.0}
     {}
 
     /// 3D Constructor

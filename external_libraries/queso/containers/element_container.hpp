@@ -24,14 +24,19 @@ namespace queso {
  * @note Only active elements/knot spans are stored.
  * @todo Refactor. Store elements as unique_ptr
 */
+template<typename TElementType>
 class ElementContainer {
 
 public:
     ///@name Type Defintitions
     ///@{
-    typedef Unique<Element> ElementPtrType;
+    typedef TElementType ElementType;
+    typedef typename ElementType::IntegrationPointType IntegrationPointType;
+    typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
+
+    typedef Unique<ElementType> ElementPtrType;
     typedef std::vector<ElementPtrType> ElementVectorPtrType;
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef std::unordered_map<IndexType, IndexType> ElementIdMapType;
 
@@ -52,18 +57,18 @@ public:
     ///@name Operations
     ///@{
 
-    const Element& GetElement(std::size_t id) const{
+    const ElementType& GetElement(std::size_t id) const{
         return *pGetElement(id);
     }
 
-    const Element* pGetElement(std::size_t id) const {
+    const ElementType* pGetElement(std::size_t id) const {
         auto found_key = mElementIdMap.find(id);
         if( found_key == mElementIdMap.end() )
             QuESo_ERROR << "ID does not exist.\n";
         return mElements[found_key->second].get();
     }
 
-    Element* pGetElement(std::size_t id, bool& found){
+    ElementType* pGetElement(std::size_t id, bool& found){
         auto found_key = mElementIdMap.find(id);
         found = false;
         if( found_key != mElementIdMap.end() ){
@@ -73,36 +78,36 @@ public:
         return nullptr;
     }
 
-    DereferenceIterator<std::vector<std::unique_ptr<Element>>::iterator> begin() {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin() {
         return dereference_iterator(mElements.begin());
     }
 
 
-    DereferenceIterator<std::vector<std::unique_ptr<Element>>::const_iterator> begin() const {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> begin() const {
         return dereference_iterator(mElements.begin());
     }
 
-    DereferenceIterator<std::vector<std::unique_ptr<Element>>::iterator> end() {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> end() {
         return dereference_iterator(mElements.end());
     }
 
-    DereferenceIterator<std::vector<std::unique_ptr<Element>>::const_iterator> end() const {
+    DereferenceIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end() const {
         return dereference_iterator(mElements.end());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<Element>>::iterator> begin_to_ptr() {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> begin_to_ptr() {
         return raw_pointer_iterator(mElements.begin());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<Element>>::const_iterator> begin_to_ptr() const {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> begin_to_ptr() const {
         return raw_pointer_iterator(mElements.begin());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<Element>>::iterator> end_to_ptr() {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::iterator> end_to_ptr() {
         return raw_pointer_iterator(mElements.end());
     }
 
-    RawPointerIterator<std::vector<std::unique_ptr<Element>>::const_iterator> end_to_ptr() const {
+    RawPointerIterator<typename std::vector<std::unique_ptr<ElementType>>::const_iterator> end_to_ptr() const {
         return raw_pointer_iterator(mElements.end());
     }
 
@@ -135,7 +140,7 @@ public:
         mElementIdMap.reserve(new_capacity);
     }
 
-    Element* pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    ElementType* pGetNextElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
         next_id = id + 1;
         int next_index = id + 1;
@@ -150,7 +155,7 @@ public:
         return found_element;
     }
 
-    Element* pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    ElementType* pGetNextElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
@@ -170,7 +175,7 @@ public:
         return found_element;
     }
 
-    Element* pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    ElementType* pGetNextElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
 
         int next_index = GetNextIndexZ(id, local_end);
@@ -188,7 +193,7 @@ public:
         return found_element;
     }
 
-    Element* pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    ElementType* pGetPreviousElementInX(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         local_end = false;
         next_id = id - 1;
         int next_index = id - 1;
@@ -205,7 +210,7 @@ public:
         return found_element;
     }
 
-    Element* pGetPreviousElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
+    ElementType* pGetPreviousElementInY(std::size_t id, std::size_t& next_id, bool& found, bool& local_end) {
         // Make sure current element exists
         // TODO:: if id >= mLastElement error
         local_end = false;
@@ -225,7 +230,7 @@ public:
         return found_element;
     }
 
-    Element* pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
+    ElementType* pGetPreviousElementInZ(std::size_t id, std::size_t& next_id, bool& found, bool& local_end){
         local_end = false;
 
         int next_index = GetPreviousIndexZ(id, local_end);

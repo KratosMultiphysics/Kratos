@@ -27,7 +27,7 @@ public:
     /// @brief Constructor
     /// @param pTriangleMesh Ptr is moved. Ownership is passed to Condition.
     /// @param rConditionParameters
-    Condition(Unique<TriangleMesh>& pTriangleMesh, const ConditionParameters& rConditionParameters )
+    Condition(Unique<TriangleMeshInterface>& pTriangleMesh, const ConditionParameters& rConditionParameters )
         : mpInitialTriangleMesh(std::move(pTriangleMesh)), mConditionParameters(rConditionParameters)
     {
         mConformingTriangleMesh.Reserve(10*mpInitialTriangleMesh->NumOfTriangles());
@@ -40,19 +40,19 @@ public:
 
     /// @brief Returns initial / non-conforming triangle mesh.
     /// @return const TriangleMesh&
-    const TriangleMesh& GetTriangleMesh() const {
+    const TriangleMeshInterface& GetTriangleMesh() const {
         return *mpInitialTriangleMesh;
     }
 
     /// @brief Adds mesh section to the conforming triangle mesh.
     /// @param rNewMesh
-    void AddToConformingMesh(const TriangleMesh& rNewMesh){
+    void AddToConformingMesh(const TriangleMeshInterface& rNewMesh){
         MeshUtilities::Append(mConformingTriangleMesh, rNewMesh);
     }
 
     /// @brief Returns the conforming triangle mesh.
     /// @return const TriangleMesh&
-    const TriangleMesh& GetConformingMesh() const {
+    const TriangleMeshInterface& GetConformingMesh() const {
         return mConformingTriangleMesh;
     }
 
@@ -67,7 +67,7 @@ private:
     ///@name Private Members
     ///@{
 
-    Unique<TriangleMesh> mpInitialTriangleMesh;
+    Unique<TriangleMeshInterface> mpInitialTriangleMesh;
     TriangleMesh mConformingTriangleMesh;
     const ConditionParameters& mConditionParameters;
 

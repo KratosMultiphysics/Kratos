@@ -8,8 +8,7 @@
 #include <stdexcept>
 #include <memory>
 //// Project includes
-#include "containers/integration_point.hpp"
-#include "embedding/trimmed_domain_base.h"
+#include "embedding/trimmed_domain.h"
 #include "includes/parameters.h"
 #include "utilities/mapping_utilities.h"
 
@@ -23,6 +22,7 @@ namespace queso {
  * @author Manuel Messmer
  * @brief  Element/Knot Spans. Stores quadrature points and trimmed domain (if element is trimmed).
 */
+template<typename TIntegrationPointType, typename TBoundaryIntegrationPointType>
 class Element
 {
 
@@ -32,9 +32,13 @@ public:
     ///@{
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef std::vector<IntegrationPoint> IntegrationPointVectorType;
+    typedef TIntegrationPointType IntegrationPointType;
+    typedef TBoundaryIntegrationPointType BoundaryIntegrationPointType;
+    typedef std::vector<IntegrationPointType> IntegrationPointVectorType;
+    typedef std::vector<BoundaryIntegrationPointType> BoundaryIntegrationPointVectorType;
+
     typedef std::vector<std::array<double, 2>> IntegrationPoint1DVectorType;
-    typedef Unique<TrimmedDomainBase> TrimmedDomainPtrType;
+    typedef Unique<TrimmedDomain> TrimmedDomainPtrType;
 
     ///@}
     ///@name Life Cycle
@@ -123,8 +127,8 @@ public:
     /// @brief Returns determinant of jacobian.
     /// @return double.
     double DetJ() const {
-        const auto detla_xyz = mBoundsXYZ.second - mBoundsXYZ.first;
-        const auto detla_uvw = mBoundsUVW.second - mBoundsUVW.first;
+        const auto detla_xyz = Math::Subtract( mBoundsXYZ.second, mBoundsXYZ.first );
+        const auto detla_uvw = Math::Subtract( mBoundsUVW.second, mBoundsUVW.first );
         return (detla_xyz[0]*detla_xyz[1]*detla_xyz[2]) / (detla_uvw[0]*detla_uvw[1]*detla_uvw[2]);
     }
 
@@ -148,8 +152,8 @@ public:
 
     /// @brief Get ptr to trimmed domain of element.
     /// @note Return raw ptr. No transfer of ownership. Element owns trimmed domain.
-    /// @return const TrimmedDomainBase*
-    const TrimmedDomainBase* const pGetTrimmedDomain() const {
+    /// @return const TrimmedDomain*
+    const TrimmedDomain* const pGetTrimmedDomain() const {
         if( !IsTrimmed() ){
             QuESo_ERROR << "Element is not Trimmed.\n";
         }

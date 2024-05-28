@@ -16,32 +16,39 @@ namespace queso {
  * @class  IntegrationPoint
  * @author Manuel Messmer
 */
-class IntegrationPoint : public PointType
+class IntegrationPoint
 {
 public:
+
+    ///@name Type defintion
+    ///@{
+    typedef std::array<double,3> BaseType;
+
+    ///@}
+
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    IntegrationPoint() : PointType(), mWeight(0.0)
+    IntegrationPoint() : mPoint{}, mWeight(0.0)
     {
     }
 
     /// 2D Constructor
     IntegrationPoint(double x, double y, double weigth_) :
-        PointType(x,y,0.0), mWeight(weigth_)
+        mPoint{x,y,0.0}, mWeight(weigth_)
     {
     }
 
     /// 3D Constructor
     IntegrationPoint(double x, double y, double z, double weigth_) :
-        PointType(x,y,z), mWeight(weigth_)
+        mPoint{x,y,z}, mWeight(weigth_)
     {
     }
 
     /// 3D Constructor
-    IntegrationPoint(const PointType& rPoint, double weigth_) :
-        PointType(rPoint), mWeight(weigth_)
+    IntegrationPoint(const BaseType& rPoint, double weigth_) :
+        mPoint(rPoint), mWeight(weigth_)
     {
     }
 
@@ -50,23 +57,66 @@ public:
 
     /// Copy Constructor
     IntegrationPoint(const IntegrationPoint& rOther)
-        : PointType(rOther), mWeight(rOther.mWeight)
+        : mPoint(rOther.data()), mWeight(rOther.mWeight)
     {
     }
 
     /// Assignement operator
     IntegrationPoint& operator=(const IntegrationPoint& rOther)
     {
-
-        PointType::operator=(rOther);
+        mPoint = rOther.mPoint;
         mWeight = rOther.mWeight;
-
         return *this;
     }
 
     ///@}
     ///@name Operations
     ///@{
+
+    /// Returns underlying point data.
+    const BaseType& data() const {
+        return mPoint;
+    }
+
+    /// Access first element
+    double& X(){
+        return mPoint[0];
+    }
+
+    /// Access second element
+    double& Y(){
+        return mPoint[1];
+    }
+
+    /// Access third element
+    double& Z(){
+        return mPoint[2];
+    }
+
+    /// Access first element const
+    double X() const{
+        return mPoint[0];
+    }
+
+    /// Access second element const
+    double Y() const{
+        return mPoint[1];
+    }
+
+    /// Access third element const
+    double Z() const{
+        return mPoint[2];
+    }
+
+    /// Access elements by index
+    double& operator [] (std::size_t i){
+        return mPoint[i];
+    }
+
+    /// Access elements by index (const)
+    double operator [] (std::size_t i) const{
+        return mPoint[i];
+    }
 
     /// Get integration weight
     double Weight() const{
@@ -82,6 +132,7 @@ public:
 private:
     ///@name Private member variables
     ///@{
+    BaseType mPoint;
     double mWeight;
     ///@}
 }; // End class IntegrationPoint
