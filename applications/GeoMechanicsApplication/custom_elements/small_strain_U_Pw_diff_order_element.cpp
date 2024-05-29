@@ -1319,6 +1319,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures)
 {
+    KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
@@ -1333,6 +1334,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSatura
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures)
 {
+    KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
