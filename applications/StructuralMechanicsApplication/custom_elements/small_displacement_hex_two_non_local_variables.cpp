@@ -434,12 +434,14 @@ void SmallDisplacementHexTwoNonLocalVariables::FinalizeSolutionStep( const Proce
 
                 // Compute constitutive law variables
                 SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, this_non_local_constitutive_variables, Values, point_number, integration_points);
-
+                Vector r_stress_vector = this_constitutive_variables.StressVector;
+                this->SetValue(STRESSES, r_stress_vector);
                 // Call the constitutive law to update material variables
                 mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
                 // TODO: Deprecated, remove this
                 mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
+
             }
         }
     }

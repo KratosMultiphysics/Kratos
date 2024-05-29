@@ -11,7 +11,7 @@
 //  Main authors:    Athira Vadakkekkara
 //  Collaborators:
 //
-
+//ToDo: Transform the calculated dHdEpseq_tension and dHdEpseq_compression in to global coordinates.
 // Project includes
 #include "elastic_anisotropic_damage_3d_nonlocal_equivalent_strains_tension_compression.h"
 #include "constitutive_laws_application_variables.h"
@@ -86,8 +86,9 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::InitializeMaterial(
     mMaterialProperties = ZeroVector(6);
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double ft = rMaterialProperties[YIELD_STRESS_TENSION];
+    const double nu = rMaterialProperties[POISSON_RATIO];
     mMaterialProperties[0] = (rMaterialProperties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? rMaterialProperties[DAMAGE_THRESHOLD_TENSION] : ft/E;
-    mMaterialProperties[1] = (rMaterialProperties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? rMaterialProperties[DAMAGE_THRESHOLD_COMPRESSION] : (10./3.) * ft/E;
+    mMaterialProperties[1] = (rMaterialProperties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? rMaterialProperties[DAMAGE_THRESHOLD_COMPRESSION] : (1 + nu) * (20*ft)/(9*E);
     mMaterialProperties[2] = rMaterialProperties[DAMAGE_MODEL_PARAMETER_BETA1_TENSION];
     mMaterialProperties[3] = rMaterialProperties[DAMAGE_MODEL_PARAMETER_BETA2_TENSION];
     mMaterialProperties[4] = rMaterialProperties[DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION];
@@ -130,6 +131,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::FinalizeMaterialResp
     KRATOS_TRY
 
     InternalDamageVariables rInternalDamageParameters;
+    KRATOS_WATCH("finalize")
     this->CalculateStressResponse(rParametersValues, rInternalDamageParameters);
     mInternalDamageVariables.DamageMatrix = rInternalDamageParameters.DamageMatrix;
     mInternalDamageVariables.EquivalentStrainsTC = rInternalDamageParameters.EquivalentStrainsTC;
@@ -170,6 +172,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
+        KRATOS_WATCH(r_strain_vector)
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         Matrix r_elasticity_matrix;
         r_elasticity_matrix.resize(6, 6, false);
@@ -179,7 +182,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateStressRespo
         BoundedMatrixVoigtType EffStiffnessMatrix = ZeroMatrix(6, 6);
         BoundedMatrixVoigtType damage_effect_tensor = ZeroMatrix(6, 6);
         BoundedMatrixVoigtType transformed_damage_effect_tensor = ZeroMatrix(6, 6);
-        BoundedMatrixVoigtType Inv_M  = ZeroMatrix(6, 6);
+        BoundedMatrixVoigtType Inv_M  = ZeroMatrix(6,6);
         BoundedVectorVoigtType H_uNL1 = ZeroVector(6);
         BoundedVectorVoigtType H_uNL2 = ZeroVector(6);
         BoundedVectorVoigtType H_NL1u = ZeroVector(6);
@@ -277,12 +280,14 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::ComputePrincipalDama
     for (SizeType i = 0; i < N.size(); ++i) {
         nonlocal_equivalent_strains[1] += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_EQUIVALENT_STRAIN_COMPRESSION, 0);
     }
+    KRATOS_WATCH(nonlocal_equivalent_strains)
     ScaleNonlocalEquivalentStrain(principal_nonlocal_strains, rParametersValues, PrincipalStrains, nonlocal_equivalent_strains, local_equivalent_strains_tc);
-
+    KRATOS_WATCH(local_equivalent_strains_tc)
     SetModelParameters(rModelParameters, rParametersValues, PrincipalStrains, principal_nonlocal_strains);
-    KRATOS_WATCH(rModelParameters.kappa)
+    KRATOS_WATCH(rModelParameters.kappa0)
+    KRATOS_WATCH(rModelParameters.strain_history_parameter)
+    KRATOS_WATCH(principal_nonlocal_strains)
     CheckDamageCriteria(PrincipalDamageIncrement, rModelParameters, principal_damage_n);
-    KRATOS_WATCH(PrincipalDamageIncrement)
     KRATOS_CATCH("")
 }
 
@@ -291,28 +296,35 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::ComputePrincipalDama
 
 void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CheckDamageCriteria(
     BoundedVectorType& PrincipalDamageIncrement,
-    const ModelParameters& rModelParamaters,
+    const ModelParameters& rModelParameters,
     const BoundedVectorType& PrincipalDamageVector_n
     )
 {
     KRATOS_TRY
     for (SizeType i = 0; i < Dimension; ++i) {
-        if (rModelParamaters.kappa[i]>= 0 && rModelParamaters.kappa[i]<=rModelParamaters.kappa0[i]){
+        if (rModelParameters.kappa[i]>= 0 && rModelParameters.kappa[i]<=rModelParameters.kappa0[i]){
             PrincipalDamageIncrement[i]=0.0;
-        }else if (rModelParamaters.kappa[i]> rModelParamaters.kappa0[i]){
-            PrincipalDamageIncrement[i] = (1-PrincipalDamageVector_n[i]) * ((rModelParamaters.Beta1[i]/rModelParamaters.kappa[i]) + (rModelParamaters.Beta2[i]/rModelParamaters.kappa0[i])) * rModelParamaters.del_kappa[i];
+            KRATOS_WATCH("no damage")
+        }else if (rModelParameters.kappa[i]> rModelParameters.kappa0[i]){
+            PrincipalDamageIncrement[i] = (1-PrincipalDamageVector_n[i]) * ((rModelParameters.Beta1[i]/rModelParameters.kappa[i]) + (rModelParameters.Beta2[i]/rModelParameters.kappa0[i])) * rModelParameters.del_kappa[i];
+            KRATOS_WATCH("damage")
+            KRATOS_WATCH(rModelParameters.kappa)
+            KRATOS_WATCH(rModelParameters.del_kappa)
+            KRATOS_WATCH(PrincipalDamageVector_n)
         }
         if(PrincipalDamageIncrement[i] < 0.0){
             PrincipalDamageIncrement[i] = 0.0;
         }
+
     }
+    KRATOS_WATCH(PrincipalDamageIncrement)
     KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::SetModelParameters(
-    ModelParameters& rModelParamaters,
+    ModelParameters& rModelParameters,
     ConstitutiveLaw::Parameters& rParametersValues,
     const BoundedVectorType& PrincipalStrains,
     const BoundedVectorType& PrincipalNonlocalStrains
@@ -321,15 +333,15 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::SetModelParameters(
     KRATOS_TRY
 
     BoundedVectorType current_max_strain_history_parameter = ZeroVector(3);
-    BoundedVectorType previous_kappa = rModelParamaters.kappa;
+    BoundedVectorType previous_kappa = rModelParameters.kappa;
     for(SizeType i = 0; i < Dimension; ++i){
-        rModelParamaters.Beta1[i] = (PrincipalStrains[i] > eps) ? mMaterialProperties[2] : mMaterialProperties[4];
-        rModelParamaters.Beta2[i] = (PrincipalStrains[i] > eps) ? mMaterialProperties[3] : mMaterialProperties[5];
-        rModelParamaters.kappa0[i] = (PrincipalStrains[i] > eps) ? mMaterialProperties[0] : mMaterialProperties[1];
-        current_max_strain_history_parameter[i] = std::max(rModelParamaters.strain_history_parameter[i], PrincipalNonlocalStrains[i]);
-        rModelParamaters.strain_history_parameter[i] = current_max_strain_history_parameter[i];
-        rModelParamaters.kappa[i] = std::max(current_max_strain_history_parameter[i], rModelParamaters.kappa0[i]);
-        rModelParamaters.del_kappa[i] = rModelParamaters.kappa[i] - previous_kappa[i];
+        rModelParameters.Beta1[i] = (PrincipalStrains[i] > eps) ? mMaterialProperties[2] : mMaterialProperties[4];
+        rModelParameters.Beta2[i] = (PrincipalStrains[i] > eps) ? mMaterialProperties[3] : mMaterialProperties[5];
+        rModelParameters.kappa0[i] = (PrincipalStrains[i] > eps) ? mMaterialProperties[0] : mMaterialProperties[1];
+        current_max_strain_history_parameter[i] = std::max(rModelParameters.strain_history_parameter[i], PrincipalNonlocalStrains[i]);
+        rModelParameters.strain_history_parameter[i] = current_max_strain_history_parameter[i];
+        rModelParameters.kappa[i] = std::max(current_max_strain_history_parameter[i], rModelParameters.kappa0[i]);
+        rModelParameters.del_kappa[i] = rModelParameters.kappa[i] - previous_kappa[i];
     }
     KRATOS_CATCH("")
 }
@@ -347,6 +359,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrainsTC::CalculateLocalEquiva
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
     BoundedVectorType PrincipalDeviatoricStrains = ZeroVector(3);
     GetPrincipalDeviatoricStrains(PrincipalDeviatoricStrains, r_strain_vector, PrincipalStrains);
+    KRATOS_WATCH(PrincipalDeviatoricStrains)
     LocalEquivalentStrains[0] = sqrt(pow(MacaulayBrackets(PrincipalStrains[0]),2) + pow(MacaulayBrackets(PrincipalStrains[1]),2) + pow(MacaulayBrackets(PrincipalStrains[2]),2));
     LocalEquivalentStrains[1] = sqrt(pow(MacaulayBrackets(PrincipalDeviatoricStrains[0]),2) + pow(MacaulayBrackets(PrincipalDeviatoricStrains[1]),2) + pow(MacaulayBrackets(PrincipalDeviatoricStrains[2]),2));
     KRATOS_CATCH("")

@@ -408,11 +408,11 @@ protected:
     /**
      * @brief
      *
-     * @param rModelParamaters
+     * @param rModelParameters
      * @param rParametersValues
      * @param PrincipalStrains
      */
-    void SetModelParameters(ModelParameters& rModelParamaters,
+    void SetModelParameters(ModelParameters& rModelParameters,
                             ConstitutiveLaw::Parameters& rParametersValues,
                             const BoundedVectorType& PrincipalStrains,
                             const BoundedVectorType& PrincipalNonlocalStrains
@@ -440,7 +440,7 @@ protected:
                                        );
     void CheckDamageCriteria(
     BoundedVectorType& PrincipalDamageIncrement,
-    const ModelParameters& rModelParamaters,
+    const ModelParameters& rModelParameters,
     const BoundedVectorType& PrincipalDamageVector_n
     );
     /**
