@@ -89,7 +89,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double uniaxial_stress;
     double ultimate_stress;
     double initial_threshold = mInitialTherhold;
-    double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
+    // double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
     double relaxation_factor = mRelaxationFactor;
     bool first_nonlinearity = mFirstNonlinearity;
     bool first_max_indicator = mFirstMaxDetected;
@@ -133,7 +133,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         double threshold = this->GetThreshold() * (1 - this->GetDamage());
 
-        if (uniaxial_stress / threshold >= 1.0 && first_nonlinearity) {
+        if (uniaxial_stress / threshold > 1.0 && first_nonlinearity) {
             reference_damage = this->GetDamage();
             mFirstNonlinearity = false;  
         }
@@ -385,6 +385,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                                                                         first_nonlinearity);
             mFirstCycleRelaxationFactor = first_cycle_relaxation_factor;
             mRelaxationFactor = relaxation_factor;
+            
+            // if (relaxation_factor < 0.3319){
+            //     KRATOS_WATCH("RelaxationFactor")
+            //     KRATOS_WATCH(relaxation_factor)
+            // }
         }
         
         threshold /= (1 - damage);

@@ -224,7 +224,10 @@ public:
                                            bool FirstNonlinearity)
     {       
         if ((Threshold - NominalUniaxialStress) / UniaxialResidualStress < 1.0 && FirstNonlinearity){
-            rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (Threshold - NominalUniaxialStress) / UniaxialResidualStress);
+            rFirstCycleRelaxationFactor = -0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487;
+            // rFirstCycleRelaxationFactor = std::min(rRelaxationFactor, (-0.05276 * ((NominalUniaxialStress + UniaxialResidualStress) / Threshold) + 0.487))
+            // rFirstCycleRelaxationFactor = 0.3319 + (5.524E07 / UniaxialResidualStress);
+            // rFirstCycleRelaxationFactor = std::min(std::min((0.3319 + 5.524E07 / UniaxialResidualStress), (Threshold - NominalUniaxialStress) / UniaxialResidualStress), rRelaxationFactor);
             rFirstCycleRelaxationFactor = (rFirstCycleRelaxationFactor > 0.0) ? rFirstCycleRelaxationFactor : 0.0;
             rRelaxationFactor = rFirstCycleRelaxationFactor;
         } else {
