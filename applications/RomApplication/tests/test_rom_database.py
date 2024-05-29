@@ -19,7 +19,8 @@ from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 class TestRomDatabase(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.work_folder = "test_rom_database"
+        self.work_folder = Path("test_rom_database")
+        self.work_folder.mkdir(parents=True, exist_ok=True)
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             rm  = RomManager()
             self.parameters = rm.general_rom_manager_parameters
@@ -64,8 +65,7 @@ class TestRomDatabase(KratosUnittest.TestCase):
             self.assertTrue(file_path.exists(), "Numpy file was not saved correctly.")
 
     def tearDown(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            kratos_utilities.DeleteDirectoryIfExisting(Path('./rom_data'))
+        kratos_utilities.DeleteDirectoryIfExisting(self.work_folder)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
