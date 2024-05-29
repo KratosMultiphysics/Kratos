@@ -266,8 +266,8 @@ protected:
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
-    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
-    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
+    [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
