@@ -969,13 +969,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_props);
         const double A_s  = r_props[AREA_EFFECTIVE_Y];
 
-        // const double N1 = 0.5 * xi * (xi - 1.0);
-        // const double N2 = 0.5 * xi * (xi + 1.0);
-        // const double N3 = 1.0 - std::pow(xi, 2);
+        const double N1 = 0.5 * xi * (xi - 1.0);
+        const double N2 = 0.5 * xi * (xi + 1.0);
+        const double N3 = 1.0 - std::pow(xi, 2);
 
-        // const double dN1 = (xi - 0.5) / J;
-        // const double dN2 = (xi + 0.5) / J;
-        // const double dN3 = (-2.0 * xi) / J;
+        const double dN1 = (xi - 0.5) / J;
+        const double dN2 = (xi + 0.5) / J;
+        const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
         // N_shape.clear();
@@ -998,19 +998,19 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         // dNu[6] = dN3;
 
         // rotation
-        // dN_theta.clear();
-        // N_theta.clear();
-        // N_theta[2] = N1;
-        // N_theta[5] = N2;
-        // N_theta[8] = N3;
-        // dN_theta[2] = dN1;
-        // dN_theta[5] = dN2;
-        // dN_theta[8] = dN3;
+        dN_theta.clear();
+        N_theta.clear();
+        N_theta[2] = N1;
+        N_theta[5] = N2;
+        N_theta[8] = N3;
+        dN_theta[2] = dN1;
+        dN_theta[5] = dN2;
+        dN_theta[8] = dN3;
 
         GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
         GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
-        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
-        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        // GetNThetaShapeFunctionsValues(N_theta, J, xi);
         GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
         GetShapeFunctionsValues(N_shape, J, xi);
         GetNu0ShapeFunctionsValues(Nu, xi);
@@ -1043,7 +1043,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         T(2, 2) = 1.0;
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_T);
         // noalias(B_b) = prod(global_T, dN_theta);
-        noalias(B_b) = prod(global_T, n[1]* dN_theta + n[0]*d2Nu);
+        noalias(B_b) =  dN_theta;
 
 
         // we fill aux_B_s
@@ -1133,13 +1133,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_props);
         const double A_s  = r_props[AREA_EFFECTIVE_Y];
 
-        // const double N1 = 0.5 * xi * (xi - 1.0);
-        // const double N2 = 0.5 * xi * (xi + 1.0);
-        // const double N3 = 1.0 - std::pow(xi, 2);
+        const double N1 = 0.5 * xi * (xi - 1.0);
+        const double N2 = 0.5 * xi * (xi + 1.0);
+        const double N3 = 1.0 - std::pow(xi, 2);
 
-        // const double dN1 = (xi - 0.5) / J;
-        // const double dN2 = (xi + 0.5) / J;
-        // const double dN3 = (-2.0 * xi) / J;
+        const double dN1 = (xi - 0.5) / J;
+        const double dN2 = (xi + 0.5) / J;
+        const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
         // N_shape.clear();
@@ -1162,19 +1162,19 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         // dNu[6] = dN3;
 
         // rotation
-        // dN_theta.clear();
-        // N_theta.clear();
-        // N_theta[2] = N1;
-        // N_theta[5] = N2;
-        // N_theta[8] = N3;
-        // dN_theta[2] = dN1;
-        // dN_theta[5] = dN2;
-        // dN_theta[8] = dN3;
+        dN_theta.clear();
+        N_theta.clear();
+        N_theta[2] = N1;
+        N_theta[5] = N2;
+        N_theta[8] = N3;
+        dN_theta[2] = dN1;
+        dN_theta[5] = dN2;
+        dN_theta[8] = dN3;
 
         GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
         GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
-        GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
-        GetNThetaShapeFunctionsValues(N_theta, J, xi);
+        // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
+        // GetNThetaShapeFunctionsValues(N_theta, J, xi);
         GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
         GetShapeFunctionsValues(N_shape, J, xi);
         GetNu0ShapeFunctionsValues(Nu, xi);
@@ -1207,7 +1207,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         T(2, 2) = 1.0;
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_T);
         // noalias(B_b) = prod(global_T, dN_theta);
-        noalias(B_b) = prod(global_T, n[1]* dN_theta + n[0]*d2Nu);
+        noalias(B_b) = dN_theta;
 
         // we fill aux_B_s
         for (IndexType i = 0; i < SystemSize; ++i) {
