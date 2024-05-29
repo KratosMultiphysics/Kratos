@@ -24,27 +24,30 @@
 #include "includes/serializer.h"
 #include <optional>
 
-namespace Kratos {
+namespace Kratos
+{
 
 /**
  * Base class of retention laws.
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) RetentionLaw {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) RetentionLaw
+{
 public:
     /**
      * Type definitions
      * NOTE: geometries are assumed to be of type Node for all problems
      */
     using ProcessInfoType = ProcessInfo;
-    using SizeType = std::size_t;
-    using GeometryType = Geometry<Node>;
+    using SizeType        = std::size_t;
+    using GeometryType    = Geometry<Node>;
 
     /**
      * Counted pointer of RetentionLaw
      */
     KRATOS_CLASS_POINTER_DEFINITION(RetentionLaw);
 
-    class Parameters {
+    class Parameters
+    {
         KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
         /**
@@ -64,17 +67,14 @@ public:
         */
 
     public:
-        Parameters(const Properties& rMaterialProperties,
-                   const ProcessInfo& rCurrentProcessInfo)
-            : mrCurrentProcessInfo(rCurrentProcessInfo),
-              mrMaterialProperties(rMaterialProperties){};
+        explicit Parameters(const Properties& rMaterialProperties)
+            : mrMaterialProperties(rMaterialProperties)
+        {
+        }
 
         ~Parameters() = default;
 
-        void SetFluidPressure(double FluidPressure)
-        {
-            mFluidPressure = FluidPressure;
-        };
+        void SetFluidPressure(double FluidPressure) { mFluidPressure = FluidPressure; };
 
         double GetFluidPressure() const
         {
@@ -84,20 +84,11 @@ public:
             return mFluidPressure.value();
         }
 
-        const ProcessInfo& GetProcessInfo() const
-        {
-            return mrCurrentProcessInfo;
-        }
-
-        const Properties& GetMaterialProperties() const
-        {
-            return mrMaterialProperties;
-        }
+        const Properties& GetMaterialProperties() const { return mrMaterialProperties; }
 
     private:
         std::optional<double> mFluidPressure;
-        const ProcessInfo& mrCurrentProcessInfo;
-        const Properties& mrMaterialProperties;
+        const Properties&     mrMaterialProperties;
 
     }; // class Parameters end
 
@@ -121,9 +112,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual double& CalculateValue(Parameters& rParameters,
-                                   const Variable<double>& rThisVariable,
-                                   double& rValue) = 0;
+    virtual double& CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) = 0;
 
     virtual double CalculateSaturation(Parameters& rParameters) = 0;
 
@@ -143,9 +132,9 @@ public:
      * @param rElementGeometry the geometry of the current element
      * @param rCurrentProcessInfo process info
      */
-    virtual void InitializeMaterial(const Properties& rMaterialProperties,
+    virtual void InitializeMaterial(const Properties&   rMaterialProperties,
                                     const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues);
+                                    const Vector&       rShapeFunctionsValues);
 
     virtual void Initialize(Parameters& rParameters);
 
@@ -175,9 +164,9 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    virtual void ResetMaterial(const Properties& rMaterialProperties,
+    virtual void ResetMaterial(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
-                               const Vector& rShapeFunctionsValues);
+                               const Vector&       rShapeFunctionsValues);
 
     /**
      * This function is designed to be called once to perform all the checks
@@ -188,8 +177,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    virtual int Check(const Properties& rMaterialProperties,
-                      const ProcessInfo& rCurrentProcessInfo) = 0;
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) = 0;
 
     /**
      * @brief This method is used to check that two Retention Laws are the same type (references)
@@ -212,22 +200,13 @@ public:
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "RetentionLaw";
-    }
+    virtual std::string Info() const { return "RetentionLaw"; }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        rOStream << "RetentionLaw has no data";
-    }
+    virtual void PrintData(std::ostream& rOStream) const { rOStream << "RetentionLaw has no data"; }
 
 private:
     friend class Serializer;

@@ -7,7 +7,14 @@ include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
 
+set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC 
+    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/eigen3"
+    "${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication/external_libraries/spectra1/include"
+)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication )
+include_directories( ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} )
 
 ## RomApplication Core sources
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_CORE

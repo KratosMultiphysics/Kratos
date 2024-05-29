@@ -35,6 +35,7 @@ public:
     virtual void                      RestorePositionsAndDOFVectorToStartOfStep()   = 0;
     virtual void                      SaveTotalDisplacementFieldAtStartOfTimeLoop() = 0;
     virtual void                      AccumulateTotalDisplacementField()            = 0;
+    virtual void                      ComputeIncrementalDisplacementField()         = 0;
     virtual void                      OutputProcess()                               = 0;
 
     virtual void                               Initialize()             = 0;

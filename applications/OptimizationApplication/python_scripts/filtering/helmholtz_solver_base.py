@@ -1,9 +1,14 @@
+import abc
+import typing
+
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.OptimizationApplication as KOA
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 # Other imports
 from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 class HelmholtzSolverBase(PythonSolver):
     """The base class for Helmholtz-based solvers.
@@ -34,15 +39,13 @@ class HelmholtzSolverBase(PythonSolver):
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
         self.origin_root_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        # Create Helmholtz model part
-        # replacing "." with "_" if the filtering model part is a sub model part since model part names
-        # cannot have ".", and helmholtz_model_part needs to be a root model part
-        helmholtz_model_part_name = self.filtering_model_part_name.replace(".", "_") + "_helmholtz_filter_mdp"
-        self.helmholtz_model_part = self.model.CreateModelPart(helmholtz_model_part_name)
+        # we don't create the helmholtz model part here, because
+        # we need to have unique model parts for different filtering variable types
+        # hence, it cannot be determined at this point.
+        self.helmholtz_model_part: 'typing.Optional[KratosMultiphysics.ModelPart]' = None
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
-        self.filter_type = self.settings["filter_type"].GetString()
 
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
@@ -83,6 +86,37 @@ class HelmholtzSolverBase(PythonSolver):
 
     #### Public user interface functions ####
 
+    @abc.abstractmethod
+    def _GetComputingModelPartName(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def _FillComputingModelPart(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    def GetSolvingVariable(self) -> SupportedSensitivityFieldVariableTypes:
+        pass
+
+    @abc.abstractmethod
+    def SetFilterRadius(self, filter_radius: float) -> None:
+        pass
+
+    def AddVariables(self) -> None:
+        self.GetOriginRootModelPart().AddNodalSolutionStepVariable(self.GetSolvingVariable())
+        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Variables ADDED.")
+
+    def AddDofs(self) -> None:
+        if isinstance(self.GetSolvingVariable(), KratosMultiphysics.DoubleVariable):
+            KratosMultiphysics.VariableUtils().AddDof(self.GetSolvingVariable(), self.GetOriginRootModelPart())
+        elif isinstance(self.GetSolvingVariable(), KratosMultiphysics.Array1DVariable3):
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_X"), self.GetOriginRootModelPart())
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Y"), self.GetOriginRootModelPart())
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.KratosGlobals.GetVariable(f"{self.GetSolvingVariable().Name()}_Z"), self.GetOriginRootModelPart())
+        else:
+            raise RuntimeError("Unsupported solving variable type.")
+        KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: DOFs ADDED.")
+
     def AdvanceInTime(self, current_time: float) -> float:
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
         new_time = current_time + dt
@@ -93,7 +127,9 @@ class HelmholtzSolverBase(PythonSolver):
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.helmholtz_model_part)
+        neighbours_exp = KratosMultiphysics.Expression.NodalExpression(self.helmholtz_model_part)
+        KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
+        KratosMultiphysics.Expression.VariableExpressionIO.Write(neighbours_exp, KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self) -> None:
@@ -130,9 +166,6 @@ class HelmholtzSolverBase(PythonSolver):
     def GetOriginModelPart(self) -> KratosMultiphysics.ModelPart:
         return self.model[self.filtering_model_part_name]
 
-    def GetFilterType(self) -> str:
-        return self.filter_type
-
     def GetFilterRadius(self) -> str:
         return self.filter_radius
 
@@ -165,7 +198,6 @@ class HelmholtzSolverBase(PythonSolver):
         return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
 
     def _CreateLinearSolver(self):
-        from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
         return ConstructSolver(self.settings["linear_solver_settings"])
 
     def _CreateScheme(self):
@@ -183,22 +215,58 @@ class HelmholtzSolverBase(PythonSolver):
                                                               False,
                                                               False)
 
-    def _AssignProperties(self, parameters: KratosMultiphysics.Parameters):
-        KOA.ImplicitFilterUtils.AssignProperties(self.GetComputingModelPart(), parameters)
-
-    def _GetContainerTypeNumNodes(self, container) -> int:
+    def _GetContainerTypeNumNodes(self, container: 'typing.Union[KratosMultiphysics.ConditionsArray, KratosMultiphysics.ElementsArray]') -> int:
         num_nodes = None
         for cont_type in container:
-            num_nodes = len(cont_type.GetNodes())
-            break
+            return len(cont_type.GetNodes())
         return num_nodes
 
-    def _IsSurfaceContainer(self, container) -> bool:
-        is_surface = False
-        for cont_type in container:
-            geom = cont_type.GetGeometry()
-            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-                is_surface = True
-            break
-        return is_surface
+    def _IsSurfaceContainer(self, container: 'typing.Union[KratosMultiphysics.ConditionsArray, KratosMultiphysics.ElementsArray]') -> bool:
+        return any(map(lambda x: x.GetGeometry().WorkingSpaceDimension() != x.GetGeometry().LocalSpaceDimension(), container))
+
+    def GetSourceVariable(self) -> SupportedSensitivityFieldVariableTypes:
+        if isinstance(self.GetSolvingVariable(), KratosMultiphysics.DoubleVariable):
+            return KOA.HELMHOLTZ_SCALAR_SOURCE
+        elif isinstance(self.GetSolvingVariable(), KratosMultiphysics.Array1DVariable3):
+            return KOA.HELMHOLTZ_VECTOR_SOURCE
+        else:
+            raise RuntimeError("Unsupported solving variable.")
+
+    def PrepareModelPart(self) -> str:
+        computing_model_part_name = self._GetComputingModelPartName()
+
+        if self.model.HasModelPart(computing_model_part_name):
+            # a same model part with same entities were already created by some other filter
+            # hence reusing it
+            self.helmholtz_model_part = self.model[computing_model_part_name]
+        else:
+            # the model part needs to be created.
+            self.helmholtz_model_part = self.model.CreateModelPart(computing_model_part_name)
+            KOA.OptimizationUtils.CopySolutionStepVariablesList(self.helmholtz_model_part, self.GetOriginRootModelPart())
+
+            # now fill with the appropriate elements and conditions
+            self._FillComputingModelPart()
+
+        self.__IncrementModelPartUsageCounter()
+
+    def __IncrementModelPartUsageCounter(self) -> None:
+        # we increase the usage number of filters using the model part.
+        # this is required to know whether we need to apply boundary conditions
+        # every time filter is used so that we don't mix-up different BCs from
+        # different filters and mesh motion solvers
+
+        # in here, the origin model part and its parents are updated. This is because,
+        # the computing model part shares nodes with the origin model part.
+        def increase_counter(model_part: KratosMultiphysics.ModelPart) -> None:
+            if not model_part.Has(KOA.NUMBER_OF_SOLVERS_USING_NODES):
+                model_part[KOA.NUMBER_OF_SOLVERS_USING_NODES] = 0
+            model_part[KOA.NUMBER_OF_SOLVERS_USING_NODES] += 1
+
+        current_model_part = self.GetOriginModelPart()
+        increase_counter(current_model_part)
+
+        # now increase the usage counter in all parent model parts.
+        while current_model_part != current_model_part.GetParentModelPart():
+            current_model_part = current_model_part.GetParentModelPart()
+            increase_counter(current_model_part)
 

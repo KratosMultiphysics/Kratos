@@ -151,7 +151,7 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     const auto flux_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
         outer_prod(rN, element_prod(rN, rLeftHandSideFluxes)) * IntegrationCoefficient};
 
-    GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, flux_matrix);
+    rLeftHandSideMatrix += flux_matrix;
 
     KRATOS_CATCH("")
 }
@@ -167,16 +167,11 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 {
     auto temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
         outer_prod(rN, rN) * IntegrationCoefficient};
-    auto temporary_vector =
-        array_1d<double, TNumNodes>{prod(temporary_matrix, rRightHandSideFluxes)};
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
-        rRightHandSideVector, temporary_vector);
+    rRightHandSideVector += prod(temporary_matrix, rRightHandSideFluxes);
 
     temporary_matrix = BoundedMatrix<double, TNumNodes, TNumNodes>{
         outer_prod(rN, element_prod(rN, rLeftHandSideFluxes)) * IntegrationCoefficient};
-    temporary_vector = -prod(temporary_matrix, rNodalTemperatures);
-    GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(
-        rRightHandSideVector, temporary_vector);
+    rRightHandSideVector -= prod(temporary_matrix, rNodalTemperatures);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

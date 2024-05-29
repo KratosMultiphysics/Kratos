@@ -8,6 +8,26 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 if kratos_utilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication"):
     import KratosMultiphysics.ConvectionDiffusionApplication
+from KratosMultiphysics.RomApplication.rom_manager import RomManager
+
+
+def CustomizeSimulation(cls, global_model, parameters):
+
+    class CustomSimulation(cls):
+
+        def GetFinalData(self):
+            super().GetFinalData()
+            #taken from the GeoMechanics app tests folder
+            return {f"temperature": rom_testing_utilities.GetScalarNodalResults(self._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE), f"nodal_area": rom_testing_utilities.GetNodalAreaVector(self._GetSolver().GetComputingModelPart()) }
+
+    return CustomSimulation(global_model, parameters)
+
+
+general_rom_manager_parameters = KratosMultiphysics.Parameters("""{
+            "projection_strategy": "lspg"
+        }""")
+
+
 
 @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class TestThermalLSPGRom(KratosUnittest.TestCase):
@@ -21,19 +41,12 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
         expected_output_filename = "ExpectedOutputLSPGROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            # Set up simulation
-            with open(parameters_filename,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
-
-            # Run test case
-            self.simulation.Run()
-
+            rom_manager = RomManager(project_parameters_name=parameters_filename, CustomizeSimulation = CustomizeSimulation, general_rom_manager_parameters=general_rom_manager_parameters)
+            rom_manager.RunROM()
             # Check results
+            obtained_output = rom_manager.QoI_Run_ROM[0]["temperature"]
+            nodal_area = rom_manager.QoI_Run_ROM[0]["nodal_area"]
             expected_output = np.load(expected_output_filename)
-            obtained_output = rom_testing_utilities.GetScalarNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.TEMPERATURE)
-            nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
 
             l2 = np.sqrt((sum(nodal_area*((1 - obtained_output/expected_output )**2)))/(sum(nodal_area)))*100
             self.assertLess(l2, self.relative_tolerance)

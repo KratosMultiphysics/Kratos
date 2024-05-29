@@ -179,7 +179,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                    this->CalculateTangentTensor(rValues, plastic_strain); // this modifies the ConstitutiveMatrix
                 }
             }
         }
@@ -191,7 +191,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 
 template <class TConstLawIntegratorType>
 void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateTangentTensor(
-    ConstitutiveLaw::Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues,
+    const Vector& rPlasticStrain
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -207,9 +208,17 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateTa
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
+        const Vector num = prod(rValues.GetConstitutiveMatrix(), rPlasticStrain);
+        const double denom = inner_prod(rValues.GetStrainVector(), num);
+        noalias(rValues.GetConstitutiveMatrix()) -= outer_prod(num, num) / denom;
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
+        BaseType::CalculateElasticMatrix(rValues.GetConstitutiveMatrix(), rValues);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::OrthogonalSecant) {
+        TangentOperatorCalculatorUtility::CalculateOrthogonalSecantTensor(rValues);
     }
 }
 

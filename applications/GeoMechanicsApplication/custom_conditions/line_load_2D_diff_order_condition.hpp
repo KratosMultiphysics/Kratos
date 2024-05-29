@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_LINE_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_LINE_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -96,5 +94,3 @@ private:
 }; // class LineLoad2DDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_LINE_LOAD_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined 
