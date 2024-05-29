@@ -586,11 +586,22 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         const double minimum_characteristic_fracture_energy_exponential_softening = (std::pow(yield_compression, 2)) / young_modulus;
 
+        const bool has_total_or_plastic_strain_space = r_material_properties.Has(TOTAL_OR_PLASTIC_STRAIN_SPACE);
+        const bool total_or_plastic_strain_space = has_total_or_plastic_strain_space ? r_material_properties[TOTAL_OR_PLASTIC_STRAIN_SPACE] : false; //Default value = plastic strain space
+
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
         KRATOS_ERROR_IF(characteristic_fracture_energy_compression < minimum_characteristic_fracture_energy_exponential_softening) << "The Fracture Energy is to low: " << characteristic_fracture_energy_compression << std::endl;
-        rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-        rSlope = - initial_threshold;
+        if (total_or_plastic_strain_space) { // Curve built in the total strain space
+            rEquivalentStressThreshold = (young_modulus / initial_threshold) * ((0.5 * std::pow(initial_threshold, 2.0) / young_modulus - characteristic_fracture_energy_compression)
+                                            + std::sqrt(std::pow((0.5 * std::pow(initial_threshold, 2.0) / young_modulus + characteristic_fracture_energy_compression), 2.0)
+                                            - 2.0 * std::pow(initial_threshold, 2.0) / young_modulus * characteristic_fracture_energy_compression * PlasticDissipation));
+            rSlope = - initial_threshold * characteristic_fracture_energy_compression * std::pow(std::pow((0.5 * std::pow(initial_threshold, 2.0) / young_modulus + characteristic_fracture_energy_compression), 2.0)
+                    - 2.0 * std::pow(initial_threshold, 2.0) / young_modulus * characteristic_fracture_energy_compression * PlasticDissipation, -0.5);
+        } else { // Curve built in the plastic strain space
+            rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
+            rSlope = - initial_threshold;
+        }
     }
 
     /**
