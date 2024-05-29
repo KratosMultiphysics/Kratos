@@ -26,7 +26,8 @@ public:
     Matrix CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo& rProcessInfo) const override;
     Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
                                             const ProcessInfo& rProcessInfo,
-                                            const Vector&      rDischargeVector) const override;
+                                            const Vector&      rDischargeVector,
+                                            const double       waterDensity) const override;
 
 private:
     friend class Serializer;

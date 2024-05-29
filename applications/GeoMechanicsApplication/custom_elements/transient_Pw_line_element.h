@@ -20,6 +20,7 @@
 #include "includes/serializer.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -27,6 +28,12 @@ namespace Kratos
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TransientPwLineElement : public Element
 {
+private:
+    bool   mIsThermalCoupled      = false;
+    bool   mUpdateDensityViscosity = true;
+    Vector mWaterDensity;
+    Vector mWaterViscosity;
+
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TransientPwLineElement);
 
@@ -75,6 +82,13 @@ public:
         const Matrix& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
 
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
+
+        if (mIsThermalCoupled) {
+            if (mUpdateDensityViscosity) {
+                this->UpdateMaterialProperties();
+            }
+        }
+
         const auto permeability_matrix = CalculatePermeabilityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
         const auto compressibility_matrix = CalculateCompressibilityMatrix(r_N_container, integration_coefficients, rCurrentProcessInfo);
 
@@ -233,7 +247,7 @@ private:
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
             const double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+            double dynamic_viscosity_inverse = 1.0 / mWaterViscosity[integration_point_index];
             result += GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rShapeFunctionGradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
                 RelativePermeability, 1.0, rIntegrationCoefficients[integration_point_index]);
@@ -284,6 +298,21 @@ private:
             mRetentionLawVector[i]->InitializeMaterial(
                 GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
         }
+
+        const unsigned int NumGPoints = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+        mIsThermalCoupled       = GetGeometry()[0].SolutionStepsDataHas(TEMPERATURE);
+        mUpdateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
+        mWaterDensity           = ZeroVector(NumGPoints);
+        mWaterViscosity         = ZeroVector(NumGPoints);
+
+        if (!mIsThermalCoupled || !mUpdateDensityViscosity) {
+            for (unsigned int integration_point_index = 0;
+                 integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+                 ++integration_point_index) {
+                mWaterDensity[integration_point_index]   = GetProperties()[DENSITY_WATER];
+                mWaterViscosity[integration_point_index] = GetProperties()[DYNAMIC_VISCOSITY];
+            }
+        }
     }
 
 
@@ -291,14 +320,22 @@ private:
                                        const unsigned int integrationPointIndex) const
     {
         const auto& r_properties = GetProperties();
+
+        double      result       = 0.0;
+        if (r_properties[RETENTION_LAW] == "PressureFilterLaw") {
+            result = 1.0 / (mWaterDensity[integrationPointIndex] * 9.81 * r_properties[PIPE_ELEMENT_LENGTH]) +
+                     1.0 / r_properties[BULK_MODULUS_FLUID];
+            return result;
+        }
+
         const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
         double bulk_fluid = TINY;
         if (!r_properties[IGNORE_UNDRAINED]) {
             bulk_fluid = r_properties[BULK_MODULUS_FLUID];
         } 
-        double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
-                        r_properties[POROSITY] / bulk_fluid;
+        result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
+                 r_properties[POROSITY] / bulk_fluid;
 
         RetentionLaw::Parameters RetentionParameters(GetProperties(), rCurrentProcessInfo);
         const double degree_of_saturation = mRetentionLawVector[integrationPointIndex]->CalculateSaturation(RetentionParameters);
@@ -366,11 +403,31 @@ private:
             projected_gravity(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
             const auto N = Vector{row(rNContainer, integration_point_index)};
             double RelativePermeability = mRetentionLawVector[integration_point_index]->CalculateRelativePermeability(RetentionParameters);
-            fluid_body_vector += r_properties[DENSITY_WATER] * RelativePermeability 
+            fluid_body_vector += mWaterDensity[integration_point_index] * RelativePermeability 
                 * prod(prod(rShapeFunctionGradients[integration_point_index], constitutive_matrix), projected_gravity) *
-                rIntegrationCoefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
+                rIntegrationCoefficients[integration_point_index] / mWaterViscosity[integration_point_index];
         }
         return fluid_body_vector;
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    void UpdateMaterialProperties()
+    {
+        const GeometryType& rGeom = this->GetGeometry();
+        const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+
+        for (unsigned int integration_point_index = 0;
+             integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+             ++integration_point_index) {
+            const auto N = Vector{row(r_N_container, integration_point_index)};
+
+            mWaterDensity[integration_point_index] =
+                ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(N, rGeom);
+
+            mWaterViscosity[integration_point_index] =
+                ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(N, rGeom);
+        }
     }
 
 

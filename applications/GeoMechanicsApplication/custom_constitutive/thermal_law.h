@@ -32,7 +32,8 @@ public:
 
     virtual Matrix CalculateThermalDispersionMatrix(const Properties&  rProp,
                                                     const ProcessInfo& rProcessInfo,
-                                                    const Vector&      rDischargeVector) const = 0;
+                                                    const Vector&      rDischargeVector,
+                                                    const double       waterDensity) const = 0;
 
 private:
     friend class Serializer;

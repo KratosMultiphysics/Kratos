@@ -23,12 +23,15 @@ Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties&  
     return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
 }
 
-Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& rProp,
+Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties&  rProp,
                                                              const ProcessInfo& rProcessInfo,
-                                                             const Vector& rDischargeVector) const
+                                                             const Vector&      rDischargeVector,
+                                                             const double       waterDensity) const
 {
-    Matrix result = this->CalculateThermalDispersionMatrix(rProp, rProcessInfo);
-    // Add discharge here
+    Matrix       result = this->CalculateThermalDispersionMatrix(rProp, rProcessInfo);
+    const double equivalent_radius_square = rProp[CROSS_AREA] / 3.1415926535897932384626433832795;
+    result(0, 0) += waterDensity * rProp[SPECIFIC_HEAT_CAPACITY_WATER] * equivalent_radius_square *
+                    rDischargeVector(0) * rDischargeVector(0) / (48.0 * rProp[THERMAL_CONDUCTIVITY_WATER]);
     return result;
 }
 

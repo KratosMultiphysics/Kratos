@@ -304,7 +304,9 @@ private:
 
              if (mIsPressureCoupled) {
                  discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
-                 constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, discharge_vector);
+                constitutive_matrix = law->CalculateThermalDispersionMatrix(
+                    GetProperties(), rCurrentProcessInfo, discharge_vector,
+                    mWaterDensity[integration_point_index]);
              }
  
             BoundedMatrix<double, TDim, TNumNodes> Temp =

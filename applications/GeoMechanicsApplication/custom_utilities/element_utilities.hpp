@@ -142,7 +142,14 @@ public:
                                               const Element::PropertiesType& Prop)
     {
         // 1D
-        rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+        if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
+            const double equivalent_radius_square = Prop[CROSS_AREA] / 3.1415926535897932384626433832795;
+            rPermeabilityMatrix(0, 0) = equivalent_radius_square * 0.125;
+        }
+        else {
+            rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+        }
+        
     }
 
     static inline void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
