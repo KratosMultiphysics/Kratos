@@ -6,7 +6,7 @@
 
 
 //// Project includes
-#include "containers/triangle_mesh.hpp"
+#include "containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 
@@ -14,45 +14,46 @@ namespace queso {
 ///@{
 
 /**
- * @class  TriangleMeshKratos
+ * @class  ModelPartAdapter
  * @author Manuel Messmer
- * @brief  ....
+ * @brief  Adapter for KratosModelPart.
 */
-template<class ContainerType>
-class TriangleMeshKratos : public TriangleMesh
+template<class TContainerType>
+class ModelPartAdapter : public TriangleMeshInterface
 {
 public:
     ///@name Type Definitions
     ///@{
-    TriangleMeshKratos(const ContainerType& rContainer) : mContainer(rContainer)
+    typedef TriangleMeshInterface BaseType;
+
+    ModelPartAdapter(const TContainerType& rContainer) : mContainer(rContainer)
     {
-        auto& r_normals = this->GetNormals();
-        r_normals.reserve(rContainer.NumberOfElements());
+        BaseType::Reserve(rContainer.NumberOfElements());
         for( auto& r_el : rContainer.Elements() ){
-            r_normals.push_back( TriangleMesh::Normal( r_el.GetGeometry()[0].Coordinates().data(),
-                                                       r_el.GetGeometry()[1].Coordinates().data(),
-                                                       r_el.GetGeometry()[2].Coordinates().data() ));
+            BaseType::AddNormal( TriangleMeshInterface::Normal( r_el.GetGeometry()[0].Coordinates().data(),
+                                                                r_el.GetGeometry()[1].Coordinates().data(),
+                                                                r_el.GetGeometry()[2].Coordinates().data() ));
         }
     }
 
     ///@brief Get triangle vertex 1
     ///@param TriangleId
     ///@return const Vector3d&
-    const Vector3d P1(IndexType TriangleId) const override {
+    const Vector3d& P1(IndexType TriangleId) const override {
         return (mContainer.ElementsBegin() + TriangleId)->GetGeometry()[0].Coordinates().data();
     }
 
     ///@brief Get triangle vertex 2
     ///@param TriangleId
     ///@return const Vector3d&
-    const Vector3d P2(IndexType TriangleId) const override{
+    const Vector3d& P2(IndexType TriangleId) const override{
         return (mContainer.ElementsBegin() + TriangleId)->GetGeometry()[1].Coordinates().data();
     }
 
     ///@brief Get triangle vertex 3
     ///@param TriangleId
     ///@return const Vector3d&
-    const Vector3d P3(IndexType TriangleId) const override{
+    const Vector3d& P3(IndexType TriangleId) const override{
         return (mContainer.ElementsBegin() + TriangleId)->GetGeometry()[2].Coordinates().data();
     }
 
@@ -68,7 +69,7 @@ public:
 
 private:
 
-    const ContainerType& mContainer;
+    const TContainerType& mContainer;
     ///@}
 }; // End AABB_primitive class
 ///@} // End QuESo classes
