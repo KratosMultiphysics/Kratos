@@ -951,7 +951,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     GlobalSizeVector nodal_values, aux_array, d_el_du;
 
-    GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+    GlobalSizeVector dNu, d2Nu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -1007,6 +1007,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         // dN_theta[5] = dN2;
         // dN_theta[8] = dN3;
 
+        GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
         GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
         GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
         GetNThetaShapeFunctionsValues(N_theta, J, xi);
@@ -1027,11 +1028,23 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         B_s.clear();
         aux_B_s.clear();
         GlobalSizeVector B_b;
-        noalias(B_b) = dN_theta;
 
         VectorType t, n;
         GetTangentandTransverseUnitVectors(xi, t, n);
         noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
+
+        BoundedMatrix<double, 9, 9> global_T;
+        BoundedMatrix<double, 3, 3> T;
+        T.clear();
+        T(0, 0) = frenet_serret(0, 0);
+        T(0, 1) = frenet_serret(0, 1);
+        T(1, 0) = frenet_serret(1, 0);
+        T(1, 1) = frenet_serret(1, 1);
+        T(2, 2) = 1.0;
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_T);
+        // noalias(B_b) = prod(global_T, dN_theta);
+        noalias(B_b) = prod(global_T, n[1]* dN_theta + n[0]*d2Nu);
+
 
         // we fill aux_B_s
         for (IndexType i = 0; i < SystemSize; ++i) {
@@ -1103,7 +1116,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     cl_values.SetConstitutiveMatrix(constitutive_matrix);
     GlobalSizeVector nodal_values, aux_array, d_el_du;
 
-    GlobalSizeVector dNu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
+    GlobalSizeVector dNu, d2Nu, dN_theta, N_shape, Nu, N_s, N_theta, dN_shape;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
@@ -1120,13 +1133,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_props);
         const double A_s  = r_props[AREA_EFFECTIVE_Y];
 
-        const double N1 = 0.5 * xi * (xi - 1.0);
-        const double N2 = 0.5 * xi * (xi + 1.0);
-        const double N3 = 1.0 - std::pow(xi, 2);
+        // const double N1 = 0.5 * xi * (xi - 1.0);
+        // const double N2 = 0.5 * xi * (xi + 1.0);
+        // const double N3 = 1.0 - std::pow(xi, 2);
 
-        const double dN1 = (xi - 0.5) / J;
-        const double dN2 = (xi + 0.5) / J;
-        const double dN3 = (-2.0 * xi) / J;
+        // const double dN1 = (xi - 0.5) / J;
+        // const double dN2 = (xi + 0.5) / J;
+        // const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
         // N_shape.clear();
@@ -1158,6 +1171,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         // dN_theta[5] = dN2;
         // dN_theta[8] = dN3;
 
+        GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
         GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
         GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
         GetNThetaShapeFunctionsValues(N_theta, J, xi);
@@ -1178,11 +1192,22 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         B_s.clear();
         aux_B_s.clear();
         GlobalSizeVector B_b;
-        noalias(B_b) = dN_theta;
 
         VectorType t, n;
         GetTangentandTransverseUnitVectors(xi, t, n);
         noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
+
+        BoundedMatrix<double, 9, 9> global_T;
+        BoundedMatrix<double, 3, 3> T;
+        T.clear();
+        T(0, 0) = frenet_serret(0, 0);
+        T(0, 1) = frenet_serret(0, 1);
+        T(1, 0) = frenet_serret(1, 0);
+        T(1, 1) = frenet_serret(1, 1);
+        T(2, 2) = 1.0;
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_T);
+        // noalias(B_b) = prod(global_T, dN_theta);
+        noalias(B_b) = prod(global_T, n[1]* dN_theta + n[0]*d2Nu);
 
         // we fill aux_B_s
         for (IndexType i = 0; i < SystemSize; ++i) {
