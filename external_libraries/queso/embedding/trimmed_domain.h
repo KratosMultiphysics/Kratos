@@ -122,7 +122,19 @@ public:
     /// @tparam BoundaryIntegrationPointType
     ///@return BoundaryIPVectorPtrType. Boundary integration points to be used for ConstantTerms::Compute.
     template<typename BoundaryIntegrationPointType>
-    Unique<std::vector<BoundaryIntegrationPointType>> pGetBoundaryIps() const;
+    Unique<std::vector<BoundaryIntegrationPointType>> pGetBoundaryIps() const {
+        // Pointer to boundary integration points
+        auto p_boundary_ips = MakeUnique<std::vector<BoundaryIntegrationPointType>>();
+
+        p_boundary_ips->reserve(mpTriangleMesh->NumOfTriangles()*12UL);
+        for( IndexType triangle_id = 0; triangle_id < mpTriangleMesh->NumOfTriangles(); ++triangle_id ){
+            IndexType method = 3; // Creates 12 points per triangle.
+            auto p_new_points = mpTriangleMesh->pGetIPsGlobal<BoundaryIntegrationPointType>(triangle_id, method);
+            p_boundary_ips->insert(p_boundary_ips->end(), p_new_points->begin(), p_new_points->end());
+        }
+
+        return p_boundary_ips;
+    }
 
     ///@brief Returns intersections state of AABB. This is an interface for the octree.
     ///@note This test is only performed on the mClippedMesh to be more efficient.

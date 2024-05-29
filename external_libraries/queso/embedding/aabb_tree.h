@@ -33,19 +33,19 @@ public:
 
     /// Constructor.
     /// @param Dimension
-    /// @param TriangleMesh
+    /// @param rTriangleMesh
     /// @param SkinThickness The skin thickness for fattened AABBs, as a fraction
     ///                      of the AABB_base base length.
     /// @param TouchIsOverlap Does touching count as overlapping in query operations?
-    AABB_tree(const TriangleMeshInterface& TriangleMesh ) :
+    AABB_tree(const TriangleMeshInterface& rTriangleMesh ) :
             aabb_base::Tree_base(3, 0.0, 16,  false)
     {
         mLowerBound = {MAXD, MAXD, MAXD};
         mUpperBound = {LOWESTD, LOWESTD, LOWESTD};
-        for( IndexType i = 0; i < TriangleMesh.NumOfTriangles(); ++i){
-            const auto& p1 = TriangleMesh.P1(i);
-            const auto& p2 = TriangleMesh.P2(i);
-            const auto& p3 = TriangleMesh.P3(i);
+        for( IndexType i = 0; i < rTriangleMesh.NumOfTriangles(); ++i){
+            const auto& p1 = rTriangleMesh.P1(i);
+            const auto& p2 = rTriangleMesh.P2(i);
+            const auto& p3 = rTriangleMesh.P3(i);
 
             const PointType x_values{p1[0], p2[0], p3[0]};
             const PointType y_values{p1[1], p2[1], p3[1]};

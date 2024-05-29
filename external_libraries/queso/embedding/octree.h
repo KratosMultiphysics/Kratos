@@ -9,7 +9,7 @@
 
 //// Project includes
 #include "includes/define.hpp"
-#include "quadrature/single_element.h"
+#include "quadrature/single_element.hpp"
 
 namespace queso {
 
@@ -69,7 +69,29 @@ private:
         /// @param rOrder Order of Gauss quadrature.
         /// @param pOperator Operator to perfrom Inside/Outside test.
         template<typename TElementType>
-        void GetIntegrationPoints(typename TElementType::IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const;
+        void GetIntegrationPoints(typename TElementType::IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const {
+            if( this->IsLeaf() ){
+                std::vector<typename TElementType::IntegrationPointType> integration_points_tmp{};
+                // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
+                QuadratureSingleElement<TElementType>::AssembleIPs(integration_points_tmp, mBoundsUVW.first, mBoundsUVW.second, rOrder);
+                if( mStatus == IntersectionStatus::Inside )
+                    pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
+                else {
+                    for( auto& point : integration_points_tmp){
+                        const auto tmp_point = Mapping::PointFromParamToGlobal(point.data(), mBoundsXYZ, mBoundsUVW);
+                        if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
+                            pPoints->push_back(point);
+                        }
+                    }
+                }
+            } else {
+                for( IndexType i = 0; i < 8UL; ++i){
+                    if( mChildren[i] ){ // If not nullptr
+                        mChildren[i]->template GetIntegrationPoints<TElementType>(pPoints, rOrder, pOperator);
+                    }
+                }
+            }
+        }
 
         /// @brief Recursive function (walks through octree) to get total number of leaf nodes.
         /// @param[out] rValue // Return value
@@ -152,7 +174,12 @@ public:
     /// @param rOrder Order of Gauss quadrature.
     /// @return IntegrationPointVectorPtrType
     template<typename TElementType>
-    Unique<std::vector<typename TElementType::IntegrationPointType>> pGetIntegrationPoints(const Vector3i& rOrder) const;
+    Unique<std::vector<typename TElementType::IntegrationPointType>> pGetIntegrationPoints(const Vector3i& rOrder) const {
+        auto p_points = MakeUnique<std::vector<typename TElementType::IntegrationPointType>>();
+        p_points->reserve(NumberOfLeafs());
+        mpRoot->template GetIntegrationPoints<TElementType>(p_points.get(), rOrder, mpOperator );
+        return p_points;
+    }
 
     /// @brief Add integration points to rPoints. Points are constructed on the leafs of the octree.
     ///        Standard Gauss quadrature rules (according to rOrder) are constructed on each leaf node.
@@ -162,7 +189,10 @@ public:
     /// @param rPoints Vector of integration points.
     /// @param rOrder Order of Gauss quadrature.
     template<typename TElementType>
-    void AddIntegrationPoints(std::vector<typename TElementType::IntegrationPointType>& rPoints, const Vector3i& rOrder) const;
+    void AddIntegrationPoints(std::vector<typename TElementType::IntegrationPointType>& rPoints, const Vector3i& rOrder) const {
+        rPoints.reserve(NumberOfLeafs());
+        mpRoot->template GetIntegrationPoints<TElementType>(&rPoints, rOrder, mpOperator );
+    }
 
     /// @brief Returns current refinement level of leaf nodes that are classified as inside.
     /// @return IndexType

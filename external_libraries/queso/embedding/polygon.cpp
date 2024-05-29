@@ -150,7 +150,6 @@ void Polygon<SIZE>::AddToTriangleMesh(TriangleMeshInterface& rTriangleMesh) cons
     return;
 }
 
-
 // Explicit instantiation Polygon
 template class Polygon<9>;
 template class Polygon<4>;

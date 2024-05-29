@@ -75,33 +75,6 @@ void Octree<TOperator>::Node::Refine(IndexType MinLevel, IndexType MaxLevel, con
 }
 
 template<typename TOperator>
-template<typename TElementType>
-void Octree<TOperator>::Node::GetIntegrationPoints(typename TElementType::IntegrationPointVectorType* pPoints, const Vector3i& rOrder, const TOperator* pOperator) const{
-    if( this->IsLeaf() ){
-
-        std::vector<typename TElementType::IntegrationPointType> integration_points_tmp{};
-        // Note that QuadratureSingleElement::AssembleIPs clears integration_points_tmp.
-        QuadratureSingleElement<TElementType>::AssembleIPs(integration_points_tmp, mBoundsUVW.first, mBoundsUVW.second, rOrder);
-        if( mStatus == IntersectionStatus::Inside )
-            pPoints->insert(pPoints->end(), integration_points_tmp.begin(), integration_points_tmp.end());
-        else {
-            for( auto& point : integration_points_tmp){
-                const auto tmp_point = Mapping::PointFromParamToGlobal(point.data(), mBoundsXYZ, mBoundsUVW);
-                if( pOperator->IsInsideTrimmedDomain( tmp_point ) ){
-                    pPoints->push_back(point);
-                }
-            }
-        }
-    } else {
-        for( IndexType i = 0; i < 8UL; ++i){
-            if( mChildren[i] ){ // If not nullptr
-                mChildren[i]->template GetIntegrationPoints<TElementType>(pPoints, rOrder, pOperator);
-            }
-        }
-    }
-}
-
-template<typename TOperator>
 void Octree<TOperator>::Node::NumberOfLeafs(IndexType& rValue) const {
     if( this->IsLeaf() ){
         ++rValue;
@@ -169,27 +142,7 @@ SizeType Octree<TOperator>::NumberOfNodes() const{
     return number_of_nodes;
 }
 
-template<typename TOperator>
-template<typename TElementType>
-Unique<std::vector<typename TElementType::IntegrationPointType>> Octree<TOperator>::pGetIntegrationPoints(const Vector3i& rOrder) const{
-    auto p_points = MakeUnique<std::vector<typename TElementType::IntegrationPointType>>();
-    p_points->reserve(NumberOfLeafs());
-    mpRoot->template GetIntegrationPoints<TElementType>(p_points.get(), rOrder, mpOperator );
-    return p_points;
-}
-
-template<typename TOperator>
-template<typename TElementType>
-void Octree<TOperator>::AddIntegrationPoints(std::vector<typename TElementType::IntegrationPointType>& rPoints, const Vector3i& rOrder) const{
-    rPoints.reserve(NumberOfLeafs());
-    mpRoot->template GetIntegrationPoints<TElementType>(&rPoints, rOrder, mpOperator );
-}
-
 // Explicit class instantiation
 template class Octree<TrimmedDomain>;
-/// Explicit function instantiation
-template void Octree<TrimmedDomain>::Node::GetIntegrationPoints<Element<IntegrationPoint, BoundaryIntegrationPoint>>(std::vector<IntegrationPoint>* pPoints, const Vector3i& rOrder, const TrimmedDomain* pOperator) const;
-template Unique<std::vector<IntegrationPoint>> Octree<TrimmedDomain>::pGetIntegrationPoints<Element<IntegrationPoint, BoundaryIntegrationPoint>>(const Vector3i& rOrder) const;
-template void Octree<TrimmedDomain>::AddIntegrationPoints<Element<IntegrationPoint, BoundaryIntegrationPoint>>(std::vector<IntegrationPoint>& rPoints, const Vector3i& rOrder) const;
 
 } // End namespace queso
