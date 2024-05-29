@@ -34,7 +34,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::Initialize(const ProcessInfo& rCurre
             if (GetProperties().Has(INTEGRATION_ORDER) ) {
                 mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
             } else {
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
         }
 
@@ -978,24 +978,24 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
-        // N_shape.clear();
-        // dN_shape.clear();
-        // N_shape[1] = N1;
-        // N_shape[4] = N2;
-        // N_shape[7] = N3;
-        // dN_shape[1] = dN1;
-        // dN_shape[4] = dN2;
-        // dN_shape[7] = dN3;
+        N_shape.clear();
+        dN_shape.clear();
+        N_shape[1] = N1;
+        N_shape[4] = N2;
+        N_shape[7] = N3;
+        dN_shape[1] = dN1;
+        dN_shape[4] = dN2;
+        dN_shape[7] = dN3;
 
         // axial u
-        // dNu.clear();
-        // Nu.clear();
-        // Nu[0] = N1;
-        // Nu[3] = N2;
-        // Nu[6] = N3;
-        // dNu[0] = dN1;
-        // dNu[3] = dN2;
-        // dNu[6] = dN3;
+        dNu.clear();
+        Nu.clear();
+        Nu[0] = N1;
+        Nu[3] = N2;
+        Nu[6] = N3;
+        dNu[0] = dN1;
+        dNu[3] = dN2;
+        dNu[6] = dN3;
 
         // rotation
         dN_theta.clear();
@@ -1007,13 +1007,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         dN_theta[5] = dN2;
         dN_theta[8] = dN3;
 
-        GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
-        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        // GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
+        // GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
         // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
         // GetNThetaShapeFunctionsValues(N_theta, J, xi);
-        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
-        GetShapeFunctionsValues(N_shape, J, xi);
-        GetNu0ShapeFunctionsValues(Nu, xi);
+        // GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        // GetShapeFunctionsValues(N_shape, J, xi);
+        // GetNu0ShapeFunctionsValues(Nu, xi);
 
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
@@ -1142,24 +1142,24 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         const double dN3 = (-2.0 * xi) / J;
 
         // deflection v
-        // N_shape.clear();
-        // dN_shape.clear();
-        // N_shape[1] = N1;
-        // N_shape[4] = N2;
-        // N_shape[7] = N3;
-        // dN_shape[1] = dN1;
-        // dN_shape[4] = dN2;
-        // dN_shape[7] = dN3;
+        N_shape.clear();
+        dN_shape.clear();
+        N_shape[1] = N1;
+        N_shape[4] = N2;
+        N_shape[7] = N3;
+        dN_shape[1] = dN1;
+        dN_shape[4] = dN2;
+        dN_shape[7] = dN3;
 
         // axial u
-        // dNu.clear();
-        // Nu.clear();
-        // Nu[0] = N1;
-        // Nu[3] = N2;
-        // Nu[6] = N3;
-        // dNu[0] = dN1;
-        // dNu[3] = dN2;
-        // dNu[6] = dN3;
+        dNu.clear();
+        Nu.clear();
+        Nu[0] = N1;
+        Nu[3] = N2;
+        Nu[6] = N3;
+        dNu[0] = dN1;
+        dNu[3] = dN2;
+        dNu[6] = dN3;
 
         // rotation
         dN_theta.clear();
@@ -1171,13 +1171,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         dN_theta[5] = dN2;
         dN_theta[8] = dN3;
 
-        GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
-        GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        // GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
+        // GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
         // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
         // GetNThetaShapeFunctionsValues(N_theta, J, xi);
-        GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
-        GetShapeFunctionsValues(N_shape, J, xi);
-        GetNu0ShapeFunctionsValues(Nu, xi);
+        // GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
+        // GetShapeFunctionsValues(N_shape, J, xi);
+        // GetNu0ShapeFunctionsValues(Nu, xi);
 
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
