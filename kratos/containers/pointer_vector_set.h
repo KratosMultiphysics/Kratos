@@ -1085,6 +1085,7 @@ private:
                 lower_bound_first == upper_bound_last)
             {
                 // all 4 bounds are equal, hence this can be inserted without checking further
+                mData.reserve(mData.size() + std::distance(first, last));
                 if (lower_bound_first == mData.end()) {
                     for (auto it = first; it != last; ++it) {
                         mData.push_back(TPointerType(&GetReference(it)));
