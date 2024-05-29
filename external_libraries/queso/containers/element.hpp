@@ -168,14 +168,14 @@ public:
         mpTrimmedDomain = nullptr;
     }
 
-    /// @brief Set neighbour coefficient. Required for assembly of GGQ rule. See: multiple_elements.h.
+    /// @brief Set neighbour coefficient. Required for assembly of GGQ rule. See: multiple_elements.hpp.
     /// @param Value New Value.
     /// @param Direction Space Direction: 0-x, 1-y, 2-z.
     void SetNeighbourCoefficient(double Value, IndexType Direction){
         mNumberOfNeighbours[Direction] = Value;
     }
 
-    /// @brief Get neighbour coeefficient of this element. Required for assembly of GGQ rule. See: multiple_elements.h.
+    /// @brief Get neighbour coeefficient of this element. Required for assembly of GGQ rule. See: multiple_elements.hpp.
     /// @return double
     double NeighbourCoefficient(){
         return mNumberOfNeighbours[0]*mNumberOfNeighbours[1]*mNumberOfNeighbours[2];
