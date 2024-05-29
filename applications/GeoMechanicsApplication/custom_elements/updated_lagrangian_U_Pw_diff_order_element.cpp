@@ -102,13 +102,12 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         Variables.BiotCoefficient        = biot_coefficients[GPoint];
         Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
         Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-        Variables.BishopCoefficient = bishop_coefficients[GPoint];
+        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
         Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
             IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */

@@ -266,10 +266,6 @@ protected:
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
-
     std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
 

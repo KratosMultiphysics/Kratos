@@ -105,7 +105,6 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
         Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 

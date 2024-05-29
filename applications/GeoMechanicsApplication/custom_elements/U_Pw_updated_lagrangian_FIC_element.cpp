@@ -114,7 +114,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
         // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
         Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 

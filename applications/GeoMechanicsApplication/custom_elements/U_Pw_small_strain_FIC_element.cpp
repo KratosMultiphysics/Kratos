@@ -482,7 +482,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
         Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 

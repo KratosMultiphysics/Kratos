@@ -302,10 +302,6 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;

@@ -1294,9 +1294,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
-        Variables.BishopCoefficient = bishop_coefficients[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
         Variables.BiotCoefficient        = biot_coefficients[GPoint];
         Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
@@ -1983,18 +1982,6 @@ void SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration(dou
 
     rJ = rGeom.Jacobian(rJ, GPoint, this->GetIntegrationMethod());
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables& rVariables,
-                                                                RetentionLaw::Parameters& rRetentionParameters,
-                                                                unsigned int GPoint)
-{
-    KRATOS_TRY
-
-    rRetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-        rVariables.Np, rVariables.PressureVector));
 
     KRATOS_CATCH("")
 }
