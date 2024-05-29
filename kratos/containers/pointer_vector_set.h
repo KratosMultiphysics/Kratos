@@ -611,7 +611,9 @@ public:
                 return iterator(mData.end() - 1);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                return insert(value);
+                auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
+                mSortedPartSize = mData.size() + 1;
+                return mData.insert(itr_pos, value);
             }
         } else if (position_hint == cbegin()) {
             // trying to insert at the front.
@@ -622,7 +624,9 @@ public:
                 return mData.insert(mData.begin(), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                return insert(value);
+                auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
+                mSortedPartSize = mData.size() + 1;
+                return mData.insert(itr_pos, value);
             }
         } else {
             // trying to insert at an arbitrary position.
@@ -631,7 +635,9 @@ public:
                 return mData.insert(mData.begin() + (position_hint - cbegin()), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                return insert(value);
+                auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
+                mSortedPartSize = mData.size() + 1;
+                return mData.insert(itr_pos, value);
             }
         }
     }
