@@ -52,6 +52,33 @@ namespace Kratos
 template <typename TPrimalElement>
 class AdjointFiniteDifferencingBaseElement : public Element
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Element* mpPrimalElement;
+        bool mHasRotationDofs = false;
+
+    public:
+        explicit ThisExtensions(Element* pElement, bool HasRotationDofs);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };
+
 public:
 
     ///@name Type Definitions

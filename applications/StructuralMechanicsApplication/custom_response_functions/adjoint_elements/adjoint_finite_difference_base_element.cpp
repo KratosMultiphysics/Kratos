@@ -578,6 +578,145 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 
 // private
 template <class TPrimalElement>
+AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement, bool HasRotationDofs)
+    : mpElement{pElement}, mHasRotationDofs(HasRotationDofs)
+{
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    KRATOS_TRY;
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    const SizeType dimension = mpElement->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = (mHasRotationDofs) ?  2 * dimension : dimension;
+    rVector.resize(num_dofs);
+
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
+
+    if(mHasRotationDofs)
+    {
+        rVector[index++] = MakeIndirectScalar(r_node, ANGULAR_ADJOINT_VECTOR_2_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ANGULAR_ADJOINT_VECTOR_2_Y, Step);
+        rVector[index]   = MakeIndirectScalar(r_node, ANGULAR_ADJOINT_VECTOR_2_Z, Step);
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    KRATOS_TRY;
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    const SizeType dimension = mpElement->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = (mHasRotationDofs) ?  2 * dimension : dimension;
+    rVector.resize(num_dofs);
+
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
+
+    if(mHasRotationDofs)
+    {
+        rVector[index++] = MakeIndirectScalar(r_node, ANGULAR_ADJOINT_VECTOR_3_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ANGULAR_ADJOINT_VECTOR_3_Y, Step);
+        rVector[index]   = MakeIndirectScalar(r_node, ANGULAR_ADJOINT_VECTOR_3_Z, Step);
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    KRATOS_TRY;
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    const SizeType dimension = mpElement->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = (mHasRotationDofs) ?  2 * dimension : dimension;
+    rVector.resize(num_dofs);
+
+    std::size_t index = 0;
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
+
+    if(mHasRotationDofs)
+    {
+        rVector[index++] = MakeIndirectScalar(r_node, ANGULAR_AUX_ADJOINT_VECTOR_1_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ANGULAR_AUX_ADJOINT_VECTOR_1_Y, Step);
+        rVector[index]   = MakeIndirectScalar(r_node, ANGULAR_AUX_ADJOINT_VECTOR_1_Z, Step);
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    KRATOS_TRY;
+    const SizeType num_vars = (mHasRotationDofs) ?  2 : 1;
+    if (rVariables.size() != num_vars)
+    {
+        rVariables.resize(num_vars);
+    }
+
+    rVariables[0] = &ADJOINT_VECTOR_2;
+
+    if(mHasRotationDofs)
+    {
+        rVariables[1] = &ANGULAR_ADJOINT_VECTOR_2;
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    KRATOS_TRY;
+    const SizeType num_vars = (mHasRotationDofs) ?  2 : 1;
+
+    if (rVariables.size() != num_vars)
+    {
+        rVariables.resize(num_vars);
+    }
+
+    rVariables[0] = &ADJOINT_VECTOR_3;
+
+    if(mHasRotationDofs)
+    {
+        rVariables[1] = &ANGULAR_ADJOINT_VECTOR_3;
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferencingBaseElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    KRATOS_TRY;
+    const SizeType num_vars = (mHasRotationDofs) ?  2 : 1;
+    if (rVariables.size() != num_vars)
+    {
+        rVariables.resize(num_vars);
+    }
+
+    rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+
+    if(mHasRotationDofs)
+    {
+        rVariables[1] = &ANGULAR_AUX_ADJOINT_VECTOR_1;
+    }
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
 double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
     double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
