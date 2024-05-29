@@ -247,7 +247,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         array_1d<double, VoigtSize> h_capa = ZeroVector(VoigtSize);
         double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain, I1;
 
-        YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
+        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
@@ -669,7 +669,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     }
 
     /**
-     * @brief This method computes the uniaxial threshold using a perfect plasticity law
+     * @brief This method computes the uniaxial threshold using an isotropic hardening (polynomial) - softening (exponential) plasticity law
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
@@ -772,7 +772,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     }
 
     /**
-     * @brief This method computes the uniaxial threshold using a linear-exponential softening, which changes from one to the other through the platic_dissipation_limit
+     * @brief This method computes the uniaxial threshold using an isotropic linear/exponential softening, which changes from one to the other through the platic_dissipation_limit
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
