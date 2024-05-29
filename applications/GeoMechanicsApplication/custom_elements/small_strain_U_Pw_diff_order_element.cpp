@@ -12,20 +12,25 @@
 //
 
 // Project includes
+#include "containers/array_1d.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_3.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/constitutive_law_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -325,18 +330,14 @@ void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& r
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-        Variables.F = deformation_gradients[GPoint];
-
-        // Compute infinitesimal strain
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
+        Variables.B            = b_matrices[GPoint];
+        Variables.F            = deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
         ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
+            Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -453,8 +454,9 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     const MatrixType Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
     const PropertiesType& r_prop  = this->GetProperties();
 
-    const auto degrees_saturation = GeoTransportEquationUtilities::CalculateDegreesSaturation(
-        this->GetPressureSolutionVector(), Np_container, mRetentionLawVector, r_prop);
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Np_container, this->GetPressureSolutionVector());
+    const auto degrees_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     const auto solid_densities =
         GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, r_prop);
@@ -548,12 +550,11 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
         // Compute infinitesimal strain
         Variables.F            = deformation_gradients[GPoint];
-        Variables.detF         = determinants_of_deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
         ConstitutiveLawUtilities::SetConstitutiveParameters(
-            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-            Variables.Nu, Variables.DNu_DX, Variables.F, Variables.detF);
+            ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
+            Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
         // compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
@@ -1269,8 +1270,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NpContainer, Variables.PressureVector);
+    const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
     auto relative_permeability_values =
         CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
             Variables.NpContainer, Variables.PressureVector));
@@ -1290,10 +1298,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
 
-        Variables.BiotCoefficient    = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse = GeoTransportEquationUtilities::CalculateBiotModulusInverse(
-            Variables.BiotCoefficient, Variables.DegreeOfSaturation,
-            Variables.DerivativeOfSaturation, this->GetProperties());
+        Variables.BiotCoefficient        = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
+        Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
@@ -1308,6 +1315,36 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     }
 
     KRATOS_CATCH("")
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures)
+{
+    KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
+    std::vector<double> result;
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+    std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+        retention_law_params.SetFluidPressure(fluid_pressure);
+        return pRetentionLaw->CalculateDerivativeOfSaturation(retention_law_params);
+    });
+
+    return result;
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures)
+{
+    KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
+    std::vector<double> result;
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+    std::transform(rFluidPressures.begin(), rFluidPressures.end(), mRetentionLawVector.begin(),
+                   std::back_inserter(result), [&retention_law_params](auto fluid_pressure, auto pRetentionLaw) {
+        retention_law_params.SetFluidPressure(fluid_pressure);
+        return pRetentionLaw->CalculateSaturation(retention_law_params);
+    });
+
+    return result;
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
@@ -1426,7 +1463,6 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     rVariables.StressVector.resize(VoigtSize, false);
 
     // Needed parameters for consistency with the general constitutive law
-    rVariables.detF = 1.0;
     rVariables.F.resize(Dim, Dim, false);
     noalias(rVariables.F) = identity_matrix<double>(Dim);
 
@@ -1441,10 +1477,9 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Retention law
-    rVariables.DegreeOfSaturation     = 1.0;
-    rVariables.DerivativeOfSaturation = 0.0;
-    rVariables.RelativePermeability   = 1.0;
-    rVariables.BishopCoefficient      = 1.0;
+    rVariables.DegreeOfSaturation   = 1.0;
+    rVariables.RelativePermeability = 1.0;
+    rVariables.BishopCoefficient    = 1.0;
 
     KRATOS_CATCH("")
 }
@@ -1946,9 +1981,6 @@ void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables
     rRetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
         rVariables.Np, rVariables.PressureVector));
 
-    rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
-    rVariables.DerivativeOfSaturation =
-        mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
     rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
 
     KRATOS_CATCH("")

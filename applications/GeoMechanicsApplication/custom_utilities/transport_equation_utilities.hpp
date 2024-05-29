@@ -85,28 +85,14 @@ public:
                (1.0 - rProp[POROSITY]) * rProp[DENSITY_SOLID];
     }
 
-    static Vector CalculateSoilDensities(const Vector& rDegreesSaturation, const Properties& rProp)
+    static std::vector<double> CalculateSoilDensities(const std::vector<double>& rDegreesSaturation,
+                                                      const Properties&          rProp)
     {
-        Vector result(rDegreesSaturation.size());
+        std::vector<double> result(rDegreesSaturation.size());
         std::transform(rDegreesSaturation.cbegin(), rDegreesSaturation.cend(), result.begin(),
                        [&rProp](const auto& degree_saturation) {
             return CalculateSoilDensity(degree_saturation, rProp);
         });
-        return result;
-    }
-
-    static Vector CalculateDegreesSaturation(const Vector& rPressureSolution,
-                                             const Matrix& rNContainer,
-                                             const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
-                                             const Properties& rProp)
-    {
-        RetentionLaw::Parameters retention_parameters(rProp);
-        Vector                   result(rRetentionLawVector.size());
-        for (unsigned int g_point = 0; g_point < rRetentionLawVector.size(); ++g_point) {
-            const double fluid_pressure = CalculateFluidPressure(row(rNContainer, g_point), rPressureSolution);
-            retention_parameters.SetFluidPressure(fluid_pressure);
-            result(g_point) = rRetentionLawVector[g_point]->CalculateSaturation(retention_parameters);
-        }
         return result;
     }
 
@@ -115,7 +101,8 @@ public:
         return inner_prod(rN, rPressureVector);
     }
 
-    [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer, const Vector& rPressureVector)
+    [[nodiscard]] static std::vector<double> CalculateFluidPressures(const Matrix& rNContainer,
+                                                                     const Vector& rPressureVector)
     {
         auto result = std::vector<double>{};
         for (auto i = std::size_t{0}; i < rNContainer.size1(); ++i) {
@@ -124,18 +111,16 @@ public:
         return result;
     }
 
-    [[nodiscard]] static double CalculateBiotModulusInverse(double BiotCoefficient,
-                                                            double DegreeOfSaturation,
-                                                            double DerivativeOfSaturation,
-                                                            const Properties& rProperties)
+    [[nodiscard]] static std::vector<double> CalculateInverseBiotModuli(const std::vector<double>& rBiotCoefficients,
+                                                                        const std::vector<double>& rDegreesOfSaturation,
+                                                                        const std::vector<double>& DerivativesOfSaturation,
+                                                                        const Properties& rProperties)
     {
-        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
-        double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                        rProperties[POROSITY] / bulk_modulus_fluid;
-
-        result *= DegreeOfSaturation;
-        result -= DerivativeOfSaturation * rProperties[POROSITY];
-
+        std::vector<double> result;
+        for (std::size_t i = 0; i < rBiotCoefficients.size(); ++i) {
+            result.push_back(CalculateInverseBiotModulus(rBiotCoefficients[i], rDegreesOfSaturation[i],
+                                                         DerivativesOfSaturation[i], rProperties));
+        }
         return result;
     }
 
@@ -177,6 +162,21 @@ private:
         return rProperties.Has(BIOT_COEFFICIENT)
                    ? rProperties[BIOT_COEFFICIENT]
                    : 1.0 - CalculateBulkModulus(rConstitutiveMatrix) / rProperties[BULK_MODULUS_SOLID];
+    }
+
+    [[nodiscard]] static double CalculateInverseBiotModulus(double BiotCoefficient,
+                                                            double DegreeOfSaturation,
+                                                            double DerivativeOfSaturation,
+                                                            const Properties& rProperties)
+    {
+        const auto bulk_modulus_fluid = rProperties[IGNORE_UNDRAINED] ? TINY : rProperties[BULK_MODULUS_FLUID];
+        double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                        rProperties[POROSITY] / bulk_modulus_fluid;
+
+        result *= DegreeOfSaturation;
+        result -= DerivativeOfSaturation * rProperties[POROSITY];
+
+        return result;
     }
 
     [[nodiscard]] static double CalculatePermeabilityUpdateFactor(const Vector&     rStrainVector,
