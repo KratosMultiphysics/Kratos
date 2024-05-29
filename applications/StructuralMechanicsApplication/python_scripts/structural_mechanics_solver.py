@@ -123,6 +123,7 @@ class MechanicalSolver(PythonSolver):
             },
             "time_stepping" : { },
             "volumetric_strain_dofs": false,
+            "strain_vector_dofs": false,
             "rotation_dofs": false,
             "pressure_dofs": false,
             "displacement_control": false,
@@ -184,6 +185,20 @@ class MechanicalSolver(PythonSolver):
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
+        if self.settings["strain_vector_dofs"].GetBool():
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_YY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XY)
+            if self.settings["domain_size"].GetInt() == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_ZZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_ZZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XZ)
         if self.settings["displacement_control"].GetBool():
             # Add displacement-control variables
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
@@ -207,6 +222,14 @@ class MechanicalSolver(PythonSolver):
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
         if self.settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
+        if self.settings["strain_vector_dofs"].GetBool():
+            dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XX", "REACTION_NODAL_STRAIN_VECTOR_XX"])
+            dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_YY", "REACTION_NODAL_STRAIN_VECTOR_YY"])
+            dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XY", "REACTION_NODAL_STRAIN_VECTOR_XY"])
+            if self.settings["domain_size"].GetInt() == 3:
+                dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_ZZ", "REACTION_NODAL_STRAIN_VECTOR_ZZ"])
+                dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_YZ", "REACTION_NODAL_STRAIN_VECTOR_YZ"])
+                dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XZ", "REACTION_NODAL_STRAIN_VECTOR_XZ"])
         if self.settings["displacement_control"].GetBool():
             dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
@@ -420,6 +443,7 @@ class MechanicalSolver(PythonSolver):
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("volumetric_strain_dofs",self.settings["volumetric_strain_dofs"])
+        conv_params.AddValue("strain_vector_dofs",self.settings["strain_vector_dofs"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])

@@ -1,5 +1,6 @@
 # Importing Kratos
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as SMApp
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
@@ -158,6 +159,13 @@ class AnalysisStage(object):
 
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
+        
+        # print(self._GetSolver().GetComputingModelPart().GetNode(8450).GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR))
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #     e = node.GetSolutionStepValue(SMApp.NODAL_STRAIN_VECTOR)
+        #     node.SetValue(SMApp.AXIAL_FORCE, e[0])
+        #     node.SetValue(SMApp.SHEAR_FORCE, e[1])
+        #     node.SetValue(SMApp.BENDING_MOMENT, e[3])
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step

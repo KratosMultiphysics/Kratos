@@ -73,6 +73,8 @@ public:
     void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
 
     void SetValue( const Variable<Vector>& rThisVariable,
@@ -108,11 +110,13 @@ protected:
         // Vector normal to the plastic potential surface
         Vector np_MC;
         Vector np_TC;
+
     };
 
     // Member Variables
-    Vector mPlasticStrainVector;    
+    Vector mPlasticStrainVector;
     Vector mOldPlasticStrainVector;
+    double mSlipTendency;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

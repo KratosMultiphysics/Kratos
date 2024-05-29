@@ -193,12 +193,10 @@ protected:
         Vector PressureDtVector;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double Density;
 
         // Properties and processinfo variables
         bool IgnoreUndrained;
@@ -240,8 +238,6 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
-
     double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
@@ -280,9 +276,6 @@ protected:
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
