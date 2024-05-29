@@ -1009,11 +1009,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         // GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
         // GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        // GetNu0ShapeFunctionsValues(Nu, xi);
         // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
         // GetNThetaShapeFunctionsValues(N_theta, J, xi);
         // GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
         // GetShapeFunctionsValues(N_shape, J, xi);
-        // GetNu0ShapeFunctionsValues(Nu, xi);
 
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
@@ -1173,11 +1173,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
         // GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
         // GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
+        // GetNu0ShapeFunctionsValues(Nu, xi);
         // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
         // GetNThetaShapeFunctionsValues(N_theta, J, xi);
         // GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
         // GetShapeFunctionsValues(N_shape, J, xi);
-        // GetNu0ShapeFunctionsValues(Nu, xi);
 
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
