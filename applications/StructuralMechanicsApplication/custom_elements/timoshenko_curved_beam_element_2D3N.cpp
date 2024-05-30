@@ -1007,14 +1007,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         dN_theta[5] = dN2;
         dN_theta[8] = dN3;
 
-        // GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
-        // GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
-        // GetNu0ShapeFunctionsValues(Nu, xi);
-        // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
-        // GetNThetaShapeFunctionsValues(N_theta, J, xi);
-        // GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
-        // GetShapeFunctionsValues(N_shape, J, xi);
-
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
         C_gamma.clear();
@@ -1032,19 +1024,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         VectorType t, n;
         GetTangentandTransverseUnitVectors(xi, t, n);
         noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
-
-        BoundedMatrix<double, 9, 9> global_T;
-        BoundedMatrix<double, 3, 3> T;
-        T.clear();
-        T(0, 0) = frenet_serret(0, 0);
-        T(0, 1) = frenet_serret(0, 1);
-        T(1, 0) = frenet_serret(1, 0);
-        T(1, 1) = frenet_serret(1, 1);
-        T(2, 2) = 1.0;
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_T);
-        // noalias(B_b) = prod(global_T, dN_theta);
         noalias(B_b) =  dN_theta;
-
 
         // we fill aux_B_s
         for (IndexType i = 0; i < SystemSize; ++i) {
@@ -1171,14 +1151,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         dN_theta[5] = dN2;
         dN_theta[8] = dN3;
 
-        // GetSecondDerivativesNu0ShapeFunctionsValues(d2Nu, J, xi);
-        // GetFirstDerivativesNu0ShapeFunctionsValues(dNu, J, xi);
-        // GetNu0ShapeFunctionsValues(Nu, xi);
-        // GetFirstDerivativesNThetaShapeFunctionsValues(dN_theta, J, xi);
-        // GetNThetaShapeFunctionsValues(N_theta, J, xi);
-        // GetFirstDerivativesShapeFunctionsValues(dN_shape, J, xi);
-        // GetShapeFunctionsValues(N_shape, J, xi);
-
         // Initialize matrices and vectors...
         BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
         C_gamma.clear();
@@ -1197,16 +1169,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         GetTangentandTransverseUnitVectors(xi, t, n);
         noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
 
-        BoundedMatrix<double, 9, 9> global_T;
-        BoundedMatrix<double, 3, 3> T;
-        T.clear();
-        T(0, 0) = frenet_serret(0, 0);
-        T(0, 1) = frenet_serret(0, 1);
-        T(1, 0) = frenet_serret(1, 0);
-        T(1, 1) = frenet_serret(1, 1);
-        T(2, 2) = 1.0;
-        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NBeam(T, global_T);
-        // noalias(B_b) = prod(global_T, dN_theta);
         noalias(B_b) = dN_theta;
 
         // we fill aux_B_s
