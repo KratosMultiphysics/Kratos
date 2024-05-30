@@ -235,15 +235,17 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rL
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
+    const unsigned int number_of_dofs = this->GetNumberOfDOF();
 
     // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != N_DOF) rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
+    if (rLeftHandSideMatrix.size1() != number_of_dofs)
+        rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
 
     // Resetting the RHS
-    if (rRightHandSideVector.size() != N_DOF) rRightHandSideVector.resize(N_DOF, false);
-    noalias(rRightHandSideVector) = ZeroVector(N_DOF);
+    if (rRightHandSideVector.size() != number_of_dofs)
+        rRightHandSideVector.resize(number_of_dofs, false);
+    noalias(rRightHandSideVector) = ZeroVector(number_of_dofs);
 
     // calculation flags
     const bool CalculateStiffnessMatrixFlag = true;
