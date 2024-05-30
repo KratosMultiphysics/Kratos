@@ -1867,10 +1867,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
 GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
 {
     GeometryData::IntegrationMethod GI_GAUSS;
-    const GeometryType&             rGeom     = GetGeometry();
-    const SizeType                  TNumNodes = rGeom.PointsNumber();
-    //
-    switch (TNumNodes) {
+
+    switch (GetGeometry().PointsNumber()) {
     case 3:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;

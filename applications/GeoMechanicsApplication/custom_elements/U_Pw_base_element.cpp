@@ -205,7 +205,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod UPwBaseElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     GeometryData::IntegrationMethod GI_GAUSS;
-    //
+
     switch (TNumNodes) {
     case 3:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
