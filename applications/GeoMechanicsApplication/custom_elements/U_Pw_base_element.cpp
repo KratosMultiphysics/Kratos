@@ -235,7 +235,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rL
 {
     KRATOS_TRY
 
-    const unsigned int number_of_dofs = this->GetNumberOfDOF();
+    const auto number_of_dofs = this->GetNumberOfDOF();
 
     // Resetting the LHS
     if (rLeftHandSideMatrix.size1() != number_of_dofs)

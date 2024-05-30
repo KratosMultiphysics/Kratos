@@ -362,12 +362,7 @@ void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType&        rLe
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType number_of_dofs = NumUNodes * Dim + NumPNodes;
+    const auto number_of_dofs = GetNumberOfDOF();
 
     // Resetting the LHS
     if (rLeftHandSideMatrix.size1() != number_of_dofs)
@@ -394,21 +389,16 @@ void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType&        rL
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    const auto number_of_dofs = GetNumberOfDOF();
 
     // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != ElementSize)
-        rLeftHandSideMatrix.resize(ElementSize, ElementSize, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(ElementSize, ElementSize);
+    if (rLeftHandSideMatrix.size1() != number_of_dofs)
+        rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
 
     // calculation flags
-    bool       CalculateStiffnessMatrixFlag = true;
-    bool       CalculateResidualVectorFlag  = false;
+    const bool CalculateStiffnessMatrixFlag = true;
+    const bool CalculateResidualVectorFlag  = false;
     VectorType tempRightHandSideVector;
 
     CalculateAll(rLeftHandSideMatrix, tempRightHandSideVector, rCurrentProcessInfo,
@@ -1979,6 +1969,12 @@ void SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration(dou
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
 
     KRATOS_CATCH("")
+}
+
+SizeType SmallStrainUPwDiffOrderElement::GetNumberOfDOF() const
+{
+    return GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension() +
+           mpPressureGeometry->PointsNumber();
 }
 
 Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
