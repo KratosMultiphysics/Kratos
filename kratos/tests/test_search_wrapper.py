@@ -29,6 +29,50 @@ def RemoveFiles(mdpa_name):
     """
     kratos_utils.DeleteFileIfExisting(mdpa_name + ".time")
 
+def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions"):
+    """
+    Create an appropriate search wrapper based on the given search type.
+    """
+    if search_type == "Octree":
+        if entity_type == "Conditions":
+            search = KM.SearchWrapperOCTreeCondition(model_part.Conditions, data_comm)
+        elif entity_type == "Elements":
+            search = KM.SearchWrapperOCTreeElement(model_part.Elements, data_comm)
+        else:
+            raise Exception("Invalid entity type: " + entity_type)
+    elif search_type == "KDTree":
+        if entity_type == "Conditions":
+            search = KM.SearchWrapperKDTreeCondition(model_part.Conditions, data_comm)
+        elif entity_type == "Elements":
+            search = KM.SearchWrapperKDTreeElement(model_part.Elements, data_comm)
+        else:
+            raise Exception("Invalid entity type: " + entity_type)
+    elif search_type == "StaticBinsTree":
+        if entity_type == "Conditions":
+            search = KM.SearchWrapperStaticBinsTreeCondition(model_part.Conditions, data_comm)
+        elif entity_type == "Elements":
+            search = KM.SearchWrapperStaticBinsTreeElement(model_part.Elements, data_comm)
+        else:
+            raise Exception("Invalid entity type: " + entity_type)
+    elif search_type == "DynamicBins":
+        if entity_type == "Conditions":
+            search = KM.SearchWrapperDynamicBinsCondition(model_part.Conditions, data_comm)
+        elif entity_type == "Elements":
+            search = KM.SearchWrapperDynamicBinsElement(model_part.Elements, data_comm)
+        else:
+            raise Exception("Invalid entity type: " + entity_type)
+    elif search_type == "GeometricalObjectBins":
+        if entity_type == "Conditions":
+            search = KM.SearchWrapperGeometricalObjectBins(model_part.Conditions, data_comm)
+        elif entity_type == "Elements":
+            search = KM.SearchWrapperGeometricalObjectBins(model_part.Elements, data_comm)
+        else:
+            raise Exception("Invalid entity type: " + entity_type)
+    else:
+        raise Exception("Invalid search type: " + search_type)
+
+    return search
+
 class TestSearchWrapper(KratosUnittest.TestCase):
     """
     A test class for the SearchWrapperGeometricalObjectBins class.
@@ -55,9 +99,6 @@ class TestSearchWrapper(KratosUnittest.TestCase):
 
         setUp(self):
             Set up for each individual test.
-
-        _create_search(self, search_type):
-            Create an appropriate search wrapper based on the given search type.
 
         test_SearchWrapperGeometricalObjectBins_SearchInRadius(self):
             Test for the 'SearchInRadius' method of the GeometricalObjectBins search wrapper.
@@ -122,29 +163,12 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         else:
             self.node = self.sub_model_part.CreateNewNode(self.node_id, 0.0, 0.0, 0.15)
 
-    def _create_search(self, search_type):
-        """
-        Create an appropriate search wrapper based on the given search type.
-        """
-        if search_type == "Octree":
-            self.search = KM.SearchWrapperOCTreeCondition(self.model_part.Conditions, self.data_comm)
-        elif search_type == "KDTree":
-            self.search = KM.SearchWrapperKDTreeCondition(self.model_part.Conditions, self.data_comm)
-        elif search_type == "StaticBinsTree":
-            self.search = KM.SearchWrapperStaticBinsTreeCondition(self.model_part.Conditions, self.data_comm)
-        elif search_type == "DynamicBins":
-            self.search = KM.SearchWrapperDynamicBinsCondition(self.model_part.Conditions, self.data_comm)
-        elif search_type == "GeometricalObjectBins":
-            self.search = KM.SearchWrapperGeometricalObjectBins(self.model_part.Conditions, self.data_comm)
-        else:
-            raise Exception("Invalid search type: " + search_type)
-
     def _SearchInRadius(self, search_type = "GeometricalObjectBins"):
         """
         Test for the 'SearchInRadius' method
         """
         # Create search
-        self._create_search(search_type)
+        self.search = CreateSearch(self.model_part, self.data_comm, search_type)
 
         # Define radius
         radius = 0.35
@@ -159,7 +183,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         check = self.data_comm.SumAll(number_search_results)
         self.assertGreater(check, 0)
         if number_search_results > 0:
-            self.assertEqual(results.NumberOfSearchResults(), 1)
+            self.assertEqual(number_search_results, 1)
             node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 8)
             ids = node_results.GetResultIndices()
@@ -172,7 +196,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         Test for the 'SearchNearestInRadius' method
         """
         # Create search
-        self._create_search(search_type)
+        self.search = CreateSearch(self.model_part, self.data_comm, search_type)
 
         # Define radius
         radius = 0.35
@@ -184,7 +208,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         check = self.data_comm.SumAll(number_search_results)
         self.assertGreater(check, 0)
         if number_search_results > 0:
-            self.assertEqual(results.NumberOfSearchResults(), 1)
+            self.assertEqual(number_search_results, 1)
             node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 1)
             # Local result
@@ -204,7 +228,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         Test for the 'SearchNearest' method
         """
         # Create search
-        self._create_search(search_type)
+        self.search = CreateSearch(self.model_part, self.data_comm, search_type)
 
         # Nodes array search
         results = self.search.SearchNearest(self.sub_model_part.Nodes)
@@ -213,7 +237,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         check = self.data_comm.SumAll(number_search_results)
         self.assertGreater(check, 0)
         if number_search_results > 0:
-            self.assertEqual(results.NumberOfSearchResults(), 1)
+            self.assertEqual(number_search_results, 1)
             node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 1)
             # Local result
@@ -251,7 +275,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         Test for the 'SearchIsInside' method of the GeometricalObjectBins search wrapper.
         """
         # Create search
-        self._create_search("GeometricalObjectBins")
+        self.search = CreateSearch(self.model_part, self.data_comm, "GeometricalObjectBins")
 
         # Nodes array search
         results = self.search.SearchIsInside(self.sub_model_part.Nodes)
@@ -260,7 +284,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         check = self.data_comm.SumAll(number_search_results)
         self.assertGreater(check, 0)
         if number_search_results > 0:
-            self.assertEqual(results.NumberOfSearchResults(), 1)
+            self.assertEqual(number_search_results, 1)
             node_results = results[0]
             self.assertFalse(node_results.IsObjectFound())
 
@@ -335,6 +359,95 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         Test for the 'SearchNearest' method of the StaticBinsTree search wrapper.
         """
         self._SearchNearest("StaticBinsTree")
+
+class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
+    """
+
+    """
+    @classmethod
+    def setUpClass(cls):
+        """
+        Setting up the model part and its related entities for the test.
+        """
+        # Create model and model parts
+        cls.current_model = KM.Model()
+        cls.model_part = cls.current_model.CreateModelPart("Main")
+        cls.sub_model_part = cls.model_part.CreateSubModelPart("SubModelPart")
+
+        # Define model part variables
+        cls.model_part.ProcessInfo[KM.DOMAIN_SIZE] = 3
+
+        # If distributed run, add PARTITION_INDEX to model part
+        if KM.IsDistributedRun():
+            cls.model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
+
+        # Define mdpa file name and read it into the model part
+        cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/small_square")
+        ReadModelPart(cls.mdpa_name, cls.model_part)
+
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Cleanup after all tests are run.
+        """
+        RemoveFiles(cls.mdpa_name)
+
+    def setUp(self):
+        """
+        Setup for each individual test.
+        """
+        # Create search
+        self.data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
+
+        # Adding nodes in the border x = 0.0
+        for node in self.model_part.Nodes:
+            if node.X == 0.0:
+                self.sub_model_part.AddNode(node)
+
+    def _SearchInRadius(self, search_type = "GeometricalObjectBins"):
+        """
+        Test for the 'SearchInRadius' method
+        """
+        # Create search
+        self.search = CreateSearch(self.model_part, self.data_comm, search_type, "Elements")
+
+        # Define radius
+        radius = 0.5
+
+        # Reference solution
+        elem_id_ref = {
+            1 :  [4, 17, 18, 29, 30],
+            2 :  [4, 17, 18, 20, 24, 27, 28, 29, 30, 31],
+            6 :  [1, 4, 11, 18, 24, 25, 26, 27, 28, 29, 30, 31],
+            12 : [1, 9, 11, 24, 25, 26, 27, 28, 29, 30],
+            16 : [1, 9, 11, 24, 25, 27],
+        }
+
+        # Nodes array search
+        results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
+        # Only in partitions were results are found
+        number_search_results = results.NumberOfSearchResults()
+        check = self.data_comm.SumAll(number_search_results)
+        self.assertGreater(check, 0)
+        if number_search_results > 0:
+            self.assertEqual(number_search_results, 5)
+            for i in range(5):
+                node_results = results[i]
+                global_id = node_results.GetGlobalIndex()
+                ids = node_results.GetResultIndices()
+                number_of_global_results = node_results.NumberOfGlobalResults()
+                if global_id > 0: # Solution defined in this rank
+                    ref_ids = elem_id_ref[global_id]
+                    self.assertEqual(number_of_global_results, len(ref_ids))
+                    self.assertEqual(len(ids), len(ref_ids))
+                    for id in ids:
+                        self.assertTrue(id in ref_ids)
+
+    def test_SearchWrapperKDTree_SearchInRadius(self):
+        """
+        Test for the 'SearchInRadius' method of the KDTree search wrapper.
+        """
+        self._SearchInRadius("KDTree")
 
 if __name__ == '__main__':
     # Set logging severity and start the unittest
