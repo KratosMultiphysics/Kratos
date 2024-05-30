@@ -472,7 +472,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N_forces) + M * B_b);
         noalias(rLHS) += jacobian_weight * (prod(trans(B_s), Matrix(prod(C_gamma, B_s))) + dM_dkappa * outer_prod(B_b, B_b));
 
-        const auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        auto body_forces = GetBodyForce(*this, r_integration_points, IP);
         noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
         noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
 
@@ -656,7 +656,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
 
         noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N_forces) + M * B_b);
 
-        const auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        auto body_forces = GetBodyForce(*this, r_integration_points, IP);
         noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
         noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
 
@@ -765,44 +765,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
             rValues[point_number] = mConstitutiveLawVector[point_number];
         }
     }
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
-    const Variable<array_3>& rVariable,
-    std::vector<array_3>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    const auto &r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-
-    const SizeType number_of_r_integration_points = r_integration_points.size();
-    if (rOutput.size() != number_of_r_integration_points)
-        rOutput.resize( number_of_r_integration_points );
-
-    const auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
-    const SizeType dimension = r_geom.WorkingSpaceDimension();
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-    // if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2) {
-    //     for (IndexType IP = 0; IP < number_of_r_integration_points; ++IP) {
-    //         rOutput[IP].clear();
-    //         const double xi = r_integration_points[IP].X();
-    //         const auto T = GetFrenetSerretMatrix(xi);
-    //         if (rVariable == LOCAL_AXIS_1) {
-    //             rOutput[IP][0] = T(0, 0);
-    //             rOutput[IP][1] = T(0, 1);
-    //         } else {
-    //             rOutput[IP][0] = T(1, 0);
-    //             rOutput[IP][1] = T(1, 1);
-    //         }
-    //     }
-    // }
-
 }
 
 /***********************************************************************************/
