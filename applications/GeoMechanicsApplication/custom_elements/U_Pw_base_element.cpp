@@ -262,17 +262,16 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
                                                             const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    // Calculation flags
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag  = false;
-    VectorType TempVector;
+    rLeftHandSideMatrix = ZeroMatrix{this->GetNumberOfDOF(), this->GetNumberOfDOF()};
+    VectorType dummy_right_hand_side;
+    const auto CalculateStiffnessMatrixFlag = true;
+    const auto CalculateResidualVectorFlag  = false;
+    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side, rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
-    CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
-                 CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

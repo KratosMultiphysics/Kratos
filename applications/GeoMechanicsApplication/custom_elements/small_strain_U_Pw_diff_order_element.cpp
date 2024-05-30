@@ -389,19 +389,11 @@ void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType&        rL
 {
     KRATOS_TRY
 
-    const auto number_of_dofs = GetNumberOfDOF();
-
-    // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != number_of_dofs)
-        rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
-
-    // calculation flags
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag  = false;
-    VectorType tempRightHandSideVector;
-
-    CalculateAll(rLeftHandSideMatrix, tempRightHandSideVector, rCurrentProcessInfo,
+    rLeftHandSideMatrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
+    VectorType dummy_right_hand_side;
+    const auto CalculateStiffnessMatrixFlag = true;
+    const auto CalculateResidualVectorFlag  = false;
+    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("")
