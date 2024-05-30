@@ -265,10 +265,10 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        r
     KRATOS_TRY
 
     rLeftHandSideMatrix = ZeroMatrix{this->GetNumberOfDOF(), this->GetNumberOfDOF()};
-    VectorType dummy_right_hand_side;
+    auto       dummy_right_hand_side_vector = Vector{};
     const auto CalculateStiffnessMatrixFlag = true;
     const auto CalculateResidualVectorFlag  = false;
-    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side, rCurrentProcessInfo,
+    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side_vector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("")
@@ -281,17 +281,11 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
-    // Resetting the RHS
-    if (rRightHandSideVector.size() != N_DOF) rRightHandSideVector.resize(N_DOF, false);
-    noalias(rRightHandSideVector) = ZeroVector(N_DOF);
-
-    const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag  = true;
-    MatrixType TempMatrix                   = Matrix();
-
-    CalculateAll(TempMatrix, rRightHandSideVector, rCurrentProcessInfo,
+    auto dummy_left_hand_side_matrix        = Matrix{};
+    rRightHandSideVector                    = ZeroVector{this->GetNumberOfDOF()};
+    const auto CalculateStiffnessMatrixFlag = false;
+    const auto CalculateResidualVectorFlag  = true;
+    CalculateAll(dummy_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("")

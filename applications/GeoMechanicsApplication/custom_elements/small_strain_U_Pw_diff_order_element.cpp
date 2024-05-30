@@ -389,11 +389,11 @@ void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType&        rL
 {
     KRATOS_TRY
 
-    rLeftHandSideMatrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    VectorType dummy_right_hand_side;
+    rLeftHandSideMatrix                     = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
+    auto       dummy_right_hand_side_vector = Vector{};
     const auto CalculateStiffnessMatrixFlag = true;
     const auto CalculateResidualVectorFlag  = false;
-    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side, rCurrentProcessInfo,
+    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side_vector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("")
@@ -404,24 +404,12 @@ void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType&        r
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
-
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
-
-    // Resetting the RHS
-    if (rRightHandSideVector.size() != ElementSize) rRightHandSideVector.resize(ElementSize, false);
-    noalias(rRightHandSideVector) = ZeroVector(ElementSize);
-
-    // calculation flags
-    bool CalculateStiffnessMatrixFlag = false;
-    bool CalculateResidualVectorFlag  = true;
-    auto temp                         = Matrix();
-
-    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
-                 CalculateResidualVectorFlag);
+    auto dummy_left_hand_side_matrix        = Matrix{};
+    rRightHandSideVector                    = ZeroVector{GetNumberOfDOF()};
+    const auto CalculateStiffnessMatrixFlag = false;
+    const auto CalculateResidualVectorFlag  = true;
+    CalculateAll(dummy_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo,
+                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("")
 }
