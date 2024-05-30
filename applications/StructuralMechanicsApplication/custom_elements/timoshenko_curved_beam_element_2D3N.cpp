@@ -239,7 +239,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetTangentandTransverseUnitVectors(
         d2y_dxi2 += r_coords_node[1] * d2N_dxi2[i];
     }
 
-    array_3 x_prime, x_2prime, b;
+    array_3 x_prime, x_2prime, b, aux;
     x_prime.clear();
     x_2prime.clear();
     rt.clear();
@@ -253,7 +253,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetTangentandTransverseUnitVectors(
     x_2prime[1] = d2y_dxi2;
 
     noalias(rt) = x_prime / norm_2(x_prime);
-    noalias(b)  = MathUtils<double>::CrossProduct(x_prime, x_2prime) / norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
+
+    noalias(aux) = MathUtils<double>::CrossProduct(x_prime, x_2prime);
+    if (norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime)) != 0.0)
+        noalias(b) = aux / norm_2(aux);
+    else
+        b[2] = 1.0;
+
     noalias(rn) = MathUtils<double>::CrossProduct(rt, b);
 }
 
@@ -327,21 +333,13 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetLocalAxesBodyForce(
+LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetBodyForce(
     const Element &rElement,
     const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-    const IndexType PointNumber,
-    const double angle
+    const IndexType PointNumber
     )
 {
-    const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
-
-    const double c = std::cos(angle);
-    const double s = std::sin(angle);
-    array_3 local_body_force = ZeroVector(3);
-    local_body_force[0] = c * body_force[0] + s * body_force[1];
-    local_body_force[1] = -s * body_force[0] + c * body_force[1];
-    return local_body_force;
+    return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
 /***********************************************************************************/
@@ -473,6 +471,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N_forces) + M * B_b);
         noalias(rLHS) += jacobian_weight * (prod(trans(B_s), Matrix(prod(C_gamma, B_s))) + dM_dkappa * outer_prod(B_b, B_b));
+
+        const auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
+        noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
 
     } // IP loop
     KRATOS_CATCH("");
@@ -653,6 +655,10 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         N_forces[1] = V;
 
         noalias(rRHS) -= jacobian_weight * (prod(trans(B_s), N_forces) + M * B_b);
+
+        const auto body_forces = GetBodyForce(*this, r_integration_points, IP);
+        noalias(rRHS) += Nu      * body_forces[0] * jacobian_weight * area;
+        noalias(rRHS) += N_shape * body_forces[1] * jacobian_weight * area;
 
     } // IP loop
     KRATOS_CATCH("");

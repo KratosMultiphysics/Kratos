@@ -295,11 +295,10 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_3 GetLocalAxesBodyForce(
+    array_3 GetBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber,
-        const double angle);
+        const IndexType PointNumber);
 
     /**
      * @brief This function provides a more general interface to the element.
