@@ -84,15 +84,14 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 
     const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
         constitutive_matrices, this->GetProperties());
-    const auto relative_permeability_values =
-        CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-            Variables.NpContainer, Variables.PressureVector));
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NpContainer, Variables.PressureVector);
-    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto degrees_of_saturation        = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
+    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -103,12 +102,12 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
         Variables.BiotCoefficient        = biot_coefficients[GPoint];
         Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
         Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
+        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
         Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
             IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */

@@ -981,13 +981,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
-    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
+    auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
     const auto permeability_update_factors = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
         strain_vectors, this->GetProperties());
     std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                    permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                    std::multiplies{});
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1001,8 +1001,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
@@ -1025,7 +1025,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures)
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
@@ -1041,7 +1041,7 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures)
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
@@ -1408,6 +1408,22 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateRelativePer
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
+{
+    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+
+    auto result = std::vector<double>{};
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
+                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
+    });
+    return result;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
                                                                              ElementVariables& rVariables)
 {
@@ -1574,21 +1590,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
     Matrix J0, InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
                                                      rVariables.GradNpTInitialConfiguration, GPoint);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateRetentionResponse(ElementVariables& rVariables,
-                                                                        RetentionLaw::Parameters& rRetentionParameters,
-                                                                        unsigned int GPoint)
-{
-    KRATOS_TRY
-
-    rRetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-        rVariables.Np, rVariables.PressureVector));
-
-    rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
 
     KRATOS_CATCH("")
 }

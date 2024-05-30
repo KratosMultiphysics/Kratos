@@ -84,14 +84,14 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto biot_coefficients =
         GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Prop);
-    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
     const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, Prop);
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
     // Computing in all integrations points
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -114,8 +114,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
         // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
         // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);

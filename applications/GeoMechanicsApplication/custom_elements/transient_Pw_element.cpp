@@ -442,14 +442,14 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
-    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     std::vector<double> biot_coefficients(NumGPoints, Prop[BIOT_COEFFICIENT]);
-    const auto          fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Variables.NContainer, Variables.PressureVector);
-    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto          degrees_of_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, Prop);
@@ -464,8 +464,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];

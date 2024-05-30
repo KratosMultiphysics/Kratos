@@ -242,6 +242,7 @@ protected:
                                               const ElementVariables& rVariables) const;
 
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                            array_1d<double, TNumNodes>&                 rPVector,
@@ -265,12 +266,8 @@ protected:
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
-
-    std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
-    std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
+    [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the

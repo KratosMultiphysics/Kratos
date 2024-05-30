@@ -1279,14 +1279,13 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
-    auto relative_permeability_values =
-        CalculateRelativePermeabilityValues(GeoTransportEquationUtilities::CalculateFluidPressures(
-            Variables.NpContainer, Variables.PressureVector));
+    auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
     const auto permeability_update_factors =
         GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
     std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                    permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
+    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -1295,8 +1294,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.StrainVector       = strain_vectors[GPoint];
         Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
         Variables.BiotCoefficient        = biot_coefficients[GPoint];
         Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
@@ -1837,6 +1836,21 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateRelativePermeabilit
     return result;
 }
 
+std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
+{
+    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+
+    auto result = std::vector<double>{};
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
+                   std::back_inserter(result), [&retention_law_params](auto pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
+    });
+    return result;
+}
+
 void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
                                                                      ElementVariables& rVariables) const
 {
@@ -1968,20 +1982,6 @@ void SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration(dou
 
     rJ = rGeom.Jacobian(rJ, GPoint, this->GetIntegrationMethod());
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateRetentionResponse(ElementVariables& rVariables,
-                                                                RetentionLaw::Parameters& rRetentionParameters,
-                                                                unsigned int GPoint)
-{
-    KRATOS_TRY
-
-    rRetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
-        rVariables.Np, rVariables.PressureVector));
-
-    rVariables.BishopCoefficient = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(rRetentionParameters);
 
     KRATOS_CATCH("")
 }

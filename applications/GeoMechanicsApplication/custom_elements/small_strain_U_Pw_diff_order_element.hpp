@@ -276,6 +276,7 @@ protected:
                                             const ElementVariables& rVariables) const;
 
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
@@ -304,10 +305,6 @@ protected:
                                         std::vector<Vector>& rStrainVectors,
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
-
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
