@@ -114,6 +114,8 @@ public:
                                       const std::vector<Matrix>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
+    using Element::SetValuesOnIntegrationPoints;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                       std::vector<int>&    rValues,
@@ -138,6 +140,8 @@ public:
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    using Element::CalculateOnIntegrationPoints;
 
     // Turn back information as a string.
     std::string Info() const override
@@ -250,7 +254,7 @@ protected:
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
