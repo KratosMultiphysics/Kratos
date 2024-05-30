@@ -45,22 +45,12 @@ namespace Kratos
 /**
  * @class LinearTimoshenkoCurvedBeamElement2D3N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the Timoshenko curved beam element of 3 nodes. References:
- *  Felippa and Oñate,
- * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
- * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
- * 
- * and
- * 
- * Hosseini et al.
- * Isogeometric analysis of free-form Timoshenko curved beams including the nonlinear effects of large deformations
- * Acta Mechanica Sinica/Lixue Xuebao
+ * @brief This is the Timoshenko curved beam element of 3 nodes. Reference:
+ * Connecting beams and continua: variational basis and mathematical analysis, Romero and Schenk, Meccanica, 2023
  * 
  * Ordering of the nodes:      0 ------ 2 ------- 1
  * 
- * Quadratic interpolation of the curved geometry and longitudinal displacement, u
- * Quintic interpolation of deflection v
- * Quartic interpolation of the total rotation Theta
+ * Quadratic interpolation of the curved geometry, displacements and rotation
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoCurvedBeamElement2D3N
@@ -81,6 +71,7 @@ public:
     static constexpr SizeType StrainSize    = 3;
 
     using GlobalSizeVector = BoundedVector<double, 9>;
+    using array_3 = array_1d<double, 3>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LinearTimoshenkoCurvedBeamElement2D3N);
@@ -97,7 +88,7 @@ public:
     // Constructor using an array of nodes
     LinearTimoshenkoCurvedBeamElement2D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
     {
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Constructor using an array of nodes with properties
@@ -105,7 +96,7 @@ public:
         : Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitialised integration method in inactive elements
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Copy constructor
@@ -137,30 +128,10 @@ public:
     ///@{
 
     /**
-     * @brief Returns a 6 component vector including the values of the DoFs
+     * @brief Returns a 9 component vector including the values of the DoFs
      * in GLOBAL beam axes
      */
     void GetNodalValuesVector(GlobalSizeVector &rNodalValues);
-
-    /**
-     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-     * @param rNodalValues The vector containing the nodal values in local axes
-     */
-    double CalculateAxialStrain     (const double J, const double xi, const GlobalSizeVector& rNodalValues);
-    double CalculateShearStrain     (const double J, const double xi, const GlobalSizeVector& rNodalValues);
-    double CalculateBendingCurvature(const double J, const double xi, const GlobalSizeVector& rNodalValues);
-
-    /**
-     * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-     * @param rNodalValues The vector containing the nodal values in local axes
-     */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double J, const double xi, const GlobalSizeVector &rNodalValues);
 
     /**
      * @brief Called to initialize the element.
@@ -236,128 +207,87 @@ public:
     }
 
     /**
-     * @brief Returns the Jacobian of the isoparametric transformation
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions at each node
+     * xi: isoparametric coordinate
+     */
+    array_3 GetShapeFunctionsValues(const double xi);
+
+    /**
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions derivatives in the real space at each node
+     * xi: isoparametric coordinate
+     * J: Jacobian
+     */
+    array_3 GetFirstDerivativesShapeFunctionsValues(const double xi, const double J);
+
+    /**
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions second derivatives in the real space at each node
+     * xi: isoparametric coordinate
+     * J: Jacobian
+     */
+    array_3 GetSecondDerivativesShapeFunctionsValues(const double xi, const double J);
+
+    /**
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions derivatives in the natural space at each node
+     * xi: isoparametric coordinate
+     */
+    array_3 GetLocalFirstDerivativesShapeFunctionsValues(const double xi);
+
+    /**
+     * @brief Returns a 3 component vector with the values of the shape
+     * functions second derivatives in the natural space at each node
+     * xi: isoparametric coordinate
+     */
+    array_3 GetLocalSecondDerivativesShapeFunctionsValues(const double xi);
+
+    /**
+     * @brief This method fills the global vectors of shape functions
+     * in shuch a way that:
+     * u = Nu * U
+     * v = N * U
+     * theta = Ntheta * U
+     */
+    void GetShapeFunctionsValuesGlobalVectors(
+        const array_3 &rShapeFunctions,
+        GlobalSizeVector &rNshape,
+        GlobalSizeVector &rNu,
+        GlobalSizeVector &rNtheta);
+
+    /**
+     * @brief Returns the Jacobian of the isoparametric transformation of arc length s
      *     J = sqrt((dx)^2 + (dy)^2)
      */
     const double GetJacobian(const double xi);
 
     /**
-     * @brief Returns the bending/shear ratio stiffness
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
      */
-    const double GetBendingShearStiffnessRatio();
-
-    /**
-     * @brief This function returns the 4 shape functions used for interpolating the transverse displacement v. (denoted as N)
-     * Also its derivatives
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    void GetShapeFunctionsValues                 (GlobalSizeVector& rN, const double J, const double xi);
-    void GetFirstDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double xi);
-    void GetSecondDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
-    void GetThirdDerivativesShapeFunctionsValues (GlobalSizeVector& rN, const double J, const double xi);
-    void GetFourthDerivativesShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
-
-
     void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>> &rVariable,
-        std::vector<array_1d<double, 3>> &rOutput,
+        const Variable<array_3> &rVariable,
+        std::vector<array_3> &rOutput,
         const ProcessInfo &rCurrentProcessInfo);
 
     /**
      * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi
     */
-    void GetTangentandTransverseUnitVectors(const double xi, VectorType& rt, VectorType& rn)
-    {
-        const auto& r_geom = GetGeometry();
-        GlobalSizeVector dN_dxi, d2N_dxi2;
-        GetLocalFirstDerivativesNu0ShapeFunctionsValues(dN_dxi, xi);
-        GetLocalSecondDerivativesNu0ShapeFunctionsValues(d2N_dxi2, xi);
-
-        double dx_dxi = 0.0;
-        double dy_dxi = 0.0;
-
-        double d2x_dxi2 = 0.0;
-        double d2y_dxi2 = 0.0;
-
-        for (IndexType i = 0; i < NumberOfNodes; ++i) {
-            const IndexType u_coord = DoFperNode * i;
-            const auto &r_coords_node = r_geom[i].GetInitialPosition();
-            dx_dxi += r_coords_node[0] * dN_dxi[u_coord];
-            dy_dxi += r_coords_node[1] * dN_dxi[u_coord];
-
-            d2x_dxi2 += r_coords_node[0] * d2N_dxi2[u_coord];
-            d2y_dxi2 += r_coords_node[1] * d2N_dxi2[u_coord];
-        }
-
-        VectorType x_prime(3), x_2prime(3), b(3);
-        x_prime.clear();
-        x_2prime.clear();
-        rt.resize(3);
-        rn.resize(3);
-        rt.clear();
-        rn.clear();
-        b.clear();
-
-        x_prime[0] = dx_dxi;
-        x_prime[1] = dy_dxi;
-
-        x_2prime[0] = d2x_dxi2;
-        x_2prime[1] = d2y_dxi2;
-
-        noalias(rt) = x_prime / norm_2(x_prime);
-        noalias(b) = MathUtils<double>::CrossProduct(x_prime, x_2prime) / norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
-        noalias(rn) = MathUtils<double>::CrossProduct(rt, b);
-    }
+    void GetTangentandTransverseUnitVectors(
+        const double xi,
+        array_3 &rt,
+        array_3 &rn);
 
     /**
      * @brief This function builds the Frenet Serret matrix that rotates from global to local axes
     */
     BoundedMatrix<double, 2, 2> GetFrenetSerretMatrix(
         const double xi,
-        const VectorType& rt,
-        const VectorType& rn)
-    {
-        BoundedMatrix<double, 2, 2> T;
-        T.clear();
-
-        T(0, 0) = rt[0];
-        T(0, 1) = rt[1];
-
-        T(1, 0) = rn[0];
-        T(1, 1) = rn[1];
-
-        return T;
-    }
-
-    /**
-     * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
-     * Also its derivative
-     * @param rN reference to the shape functions (or derivatives)
-     * @param J The jacobian of the beam element at xi
-     * @param ShearFactor The shear slenderness parameter
-     * @param k0 The curvature of the geometry
-     * @param xi The coordinate in the natural axes
-    */
-    void GetNThetaShapeFunctionsValues                (GlobalSizeVector& rN, const double J, const double xi);
-    void GetFirstDerivativesNThetaShapeFunctionsValues(GlobalSizeVector& rN, const double J, const double xi);
-
-    /**
-     * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
-     * Also its derivatives
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    void GetNu0ShapeFunctionsValues                 (GlobalSizeVector& rNu,                 const double xi);
-    void GetFirstDerivativesNu0ShapeFunctionsValues (GlobalSizeVector& rNu, const double J, const double xi);
-    void GetSecondDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double J, const double xi);
-    void GetLocalFirstDerivativesNu0ShapeFunctionsValues (GlobalSizeVector& rNu, const double xi);
-    void GetLocalSecondDerivativesNu0ShapeFunctionsValues(GlobalSizeVector& rNu, const double xi);
-
+        const array_3 &rt,
+        const array_3 &rn);
 
     /**
      * @brief This function retrieves the body forces in local axes
@@ -365,7 +295,7 @@ public:
      * @param rIntegrationPoints array of IP
      * @param PointNumber tthe IP to be evaluated
     */
-    array_1d<double, 3> GetLocalAxesBodyForce(
+    array_3 GetLocalAxesBodyForce(
         const Element &rElement,
         const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
         const IndexType PointNumber,
