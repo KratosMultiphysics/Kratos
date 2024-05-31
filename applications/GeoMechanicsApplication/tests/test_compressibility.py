@@ -4,9 +4,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
-class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
+class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
     """
-    This class contains tests for applying normal loads on 3D elements.
+    This class
     """
 
     def test_compressibility_upw_small_strain(self):
