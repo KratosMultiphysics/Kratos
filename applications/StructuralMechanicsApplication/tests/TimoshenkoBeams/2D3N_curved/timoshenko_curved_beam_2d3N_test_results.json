@@ -1,0 +1,131 @@
+{
+  "TIME": [],
+  "NODE_1": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_4": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_5": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_6": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_7": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_8": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [],
+    "DISPLACEMENT_Y": [],
+    "DISPLACEMENT_Z": [],
+    "ROTATION_X": [],
+    "ROTATION_Y": [],
+    "ROTATION_Z": []
+  },
+  "ELEMENT_1": {
+    "BENDING_MOMENT": {
+      "0": [],
+      "1": []
+    },
+    "SHEAR_FORCE": {
+      "0": [],
+      "1": []
+    },
+    "AXIAL_FORCE": {
+      "0": [],
+      "1": []
+    }
+  },
+  "ELEMENT_2": {
+    "BENDING_MOMENT": {
+      "0": [],
+      "1": []
+    },
+    "SHEAR_FORCE": {
+      "0": [],
+      "1": []
+    },
+    "AXIAL_FORCE": {
+      "0": [],
+      "1": []
+    }
+  },
+  "ELEMENT_3": {
+    "BENDING_MOMENT": {
+      "0": [],
+      "1": []
+    },
+    "SHEAR_FORCE": {
+      "0": [],
+      "1": []
+    },
+    "AXIAL_FORCE": {
+      "0": [],
+      "1": []
+    }
+  },
+  "ELEMENT_4": {
+    "BENDING_MOMENT": {
+      "0": [],
+      "1": []
+    },
+    "SHEAR_FORCE": {
+      "0": [],
+      "1": []
+    },
+    "AXIAL_FORCE": {
+      "0": [],
+      "1": []
+    }
+  }
+}
