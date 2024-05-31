@@ -282,14 +282,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
     this->CalculateHydraulicDischarge(rCurrentProcessInfo);
 
-    // Defining necessary variables
-    const GeometryType& rGeom      = this->GetGeometry();
-    const IndexType     NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-
-    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-    // Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
@@ -303,13 +298,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
         this->GetStressStatePolicy().GetVoigtSize());
 
-    Matrix StressContainer(NumGPoints, mStressVector[0].size());
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
+    const auto number_of_integration_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    Matrix StressContainer(number_of_integration_points, mStressVector[0].size());
 
-        // Compute infinitesimal strain
+    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.B            = b_matrices[GPoint];
         Variables.F            = deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
@@ -324,12 +318,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
 
-        // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
 
         if (rCurrentProcessInfo[NODAL_SMOOTHING])
             this->SaveGPStress(StressContainer, mStressVector[GPoint], GPoint);
     }
+
     if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(StressContainer);
 
     KRATOS_CATCH("")

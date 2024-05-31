@@ -488,13 +488,11 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 {
     KRATOS_TRY
 
-    // Definition of variables
+    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     RetentionLaw::Parameters RetentionParameters(GetProperties());
 
@@ -504,15 +502,12 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        mpStressStatePolicy->GetVoigtSize());
+        GetStressStatePolicy().GetVoigtSize());
 
-    // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-        // compute element kinematics (Np, gradNpT, |J|, B, strains)
+    const auto number_of_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+    for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute infinitesimal strain
+        Variables.B            = b_matrices[GPoint];
         Variables.F            = deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
 
@@ -520,14 +515,13 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
             ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix, Variables.Nu,
             Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
 
-        // compute constitutive tensor and/or stresses
+        // Compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
 
-        // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
 
