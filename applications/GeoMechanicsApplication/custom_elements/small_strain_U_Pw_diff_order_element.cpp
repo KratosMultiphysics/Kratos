@@ -415,15 +415,14 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     const auto          integration_method = this->GetIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points =
         r_geom.IntegrationPoints(integration_method);
-    const MatrixType Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
-    const PropertiesType& r_prop  = this->GetProperties();
+    const auto Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
 
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Np_container, this->GetPressureSolutionVector());
     const auto degrees_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
 
     const auto solid_densities =
-        GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, r_prop);
+        GeoTransportEquationUtilities::CalculateSoilDensities(degrees_saturation, GetProperties());
 
     const auto det_Js_initial_configuration =
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
@@ -435,11 +434,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
         r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
         r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
-    const SizeType element_size =
-        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
-    if (rMassMatrix.size1() != element_size || rMassMatrix.size2() != element_size)
-        rMassMatrix.resize(element_size, element_size, false);
-    noalias(rMassMatrix) = ZeroMatrix(element_size, element_size);
+    rMassMatrix = ZeroMatrix(GetNumberOfDOF(), GetNumberOfDOF());
     GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 
     KRATOS_CATCH("")
