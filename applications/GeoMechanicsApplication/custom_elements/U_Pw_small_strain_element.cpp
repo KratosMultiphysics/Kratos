@@ -1025,7 +1025,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(
+    const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
@@ -1041,7 +1042,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(
+    const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
