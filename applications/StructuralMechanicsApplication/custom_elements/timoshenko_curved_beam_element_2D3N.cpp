@@ -699,7 +699,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
         // Loop over the integration points
         for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
             const double xi     = r_integration_points[IP].X();
-            const double weight = r_integration_points[IP].Weight();
             const double J      = GetJacobian(xi);
 
             GetNodalValuesVector(nodal_values);
