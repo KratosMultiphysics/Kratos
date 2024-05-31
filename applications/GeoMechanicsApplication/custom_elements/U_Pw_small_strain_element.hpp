@@ -150,9 +150,6 @@ protected:
         array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> VolumeAcceleration;
 
-        /// General elemental variables
-        Vector VoigtVector;
-
         /// Variables computed at each GP
         Matrix                                        B;
         BoundedMatrix<double, TDim, TNumNodes * TDim> Nu;

@@ -1096,9 +1096,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
     rVariables.GradNpT.resize(TNumNodes, TDim, false);
     rVariables.F = identity_matrix<double>(TDim);
 
-    // General Variables
-    rVariables.VoigtVector = this->GetStressStatePolicy().GetVoigtVector();
-
     rVariables.B = ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(), TNumNodes * TDim);
 
     const GeometryType& rGeom      = this->GetGeometry();
@@ -1190,18 +1187,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
     KRATOS_TRY
 
     noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
-        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-
-    // Distribute coupling block matrix into the elemental matrix
+        rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+        rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
         noalias(rVariables.PUMatrix) = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
                                        rVariables.VelocityCoefficient * trans(rVariables.UPMatrix);
-
-        // Distribute transposed coupling block matrix into the elemental matrix
         GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, rVariables.PUMatrix);
     }
 
@@ -1299,22 +1292,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 {
     KRATOS_TRY
 
-    noalias(rVariables.UPMatrix) =
-        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                     rVariables.B, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
-                     rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+    rVariables.UPMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                                       rVariables.B, this->GetStressStatePolicy().GetVoigtVector(),
+                                       rVariables.Np, rVariables.BiotCoefficient,
+                                       rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.UVector) = prod(rVariables.UPMatrix, rVariables.PressureVector);
-
-    // Distribute coupling block vector 1 into elemental vector
+    rVariables.UVector = prod(rVariables.UPMatrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        noalias(rVariables.PVector) = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-                                      prod(trans(rVariables.UPMatrix), rVariables.VelocityVector);
-
-        // Distribute coupling block vector 2 into elemental vector
+        rVariables.PVector = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+                             prod(trans(rVariables.UPMatrix), rVariables.VelocityVector);
         GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
     }
 
