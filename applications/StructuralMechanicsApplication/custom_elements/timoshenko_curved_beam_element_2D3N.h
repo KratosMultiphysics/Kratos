@@ -47,10 +47,11 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Timoshenko curved beam element of 3 nodes. Reference:
  * Connecting beams and continua: variational basis and mathematical analysis, Romero and Schenk, Meccanica, 2023
+ * DOI: https://doi.org/10.1007/s11012-023-01702-0
  * 
  * Ordering of the nodes:      0 ------ 2 ------- 1
  * 
- * Quadratic interpolation of the curved geometry, displacements and rotation
+ * Quadratic interpolation of the curved geometry, displacements and rotation. Reduced integration to avoid shear locking
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoCurvedBeamElement2D3N

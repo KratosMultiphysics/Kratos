@@ -255,8 +255,9 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetTangentandTransverseUnitVectors(
     noalias(rt) = x_prime / norm_2(x_prime);
 
     noalias(aux) = MathUtils<double>::CrossProduct(x_prime, x_2prime);
-    if (norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime)) != 0.0)
-        noalias(b) = aux / norm_2(aux);
+    const double norm = norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
+    if (norm != 0.0) // if the beam is not curved
+        noalias(b) = aux / norm;
     else
         b[2] = 1.0;
 
@@ -431,6 +432,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         const array_3 shape_functions   = GetShapeFunctionsValues(xi);
         const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
 
+        // Get shape functions for deflection, axial displ and rotations
         GetShapeFunctionsValuesGlobalVectors(shape_functions, N_shape, Nu, N_theta);
         GetShapeFunctionsValuesGlobalVectors(d_shape_functions, dN_shape, dNu, dN_theta);
 
@@ -440,7 +442,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
         noalias(B_b) =  dN_theta;
 
         // we fill aux_B_s
-        aux_B_s.clear();
         for (IndexType i = 0; i < SystemSize; ++i) {
             aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
             aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
@@ -449,8 +450,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
 
         noalias(Gamma) = prod(B_s, nodal_values);
         strain_vector[0] = Gamma[0]; // axial strain
-        strain_vector[2] = Gamma[1]; // shear strain
         strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
+        strain_vector[2] = Gamma[1]; // shear strain
 
         mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
         const Vector &r_generalized_stresses = cl_values.GetStressVector();
@@ -543,7 +544,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
         noalias(B_b) =  dN_theta;
 
         // we fill aux_B_s
-        aux_B_s.clear();
         for (IndexType i = 0; i < SystemSize; ++i) {
             aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
             aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
@@ -633,7 +633,6 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
         noalias(B_b) =  dN_theta;
 
         // we fill aux_B_s
-        aux_B_s.clear();
         for (IndexType i = 0; i < SystemSize; ++i) {
             aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
             aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
@@ -679,9 +678,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
 
     if (rVariable == AXIAL_FORCE ||
         rVariable == BENDING_MOMENT ||
-        rVariable == SHEAR_FORCE ||
-        rVariable == INITIAL_GEOMETRIC_CURVATURE ||
-        rVariable == SHEAR_ANGLE)
+        rVariable == SHEAR_FORCE)
     {
         const auto &r_geometry = GetGeometry();
 
@@ -698,7 +695,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
 
         GlobalSizeVector nodal_values, B_b, dNu, dN_theta, N_shape, Nu, N_theta, dN_shape;
         BoundedMatrix<double, 2, 2> frenet_serret;
-        BoundedVector<double, 2> N_forces, Gamma; // axial ans shear forces, strains
+        BoundedVector<double, 2> N_forces, Gamma; // axial and shear forces, strains
         BoundedMatrix<double, 2, 9> B_s, aux_B_s;
 
         // Loop over the integration points

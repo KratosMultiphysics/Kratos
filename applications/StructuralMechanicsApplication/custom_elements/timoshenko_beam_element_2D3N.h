@@ -46,12 +46,16 @@ namespace Kratos
  * @class LinearTimoshenkoBeamElement2D3N
  * @ingroup StructuralMechanicsApplication
  * @brief This is the Timoshenko beam element of 3 nodes. 5th order degree Hermitic polynomials
- * for deflection and 3rd degree for axial displacements. The ordering of the local shape functions
+ * for deflection and 2nd degree for axial displacements. The ordering of the local shape functions
  * assume a " 0--1--2 " ordering and then we swap the components when moving to global coordinates
- * 
+ *
  *                                    ^ y, v
  *                                    |
  * Global Ordering of the nodes:      0 ------ 2 ------- 1 --> x, u      and rotation theta node-wise
+ * Reference: Felippa and Oñate,
+ * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
+ * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
+ * DOI: https://doi.org/10.1007/s11831-020-09515-0; Then adapted to the 3 noded straight beam element.
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D3N
@@ -267,7 +271,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Timoshenko 3N Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Linear Timoshenko 3N straight Beam Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.

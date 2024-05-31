@@ -48,6 +48,7 @@ namespace Kratos
  * @brief This is the Timoshenko beam element of 2 nodes. Reference: Felippa and Oñate,
  * "Accurate Timoshenko Beam Elements For Linear Elastostatics and LPB Stability",
  * Archives of Comp. Methods in Eng. (2021) 28:2021-2080
+ * DOI: https://doi.org/10.1007/s11831-020-09515-0
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearTimoshenkoBeamElement2D2N
