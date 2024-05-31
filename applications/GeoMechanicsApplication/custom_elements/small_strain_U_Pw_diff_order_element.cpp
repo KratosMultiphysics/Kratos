@@ -445,18 +445,14 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
 {
     KRATOS_TRY
 
-    const GeometryType&   r_geom = GetGeometry();
-    const PropertiesType& r_prop = this->GetProperties();
-    const SizeType        element_size =
-        r_geom.PointsNumber() * r_geom.WorkingSpaceDimension() + mpPressureGeometry->PointsNumber();
-
-    MatrixType mass_matrix = ZeroMatrix(element_size, element_size);
+    MatrixType mass_matrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    MatrixType stiffness_matrix(element_size, element_size);
+    MatrixType stiffness_matrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
     this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+    const auto& r_prop = this->GetProperties();
+    rDampingMatrix     = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
         r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
         mass_matrix, stiffness_matrix);

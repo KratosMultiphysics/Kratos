@@ -318,16 +318,14 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
-    MatrixType mass_matrix(N_DOF, N_DOF);
+    MatrixType mass_matrix = ZeroMatrix{this->GetNumberOfDOF(), this->GetNumberOfDOF()};
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    MatrixType stiffness_matrix(N_DOF, N_DOF);
+    MatrixType stiffness_matrix = ZeroMatrix{this->GetNumberOfDOF(), this->GetNumberOfDOF()};
     this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    const PropertiesType& r_prop = this->GetProperties();
-    rDampingMatrix               = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
+    const auto& r_prop = this->GetProperties();
+    rDampingMatrix     = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
         r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
         r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
         mass_matrix, stiffness_matrix);
