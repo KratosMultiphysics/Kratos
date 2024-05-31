@@ -22,6 +22,8 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "includes/global_variables.h"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -287,13 +289,13 @@ private:
         return result;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
         const Vector&                                    rIntegrationCoefficients,
         const ProcessInfo&                               rCurrentProcessInfo) const
     {
-        Vector discharge_vector = ZeroVector(TDim);
-
         const auto law = CreateThermalLaw();
         auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
 
@@ -303,14 +305,23 @@ private:
              ++integration_point_index) {
 
              if (mIsPressureCoupled) {
-                 discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
-                constitutive_matrix = law->CalculateThermalDispersionMatrix(
-                    GetProperties(), rCurrentProcessInfo, discharge_vector,
-                    mWaterDensity[integration_point_index]);
+                const auto& r_properties = GetProperties();
+                auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
+                const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+                //
+                const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+                GeometryType::JacobiansType J_container;
+                J_container.resize(number_integration_points, false);
+                for (std::size_t i = 0; i < number_integration_points; ++i) {
+                    J_container[i].resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
+                }
+                GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
+                //
+                Vector discharge_vector = this->CalculateDischargeVector(r_N_container, J_container, rShapeFunctionGradients, integration_point_index);
+                constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo, discharge_vector,mWaterDensity[integration_point_index]);
              }
  
-            BoundedMatrix<double, TDim, TNumNodes> Temp =
-                prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
+            Matrix Temp = prod(constitutive_matrix, trans(rShapeFunctionGradients[integration_point_index]));
             result += prod(rShapeFunctionGradients[integration_point_index], Temp) *
                       rIntegrationCoefficients[integration_point_index];
         }
@@ -318,6 +329,8 @@ private:
         return result;
     }
 
+    // ============================================================================================
+    // ============================================================================================
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients,
                                                                         const ProcessInfo& rCurrentProcessInfo) const
     {
@@ -364,14 +377,23 @@ private:
         const auto& r_properties = GetProperties();
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         const auto& r_N_container = GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+
+        const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        GeometryType::JacobiansType J_container;
+        J_container.resize(number_integration_points, false);
+        for (std::size_t i = 0; i < number_integration_points; ++i) {
+            J_container[i].resize(GetGeometry().WorkingSpaceDimension(),
+                                  GetGeometry().LocalSpaceDimension(), false);
+        }
+        GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
+
+
+
         for (unsigned int integration_point_index = 0;
              integration_point_index < GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
              ++integration_point_index) {
-
-            auto discharge_vector = this->CalculateDischargeVector(rShapeFunctionGradients, integration_point_index);
-
-            array_1d<double, TNumNodes> Temp =
-                prod(rShapeFunctionGradients[integration_point_index], discharge_vector);
+            Vector discharge_vector = this->CalculateDischargeVector(r_N_container, J_container, rShapeFunctionGradients, integration_point_index);
+            array_1d<double, TNumNodes> Temp = prod(rShapeFunctionGradients[integration_point_index], discharge_vector);
             const auto N = Vector{row(r_N_container, integration_point_index)};
             result += outer_prod(N, Temp) * rIntegrationCoefficients[integration_point_index] *
                       mWaterDensity[integration_point_index] * r_properties[SPECIFIC_HEAT_CAPACITY_WATER];
@@ -381,42 +403,67 @@ private:
 
     // ============================================================================================
     // ============================================================================================
-    Vector CalculateDischargeVector(const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-                                                    unsigned int integration_point_index) const
+    Vector CalculateDischargeVector(const Matrix&                      rNContainer,
+                                    const GeometryType::JacobiansType& rJContainer,
+                                    const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
+                                    unsigned int integration_point_index) const
     {
-        const GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom                = this->GetGeometry();
+        const unsigned int  number_of_dimensions = rGeom.LocalSpaceDimension();
+
         array_1d<double, TNumNodes> pressure_vector;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             pressure_vector[i] = -rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         }
-        array_1d<double, TDim> pressure_gradient = prod(trans(rShapeFunctionGradients[integration_point_index]), pressure_vector);
 
-        array_1d<double, TDim> weight_vector = rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-                                               mWaterDensity[integration_point_index];
+        //if (number_of_dimensions == 1) {
+        //    std::cout << "Entered 1D element " << std::endl;
+        //} else if (number_of_dimensions == 2) {
+        //    std::cout << "Entered 2D element " << std::endl;
+        //} else if (number_of_dimensions == 3) {
+        //    std::cout << "Entered 3D element " << std::endl;
+        //}
+
+        Vector pressure_gradient = prod(trans(rShapeFunctionGradients[integration_point_index]), pressure_vector);
+
+        //array_1d<double, TDim> weight_vector = rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+        //                                       mWaterDensity[integration_point_index];
+        Vector gravity_vector = this->CalculateGravityAtIntegrationPoint(rNContainer, rJContainer, integration_point_index);
+        Vector weight_vector = gravity_vector * mWaterDensity[integration_point_index];
+
         pressure_gradient = pressure_gradient - weight_vector;
 
         auto permeability_matrix = this->CalculatePermeabilityMatrix();
-        array_1d<double, TDim> result = -prod(permeability_matrix, pressure_gradient) / mWaterViscosity[integration_point_index];
+        Vector result = -prod(permeability_matrix, pressure_gradient) / mWaterViscosity[integration_point_index];
+
+
 
         return result;
     }
 
     // ============================================================================================
     // ============================================================================================
-    BoundedMatrix<double, TDim, TDim> CalculatePermeabilityMatrix() const
+    Matrix CalculatePermeabilityMatrix() const
     {
         const PropertiesType&             rProp = this->GetProperties();
-        BoundedMatrix<double, TDim, TDim> C;
+
+        const unsigned int numDimensions = GetGeometry().LocalSpaceDimension();
+        Matrix C = ZeroMatrix(numDimensions, numDimensions);
+
 
         C(0, 0) = rProp[PERMEABILITY_XX];
-
-        if (TDim == 2) {
+        if (rProp[THERMAL_LAW_NAME] == "GeoThermalFilterLaw") {
+            const double equvalent_radius_square = rProp[CROSS_AREA] / Globals::Pi;
+            C(0, 0) = equvalent_radius_square * 0.125;
+        } 
+    
+        if (numDimensions == 2) {
             C(0, 1) = rProp[PERMEABILITY_XY];
             C(1, 0) = rProp[PERMEABILITY_XY];
             C(1, 1) = rProp[PERMEABILITY_YY];
         }
         
-        if (TDim == 3) {
+        if (numDimensions == 3) {
             C(2, 2) = rProp[PERMEABILITY_ZZ];
             C(1, 2) = rProp[PERMEABILITY_YZ];
             C(2, 1) = rProp[PERMEABILITY_YZ];
@@ -472,6 +519,31 @@ private:
             mWaterViscosity[integration_point_index] =
                 ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(N, rGeom);
         }
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    Vector CalculateGravityAtIntegrationPoint(const Matrix&                      rNContainer,
+                                              const GeometryType::JacobiansType& rJContainer,
+                                              const unsigned int integration_point_index) const
+    {
+        const GeometryType& rGeom         = GetGeometry();
+        int           numDimensions = rGeom.LocalSpaceDimension();
+        Vector        result        = ZeroVector(numDimensions);
+
+        if (numDimensions == 1) {
+            array_1d<double, TNumNodes * TDim> volume_acceleration;
+            array_1d<double, TDim>             body_acceleration;
+            GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(volume_acceleration, GetGeometry(), VOLUME_ACCELERATION);
+            GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(body_acceleration, rNContainer, volume_acceleration, integration_point_index);
+            array_1d<double, TDim> tangent_vector = column(rJContainer[integration_point_index], 0);
+            tangent_vector /= norm_2(tangent_vector);
+            result(0) = MathUtils<double>::Dot(tangent_vector, body_acceleration);
+        } 
+        else {
+            result = rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        }
+        return result;
     }
 
 

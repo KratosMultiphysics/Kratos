@@ -19,6 +19,8 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "includes/global_variables.h"
+
 
 namespace Kratos
 {
@@ -143,7 +145,7 @@ public:
     {
         // 1D
         if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
-            const double equivalent_radius_square = Prop[CROSS_AREA] / 3.1415926535897932384626433832795;
+            const double equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
             rPermeabilityMatrix(0, 0) = equivalent_radius_square * 0.125;
         }
         else {
