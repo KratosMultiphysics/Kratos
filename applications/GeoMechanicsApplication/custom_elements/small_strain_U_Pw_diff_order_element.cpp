@@ -715,8 +715,8 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-        mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+        mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")
@@ -753,8 +753,8 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-        mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+        mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")

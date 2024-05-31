@@ -376,8 +376,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variabl
 {
     KRATOS_TRY
 
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }
@@ -390,8 +391,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variabl
 {
     KRATOS_TRY
 
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH("")
 }
