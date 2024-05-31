@@ -261,7 +261,7 @@ public:
      * @brief Returns the Jacobian of the isoparametric transformation of arc length s
      *     J = sqrt((dx)^2 + (dy)^2)
      */
-    const double GetJacobian(const double xi);
+    double GetJacobian(const double xi);
 
     /**
      * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi

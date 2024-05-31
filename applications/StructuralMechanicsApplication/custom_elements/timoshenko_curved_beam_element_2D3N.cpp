@@ -287,7 +287,7 @@ BoundedMatrix<double, 2, 2> LinearTimoshenkoCurvedBeamElement2D3N::GetFrenetSerr
 /***********************************************************************************/
 /***********************************************************************************/
 
-const double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(
+double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(
     const double xi
     )
 {
