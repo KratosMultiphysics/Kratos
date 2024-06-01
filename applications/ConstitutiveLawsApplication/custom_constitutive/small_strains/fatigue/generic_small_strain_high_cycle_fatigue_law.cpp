@@ -88,7 +88,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double min_stress;
     double uniaxial_stress;
     double ultimate_stress;
-    double initial_threshold = mInitialTherhold;
+    // double initial_threshold = mInitialTherhold;
     // double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
     double relaxation_factor = mRelaxationFactor;
     bool first_nonlinearity = mFirstNonlinearity;
@@ -520,9 +520,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // Converged values
         double threshold = this->GetThreshold();
         double damage = this->GetDamage();
-        double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
+        // double first_cycle_relaxation_factor = mFirstCycleRelaxationFactor;
         double relaxation_factor = mRelaxationFactor;
-        unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
+        // unsigned int local_number_of_cycles = mNumberOfCyclesLocal;
 
         // S00
         noalias(predictive_residual_stress_vector) = ZeroVector(VoigtSize);

@@ -376,9 +376,10 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double BETAF = r_fatigue_coefficients[4];
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
+        const double SpeedDegradationFactor = r_fatigue_coefficients[8];
 
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(SpeedDegradationFactor * static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
             // }
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
         } 

@@ -468,8 +468,9 @@ Matrix& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
 
         if (F > threshold_tolerance) { // Elastic case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+            const double initial_threshold = 0.0;
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length, initial_threshold);
         }
         noalias(rValue) = constitutive_matrix * (1.0 - damage);
         return rValue;
