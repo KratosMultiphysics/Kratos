@@ -25,6 +25,7 @@
 #include "custom_processes/set_automated_initial_damage_process.h"
 #include "custom_processes/element_deactivation_process.h"
 #include "custom_processes/set_surface_roughness_reduction_factor.h"
+#include "custom_processes/set_punching_stress_concentration_factor.h"
 
 namespace Kratos::Python {
     void  AddCustomProcessesToPython(pybind11::module& m)
@@ -42,6 +43,8 @@ namespace Kratos::Python {
             .def(py::init<ModelPart&, Parameters>());
 
         py::class_<SetSurfaceRoughnessReductionFactor, SetSurfaceRoughnessReductionFactor::Pointer, Process>(m, "SetSurfaceRoughnessReductionFactor")
+            .def(py::init<ModelPart&, Parameters>());
+        py::class_<SetPunchingStressConcentrationFactor, SetPunchingStressConcentrationFactor::Pointer, Process>(m, "SetPunchingStressConcentrationFactor")
             .def(py::init<ModelPart&, Parameters>());
     }
 } // namespace Kratos::Python..

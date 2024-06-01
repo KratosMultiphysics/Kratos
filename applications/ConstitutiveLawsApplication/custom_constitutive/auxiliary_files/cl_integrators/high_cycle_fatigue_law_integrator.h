@@ -255,6 +255,7 @@ public:
                                             const double UltimateStress,
                                             const double ReversionFactor,
                                             double Threshold,
+                                            unsigned int LocalNumberOfCycles,
                                             const Properties& rMaterialParameters,
                                             const ConstitutiveLaw::GeometryType& rElementGeometry,
                                             double& rB0,
@@ -264,15 +265,23 @@ public:
 	{
 
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        const double c1_stress_concentration = r_fatigue_coefficients[8];
+        const double c2_stress_concentration = r_fatigue_coefficients[9];
+        const double c1_roughness = r_fatigue_coefficients[10];
+        const double c2_roughness = r_fatigue_coefficients[11];
 
         // Reduction factors applied to the fatigue limit
         double const k_residual_stress = 1 - (UniaxialResidualStress / UltimateStress); // Goodman mean stress correction
         // double const k_residual_stress = 1 - std::pow((UniaxialResidualStress / UltimateStress), 2.0); // Gerber mean stress correction
-        double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
+        double const k_stress_concentration = (!rElementGeometry.Has(HOLE_DIAMETER)) ? 1.0 : 2 + 0.284 * (1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH)) - 
+                     0.600 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 2.0) + 1.32 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 3.0);
+        double const h_stress_concentration = (1.0 / c1_stress_concentration) * std::log10(LocalNumberOfCycles / std::pow(10, c2_stress_concentration));
+        double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
+        double const h_roughness = (LocalNumberOfCycles < std::pow(10, c2_roughness)) ? 0.0 : (1.0 / c1_roughness) * std::log10(LocalNumberOfCycles / std::pow(10, c2_roughness));
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = k_residual_stress * k_roughness * (r_fatigue_coefficients[0] * UltimateStress);
+        const double Se = k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness) * (r_fatigue_coefficients[0] * UltimateStress);
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
@@ -376,10 +385,9 @@ public:
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         const double BETAF = r_fatigue_coefficients[4];
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
-        const double SpeedDegradationFactor = r_fatigue_coefficients[8];
 
         if (MaxStress > Sth) {
-            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(SpeedDegradationFactor * static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
+            rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
             // }
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
         } 
