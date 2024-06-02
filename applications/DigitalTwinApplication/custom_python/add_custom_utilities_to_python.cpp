@@ -26,6 +26,7 @@
 #include "custom_utilities/sensor_utils.h"
 #include "custom_utilities/sensor_mask_status.h"
 #include "custom_utilities/sensor_mask_status_kd_tree.h"
+#include "custom_utilities/boltzmann_operator.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -101,6 +102,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     auto control_utils = m.def_submodule("ControlUtils");
     control_utils.def("AssignEquivalentProperties", &ControlUtils::AssignEquivalentProperties<ModelPart::ConditionsContainerType>, py::arg("source_conditions"), py::arg("destination_conditions"));
     control_utils.def("AssignEquivalentProperties", &ControlUtils::AssignEquivalentProperties<ModelPart::ElementsContainerType>, py::arg("source_elements"), py::arg("destination_elements"));
+    control_utils.def("GetDistVectorSize", &ControlUtils::GetDistVectorSize, py::arg("n"));
+    control_utils.def("GetDistIndexFromPairIndices", &ControlUtils::GetDistIndexFromPairIndices, py::arg("n"), py::arg("pair_i"), py::arg("pair_j"));
+    control_utils.def("GetPairIndicesFromDistIndex", &ControlUtils::GetPairIndicesFromDistIndex, py::arg("n"), py::arg("dist_i"));
 
     AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
     AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
@@ -117,6 +121,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetSensor", &SensorUtils::GetSensor, py::arg("node"))
         .def("AssignSensorIds", &SensorUtils::AssignSensorIds, py::arg("list_of_sensors"))
         .def("GetMostDistanced", &SensorUtils::GetMostDistanced, py::arg("origin_sensors"), py::arg("test_sensors"))
+        ;
+
+    py::class_<BoltzmannOperator, BoltzmannOperator::Pointer>(m, "BoltzmannOperator")
+        .def(py::init<const double>(), py::arg("beta"))
+        .def("CalculateCoefficients", &BoltzmannOperator::CalculateCoefficients)
+        .def("GetData", py::overload_cast<>(&BoltzmannOperator::GetData, py::const_))
+        .def("GetValue", &BoltzmannOperator::GetValue)
+        .def("GetGradient", &BoltzmannOperator::GetGradient, py::arg("value_gradients"))
         ;
 }
 

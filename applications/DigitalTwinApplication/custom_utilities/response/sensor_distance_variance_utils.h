@@ -20,27 +20,24 @@
 #include "expression/container_expression.h"
 
 // Application includes
-#include "custom_utilities/boltzmann_operator.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class SensorDistanceBoltzmannOperatorResponseUtils
+class SensorDistanceVarianceUtils
 {
 public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SensorDistanceBoltzmannOperatorResponseUtils);
+    KRATOS_CLASS_POINTER_DEFINITION(SensorDistanceVarianceUtils);
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    SensorDistanceBoltzmannOperatorResponseUtils(
-        ModelPart& rSensorModelPart,
-        const double P,
-        const double Beta);
+    SensorDistanceVarianceUtils(ModelPart& rSensorModelPart);
 
     ///@}
     ///@name Public operations
@@ -60,13 +57,9 @@ private:
 
     ModelPart* mpSensorModelPart;
 
-    double mP;
+    double mMean;
 
-    double mMaxDistance;
-
-    Vector mDistances;
-
-    BoltzmannOperator mBoltzmannOperator;
+    Matrix mDistances;
 
     ///@}
 };

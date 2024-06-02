@@ -12,6 +12,7 @@
 #pragma once
 
 // System includes
+#include <tuple>
 
 // External includes
 
@@ -30,6 +31,17 @@ class ControlUtils
 public:
     ///@name Public static operations
     ///@{
+
+    static IndexType GetDistVectorSize(const IndexType N);
+
+    static IndexType GetDistIndexFromPairIndices(
+        const IndexType N,
+        const IndexType I,
+        const IndexType J);
+
+    static std::tuple<IndexType, IndexType> GetPairIndicesFromDistIndex(
+        const IndexType N,
+        const IndexType DistIndex);
 
     template<class TContainerType>
     static void AssignEquivalentProperties(

@@ -17,40 +17,43 @@
 
 // Project includes
 #include "includes/define.h"
-#include "expression/container_expression.h"
+#include "includes/ublas_interface.h"
 
 // Application includes
-#include "custom_utilities/boltzmann_operator.h"
+
 namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class SensorDistanceBoltzmannOperatorResponseUtils
+class BoltzmannOperator
 {
 public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(SensorDistanceBoltzmannOperatorResponseUtils);
+    KRATOS_CLASS_POINTER_DEFINITION(BoltzmannOperator);
+
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    SensorDistanceBoltzmannOperatorResponseUtils(
-        ModelPart& rSensorModelPart,
-        const double P,
-        const double Beta);
+    BoltzmannOperator(const double Beta);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    void Initialize();
+    void CalculateCoefficients();
 
-    double CalculateValue();
+    Vector& GetData();
 
-    ContainerExpression<ModelPart::NodesContainerType> CalculateGradient() const;
+    const Vector& GetData() const;
+
+    double GetValue() const;
+
+    double GetGradient(const Vector& rGradients) const;
 
     ///@}
 
@@ -58,15 +61,13 @@ private:
     ///@name Private member variables
     ///@{
 
-    ModelPart* mpSensorModelPart;
+    const double mBeta;
 
-    double mP;
+    double mNumerator;
 
-    double mMaxDistance;
+    Vector mValues;
 
-    Vector mDistances;
-
-    BoltzmannOperator mBoltzmannOperator;
+    double mDenominator;
 
     ///@}
 };

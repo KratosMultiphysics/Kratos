@@ -114,7 +114,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]', w_r: Kratos.Vector, w_c: Kratos.Vector) -> KratosOA.CollectiveExpression:
-        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
+        active_constraints_list = self.GetActiveConstraintsList()
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
             search_direction = obj_grad * -1.0
@@ -171,7 +171,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction.Clone(), overwrite=True)
 
     def ComputeBufferCoefficients(self):
-        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
+        active_constraints_list = self.GetActiveConstraintsList()
         number_of_active_constraints = len(active_constraints_list)
         if number_of_active_constraints == 0:
             return Kratos.Vector(), Kratos.Vector()
@@ -207,17 +207,20 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
+        print("H1")
         self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
         self.__objective.OutputGradientFields(self._optimization_problem, True)
         for constraint in self.__constraints_list:
             constraint.OutputGradientFields(self._optimization_problem, constraint.GetStandardizedValue() > 0.0)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
+                print(process.__class__.__name__)
                 process.PrintOutput()
+        print("H2")
 
     def CheckLinearizedConstraints(self, active_constr_grad: 'list[KratosOA.CollectiveExpression]', update: KratosOA.CollectiveExpression, w_r, w_c) -> bool:
         all_feasible = True
-        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constraints_list[i].IsActiveConstrant()]
+        active_constraints_list = self.GetActiveConstraintsList()
         for i, constraint in enumerate(active_constraints_list):
             predicted_value = constraint.GetStandardizedValue() + KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
             print(f"RGP Constaint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
@@ -232,6 +235,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                 print(f"RGP Constaint {constraint.GetResponseName()}:: no correction for w_r, w_c ")
         return all_feasible
 
+    def GetActiveConstraintsList(self, ):
+        return [constraint for constraint in self.__constraints_list if constraint.IsActiveConstrant()]
+
+    def GetConstraintsList(self):
+        return self.__constraints_list
 
     @time_decorator()
     def Solve(self):

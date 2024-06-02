@@ -164,6 +164,15 @@ class SensorStatusRangedControl(Control):
             if step < end_iteration:
                 if self.beta != beta:
                     self.beta = beta
+                    sensor_status = Kratos.Expression.NodalExpression(self.model_part)
+                    Kratos.Expression.VariableExpressionIO.Read(sensor_status, KratosDT.SENSOR_STATUS, False)
+
+                    self.physical_phi_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
+                                                sensor_status,
+                                                self.x_limits,
+                                                [0, 1],
+                                                self.beta,
+                                                self.penalty_factor)
                     # compute and stroe projection derivatives for consistent filtering of the sensitivities
                     self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
                                                             self.physical_phi_field,
@@ -184,6 +193,10 @@ class SensorStatusRangedControl(Control):
                                                 [0, 1],
                                                 self.beta,
                                                 self.penalty_factor)
+
+        current_sensor_status = projected_sensor_field.Clone()
+        Kratos.Expression.VariableExpressionIO.Read(current_sensor_status, KratosDT.SENSOR_STATUS, False)
+
         # now update physical field
         Kratos.Expression.VariableExpressionIO.Write(projected_sensor_field, KratosDT.SENSOR_STATUS, False)
         list_of_sensors: 'list[KratosDT.Sensors.Sensor]' = ComponentDataView("sensor", self.optimization_problem).GetUnBufferedData().GetValue("list_of_sensors")
@@ -205,6 +218,7 @@ class SensorStatusRangedControl(Control):
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue("sensor_status", projected_sensor_field.Clone(),overwrite=True)
         if self.output_all_fields:
+            un_buffered_data.SetValue("sensor_status_update", projected_sensor_field - current_sensor_status, overwrite=True)
             un_buffered_data.SetValue("sensor_status_physical_phi", self.physical_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_physical_phi_update", physical_phi_update.Clone(), overwrite=True)
             un_buffered_data.SetValue("sensor_status_projection_derivative", self.projection_derivative_field.Clone(), overwrite=True)

@@ -27,6 +27,7 @@
 #include "custom_utilities/response/sensor_cosine_distance_utils.h"
 #include "custom_utilities/response/sensor_coverage_response_utils.h"
 #include "custom_utilities/response/sensor_sensitivity_boltzmann_operator_response.h"
+#include "custom_utilities/response/sensor_distance_variance_utils.h"
 
 // Include base h
 #include "custom_python/add_custom_response_utilities_to_python.h"
@@ -113,6 +114,13 @@ void AddCustomResponseUtilitiesToPython(pybind11::module& m)
             py::arg("beta"))
         .def("CalculateValue", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ElementsContainerType>::CalculateValue)
         .def("CalculateGradient", &SensorSensitivityBoltzmannOperatorResponseUtils<ModelPart::ElementsContainerType>::CalculateGradient)
+        ;
+
+    py::class_<SensorDistanceVarianceUtils, SensorDistanceVarianceUtils::Pointer>(m, "SensorDistanceVarianceUtils")
+        .def(py::init<ModelPart&>(), py::arg("sensor_model_part"))
+        .def("Initialize", &SensorDistanceVarianceUtils::Initialize)
+        .def("CalculateValue", &SensorDistanceVarianceUtils::CalculateValue)
+        .def("CalculateGradient", &SensorDistanceVarianceUtils::CalculateGradient)
         ;
 }
 

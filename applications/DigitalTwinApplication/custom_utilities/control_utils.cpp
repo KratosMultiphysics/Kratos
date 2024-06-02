@@ -10,6 +10,7 @@
 //
 
 // System includes
+#include <cmath>
 #include <algorithm>
 
 // External includes
@@ -24,6 +25,29 @@
 #include "control_utils.h"
 
 namespace Kratos {
+
+IndexType ControlUtils::GetDistVectorSize(const IndexType N)
+{
+    return N * (N - 1) / 2;
+}
+
+IndexType ControlUtils::GetDistIndexFromPairIndices(
+    const IndexType N,
+    const IndexType I,
+    const IndexType J)
+{
+    return N * I + J - ((I + 2) * (I + 1)) / 2;
+}
+
+std::tuple<IndexType, IndexType> ControlUtils::GetPairIndicesFromDistIndex(
+    const IndexType N,
+    const IndexType DistIndex)
+{
+    const int b = 1 - 2 * N;
+    const int i = std::floor((-b - std::sqrt(b * b - 8 * DistIndex)) / 2);
+    const int j = (DistIndex + i * (b + i + 2) / 2 + 1);
+    return std::make_tuple(i, j);
+}
 
 template<class TContainerType>
 void ControlUtils::AssignEquivalentProperties(
