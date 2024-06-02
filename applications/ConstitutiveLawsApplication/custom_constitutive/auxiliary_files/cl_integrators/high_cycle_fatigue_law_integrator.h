@@ -273,15 +273,18 @@ public:
         // Reduction factors applied to the fatigue limit
         double const k_residual_stress = 1 - (UniaxialResidualStress / UltimateStress); // Goodman mean stress correction
         // double const k_residual_stress = 1 - std::pow((UniaxialResidualStress / UltimateStress), 2.0); // Gerber mean stress correction
-        double const k_stress_concentration = (!rElementGeometry.Has(HOLE_DIAMETER)) ? 1.0 : 2 + 0.284 * (1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH)) - 
-                     0.600 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 2.0) + 1.32 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 3.0);
-        double const h_stress_concentration = (1.0 / c1_stress_concentration) * std::log10(LocalNumberOfCycles / std::pow(10, c2_stress_concentration));
+        // double const k_residual_stress = (UniaxialResidualStress > 0.0) ? 1 - ((0.5 * (1 + ReversionFactor) * MaxStress) / UltimateStress) : 1.0; // Goodman mean stress correction on Sth
+        // double const k_stress_concentration = (!rElementGeometry.Has(HOLE_DIAMETER)) ? 1.0 : 2 + 0.284 * (1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH)) - 
+        //              0.600 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 2.0) + 1.32 * std::pow(1 - rElementGeometry.GetValue(HOLE_DIAMETER) / rElementGeometry.GetValue(SPECIMEN_WIDTH), 3.0);
+        double const k_stress_concentration = r_fatigue_coefficients[12];
+        double const h_stress_concentration = (LocalNumberOfCycles < std::pow(10, c2_stress_concentration)) ? 0.0 : (1.0 / c1_stress_concentration) * std::log10(LocalNumberOfCycles / std::pow(10, c2_stress_concentration));
         double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
         double const h_roughness = (LocalNumberOfCycles < std::pow(10, c2_roughness)) ? 0.0 : (1.0 / c1_roughness) * std::log10(LocalNumberOfCycles / std::pow(10, c2_roughness));
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
         const double Se = k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness) * (r_fatigue_coefficients[0] * UltimateStress);
+        // const double Se = r_fatigue_coefficients[0] * UltimateStress;
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
         const double ALFAF = r_fatigue_coefficients[3];
@@ -292,9 +295,11 @@ public:
 
         if (std::abs(ReversionFactor) < 1.0) {
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
+            // rSth *= k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness);
 			rAlphat = ALFAF + (0.5 + 0.5 * (ReversionFactor)) * AUXR1;
         } else {
             rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
+            // rSth *= k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness);
 			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
         }
 
