@@ -407,11 +407,10 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
     KRATOS_TRY
 
     if (rVariable == CONSTITUTIVE_LAW) {
-        if (rValues.size() != mConstitutiveLawVector.size())
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+        rValues.resize(mConstitutiveLawVector.size());
+        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
             rValues[i] = mConstitutiveLawVector[i];
+        }
     }
 
     KRATOS_CATCH("")
