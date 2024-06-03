@@ -551,8 +551,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(do
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
-    rJ                        = rGeom.Jacobian(rJ, GPoint, mThisIntegrationMethod);
+    rJ = this->GetGeometry().Jacobian(rJ, GPoint, mThisIntegrationMethod);
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
 
     KRATOS_CATCH("")

@@ -1870,9 +1870,7 @@ void SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration(dou
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = this->GetGeometry();
-
-    rJ = rGeom.Jacobian(rJ, GPoint, this->GetIntegrationMethod());
+    rJ = GetGeometry().Jacobian(rJ, GPoint, this->GetIntegrationMethod());
     MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
 
     KRATOS_CATCH("")
