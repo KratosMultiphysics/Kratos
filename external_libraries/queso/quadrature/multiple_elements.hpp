@@ -5,10 +5,10 @@
 #define MULITPLE_ELEMENTS_INCLUDE_HPP
 
 //// Project includes
-#include "includes/define.hpp"
-#include "containers/element_container.hpp"
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
-#include "includes/parameters.h"
+#include "queso/includes/define.hpp"
+#include "queso/containers/element_container.hpp"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/includes/parameters.h"
 
 namespace queso {
 

@@ -9,7 +9,7 @@
 #include <array>
 #include <memory>
 //// Project includes
-#include "includes/parameters.h"
+#include "queso/includes/parameters.h"
 
 namespace queso {
 

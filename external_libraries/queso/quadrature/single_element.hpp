@@ -8,8 +8,8 @@
 #include <vector>
 #include <array>
 //// Project includes
-#include "containers/element.hpp"
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/containers/element.hpp"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
 
@@ -81,12 +81,12 @@ public:
         for (SizeType u = 0; u < p_ip_list_u->size(); ++u) {
             for (SizeType v = 0; v < p_ip_list_v->size(); ++v) {
                 for( SizeType w = 0; w < p_ip_list_w->size(); ++w) {
-                    rIntegrationPoints.push_back( IntegrationPointType( rLowerBoundParam[0] + length_u * (*p_ip_list_u)[u][0],
-                                                                        rLowerBoundParam[1] + length_v * (*p_ip_list_v)[v][0],
-                                                                        rLowerBoundParam[2] + length_w * (*p_ip_list_w)[w][0],
-                                                                        (*p_ip_list_u)[u][1] * length_u *
-                                                                        (*p_ip_list_v)[v][1] * length_v *
-                                                                        (*p_ip_list_w)[w][1] * length_w ) );
+                    rIntegrationPoints.push_back( IntegrationPoint( rLowerBoundParam[0] + length_u * (*p_ip_list_u)[u][0],
+                                                                    rLowerBoundParam[1] + length_v * (*p_ip_list_v)[v][0],
+                                                                    rLowerBoundParam[2] + length_w * (*p_ip_list_w)[w][0],
+                                                                    (*p_ip_list_u)[u][1] * length_u *
+                                                                    (*p_ip_list_v)[v][1] * length_v *
+                                                                    (*p_ip_list_w)[w][1] * length_w ) );
                 }
             }
         }

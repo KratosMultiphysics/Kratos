@@ -2,7 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "quadrature/integration_points_1d/integration_points_factory_1d.h"
+#include "queso/quadrature/integration_points_1d/integration_points_factory_1d.h"
 
 namespace queso {
 

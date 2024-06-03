@@ -10,12 +10,12 @@
 #include <variant>
 #include <numeric>
 //// Project includes
-#include "embedding/octree.h"
-#include "containers/element.hpp"
-#include "containers/boundary_integration_point.hpp"
-#include "includes/parameters.h"
+#include "queso/embedding/octree.h"
+#include "queso/containers/element.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
+#include "queso/includes/parameters.h"
 #include "queso/utilities/polynomial_utilities.h"
-#include "solvers/nnls.h"
+#include "queso/solvers/nnls.h"
 
 namespace queso {
 
@@ -34,7 +34,6 @@ public:
     ///@name Type Definition
     ///@{
     typedef TElementType ElementType;
-    typedef typename ElementType::IntegrationPointType IntegrationPointType;
     typedef typename ElementType::IntegrationPointVectorType IntegrationPointVectorType;
     typedef Unique<IntegrationPointVectorType> IntegrationPointVectorPtrType;
     typedef typename ElementType::BoundaryIntegrationPointType BoundaryIntegrationPointType;
@@ -368,14 +367,14 @@ protected:
             if( number_iterations == 0UL){
                 /// In first iteration, revome all points but #number_of_functions
                 // Sort integration points according to weight.
-                std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPointType& point_a, const IntegrationPointType& point_b) -> bool {
+                std::sort(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point_a, const IntegrationPoint& point_b) -> bool {
                         return point_a.Weight() > point_b.Weight();
                     });
                 // Only keep #number_of_functions integration points.
                 rIntegrationPoint.erase(rIntegrationPoint.begin()+number_of_functions, rIntegrationPoint.end());
 
                 // Additionally remove all points that are zero.
-                rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPointType& point) {
+                rIntegrationPoint.erase(std::remove_if(rIntegrationPoint.begin(), rIntegrationPoint.end(), [](const IntegrationPoint& point) {
                     return point.Weight() < ZEROTOL; }), rIntegrationPoint.end());
 
                 // Stop if no points are left.
@@ -435,7 +434,7 @@ protected:
         if( (global_residual >= targeted_residual && prev_solution.size() > 0) || number_iterations > maximum_iteration ) {
             // Return previous solution.
             reduced_points.insert(reduced_points.begin(), prev_solution.begin(), prev_solution.end());
-            reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPointType& point) {
+            reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
                 return point.Weight() < ZEROTOL; }), reduced_points.end());
 
             return prev_residual;
@@ -443,7 +442,7 @@ protected:
         else{
             // Return current solution.
             reduced_points.insert(reduced_points.begin(), rIntegrationPoint.begin(), rIntegrationPoint.end());
-            reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPointType& point) {
+            reduced_points.erase(std::remove_if(reduced_points.begin(), reduced_points.end(), [](const IntegrationPoint& point) {
                 return point.Weight() < ZEROTOL; }), reduced_points.end());
 
             return global_residual;
