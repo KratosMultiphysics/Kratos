@@ -712,7 +712,7 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
         ThreadSafeNodeWrite(rGeom[16], WATER_PRESSURE, 0.5 * (p4 + p5));
         ThreadSafeNodeWrite(rGeom[17], WATER_PRESSURE, 0.5 * (p5 + p6));
         ThreadSafeNodeWrite(rGeom[18], WATER_PRESSURE, 0.5 * (p6 + p7));
-        ThreadSafeNodeWrite(rGeom[19], WATER_PRESSURE, 0.5 * (p7 + p0));
+        ThreadSafeNodeWrite(rGeom[19], WATER_PRESSURE, 0.5 * (p7 + p4));
         break;
     }
     case 27: // 3D H27P8
@@ -1635,7 +1635,8 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoeffici
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const
+void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
+                                                        ElementVariables& rVariables) const
 {
     KRATOS_TRY
 

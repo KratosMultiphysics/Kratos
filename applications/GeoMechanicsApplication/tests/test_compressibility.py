@@ -28,6 +28,10 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         test_name = 'compressibility_tests/upw_small_strain_updated_lagrange'
         self.run_and_assert_water_pressures(-49.0716, test_name)
 
+    # def test_compressibility_upw_small_strain_diff_order(self):
+    #     test_name = 'compressibility_tests/upw_small_strain_diff_order'
+    #     self.run_and_assert_water_pressures(-49.0716, test_name)
+
     def run_and_assert_water_pressures(self, expected_water_pressure_at_bottom, test_name):
         file_path = test_helper.get_file_path(test_name)
         test_helper.run_kratos(file_path)
