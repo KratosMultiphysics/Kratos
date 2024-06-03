@@ -122,7 +122,7 @@ public:
         Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
 
         KRATOS_TRY
-
+        // removed SetTimeFactor() because ProjectParameters.json file has not been read yet.
         KRATOS_CATCH("")
     }
 
