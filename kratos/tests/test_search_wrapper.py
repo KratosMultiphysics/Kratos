@@ -17,6 +17,35 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # Importing the OS module
 import os
 
+def PostProcessVTK(model, entity_type = "element", rank = 0):
+    import KratosMultiphysics.vtk_output_process as vtk_output_process
+    vtk_output_parameters = KM.Parameters("""{
+        "Parameters" : {
+            "model_part_name"                    : "Main",
+            "file_format"                        : "ascii",
+            "output_precision"                   : 8,
+            "output_interval"                    : 2,
+            "output_sub_model_parts"             : true,
+            "entity_type"                        : "element",
+            "nodal_solution_step_data_variables" : ["PARTITION_INDEX"],
+            "nodal_data_value_variables"         : [],
+            "nodal_flags"                        : [],
+            "element_data_value_variables"       : [],
+            "element_flags"                      : [],
+            "condition_data_value_variables"     : [],
+            "condition_flags"                    : [],
+            "output_path"                        : "test_vtk_output"
+        }
+    }""")
+    vtk_output_parameters["Parameters"]["entity_type"].SetString(entity_type)
+    vtk_output_parameters["Parameters"]["output_path"].SetString("test_vtk_output_" + str(rank))
+
+    process = vtk_output_process.Factory(vtk_output_parameters, model)
+    process.ExecuteInitialize()
+    process.ExecuteInitializeSolutionStep()
+    process.ExecuteFinalizeSolutionStep()
+    process.PrintOutput()
+
 def GetFilePath(fileName):
     """
     Get the absolute path of the given file name.
@@ -38,6 +67,8 @@ def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions")
             search = KM.SearchWrapperOCTreeCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
             search = KM.SearchWrapperOCTreeElement(model_part.Elements, data_comm)
+        elif entity_type == "Nodes":
+            search = KM.SearchWrapperOCTreeNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "KDTree":
@@ -45,6 +76,8 @@ def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions")
             search = KM.SearchWrapperKDTreeCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
             search = KM.SearchWrapperKDTreeElement(model_part.Elements, data_comm)
+        elif entity_type == "Nodes":
+            search = KM.SearchWrapperKDTreeNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "StaticBinsTree":
@@ -52,6 +85,8 @@ def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions")
             search = KM.SearchWrapperStaticBinsTreeCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
             search = KM.SearchWrapperStaticBinsTreeElement(model_part.Elements, data_comm)
+        elif entity_type == "Nodes":
+            search = KM.SearchWrapperStaticBinsTreeNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "DynamicBins":
@@ -59,6 +94,8 @@ def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions")
             search = KM.SearchWrapperDynamicBinsCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
             search = KM.SearchWrapperDynamicBinsElement(model_part.Elements, data_comm)
+        elif entity_type == "Nodes":
+            search = KM.SearchWrapperDynamicBinsNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "GeometricalObjectBins":
@@ -404,24 +441,36 @@ class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
             if node.X == 0.0:
                 self.sub_model_part.AddNode(node)
 
-    def _SearchInRadius(self, search_type = "GeometricalObjectBins"):
+        # # Debug mesh
+        # PostProcessVTK(self.current_model, "element", self.data_comm.Rank())
+
+    def _SearchInRadius(self, entity_type = "Nodes"):
         """
         Test for the 'SearchInRadius' method
         """
         # Create search
-        self.search = CreateSearch(self.model_part, self.data_comm, search_type, "Elements")
+        self.search = CreateSearch(self.model_part, self.data_comm, "KDTree", entity_type)
 
         # Define radius
         radius = 0.5
 
         # Reference solution
-        elem_id_ref = {
-            1 :  [4, 17, 18, 29, 30],
-            2 :  [4, 17, 18, 20, 24, 27, 28, 29, 30, 31],
-            6 :  [1, 4, 11, 18, 24, 25, 26, 27, 28, 29, 30, 31],
-            12 : [1, 9, 11, 24, 25, 26, 27, 28, 29, 30],
-            16 : [1, 9, 11, 24, 25, 27],
-        }
+        if entity_type == "Nodes":
+            id_ref = {
+                1 :  [1, 2, 3, 4, 5],
+                2 :  [1, 2, 3, 4, 5, 6, 9],
+                6 :  [2, 4, 5, 6, 9, 12],
+                12 : [5, 6, 9, 12, 14, 16, 20],
+                16 : [9, 12, 14, 16, 20],
+            }
+        elif entity_type == "Elements":
+            id_ref = {
+                1 :  [4, 17, 18, 29, 30],
+                2 :  [4, 17, 18, 20, 24, 27, 28, 29, 30, 31],
+                6 :  [1, 4, 11, 18, 24, 25, 26, 27, 28, 29, 30, 31],
+                12 : [1, 9, 11, 24, 25, 26, 27, 28, 29, 30],
+                16 : [1, 9, 11, 24, 25, 27],
+            }
 
         # Nodes array search
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
@@ -437,17 +486,24 @@ class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
                 ids = node_results.GetResultIndices()
                 number_of_global_results = node_results.NumberOfGlobalResults()
                 if global_id > 0: # Solution defined in this rank
-                    ref_ids = elem_id_ref[global_id]
+                    ref_ids = id_ref[global_id]
                     self.assertEqual(number_of_global_results, len(ref_ids))
                     self.assertEqual(len(ids), len(ref_ids))
                     for id in ids:
                         self.assertTrue(id in ref_ids)
 
-    def test_SearchWrapperKDTree_SearchInRadius(self):
+    @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only. (WIP)")
+    def test_SearchWrapperKDTree_SearchInRadius_Nodes(self):
         """
-        Test for the 'SearchInRadius' method of the KDTree search wrapper.
+        Test for the 'SearchInRadius' method of the KDTree search wrapper for nodes.
         """
-        self._SearchInRadius("KDTree")
+        self._SearchInRadius("Nodes")
+
+    def test_SearchWrapperKDTree_SearchInRadius_Elements(self):
+        """
+        Test for the 'SearchInRadius' method of the KDTree search wrapper for elements.
+        """
+        self._SearchInRadius("Elements")
 
 if __name__ == '__main__':
     # Set logging severity and start the unittest
