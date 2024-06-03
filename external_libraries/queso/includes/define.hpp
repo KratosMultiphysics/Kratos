@@ -9,9 +9,9 @@
 #include <memory>
 #include <array>
 //// Project includes
-#include "includes/logger.hpp"
-#include "includes/exception.hpp"
-#include "includes/timer.hpp"
+#include "queso/includes/logger.hpp"
+#include "queso/includes/exception.hpp"
+#include "queso/includes/timer.hpp"
 
 namespace queso {
 

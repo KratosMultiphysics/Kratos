@@ -5,7 +5,7 @@
 #define DEFINE_CHECKS_HPP
 
 //// Project includes
-#include "includes/define.hpp"
+#include "queso/includes/define.hpp"
 
 namespace queso {
 

@@ -5,9 +5,9 @@
 #define PARAMETERS_INCLUDE_H
 
 ////Project includes
-#include "includes/define.hpp"
-#include "utilities/math_utilities.hpp"
-#include "containers/variant_data_container.hpp"
+#include "queso/includes/define.hpp"
+#include "queso/utilities/math_utilities.hpp"
+#include "queso/containers/variant_data_container.hpp"
 
 namespace queso {
 
