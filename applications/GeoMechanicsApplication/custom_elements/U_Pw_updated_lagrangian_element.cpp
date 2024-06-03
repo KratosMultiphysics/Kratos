@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -65,21 +66,29 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
-    const bool hasBiotCoefficient = this->GetProperties().Has(BIOT_COEFFICIENT);
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->VoigtSize);
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+        constitutive_matrices, this->GetProperties());
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, this->GetProperties());
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
@@ -96,10 +105,12 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
+        Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
