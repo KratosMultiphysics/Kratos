@@ -26,6 +26,10 @@ public:
     ///@{
     typedef TriangleMeshInterface BaseType;
 
+    ///@}
+    ///@name Life cycle
+    ///@{
+
     ModelPartAdapter(const TContainerType& rContainer) : mContainer(rContainer)
     {
         BaseType::Reserve(rContainer.NumberOfElements());
@@ -35,6 +39,10 @@ public:
                                                                 r_el.GetGeometry()[2].Coordinates().data() ));
         }
     }
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     ///@brief Get triangle vertex 1
     ///@param TriangleId
@@ -69,7 +77,12 @@ public:
 
 private:
 
+    ///@}
+    ///@name Private members
+    ///@{
+
     const TContainerType& mContainer;
+
     ///@}
 }; // End AABB_primitive class
 ///@} // End QuESo classes
