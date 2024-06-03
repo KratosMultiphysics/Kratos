@@ -492,7 +492,6 @@ class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
                     for id in ids:
                         self.assertTrue(id in ref_ids)
 
-    @KratosUnittest.skipIf(KM.IsDistributedRun(), "This test is designed for serial runs only. (WIP)")
     def test_SearchWrapperKDTree_SearchInRadius_Nodes(self):
         """
         Test for the 'SearchInRadius' method of the KDTree search wrapper for nodes.
