@@ -9,8 +9,8 @@
 #include <sstream>
 #include <stdexcept>
 //// Project includes
-#include "containers/element.hpp"
-#include "includes/parameters.h"
+#include "queso/containers/element.hpp"
+#include "queso/includes/parameters.h"
 
 namespace queso {
 

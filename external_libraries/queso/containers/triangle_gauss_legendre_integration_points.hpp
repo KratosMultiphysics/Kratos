@@ -7,7 +7,7 @@
 //// STL includes
 #include <vector>
 //// Projecy includes
-#include "containers/integration_point.hpp"
+#include "queso/containers/integration_point.hpp"
 
 namespace queso {
 

@@ -8,9 +8,9 @@
 #include <stdexcept>
 #include <memory>
 //// Project includes
-#include "embedding/trimmed_domain.h"
-#include "includes/parameters.h"
-#include "utilities/mapping_utilities.h"
+#include "queso/embedding/trimmed_domain.h"
+#include "queso/includes/parameters.h"
+#include "queso/utilities/mapping_utilities.h"
 
 namespace queso {
 

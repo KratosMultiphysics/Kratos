@@ -5,8 +5,8 @@
 #define CONDITION_INCLUDE_HPP
 
 //// STL includes
-#include "includes/parameters.h"
-#include "containers/triangle_mesh.hpp"
+#include "queso/includes/parameters.h"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 
