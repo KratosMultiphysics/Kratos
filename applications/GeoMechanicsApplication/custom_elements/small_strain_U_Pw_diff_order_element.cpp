@@ -494,7 +494,7 @@ void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        r
     MatrixType mass_matrix = ZeroMatrix(element_size, element_size);
     this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
-    MatrixType stiffness_matrix(element_size, element_size);
+    MatrixType stiffness_matrix = ZeroMatrix(element_size, element_size);
     this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
     rDampingMatrix = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
@@ -1635,7 +1635,8 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoeffici
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const
+void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
+                                                        ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
