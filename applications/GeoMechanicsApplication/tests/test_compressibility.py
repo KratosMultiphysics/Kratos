@@ -25,12 +25,10 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         water_pressures_at_bottom = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0, output_data,
                                                                                        node_ids=bottom_node_nbrs)
 
-        expected_water_pressures_at_bottom = [-27.4139, -27.4139, 31.4158, 31.4158]
-
         for water_pressure_at_top in water_pressures_at_top:
-            self.assertAlmostEqual(water_pressure_at_top, 1.0, 6)
-        for water_pressure_at_bottom, expected_water_pressure_at_bottom in zip(water_pressures_at_bottom, expected_water_pressures_at_bottom):
-            self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 6)
+            self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
+        for water_pressure_at_bottom in water_pressures_at_bottom:
+            self.assertAlmostEqual(water_pressure_at_bottom, -49.1786, 6)
 
     def test_compressibility_upw_small_strain_fic(self):
         test_name = 'compressibility_tests/upw_small_strain_fic'
@@ -48,12 +46,10 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         water_pressures_at_bottom = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0, output_data,
                                                                                          node_ids=bottom_node_nbrs)
 
-        expected_water_pressures_at_bottom = [-32.1873, -32.1873, 36.8588, 36.8588]
-
         for water_pressure_at_top in water_pressures_at_top:
-            self.assertAlmostEqual(water_pressure_at_top, 1.0, 6)
-        for water_pressure_at_bottom, expected_water_pressure_at_bottom in zip(water_pressures_at_bottom, expected_water_pressures_at_bottom):
-            self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 6)
+            self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
+        for water_pressure_at_bottom in water_pressures_at_bottom:
+            self.assertAlmostEqual(water_pressure_at_bottom, -57.693, 6)
 
     def test_compressibility_upw_small_strain_updated_lagrange_fic(self):
         test_name = 'compressibility_tests/upw_small_strain_updated_lagrange_fic'
@@ -71,12 +67,10 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         water_pressures_at_bottom = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0, output_data,
                                                                                          node_ids=bottom_node_nbrs)
 
-        expected_water_pressures_at_bottom = [-32.1873, -32.1873, 36.8588, 36.8588]
-
         for water_pressure_at_top in water_pressures_at_top:
-            self.assertAlmostEqual(water_pressure_at_top, 1.0, 6)
-        for water_pressure_at_bottom, expected_water_pressure_at_bottom in zip(water_pressures_at_bottom, expected_water_pressures_at_bottom):
-            self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 6)
+            self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
+        for water_pressure_at_bottom in water_pressures_at_bottom:
+            self.assertAlmostEqual(water_pressure_at_bottom, -57.5806, 6)
 
 
     def test_compressibility_upw_small_strain_updated_lagrange(self):
@@ -95,12 +89,10 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         water_pressures_at_bottom = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0, output_data,
                                                                                          node_ids=bottom_node_nbrs)
 
-        expected_water_pressures_at_bottom = [-27.4139, -27.4139, 31.4158, 31.4158]
-
         for water_pressure_at_top in water_pressures_at_top:
-            self.assertAlmostEqual(water_pressure_at_top, 1.0, 6)
-        for water_pressure_at_bottom, expected_water_pressure_at_bottom in zip(water_pressures_at_bottom, expected_water_pressures_at_bottom):
-            self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 6)
+            self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
+        for water_pressure_at_bottom in water_pressures_at_bottom:
+            self.assertAlmostEqual(water_pressure_at_bottom, -49.0716, 6)
 
 
 if __name__ == '__main__':
