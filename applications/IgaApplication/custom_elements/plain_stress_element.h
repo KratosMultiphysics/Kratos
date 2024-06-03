@@ -109,6 +109,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     /// Default constructor.
     PlainStressElement(
         IndexType NewId,
@@ -140,7 +142,6 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
-
 
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
@@ -291,10 +292,14 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    void InitializeMaterial();
+
 
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
 
 
     ///@}

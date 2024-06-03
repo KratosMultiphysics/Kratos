@@ -166,9 +166,10 @@ private:
         /// Sets the brep as geometry parent of the nurbs surface.
         p_surface->SetGeometryParent(p_brep_surface.get());
 
-        SizeType last_geometry_id = 0;
+        SizeType last_geometry_id = rModelPart.GetParentModelPart().Geometries().size();
         p_brep_surface->SetId(1);
         rModelPart.AddGeometry(p_brep_surface);
+
     }
 
     // 3D
@@ -764,85 +765,6 @@ private:
         p_brep_surface_on_volume_1->SetId(last_geometry_id);
         p_brep_surface_on_volume_1->SetNormalSBM(Normal);
         r_model_part.AddGeometry(p_brep_surface_on_volume_1);
-
-        //###########################################################################33
-        // Geometry<NodeType>::PointsArrayType points_lower;
-        // knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(A_uvw[0]-B_uvw[0])/2;  
-        // knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(A_uvw[1]-B_uvw[1])/2; 
-        // double increase_x = (B_uvw[0]-A_uvw[0])/2;
-        // double increase_y = (B_uvw[1]-A_uvw[1])/2;
-
-        // points_lower.push_back(NodeType::Pointer(new NodeType(1, A_uvw[0]           , A_uvw[1]           , A_uvw[2])));
-        // points_lower.push_back(NodeType::Pointer(new NodeType(2, A_uvw[0]           , A_uvw[1]+increase_y, A_uvw[2])));// CAMBIATO
-        // points_lower.push_back(NodeType::Pointer(new NodeType(3, A_uvw[0]+increase_x, A_uvw[1]           , A_uvw[2])));// CAMBIATO
-        // points_lower.push_back(NodeType::Pointer(new NodeType(4, A_uvw[0]+increase_x, A_uvw[1]+increase_y, A_uvw[2])));
-        
-        // Normal = ZeroVector(3);
-        // Normal[2] = -1;
-        // auto p_surface_1 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_lower, p, q, knot_vector_u, knot_vector_v);
-        // auto brep_p_surface_1 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_surface_1);
-        // auto p_brep_surface_on_volume_1 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, PointerVector<NodeType>>>(p_volume_geometry, p_surface_1);
-        // p_brep_surface_on_volume_1->SetId(last_geometry_id);
-        // p_brep_surface_on_volume_1->SetNormalSBM(Normal);
-        // r_model_part.AddGeometry(p_brep_surface_on_volume_1);
-
-        // // 2-
-        // Geometry<NodeType>::PointsArrayType points_lower_1_2;
-        // knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(A_uvw[0]-B_uvw[0])/2;  
-        // knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(A_uvw[1]-B_uvw[1])/2; 
-
-        // points_lower_1_2.push_back(NodeType::Pointer(new NodeType(1, A_uvw[0]+increase_x, A_uvw[1]           , A_uvw[2])));
-        // points_lower_1_2.push_back(NodeType::Pointer(new NodeType(2, A_uvw[0]+increase_x, A_uvw[1]+increase_y, A_uvw[2])));// CAMBIATO
-        // points_lower_1_2.push_back(NodeType::Pointer(new NodeType(3, B_uvw[0]           , A_uvw[1]           , A_uvw[2])));// CAMBIATO
-        // points_lower_1_2.push_back(NodeType::Pointer(new NodeType(4, B_uvw[0]           , A_uvw[1]+increase_y, A_uvw[2])));
-        
-
-        // auto p_surface_1_2 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_lower_1_2, p, q, knot_vector_u, knot_vector_v);
-        // auto brep_p_surface_1_2 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_surface_1_2);
-        // auto p_brep_surface_on_volume_1_2 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, PointerVector<NodeType>>>(p_volume_geometry, p_surface_1_2);
-        // p_brep_surface_on_volume_1_2->SetId(++last_geometry_id);
-        // p_brep_surface_on_volume_1_2->SetNormalSBM(Normal);
-        // r_model_part.AddGeometry(p_brep_surface_on_volume_1_2);
-
-        // // 3-
-        // Geometry<NodeType>::PointsArrayType points_lower_2_1;
-        // knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(A_uvw[0]-B_uvw[0])/2;  
-        // knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(A_uvw[1]-B_uvw[1])/2; 
-
-        // points_lower_2_1.push_back(NodeType::Pointer(new NodeType(1, A_uvw[0]           , A_uvw[1]+increase_y, A_uvw[2])));
-        // points_lower_2_1.push_back(NodeType::Pointer(new NodeType(2, A_uvw[0]           , B_uvw[1]           , A_uvw[2])));// CAMBIATO
-        // points_lower_2_1.push_back(NodeType::Pointer(new NodeType(3, A_uvw[0]+increase_x, A_uvw[1]+increase_y, A_uvw[2])));// CAMBIATO
-        // points_lower_2_1.push_back(NodeType::Pointer(new NodeType(4, A_uvw[0]+increase_x, B_uvw[1]           , A_uvw[2])));
-        
-
-        // auto p_surface_2_1 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_lower_2_1, p, q, knot_vector_u, knot_vector_v);
-        // auto brep_p_surface_2_1 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_surface_2_1);
-        // auto p_brep_surface_on_volume_2_1 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, PointerVector<NodeType>>>(p_volume_geometry, p_surface_2_1);
-        // p_brep_surface_on_volume_2_1->SetId(++last_geometry_id);
-        // p_brep_surface_on_volume_2_1->SetNormalSBM(Normal);
-        // r_model_part.AddGeometry(p_brep_surface_on_volume_2_1);
-
-        // // 4-
-        // Geometry<NodeType>::PointsArrayType points_lower_2_2;
-        // knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(A_uvw[0]-B_uvw[0])/2;  
-        // knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(A_uvw[1]-B_uvw[1])/2; 
-
-        // points_lower_2_2.push_back(NodeType::Pointer(new NodeType(1, A_uvw[0]+increase_x, A_uvw[1]+increase_y, A_uvw[2])));
-        // points_lower_2_2.push_back(NodeType::Pointer(new NodeType(2, A_uvw[0]+increase_x, B_uvw[1]           , A_uvw[2])));// CAMBIATO
-        // points_lower_2_2.push_back(NodeType::Pointer(new NodeType(3, B_uvw[0]           , A_uvw[1]+increase_y, A_uvw[2])));// CAMBIATO
-        // points_lower_2_2.push_back(NodeType::Pointer(new NodeType(4, B_uvw[0]           , B_uvw[1]           , A_uvw[2])));
-        
-
-        // auto p_surface_2_2 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_lower_2_2, p, q, knot_vector_u, knot_vector_v);
-        // auto brep_p_surface_2_2 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>, PointerVector<Point>>>(p_surface_2_2);
-        // auto p_brep_surface_on_volume_2_2 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, PointerVector<NodeType>>>(p_volume_geometry, p_surface_2_2);
-        // p_brep_surface_on_volume_2_2->SetId(++last_geometry_id);
-        // p_brep_surface_on_volume_2_2->SetNormalSBM(Normal);
-        // r_model_part.AddGeometry(p_brep_surface_on_volume_2_2);
-
-
-
-        //###############################################################################
 
         // upper
         Geometry<NodeType>::PointsArrayType points_upper;

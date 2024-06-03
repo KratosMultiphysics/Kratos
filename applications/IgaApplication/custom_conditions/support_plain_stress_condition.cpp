@@ -20,6 +20,30 @@
 
 namespace Kratos
 {
+
+    void SupportPlainStressCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        InitializeMaterial();
+    }
+
+
+    void SupportPlainStressCondition::InitializeMaterial()
+    {
+        KRATOS_TRY
+        if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+            const GeometryType& r_geometry = GetGeometry();
+            const Properties& r_properties = GetProperties();
+            const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+            mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+        } else
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+        KRATOS_CATCH( "" );
+
+    }
     void SupportPlainStressCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -84,148 +108,168 @@ namespace Kratos
         // MODIFIED
         double nu = this->GetProperties().GetValue(POISSON_RATIO);
         double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-        Matrix D = ZeroMatrix(3,3);
-        D(0,0) = 1; 
-        D(0,1) = nu;
-        D(1,0) = nu;
-        D(1,1) = 1;
-        D(2,2) = (1-nu)/2;
-        D *= E/(1-nu*nu);
 
+        Vector old_displacement(mat_size);
+        GetValuesVector(old_displacement);
 
-        // Stampa su file esterno le coordinate (projection[0],projection[1])
+        // Matrix D = ZeroMatrix(3,3);
+        // D(0,0) = 1; 
+        // D(0,1) = nu;
+        // D(1,0) = nu;
+        // D(1,1) = 1;
+        // D(2,2) = (1-nu)/2;
+        // D *= E/(1-nu*nu);
+
+        
+        /////
+        // ---------------------MODIFIED POLYTIMI 30 05 24
         std::ofstream outputFile("txt_files/boundary_GPs.txt", std::ios::app);
         outputFile << std::setprecision(14); // Set precision to 10^-14
         outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
         outputFile.close();
         
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+
+        const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+
+        //auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
+        //const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0);
+
+        // MODIFIED
+        Matrix B = ZeroMatrix(3,mat_size);
+
+        CalculateB(B, DN_DX);
+
+
+    //---------- MODIFIED ----------------------------------------------------------------
+
+
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        Vector old_strain = prod(B,old_displacement);
+    
+        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetStrainVector(old_strain);
+
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+
+        const Matrix& r_D = Values.GetConstitutiveMatrix();
+        //---------------------
+
+
+            
+        Matrix H = ZeroMatrix(1, number_of_nodes);
+        for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+            H(0, i)            = N(0, i);
+        }
 
-            Matrix Jacobian = ZeroMatrix(2,2);
-            Jacobian(0,0) = J0[point_number](0,0);
-            Jacobian(0,1) = J0[point_number](0,1);
-            Jacobian(1,0) = J0[point_number](1,0);
-            Jacobian(1,1) = J0[point_number](1,1);
 
-            // Calculating inverse jacobian and jacobian determinant
-            MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-            Matrix InvJ0_23 = ZeroMatrix(2,3);
-            InvJ0_23(0,0) = InvJ0(0,0);
-            InvJ0_23(0,1) = InvJ0(0,1);
-            InvJ0_23(1,0) = InvJ0(1,0);
-            InvJ0_23(1,1) = InvJ0(1,1);
-            InvJ0_23(0,2) = 0;
-            InvJ0_23(1,2) = 0;
+        // Differential area
+        double penalty_integration = penalty * integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
 
-            // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias(DN_DX) = prod(DN_De[point_number],InvJ0_23);
+        // Guglielmo innovaction
+        double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
+                                                // = -1 -> Free-penalty approach
+        if (Guglielmo_innovation == -1.0) {
+            penalty_integration = 0.0;
+        }
+
+        // Assembly
+
+        //Matrix B = ZeroMatrix(3,mat_size);
+
+        //CalculateB(B, DN_DX);
+
+        Matrix DB = prod(r_D,B);
+        double integration_factor = integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
+        for (IndexType i = 0; i < number_of_nodes; i++) {
+            for (IndexType j = 0; j < number_of_nodes; j++) {
+                
+                for (IndexType idim = 0; idim < 2; idim++) {
+                    rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H(0,j)* penalty_integration;
+                    const int id1 = 2*idim;
+                    const int iglob = 2*i+idim;
+
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int id2 = (id1+2)%3;
+                        const int jglob = 2*j+jdim;
+                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+
+                        rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j)*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
+                    }
+
+                }
+            }
+        }
+        
+        
+        if (CalculateResidualVectorFlag) {
             
-            Matrix H = ZeroMatrix(1, number_of_nodes);
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                H(0, i)            = N(point_number, i);
-            }
+            // const double& temperature = Has(TEMPERATURE)
+            //     ? this->GetValue(TEMPERATURE)
+            //     : 0.0;
+            
+            Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
+            
+            double x = GP_parameter_coord[0];
+            double y = GP_parameter_coord[1];
 
+            // u_D[0] = cos(x)*sinh(y);
+            // u_D[1] = sin(x)*cosh(y);
 
-            // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
+            u_D[0] = this->GetValue(DISPLACEMENT_X);
+            u_D[1] = this->GetValue(DISPLACEMENT_Y);
 
-            // Guglielmo innovaction
-            double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
-                                                 // = -1 -> Free-penalty approach
-            if (Guglielmo_innovation == -1.0) {
-                penalty_integration = 0.0;
-            }
-
-            // Assembly
-
-            Matrix B = ZeroMatrix(3,mat_size);
-
-            CalculateB(B, DN_DX);
-
-            Matrix DB = prod(D,B);
-            double integration_factor = integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
             for (IndexType i = 0; i < number_of_nodes; i++) {
-                for (IndexType j = 0; j < number_of_nodes; j++) {
-                    
-                    for (IndexType idim = 0; idim < 2; idim++) {
-                        rLeftHandSideMatrix(2*i+idim, 2*j+idim) -= H(0,i)*H(0,j)* penalty_integration;
-                        const int id1 = 2*idim;
-                        const int iglob = 2*i+idim;
 
-                        for (IndexType jdim = 0; jdim < 2; jdim++) {
-                            const int id2 = (id1+2)%3;
-                            const int jglob = 2*j+jdim;
-                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+                for (IndexType idim = 0; idim < 2; idim++) {
 
-                            rLeftHandSideMatrix(iglob, jglob) -= Guglielmo_innovation*H(0,j)*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
-                        }
+                    rRightHandSideVector[2*i+idim] -= H(0,i)*u_D[idim]* penalty_integration;
+                    const int id1 = idim*2;
 
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int id2 = (id1+2)%3;
+                        rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
                     }
 
-                    // rLeftHandSideMatrix(2*i, 2*j)     -=  H(0,i)*(DB(0, 2*j)   * normal_parameter_space[0] + DB(2, 2*j)   * normal_parameter_space[1]) * integration_factor;
-                    // rLeftHandSideMatrix(2*i, 2*j+1)   -=  H(0,i)*(DB(0, 2*j+1) * normal_parameter_space[0] + DB(2, 2*j+1) * normal_parameter_space[1]) * integration_factor;
-                    // rLeftHandSideMatrix(2*i+1, 2*j)   -=  H(0,i)*(DB(2, 2*j)   * normal_parameter_space[0] + DB(1, 2*j)   * normal_parameter_space[1]) * integration_factor;
-                    // rLeftHandSideMatrix(2*i+1, 2*j+1) -=  H(0,i)*(DB(2, 2*j+1) * normal_parameter_space[0] + DB(1, 2*j+1) * normal_parameter_space[1]) * integration_factor;
-
-
-                    // rLeftHandSideMatrix(2*i, 2*j)     -=  Guglielmo_innovation*H(0,j)*(DB(0, 2*i)   * normal_parameter_space[0] + DB(2, 2*i)   * normal_parameter_space[1]) * integration_factor;
-                    // rLeftHandSideMatrix(2*i, 2*j+1)   -=  Guglielmo_innovation*H(0,j)*(DB(0, 2*i+1) * normal_parameter_space[0] + DB(2, 2*i+1) * normal_parameter_space[1]) * integration_factor;
-                    // rLeftHandSideMatrix(2*i+1, 2*j)   -=  Guglielmo_innovation*H(0,j)*(DB(2, 2*i)   * normal_parameter_space[0] + DB(1, 2*i)   * normal_parameter_space[1]) * integration_factor;
-                    // rLeftHandSideMatrix(2*i+1, 2*j+1) -=  Guglielmo_innovation*H(0,j)*(DB(2, 2*i+1) * normal_parameter_space[0] + DB(1, 2*i+1) * normal_parameter_space[1]) * integration_factor;
                 }
+
+
             }
-            // noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration;
-            // // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-            // noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
-            // // Of the Dirichlet BCs -(GRAD_w* n,u) 
-            // noalias(rLeftHandSideMatrix) -= Guglielmo_innovation * prod(trans(DN_dot_n), H) * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]) ;
             
-            if (CalculateResidualVectorFlag) {
-                
-                // const double& temperature = Has(TEMPERATURE)
-                //     ? this->GetValue(TEMPERATURE)
-                //     : 0.0;
-                
-                Vector u_D = ZeroVector(2); //->GetValue(DISPLACEMENT);
-                
-                double x = GP_parameter_coord[0];
-                double y = GP_parameter_coord[1];
+            Vector temp = ZeroVector(number_of_nodes);
 
-                u_D[0] = cos(x)*sinh(y);
-                u_D[1] = sin(x)*cosh(y);
+            GetValuesVector(temp);
 
-                // u_D[0] = this->GetValue(DISPLACEMENT_X);
-                // u_D[1] = this->GetValue(DISPLACEMENT_Y);
-
-                for (IndexType i = 0; i < number_of_nodes; i++) {
-
-                    for (IndexType idim = 0; idim < 2; idim++) {
-
-                        rRightHandSideVector[2*i+idim] -= H(0,i)*u_D[idim]* penalty_integration;
-                        const int id1 = idim*2;
-
-                        for (IndexType jdim = 0; jdim < 2; jdim++) {
-                            const int id2 = (id1+2)%3;
-                            rRightHandSideVector(2*i+idim) -= Guglielmo_innovation*u_D[jdim]*(DB(id1, 2*i+jdim)* normal_parameter_space[0] + DB(id2, 2*i+jdim)* normal_parameter_space[1]) * integration_factor;
-                        }
-
-                    }
-
-
-                }
-                
-                Vector temp = ZeroVector(number_of_nodes);
-
-                GetValuesVector(temp);
-
-                // RHS = ExtForces - K*temp;
-                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-                
-                // exit(0);
-            }
+            // RHS = ExtForces - K*temp;
+            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+            
+            // exit(0);
         }
         KRATOS_CATCH("")
     }

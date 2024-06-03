@@ -54,26 +54,73 @@ namespace Kratos
             Vector knot_vector_u = geometry_parameters["breps"][0]["faces"][0]["surface"]["knot_vectors"][0].GetVector();
             Vector knot_vector_v = geometry_parameters["breps"][0]["faces"][0]["surface"]["knot_vectors"][1].GetVector();
             
+            // // Create the Surrogate Model part
+            // ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart("surrogate_model_part_inner");
+            // ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart("surrogate_model_part_outer");
+            // // Create the snakes coordiantes
+            // KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Starting the CreateTheSnakeCoordinates" << std::endl;
+            // // old --> // CreateTheSnakeCoordinates(knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, refinements_parameters, surrogate_model_part_inner, surrogate_model_part_outer);
+
+            // // Skin model part refined after Snake Process
+            // ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
+            // ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
+            // // Initial Skin model part coming from mdpa
+            // ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
+            //                                 ? mpModel->GetModelPart("initial_skin_model_part_in")
+            //                                 : mpModel->CreateModelPart("initial_skin_model_part_in");
+            // ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
+            //                             ? mpModel->GetModelPart("initial_skin_model_part_out")
+            //                             : mpModel->CreateModelPart("initial_skin_model_part_out");
+            // ModelPart& iga_model_part = mpModel->HasModelPart("IgaModelPart")
+            //                             ? mpModel->GetModelPart("IgaModelPart")
+            //                             : mpModel->CreateModelPart("IgaModelPart");
+
+
+            KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+            << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
+
+        
+            // Create the Domain/Iga Model Part
+            const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
+            ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
+                                        ? mpModel->GetModelPart(iga_model_part_name)
+                                        : mpModel->CreateModelPart(iga_model_part_name);
+
+            //-------------------------------------
             // Create the Surrogate Model part
-            ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart("surrogate_model_part_inner");
-            ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart("surrogate_model_part_outer");
-            // Create the snakes coordiantes
-            KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Starting the CreateTheSnakeCoordinates" << std::endl;
-            // old --> // CreateTheSnakeCoordinates(knot_vector_u, knot_vector_v, knot_step_u, knot_step_v, refinements_parameters, surrogate_model_part_inner, surrogate_model_part_outer);
+            std::string initial_skin_model_part_name;
+            if (!mParameters.Has("initial_skin_model_part_name")) initial_skin_model_part_name = "initial_skin_model_part_name";
+            else {
+                initial_skin_model_part_name = mParameters["initial_skin_model_part_name"].GetString();
+            }
+
+            std::string skin_model_part_name;
+            if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+            else {
+                skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+            }
+
+            std::string surrogate_model_part_name;
+            if (!mParameters.Has("surrogate_model_part_name")) surrogate_model_part_name = "surrogate_model_part";
+            else {
+                surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
+            }
+
+            
+            ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart(surrogate_model_part_name + "_inner");
+            ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart(surrogate_model_part_name + "_outer");
 
             // Skin model part refined after Snake Process
-            ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
-            ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
+            ModelPart& skin_model_part_in = mpModel->CreateModelPart(skin_model_part_name + "_in");
+            ModelPart& skin_model_part_out = mpModel->CreateModelPart(skin_model_part_name + "_out");
             // Initial Skin model part coming from mdpa
-            ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
-                                            ? mpModel->GetModelPart("initial_skin_model_part_in")
-                                            : mpModel->CreateModelPart("initial_skin_model_part_in");
-            ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
-                                        ? mpModel->GetModelPart("initial_skin_model_part_out")
-                                        : mpModel->CreateModelPart("initial_skin_model_part_out");
-            ModelPart& iga_model_part = mpModel->HasModelPart("IgaModelPart")
-                                        ? mpModel->GetModelPart("IgaModelPart")
-                                        : mpModel->CreateModelPart("IgaModelPart");
+            ModelPart& initial_skin_model_part_in = mpModel->HasModelPart(initial_skin_model_part_name + "_in")
+                                            ? mpModel->GetModelPart(initial_skin_model_part_name + "_in")
+                                            : mpModel->CreateModelPart(initial_skin_model_part_name + "_in");
+            ModelPart& initial_skin_model_part_out = mpModel->HasModelPart(initial_skin_model_part_name + "_out")
+                                        ? mpModel->GetModelPart(initial_skin_model_part_name + "_out")
+                                        : mpModel->CreateModelPart(initial_skin_model_part_name + "_out");
+            //---------------------------------------
             
             SnakeSBMUtilities::CreateTheSnakeCoordinates(iga_model_part, skin_model_part_in, skin_model_part_out, 
                                                          initial_skin_model_part_in, initial_skin_model_part_out, 
@@ -141,17 +188,40 @@ namespace Kratos
     void CadIoModeler::CreateTheSnakeCoordinates(Vector& knot_vector_u_complete, Vector& knot_vector_v_complete, double& knot_step_u, double& knot_step_v, const Parameters refinements_parameters, ModelPart& surrogate_model_part_inner, ModelPart& surrogate_model_part_outer) {
         
         // Skin model part refined after Snake Process
-        ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
-        ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
+        // ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
+        // ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
         
+        // // Initial Skin model part coming from mdpa
+        // ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
+        //                                 ? mpModel->GetModelPart("initial_skin_model_part_in")
+        //                                 : mpModel->CreateModelPart("initial_skin_model_part_in");
+        
+        // ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
+        //                                 ? mpModel->GetModelPart("initial_skin_model_part_out")
+        //                                 : mpModel->CreateModelPart("initial_skin_model_part_out");
+
+        // Create the Surrogate Model part
+        std::string initial_skin_model_part_name;
+        if (!mParameters.Has("initial_skin_model_part_name")) initial_skin_model_part_name = "initial_skin_model_part_name";
+        else {
+            initial_skin_model_part_name = mParameters["initial_skin_model_part_name"].GetString();
+        }
+
+        std::string skin_model_part_name;
+        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+        else {
+            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+        }
+        // Skin model part refined after Snake Process
+        ModelPart& skin_model_part_in = mpModel->CreateModelPart(skin_model_part_name + "_in");
+        ModelPart& skin_model_part_out = mpModel->CreateModelPart(skin_model_part_name + "_out");
         // Initial Skin model part coming from mdpa
-        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
-                                        ? mpModel->GetModelPart("initial_skin_model_part_in")
-                                        : mpModel->CreateModelPart("initial_skin_model_part_in");
-        
-        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
-                                        ? mpModel->GetModelPart("initial_skin_model_part_out")
-                                        : mpModel->CreateModelPart("initial_skin_model_part_out");
+        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart(initial_skin_model_part_name + "_in")
+                                        ? mpModel->GetModelPart(initial_skin_model_part_name + "_in")
+                                        : mpModel->CreateModelPart(initial_skin_model_part_name + "_in");
+        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart(initial_skin_model_part_name + "_out")
+                                    ? mpModel->GetModelPart(initial_skin_model_part_name + "_out")
+                                    : mpModel->CreateModelPart(initial_skin_model_part_name + "_out");
         
         // Initilize the property of skin_model_part_in and out
         Properties::Pointer p_cond_prop_in = initial_skin_model_part_in.pGetProperties(0);

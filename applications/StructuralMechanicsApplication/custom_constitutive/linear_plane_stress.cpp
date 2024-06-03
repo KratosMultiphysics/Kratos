@@ -66,6 +66,22 @@ bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rVa
     return rValue;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string LinearPlaneStress::Info() const
+{
+    return "LinearPlaneStress ConstitutiveLaw instance";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearPlaneStress::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info() << std::endl;
+}
+
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 

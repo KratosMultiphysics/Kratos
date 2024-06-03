@@ -59,7 +59,6 @@ ElasticIsotropic3D::~ElasticIsotropic3D()
 void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
-
     Flags &r_constitutive_law_options = rValues.GetOptions();
     ConstitutiveLaw::StrainVectorType &r_strain_vector = rValues.GetStrainVector();
 
@@ -67,6 +66,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         // Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
         CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
+
     AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
 
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {

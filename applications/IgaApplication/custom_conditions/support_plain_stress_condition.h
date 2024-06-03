@@ -15,11 +15,17 @@
 // System includes
 #include "includes/define.h"
 #include "includes/condition.h"
+#include "utilities/math_utils.h"
+#include "includes/variables.h"
+
 
 // External includes
 
 // Project includes
 #include "iga_application_variables.h"
+
+// Project includes
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -41,6 +47,8 @@ namespace Kratos
         ///@}
         ///@name Life Cycle
         ///@{
+        
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Constructor with Id and geometry
         SupportPlainStressCondition(
@@ -232,6 +240,50 @@ namespace Kratos
         }
 
         ///@}
+
+    protected:
+
+    
+    /**
+     * Internal variables used in the constitutive calculations
+     */
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    ///@name Protected static Member Variables
+    ///@{
+    void InitializeMaterial();
+
+    //@}
+    ///@name Protected member Variables
+    ///@{
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+    ///@}
 
     private:
         ///@name Serialization

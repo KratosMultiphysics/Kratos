@@ -25,6 +25,7 @@
 
 #include "integration/integration_info.h"
 #include "utilities/function_parser_utility.h"
+#include "spatial_containers/bins_dynamic.h"
 
 namespace Kratos
 {
@@ -56,6 +57,16 @@ public:
 
     typedef typename ModelPart::ElementsContainerType ElementsContainerType;
     typedef typename ModelPart::ConditionsContainerType ConditionsContainerType;
+
+
+    using PointType = Node;
+    using PointTypePointer = Node::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    using PointerType = DynamicBins::PointerType;
 
     ///@}
     ///@name Life Cycle
@@ -205,6 +216,8 @@ private:
         const std::string& rDataFileName) const;
 
     bool CheckIsOnExternalParameterSpace(Point point, Vector parameterExternalCoordinates) const;
+
+    void prepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const;
 
     ///@}
     ///@name Serializer
