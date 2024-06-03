@@ -132,7 +132,7 @@ public:
      * @brief Returns a 9 component vector including the values of the DoFs
      * in GLOBAL beam axes
      */
-    void GetNodalValuesVector(GlobalSizeVector &rNodalValues);
+    void GetNodalValuesVector(GlobalSizeVector &rNodalValues) const;
 
     /**
      * @brief Called to initialize the element.
@@ -212,7 +212,7 @@ public:
      * functions at each node
      * xi: isoparametric coordinate
      */
-    array_3 GetShapeFunctionsValues(const double xi);
+    array_3 GetShapeFunctionsValues(const double xi) const;
 
     /**
      * @brief Returns a 3 component vector with the values of the shape
@@ -220,7 +220,7 @@ public:
      * xi: isoparametric coordinate
      * J: Jacobian
      */
-    array_3 GetFirstDerivativesShapeFunctionsValues(const double xi, const double J);
+    array_3 GetFirstDerivativesShapeFunctionsValues(const double xi, const double J) const;
 
     /**
      * @brief Returns a 3 component vector with the values of the shape
@@ -228,21 +228,21 @@ public:
      * xi: isoparametric coordinate
      * J: Jacobian
      */
-    array_3 GetSecondDerivativesShapeFunctionsValues(const double xi, const double J);
+    array_3 GetSecondDerivativesShapeFunctionsValues(const double xi, const double J) const;
 
     /**
      * @brief Returns a 3 component vector with the values of the shape
      * functions derivatives in the natural space at each node
      * xi: isoparametric coordinate
      */
-    array_3 GetLocalFirstDerivativesShapeFunctionsValues(const double xi);
+    array_3 GetLocalFirstDerivativesShapeFunctionsValues(const double xi) const;
 
     /**
      * @brief Returns a 3 component vector with the values of the shape
      * functions second derivatives in the natural space at each node
      * xi: isoparametric coordinate
      */
-    array_3 GetLocalSecondDerivativesShapeFunctionsValues(const double xi);
+    array_3 GetLocalSecondDerivativesShapeFunctionsValues(const double xi) const;
 
     /**
      * @brief This method fills the global vectors of shape functions
@@ -261,7 +261,7 @@ public:
      * @brief Returns the Jacobian of the isoparametric transformation of arc length s
      *     J = sqrt((dx)^2 + (dy)^2)
      */
-    double GetJacobian(const double xi);
+    double GetJacobian(const double xi) const;
 
     /**
      * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi
@@ -277,7 +277,7 @@ public:
     BoundedMatrix<double, 2, 2> GetFrenetSerretMatrix(
         const double xi,
         const array_3 &rt,
-        const array_3 &rn);
+        const array_3 &rn) const;
 
     /**
      * @brief This function retrieves the body forces in local axes

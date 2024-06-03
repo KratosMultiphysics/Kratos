@@ -151,7 +151,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetDofList(
 
 LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetShapeFunctionsValues(
     const double xi
-    )
+    ) const
 {
     array_3 N;
     N[0] = 0.5 * xi * (xi - 1.0);
@@ -166,7 +166,7 @@ LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement
 LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetFirstDerivativesShapeFunctionsValues(
     const double xi,
     const double J
-    )
+    ) const
 {
     return GetLocalFirstDerivativesShapeFunctionsValues(xi) / J;
 }
@@ -176,7 +176,7 @@ LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement
 
 LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetLocalFirstDerivativesShapeFunctionsValues(
     const double xi
-    )
+    ) const
 {
     array_3 dN;
     dN[0] = xi - 0.5;
@@ -191,7 +191,7 @@ LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement
 LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetSecondDerivativesShapeFunctionsValues(
     const double xi,
     const double J
-    )
+    ) const
 {
     return GetLocalSecondDerivativesShapeFunctionsValues(xi) / std::pow(J, 2);
 }
@@ -201,7 +201,7 @@ LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement
 
 LinearTimoshenkoCurvedBeamElement2D3N::array_3 LinearTimoshenkoCurvedBeamElement2D3N::GetLocalSecondDerivativesShapeFunctionsValues(
     const double xi
-    )
+    ) const
 {
     array_3 d2N;
     d2N[0] = 1.0;
@@ -271,7 +271,7 @@ BoundedMatrix<double, 2, 2> LinearTimoshenkoCurvedBeamElement2D3N::GetFrenetSerr
     const double xi,
     const array_3& rt,
     const array_3& rn
-    )
+    ) const
 {
     BoundedMatrix<double, 2, 2> T;
     T.clear();
@@ -289,7 +289,7 @@ BoundedMatrix<double, 2, 2> LinearTimoshenkoCurvedBeamElement2D3N::GetFrenetSerr
 
 double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(
     const double xi
-    )
+    ) const
 {
     const auto& r_geom = GetGeometry();
     const array_3 dN_dxi = GetLocalFirstDerivativesShapeFunctionsValues(xi);
@@ -310,7 +310,7 @@ double LinearTimoshenkoCurvedBeamElement2D3N::GetJacobian(
 
 void LinearTimoshenkoCurvedBeamElement2D3N::GetNodalValuesVector(
     GlobalSizeVector& rNodalValues
-    )
+    ) const
 {
     const auto &r_geom = GetGeometry();
 
