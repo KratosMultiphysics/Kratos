@@ -5,8 +5,8 @@
 #define MAPPING_UTILITIES_INCLUDE_H
 
 //// Project includes
-#include "includes/define.hpp"
-#include "includes/parameters.h"
+#include "queso/includes/define.hpp"
+#include "queso/includes/parameters.h"
 
 namespace queso {
 

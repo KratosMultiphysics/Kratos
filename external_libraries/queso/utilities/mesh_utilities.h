@@ -5,7 +5,7 @@
 #define MESH_UTILITIES_INCLUDE_H
 
 //// Project includes
-#include "containers/triangle_mesh.hpp"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 

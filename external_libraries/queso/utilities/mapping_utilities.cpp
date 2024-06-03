@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 // Project includes
-#include "utilities/mapping_utilities.h"
+#include "queso/utilities/mapping_utilities.h"
 
 namespace queso {
 

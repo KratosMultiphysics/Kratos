@@ -7,8 +7,8 @@
 #include <algorithm>
 
 /// Project includes
-#include "utilities/mesh_utilities.h"
-#include "utilities/math_utilities.hpp"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
 
