@@ -122,7 +122,7 @@ public:
         Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
 
         KRATOS_TRY
-        SetTimeFactors(rModelPart);
+
         KRATOS_CATCH("")
     }
 
