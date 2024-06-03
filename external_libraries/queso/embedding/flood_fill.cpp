@@ -6,8 +6,8 @@
 #include <map>
 #include <cstdlib>
 //// Project includes
-#include "embedding/flood_fill.h"
-#include "embedding/brep_operator.h"
+#include "queso/embedding/flood_fill.h"
+#include "queso/embedding/brep_operator.h"
 
 namespace queso {
 

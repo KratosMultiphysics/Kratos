@@ -2,7 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/geometry_query.h"
+#include "queso/embedding/geometry_query.h"
 
 namespace queso {
 

@@ -8,8 +8,8 @@
 #include <limits>
 #include <random>
 //// Project includes
-#include "embedding/brep_operator.h"
-#include "embedding/ray_aabb_primitive.h"
+#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/ray_aabb_primitive.h"
 
 
 namespace queso {

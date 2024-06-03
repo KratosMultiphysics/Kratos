@@ -7,9 +7,9 @@
 /// STL includes
 #include <memory>
 /// Project includes
-#include "embedding/geometry_query.h"
-#include "utilities/mesh_utilities.h"
-#include "embedding/trimmed_domain_on_plane.h"
+#include "queso/embedding/geometry_query.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/embedding/trimmed_domain_on_plane.h"
 
 namespace queso {
 

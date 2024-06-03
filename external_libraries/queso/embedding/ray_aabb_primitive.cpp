@@ -2,8 +2,8 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/ray_aabb_primitive.h"
-#include "utilities/math_utilities.hpp"
+#include "queso/embedding/ray_aabb_primitive.h"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
 

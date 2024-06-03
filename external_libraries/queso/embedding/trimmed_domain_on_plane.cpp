@@ -4,10 +4,10 @@
 //// STL includes
 
 //// Project includes
-#include "embedding/trimmed_domain_on_plane.h"
-#include "embedding/brep_operator.h"
-#include "embedding/trimmed_domain.h"
-#include "embedding/polygon.h"
+#include "queso/embedding/trimmed_domain_on_plane.h"
+#include "queso/embedding/brep_operator.h"
+#include "queso/embedding/trimmed_domain.h"
+#include "queso/embedding/polygon.h"
 
 namespace queso
 {

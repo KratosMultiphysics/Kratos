@@ -8,10 +8,10 @@
 // #include <memory>
 // #include <functional>
 // //// Project includes
-// #include "containers/boundary_integration_point.hpp"
-// #include "containers/triangle_mesh.hpp"
-// #include "utilities/mesh_utilities.h"
-// #include "includes/parameters.h"
+// #include "queso/containers/boundary_integration_point.hpp"
+// #include "queso/containers/triangle_mesh.hpp"
+// #include "queso/utilities/mesh_utilities.h"
+// #include "queso/includes/parameters.h"
 
 // namespace queso {
 

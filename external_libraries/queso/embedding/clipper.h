@@ -9,9 +9,9 @@
 #include <array>
 #include <algorithm>
 //// Project includes
-#include "includes/define.hpp"
-#include "embedding/polygon.h"
-#include "containers/triangle_mesh.hpp"
+#include "queso/includes/define.hpp"
+#include "queso/embedding/polygon.h"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 

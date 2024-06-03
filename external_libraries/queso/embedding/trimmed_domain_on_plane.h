@@ -8,8 +8,8 @@
 #include <set>
 #include <vector>
 //// Project includes
-#include "includes/define.hpp"
-#include "containers/triangle_mesh.hpp"
+#include "queso/includes/define.hpp"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso
 {

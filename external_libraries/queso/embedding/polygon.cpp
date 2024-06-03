@@ -2,8 +2,8 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/polygon.h"
-#include "utilities/math_utilities.hpp"
+#include "queso/embedding/polygon.h"
+#include "queso/utilities/math_utilities.hpp"
 
 namespace queso {
 

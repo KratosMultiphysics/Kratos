@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <array>
 //// Project includes
-#include "containers/triangle_mesh.hpp"
+#include "queso/containers/triangle_mesh.hpp"
 
 namespace queso {
 

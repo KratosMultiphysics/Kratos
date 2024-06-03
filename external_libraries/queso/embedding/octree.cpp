@@ -2,8 +2,8 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/octree.h"
-#include "embedding/trimmed_domain.h"
+#include "queso/embedding/octree.h"
+#include "queso/embedding/trimmed_domain.h"
 
 namespace queso {
 

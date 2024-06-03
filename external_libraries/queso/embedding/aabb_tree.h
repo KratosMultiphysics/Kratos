@@ -7,8 +7,8 @@
 //// External includes
 #include "aabb_tree/AABB_base.h"
 //// Project includes
-#include "embedding/aabb_primitive.h"
-#include "containers/triangle_mesh_interface.hpp"
+#include "queso/embedding/aabb_primitive.h"
+#include "queso/containers/triangle_mesh_interface.hpp"
 
 namespace queso {
 

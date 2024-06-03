@@ -11,8 +11,8 @@
 #include <set>
 
 //// Project includes
-#include "includes/define.hpp"
-#include "utilities/mapping_utilities.h"
+#include "queso/includes/define.hpp"
+#include "queso/utilities/mapping_utilities.h"
 
 namespace queso {
 

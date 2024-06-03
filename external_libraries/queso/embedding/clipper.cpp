@@ -2,9 +2,9 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/clipper.h"
-#include "utilities/math_utilities.hpp"
-#include "io/io_utilities.h"
+#include "queso/embedding/clipper.h"
+#include "queso/utilities/math_utilities.hpp"
+#include "queso/io/io_utilities.h"
 #include <cstdlib>
 
 namespace queso {

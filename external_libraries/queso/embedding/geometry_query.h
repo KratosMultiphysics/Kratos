@@ -5,10 +5,10 @@
 #define GEOMETRY_QUERY_INCLUDE_H
 
 /// Project includes
-#include "containers/triangle_mesh.hpp"
-#include "embedding/ray_aabb_primitive.h"
-#include "embedding/aabb_primitive.h"
-#include "embedding/aabb_tree.h"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/embedding/ray_aabb_primitive.h"
+#include "queso/embedding/aabb_primitive.h"
+#include "queso/embedding/aabb_tree.h"
 
 namespace queso {
 

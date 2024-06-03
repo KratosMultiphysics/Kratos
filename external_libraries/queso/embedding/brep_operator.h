@@ -7,14 +7,14 @@
 //// STL includes
 #include <memory>
 //// Project includes
-#include "containers/triangle_mesh.hpp"
-#include "containers/element.hpp"
-#include "containers/boundary_integration_point.hpp"
-#include "embedding/flood_fill.h"
-#include "embedding/trimmed_domain.h"
-#include "embedding/geometry_query.h"
-#include "embedding/clipper.h"
-#include "io/io_utilities.h"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/element.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
+#include "queso/embedding/flood_fill.h"
+#include "queso/embedding/trimmed_domain.h"
+#include "queso/embedding/geometry_query.h"
+#include "queso/embedding/clipper.h"
+#include "queso/io/io_utilities.h"
 
 namespace queso {
 

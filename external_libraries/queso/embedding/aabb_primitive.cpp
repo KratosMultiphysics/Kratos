@@ -2,7 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/aabb_primitive.h"
+#include "queso/embedding/aabb_primitive.h"
 
 namespace queso {
 

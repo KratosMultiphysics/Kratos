@@ -2,7 +2,7 @@
 // Email: manuel.messmer@tum.de
 
 //// Project includes
-#include "embedding/aabb_tree.h"
+#include "queso/embedding/aabb_tree.h"
 
 namespace queso {
 

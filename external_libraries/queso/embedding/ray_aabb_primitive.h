@@ -6,7 +6,7 @@
 #define RAY_AABB_PRIMITIVE_INCLUDE_H
 
 //// Project includes
-#include "embedding/aabb_primitive.h"
+#include "queso/embedding/aabb_primitive.h"
 
 namespace queso {
 

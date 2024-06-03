@@ -4,11 +4,11 @@
 //// STL includes
 #include <random>
 //// Project includes
-#include "includes/define.hpp"
-#include "embedding/trimmed_domain.h"
-#include "embedding/ray_aabb_primitive.h"
-#include "utilities/mesh_utilities.h"
-#include "io/io_utilities.h"
+#include "queso/includes/define.hpp"
+#include "queso/embedding/trimmed_domain.h"
+#include "queso/embedding/ray_aabb_primitive.h"
+#include "queso/utilities/mesh_utilities.h"
+#include "queso/io/io_utilities.h"
 
 namespace queso {
 
