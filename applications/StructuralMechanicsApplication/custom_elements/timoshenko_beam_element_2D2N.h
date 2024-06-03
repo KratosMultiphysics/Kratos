@@ -128,7 +128,7 @@ public:
     /**
      * @brief This method returns the angle of the FE axis
      */
-    double GetAngle()
+    double GetAngle() const
     {
         return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
     }
@@ -137,7 +137,7 @@ public:
      * @brief Returns a 6 component vector including the values of the DoFs
      * in LOCAL beam axes
      */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue);
+    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -146,9 +146,9 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    virtual double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    virtual double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
-    virtual double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues);
+    virtual double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
+    virtual double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const;
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa) and builds the strain vector
@@ -157,12 +157,12 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues);
+    void CalculateGeneralizedStrainsVector(VectorType& rStrain, const double Length, const double Phi, const double xi, const VectorType &rNodalValues) const;
 
     /**
      * @brief Computes the length of the FE and returns it
      */
-    double CalculateLength()
+    double CalculateLength() const
     {
         return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
     }
@@ -172,7 +172,7 @@ public:
      * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
      * @param rLocalSizeVector The 4 local components of v and theta
      */
-    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    virtual void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[1] = rLocalSizeVector[0];
@@ -274,11 +274,11 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    virtual void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    virtual void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    virtual void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    virtual void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    virtual void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) {};
+    virtual void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const {};
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
@@ -288,8 +288,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    virtual void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    virtual void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
@@ -299,8 +299,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    virtual void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
-    virtual void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi);
+    virtual void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
+    virtual void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates

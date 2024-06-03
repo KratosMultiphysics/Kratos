@@ -154,7 +154,7 @@ void LinearTimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -174,7 +174,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -194,7 +194,7 @@ void LinearTimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -214,7 +214,7 @@ void LinearTimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 4)
         rN.resize(4, false);
@@ -235,7 +235,7 @@ void LinearTimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     const double one_plus_phi = 1.0 + Phi;
     if (rN.size() != 4)
@@ -254,7 +254,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctionsVal
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     const double one_plus_phi = 1.0 + Phi;
     if (rN.size() != 4)
@@ -274,7 +274,7 @@ void LinearTimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 2)
         rN.resize(2, false);
@@ -290,7 +290,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues
     const double Length,
     const double Phi,
     const double xi
-    )
+    ) const
 {
     if (rN.size() != 2)
         rN.resize(2, false);
@@ -302,7 +302,7 @@ void LinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsValues
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearTimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues)
+void LinearTimoshenkoBeamElement2D2N::GetNodalValuesVector(VectorType& rNodalValues) const
 {
     if (rNodalValues.size() != 6)
         rNodalValues.resize(6, false);
@@ -352,7 +352,7 @@ void LinearTimoshenkoBeamElement2D2N::CalculateGeneralizedStrainsVector(
     const double Phi,
     const double xi,
     const VectorType &rNodalValues
-    )
+    ) const
 {
     rStrain[0] = CalculateAxialStrain(Length, Phi, xi, rNodalValues);      // El
     rStrain[1] = CalculateBendingCurvature(Length, Phi, xi, rNodalValues); // Kappa
@@ -367,7 +367,7 @@ double LinearTimoshenkoBeamElement2D2N::CalculateAxialStrain(
     const double Phi,
     const double xi,
     const VectorType& rNodalValues
-    )
+    ) const
 {
     VectorType N_u0_derivatives(2);
     GetFirstDerivativesNu0ShapeFunctionsValues(N_u0_derivatives, Length, Phi, xi);
@@ -382,7 +382,7 @@ double LinearTimoshenkoBeamElement2D2N::CalculateShearStrain(
     const double Phi,
     const double xi,
     const VectorType& rNodalValues
-    )
+    ) const
 {
     VectorType N_derivatives(4), N_theta(4);
     GetFirstDerivativesShapeFunctionsValues(N_derivatives, Length, Phi, xi);
@@ -400,7 +400,7 @@ double LinearTimoshenkoBeamElement2D2N::CalculateBendingCurvature(
     const double Phi,
     const double xi,
     const VectorType& rNodalValues
-    )
+    ) const
 {
     VectorType N_theta_derivatives(4);
     GetFirstDerivativesNThetaShapeFunctionsValues(N_theta_derivatives, Length, Phi, xi);

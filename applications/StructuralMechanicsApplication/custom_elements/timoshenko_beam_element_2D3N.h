@@ -132,7 +132,7 @@ public:
      * @brief Returns a 9 component vector including the values of the DoFs
      * in LOCAL axes
      */
-    void GetNodalValuesVector(VectorType& rNodalValue) override;
+    void GetNodalValuesVector(VectorType& rNodalValue) const override;
 
     /**
      * @brief Computes the axial strain (El), shear strain (gamma_xy) and bending curvature (kappa)
@@ -141,16 +141,16 @@ public:
      * @param xi The coordinate in the natural axes
      * @param rNodalValues The vector containing the nodal values in local axes
      */
-    double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) override;
-    double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) override;
-    double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) override;
+    double CalculateAxialStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const override;
+    double CalculateShearStrain     (const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const override;
+    double CalculateBendingCurvature(const double Length, const double Phi, const double xi, const VectorType& rNodalValues) const override;
 
     /**
      * @brief Modifies a vector to include the components of a local size vector to the global size
      * @param rGlobalSizeVector The global size vector including nul values to the axial u terms
      * @param rLocalSizeVector The 6 local components of v and theta
      */
-    void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) override
+    void GlobalSizeVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const override
     {
         // The ordering of the local vector nodes is different from global
         rGlobalSizeVector.clear();
@@ -197,11 +197,11 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
-    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
-    void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
-    void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
-    void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
+    void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
 
     /**
      * @brief This function returns the 4 shape functions used for interpolating the total rotation Theta (N_theta)
@@ -211,8 +211,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
-    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
+    void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
 
     /**
      * @brief This function returns the 2 shape functions used for interpolating the axial displacement u0
@@ -222,8 +222,8 @@ public:
      * @param Phi The shear slenderness parameter
      * @param xi The coordinate in the natural axes
     */
-    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
-    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) override;
+    void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
+    void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
 
     /**
      * @brief This function rotates the LHS from local to global coordinates
