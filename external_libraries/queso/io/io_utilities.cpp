@@ -4,7 +4,7 @@
 //// STL includes
 #include <map>
 //// Project includes
-#include "io/io_utilities.h"
+#include "queso/io/io_utilities.h"
 
 namespace queso {
 

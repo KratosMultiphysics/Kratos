@@ -7,9 +7,9 @@
 //// STL includes
 #include <fstream>
 //// Project includes
-#include "containers/element_container.hpp"
-#include "containers/triangle_mesh.hpp"
-#include "containers/boundary_integration_point.hpp"
+#include "queso/containers/element_container.hpp"
+#include "queso/containers/triangle_mesh.hpp"
+#include "queso/containers/boundary_integration_point.hpp"
 
 namespace queso {
 
