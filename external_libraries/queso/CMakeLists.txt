@@ -3,7 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # generate variables with the sources
 file(GLOB_RECURSE QUESO_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/embedding/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/quadrature/integration_points_1d/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/*.cpp
