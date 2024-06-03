@@ -1442,17 +1442,21 @@ Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(unsi
 
     // Calculation of derivative of shape function with respect to reference
     // configuration derivative of shape function (displacement)
-    Matrix J0, InvJ0, DNu_DX0;
+    Matrix J0;
+    Matrix InvJ0;
+    Matrix DNu_DX0;
     double detJ0;
     this->CalculateDerivativesOnInitialConfiguration(detJ0, J0, InvJ0, DNu_DX0, GPoint);
 
     // Calculating current Jacobian in order to find deformation gradient
-    Matrix J, InvJ, DNu_DX;
+    Matrix J;
+    Matrix InvJ;
     double detJ;
     this->CalculateJacobianOnCurrentConfiguration(detJ, J, InvJ, GPoint);
 
-    KRATOS_ERROR_IF(detJ < 0.0) << "ERROR:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ: " << detJ
-                                << " nodes:" << this->GetGeometry() << std::endl;
+    KRATOS_ERROR_IF(detJ < 0.0)
+        << "ERROR:: Element " << this->Id() << " is inverted. DetJ: " << detJ << std::endl
+        << "This usually indicates that the deformations are too large for the mesh size." << std::endl;
 
     return prod(J, InvJ0);
 

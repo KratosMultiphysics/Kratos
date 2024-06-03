@@ -1837,7 +1837,7 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int
 {
     KRATOS_TRY
 
-    // calculation of derivative of shape function with respect to reference
+    // Calculation of derivative of shape function with respect to reference
     // configuration derivative of shape function (displacement)
     Matrix J0;
     Matrix InvJ0;
@@ -1853,9 +1853,7 @@ Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int
 
     KRATOS_ERROR_IF(detJ < 0.0)
         << "ERROR:: Element " << this->Id() << " is inverted. DetJ: " << detJ << std::endl
-        << "This usually indicates that the deformations are too large for the "
-           "mesh size."
-        << std::endl;
+        << "This usually indicates that the deformations are too large for the mesh size." << std::endl;
 
     return prod(J, InvJ0);
 
