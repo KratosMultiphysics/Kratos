@@ -7,7 +7,7 @@
 //// External includes
 #include "nnls/nnls_impl.h"
 //// Project includes
-#include "nnls.h"
+#include "queso/solvers/nnls.h"
 
 namespace queso {
 
