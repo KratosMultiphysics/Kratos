@@ -127,45 +127,39 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
-    const PropertiesType& rProp      = this->GetProperties();
-    const GeometryType&   rGeom      = this->GetGeometry();
-    const unsigned int    NumGPoints = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const PropertiesType& r_properties = this->GetProperties();
+    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
-    // pointer to constitutive laws
-    if (mConstitutiveLawVector.size() != NumGPoints) mConstitutiveLawVector.resize(NumGPoints);
-
+    mConstitutiveLawVector.resize(number_of_integration_points);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i] = rProp[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLawVector[i] = r_properties[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->InitializeMaterial(
-            rProp, rGeom, row(rGeom.ShapeFunctionsValues(mThisIntegrationMethod), i));
+            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(mThisIntegrationMethod), i));
     }
 
-    // resize mStressVector:
-    if (mStressVector.size() != NumGPoints) {
-        unsigned int VoigtSize = VOIGT_SIZE_3D;
-        if constexpr (TDim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
-        mStressVector.resize(NumGPoints);
+    mRetentionLawVector.resize(number_of_integration_points);
+    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+        mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
+        mRetentionLawVector[i]->InitializeMaterial(
+            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(mThisIntegrationMethod), i));
+    }
+
+    if (mStressVector.size() != number_of_integration_points) {
+        mStressVector.resize(number_of_integration_points);
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-            mStressVector[i].resize(VoigtSize);
+            mStressVector[i].resize(GetStressStatePolicy().GetVoigtSize());
             std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
         }
     }
 
-    // resizing and setting state variables
-    if (mStateVariablesFinalized.size() != NumGPoints) mStateVariablesFinalized.resize(NumGPoints);
+    mStateVariablesFinalized.resize(number_of_integration_points);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
         if (nStateVariables > 0) {
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
-    }
-
-    if (mRetentionLawVector.size() != NumGPoints) mRetentionLawVector.resize(NumGPoints);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(rProp);
-        mRetentionLawVector[i]->InitializeMaterial(
-            rProp, rGeom, row(rGeom.ShapeFunctionsValues(mThisIntegrationMethod), i));
     }
 
     mIsInitialised = true;

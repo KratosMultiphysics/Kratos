@@ -189,92 +189,84 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
-    const GeometryType&                             rGeom = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
+    const PropertiesType& r_properties = GetProperties();
+    const GeometryType&   r_geometry   = GetGeometry();
+    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
 
-    if (mConstitutiveLawVector.size() != IntegrationPoints.size())
-        mConstitutiveLawVector.resize(IntegrationPoints.size());
+    mConstitutiveLawVector.resize(number_of_integration_points);
 
-    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[i]->InitializeMaterial(
-                GetProperties(), rGeom, row(rGeom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
-        }
-    } else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the "
-                        "element with ID "
-                     << this->Id() << std::endl;
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+        mConstitutiveLawVector[i] = r_properties[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLawVector[i]->InitializeMaterial(
+            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), i));
+    }
 
-    // Retention law
-    if (mRetentionLawVector.size() != IntegrationPoints.size())
-        mRetentionLawVector.resize(IntegrationPoints.size());
-
+    mRetentionLawVector.resize(number_of_integration_points);
     for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
+        mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
         mRetentionLawVector[i]->InitializeMaterial(
-            GetProperties(), rGeom, row(rGeom.ShapeFunctionsValues(this->GetIntegrationMethod()), i));
+            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), i));
     }
 
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    const SizeType NumDim    = rGeom.WorkingSpaceDimension();
-
-    switch (NumUNodes) {
-    case 6: // 2D T6P3
-        mpPressureGeometry = make_shared<Triangle2D3<Node>>(rGeom(0), rGeom(1), rGeom(2));
-        break;
-    case 8: // 2D Q8P4
-        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
-        break;
-    case 9: // 2D Q9P4
-        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
-        break;
-    case 10: // 3D T10P4  //2D T10P6
-        if (NumDim == 3)
-            mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
-        else if (NumDim == 2)
-            mpPressureGeometry = make_shared<Triangle2D6<Node>>(rGeom(0), rGeom(1), rGeom(2),
-                                                                rGeom(3), rGeom(4), rGeom(5));
-        break;
-    case 15: // 2D T15P10
-        mpPressureGeometry =
-            make_shared<Triangle2D10<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4),
-                                            rGeom(5), rGeom(6), rGeom(7), rGeom(8), rGeom(9));
-        break;
-    case 20: // 3D H20P8
-        mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(
-            rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
-        break;
-    case 27: // 3D H27P8
-        mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(
-            rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
-        break;
-    default:
-        KRATOS_ERROR << "Unexpected geometry type for different order "
-                        "interpolation element"
-                     << this->Id() << std::endl;
-    }
-
-    // resize mStressVector:
-    const SizeType VoigtSize = mpStressStatePolicy->GetVoigtSize();
-    if (mStressVector.size() != IntegrationPoints.size()) {
-        mStressVector.resize(IntegrationPoints.size());
+    if (mStressVector.size() != number_of_integration_points) {
+        mStressVector.resize(number_of_integration_points);
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-            mStressVector[i].resize(VoigtSize);
+            mStressVector[i].resize(GetStressStatePolicy().GetVoigtSize());
             std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
         }
     }
 
-    if (mStateVariablesFinalized.size() != IntegrationPoints.size())
-        mStateVariablesFinalized.resize(IntegrationPoints.size());
-
+    mStateVariablesFinalized.resize(number_of_integration_points);
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
         if (nStateVariables > 0) {
             mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
         }
+    }
+
+    const SizeType NumUNodes = r_geometry.PointsNumber();
+    const SizeType NumDim    = r_geometry.WorkingSpaceDimension();
+
+    switch (NumUNodes) {
+    case 6: // 2D T6P3
+        mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
+        break;
+    case 8: // 2D Q8P4
+        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
+        break;
+    case 9: // 2D Q9P4
+        mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                 r_geometry(2), r_geometry(3));
+        break;
+    case 10: // 3D T10P4  //2D T10P6
+        if (NumDim == 3)
+            mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
+                                                                  r_geometry(2), r_geometry(3));
+        else if (NumDim == 2)
+            mpPressureGeometry = make_shared<Triangle2D6<Node>>(
+                r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
+        break;
+    case 15: // 2D T15P10
+        mpPressureGeometry = make_shared<Triangle2D10<Node>>(
+            r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4),
+            r_geometry(5), r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
+        break;
+    case 20: // 3D H20P8
+        mpPressureGeometry =
+            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
+                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
+        break;
+    case 27: // 3D H27P8
+        mpPressureGeometry =
+            make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
+                                            r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
+        break;
+    default:
+        KRATOS_ERROR << "Unexpected geometry type for different order "
+                        "interpolation element"
+                     << this->Id() << std::endl;
     }
 
     mIsInitialised = true;
