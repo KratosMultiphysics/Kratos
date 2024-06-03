@@ -202,13 +202,19 @@ public:
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
+            IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
         IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
+            if constexpr (ConsiderGlobalDataCommunicator) {
+                rTLS.global_position = search_info.GlobalPosition[i_point];
+            } else {
+                rTLS.global_position = i_point;
+            }
+            auto& r_point_result = rResults[rTLS.global_position];
 
             // Search
             std::vector<ResultType> results;
@@ -274,13 +280,19 @@ public:
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
+            IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
         IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
+            if constexpr (ConsiderGlobalDataCommunicator) {
+                rTLS.global_position = search_info.GlobalPosition[i_point];
+            } else {
+                rTLS.global_position = i_point;
+            }
+            auto& r_point_result = rResults[rTLS.global_position];
 
             // Result of search
             ResultType local_result;
@@ -350,13 +362,19 @@ public:
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
+            IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
         IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
+            if constexpr (ConsiderGlobalDataCommunicator) {
+                rTLS.global_position = search_info.GlobalPosition[i_point];
+            } else {
+                rTLS.global_position = i_point;
+            }
+            auto& r_point_result = rResults[rTLS.global_position];
 
             // Result of search
             ResultType local_result;
@@ -422,13 +440,19 @@ public:
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
+            IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
         IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            auto& r_point_result = rResults[i_point];
+            if constexpr (ConsiderGlobalDataCommunicator) {
+                rTLS.global_position = search_info.GlobalPosition[i_point];
+            } else {
+                rTLS.global_position = i_point;
+            }
+            auto& r_point_result = rResults[rTLS.global_position];
 
             // Result of search
             ResultType local_result;
