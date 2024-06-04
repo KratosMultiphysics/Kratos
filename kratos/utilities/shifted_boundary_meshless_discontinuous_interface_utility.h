@@ -103,7 +103,6 @@ public:
     ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(
         Model& rModel,
         Parameters ThisParameters);
-        //: ShiftedBoundaryMeshlessInterfaceUtility(rModel, ThisParameters) {}
 
     /// Copy constructor.
     ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility const& rOther) = delete;
@@ -161,6 +160,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    const Variable<Vector>* mpDiscontinuousLevelSetVariable;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -216,7 +217,7 @@ private:
     /** TODO
      * @brief Get the Data For Split Element Boundary object using modified shape functions
      *
-     * @param pGeometry
+     * @param rElement
      * @param pModifiedShapeFunctionsFactory
      * @param rBoundaryShapeFunctionValues
      * @param rBoundaryShapeFunctionDerivatives
@@ -224,7 +225,7 @@ private:
      * @param rBoundaryAreaNormals
      */
     void GetDataForSplitElementBoundary(
-        const GeometryType::Pointer pGeometry,
+        const ElementType& rElement,
         ModifiedShapeFunctionsFactoryType pModifiedShapeFunctionsFactory,
         Matrix& rBoundaryShapeFunctionValues,
         ModifiedShapeFunctions::ShapeFunctionsGradientsType& rBoundaryShapeFunctionDerivatives,
@@ -236,13 +237,13 @@ private:
      * Create vectors to pointers of cloud nodes for a split element using all the nodes affecting the element.
      * Pointer Vectors are sorted by ID to properly get the extension operator data
      *
-     * @param rGeometry
+     * @param rElement
      * @param rExtensionOperatorMap
      * @param rCloudNodeVectorPositiveSide
      * @param rCloudNodeVectorNegativeSide
      */
     void CreateCloudNodeVectorsForSplitElement(
-        const GeometryType& rGeometry,
+        const ElementType& rElement,
         NodesCloudMapType& rExtensionOperatorMap,
         PointerVector<NodeType>& rCloudNodeVectorPositiveSide,
         PointerVector<NodeType>& rCloudNodeVectorNegativeSide);

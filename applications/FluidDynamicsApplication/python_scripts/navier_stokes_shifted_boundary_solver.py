@@ -315,7 +315,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
         if self.level_set_type == "discontinuous":
             #TODO no nodal neighbors needed?!
-            settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
+            settings.AddEmptyValue("levelset_variable_name").SetString("ELEMENTAL_DISTANCES")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(self.model, settings)
         else:
             settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")

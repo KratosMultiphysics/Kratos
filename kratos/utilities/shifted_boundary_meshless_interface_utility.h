@@ -175,12 +175,15 @@ protected:
 
     const Condition* mpConditionPrototype;
 
+    /// @brief Protected empty constructor for derived classes
+    ShiftedBoundaryMeshlessInterfaceUtility() {}
+
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
 
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
 
     /**
