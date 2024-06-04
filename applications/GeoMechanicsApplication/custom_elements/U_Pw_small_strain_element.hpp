@@ -180,7 +180,6 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes> UPMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes * TDim> PUMatrix;
         BoundedMatrix<double, TNumNodes, TNumNodes>        PPMatrix;
         Matrix                                             UVoigtMatrix;
