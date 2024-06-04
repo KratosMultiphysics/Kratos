@@ -336,11 +336,11 @@ void GeoCurvedBeamElement<TDim, TNumNodes>::CalculateAndAddBodyForce(VectorType&
     const double&         density = rProp[DENSITY];
 
     // Distribute body force block vector into elemental vector
-    noalias(rVariables.UVector) =
+    array_1d<double, TNumNodes * TDim> UVector =
         density * prod(trans(rVariables.NuTot), rVariables.GaussVolumeAcceleration) * rVariables.IntegrationCoefficient;
 
     // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
 
     KRATOS_CATCH("")
 }

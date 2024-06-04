@@ -1951,11 +1951,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessFo
 
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) =
+    array_1d<double, TNumNodes * TDim> UVector =
         -1.0 * prod(rVariables.UDimMatrix, mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
 
     KRATOS_CATCH("")
 }
@@ -1968,11 +1968,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddMixBodyForc
 
     this->CalculateSoilGamma(rVariables);
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.Nu), rVariables.SoilGamma) *
-                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    array_1d<double, TNumNodes * TDim> UVector = prod(trans(rVariables.Nu), rVariables.SoilGamma) *
+                                                 rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
 
     KRATOS_CATCH("")
 }
@@ -1998,16 +1998,16 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
 
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
+    array_1d<double, TNumNodes * TDim> UVector = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
 
     BoundedMatrix<double, TNumNodes * TDim, TNumNodes> UPMatrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
-        outer_prod(rVariables.UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
+        outer_prod(UVector, rVariables.Np) * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.UVector) = prod(UPMatrix, rVariables.PressureVector);
+    noalias(UVector) = prod(UPMatrix, rVariables.PressureVector);
 
     // Distribute coupling block vector 1 into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;

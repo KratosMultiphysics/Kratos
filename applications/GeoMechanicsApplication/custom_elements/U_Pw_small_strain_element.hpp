@@ -183,7 +183,6 @@ protected:
         BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix;
         Matrix                                      UVoigtMatrix;
         BoundedMatrix<double, TNumNodes, TDim>      PDimMatrix;
-        array_1d<double, TNumNodes * TDim>          UVector;
         array_1d<double, TNumNodes>                 PVector;
     };
 
