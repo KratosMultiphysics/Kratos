@@ -127,8 +127,8 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
     const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
     mConstitutiveLawVector.resize(number_of_integration_points);
@@ -229,22 +229,10 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rL
 {
     KRATOS_TRY
 
-    const auto number_of_dofs = this->GetNumberOfDOF();
-
-    // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != number_of_dofs)
-        rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
-
-    // Resetting the RHS
-    if (rRightHandSideVector.size() != number_of_dofs)
-        rRightHandSideVector.resize(number_of_dofs, false);
-    noalias(rRightHandSideVector) = ZeroVector(number_of_dofs);
-
-    // calculation flags
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag  = true;
-
+    rLeftHandSideMatrix  = ZeroMatrix{this->GetNumberOfDOF(), this->GetNumberOfDOF()};
+    rRightHandSideVector = ZeroVector{this->GetNumberOfDOF()};
+    const auto CalculateStiffnessMatrixFlag = true;
+    const auto CalculateResidualVectorFlag  = true;
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
