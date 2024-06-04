@@ -524,8 +524,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(In
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity            = Prop[DENSITY_WATER];
-    rVariables.SolidDensity            = Prop[DENSITY_SOLID];
-    rVariables.Porosity                = Prop[POROSITY];
 
     // ProcessInfo variables
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];

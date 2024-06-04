@@ -1406,8 +1406,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity            = Prop[DENSITY_WATER];
-    rVariables.SolidDensity            = Prop[DENSITY_SOLID];
-    rVariables.Porosity                = Prop[POROSITY];
 
     // ProcessInfo variables
     rVariables.VelocityCoefficient   = CurrentProcessInfo[VELOCITY_COEFFICIENT];

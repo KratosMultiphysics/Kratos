@@ -126,9 +126,7 @@ protected:
         bool   IgnoreUndrained;
         double DynamicViscosityInverse;
         double FluidDensity;
-        double SolidDensity;
         double Density;
-        double Porosity;
         double BiotCoefficient;
         double BiotModulusInverse;
 
