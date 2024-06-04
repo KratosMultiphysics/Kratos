@@ -189,8 +189,8 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = GetProperties();
-    const GeometryType&   r_geometry   = GetGeometry();
+    const auto& r_properties = GetProperties();
+    const auto& r_geometry   = GetGeometry();
     const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
 
     mConstitutiveLawVector.resize(number_of_integration_points);
@@ -347,22 +347,10 @@ void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType&        rLe
 {
     KRATOS_TRY
 
-    const auto number_of_dofs = GetNumberOfDOF();
-
-    // Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != number_of_dofs)
-        rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_dofs, number_of_dofs);
-
-    // Resetting the RHS
-    if (rRightHandSideVector.size() != number_of_dofs)
-        rRightHandSideVector.resize(number_of_dofs, false);
-    noalias(rRightHandSideVector) = ZeroVector(number_of_dofs);
-
-    // calculation flags
-    const bool CalculateStiffnessMatrixFlag = true;
-    const bool CalculateResidualVectorFlag  = true;
-
+    rLeftHandSideMatrix                     = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
+    rRightHandSideVector                    = ZeroVector{GetNumberOfDOF()};
+    const auto CalculateStiffnessMatrixFlag = true;
+    const auto CalculateResidualVectorFlag  = true;
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
@@ -1543,7 +1531,8 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoeffici
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const
+void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
+                                                        ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1641,7 +1630,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(VectorType& r
 
     Vector StiffnessForce =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
-
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, StiffnessForce);
 
     KRATOS_CATCH("")
@@ -1687,7 +1675,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
                                          rVariables.B, GetStressStatePolicy().GetVoigtVector(),
                                          rVariables.Np, rVariables.BiotCoefficient,
                                          rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-
     Vector CouplingForce = prod(CouplingMatrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, CouplingForce);
 
@@ -1708,10 +1695,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 
     Matrix CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-
     Vector CompressibilityFlow = -prod(CompressibilityMatrix, rVariables.PressureDtVector);
-
-    // Distribute compressibility block vector into the elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, CompressibilityFlow);
 
     KRATOS_CATCH("")
