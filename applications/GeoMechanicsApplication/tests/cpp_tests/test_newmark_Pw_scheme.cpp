@@ -137,13 +137,13 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeNewmarkPwScheme_SetsTimeFactors, KratosGeoMe
     constexpr double delta_time             = 3.0;
     model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
 
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
     scheme.Initialize(model_part);
 
     KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
 
+    CompressedMatrix A;
+    Vector           Dx;
+    Vector           b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b); // This is needed to set the time factors
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT], 1.0 / (theta * delta_time));
 }
