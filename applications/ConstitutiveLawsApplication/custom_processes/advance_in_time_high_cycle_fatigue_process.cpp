@@ -245,7 +245,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         }
     }
 
-    if ((accumulated_max_stress_rel_error < max_stress_relative_tolerance && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance) || (DamageIndicator && accumulated_max_stress_rel_error < max_stress_relative_tolerance_damage && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance_damage)) {
+    if ((!DamageIndicator && accumulated_max_stress_rel_error < max_stress_relative_tolerance && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance) || (DamageIndicator && accumulated_max_stress_rel_error < max_stress_relative_tolerance_damage && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance_damage)) {
         rAdvancingStrategy = true;
     }
 }
