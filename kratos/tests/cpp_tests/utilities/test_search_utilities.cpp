@@ -170,4 +170,43 @@ KRATOS_TEST_CASE_IN_SUITE(SynchronousPointSynchronizationWithRadius, KratosCoreF
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PointIsInsideBoundingBox, KratosCoreFastSuite)
+{
+    Point min_point = Point(0.0, 0.0, 0.0);
+    Point max_point = Point(1.0, 1.0, 1.0);
+    const BoundingBox<Point> box(min_point, max_point);
+    const Point point_inside(0.5, 0.5, 0.5);
+    const Point point_outside(1.5, 1.5, 1.5);
+
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_inside));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointIsInsideBoundingBoxArray, KratosCoreFastSuite)
+{
+    Point min_point = Point(0.0, 0.0, 0.0);
+    Point max_point = Point(1.0, 1.0, 1.0);
+    const std::array<double, 6> box = {max_point[0], min_point[0], max_point[1], min_point[1], max_point[2], min_point[2]};
+    const Point point_inside(0.5, 0.5, 0.5);
+    const Point point_outside(1.5, 1.5, 1.5);
+
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_inside));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointIsInsideBoundingBoxWithTolerance, KratosCoreFastSuite)
+{
+    Point min_point = Point(0.0, 0.0, 0.0);
+    Point max_point = Point(1.0, 1.0, 1.0);
+    const BoundingBox<Point> box(min_point, max_point);
+    const Point point_inside(0.5, 0.5, 0.5);
+    const Point point_outside_limit(1.0, 1.0, 1.0);
+    const Point point_outside(1.5, 1.5, 1.5);
+    const double tolerance = 0.6;
+
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_inside, tolerance));
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside_limit, tolerance));
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(box, point_outside, tolerance));
+}
+
 }  // namespace Kratos::Testing
