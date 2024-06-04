@@ -90,7 +90,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["WATER_PRESSURE", "DISPLACEMENT"],
+                        "nodal_results":       ["WATER_PRESSURE"],
                         "gauss_point_results": []
                     },
                     "point_data_configuration":  []
