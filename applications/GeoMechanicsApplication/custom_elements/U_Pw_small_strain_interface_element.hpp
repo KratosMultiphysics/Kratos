@@ -160,15 +160,14 @@ protected:
         array_1d<double, TDim>                        BodyAcceleration;
         array_1d<double, TDim>                        SoilGamma;
 
-        double                                             IntegrationCoefficient;
-        double                                             JointWidth;
-        BoundedMatrix<double, TNumNodes, TNumNodes * TDim> PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>        PPMatrix;
-        BoundedMatrix<double, TDim, TDim>                  DimMatrix;
-        BoundedMatrix<double, TNumNodes * TDim, TDim>      UDimMatrix;
-        BoundedMatrix<double, TNumNodes, TDim>             PDimMatrix;
-        array_1d<double, TNumNodes * TDim>                 UVector;
-        array_1d<double, TNumNodes>                        PVector;
+        double                                        IntegrationCoefficient;
+        double                                        JointWidth;
+        BoundedMatrix<double, TNumNodes, TNumNodes>   PPMatrix;
+        BoundedMatrix<double, TDim, TDim>             DimMatrix;
+        BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix;
+        BoundedMatrix<double, TNumNodes, TDim>        PDimMatrix;
+        array_1d<double, TNumNodes * TDim>            UVector;
+        array_1d<double, TNumNodes>                   PVector;
 
         /// Retention Law parameters
         double FluidPressure;
