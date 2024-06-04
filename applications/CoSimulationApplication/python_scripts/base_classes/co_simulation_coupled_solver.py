@@ -326,6 +326,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             else:
                 solver_model = models.get(solver_name) # returns None if "solver_name" is not in models
             solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_model, solver_name)
+            solvers[solver_name]._parent_process_info = self.process_info
 
         # then order them according to the coupling-loop
         solvers_map = OrderedDict()
