@@ -48,10 +48,10 @@ KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(ModelDataValueContainer, KratosCoreFastSuite)
 {
     Model model;
-    model.SetValue(DENSITY,1.0);
-    KRATOS_EXPECT_TRUE(model.Has(DENSITY));
-    KRATOS_EXPECT_FALSE(model.Has(TEMPERATURE));
-    KRATOS_EXPECT_DOUBLE_EQ(model.GetValue(DENSITY),1.0);
+    model.GetDataValueContainer().SetValue(DENSITY,1.0);
+    KRATOS_EXPECT_TRUE(model.GetDataValueContainer().Has(DENSITY));
+    KRATOS_EXPECT_FALSE(model.GetDataValueContainer().Has(TEMPERATURE));
+    KRATOS_EXPECT_DOUBLE_EQ(model.GetDataValueContainer().GetValue(DENSITY),1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelHasModelPart, KratosCoreFastSuite)

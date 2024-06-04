@@ -54,7 +54,7 @@ class TestModel(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         # Setting the data value container
-        current_model.SetValue(KratosMultiphysics.TEMPERATURE, 293.0)
+        current_model.GetDataValueContainer().SetValue(KratosMultiphysics.TEMPERATURE, 293.0)
 
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -69,10 +69,10 @@ class TestModel(KratosUnittest.TestCase):
 
     def test_model_datavaluecontainer(self):
         current_model = KratosMultiphysics.Model()
-        current_model.SetValue(KratosMultiphysics.DENSITY, 1.2)
-        self.assertTrue(current_model.Has(KratosMultiphysics.DENSITY))
-        self.assertFalse(current_model.Has(KratosMultiphysics.TEMPERATURE))
-        self.assertEqual(current_model.GetValue(KratosMultiphysics.DENSITY), 1.2)
+        current_model.GetDataValueContainer().SetValue(KratosMultiphysics.DENSITY, 1.2)
+        self.assertTrue(current_model.GetDataValueContainer().Has(KratosMultiphysics.DENSITY))
+        self.assertFalse(current_model.GetDataValueContainer().Has(KratosMultiphysics.TEMPERATURE))
+        self.assertEqual(current_model.GetDataValueContainer().GetValue(KratosMultiphysics.DENSITY), 1.2)
 
     def test_model_serialization(self):
 
@@ -84,8 +84,8 @@ class TestModel(KratosUnittest.TestCase):
         loaded_model = KratosMultiphysics.Model()
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
 
-        self.assertTrue(loaded_model.Has(KratosMultiphysics.TEMPERATURE))
-        self.assertAlmostEqual(loaded_model.GetValue(KratosMultiphysics.TEMPERATURE), 293.0)
+        self.assertTrue(loaded_model.GetDataValueContainer().Has(KratosMultiphysics.TEMPERATURE))
+        self.assertAlmostEqual(loaded_model.GetDataValueContainer().GetValue(KratosMultiphysics.TEMPERATURE), 293.0)
 
         self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))

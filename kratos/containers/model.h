@@ -151,43 +151,6 @@ public:
      */
     std::vector<std::string> GetModelPartNames() const;
 
-   /**
-     * @brief Gets the value associated with a given variable.
-     * @tparam TDataType The data type of the variable.
-     * @param rThisVariable The variable for which the value is to be retrieved.
-     * @return Reference to the value of the provided variable.
-     */
-    template<class TDataType>
-    TDataType& GetValue(const Variable<TDataType>& rThisVariable)
-    {
-        return mDataValueContainer.GetValue(rThisVariable);
-    }
-
-    /**
-     * @brief Gets the value associated with a given variable (const version).
-     * @tparam TDataType The data type of the variable.
-     * @param rThisVariable The variable for which the value is to be retrieved.
-     * @return Const reference to the value of the provided variable.
-     * @todo Make the variable of the constant version consistent with the one of the "classical" one
-     */
-    template<class TDataType> 
-    const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
-    {
-        return mDataValueContainer.GetValue(rThisVariable);
-    }
-
-    /**
-     * @brief Sets the value for a given variable.
-     * @tparam TDataType The data type of the variable.
-     * @param rThisVariable The variable for which the value is to be set.
-     * @param rValue The value to be set for the variable.
-     */
-    template<class TDataType>
-    void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
-    {
-        mDataValueContainer.SetValue(rThisVariable, rValue);
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -209,18 +172,6 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
-    /**
-     * @brief Checks if the data container has a value associated with a given variable.
-     * @tparam TDataType The data type of the variable.
-     * @param rThisVariable The variable for which the check is to be made.
-     * @return True if the variable has an associated value in the container, otherwise false.
-     */
-    template<class TDataType>
-    bool Has(const Variable<TDataType>& rThisVariable) const
-    {
-        return mDataValueContainer.Has(rThisVariable);
-    }
 
     ///@}
     ///@name Input and output
