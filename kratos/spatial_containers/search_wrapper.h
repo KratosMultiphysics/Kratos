@@ -218,7 +218,7 @@ public:
 
             // Search
             std::vector<ResultType> results;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
             LocalSearchInRadius(rTLS.point, Radius, results, rank, allocation_size);
             for (auto& r_result : results) {
                 r_point_result.AddResult(r_result);
@@ -296,7 +296,7 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
             LocalSearchNearestInRadius(rTLS.point, Radius, local_result, rank, allocation_size);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -378,7 +378,7 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
             LocalSearchNearest(rTLS.point, local_result, rank);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -456,7 +456,7 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : -1;
+            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
             LocalSearchIsInside(rTLS.point, local_result, rank);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
