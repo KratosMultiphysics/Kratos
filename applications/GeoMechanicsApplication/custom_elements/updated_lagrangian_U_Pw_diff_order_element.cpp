@@ -144,8 +144,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
         prod(rVariables.DNu_DX,
              rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
 
-    Matrix UUMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    noalias(UUMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
+    Matrix UUMatrix = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
     MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, Dim);
 
     // Distribute stiffness block matrix into the elemental matrix

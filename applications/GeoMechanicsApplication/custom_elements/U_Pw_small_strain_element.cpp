@@ -885,8 +885,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
         prod(rVariables.GradNpT,
              rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.GradNpT)))); // to be optimized
 
-    Matrix UUMatrix(TNumNodes * TDim, TNumNodes * TDim);
-    noalias(UUMatrix) = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
+    Matrix UUMatrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
     MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, TDim);
 
     // Distribute stiffness block matrix into the elemental matrix
