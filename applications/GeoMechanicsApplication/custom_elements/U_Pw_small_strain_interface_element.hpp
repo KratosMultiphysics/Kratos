@@ -162,7 +162,6 @@ protected:
 
         double                                        IntegrationCoefficient;
         double                                        JointWidth;
-        BoundedMatrix<double, TNumNodes, TNumNodes>   PPMatrix;
         BoundedMatrix<double, TDim, TDim>             DimMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix;
         BoundedMatrix<double, TNumNodes, TDim>        PDimMatrix;

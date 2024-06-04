@@ -1238,12 +1238,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatri
 {
     KRATOS_TRY
 
-    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+        GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+            rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(
-        rLeftHandSideMatrix, rVariables.PPMatrix * rVariables.DtPressureCoefficient);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, PPMatrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("")
 }
@@ -1346,16 +1346,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(
-    BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-    array_1d<double, TNumNodes>&                 rPVector,
-    const ElementVariables&                      rVariables) const
+
+    array_1d<double, TNumNodes>& rPVector, const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    noalias(rPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes, TNumNodes> p_matrix =
+        GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+            rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rPVector) = -prod(rPMatrix, rVariables.DtPressureVector);
+    noalias(rPVector) = -prod(p_matrix, rVariables.DtPressureVector);
 
     KRATOS_CATCH("")
 }
@@ -1366,7 +1366,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
 {
     KRATOS_TRY
 
-    this->CalculateCompressibilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
+    this->CalculateCompressibilityFlow(rVariables.PVector, rVariables);
 
     // Distribute compressibility block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
@@ -1375,18 +1375,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
-    BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-    array_1d<double, TNumNodes>&                 rPVector,
-    const ElementVariables&                      rVariables) const
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(array_1d<double, TNumNodes>& rPVector,
+                                                                       const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    rPermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix =
+        GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+            rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
+            rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 
-    noalias(rPVector) = -prod(rPermeabilityMatrix, rVariables.PressureVector);
+    noalias(rPVector) = -prod(permeability_matrix, rVariables.PressureVector);
 
     KRATOS_CATCH("")
 }
@@ -1430,7 +1429,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vec
 {
     KRATOS_TRY
 
-    this->CalculatePermeabilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
+    this->CalculatePermeabilityFlow(rVariables.PVector, rVariables);
 
     // Distribute permeability block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);

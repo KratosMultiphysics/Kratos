@@ -575,11 +575,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+        GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+            rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
+    rLeftHandSideMatrix += (PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }
@@ -590,12 +591,13 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
-        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
-        rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+        GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+            rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
+            rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PPMatrix;
+    rLeftHandSideMatrix += PPMatrix;
 
     KRATOS_CATCH("")
 }
@@ -622,11 +624,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+        GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+            rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PVector) =
-        -1.0 * prod(rVariables.PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
     rRightHandSideVector += rVariables.PVector;
@@ -642,12 +644,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
 
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-                                   rVariables.RelativePermeability *
-                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
+        rVariables.RelativePermeability * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.PressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(PPMatrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
     rRightHandSideVector += rVariables.PVector;

@@ -1294,14 +1294,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientM
     const double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
                                           SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PPMatrix) =
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
         rVariables.DtPressureCoefficient * StabilizationParameter *
         (SignBiotCoefficient - 2.0 * rFICVariables.ShearModulus * rVariables.BiotModulusInverse /
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
     // Distribute pressure gradient block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, PPMatrix);
 
     KRATOS_CATCH("")
 }
@@ -1454,13 +1454,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
     double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
                                     SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PPMatrix) =
+    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
         StabilizationParameter *
         (SignBiotCoefficient - 2.0 * rFICVariables.ShearModulus * rVariables.BiotModulusInverse /
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.DtPressureVector);
+    noalias(rVariables.PVector) = -1.0 * prod(PPMatrix, rVariables.DtPressureVector);
 
     // Distribute PressureGradient block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);

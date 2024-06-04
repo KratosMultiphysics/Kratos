@@ -180,10 +180,9 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix;
-        Matrix                                      UVoigtMatrix;
-        BoundedMatrix<double, TNumNodes, TDim>      PDimMatrix;
-        array_1d<double, TNumNodes>                 PVector;
+        Matrix                                 UVoigtMatrix;
+        BoundedMatrix<double, TNumNodes, TDim> PDimMatrix;
+        array_1d<double, TNumNodes>            PVector;
     };
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
@@ -229,16 +228,14 @@ protected:
 
     virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    virtual void CalculateCompressibilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                              array_1d<double, TNumNodes>&                 rPVector,
-                                              const ElementVariables& rVariables) const;
+    virtual void CalculateCompressibilityFlow(array_1d<double, TNumNodes>& rPVector,
+                                              const ElementVariables&      rVariables) const;
 
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                           array_1d<double, TNumNodes>&                 rPVector,
-                                           const ElementVariables& rVariables) const;
+    virtual void CalculatePermeabilityFlow(array_1d<double, TNumNodes>& rPVector,
+                                           const ElementVariables&      rVariables) const;
 
     virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     virtual void CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
