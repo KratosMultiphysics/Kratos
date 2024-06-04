@@ -2,7 +2,7 @@
   * This is a port https://github.com/lohedges/aabbcc. The namespace has been changed from
   * 'aabb' to 'aabb_base'. The class name has been changed from 'AABB' to 'AABB_base'. Also
   * class 'Tree' has been renamed to 'Tree_base'. Changed std::vector<double> to std::array<double,3> for
-  * better performance. Other modifactions are marked as such.
+  * better performance. Other modifications are marked as such.
   * The original code included the following copyright notice:
 
   Copyright (c) 2009 Erin Catto http://www.box2d.org
