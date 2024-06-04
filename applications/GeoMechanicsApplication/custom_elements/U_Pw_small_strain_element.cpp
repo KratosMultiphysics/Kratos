@@ -137,7 +137,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const Proces
 
     if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
+                                                       rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveParameters.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); // Note: this is for nonlocal damage
 
@@ -282,7 +283,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
     this->CalculateHydraulicDischarge(rCurrentProcessInfo);
 
-    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(), this->GetProperties(),
+                                                       rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     ElementVariables Variables;
@@ -298,7 +300,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
         this->GetStressStatePolicy().GetVoigtSize());
 
-    const auto number_of_integration_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
     Matrix StressContainer(number_of_integration_points, mStressVector[0].size());
 
     for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
@@ -443,7 +446,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom               = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     const auto number_of_integration_points = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     auto& r_prop = this->GetProperties();
@@ -639,9 +642,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom               = this->GetGeometry();
-    const auto number_of_integration_points = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
-    const PropertiesType& rProp             = this->GetProperties();
+    const auto& r_geometry = this->GetGeometry();
+    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
+    const auto& r_properties = this->GetProperties();
 
     rOutput.resize(number_of_integration_points);
 
@@ -656,7 +659,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ElementVariables Variables;
         this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, this->GetProperties(), rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -719,10 +722,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         rOutput                          = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
-    } else if (rProp.Has(rVariable)) {
+    } else if (r_properties.Has(rVariable)) {
         // Map initial material property to Gauss points, as required for the output
         rOutput.clear();
-        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), rProp.GetValue(rVariable));
+        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), r_properties.GetValue(rVariable));
     } else {
         for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -738,8 +741,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom               = this->GetGeometry();
-    const auto number_of_integration_points = rGeom.IntegrationPointsNumber(mThisIntegrationMethod);
+    const auto& r_geometry = this->GetGeometry();
+    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
     rOutput.resize(number_of_integration_points);
 
@@ -987,7 +990,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivativesOfSaturation(
+    const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
@@ -1003,7 +1007,8 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDerivatives
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDegreesOfSaturation(
+    const std::vector<double>& rFluidPressures) const
 {
     KRATOS_ERROR_IF(rFluidPressures.size() != mRetentionLawVector.size());
     std::vector<double> result;
@@ -1280,7 +1285,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
                                        rVariables.B, this->GetStressStatePolicy().GetVoigtVector(),
                                        rVariables.Np, rVariables.BiotCoefficient,
                                        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-
     rVariables.UVector = prod(rVariables.UPMatrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
 
