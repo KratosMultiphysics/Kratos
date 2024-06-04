@@ -48,8 +48,8 @@ class ShiftedBoundaryFormulation(object):
         self.sbm_interface_condition_name = "ShiftedBoundaryWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         # Error that discontinuous is not supported yet
-        if self.level_set_type == "discontinuous":
-            err_msg = 'Provided level set type \'discontinuous\' is not supported yet for MLS-based SBM.'
+        if self.level_set_type != "continuous" and self.level_set_type != "discontinuous":
+            err_msg = 'Provided level set type is unknown. Available types for MLS-based SBM are \'continuous\' and \'discontinuous\'.'
             raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -312,7 +312,14 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
         settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.sbm_interface_condition_name)
         settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
-        sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
+
+        if self.level_set_type == "discontinuous":
+            #TODO no nodal neighbors needed?!
+            settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
+            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(self.model, settings)
+        else:
+            settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
+            sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
         sbm_interface_utility.CalculateExtensionOperator()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility initialized and extension operators were calculated.")
