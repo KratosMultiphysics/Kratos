@@ -1448,7 +1448,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidBodyFlow(BoundedMatri
 
     noalias(rPDimMatrix) = prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
-    noalias(rPVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
+    noalias(rPVector) = rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
                         rVariables.RelativePermeability * prod(rPDimMatrix, rVariables.BodyAcceleration);
 
     KRATOS_CATCH("")
@@ -1570,7 +1570,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
         rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
 
     rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity            = rProp[DENSITY_WATER];
     GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, rProp);
 
     KRATOS_CATCH("")

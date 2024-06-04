@@ -130,7 +130,6 @@ protected:
         bool   UseHenckyStrain;
         bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
-        double FluidDensity;
 
         double                            BiotCoefficient;
         double                            BiotModulusInverse;

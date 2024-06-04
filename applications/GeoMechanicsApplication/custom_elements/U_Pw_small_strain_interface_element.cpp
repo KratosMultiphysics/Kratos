@@ -845,7 +845,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
             noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * Variables.FluidDensity * Variables.BodyAcceleration;
+                PORE_PRESSURE_SIGN_FACTOR * this->GetProperties()[DENSITY_WATER] * Variables.BodyAcceleration;
 
             noalias(LocalFluidFlux) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                                       Variables.RelativePermeability *
@@ -1405,7 +1405,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity            = Prop[DENSITY_WATER];
 
     // ProcessInfo variables
     rVariables.VelocityCoefficient   = CurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -2069,9 +2068,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFl
                                      prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
                                      rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
-                                  rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
+    noalias(rVariables.PVector) =
+        rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
+        rVariables.RelativePermeability * prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);

@@ -309,7 +309,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
             noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * Variables.FluidDensity * Variables.BodyAcceleration;
+                PORE_PRESSURE_SIGN_FACTOR * this->GetProperties()[DENSITY_WATER] * Variables.BodyAcceleration;
 
             noalias(LocalFluidFlux) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                                       Variables.RelativePermeability *
@@ -523,7 +523,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(In
     rVariables.IgnoreUndrained = false; // by inheritance? does not have a meaning for a Pw element
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity            = Prop[DENSITY_WATER];
 
     // ProcessInfo variables
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
@@ -662,11 +661,13 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
 {
     KRATOS_TRY;
 
+    const double& FluidDensity = this->GetProperties()[DENSITY_WATER];
+
     noalias(rVariables.PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR *
                                      prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
                                      rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
+    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse * FluidDensity *
                                   rVariables.RelativePermeability *
                                   prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
