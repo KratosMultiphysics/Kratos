@@ -131,7 +131,6 @@ protected:
         bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
-        double Density;
 
         double                            BiotCoefficient;
         double                            BiotModulusInverse;

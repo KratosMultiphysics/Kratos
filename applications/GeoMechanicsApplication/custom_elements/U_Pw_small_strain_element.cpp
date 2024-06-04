@@ -1309,10 +1309,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateSoilGamma(ElementVariables
 {
     KRATOS_TRY
 
-    rVariables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
+    auto density = GeoTransportEquationUtilities::CalculateSoilDensity(
         rVariables.DegreeOfSaturation, this->GetProperties());
 
-    noalias(rVariables.SoilGamma) = rVariables.Density * rVariables.BodyAcceleration;
+    noalias(rVariables.SoilGamma) = density * rVariables.BodyAcceleration;
 
     KRATOS_CATCH("")
 }
