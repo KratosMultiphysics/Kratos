@@ -182,7 +182,6 @@ protected:
         // Auxiliary Variables
         Matrix                                 UVoigtMatrix;
         BoundedMatrix<double, TNumNodes, TDim> PDimMatrix;
-        array_1d<double, TNumNodes>            PVector;
     };
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);

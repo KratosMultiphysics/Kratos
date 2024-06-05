@@ -2013,11 +2013,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        noalias(rVariables.PVector) = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-                                      prod(trans(UPMatrix), rVariables.VelocityVector);
+        array_1d<double, TNumNodes> PVector = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+                                              prod(trans(UPMatrix), rVariables.VelocityVector);
 
         // Distribute coupling block vector 2 into elemental vector
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PVector);
     }
 
     KRATOS_CATCH("")
@@ -2033,10 +2033,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PVector) = -1.0 * prod(PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
+    array_1d<double, TNumNodes> PVector =
+        -1.0 * prod(PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PVector);
 
     KRATOS_CATCH("")
 }
@@ -2054,10 +2055,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
         rVariables.RelativePermeability * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(PPMatrix, rVariables.PressureVector);
+    array_1d<double, TNumNodes> PVector = -1.0 * prod(PPMatrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PVector);
 
     KRATOS_CATCH("")
 }
@@ -2072,12 +2073,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFl
                                      prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
                                      rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) =
+    array_1d<double, TNumNodes> PVector =
         rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
         rVariables.RelativePermeability * prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PVector);
 
     KRATOS_CATCH("")
 }

@@ -165,7 +165,6 @@ protected:
         BoundedMatrix<double, TDim, TDim>             DimMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix;
         BoundedMatrix<double, TNumNodes, TDim>        PDimMatrix;
-        array_1d<double, TNumNodes>                   PVector;
 
         /// Retention Law parameters
         double FluidPressure;
