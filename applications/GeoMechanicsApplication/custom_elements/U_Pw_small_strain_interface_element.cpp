@@ -2048,11 +2048,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
 {
     KRATOS_TRY
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
+    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix =
+        prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
     BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-        rVariables.RelativePermeability * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
+        rVariables.RelativePermeability * prod(PDimMatrix, trans(rVariables.GradNpT)) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     array_1d<double, TNumNodes> PVector = -1.0 * prod(PPMatrix, rVariables.PressureVector);
@@ -2069,13 +2070,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFl
 {
     KRATOS_TRY
 
-    noalias(rVariables.PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR *
-                                     prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
-                                     rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix =
+        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     array_1d<double, TNumNodes> PVector =
         rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
-        rVariables.RelativePermeability * prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
+        rVariables.RelativePermeability * prod(PDimMatrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PVector);

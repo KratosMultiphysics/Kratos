@@ -643,11 +643,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
+    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix =
+        prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
     BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-        rVariables.RelativePermeability * prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
+        rVariables.RelativePermeability * prod(PDimMatrix, trans(rVariables.GradNpT)) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     array_1d<double, TNumNodes> PVector = -1.0 * prod(PPMatrix, rVariables.PressureVector);
@@ -664,15 +665,14 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
 {
     KRATOS_TRY;
 
-    const double& FluidDensity = this->GetProperties()[DENSITY_WATER];
-
-    noalias(rVariables.PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR *
-                                     prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
-                                     rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    const double&                          FluidDensity = this->GetProperties()[DENSITY_WATER];
+    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix =
+        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     array_1d<double, TNumNodes> PVector = rVariables.DynamicViscosityInverse * FluidDensity *
                                           rVariables.RelativePermeability *
-                                          prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
+                                          prod(PDimMatrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
     rRightHandSideVector += PVector;

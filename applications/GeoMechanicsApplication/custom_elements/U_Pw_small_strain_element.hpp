@@ -180,8 +180,7 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        Matrix                                 UVoigtMatrix;
-        BoundedMatrix<double, TNumNodes, TDim> PDimMatrix;
+        Matrix UVoigtMatrix;
     };
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);

@@ -1461,10 +1461,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(Vector
                                                                           ElementVariables& rVariables)
 {
     KRATOS_TRY
+    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix;
+    array_1d<double, TNumNodes>            PVector;
 
-    array_1d<double, TNumNodes> PVector;
-
-    this->CalculateFluidBodyFlow(rVariables.PDimMatrix, PVector, rVariables);
+    this->CalculateFluidBodyFlow(PDimMatrix, PVector, rVariables);
 
     // Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PVector);

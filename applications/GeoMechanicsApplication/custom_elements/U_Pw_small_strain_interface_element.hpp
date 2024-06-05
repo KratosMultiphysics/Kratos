@@ -164,7 +164,6 @@ protected:
         double                                        JointWidth;
         BoundedMatrix<double, TDim, TDim>             DimMatrix;
         BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix;
-        BoundedMatrix<double, TNumNodes, TDim>        PDimMatrix;
 
         /// Retention Law parameters
         double FluidPressure;
