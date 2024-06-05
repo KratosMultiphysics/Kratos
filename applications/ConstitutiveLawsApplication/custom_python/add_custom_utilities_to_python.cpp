@@ -20,7 +20,7 @@
 #include "spaces/ublas_space.h"
 
 //Utilities
-
+#include "custom_utilities/compute_cauchy_stress_history.h"
 
 namespace Kratos::Python {
 
