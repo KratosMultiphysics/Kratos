@@ -27,7 +27,7 @@ RetentionLaw::Pointer SaturatedLaw::Clone() const
     return Kratos::make_shared<SaturatedLaw>(*this);
 }
 
-double SaturatedLaw::CalculateSaturation(Parameters &rParameters)
+double SaturatedLaw::CalculateSaturation(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -45,23 +45,20 @@ double SaturatedLaw::CalculateSaturation(Parameters &rParameters)
     KRATOS_CATCH("")
 }
 
-double SaturatedLaw::CalculateEffectiveSaturation(Parameters &rParameters)
-{
+double SaturatedLaw::CalculateEffectiveSaturation(Parameters &rParameters) const {
     return 1.0;
 }
 
-double SaturatedLaw::CalculateDerivativeOfSaturation(Parameters &rParameters)
-{
+double SaturatedLaw::CalculateDerivativeOfSaturation(Parameters &rParameters) const {
     return 0.0;
 }
 
-double SaturatedLaw::CalculateRelativePermeability(Parameters &rParameters)
-{
+double SaturatedLaw::CalculateRelativePermeability(Parameters &rParameters) const {
     return 1.0;
 }
 
 double SaturatedLaw::
-    CalculateBishopCoefficient(Parameters &rParameters)
+    CalculateBishopCoefficient(Parameters &rParameters) const
 {
     KRATOS_TRY
 

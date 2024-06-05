@@ -141,7 +141,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  AxisymUpdatedLagrangianUPressureElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  AxisymUpdatedLagrangianUPressureElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -161,14 +161,6 @@ namespace Kratos
       if ( PRESSURE.Key() == 0 )
          KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" );
 
-      if ( this->GetProperties().Has(THICKNESS) ) {
-	      double thickness = this->GetProperties()[THICKNESS];
-	      if ( thickness <= 0.0) {
-		      this->GetProperties()[THICKNESS] = 1.0;
-	      }
-      } else {
-	     this->GetProperties()[THICKNESS] = 1.0;
-      }
 
       return correct;
 
@@ -275,10 +267,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -703,10 +695,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
 
@@ -978,12 +970,12 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::Initialize()
+   void AxisymUpdatedLagrangianUPressureElement::Initialize(const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
 
-      LargeDisplacementElement::Initialize();
+      LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
       SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 

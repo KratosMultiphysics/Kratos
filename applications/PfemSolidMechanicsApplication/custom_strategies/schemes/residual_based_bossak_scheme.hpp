@@ -336,6 +336,7 @@ public:
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
+        ProcessInfo CurrentProcessInfo= rModelPart.GetProcessInfo();
 
         #pragma omp parallel
         {
@@ -345,7 +346,7 @@ public:
 
             for (ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)
             {
-                itElem->Initialize(); //function to initialize the element
+                itElem->Initialize(CurrentProcessInfo); //function to initialize the element
             }
 
         }
@@ -374,6 +375,7 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
+        ProcessInfo CurrentProcessInfo= rModelPart.GetProcessInfo();
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
@@ -382,7 +384,7 @@ public:
 
             for (ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
             {
-                itCond->Initialize(); //function to initialize the condition
+                itCond->Initialize(CurrentProcessInfo); //function to initialize the condition
             }
 
         }
@@ -523,8 +525,8 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
-                                      ProcessInfo& CurrentProcessInfo) override
+    virtual void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
+                                      ProcessInfo& CurrentProcessInfo)
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -533,8 +535,8 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
-                                      ProcessInfo& CurrentProcessInfo) override
+    virtual void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
+                                      ProcessInfo& CurrentProcessInfo)
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -544,12 +546,12 @@ public:
 
     /// @brief Compute local contributions.
     /// @note This function is meant to be called from @ref BuilderAndSolver.
-    void CalculateSystemContributions(
+    virtual void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -587,11 +589,11 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    void Calculate_RHS_Contribution(
+    virtual void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
 
         KRATOS_TRY
@@ -627,12 +629,12 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    void Condition_CalculateSystemContributions(
+    virtual void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
 
 
@@ -675,11 +677,11 @@ public:
     //***************************************************************************
     //***************************************************************************
 
-    void Condition_Calculate_RHS_Contribution(
+    virtual void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo) 
     {
         KRATOS_TRY
 
@@ -718,10 +720,10 @@ public:
     //***************************************************************************
 
     /// @brief Get the list of Degrees of freedom to be assembled in the system for a given @ref Element.
-    void GetElementalDofList(
+    virtual void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo) 
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
@@ -730,10 +732,10 @@ public:
     //***************************************************************************
 
     /// Get the list of Degrees of freedom to be assembled in the system for a Given @ref Condition.
-    void GetConditionDofList(
+    virtual void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo)
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }

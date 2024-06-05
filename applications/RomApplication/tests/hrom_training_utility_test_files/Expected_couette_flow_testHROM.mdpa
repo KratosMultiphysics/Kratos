@@ -1,0 +1,154 @@
+Begin Properties 0
+
+End Properties
+
+Begin Nodes
+	60	1.9000000000e+00	8.0000000000e-01	0.0000000000e+00
+	64	1.8000000000e+00	8.0000000000e-01	0.0000000000e+00
+	73	2.0000000000e+00	9.0000000000e-01	0.0000000000e+00
+	75	1.9000000000e+00	9.0000000000e-01	0.0000000000e+00
+	88	2.0000000000e+00	1.0000000000e+00	0.0000000000e+00
+	175	4.0000000000e-01	4.0000000000e-01	0.0000000000e+00
+	179	3.0000000000e-01	0.0000000000e+00	0.0000000000e+00
+	181	3.0000000000e-01	1.0000000000e-01	0.0000000000e+00
+	185	3.0000000000e-01	3.0000000000e-01	0.0000000000e+00
+	186	3.0000000000e-01	4.0000000000e-01	0.0000000000e+00
+	191	2.0000000000e-01	0.0000000000e+00	0.0000000000e+00
+	203	2.0000000000e-01	6.0000000000e-01	0.0000000000e+00
+	209	2.0000000000e-01	7.0000000000e-01	0.0000000000e+00
+	214	1.0000000000e-01	6.0000000000e-01	0.0000000000e+00
+	218	2.0000000000e-01	9.0000000000e-01	0.0000000000e+00
+	223	0.0000000000e+00	5.0000000000e-01	0.0000000000e+00
+	224	1.0000000000e-01	8.0000000000e-01	0.0000000000e+00
+	225	0.0000000000e+00	6.0000000000e-01	0.0000000000e+00
+	226	1.0000000000e-01	9.0000000000e-01	0.0000000000e+00
+	227	0.0000000000e+00	7.0000000000e-01	0.0000000000e+00
+	228	1.0000000000e-01	1.0000000000e+00	0.0000000000e+00
+	229	0.0000000000e+00	8.0000000000e-01	0.0000000000e+00
+	230	0.0000000000e+00	9.0000000000e-01	0.0000000000e+00
+	231	0.0000000000e+00	1.0000000000e+00	0.0000000000e+00
+End Nodes
+
+Begin Elements	Element2D3N
+	5	0	179	181	191	
+	128	0	175	186	185	
+	202	0	214	225	223	
+	243	0	203	209	214	
+	282	0	224	229	227	
+	324	0	218	226	224	
+	357	0	60	75	64	
+	362	0	228	231	230	
+	399	0	73	88	75	
+End Elements
+
+Begin SubModelPart	FluidParts_Fluid
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		60
+		64
+		73
+		75
+		88
+		175
+		179
+		181
+		185
+		186
+		191
+		203
+		209
+		214
+		218
+		223
+		224
+		225
+		226
+		227
+		228
+		229
+		230
+		231
+	End SubModelPartNodes
+	Begin SubModelPartElements
+		5
+		128
+		202
+		243
+		282
+		324
+		357
+		362
+		399
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	AutomaticInlet2D_Inlet
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		223
+		225
+		227
+		229
+		230
+		231
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	Outlet2D_Outlet
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		73
+		88
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	NoSlip2D_Bottom
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		179
+		191
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+
+Begin SubModelPart	VelocityConstraints2D_Top
+	Begin SubModelPartData
+	End SubModelPartData
+	Begin SubModelPartTables
+	End SubModelPartTables
+	Begin SubModelPartNodes
+		88
+		228
+		231
+	End SubModelPartNodes
+	Begin SubModelPartElements
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart	
+

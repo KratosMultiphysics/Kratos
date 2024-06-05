@@ -7,20 +7,22 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Richard Faasse,
+//                   Gennady Markelov
 //
 
 #include "stress_strain_utilities.h"
-#include "custom_utilities/math_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
+#include "utilities/math_utils.h"
+#include <cmath>
 
 namespace Kratos
 {
 
-double StressStrainUtilities::CalculateVonMisesStress(const Vector& StressVector)
+double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
-    Matrix LocalStressTensor =
-        MathUtils<double>::StressVectorToTensor(StressVector); // reduced dimension stress tensor
+    const Matrix LocalStressTensor =
+        MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     Matrix StressTensor(3, 3); // 3D stress tensor
     noalias(StressTensor) = ZeroMatrix(3, 3);
@@ -30,7 +32,7 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& StressVector
         }
     }
 
-    double SigmaEquivalent =
+    const double SigmaEquivalent =
         0.5 * ((StressTensor(0, 0) - StressTensor(1, 1)) * (StressTensor(0, 0) - StressTensor(1, 1)) +
                (StressTensor(1, 1) - StressTensor(2, 2)) * (StressTensor(1, 1) - StressTensor(2, 2)) +
                (StressTensor(2, 2) - StressTensor(0, 0)) * (StressTensor(2, 2) - StressTensor(0, 0)) +
@@ -40,9 +42,10 @@ double StressStrainUtilities::CalculateVonMisesStress(const Vector& StressVector
     return std::sqrt(std::max(SigmaEquivalent, 0.));
 }
 
-double StressStrainUtilities::CalculateTrace(const Vector& StressVector)
+double StressStrainUtilities::CalculateTrace(const Vector& rStressVector)
 {
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); // reduced dimension stress tensor
+    const Matrix StressTensor =
+        MathUtils<double>::StressVectorToTensor(rStressVector); // reduced dimension stress tensor
 
     double trace = 0.0;
     for (std::size_t i = 0; i < StressTensor.size1(); ++i) {
@@ -52,26 +55,75 @@ double StressStrainUtilities::CalculateTrace(const Vector& StressVector)
     return trace;
 }
 
-double StressStrainUtilities::CalculateMeanStress(const Vector& StressVector)
+double StressStrainUtilities::CalculateMeanStress(const Vector& rStressVector)
 {
-    return CalculateTrace(StressVector) / (StressVector.size() == 3 ? 2.0 : 3.0);
+    return CalculateTrace(rStressVector) / (rStressVector.size() == 3 ? 2.0 : 3.0);
 }
 
-double StressStrainUtilities::CalculateVonMisesStrain(const Vector& StrainVector)
+double StressStrainUtilities::CalculateLodeAngle(const Vector& rStressVector)
 {
-    return (2.0 / 3.0) * CalculateVonMisesStress(StrainVector);
+    KRATOS_ERROR_IF(rStressVector.size() < 4);
+
+    const double p                   = CalculateMeanStress(rStressVector);
+    const double q                   = CalculateVonMisesStress(rStressVector);
+    const Matrix local_stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    Matrix       sigma_princi;
+    Matrix       eigen_vectors;
+    MathUtils<double>::GaussSeidelEigenSystem(local_stress_tensor, eigen_vectors, sigma_princi, 1.0e-16, 20);
+    const double numerator = (sigma_princi(0, 0) - p) * (sigma_princi(1, 1) - p) * (sigma_princi(2, 2) - p);
+    if (std::abs(numerator) < 1.0E-12) return 0.;
+    return std::asin((-27. / 2.) * numerator / (q * q * q)) / 3.0;
 }
 
-Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize)
+double StressStrainUtilities::CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi)
+{
+    KRATOS_ERROR_IF(rStressVector.size() < 4);
+
+    const double q_mc = CalculateQMohrCoulomb(rStressVector, C, Phi);
+    const double q    = CalculateVonMisesStress(rStressVector);
+
+    return q / q_mc;
+}
+
+double StressStrainUtilities::CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi)
+{
+    const double denominator = CalculateDenominator(rStressVector, Phi);
+    const double p           = -CalculateMeanStress(rStressVector);
+    return 3. * (p * std::sin(Phi) + C * std::cos(Phi)) / denominator;
+}
+
+double StressStrainUtilities::CalculateDenominator(const Vector& rStressVector, double Phi)
+{
+    const double lode_angle = CalculateLodeAngle(rStressVector);
+    return std::sqrt(3.) * std::cos(lode_angle) - std::sin(lode_angle) * std::sin(Phi);
+}
+
+double StressStrainUtilities::CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi)
+{
+    KRATOS_ERROR_IF(rStressVector.size() < 4);
+
+    const double denominator = CalculateDenominator(rStressVector, Phi);
+    const double q_mc        = CalculateQMohrCoulomb(rStressVector, C, Phi);
+    const double q           = CalculateVonMisesStress(rStressVector);
+
+    return 3. * std::sin(Phi) * (q_mc - q) / denominator;
+}
+
+double StressStrainUtilities::CalculateVonMisesStrain(const Vector& rStrainVector)
+{
+    return (2.0 / 3.0) * CalculateVonMisesStress(rStrainVector);
+}
+
+Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize)
 {
     // right Cauchy Green deformation tensor C
-    Matrix C = prod(trans(DeformationGradient), DeformationGradient);
+    Matrix C = prod(trans(rDeformationGradient), rDeformationGradient);
     // Eigenvalues of C matrix, so principal right Cauchy Green deformation tensor C
     Matrix EigenValuesMatrix;
     Matrix EigenVectorsMatrix;
     MathUtils<double>::GaussSeidelEigenSystem(C, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
     // Compute natural strain == Logarithmic strain == Hencky strain from principal strains
-    for (std::size_t i = 0; i < DeformationGradient.size1(); ++i) {
+    for (std::size_t i = 0; i < rDeformationGradient.size1(); ++i) {
         EigenValuesMatrix(i, i) = 0.5 * std::log(EigenValuesMatrix(i, i));
     }
 
@@ -80,7 +132,7 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& DeformationGra
     MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
 
     // From tensor to vector
-    if (DeformationGradient.size1() == 2 && VoigtSize == 4) {
+    if (rDeformationGradient.size1() == 2 && VoigtSize == 4) {
         // Plane strain
         Vector StrainVector2D;
         StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
@@ -99,6 +151,28 @@ Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& r
 {
     return 0.5 * (prod(trans(rDeformationGradient), rDeformationGradient) -
                   IdentityMatrix(rDeformationGradient.size1()));
+}
+
+Vector StressStrainUtilities::CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements)
+{
+    return prod(rB, rDisplacements);
+}
+
+std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                                            const std::vector<Matrix>& rBs,
+                                                            const Vector& rDisplacements,
+                                                            bool          UseHenckyStrain,
+                                                            std::size_t   VoigtSize)
+{
+    std::vector<Vector> result;
+    std::transform(
+        rDeformationGradients.begin(), rDeformationGradients.end(), rBs.begin(), std::back_inserter(result),
+        [&rDisplacements, UseHenckyStrain, VoigtSize](const auto& rDeformationGradient, const auto& rB) {
+        return UseHenckyStrain ? CalculateHenckyStrain(rDeformationGradient, VoigtSize)
+                               : CalculateCauchyStrain(rB, rDisplacements);
+    });
+
+    return result;
 }
 
 } // namespace Kratos

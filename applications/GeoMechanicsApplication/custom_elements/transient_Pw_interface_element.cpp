@@ -14,6 +14,7 @@
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -142,12 +143,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -159,12 +159,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -294,8 +293,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         // VG: Perhaps a new parameter to get join width and not minimum joint width
         const double& JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
-        // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -441,8 +439,8 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
                                                                 const ProcessInfo& CurrentProcessInfo,
-                                                                const bool CalculateStiffnessMatrixFlag,
-                                                                const bool CalculateResidualVectorFlag)
+                                                                bool CalculateStiffnessMatrixFlag,
+                                                                bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -473,10 +471,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -494,13 +494,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -580,12 +578,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PPMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DtPressureCoefficient * rVariables.BiotModulusInverse *
-        outer_prod(rVariables.Np, rVariables.Np) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PPMatrix;
+    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }
@@ -596,12 +593,9 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) =
-        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
-
-    noalias(rVariables.PPMatrix) = rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
-                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+        rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
+        rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
     rLeftHandSideMatrix += rVariables.PPMatrix;
@@ -631,11 +625,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotModulusInverse *
-                                   outer_prod(rVariables.Np, rVariables.Np) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+        rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.DtPressureVector);
+    noalias(rVariables.PVector) =
+        -1.0 * prod(rVariables.PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
     rRightHandSideVector += rVariables.PVector;

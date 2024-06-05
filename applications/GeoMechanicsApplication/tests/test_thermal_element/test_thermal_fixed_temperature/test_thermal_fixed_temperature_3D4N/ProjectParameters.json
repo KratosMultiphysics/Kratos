@@ -16,7 +16,7 @@
             "input_filename":   "test_thermal_fixed_temperature_3D4N"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../Common/MaterialParameters3D.json"
         },
         "time_stepping":              {
             "time_step":                3600,
