@@ -13,10 +13,8 @@
 #pragma once
 
 // System includes
-// #include <string>
-// #include <iostream>
-// #include "includes/model_part.h"
 #include "includes/process_info.h"
+#include "includes/constitutive_law.h"
 
 // Include kratos definitions
 
@@ -34,7 +32,7 @@ namespace Kratos {
 ///@{
 
 /**
- * @class ComputeCauchyStressHistory
+ * @class ComputeCauchyStressHistoryUtility
  * @ingroup StructuralMechanicsApplication
  * @brief Node Search
  * @details This class provides several methods to perform paralelized loops in c++ to compute stresses and store them in a matrix
@@ -42,7 +40,7 @@ namespace Kratos {
  * @author Manuel Messmer
  */
 
-class ComputeCauchyStressHistory
+class ComputeCauchyStressHistoryUtility
 {
     public:
     ///@name Type Definitions
@@ -54,8 +52,8 @@ class ComputeCauchyStressHistory
     /// Geometry definitions
     using GeometryType = Geometry<NodeType>;
 
-    /// Pointer definition of ComputeCauchyStressHistory
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeCauchyStressHistory);
+    /// Pointer definition of ComputeCauchyStressHistoryUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeCauchyStressHistoryUtility);
 
 
     ///@}
@@ -63,10 +61,10 @@ class ComputeCauchyStressHistory
     ///@{
 
     /// Default constructor.
-    ComputeCauchyStressHistory() {}
+    ComputeCauchyStressHistoryUtility() {}
 
     /// Destructor.
-    ~ComputeCauchyStressHistory(){}
+    ~ComputeCauchyStressHistoryUtility(){}
 
     /*
     This method computes the stress history of a CL from a strain one. The CL needs a geometry (element provided)
@@ -76,33 +74,39 @@ class ComputeCauchyStressHistory
         ConstitutiveLaw::Pointer pConstitutiveLaw,
         const Matrix& rStrainHistory,
         const GeometryType& rGeometry,
-        const Properties& rProperties
+        const Properties& rProperties//,
+        //const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy
         )
     {
+        const auto strain_size = pConstitutiveLaw->GetStrainSize();
+        const auto dim = pConstitutiveLaw->WorkingSpaceDimension();
+        const auto n_nodes = rGeometry.size();
+        const ConstitutiveLaw::StressMeasure &r_stress_measure = ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy;
+
         // Aux shape functions and derivatives
-        Vector N(3);
+        Vector N(n_nodes);
         N.clear();
-        Matrix DN_DX(3, 2);
+        Matrix DN_DX(n_nodes, dim);
         DN_DX.clear();
 
         // Unused F in small strains...
-        Matrix F(2, 2);
+        Matrix F(dim, dim);
         F.clear();
-        F(0, 0) = 1.0;
-        F(1, 1) = 1.0;
+        for (int i = 0; i<dim; ++i)
+            F(i, i) = 1.0;
         double detF = 1.0;
 
         // Constitutive tangent matrix of one step
-        Matrix C(3, 3);
+        Matrix C(strain_size, strain_size);
         C.clear();
         auto process_info = ProcessInfo();
 
         // The stress vector of one step
-        Vector stress_vector(3);
+        Vector stress_vector(strain_size);
         stress_vector.clear();
 
         // The strain vector of one step
-        Vector strain_vector(3);
+        Vector strain_vector(strain_size);
         strain_vector.clear();
 
         // Init the stress history matrix
@@ -128,6 +132,9 @@ class ComputeCauchyStressHistory
         cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
+        // Check the mat props
+        pConstitutiveLaw->Check(rProperties, rGeometry, process_info);
+
         // We initialize the material
         pConstitutiveLaw->InitializeMaterial(rProperties, rGeometry, N);
 
@@ -135,9 +142,10 @@ class ComputeCauchyStressHistory
 
         for (unsigned int step = 0; step < n_steps; ++step) {
             noalias(strain_vector) = row(rStrainHistory, step);
-            pConstitutiveLaw->CalculateMaterialResponseCauchy(cl_parameters);
+            pConstitutiveLaw->InitializeMaterialResponse(cl_parameters, r_stress_measure);
+            pConstitutiveLaw->CalculateMaterialResponse(cl_parameters, r_stress_measure);
             noalias(row(stress_history, step)) = cl_parameters.GetStressVector();
-            pConstitutiveLaw->FinalizeMaterialResponseCauchy(cl_parameters);
+            pConstitutiveLaw->FinalizeMaterialResponse(cl_parameters, r_stress_measure);
         }
 
         return stress_history;
@@ -164,7 +172,7 @@ class ComputeCauchyStressHistory
 
     ///@}
 
-    }; // Class ComputeCauchyStressHistory
+    }; // Class ComputeCauchyStressHistoryUtility
 
 ///@}
 

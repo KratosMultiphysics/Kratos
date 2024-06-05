@@ -27,6 +27,10 @@ namespace Kratos::Python {
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
         namespace py = pybind11;
+
+        py::class_<ComputeCauchyStressHistoryUtility>(m,"ComputeCauchyStressHistoryUtility")
+            .def(py::init<>())
+            .def("ComputeStressHistory",&ComputeCauchyStressHistoryUtility::ComputeStressHistory);
     }
 
 }  // namespace Kratos::Python..
