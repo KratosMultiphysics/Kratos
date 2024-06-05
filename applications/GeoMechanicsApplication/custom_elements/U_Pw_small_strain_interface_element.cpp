@@ -1846,10 +1846,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
 {
     KRATOS_TRY
 
-    noalias(rVariables.DimMatrix) = prod(
+    BoundedMatrix<double, TDim, TDim> DimMatrix = prod(
         trans(rVariables.RotationMatrix),
         BoundedMatrix<double, TDim, TDim>(prod(rVariables.ConstitutiveMatrix, rVariables.RotationMatrix)));
-    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), rVariables.DimMatrix);
+    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), DimMatrix);
     BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix =
         prod(rVariables.UDimMatrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
