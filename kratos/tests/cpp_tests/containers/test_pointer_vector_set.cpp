@@ -52,13 +52,13 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert1, KratosCoreFastSuite)
     auto p_element_5 = Kratos::make_intrusive<Element>(5);
     auto p_element_6 = Kratos::make_intrusive<Element>(6);
     auto p_element_3_ptr_copy = Kratos::intrusive_ptr<Element>(p_element_3);
-    test_container.insert(p_element_3);
-    test_container.insert(p_element_2);
-    test_container.insert(p_element_1);
-    test_container.insert(p_element_5);
-    test_container.insert(p_element_6);
-    test_container.insert(p_element_4);
-    test_container.insert(p_element_3_ptr_copy);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_3), &*p_element_3);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_2), &*p_element_2);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_1), &*p_element_1);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_5), &*p_element_5);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_6), &*p_element_6);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_4), &*p_element_4);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_3_ptr_copy), &*p_element_3);
 
     KRATOS_EXPECT_EQ(test_container.size(), 6);
 
@@ -78,13 +78,13 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert2, KratosCoreFastSuite)
     auto p_element_5 = Kratos::make_intrusive<Element>(5);
     auto p_element_6 = Kratos::make_intrusive<Element>(6);
     auto p_element_3_copy = Kratos::make_intrusive<Element>(3);
-    test_container.insert(p_element_3);
-    test_container.insert(p_element_2);
-    test_container.insert(p_element_1);
-    test_container.insert(p_element_5);
-    test_container.insert(p_element_6);
-    test_container.insert(p_element_4);
-    test_container.insert(p_element_3_copy);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_3), &*p_element_3);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_2), &*p_element_2);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_1), &*p_element_1);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_5), &*p_element_5);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_6), &*p_element_6);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_4), &*p_element_4);
+    KRATOS_EXPECT_EQ(&*test_container.insert(p_element_3_copy), &*p_element_3);
 
     KRATOS_EXPECT_EQ(test_container.size(), 6);
 
@@ -107,13 +107,14 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert3, KratosCoreFastSuite)
     auto p_element_5 = Kratos::make_intrusive<Element>(5);
     auto p_element_6 = Kratos::make_intrusive<Element>(6);
     auto p_element_3_ptr_copy = Kratos::intrusive_ptr<Element>(p_element_3);
-    test_container.insert(test_container.end(), p_element_3);
-    test_container.insert(test_container.end(), p_element_6);
-    test_container.insert(test_container.end(), p_element_2);
-    test_container.insert(test_container.begin(), p_element_1);
-    test_container.insert(test_container.begin(), p_element_5);
-    test_container.insert(test_container.begin() + 3, p_element_4);
-    test_container.insert(test_container.begin() + 3, p_element_1);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.end(), p_element_3), &*p_element_3);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.end(), p_element_6), &*p_element_6);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.end(), p_element_2), &*p_element_2);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.begin(), p_element_1), &*p_element_1);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.begin(), p_element_5), &*p_element_5);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.begin() + 3, p_element_4), &*p_element_4);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.begin() + 3, p_element_1), &*p_element_1);
+    KRATOS_EXPECT_EQ(&*test_container.insert(test_container.begin() + 3, p_element_3_ptr_copy), &*p_element_3);
 
     KRATOS_EXPECT_EQ(test_container.size(), 6);
 
