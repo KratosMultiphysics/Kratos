@@ -16,7 +16,7 @@
             "input_filename":   "test_transient_thermal_heat_flux_2D8N"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../Common/MaterialParameters2D.json"
         },
         "time_stepping":              {
             "time_step":                 600,

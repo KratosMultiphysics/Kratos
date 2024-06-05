@@ -11,6 +11,7 @@
 //
 #pragma once
 
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "solving_strategies/schemes/scheme.h"
 
@@ -119,10 +120,6 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
-
-        KRATOS_TRY
-        SetTimeFactors(rModelPart);
-        KRATOS_CATCH("")
     }
 
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
@@ -315,12 +312,6 @@ public:
     }
 
 protected:
-    const Variable<double>& GetComponentFromVectorVariable(const Variable<array_1d<double, 3>>& rSource,
-                                                           const std::string& rComponent) const
-    {
-        return KratosComponents<Variable<double>>::Get(rSource.Name() + "_" + rComponent);
-    }
-
     virtual inline void SetTimeFactors(ModelPart& rModelPart)
     {
         mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
@@ -363,8 +354,8 @@ private:
                 // We don't check for "Z", since it is optional (in case of a 2D problem)
                 std::vector<std::string> components{"X", "Y"};
                 for (const auto& component : components) {
-                    const auto& variable_component =
-                        GetComponentFromVectorVariable(r_second_order_vector_variable.instance, component);
+                    const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
+                        r_second_order_vector_variable.instance.Name(), component);
                     this->CheckDof(r_node, variable_component);
                 }
             }

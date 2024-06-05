@@ -154,7 +154,9 @@ jobs:
     - name: Running python tests
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         python3 kratos/python_scripts/testing/run_tests.py -v 2 -l nightly -c python3
@@ -168,7 +170,9 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 2 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
@@ -177,7 +181,9 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 3 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
@@ -186,7 +192,9 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
         mpiexec -np 4 --hostfile ${GITHUB_WORKSPACE}/ci_hostfile python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
@@ -194,7 +202,9 @@ jobs:
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
@@ -203,7 +213,9 @@ jobs:
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
@@ -212,7 +224,9 @@ jobs:
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
@@ -296,8 +310,8 @@ jobs:
 
     - name: Running python tests
       run: |
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
 
   ubuntu-core-without-unity:
@@ -357,7 +371,6 @@ jobs:
     - name: Running python tests
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
@@ -366,7 +379,6 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
@@ -375,7 +387,6 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
@@ -384,7 +395,6 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
@@ -392,7 +402,6 @@ jobs:
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
@@ -400,7 +409,6 @@ jobs:
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
@@ -408,7 +416,6 @@ jobs:
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
@@ -534,6 +541,8 @@ jobs:
       shell: bash
       timeout-minutes : 10
       run: |
+        export PYTHONPATH=
+        export LD_LIBRARY_PATH=
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs

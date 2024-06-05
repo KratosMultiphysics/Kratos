@@ -45,8 +45,10 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
-    /// Default Constructor
-    UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainInterfaceElement(IndexType NewId = 0)
+        : UPwBaseElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
@@ -210,8 +212,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     virtual void InitializeElementVariables(InterfaceElementVariables& rVariables,
                                             const GeometryType&        Geom,
@@ -279,11 +281,6 @@ protected:
     template <class TValueType>
     void InterpolateOutputValues(std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues);
 
-    void SetRetentionParameters(const InterfaceElementVariables& rVariables,
-                                RetentionLaw::Parameters&        rRetentionParameters);
-
-    double CalculateFluidPressure(const InterfaceElementVariables& rVariables);
-
     double CalculateBulkModulus(const Matrix& ConstitutiveMatrix);
 
     void InitializeBiotCoefficients(InterfaceElementVariables& rVariables, const bool& hasBiotCoefficient = false);
@@ -293,11 +290,6 @@ protected:
                                     unsigned int               GPoint);
 
     void CalculateSoilGamma(InterfaceElementVariables& rVariables);
-
-    void CalculateSoilDensity(InterfaceElementVariables& rVariables);
-
-    void SetConstitutiveParameters(InterfaceElementVariables&   rVariables,
-                                   ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
     Vector SetFullStressVector(const Vector& rStressVector);
 

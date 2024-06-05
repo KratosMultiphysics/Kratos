@@ -85,6 +85,9 @@ public:
     void AccumulateTotalDisplacementField() override{
         // intentionally empty
     };
+    void ComputeIncrementalDisplacementField() override{
+        // intentionally empty
+    };
     void OutputProcess() override{
         // intentionally empty
     };

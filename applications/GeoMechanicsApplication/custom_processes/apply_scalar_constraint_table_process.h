@@ -20,18 +20,16 @@ namespace Kratos
 class ModelPart;
 class Parameters;
 
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyScalarConstraintTableProcess : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyScalarConstraintTableProcess);
 
-    ApplyScalarConstraintTableProcess(ModelPart&        rModelPart,
-                                      const Parameters& rProcessSettings);
+    ApplyScalarConstraintTableProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
     ~ApplyScalarConstraintTableProcess() override;
 
-    ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&) = delete;
+    ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&)            = delete;
     ApplyScalarConstraintTableProcess& operator=(const ApplyScalarConstraintTableProcess&) = delete;
 
     using ProcessUniquePointer = std::unique_ptr<Process>;
@@ -58,8 +56,8 @@ private:
     void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
                                         std::vector<std::string> NamesOfSettingsToCopy);
 
-    ModelPart& mrModelPart;
+    ModelPart&           mrModelPart;
     ProcessUniquePointer mProcess;
 };
 
-}
+} // namespace Kratos

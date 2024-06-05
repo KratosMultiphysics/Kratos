@@ -113,7 +113,7 @@ class TSolver(GeoSolver):
             if scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow":
                 theta = self.settings["newmark_theta"].GetDouble()
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
-                scheme = KratosGeo.NewmarkTScheme(theta)
+                scheme = KratosGeo.GeneralizedNewmarkTScheme(theta)
             elif scheme_type.lower() == "backward_euler":
                  KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Transient heat transfer.")
                  scheme = KratosGeo.BackwardEulerTScheme()
