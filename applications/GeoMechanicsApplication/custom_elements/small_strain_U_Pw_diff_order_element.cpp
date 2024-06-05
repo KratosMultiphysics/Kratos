@@ -225,10 +225,10 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
         }
     }
 
-    const SizeType NumUNodes = r_geometry.PointsNumber();
-    const SizeType NumDim    = r_geometry.WorkingSpaceDimension();
+    const auto number_of_U_nodes = r_geometry.PointsNumber();
+    const auto dimension         = r_geometry.WorkingSpaceDimension();
 
-    switch (NumUNodes) {
+    switch (number_of_U_nodes) {
     case 6: // 2D T6P3
         mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
         break;
@@ -241,10 +241,10 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
                                                                  r_geometry(2), r_geometry(3));
         break;
     case 10: // 3D T10P4  //2D T10P6
-        if (NumDim == 3)
+        if (dimension == 3)
             mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1),
                                                                   r_geometry(2), r_geometry(3));
-        else if (NumDim == 2)
+        else if (dimension == 2)
             mpPressureGeometry = make_shared<Triangle2D6<Node>>(
                 r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
         break;
@@ -1072,54 +1072,34 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom = GetGeometry();
-    const auto number_of_integration_points = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
-    const auto dimension = rGeom.WorkingSpaceDimension();
-
-    rOutput.resize(number_of_integration_points);
+    rOutput.resize(GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
 
     if (rVariable == CAUCHY_STRESS_TENSOR) {
         std::vector<Vector> StressVector;
-
         this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            if (rOutput[GPoint].size2() != dimension)
-                rOutput[GPoint].resize(dimension, dimension, false);
-
             rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector[GPoint]);
         }
     } else if (rVariable == TOTAL_STRESS_TENSOR) {
         std::vector<Vector> StressVector;
-
         this->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            if (rOutput[GPoint].size2() != dimension)
-                rOutput[GPoint].resize(dimension, dimension, false);
-
             rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector[GPoint]);
         }
     } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
         std::vector<Vector> StrainVector;
-
         CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            if (rOutput[GPoint].size2() != dimension)
-                rOutput[GPoint].resize(dimension, dimension, false);
-
             rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
         std::vector<Vector> StrainVector;
-
         CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            if (rOutput[GPoint].size2() != dimension)
-                rOutput[GPoint].resize(dimension, dimension, false);
-
             rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
         }
     } else {
