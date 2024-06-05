@@ -140,12 +140,20 @@ class ComputeCauchyStressHistoryUtility
 
         const unsigned int n_steps = rStrainHistory.size1();
 
+        const bool requires_initialize_resp = pConstitutiveLaw->RequiresInitializeMaterialResponse();
+        const bool requires_finalize_resp   = pConstitutiveLaw->RequiresFinalizeMaterialResponse();
+
         for (unsigned int step = 0; step < n_steps; ++step) {
             noalias(strain_vector) = row(rStrainHistory, step);
-            pConstitutiveLaw->InitializeMaterialResponse(cl_parameters, r_stress_measure);
+
+            if (requires_initialize_resp)
+                pConstitutiveLaw->InitializeMaterialResponse(cl_parameters, r_stress_measure);
+
             pConstitutiveLaw->CalculateMaterialResponse(cl_parameters, r_stress_measure);
             noalias(row(stress_history, step)) = cl_parameters.GetStressVector();
-            pConstitutiveLaw->FinalizeMaterialResponse(cl_parameters, r_stress_measure);
+
+            if (requires_finalize_resp)
+                pConstitutiveLaw->FinalizeMaterialResponse(cl_parameters, r_stress_measure);
         }
 
         return stress_history;

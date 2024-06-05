@@ -110,6 +110,13 @@ public:
 
 	};
 
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse()
+    {
+        return false;
+    }
 
 	/**
 	* returns whether this constitutive Law has specified variable
@@ -312,13 +319,6 @@ public:
 		const Properties& rMaterialProperties,
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues) override;
-
-	/**
-	* Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
-	* @see Parameters
-	*/
-		void InitializeMaterialResponsePK2 (
-			ConstitutiveLaw::Parameters& rValues) override;
 
 	/**
 	* to be called at the beginning of each solution step

@@ -269,12 +269,7 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 		InitializeDamageLaw    			= true;
 	}
 }
-/***********************************************************************************/
-/***********************************************************************************/
-void DamageDPlusDMinusMasonry2DLaw::InitializeMaterialResponsePK2 (
-	Parameters& rValues)
-{
-}
+
 /***********************************************************************************/
 /***********************************************************************************/
 void DamageDPlusDMinusMasonry2DLaw::InitializeSolutionStep(
