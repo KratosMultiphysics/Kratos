@@ -211,8 +211,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
@@ -233,7 +232,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeft
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
