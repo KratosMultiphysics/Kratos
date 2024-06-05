@@ -42,7 +42,7 @@ class ConnectivityPreservingModelPartController(ModelPartController):
             current_model_part = destination_model_part
             while True:
                 if KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, current_model_part):
-                    KratosOA.OptimizationUtils.CopySolutionStepVariablesList(current_model_part, source_model_part)
+                    KratosOA.OptimizationUtils.SetSolutionStepVariablesList(current_model_part, source_model_part)
                 else:
                     raise RuntimeError(f"The destination model part solution step variables at {current_model_part.FullName()} is not a sub set of {source_model_part.FullName()}")
 

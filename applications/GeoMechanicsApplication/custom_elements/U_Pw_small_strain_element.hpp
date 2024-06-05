@@ -124,10 +124,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-    static constexpr SizeType VoigtSize = (TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    static constexpr SizeType StressTensorSize =
-        (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
-
     struct ElementVariables {
         /// Properties variables
         bool   IgnoreUndrained;
@@ -138,7 +134,6 @@ protected:
         double SolidDensity;
         double Density;
         double Porosity;
-        double PermeabilityUpdateFactor;
 
         double                            BiotCoefficient;
         double                            BiotModulusInverse;
@@ -173,14 +168,12 @@ protected:
         Matrix GradNpTInitialConfiguration;
 
         Matrix                                    F;
-        double                                    detF;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
         /// Retention Law parameters
         double DegreeOfSaturation;
-        double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
 
@@ -220,8 +213,6 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
-    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
-
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const;
@@ -233,9 +224,6 @@ protected:
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&             rLeftHandSideMatrix,
-                                                   const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -253,8 +241,9 @@ protected:
                                               array_1d<double, TNumNodes>&                 rPVector,
                                               const ElementVariables& rVariables) const;
 
+    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-
     virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
                                            array_1d<double, TNumNodes>&                 rPVector,
                                            const ElementVariables& rVariables) const;
@@ -277,9 +266,8 @@ protected:
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
+    [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
