@@ -37,7 +37,7 @@ class ExplicitUPlSolver(UPlSolver):
             "calculate_xi"               : false,
             "xi_1_factor"                : 1.0
         }""")
-        this_defaults.AddMissingParameters(super(ExplicitUPlSolver,self).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super(ExplicitUPlSolver,cls).GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):

@@ -46,16 +46,15 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mStressVector;
     using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
-
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
-    using UPwSmallStrainElement<TDim, TNumNodes>::VoigtSize;
-
+    
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    UPwSmallStrainFICElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainFICElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    {
+    }
 
     /// Constructor using an array of nodes
     UPwSmallStrainFICElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -78,8 +77,7 @@ public:
     {
     }
 
-    /// Destructor
-    ~UPwSmallStrainFICElement() override {}
+    ~UPwSmallStrainFICElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

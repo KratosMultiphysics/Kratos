@@ -44,15 +44,13 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
     using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
-    /// Default Constructor
-    TransientPwInterfaceElement(IndexType NewId = 0)
+    explicit TransientPwInterfaceElement(IndexType NewId = 0)
         : UPwSmallStrainInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
@@ -82,7 +80,7 @@ public:
     {
     }
 
-    ~TransientPwInterfaceElement() override                                    = default;
+    ~TransientPwInterfaceElement()                                             = default;
     TransientPwInterfaceElement(const TransientPwInterfaceElement&)            = delete;
     TransientPwInterfaceElement& operator=(const TransientPwInterfaceElement&) = delete;
     TransientPwInterfaceElement(TransientPwInterfaceElement&&)                 = delete;
@@ -110,8 +108,8 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo&) override;
+    void FinalizeSolutionStep(const ProcessInfo&) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rValues,

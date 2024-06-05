@@ -143,6 +143,19 @@ class Filter(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
+        """Returns boundary conditions.
+
+        This returns a list of model parts where the filter is having fixed
+        boundary conditions for each component for the variable this filter
+        is being used.
+
+        Returns:
+            list[list[Kratos.ModelPart]]: list of fixed boundary condition model parts for each component.
+        """
+        pass
+
 def Factory(model: Kratos.Model, filtering_model_part_name: str, variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, settings: Kratos.Parameters) -> Filter:
     """Factory method used to create filters.
 

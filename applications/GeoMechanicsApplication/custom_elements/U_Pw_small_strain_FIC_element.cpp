@@ -13,6 +13,8 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -45,6 +47,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 
     UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
 
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < TDim; ++i) {
         mNodalConstitutiveTensor[i].resize(VoigtSize);
 
@@ -134,20 +137,25 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     }
     Matrix DtStressContainer(NumGPoints, TDim);
 
-    Vector StressVector(VoigtSize);
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Vector     StressVector(VoigtSize);
+
+    const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+    const auto deformation_gradients = this->CalculateDeformationGradients();
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NContainer, Variables.DN_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
+        Variables.B                  = b_matrices[GPoint];
+        Variables.F                  = deformation_gradients[GPoint];
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
-        // Compute infinitessimal strain
-        this->CalculateStrain(Variables, GPoint);
-
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         this->SaveGPConstitutiveTensor(ConstitutiveTensorContainer, Variables.ConstitutiveMatrix, GPoint);
 
         // Compute DtStress
@@ -185,21 +193,24 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
     // Containers for extrapolation variables
     Matrix DtStressContainer(NumGPoints, TDim);
 
-    Vector StressVector(VoigtSize);
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Vector     StressVector(VoigtSize);
+
+    const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+    const auto deformation_gradients = this->CalculateDeformationGradients();
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NContainer, Variables.DN_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-
-        // Compute infinitessimal strain
-        this->CalculateStrain(Variables, GPoint);
-
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
-        // Compute ConstitutiveTensor
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
+        Variables.B                  = b_matrices[GPoint];
+        Variables.F                  = deformation_gradients[GPoint];
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         // Compute DtStress
         noalias(Variables.StrainVector) = prod(Variables.B, Variables.VelocityVector);
@@ -276,12 +287,11 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
-
+    Matrix AuxNodalConstitutiveTensor(NumNodes, this->GetStressStatePolicy().GetVoigtSize());
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
 
-        for (unsigned int j = 0; j < VoigtSize; j++)
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++)
             noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor, j);
     }
 
@@ -313,7 +323,8 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
@@ -339,7 +350,8 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
@@ -364,7 +376,8 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
@@ -433,47 +446,55 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     FICElementVariables FICVariables;
     this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
-    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+    const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+    const auto deformation_gradients = this->CalculateDeformationGradients();
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NContainer, Variables.DN_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Prop);
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, Prop);
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
-
-        // Compute infinitessimal strain
-        this->CalculateStrain(Variables, GPoint);
-
-        // set gauss points variables to constitutivelaw parameters
-        this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        Variables.B                  = b_matrices[GPoint];
+        Variables.F                  = deformation_gradients[GPoint];
+        Variables.StrainVector       = strain_vectors[GPoint];
+        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
 
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
-        // Compute constitutive tensor and stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-        mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
+        Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
 
-        // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJInitialConfiguration);
+            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to the left hand side
@@ -700,6 +721,7 @@ void UPwSmallStrainFICElement<2, 3>::InitializeSecondOrderTerms(FICElementVariab
 
     const SizeType Dim = 2;
 
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
@@ -717,6 +739,7 @@ void UPwSmallStrainFICElement<2, 4>::InitializeSecondOrderTerms(FICElementVariab
     const SizeType NumNodes = 4;
 
     // Voigt identity matrix
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
     rFICVariables.VoigtMatrix(0, 0)    = 1.0;
@@ -740,8 +763,8 @@ void UPwSmallStrainFICElement<3, 4>::InitializeSecondOrderTerms(FICElementVariab
 {
     KRATOS_TRY
 
-    const SizeType Dim = 3;
-
+    const SizeType Dim       = 3;
+    auto const     VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
@@ -760,6 +783,7 @@ void UPwSmallStrainFICElement<3, 8>::InitializeSecondOrderTerms(FICElementVariab
     const SizeType NumNodes = 8;
 
     // Voigt identity matrix
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
     rFICVariables.VoigtMatrix(0, 0)    = 1.0;
@@ -986,7 +1010,7 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 3;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -998,7 +1022,7 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1035,7 +1059,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 4;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1047,7 +1071,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1099,7 +1123,7 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 4;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1111,7 +1135,7 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1135,7 +1159,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 8;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1147,7 +1171,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
