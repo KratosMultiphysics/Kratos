@@ -44,7 +44,7 @@ struct TestOperators
 };
 
 /**
- * @class SetFunction
+ * @class KeyGenerator
  * @brief A functor that serves as the identity function if "<" and "==" operators are defined, otherwise, returns memory location.
  * @details This class provides two overloaded operator() functions, one for non-const objects
  * and another for const objects. The operator() returns the input objects memory location as it is,
@@ -59,7 +59,7 @@ struct TestOperators
  * @author Suneth Warnakulasuriya
  */
 template<class TDataType>
-class SetFunction
+class KeyGenerator
 {
 private:
     ///@name Private static variables
@@ -78,10 +78,10 @@ public:
     ///@{
 
     /**
-     * @brief Operator that returns a non-const reference pointer to the input object if "<" and "==" operators are defined.
-     * Otherwise this returns a reference to the input object.
+     * @brief Operator that returns a non-const reference to the input object if "<" and "==" operators are defined.
+     * Otherwise this returns a pointer to the input object.
      * @param data The input object of type TDataType.
-     * @return A non-const reference pointer or reference to the same object as provided in the parameter.
+     * @return A non-const reference or pointer to the same object as provided in the parameter.
      */
     std::conditional_t<HasOperatorsDefined, TDataType&, TDataType*> operator()(TDataType& rData)
     {
@@ -93,10 +93,10 @@ public:
     }
 
     /**
-     * @brief Operator that returns a const reference pointer to the input object if "<" and "==" operators are defined.
-     * Otherwise this returns the const reference to the input object.
+     * @brief Operator that returns a const reference to the input object if "<" and "==" operators are defined.
+     * Otherwise this returns a pointer to the const input object.
      * @param data The input object of type TDataType.
-     * @return A const reference pointer or reference to the same object as provided in the parameter.
+     * @return A const reference or pointer to the same object as provided in the parameter.
      */
     std::conditional_t<HasOperatorsDefined, TDataType const&, TDataType const*> operator()(const TDataType& rData) const
     {

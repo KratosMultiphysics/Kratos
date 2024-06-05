@@ -27,7 +27,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-#include "containers/set_function.h"
+#include "containers/key_generator.h"
 
 namespace Kratos
 {
@@ -63,7 +63,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template<class TDataType,
-         class TGetKeyType = SetFunction<TDataType>,
+         class TGetKeyType = KeyGenerator<TDataType>,
          class TCompareType = std::less<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TEqualType = std::equal_to<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>,
          class TPointerType = typename TDataType::Pointer,
@@ -574,13 +574,8 @@ public:
             mData.push_back(value);
             mSortedPartSize = mData.size();
             return iterator(mData.end() - 1);
-        } else if (EqualKeyTo(KeyOf(*value))(*itr_pos)) {
-            // already found existing element with the same key, hence returning the existing element.
-            return iterator(itr_pos);
         } else {
-            // insert the new value before the itr_pos.
-            mSortedPartSize = mData.size() + 1;
-            return mData.insert(itr_pos, value);
+            return UniqueInsert(value);
         }
     }
 
@@ -611,9 +606,7 @@ public:
                 return iterator(mData.end() - 1);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
-                mSortedPartSize = mData.size() + 1;
-                return mData.insert(itr_pos, value);
+                return UniqueInsert(value);
             }
         } else if (position_hint == cbegin()) {
             // trying to insert at the front.
@@ -624,9 +617,7 @@ public:
                 return mData.insert(mData.begin(), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
-                mSortedPartSize = mData.size() + 1;
-                return mData.insert(itr_pos, value);
+                return UniqueInsert(value);
             }
         } else {
             // trying to insert at an arbitrary position.
@@ -635,9 +626,7 @@ public:
                 return mData.insert(mData.begin() + (position_hint - cbegin()), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
-                mSortedPartSize = mData.size() + 1;
-                return mData.insert(itr_pos, value);
+                return UniqueInsert(value);
             }
         }
     }
@@ -1097,7 +1086,11 @@ private:
                         mData.push_back(TPointerType(&GetReference(it)));
                     }
                 } else {
-                    auto current_pos = lower_bound_first - 1;
+                    // now if the capacity of the new mData is larger than the existing
+                    // capacity, then the current lower_bound_first is invalidated.
+                    // hence needs to find it again.
+                    const auto new_lower_bound = std::lower_bound(mData.begin(), mData.end(), KeyOf(GetReference(first)), CompareKey());
+                    auto current_pos = new_lower_bound - 1;
                     for (auto it = first; it != last; ++it) {
                         current_pos = mData.insert(current_pos + 1, TPointerType(&GetReference(it)));
                     }
@@ -1182,6 +1175,19 @@ private:
         } else {
             static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
             return 0;
+        }
+    }
+
+    iterator UniqueInsert(const TPointerType& value)
+    {
+        auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
+        if (EqualKeyTo(KeyOf(*value))(*itr_pos)) {
+            // already found existing element with the same key, hence returning the existing element.
+            return iterator(itr_pos);
+        } else {
+            // insert the new value before the itr_pos.
+            mSortedPartSize = mData.size() + 1;
+            return mData.insert(itr_pos, value);
         }
     }
 
