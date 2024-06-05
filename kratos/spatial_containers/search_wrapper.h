@@ -185,11 +185,12 @@ public:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+        const double bounding_box_threshold = mpSearchObject ? Radius : -1.0;
 
         // Prepare MPI search
         Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
         Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
@@ -263,11 +264,12 @@ public:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+        const double bounding_box_threshold = mpSearchObject ? Radius : -1.0;
 
         // Prepare MPI search
         Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, Radius, mrDataCommunicator, true);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
         Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
@@ -345,11 +347,12 @@ public:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+        const double bounding_box_threshold = mpSearchObject ? max_radius : -1.0;
 
         // Prepare MPI search
         Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, max_radius, mrDataCommunicator, true);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
         Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
@@ -423,11 +426,12 @@ public:
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
+        const double bounding_box_threshold = mpSearchObject ? 0.0 : -1.0;
 
         // Prepare MPI search
         Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
-        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, 0.0, mrDataCommunicator, true);
+        SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
         Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
