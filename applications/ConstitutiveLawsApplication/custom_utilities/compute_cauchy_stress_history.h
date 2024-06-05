@@ -75,7 +75,6 @@ class ComputeCauchyStressHistory
     Matrix ComputeStressHistory(
         ConstitutiveLaw::Pointer pConstitutiveLaw,
         const Matrix& rStrainHistory,
-        const Flags& rCLOptions,
         const GeometryType& rGeometry,
         const Properties& rProperties
         )
@@ -110,6 +109,7 @@ class ComputeCauchyStressHistory
         Matrix stress_history = rStrainHistory;
         stress_history.clear();
 
+
         auto cl_parameters = ConstitutiveLaw::Parameters();
         cl_parameters.SetConstitutiveMatrix(C);
         cl_parameters.SetStrainVector(strain_vector);
@@ -121,6 +121,12 @@ class ComputeCauchyStressHistory
         cl_parameters.SetProcessInfo(process_info);
         cl_parameters.SetMaterialProperties(rProperties);
         cl_parameters.SetElementGeometry(rGeometry);
+
+        // Set constitutive law flags:
+        Flags& cl_options = cl_parameters.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         // We initialize the material
         pConstitutiveLaw->InitializeMaterial(rProperties, rGeometry, N);
