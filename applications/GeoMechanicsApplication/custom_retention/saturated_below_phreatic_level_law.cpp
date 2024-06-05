@@ -43,7 +43,7 @@ SaturatedBelowPhreaticLevelLaw::~SaturatedBelowPhreaticLevelLaw()
 {
 }
 
-double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -58,7 +58,7 @@ double SaturatedBelowPhreaticLevelLaw::CalculateSaturation(Parameters &rParamete
     KRATOS_CATCH("")
 }
 
-double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -67,12 +67,12 @@ double SaturatedBelowPhreaticLevelLaw::CalculateEffectiveSaturation(Parameters &
     KRATOS_CATCH("")
 }
 
-double SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateDerivativeOfSaturation(Parameters &rParameters) const
 {
     return 0.0;
 }
 
-double SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -87,7 +87,7 @@ double SaturatedBelowPhreaticLevelLaw::CalculateRelativePermeability(Parameters 
     KRATOS_CATCH("")
 }
 
-double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters &rParameters)
+double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters &rParameters) const
 {
     KRATOS_TRY
 
