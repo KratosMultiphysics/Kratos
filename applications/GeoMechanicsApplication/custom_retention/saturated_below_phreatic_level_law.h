@@ -66,15 +66,15 @@ public:
 
     void InitializeSolutionStep(Parameters &rParameters) override;
 
-    double CalculateSaturation(Parameters &rParameters) override;
+    double CalculateSaturation(Parameters &rParameters) const override;
 
-    double CalculateEffectiveSaturation(Parameters &rParameters) override;
+    double CalculateEffectiveSaturation(Parameters &rParameters) const override;
 
-    double CalculateDerivativeOfSaturation(Parameters &rParameters) override;
+    double CalculateDerivativeOfSaturation(Parameters &rParameters) const override;
 
-    double CalculateRelativePermeability(Parameters &rParameters) override;
+    double CalculateRelativePermeability(Parameters &rParameters) const override;
 
-    double CalculateBishopCoefficient(Parameters &rParameters) override;
+    double CalculateBishopCoefficient(Parameters &rParameters) const override;
 
     void Finalize(Parameters &rParameters) override;
 
