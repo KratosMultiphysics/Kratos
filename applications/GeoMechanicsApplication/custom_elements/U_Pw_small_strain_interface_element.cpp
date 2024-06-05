@@ -1849,9 +1849,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
     BoundedMatrix<double, TDim, TDim> DimMatrix = prod(
         trans(rVariables.RotationMatrix),
         BoundedMatrix<double, TDim, TDim>(prod(rVariables.ConstitutiveMatrix, rVariables.RotationMatrix)));
-    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), DimMatrix);
+    BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix = prod(trans(rVariables.Nu), DimMatrix);
     BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix =
-        prod(rVariables.UDimMatrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
+        prod(UDimMatrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, UUMatrix);
@@ -1950,11 +1950,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessFo
     VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY
-
-    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
+    BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix =
+        prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
     array_1d<double, TNumNodes * TDim> UVector =
-        -1.0 * prod(rVariables.UDimMatrix, mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
+        -1.0 * prod(UDimMatrix, mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block vector into elemental vector
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, UVector);
@@ -1998,9 +1998,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
 {
     KRATOS_TRY
 
-    noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
+    BoundedMatrix<double, TNumNodes * TDim, TDim> UDimMatrix =
+        prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    array_1d<double, TNumNodes * TDim> UVector = prod(rVariables.UDimMatrix, rVariables.VoigtVector);
+    array_1d<double, TNumNodes * TDim> UVector = prod(UDimMatrix, rVariables.VoigtVector);
 
     BoundedMatrix<double, TNumNodes * TDim, TNumNodes> UPMatrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
