@@ -574,8 +574,13 @@ public:
             mData.push_back(value);
             mSortedPartSize = mData.size();
             return iterator(mData.end() - 1);
+        } else if (EqualKeyTo(KeyOf(*value))(*itr_pos)) {
+            // already found existing element with the same key, hence returning the existing element.
+            return iterator(itr_pos);
         } else {
-            return UniqueInsert(value);
+            // insert the new value before the itr_pos.
+            mSortedPartSize = mData.size() + 1;
+            return mData.insert(itr_pos, value);
         }
     }
 
@@ -606,7 +611,7 @@ public:
                 return iterator(mData.end() - 1);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                return UniqueInsert(value);
+                return insert(value);
             }
         } else if (position_hint == cbegin()) {
             // trying to insert at the front.
@@ -617,7 +622,7 @@ public:
                 return mData.insert(mData.begin(), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                return UniqueInsert(value);
+                return insert(value);
             }
         } else {
             // trying to insert at an arbitrary position.
@@ -626,7 +631,7 @@ public:
                 return mData.insert(mData.begin() + (position_hint - cbegin()), value);
             } else {
                 // given position is invalid. Hence, discarding the hint.
-                return UniqueInsert(value);
+                return insert(value);
             }
         }
     }
@@ -1175,19 +1180,6 @@ private:
         } else {
             static_assert(!std::is_same_v<TIteratorType, TIteratorType>, "Unsupported iterator type.");
             return 0;
-        }
-    }
-
-    iterator UniqueInsert(const TPointerType& value)
-    {
-        auto itr_pos = std::lower_bound(mData.begin(), mData.end(), KeyOf(*value), CompareKey());
-        if (EqualKeyTo(KeyOf(*value))(*itr_pos)) {
-            // already found existing element with the same key, hence returning the existing element.
-            return iterator(itr_pos);
-        } else {
-            // insert the new value before the itr_pos.
-            mSortedPartSize = mData.size() + 1;
-            return mData.insert(itr_pos, value);
         }
     }
 
