@@ -21,7 +21,6 @@ Begin Elements LinearTimoshenkoCurvedBeamElement2D3N// GUI group identifier: Bea
         2  0    3 5 4
 		3  0    5 7 6
 		4  0    7 9 8
-
 End Elements
 
 Begin Conditions PointLoadCondition2D1N// GUI group identifier: Load on points Auto1
@@ -39,16 +38,15 @@ Begin SubModelPart Parts_Beam_Beam_Auto1 // Group Beam Auto1 // Subtree Parts_Be
 			7
 			8
 			9
-
     End SubModelPartNodes
     Begin SubModelPartElements
             1
             2
 			3
 			4
-            
     End SubModelPartElements
 End SubModelPart
+
 Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             1
@@ -59,6 +57,7 @@ Begin SubModelPart ROTATION_Rotation_Auto1 // Group Rotation Auto1 // Subtree RO
             1
     End SubModelPartNodes
 End SubModelPart
+
 Begin SubModelPart PointLoad2D_Load_on_points_Auto1 // Group Load on points Auto1 // Subtree PointLoad2D
     Begin SubModelPartNodes
            1

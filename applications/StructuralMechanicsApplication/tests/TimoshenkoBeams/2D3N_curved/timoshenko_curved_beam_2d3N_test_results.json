@@ -1,131 +1,289 @@
 {
-  "TIME": [],
+  "TIME": [
+    1.0
+  ],
   "NODE_1": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      0.0
+    ]
   },
   "NODE_2": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      5.636506839571644e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -8.319628681390771e-06
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0005704042480070232
+    ]
   },
   "NODE_3": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.00021686992083922812
+    ],
+    "DISPLACEMENT_Y": [
+      -5.984893469634435e-05
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.001118957478880283
+    ]
   },
   "NODE_4": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.000457139036656599
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00019096489914817942
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0016243738680724702
+    ]
   },
   "NODE_5": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.0007404402248927871
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00042639825260187863
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0020675638247905476
+    ]
   },
   "NODE_6": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.001023919018071963
+    ],
+    "DISPLACEMENT_Y": [
+      -0.000774384137940571
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0024310472917637668
+    ]
   },
   "NODE_7": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.0012640105288999352
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0012266874120832193
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0027014023209488247
+    ]
   },
   "NODE_8": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.0014246929863522657
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0017585773449690452
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0028676158027046627
+    ]
   },
   "NODE_9": {
-    "DISPLACEMENT_X": [],
-    "DISPLACEMENT_Y": [],
-    "DISPLACEMENT_Z": [],
-    "ROTATION_X": [],
-    "ROTATION_Y": [],
-    "ROTATION_Z": []
+    "DISPLACEMENT_X": [
+      0.001480880449730265
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0023336769549924005
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      -0.0029239768020914545
+    ]
   },
   "ELEMENT_1": {
     "BENDING_MOMENT": {
-      "0": [],
-      "1": []
+      "0": [
+        -996.4775285506217
+      ],
+      "1": [
+        -952.5293561489426
+      ]
     },
     "SHEAR_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -83.01237923095816
+      ],
+      "1": [
+        -304.66916851077195
+      ]
     },
     "AXIAL_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -996.5485160767827
+      ],
+      "1": [
+        -952.4582393781666
+      ]
     }
   },
   "ELEMENT_2": {
     "BENDING_MOMENT": {
-      "0": [],
-      "1": []
+      "0": [
+        -888.7210303080349
+      ],
+      "1": [
+        -763.5672239920095
+      ]
     },
     "SHEAR_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -458.05604484040833
+      ],
+      "1": [
+        -645.9675970901874
+      ]
     },
     "AXIAL_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -888.9233149071462
+      ],
+      "1": [
+        -763.3648298876792
+      ]
     }
   },
   "ELEMENT_3": {
     "BENDING_MOMENT": {
-      "0": [],
-      "1": []
+      "0": [
+        -645.6648114806247
+      ],
+      "1": [
+        -458.3589037197684
+      ]
     },
     "SHEAR_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -763.3648298870385
+      ],
+      "1": [
+        -888.9233149069985
+      ]
     },
     "AXIAL_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -645.9675970909583
+      ],
+      "1": [
+        -458.0560448413781
+      ]
     }
   },
   "ELEMENT_4": {
     "BENDING_MOMENT": {
-      "0": [],
-      "1": []
+      "0": [
+        -304.31197808879807
+      ],
+      "1": [
+        -83.36959537816377
+      ]
     },
     "SHEAR_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -952.4582393782606
+      ],
+      "1": [
+        -996.54851607661
+      ]
     },
     "AXIAL_FORCE": {
-      "0": [],
-      "1": []
+      "0": [
+        -304.669168511189
+      ],
+      "1": [
+        -83.01237923187955
+      ]
     }
   }
 }
