@@ -7,7 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Richard Faasse,
+//                   Gennady Markelov
 //
 
 #include "stress_strain_utilities.h"
