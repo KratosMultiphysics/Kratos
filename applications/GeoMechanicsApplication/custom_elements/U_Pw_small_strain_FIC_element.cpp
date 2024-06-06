@@ -935,13 +935,13 @@ void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientMatrix(MatrixT
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, 4, 4 * 2> pu_matrix =
+    BoundedMatrix<double, 4, 4 * 2> strain_gradient_matrix =
         PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * 0.25 *
         rFICVariables.ElementLength * rFICVariables.ElementLength * rVariables.BiotCoefficient *
         prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
     // Distribute strain gradient matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, pu_matrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, strain_gradient_matrix);
 
     KRATOS_CATCH("")
 }
@@ -964,13 +964,13 @@ void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientMatrix(MatrixT
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, 8, 8 * 3> pu_matrix =
+    BoundedMatrix<double, 8, 8 * 3> strain_gradient_matrix =
         PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * 0.25 *
         rFICVariables.ElementLength * rFICVariables.ElementLength * rVariables.BiotCoefficient *
         prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
     // Distribute strain gradient matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, pu_matrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, strain_gradient_matrix);
 
     KRATOS_CATCH("")
 }
@@ -989,12 +989,12 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientM
                                     rFICVariables.ElementLength * rVariables.BiotCoefficient /
                                     (8.0 * rFICVariables.ShearModulus);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes * TDim> pu_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes * TDim> strain_gradient_matrix =
         -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
         prod(rVariables.GradNpT, rFICVariables.DimUMatrix) * rVariables.IntegrationCoefficient;
 
     // Distribute DtStressGradient Matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, pu_matrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, strain_gradient_matrix);
 
     KRATOS_CATCH("")
 }
@@ -1340,12 +1340,12 @@ void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientFlow(VectorTyp
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, 4, 4 * 2> pu_matrix =
+    BoundedMatrix<double, 4, 4 * 2> strain_gradient_matrix =
         0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
         rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
         prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
-    array_1d<double, 4> p_vector = prod(pu_matrix, rVariables.VelocityVector);
+    array_1d<double, 4> p_vector = prod(strain_gradient_matrix, rVariables.VelocityVector);
 
     // Distribute Strain Gradient vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
@@ -1370,12 +1370,12 @@ void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientFlow(VectorTyp
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, 8, 8 * 3> pu_matrix =
+    BoundedMatrix<double, 8, 8 * 3> strain_gradient_matrix =
         0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
         rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
         prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
-    array_1d<double, 8> p_vector = prod(pu_matrix, rVariables.VelocityVector);
+    array_1d<double, 8> p_vector = prod(strain_gradient_matrix, rVariables.VelocityVector);
 
     // Distribute Strain Gradient vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
