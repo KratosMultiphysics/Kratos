@@ -62,6 +62,38 @@ Begin SubModelPart Soil
   End SubModelPartConditions
 End SubModelPart
 
+Begin SubModelPart Sides
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart BottomFixed
   Begin SubModelPartTables
   End SubModelPartTables
