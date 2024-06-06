@@ -232,8 +232,7 @@ protected:
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    virtual void CalculatePermeabilityFlow(array_1d<double, TNumNodes>& rPVector,
-                                           const ElementVariables&      rVariables) const;
+    virtual array_1d<double, TNumNodes> CalculatePermeabilityFlow(const ElementVariables& rVariables) const;
 
     virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     virtual void CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,

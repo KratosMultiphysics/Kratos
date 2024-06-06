@@ -1377,8 +1377,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(array_1d<double, TNumNodes>& rPVector,
-                                                                       const ElementVariables& rVariables) const
+array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1387,7 +1386,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(array_1d<
             rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
             rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 
-    noalias(rPVector) = -prod(permeability_matrix, rVariables.PressureVector);
+    array_1d<double, TNumNodes> result = -prod(permeability_matrix, rVariables.PressureVector);
+
+    return result;
 
     KRATOS_CATCH("")
 }
@@ -1431,9 +1432,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vec
 {
     KRATOS_TRY
 
-    array_1d<double, TNumNodes> p_vector;
-
-    this->CalculatePermeabilityFlow(p_vector, rVariables);
+    auto p_vector = this->CalculatePermeabilityFlow(rVariables);
 
     // Distribute permeability block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);

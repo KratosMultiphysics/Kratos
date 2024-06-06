@@ -584,9 +584,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vector
 {
     KRATOS_TRY;
 
-    array_1d<double, TNumNodes> p_vector;
-
-    this->CalculatePermeabilityFlow(p_vector, rVariables);
+    auto p_vector = this->CalculatePermeabilityFlow(rVariables);
 
     // Distribute permeability block vector into elemental vector
     rRightHandSideVector += p_vector;
