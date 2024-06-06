@@ -989,12 +989,12 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientM
                                     rFICVariables.ElementLength * rVariables.BiotCoefficient /
                                     (8.0 * rFICVariables.ShearModulus);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes * TDim> strain_gradient_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes * TDim> stress_gradient_matrix =
         -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
         prod(rVariables.GradNpT, rFICVariables.DimUMatrix) * rVariables.IntegrationCoefficient;
 
     // Distribute DtStressGradient Matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, strain_gradient_matrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, stress_gradient_matrix);
 
     KRATOS_CATCH("")
 }
