@@ -83,6 +83,17 @@ public:
     }
 
     /**
+     * @brief Calculate the current value of the sensor using the given model part.
+     *
+     * @param rModelPart        Model part to calculate the sensor value.
+     * @return double           Calculated sensor value.
+     */
+    virtual Vector CalculateValueVector(ModelPart& rModelPart)
+    {
+        KRATOS_ERROR << "Calling base class Sensor::CalculateValueVector. Please implement it in the derrived class.";
+    }
+
+    /**
      * @brief Get the Type of the sensor
      *
      * @return std::string
@@ -111,11 +122,31 @@ public:
     double GetSensorValue() const;
 
     /**
+     * @brief Get the Sensor value
+     *
+     * @return double       Value of the sensor.
+     */
+    virtual Vector GetSensorValueVector() const 
+    {
+        KRATOS_ERROR << "Calling base class Sensor::GetSensorValueVector. Please implement it in the derrived class.";
+    }
+
+    /**
      * @brief Set the Sensor Value
      *
      * @param Value         Value to be set.
      */
     void SetSensorValue(const double Value);
+
+    /**
+     * @brief Set the Sensor Value
+     *
+     * @param Value         Value to be set.
+     */
+    virtual void SetSensorValueVector(const Vector Value) 
+    {
+        KRATOS_ERROR << "Calling base class Sensor::SetSensorValueVector. Please implement it in the derrived class.";
+    }
 
     /**
      * @brief Adds given container expression

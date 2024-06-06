@@ -38,7 +38,11 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
 
         self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction()
         for sensor in self.listof_sensors:
-            sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
+            #TODO: edit to set zero vector
+            if "eigenvector" in sensor.GetName():
+                sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE_VECTOR, [0.0, 0.0])
+            else:
+                sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.measurement_residual_response_function.AddSensor(sensor)
 
         self.measurement_residual_response_function.Initialize()

@@ -206,6 +206,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferencingSmallDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mAdjointFiniteDifferenceSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
 
+      // Adding eigenvector derivative element
+      //mEigenvectorDerivativeSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -501,6 +504,14 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  );
     KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  );
     KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME );
+    KRATOS_REGISTER_VARIABLE( LHS_DESIGN_DERIVATIVE);
+    KRATOS_REGISTER_VARIABLE( MASS_DESIGN_DERIVATIVE);
+    KRATOS_REGISTER_VARIABLE( LHS_PRIMAL_ELEMENT);
+    KRATOS_REGISTER_VARIABLE( MASS_MATRIX_PRIMAL_ELEMENT);
+
+    // Variables for computing eigenvector derivative
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EIGENVECTOR_DERIVATIVE_DISPLACEMENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EIGENVECTOR_DERIVATIVE_ROTATION )
 
     // for DEM-FEM 2D
     KRATOS_REGISTER_VARIABLE(IMPOSED_Z_STRAIN_VALUE)
@@ -664,6 +675,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D6N", mAdjointFiniteDifferencingSmallDisplacementElement3D6N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingSmallDisplacementElement3D8N", mAdjointFiniteDifferencingSmallDisplacementElement3D8N)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceSpringDamperElement3D2N", mAdjointFiniteDifferenceSpringDamperElement3D2N)
+
+    // Register eigenvector derivative element
+    //KRATOS_REGISTER_ELEMENT("EigenvectorDerivativeSmallDisplacementElement3D4N", mEigenvectorDerivativeSmallDisplacementElement3D4N)
 
     // Register the conditions
     // Point loads

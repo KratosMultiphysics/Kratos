@@ -76,6 +76,23 @@ def GetSensors(model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Pa
             sensor = KratosSI.Sensors.StrainSensor(name, loc, strain_variable, strain_type_value, model_part.GetElement(elem_id), weight)
             AddSensorVariableData(sensor, parameters["variable_data"])
             list_of_sensors.append(sensor)
+        elif sensor_type_name == "eigenvalue_sensor":
+            name = parameters["name"].GetString()
+            loc = parameters["location"].GetVector()
+            loc = Kratos.Point(loc[0], loc[1], loc[2])
+            weight = parameters["weight"].GetDouble()
+            sensor = KratosSI.Sensors.EigenvalueSensor(name, loc, weight)
+            AddSensorVariableData(sensor, parameters["variable_data"])
+            list_of_sensors.append(sensor)
+        elif sensor_type_name == "eigenvector_sensor":
+            name = parameters["name"].GetString()
+            loc = parameters["location"].GetVector()
+            loc = Kratos.Point(loc[0], loc[1], loc[2])
+            weight = parameters["weight"].GetDouble()
+            val = parameters["value"].GetVector()
+            sensor = KratosSI.Sensors.EigenvectorSensor(name, loc, weight, val)
+            AddSensorVariableData(sensor, parameters["variable_data"])
+            list_of_sensors.append(sensor)
     return list_of_sensors
 
 def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosSI.Sensors.Sensor]', list_of_sensor_properties: 'list[str]') -> None:
@@ -146,7 +163,10 @@ def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosSI
 
             # now write the data values from sensor
             for var in list_of_data_keys:
-                file_output.write(f",{data_value_dict[var](sensor.GetValue(var))}")
+                if "eigenvector" in sensor.GetName():
+                    file_output.write(f",\"[{data_value_dict[var](sensor.GetValueVector(var))}]\"")
+                else:
+                    file_output.write(f",{data_value_dict[var](sensor.GetValue(var))}")
 
             file_output.write("\n")
 

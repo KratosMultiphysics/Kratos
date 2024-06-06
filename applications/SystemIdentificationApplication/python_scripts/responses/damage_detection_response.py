@@ -1,5 +1,8 @@
 from typing import Optional
+import sys
 import csv
+import ast
+import pandas as pd
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
@@ -141,6 +144,7 @@ class DamageDetectionResponse(ResponseFunction):
                 for container_expression in collective_expression.GetContainerExpressions():
                     container_expression.SetExpression((container_expression.GetExpression() - sensitivities[sensitivity_variable].GetExpression() * test_case_weight))
                     container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
+                    print(container_expression.Evaluate())
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]
@@ -152,15 +156,35 @@ class DamageDetectionResponse(ResponseFunction):
         return name_index, value_index
 
     def __SetSensorMeasuredValue(self, sensor_measurement_data_file_name: str) -> None:
+        #TODO: edit to read vectors also
         with open(sensor_measurement_data_file_name, "r") as csv_measurement_file:
+            csv.field_size_limit(sys.maxsize)
+            # csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
+            # measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
+
+            # for measured_row in csv_measurement_stream:
+            #     measured_sensor_name = measured_row[measured_name_index].strip()
+            #     if measured_sensor_name.contains("eigenvector"):
+            #         #measured_value = float(measured_row[measured_value_index])
+            #         measured_value = Kratos.Vector()
+            #         self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE_VECTOR, measured_value)
+            #     else:
+            #         measured_value = float(measured_row[measured_value_index])
+            #         self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
             csv_measurement_stream = csv.reader(csv_measurement_file, delimiter=",")
             measured_name_index, measured_value_index = self.__GetHeaderIndices(csv_measurement_stream)
 
             for measured_row in csv_measurement_stream:
                 measured_sensor_name = measured_row[measured_name_index].strip()
-                measured_value = float(measured_row[measured_value_index])
-                self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
-
+                if "eigenvector" in measured_sensor_name:
+                    #measured_value = float(measured_row[measured_value_index])
+                    measured_value = Kratos.Vector(ast.literal_eval(measured_row[measured_value_index]))
+                    #measured_value = Kratos.Vector(measured_value)
+                    self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE_VECTOR, measured_value)
+                    #print("measure eigen vector is ", self.__GetSensor(measured_sensor_name).GetValue(KratosDT.SENSOR_MEASURED_VALUE_VECTOR))
+                else:
+                    measured_value = float(measured_row[measured_value_index])
+                    self.__GetSensor(measured_sensor_name).SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

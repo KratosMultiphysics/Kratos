@@ -6,24 +6,22 @@
 //
 //  License:         SystemIdentificationApplication/license.txt
 //
-//  Main authors:    Suneth Warnakulasuriya
+//  Main authors:    Talhah Ansari
 //
 
 #pragma once
 
 // System includes
 #include <string>
-#include <vector>
 
 // External includes
 
 // Project includes
 #include "includes/element.h"
-#include "includes/condition.h"
-#include "response_functions/adjoint_response_function.h"
 
 // Application includes
 #include "sensor.h"
+
 
 namespace Kratos
 {
@@ -33,7 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(DIGITAL_TWIN_APPLICATION) MeasurementResidualResponseFunction : public AdjointResponseFunction
+class KRATOS_API(DIGITAL_TWIN_APPLICATION) EigenvalueSensor : public Sensor
 {
 public:
     ///@name Type Definitions
@@ -41,37 +39,30 @@ public:
 
     using IndexType = std::size_t;
 
-    using BaseType = AdjointResponseFunction;
+    using BaseType = Sensor;
 
-    KRATOS_CLASS_POINTER_DEFINITION(MeasurementResidualResponseFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(EigenvalueSensor);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    MeasurementResidualResponseFunction();
+    EigenvalueSensor(
+        const std::string& rName,
+        const Point& rLocation,
+        const double Weight);
 
     /// Destructor.
-    ~MeasurementResidualResponseFunction() override = default;
+    ~EigenvalueSensor() override = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-    void AddSensor(Sensor::Pointer pSensor);
+    static Parameters GetDefaultParameters();
 
-    void Clear();
-
-    std::vector<Sensor::Pointer>& GetSensorsList();
-
-    void Initialize() override;
-
-    void InitializeSolutionStep() override;
-
-    void FinalizeSolutionStep() override;
-
-    void Finalize();
+    const Parameters GetSensorParameters() const override;
 
     double CalculateValue(ModelPart& rModelPart) override;
 
@@ -139,31 +130,15 @@ public:
         Vector& rSensitivityGradient,
         const ProcessInfo& rProcessInfo) override;
 
-    void CalculateGlobalPartialSensitivity(
-        Element& rAdjointElement,
-        const Variable<double>& rVariable,
-        const Matrix& rSensitivityMatrix,
-        Vector& rSensitivityGradient,
-        const ProcessInfo& rProcessInfo,
-        ModelPart& rModelPart) override;
-
-    void CalculateGlobalPartialSensitivity(
-        Condition& rAdjointCondition,
-        const Variable<double>& rVariable,
-        const Matrix& rSensitivityMatrix,
-        Vector& rSensitivityGradient,
-        const ProcessInfo& rProcessInfo,
-        ModelPart& rModelPart) override;
-
     ///@}
     ///@name Input and output
     ///@{
 
-    std::string Info() const;
+    std::string Info() const override;
 
-    void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
-    void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
 
@@ -171,35 +146,47 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<Sensor::Pointer> mpSensorsList;
-
-    std::vector<Vector> mResponseGradientList;
+    Point mLocalPoint;
 
     ///@}
     ///@name Private operations
     ///@{
 
-    template<class TCalculationType, class... TArgs>
-    void CalculateDerivative(
-        Vector& rResponseGradient,
-        const Matrix& rResidualGradient,
-        TArgs&&... rArgs);
+    void SetVectorToZero(
+        Vector& rVector,
+        const IndexType Size);
+
+    void DetermineEigenvectorOfElement(
+        ModelPart::ElementType& rElement, 
+        const int eigenfrequency_id, 
+        Vector& rEigenvectorOfElement, 
+        const ProcessInfo& CurrentProcessInfo);
+
+    // void CalculateLeftHandSideDerivative(
+    //     Element& rElement,
+    //     const Matrix& rLHS,
+    //     const double& rPertubationSize,
+    //     Matrix& rOutput,
+    //     const ProcessInfo& rCurrentProcessInfo);
+
+    // void CalculateMassMatrixDerivative(
+    //     Element& rElement,
+    //     const Matrix& rMassMatrix,
+    //     const double& rPerturbationSize,
+    //     Matrix& rOutput,
+    //     const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateElementContributionToPartialSensitivity(
+        Element& rAdjointElement,
+        const std::string& rVariableName,
+        const Matrix& rSensitivityMatrix,
+        Vector& rSensitivityGradient,
+        const ProcessInfo& rProcessInfo);
 
     ///@}
 };
 
 ///@} // Kratos Classes
-
-/// output stream functions
-inline std::ostream& operator<<(
-    std::ostream& rOStream,
-    const MeasurementResidualResponseFunction& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
 
 ///@} //Digital Twin Application group
 

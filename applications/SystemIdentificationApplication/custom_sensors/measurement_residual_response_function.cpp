@@ -85,6 +85,22 @@ struct PartialSensitivity
     }
 };
 
+struct GlobalPartialSensitivity
+{
+    template <class TEntityType, class TVariableType>
+    static inline void Calculate(
+        Sensor& rSensor,
+        Vector& rSensitivityGradient,
+        const Matrix& rSensitivityMatrix,
+        TEntityType& rEntity,
+        const TVariableType& rVariable,
+        const ProcessInfo& rProcessInfo,
+        ModelPart& rModelPart)
+    {
+        rSensor.CalculateGlobalPartialSensitivity(rEntity, rVariable, rSensitivityMatrix, rSensitivityGradient, rProcessInfo, rModelPart);
+    }
+};
+
 } // namespace MeasurementResidualResponseFunctionUtilities
 
 MeasurementResidualResponseFunction::MeasurementResidualResponseFunction()
@@ -96,7 +112,7 @@ void MeasurementResidualResponseFunction::AddSensor(Sensor::Pointer pSensor)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(pSensor->Has(SENSOR_MEASURED_VALUE))
+    KRATOS_ERROR_IF_NOT(pSensor->Has(SENSOR_MEASURED_VALUE)|| pSensor->Has(SENSOR_MEASURED_VALUE_VECTOR))
         << pSensor->GetName() << " does not have the SENSOR_MEASURED_VALUE defined.\n";
 
     mpSensorsList.push_back(pSensor);
@@ -146,9 +162,21 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 
     double value = 0.0;
     for (auto& p_sensor : mpSensorsList) {
-        const double sensor_value = p_sensor->CalculateValue(rModelPart);
-        value += p_sensor->GetWeight() * std::pow(sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE), 2) * 0.5;
-        p_sensor->SetSensorValue(sensor_value);
+        if (p_sensor->GetName().find("eigenvector") != std::string::npos) {
+            const Vector sensor_value = p_sensor->CalculateValueVector(rModelPart);
+            const Vector measured_value = p_sensor->GetValue(SENSOR_MEASURED_VALUE_VECTOR);
+            double num = inner_prod(sensor_value, measured_value);
+            double den1 =  inner_prod(sensor_value, sensor_value);
+            double den2 = inner_prod(measured_value, measured_value);
+            double MAC = ( (num*num) / (den1 * den2 ));
+            value += p_sensor->GetWeight() * std::pow((1 - MAC), 2) * 0.5;
+            p_sensor->SetSensorValueVector(sensor_value);
+        }
+        else {
+            const double sensor_value = p_sensor->CalculateValue(rModelPart);
+            value += p_sensor->GetWeight() * std::pow(sensor_value - p_sensor->GetValue(SENSOR_MEASURED_VALUE), 2) * 0.5;
+            p_sensor->SetSensorValue(sensor_value);
+        }
     }
     return value;
 
@@ -166,14 +194,38 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     if (rResponseGradient.size() != rResidualGradient.size1()) {
         rResponseGradient.resize(rResidualGradient.size1(), false);
     }
-
     rResponseGradient.clear();
 
     auto& local_sensor_response_gradient = mResponseGradientList[OpenMPUtils::ThisThread()];
 
     for (auto& p_sensor : mpSensorsList) {
+        if (p_sensor->GetName().find("eigenvector") != std::string::npos) {
+
+            TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
+            // Vector c_der = local_sensor_response_gradient;
+            // Vector c = p_sensor->GetSensorValueVector();
+            // Vector m = p_sensor->GetValue(SENSOR_MEASURED_VALUE_VECTOR);
+
+            // double cc = inner_prod(c,c);
+            // double mm = inner_prod(m,m);
+            // double cm = inner_prod(c,m);
+            // double mc_der = inner_prod(m,c_der);
+            // double cc_der = inner_prod(c,c_der);
+
+            // double dMAC = ((cc - mc_der) - (2 * cm * cc_der)) / (cc * cc * mm);
+            Vector sensor_value = p_sensor->GetSensorValueVector();
+            double MAC = (std::pow(inner_prod(sensor_value, p_sensor->GetValue(SENSOR_MEASURED_VALUE_VECTOR)),2) / ( inner_prod(sensor_value, sensor_value) * inner_prod(p_sensor->GetValue(SENSOR_MEASURED_VALUE_VECTOR), p_sensor->GetValue(SENSOR_MEASURED_VALUE_VECTOR))));
+            
+            noalias(rResponseGradient) += local_sensor_response_gradient * (p_sensor->GetWeight() * (1 - MAC));
+        
+            // const Vector sensor_value = p_sensor->CalculateValueVector(rModelPart);
+            // value += p_sensor->GetWeight() * std::pow(1 - inner_prod(sensor_value, p_sensor->GetValue(SENSOR_MEASURED_VALUE_VECTOR)), 2) * 0.5;
+            // p_sensor->SetSensorValueVector(sensor_value);
+        }
+        else {
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
         noalias(rResponseGradient) += local_sensor_response_gradient * (p_sensor->GetWeight() * (p_sensor->GetSensorValue() - p_sensor->GetValue(SENSOR_MEASURED_VALUE)));
+        }
     }
 
     KRATOS_CATCH("");
@@ -271,6 +323,28 @@ void MeasurementResidualResponseFunction::CalculatePartialSensitivity(
     const ProcessInfo& rProcessInfo)
 {
     CalculateDerivative<MeasurementResidualResponseFunctionUtilities::PartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointCondition, rVariable, rProcessInfo);
+}
+
+void MeasurementResidualResponseFunction::CalculateGlobalPartialSensitivity(
+    Element& rAdjointElement,
+    const Variable<double>& rVariable,
+    const Matrix& rSensitivityMatrix,
+    Vector& rSensitivityGradient,
+    const ProcessInfo& rProcessInfo,
+    ModelPart& rModelPart)
+{
+    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::GlobalPartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointElement, rVariable, rProcessInfo, rModelPart);
+}
+
+void MeasurementResidualResponseFunction::CalculateGlobalPartialSensitivity(
+    Condition& rAdjointCondition,
+    const Variable<double>& rVariable,
+    const Matrix& rSensitivityMatrix,
+    Vector& rSensitivityGradient,
+    const ProcessInfo& rProcessInfo,
+    ModelPart& rModelPart)
+{
+    CalculateDerivative<MeasurementResidualResponseFunctionUtilities::GlobalPartialSensitivity>(rSensitivityGradient, rSensitivityMatrix, rAdjointCondition, rVariable, rProcessInfo, rModelPart);
 }
 
 std::string MeasurementResidualResponseFunction::Info() const

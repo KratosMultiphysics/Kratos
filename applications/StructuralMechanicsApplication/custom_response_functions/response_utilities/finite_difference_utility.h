@@ -108,6 +108,23 @@ public:
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
+    static void CalculateLeftHandSideDerivative(Element& rElement,
+                                                const Matrix& rLHS,
+                                                const array_1d_component_type& rDesignVariable,
+                                                const double& rPertubationSize,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo);
+
+    static void CalculateMassMatrixDerivative(Element& rElement,
+                                                const Matrix& rMassMatrix,
+                                                const array_1d_component_type& rDesignVariable,
+                                                const double& rPertubationSize,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo);
+
+
+
+
 private:
 
     static std::size_t GetCoordinateDirection(const array_1d_component_type& rDesignVariable);

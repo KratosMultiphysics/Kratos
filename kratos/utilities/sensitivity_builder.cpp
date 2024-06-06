@@ -213,6 +213,57 @@ void AssembleContainerContributions(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType, class TDataType, class TProxyType>
+void AssembleContainerTotalContributions(
+    TContainerType& rContainer,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    TProxyType& rProxy,
+    const Variable<TDataType>& rDesignVariable,
+    const ProcessInfo& rProcessInfo,
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    using TDerivativeEntityType = typename TProxyType::GlobalPointerType::element_type;
+
+    using TThreadLocalStorageType = std::tuple<Vector, GlobalPointersVector<TDerivativeEntityType>, TDataType>;
+
+    block_for_each(
+        rContainer, TThreadLocalStorageType(),
+        [&](typename TContainerType::value_type& rEntity, TThreadLocalStorageType& rTLS) {
+            auto& r_geometry = rEntity.GetGeometry();
+
+            auto& sensitivities = std::get<0>(rTLS);
+            auto& gp_vector = std::get<1>(rTLS);
+            auto& data = std::get<2>(rTLS);
+
+            if (HasSensitivityContributions<TDerivativeEntityType>(r_geometry)) {
+                rSensitivityBuilderScheme.CalculateTotalSensitivity(
+                    rEntity, rResponseFunction, sensitivities, gp_vector,
+                    rDesignVariable, rProcessInfo, rModelPart);
+
+                KRATOS_DEBUG_ERROR_IF(sensitivities.size() != gp_vector.size() &&
+                                      sensitivities.size() == 0)
+                    << "gp_vector and sensitivities size mismatch [ "
+                       "gp_vector.size() = "
+                    << gp_vector.size()
+                    << ", sensitivities.size() = " << sensitivities.size() << " ].\n";
+
+                // assign sensitivities to correct entities
+                if (gp_vector.size() != 0) {
+                    const IndexType data_size = sensitivities.size() / gp_vector.size();
+
+                    for (IndexType i = 0; i < gp_vector.size(); ++i) {
+                        GetDataFromVector(sensitivities, i * data_size, data_size, data);
+                        rProxy.Assign(gp_vector(i), data);
+                    }
+                }
+            }
+        });
+    KRATOS_CATCH("");
+}
+
 template <class TDataType>
 class CalculateNodalSolutionStepSensitivityFunctor
 {
@@ -287,6 +338,44 @@ public:
             rContainer, rResponseFunction, rSensitivityBuilderScheme,
             apply_sensitivities_proxy, *rVariable.pDesignVariable,
             rProcessInfo);
+
+        apply_sensitivities_proxy.SendAndApplyRemotely();
+
+        KRATOS_CATCH("");
+    }
+};
+
+template <class TDataType>
+class CalculateNonHistoricalTotalSensitivitiesFunctor
+{
+public:
+    template<class TContainerType>
+    void operator()(
+        const SensitivityBuilder::SensitivityVariables<TDataType>& rVariable,
+        TContainerType& rContainer,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const DataCommunicator& rDataCommunicator,
+        const ProcessInfo& rProcessInfo,
+        const double& ScalingFactor,
+        ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        GlobalPointerMapCommunicator<typename TContainerType::value_type, TDataType> pointer_map_communicator(
+            rDataCommunicator);
+
+        auto apply_sensitivities_proxy = pointer_map_communicator.GetApplyProxy(
+            [&](typename TContainerType::value_type& rEntity, const TDataType& NewValue) {
+                if (rEntity.Has(UPDATE_SENSITIVITIES) && rEntity.GetValue(UPDATE_SENSITIVITIES)) {
+                    rEntity.GetValue(*(rVariable.pOutputVariable)) += NewValue * ScalingFactor;
+                }
+            });
+        
+        AssembleContainerTotalContributions(
+            rContainer, rResponseFunction, rSensitivityBuilderScheme,
+            apply_sensitivities_proxy, *rVariable.pDesignVariable,
+            rProcessInfo, rModelPart);
 
         apply_sensitivities_proxy.SendAndApplyRemotely();
 
@@ -446,12 +535,18 @@ void SensitivityBuilder::UpdateSensitivities()
         omp_set_num_threads(max_threads);
 #endif
     }
-    CalculateNonHistoricalSensitivities(
+    // CalculateNonHistoricalSensitivities(
+    //     mElementDataValueSensitivityVariablesList, mpModelPart->Elements(),
+    //     *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
+    CalculateNonHistoricalTotalSensitivities(
         mElementDataValueSensitivityVariablesList, mpModelPart->Elements(),
-        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
-    CalculateNonHistoricalSensitivities(
+        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor, *mpModelPart);
+    // CalculateNonHistoricalSensitivities(
+    //     mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions(),
+    //     *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
+    CalculateNonHistoricalTotalSensitivities(
         mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions(),
-        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor);
+        *mpResponseFunction, *mpSensitivityBuilderScheme, mpModelPart->GetProcessInfo(), scaling_factor, *mpModelPart);
 
     mpSensitivityBuilderScheme->Update(
         *mpModelPart, *mpSensitivityModelPart, *mpResponseFunction);
@@ -581,6 +676,22 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
         ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor);
 }
 
+void SensitivityBuilder::CalculateNonHistoricalTotalSensitivities(
+    const TSensitivityVariables& rVariables,
+    ModelPart::ElementsContainerType& rElements,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    const ProcessInfo& rProcessInfo,
+    double ScalingFactor,
+    ModelPart& rModelPart)
+{
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctor<CalculateNonHistoricalTotalSensitivitiesFunctor>(
+        rVariables, rElements, rResponseFunction, rSensitivityBuilderScheme,
+        ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor, rModelPart);
+}
+
 void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     const std::vector<std::string>& rVariables,
     ModelPart::ConditionsContainerType& rConditions,
@@ -610,6 +721,22 @@ void SensitivityBuilder::CalculateNonHistoricalSensitivities(
     ExecuteFunctor<CalculateNonHistoricalSensitivitiesFunctor>(
         rVariables, rConditions, rResponseFunction, rSensitivityBuilderScheme,
         ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor);
+}
+
+void SensitivityBuilder::CalculateNonHistoricalTotalSensitivities(
+    const TSensitivityVariables& rVariables,
+    ModelPart::ConditionsContainerType& rConditions,
+    AdjointResponseFunction& rResponseFunction,
+    SensitivityBuilderScheme& rSensitivityBuilderScheme,
+    const ProcessInfo& rProcessInfo,
+    double ScalingFactor,
+    ModelPart& rModelPart)
+{
+    using namespace sensitivity_builder_cpp;
+
+    ExecuteFunctor<CalculateNonHistoricalTotalSensitivitiesFunctor>(
+        rVariables, rConditions, rResponseFunction, rSensitivityBuilderScheme,
+        ParallelEnvironment::GetDefaultDataCommunicator(), rProcessInfo, ScalingFactor, rModelPart);
 }
 
 SensitivityBuilder::TSensitivityVariables SensitivityBuilder::GetVariableLists(

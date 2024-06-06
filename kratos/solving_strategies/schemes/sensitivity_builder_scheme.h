@@ -179,6 +179,20 @@ public:
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
     }
 
+    virtual void CalculateTotalSensitivity(
+        ElementType& rCurrentElement,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Variable<double>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentElement, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
+    }
+
     /**
      * @brief Calculates sensitivity from a given element
      *
@@ -203,6 +217,16 @@ public:
         GlobalPointersVector<ConditionType>& rGPSensitivityVector,
         const Variable<double>& rVariable,
         const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void CalculateTotalSensitivity(
+        ElementType& rCurrentElement,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ConditionType>& rGPSensitivityVector,
+        const Variable<double>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
     {}
 
     /**
@@ -235,6 +259,20 @@ public:
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
     }
 
+    virtual void CalculateTotalSensitivity(
+        ElementType& rCurrentElement,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ElementType>& rGPSensitivityVector,
+        const Variable<double>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentElement, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
+    }
+
     /**
      * @brief Calculates sensitivity from a given condition
      *
@@ -263,6 +301,20 @@ public:
         CalculateLocalSensitivityAndGlobalPointersVector(
             rCurrentCondition, rResponseFunction, rSensitivity,
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateTotalSensitivity(
+        ConditionType& rCurrentCondition,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Variable<double>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentCondition, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
     }
 
     /**
@@ -295,6 +347,20 @@ public:
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
     }
 
+    virtual void CalculateTotalSensitivity(
+        ConditionType& rCurrentCondition,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ConditionType>& rGPSensitivityVector,
+        const Variable<double>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentCondition, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
+    }
+
     /**
      * @brief Calculates sensitivity from a given condition
      *
@@ -319,6 +385,16 @@ public:
         GlobalPointersVector<ElementType>& rGPSensitivityVector,
         const Variable<double>& rVariable,
         const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void CalculateTotalSensitivity(
+        ConditionType& rCurrentCondition,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ElementType>& rGPSensitivityVector,
+        const Variable<double>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
     {}
 
     /**
@@ -351,6 +427,20 @@ public:
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
     }
 
+    virtual void CalculateTotalSensitivity(
+        ElementType& rCurrentElement,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentElement, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
+    }
+
     /**
      * @brief Calculates sensitivity from a given element
      *
@@ -375,6 +465,16 @@ public:
         GlobalPointersVector<ConditionType>& rGPSensitivityVector,
         const Variable<array_1d<double, 3>>& rVariable,
         const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void CalculateTotalSensitivity(
+        ElementType& rCurrentElement,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ConditionType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
     {}
 
     /**
@@ -407,6 +507,20 @@ public:
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
     }
 
+    virtual void CalculateTotalSensitivity(
+        ElementType& rCurrentElement,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ElementType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentElement, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
+    }
+
     /**
      * @brief Calculates sensitivity from a given condition
      *
@@ -435,6 +549,20 @@ public:
         CalculateLocalSensitivityAndGlobalPointersVector(
             rCurrentCondition, rResponseFunction, rSensitivity,
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
+    }
+
+    virtual void CalculateTotalSensitivity(
+        ConditionType& rCurrentCondition,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentCondition, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
     }
 
     /**
@@ -467,6 +595,20 @@ public:
             rGPSensitivityVector, rVariable, rCurrentProcessInfo);
     }
 
+    virtual void CalculateTotalSensitivity(
+        ConditionType& rCurrentCondition,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ConditionType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        CalculateTotalSensitivityAndGlobalPointersVector(
+            rCurrentCondition, rResponseFunction, rSensitivity,
+            rGPSensitivityVector, rVariable, rCurrentProcessInfo, rModelPart);
+    }
+
     /**
      * @brief Calculates sensitivity from a given condition
      *
@@ -491,6 +633,16 @@ public:
         GlobalPointersVector<ElementType>& rGPSensitivityVector,
         const Variable<array_1d<double, 3>>& rVariable,
         const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    virtual void CalculateTotalSensitivity(
+        ConditionType& rCurrentCondition,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        GlobalPointersVector<ElementType>& rGPSensitivityVector,
+        const Variable<array_1d<double, 3>>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
     {}
 
     ///@}
@@ -556,6 +708,30 @@ private:
         KRATOS_CATCH("");
     }
 
+    template <typename TEntityType, typename TDerivativeEntityType, typename TDataType>
+    void CalculateTotalSensitivityAndGlobalPointersVector(
+        TEntityType& rEntity,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivityVector,
+        GlobalPointersVector<TDerivativeEntityType>& rGPSensitivityVector,
+        const Variable<TDataType>& rVariable,
+        const ProcessInfo& rProcessInfo,
+        ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        this->CalculateTotalSensitivity(rEntity, rResponseFunction,
+                                        rSensitivityVector, rVariable, rProcessInfo, rModelPart);
+
+        if (rGPSensitivityVector.size() != 1) {
+            rGPSensitivityVector.resize(1);
+        }
+
+        rGPSensitivityVector(0) = GlobalPointer<TDerivativeEntityType>(&rEntity, mRank);
+
+        KRATOS_CATCH("");
+    }
+
     template <typename TEntityType, typename TDataType>
     void CalculateLocalSensitivityAndGlobalPointersVector(
         TEntityType& rEntity,
@@ -569,6 +745,33 @@ private:
 
         this->CalculateLocalSensitivity(rEntity, rResponseFunction,
                                         rSensitivityVector, rVariable, rProcessInfo);
+
+        auto& r_geometry = rEntity.GetGeometry();
+        if (rGPSensitivityVector.size() != r_geometry.PointsNumber()) {
+            rGPSensitivityVector.resize(r_geometry.PointsNumber());
+        }
+
+        for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i) {
+            rGPSensitivityVector(i) = mGlobalPointerNodalMap[r_geometry[i].Id()];
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    template <typename TEntityType, typename TDataType>
+    void CalculateTotalSensitivityAndGlobalPointersVector(
+        TEntityType& rEntity,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivityVector,
+        GlobalPointersVector<NodeType>& rGPSensitivityVector,
+        const Variable<TDataType>& rVariable,
+        const ProcessInfo& rProcessInfo,
+        ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        this->CalculateTotalSensitivity(rEntity, rResponseFunction,
+                                        rSensitivityVector, rVariable, rProcessInfo, rModelPart);
 
         auto& r_geometry = rEntity.GetGeometry();
         if (rGPSensitivityVector.size() != r_geometry.PointsNumber()) {
@@ -615,7 +818,45 @@ private:
         }
 
         noalias(rSensitivity) = prod(mSensitivityMatrices[k], mAdjointVectors[k]) + mPartialSensitivity[k];
+        std::cout << "local sensitivity of element " << rCurrentEntity.Id() << " is " << rSensitivity[0] << std::endl;
+        KRATOS_CATCH("");
+    }
 
+    template <class TEntityType, class TDataType>
+    void CalculateTotalSensitivity(
+        TEntityType& rCurrentEntity,
+        AdjointResponseFunction& rResponseFunction,
+        Vector& rSensitivity,
+        const Variable<TDataType>& rVariable,
+        const ProcessInfo& rCurrentProcessInfo,
+        ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        const auto k = OpenMPUtils::ThisThread();
+
+        rCurrentEntity.CalculateSensitivityMatrix(rVariable, mSensitivityMatrices[k], rCurrentProcessInfo);
+        rCurrentEntity.GetValuesVector(mAdjointVectors[k]);
+
+        KRATOS_ERROR_IF(mAdjointVectors[k].size() != mSensitivityMatrices[k].size2())
+            << "mAdjointVectors.size(): " << mAdjointVectors[k].size()
+            << " incompatible with mSensitivityMatrices[k].size1(): "
+            << mSensitivityMatrices[k].size2() << ". Variable: " << rVariable << std::endl;
+
+        rResponseFunction.CalculateGlobalPartialSensitivity(
+            rCurrentEntity, rVariable, mSensitivityMatrices[k], mPartialSensitivity[k], rCurrentProcessInfo, rModelPart);
+
+        KRATOS_ERROR_IF(mPartialSensitivity[k].size() != mSensitivityMatrices[k].size1())
+            << "mPartialSensitivity.size(): " << mPartialSensitivity[k].size()
+            << " incompatible with mSensitivityMatrices.size1(): "
+            << mSensitivityMatrices[k].size1() << ". Variable: " << rVariable << std::endl;
+
+        if (rSensitivity.size() != mSensitivityMatrices[k].size1()) {
+            rSensitivity.resize(mSensitivityMatrices[k].size1(), false);
+        }
+
+        noalias(rSensitivity) = prod(mSensitivityMatrices[k], mAdjointVectors[k]) + mPartialSensitivity[k];
+        std::cout << "sensitivity of element " << rCurrentEntity.Id() << " is " << rSensitivity[0] << std::endl;
         KRATOS_CATCH("");
     }
 

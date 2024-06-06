@@ -189,6 +189,15 @@ public:
         const ProcessInfo& rProcessInfo,
         double ScalingFactor);
 
+    static void CalculateNonHistoricalTotalSensitivities(
+        const TSensitivityVariables& rVariables,
+        ModelPart::ElementsContainerType& rElements,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const ProcessInfo& rProcessInfo,
+        double ScalingFactor,
+        ModelPart& rModelPart);
+
     static void CalculateNonHistoricalSensitivities(
         const std::vector<std::string>& rVariables,
         ModelPart::ConditionsContainerType& rConditions,
@@ -203,6 +212,15 @@ public:
         SensitivityBuilderScheme& rSensitivityBuilderScheme,
         const ProcessInfo& rProcessInfo,
         double ScalingFactor);
+
+    static void CalculateNonHistoricalTotalSensitivities(
+        const TSensitivityVariables& rVariables,
+        ModelPart::ConditionsContainerType& rConditions,
+        AdjointResponseFunction& rResponseFunction,
+        SensitivityBuilderScheme& rSensitivityBuilderScheme,
+        const ProcessInfo& rProcessInfo,
+        double ScalingFactor,
+        ModelPart& rModelPart);
 
 private:
     ///@name Member Variables

@@ -209,6 +209,16 @@ public:
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
 
+    virtual void CalculateGlobalPartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo,
+                                             ModelPart& rModelPart)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
     /// Calculate the partial sensitivity w.r.t. design variable.
     /**
      * @param[in]     rAdjointElement       the adjoint element.
@@ -223,6 +233,16 @@ public:
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    virtual void CalculateGlobalPartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo,
+                                             ModelPart& rModelPart)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -245,8 +265,52 @@ public:
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
 
+    virtual void CalculateGlobalPartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo,
+                                             ModelPart& rModelPart)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    /// Calculate the partial sensitivity w.r.t. design variable.
+    /**
+     * @param[in]     rAdjointElement       the adjoint element.
+     * @param[in]     rVariable             the design variable.
+     * @param[in]     rSensitivityMatrix    the transposed gradient of the
+     *                                      element's residual w.r.t. design variable.
+     * @param[out]    rSensitivityGradient  the gradient of the response function.
+     * @param[in]     rProcessInfo          the current process info.
+     * @param[in]     rModelPart            the model part.
+     */
+    virtual void CalculateGlobalPartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo,
+                                             ModelPart& rModelPart)
+    {
+        KRATOS_ERROR << "Calling base class response function method.\n";
+    }
+
+    /// Calculate the partial sensitivity w.r.t. design variable.
+    /**
+     * @param[in]     rAdjointCondition     the adjoint condition.
+     * @param[in]     rVariable             the design variable.
+     * @param[in]     rSensitivityMatrix    the transposed gradient of the
+     *                                      condition's residual w.r.t. design variable.
+     * @param[out]    rSensitivityGradient  the gradient of the response function.
+     * @param[in]     rProcessInfo          the current process info.
+     * @param[in]     rModelPart            the model part.
+     */
+    
+
     /// Calculate the scalar valued response function.
     virtual double CalculateValue(ModelPart& rModelPart) = 0;
+
+    //virtual Vector CalculateValueVector(ModelPart& rModelPart) = 0;
 
     ///@}
 
@@ -267,7 +331,6 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-
     ///@}
     ///@name Private Operators
     ///@{
