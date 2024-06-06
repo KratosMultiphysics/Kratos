@@ -223,8 +223,7 @@ protected:
 
     virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    virtual void CalculateCompressibilityFlow(array_1d<double, TNumNodes>& rPVector,
-                                              const ElementVariables&      rVariables) const;
+    virtual array_1d<double, TNumNodes> CalculateCompressibilityFlow(const ElementVariables& rVariables) const;
 
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;

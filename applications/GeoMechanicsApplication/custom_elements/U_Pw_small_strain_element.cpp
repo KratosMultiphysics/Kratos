@@ -1288,17 +1288,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(
-
-    array_1d<double, TNumNodes>& rPVector, const ElementVariables& rVariables) const
+array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
     BoundedMatrix<double, TNumNodes, TNumNodes> p_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+    array_1d<double, TNumNodes> result = -prod(p_matrix, rVariables.DtPressureVector);
 
-    noalias(rPVector) = -prod(p_matrix, rVariables.DtPressureVector);
+    return result;
 
     KRATOS_CATCH("")
 }
@@ -1309,12 +1308,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
 {
     KRATOS_TRY
 
-    array_1d<double, TNumNodes> p_vector;
-
-    this->CalculateCompressibilityFlow(p_vector, rVariables);
+    auto compressibility_flow = this->CalculateCompressibilityFlow(rVariables);
 
     // Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, compressibility_flow);
 
     KRATOS_CATCH("")
 }
@@ -1375,10 +1372,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vec
 {
     KRATOS_TRY
 
-    auto p_vector = this->CalculatePermeabilityFlow(rVariables);
+    auto permeability_flow = this->CalculatePermeabilityFlow(rVariables);
 
     // Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);
 
     KRATOS_CATCH("")
 }
@@ -1406,10 +1403,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(Vector
 {
     KRATOS_TRY
 
-    auto p_vector = this->CalculateFluidBodyFlow(rVariables);
+    auto fluid_body_flow = this->CalculateFluidBodyFlow(rVariables);
 
     // Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, fluid_body_flow);
 
     KRATOS_CATCH("")
 }

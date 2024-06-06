@@ -584,10 +584,10 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vector
 {
     KRATOS_TRY;
 
-    auto p_vector = this->CalculatePermeabilityFlow(rVariables);
+    auto permeability_flow = this->CalculatePermeabilityFlow(rVariables);
 
     // Distribute permeability block vector into elemental vector
-    rRightHandSideVector += p_vector;
+    rRightHandSideVector += permeability_flow;
 
     KRATOS_CATCH("");
 }
@@ -599,10 +599,10 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorTyp
 {
     KRATOS_TRY;
 
-    auto p_vector = this->CalculateFluidBodyFlow(rVariables);
+    auto fluid_body_flow = this->CalculateFluidBodyFlow(rVariables);
 
     // Distribute fluid body flow block vector into elemental vector
-    rRightHandSideVector += p_vector;
+    rRightHandSideVector += fluid_body_flow;
 
     KRATOS_CATCH("");
 }
@@ -614,12 +614,10 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(Vec
 {
     KRATOS_TRY;
 
-    array_1d<double, TNumNodes> p_vector;
-
-    this->CalculateCompressibilityFlow(p_vector, rVariables);
+    auto compressibility_flow = this->CalculateCompressibilityFlow(rVariables);
 
     // Distribute compressibility block vector into elemental vector
-    rRightHandSideVector += p_vector;
+    rRightHandSideVector += compressibility_flow;
 
     KRATOS_CATCH("");
 }
