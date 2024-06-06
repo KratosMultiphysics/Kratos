@@ -576,3 +576,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         return residual_criterion
 
+
+    def _GetSolutionStrategy(self):
+        #TODO naming "solver" the "solution strategy" is a bit misleading
+        return self.solver
