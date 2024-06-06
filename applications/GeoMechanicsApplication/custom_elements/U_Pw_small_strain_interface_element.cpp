@@ -1850,11 +1850,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
         trans(rVariables.RotationMatrix),
         BoundedMatrix<double, TDim, TDim>(prod(rVariables.ConstitutiveMatrix, rVariables.RotationMatrix)));
     BoundedMatrix<double, TNumNodes * TDim, TDim> u_dim_matrix = prod(trans(rVariables.Nu), dim_matrix);
-    BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> uu_matrix =
+    BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> stiffness_matrix =
         prod(u_dim_matrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, uu_matrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }

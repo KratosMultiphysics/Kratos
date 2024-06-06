@@ -844,11 +844,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
         prod(rVariables.GradNpT,
              rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.GradNpT)))); // to be optimized
 
-    Matrix uu_matrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
-    MathUtils<double>::ExpandAndAddReducedMatrix(uu_matrix, ReducedKgMatrix, TDim);
+    Matrix geometric_stiffness_matrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
+    MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, ReducedKgMatrix, TDim);
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, uu_matrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
 
     KRATOS_CATCH("")
 }
