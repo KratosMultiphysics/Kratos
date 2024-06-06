@@ -2053,12 +2053,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
     BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix =
         prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
         rVariables.RelativePermeability * prod(p_dim_matrix, trans(rVariables.GradNpT)) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    array_1d<double, TNumNodes> permeability_flow = -1.0 * prod(pp_matrix, rVariables.PressureVector);
+    array_1d<double, TNumNodes> permeability_flow = -1.0 * prod(permeability_matrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);

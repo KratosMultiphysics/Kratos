@@ -1294,14 +1294,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientM
     const double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
                                           SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pressure_gradient_matrix =
         rVariables.DtPressureCoefficient * StabilizationParameter *
         (SignBiotCoefficient - 2.0 * rFICVariables.ShearModulus * rVariables.BiotModulusInverse /
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
     // Distribute pressure gradient block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, pp_matrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, pressure_gradient_matrix);
 
     KRATOS_CATCH("")
 }
@@ -1454,13 +1454,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
     double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
                                     SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pressure_gradient_matrix =
         StabilizationParameter *
         (SignBiotCoefficient - 2.0 * rFICVariables.ShearModulus * rVariables.BiotModulusInverse /
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
-    array_1d<double, TNumNodes> pressure_gradient_flow = -1.0 * prod(pp_matrix, rVariables.DtPressureVector);
+    array_1d<double, TNumNodes> pressure_gradient_flow =
+        -1.0 * prod(pressure_gradient_matrix, rVariables.DtPressureVector);
 
     // Distribute PressureGradient block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, pressure_gradient_flow);
