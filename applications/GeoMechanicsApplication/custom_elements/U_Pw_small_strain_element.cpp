@@ -1225,10 +1225,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(Vecto
                                                                            unsigned int GPoint)
 {
     KRATOS_TRY
-    array_1d<double, TNumNodes * TDim> u_vector =
+    array_1d<double, TNumNodes * TDim> stiffness_force =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
 
     KRATOS_CATCH("")
 }
@@ -1241,11 +1241,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(VectorT
 
     this->CalculateSoilGamma(rVariables);
 
-    array_1d<double, TNumNodes * TDim> u_vector = prod(trans(rVariables.Nu), rVariables.SoilGamma) *
-                                                  rVariables.IntegrationCoefficientInitialConfiguration;
+    array_1d<double, TNumNodes * TDim> mix_body_force =
+        prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.IntegrationCoefficientInitialConfiguration;
 
     // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, mix_body_force);
 
     KRATOS_CATCH("")
 }
@@ -1274,8 +1274,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
                      rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
-    array_1d<double, TNumNodes * TDim> u_vector = prod(coupling_matrix, rVariables.PressureVector);
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
+    array_1d<double, TNumNodes * TDim> coupling_terms = prod(coupling_matrix, rVariables.PressureVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_terms);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;

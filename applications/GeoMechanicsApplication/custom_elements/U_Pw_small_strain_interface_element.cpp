@@ -1954,11 +1954,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessFo
     BoundedMatrix<double, TNumNodes * TDim, TDim> u_dim_matrix =
         prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    array_1d<double, TNumNodes * TDim> u_vector =
+    array_1d<double, TNumNodes * TDim> stiffness_force =
         -1.0 * prod(u_dim_matrix, mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
 
     KRATOS_CATCH("")
 }
@@ -1971,11 +1971,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddMixBodyForc
 
     this->CalculateSoilGamma(rVariables);
 
-    array_1d<double, TNumNodes * TDim> u_vector = prod(trans(rVariables.Nu), rVariables.SoilGamma) *
-                                                  rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    array_1d<double, TNumNodes * TDim> mix_body_force =
+        prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
     // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, mix_body_force);
 
     KRATOS_CATCH("")
 }
