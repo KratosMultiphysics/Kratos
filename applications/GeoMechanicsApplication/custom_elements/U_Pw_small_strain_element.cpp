@@ -1182,12 +1182,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatri
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, pp_matrix * rVariables.DtPressureCoefficient);
+    GeoElementUtilities::AssemblePPBlockMatrix(
+        rLeftHandSideMatrix, compressibility_matrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("")
 }

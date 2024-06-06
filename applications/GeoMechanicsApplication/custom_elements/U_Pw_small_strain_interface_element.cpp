@@ -1893,13 +1893,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(
-        rLeftHandSideMatrix, pp_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
+        rLeftHandSideMatrix, compressibility_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }
@@ -1910,13 +1910,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilit
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix =
         GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
             rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
             rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, pp_matrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, permeability_matrix);
 
     KRATOS_CATCH("")
 }
@@ -2030,12 +2030,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibi
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     array_1d<double, TNumNodes> p_vector =
-        -1.0 * prod(pp_matrix * rVariables.JointWidth, rVariables.DtPressureVector);
+        -1.0 * prod(compressibility_matrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);

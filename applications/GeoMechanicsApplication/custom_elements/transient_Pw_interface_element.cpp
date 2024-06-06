@@ -575,12 +575,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (pp_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
+    rLeftHandSideMatrix += (compressibility_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }
@@ -591,13 +591,13 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix =
         GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
             rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
             rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += pp_matrix;
+    rLeftHandSideMatrix += permeability_matrix;
 
     KRATOS_CATCH("")
 }
@@ -624,12 +624,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     array_1d<double, TNumNodes> p_vector =
-        -1.0 * prod(pp_matrix * rVariables.JointWidth, rVariables.DtPressureVector);
+        -1.0 * prod(compressibility_matrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
     rRightHandSideVector += p_vector;
