@@ -186,8 +186,9 @@ public:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
         double bounding_box_threshold = mpSearchObject ? Radius : -1.0;
+        // If null BB we skip for GeometryObjectBins
         if constexpr (IsGeometricalObjectBins) {
-            if (norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) < ZeroTolerance) {
+            if (norm_2(r_local_bb.GetMaxPoint()) < ZeroTolerance && norm_2(r_local_bb.GetMinPoint()) < ZeroTolerance) {
                 bounding_box_threshold = -1.0;
             }
         }
@@ -270,8 +271,9 @@ public:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
         double bounding_box_threshold = mpSearchObject ? Radius : -1.0;
+        // If null BB we skip for GeometryObjectBins
         if constexpr (IsGeometricalObjectBins) {
-            if (norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) < ZeroTolerance) {
+            if (norm_2(r_local_bb.GetMaxPoint()) < ZeroTolerance && norm_2(r_local_bb.GetMinPoint()) < ZeroTolerance) {
                 bounding_box_threshold = -1.0;
             }
         }
@@ -358,8 +360,9 @@ public:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
         double bounding_box_threshold = mpSearchObject ? max_radius : -1.0;
+        // If null BB we skip for GeometryObjectBins
         if constexpr (IsGeometricalObjectBins) {
-            if (norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) < ZeroTolerance) {
+            if (norm_2(r_local_bb.GetMaxPoint()) < ZeroTolerance && norm_2(r_local_bb.GetMinPoint()) < ZeroTolerance) {
                 bounding_box_threshold = -1.0;
             }
         }
@@ -442,8 +445,9 @@ public:
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
         double bounding_box_threshold = mpSearchObject ? 0.0 : -1.0;
+        // If null BB we skip for GeometryObjectBins
         if constexpr (IsGeometricalObjectBins) {
-            if (norm_2(r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint()) < ZeroTolerance) {
+            if (norm_2(r_local_bb.GetMaxPoint()) < ZeroTolerance && norm_2(r_local_bb.GetMinPoint()) < ZeroTolerance) {
                 bounding_box_threshold = -1.0;
             }
         }
