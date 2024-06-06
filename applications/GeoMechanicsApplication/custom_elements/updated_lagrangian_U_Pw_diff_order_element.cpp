@@ -144,11 +144,11 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
         prod(rVariables.DNu_DX,
              rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
 
-    Matrix UUMatrix = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, Dim);
+    Matrix uu_matrix = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
+    MathUtils<double>::ExpandAndAddReducedMatrix(uu_matrix, ReducedKgMatrix, Dim);
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, UUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, uu_matrix);
 
     KRATOS_CATCH("")
 }

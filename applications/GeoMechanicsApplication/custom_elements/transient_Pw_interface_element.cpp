@@ -575,12 +575,12 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
+    rLeftHandSideMatrix += (pp_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
 
     KRATOS_CATCH("")
 }
@@ -591,13 +591,13 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMa
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
             rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
             rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
     // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += PPMatrix;
+    rLeftHandSideMatrix += pp_matrix;
 
     KRATOS_CATCH("")
 }
@@ -624,15 +624,15 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    array_1d<double, TNumNodes> PVector =
-        -1.0 * prod(PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
+    array_1d<double, TNumNodes> p_vector =
+        -1.0 * prod(pp_matrix * rVariables.JointWidth, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
-    rRightHandSideVector += PVector;
+    rRightHandSideVector += p_vector;
 
     KRATOS_CATCH("")
 }
@@ -643,18 +643,18 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFl
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix =
+    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix =
         prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-        rVariables.RelativePermeability * prod(PDimMatrix, trans(rVariables.GradNpT)) *
+        rVariables.RelativePermeability * prod(p_dim_matrix, trans(rVariables.GradNpT)) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    array_1d<double, TNumNodes> PVector = -1.0 * prod(PPMatrix, rVariables.PressureVector);
+    array_1d<double, TNumNodes> p_vector = -1.0 * prod(pp_matrix, rVariables.PressureVector);
 
     // Distribute permeability block vector into elemental vector
-    rRightHandSideVector += PVector;
+    rRightHandSideVector += p_vector;
 
     KRATOS_CATCH("")
 }
@@ -666,16 +666,16 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(
     KRATOS_TRY;
 
     const double&                          FluidDensity = this->GetProperties()[DENSITY_WATER];
-    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix =
+    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix =
         -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
         rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    array_1d<double, TNumNodes> PVector = rVariables.DynamicViscosityInverse * FluidDensity *
-                                          rVariables.RelativePermeability *
-                                          prod(PDimMatrix, rVariables.BodyAcceleration);
+    array_1d<double, TNumNodes> p_vector = rVariables.DynamicViscosityInverse * FluidDensity *
+                                           rVariables.RelativePermeability *
+                                           prod(p_dim_matrix, rVariables.BodyAcceleration);
 
     // Distribute fluid body flow block vector into elemental vector
-    rRightHandSideVector += PVector;
+    rRightHandSideVector += p_vector;
 
     KRATOS_CATCH("")
 }

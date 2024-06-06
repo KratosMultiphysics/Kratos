@@ -552,12 +552,12 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (PPMatrix * rVariables.DtPressureCoefficient);
+    rLeftHandSideMatrix += (pp_matrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("");
 }
@@ -584,12 +584,12 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vector
 {
     KRATOS_TRY;
 
-    array_1d<double, TNumNodes> PVector;
+    array_1d<double, TNumNodes> p_vector;
 
-    this->CalculatePermeabilityFlow(PVector, rVariables);
+    this->CalculatePermeabilityFlow(p_vector, rVariables);
 
     // Distribute permeability block vector into elemental vector
-    rRightHandSideVector += PVector;
+    rRightHandSideVector += p_vector;
 
     KRATOS_CATCH("");
 }
@@ -601,13 +601,13 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorTyp
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TDim> PDimMatrix;
-    array_1d<double, TNumNodes>            PVector;
+    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix;
+    array_1d<double, TNumNodes>            p_vector;
 
-    this->CalculateFluidBodyFlow(PDimMatrix, PVector, rVariables);
+    this->CalculateFluidBodyFlow(p_dim_matrix, p_vector, rVariables);
 
     // Distribute fluid body flow block vector into elemental vector
-    rRightHandSideVector += PVector;
+    rRightHandSideVector += p_vector;
 
     KRATOS_CATCH("");
 }
@@ -619,12 +619,12 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(Vec
 {
     KRATOS_TRY;
 
-    array_1d<double, TNumNodes> PVector;
+    array_1d<double, TNumNodes> p_vector;
 
-    this->CalculateCompressibilityFlow(PVector, rVariables);
+    this->CalculateCompressibilityFlow(p_vector, rVariables);
 
     // Distribute compressibility block vector into elemental vector
-    rRightHandSideVector += PVector;
+    rRightHandSideVector += p_vector;
 
     KRATOS_CATCH("");
 }

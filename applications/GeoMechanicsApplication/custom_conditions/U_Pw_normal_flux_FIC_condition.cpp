@@ -201,14 +201,14 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassMatrix(
     MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
 {
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute boundary mass matrix into the elemental matrix
     // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
     GeoElementUtilities::AssemblePPBlockMatrix(
-        rLeftHandSideMatrix, PPMatrix * rFICVariables.DtPressureCoefficient * rFICVariables.ElementLength / 6.0);
+        rLeftHandSideMatrix, pp_matrix * rFICVariables.DtPressureCoefficient * rFICVariables.ElementLength / 6.0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -227,13 +227,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow(
     VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
 {
-    BoundedMatrix<double, TNumNodes, TNumNodes> PPMatrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> pp_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
     noalias(rVariables.PVector) =
-        prod(PPMatrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
+        prod(pp_matrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
 
     // Distribute boundary mass flow vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
