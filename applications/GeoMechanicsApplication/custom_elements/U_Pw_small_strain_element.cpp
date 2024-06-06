@@ -627,8 +627,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         }
     } else {
         for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-            noalias(rOutput[i]) = ZeroVector(3);
-            rOutput[i]          = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
+            rOutput[i] = ZeroVector(3);
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
         }
     }
 

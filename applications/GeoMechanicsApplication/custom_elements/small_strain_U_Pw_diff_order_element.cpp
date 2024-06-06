@@ -907,8 +907,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom               = GetGeometry();
-    const auto number_of_integration_points = rGeom.IntegrationPointsNumber(GetIntegrationMethod());
+    const auto& r_geometry = GetGeometry();
+    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
     rOutput.resize(number_of_integration_points);
 
     if (rVariable == FLUID_FLUX_VECTOR) {
@@ -936,8 +936,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Variables.B = b_matrices[GPoint];
 
             // Compute FluidFlux vector q [m/s]
-            const SizeType Dim       = rGeom.WorkingSpaceDimension();
-            const SizeType NumUNodes = rGeom.PointsNumber();
+            const SizeType Dim       = r_geometry.WorkingSpaceDimension();
+            const SizeType NumUNodes = r_geometry.PointsNumber();
 
             Vector   BodyAcceleration = ZeroVector(Dim);
             SizeType Index            = 0;
