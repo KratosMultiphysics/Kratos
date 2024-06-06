@@ -663,8 +663,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
@@ -676,18 +674,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                              strain_vectors, mStressVector, constitutive_matrices);
         const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
             constitutive_matrices, this->GetProperties());
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NContainer, Variables.PressureVector);
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(fluid_pressure);
-            const auto bishop_coefficient =
-                mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-
-            rOutput[GPoint] = mStressVector[GPoint] +
-                              PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] * bishop_coefficient *
-                                  fluid_pressure * this->GetStressStatePolicy().GetVoigtVector();
+            rOutput[GPoint] =
+                mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
+                                            bishop_coefficients[GPoint] * fluid_pressures[GPoint] *
+                                            this->GetStressStatePolicy().GetVoigtVector();
         }
     } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
         ElementVariables Variables;
