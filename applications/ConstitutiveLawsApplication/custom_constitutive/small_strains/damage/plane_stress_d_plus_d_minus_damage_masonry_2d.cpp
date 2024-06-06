@@ -245,7 +245,7 @@ void DamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 	const GeometryType& rElementGeometry,
 	const Vector& rShapeFunctionsValues)
 {
-	if(!InitializeDamageLaw){
+	if (InitializeDamageLaw == false){
 		ThresholdTension            	= rMaterialProperties[YIELD_STRESS_TENSION];
 		CurrentThresholdTension   		= ThresholdTension;
 		ThresholdCompression        	= rMaterialProperties[DAMAGE_ONSET_STRESS_COMPRESSION];

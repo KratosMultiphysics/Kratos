@@ -136,6 +136,7 @@ class ComputeCauchyStressHistoryUtility
         pConstitutiveLaw->Check(rProperties, rGeometry, process_info);
 
         // We initialize the material
+        pConstitutiveLaw->ResetMaterial(rProperties, rGeometry, N);
         pConstitutiveLaw->InitializeMaterial(rProperties, rGeometry, N);
 
         const unsigned int n_steps = rStrainHistory.size1();
