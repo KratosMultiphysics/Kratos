@@ -55,17 +55,20 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
         water_pressures_at_bottom, water_pressures_at_top = self.get_water_pressures(output_data)
         for water_pressure_at_top in water_pressures_at_top:
             self.assertAlmostEqual(water_pressure_at_top, 0.0, 6)
-        for water_pressure_at_bottom, expected_water_pressure_at_bottom in zip(water_pressures_at_bottom, expected_water_pressures_at_bottom):
+        for water_pressure_at_bottom, expected_water_pressure_at_bottom in (
+                zip(water_pressures_at_bottom, expected_water_pressures_at_bottom)):
             self.assertAlmostEqual(water_pressure_at_bottom, expected_water_pressure_at_bottom, 4)
 
-    def run_simulation(self, test_name):
+    @staticmethod
+    def run_simulation(test_name):
         file_path = test_helper.get_file_path(test_name)
         test_helper.run_kratos(file_path)
         output_file_path = os.path.join(file_path, 'output.post.res')
         output_reader = test_helper.GiDOutputFileReader()
         return output_reader.read_output_from(output_file_path)
 
-    def get_water_pressures(self, output_data):
+    @staticmethod
+    def get_water_pressures(output_data):
         top_node_nbrs = [5, 6, 7, 8]
         water_pressures_at_top = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0,
                                                                                       output_data,
