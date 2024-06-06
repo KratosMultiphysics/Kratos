@@ -9,7 +9,7 @@
           "Variables": {
             "IGNORE_UNDRAINED"         :  false,
             "YOUNG_MODULUS"            :  10000,
-            "POISSON_RATIO"            :  0.2,
+            "POISSON_RATIO"            :  0.0,
             "DENSITY_SOLID"            :  2.65,
             "DENSITY_WATER"            :  1.0,
             "POROSITY"                 :  0.36,
