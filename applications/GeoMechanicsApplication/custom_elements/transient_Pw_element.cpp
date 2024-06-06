@@ -599,10 +599,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorTyp
 {
     KRATOS_TRY;
 
-    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix;
-    array_1d<double, TNumNodes>            p_vector;
-
-    this->CalculateFluidBodyFlow(p_dim_matrix, p_vector, rVariables);
+    auto p_vector = this->CalculateFluidBodyFlow(rVariables);
 
     // Distribute fluid body flow block vector into elemental vector
     rRightHandSideVector += p_vector;

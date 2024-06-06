@@ -235,9 +235,7 @@ protected:
     virtual array_1d<double, TNumNodes> CalculatePermeabilityFlow(const ElementVariables& rVariables) const;
 
     virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    virtual void CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                        array_1d<double, TNumNodes>&            rPVector,
-                                        const ElementVariables&                 rVariables) const;
+    virtual array_1d<double, TNumNodes> CalculateFluidBodyFlow(const ElementVariables& rVariables) const;
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 

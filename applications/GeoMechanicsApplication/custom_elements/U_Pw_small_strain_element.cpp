@@ -1441,16 +1441,18 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vec
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                                                    array_1d<double, TNumNodes>& rPVector,
-                                                                    const ElementVariables& rVariables) const
+array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidBodyFlow(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    noalias(rPDimMatrix) = prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
+    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix =
+        prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
-    noalias(rPVector) = rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
-                        rVariables.RelativePermeability * prod(rPDimMatrix, rVariables.BodyAcceleration);
+    array_1d<double, TNumNodes> result =
+        rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
+        rVariables.RelativePermeability * prod(p_dim_matrix, rVariables.BodyAcceleration);
+
+    return result;
 
     KRATOS_CATCH("")
 }
@@ -1460,10 +1462,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(Vector
                                                                           ElementVariables& rVariables)
 {
     KRATOS_TRY
-    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix;
-    array_1d<double, TNumNodes>            p_vector;
 
-    this->CalculateFluidBodyFlow(p_dim_matrix, p_vector, rVariables);
+    auto p_vector = this->CalculateFluidBodyFlow(rVariables);
 
     // Distribute fluid body flow block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
