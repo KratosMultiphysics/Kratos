@@ -54,9 +54,9 @@ class RomDatabase(object):
             "NonconvergedHROM": '''CREATE TABLE IF NOT EXISTS NonconvergedHROM
                         (id INTEGER PRIMARY KEY, parameters TEXT, tol_sol REAL, tol_res REAL, type_of_projection TEXT, file_name TEXT)''',
             "RightBasis": '''CREATE TABLE IF NOT EXISTS RightBasis
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER,  file_name TEXT)''',
             "SingularValues_Solution":'''CREATE TABLE IF NOT EXISTS SingularValues_Solution
-                        (id INTEGER PRIMARY KEY, tol_sol REAL, file_name TEXT)''',
+                        (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
             "PetrovGalerkinSnapshots": '''CREATE TABLE IF NOT EXISTS PetrovGalerkinSnapshots
@@ -104,7 +104,7 @@ class RomDatabase(object):
         else:
             err_msg = f'Error: {self.identify_list_type(mu)}'
             raise Exception(err_msg)
-        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int = self.get_curret_params()
+        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
         if table_name == 'FOM':
             hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'ROM':
@@ -124,9 +124,9 @@ class RomDatabase(object):
         elif table_name == 'PetrovGalerkinSnapshots':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == 'RightBasis':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, table_name)
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
         elif table_name == 'SingularValues_Solution':
-            hash_mu = self.hash_parameters(serialized_mu, tol_sol, table_name)
+            hash_mu = self.hash_parameters(serialized_mu, tol_sol, non_converged_fom_14_bool, table_name)
         elif table_name == 'LeftBasis':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == "HROM_Elements":
@@ -165,8 +165,9 @@ class RomDatabase(object):
         nn_data11_double = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["base_lr"].GetDouble()
         nn_data12_str = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["lr_strategy"]["additional_params"].WriteJsonString()
         nn_data13_int = self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].GetInt()
+        non_converged_fom_14_bool = self.general_rom_manager_parameters["ROM"]["store_nonconverged_fom_solutions"].GetBool()
 
-        return tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int
+        return tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool
 
 
 
@@ -182,7 +183,7 @@ class RomDatabase(object):
 
     def add_to_database(self, table_name, mu, numpy_array):
         file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
-        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int = self.get_curret_params()
+        tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
 
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -215,9 +216,9 @@ class RomDatabase(object):
             cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                         (serialized_mu, tol_sol, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
         elif table_name == 'RightBasis':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',(tol_sol, non_converged_fom_14_bool, file_name))
         elif table_name == 'SingularValues_Solution':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
+            cursor.execute(f'INSERT INTO {table_name} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',(tol_sol, non_converged_fom_14_bool, file_name))
         elif table_name == 'LeftBasis':
             cursor.execute(f'INSERT INTO {table_name} (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
                         (tol_sol, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
@@ -286,69 +287,6 @@ class RomDatabase(object):
             pass
         else:
             self.save_as_npy(numpy_array, file_name)
-
-
-    # def add_to_database(self, table_name, mu, numpy_array ):
-    #     file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
-    #     tol_sol, tol_res, projection_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str,nn_data13_int = self.get_curret_params()
-
-    #     conn = sqlite3.connect(self.database_name)
-    #     cursor = conn.cursor()
-
-    #     if table_name == 'FOM':
-    #         cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
-    #                     (serialized_mu, file_name))
-    #     elif table_name == 'ROM':
-    #         cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
-    #                     (serialized_mu, tol_sol, projection_type, file_name))
-    #     elif table_name == 'HROM':
-    #         cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?, ?)',
-    #                     (serialized_mu, tol_sol, tol_res, projection_type, file_name))
-    #     elif table_name == 'ResidualsProjected':
-    #         cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
-    #                     (serialized_mu, projection_type, tol_sol, tol_res, file_name))
-    #     elif table_name == 'SingularValues_Residuals':
-    #         cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , file_name) VALUES (?, ?, ?, ?, ?)',
-    #                     (serialized_mu, projection_type, tol_sol, tol_res, file_name))
-    #     elif table_name == 'PetrovGalerkinSnapshots':
-    #         cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    #                     (serialized_mu, tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
-    #     elif table_name == 'RightBasis':
-    #         cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
-    #     elif table_name == 'SingularValues_Solution':
-    #         cursor.execute(f'INSERT INTO {table_name} (tol_sol, file_name) VALUES (?, ?)',(tol_sol, file_name))
-    #     elif table_name == 'LeftBasis':
-    #         cursor.execute(f'INSERT INTO {table_name} (tol_sol, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    #                     (tol_sol, pg_data1_str,pg_data2_bool, pg_data3_double, pg_data4_str,  pg_data5_bool, file_name))
-    #     elif table_name == 'HROM_Elements':
-    #         cursor.execute(f'INSERT INTO {table_name} (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
-    #                     (tol_sol, tol_res, projection_type, file_name))
-    #     elif table_name == 'HROM_Weights':
-    #         cursor.execute(f'INSERT INTO {table_name}  (tol_sol , tol_res , type_of_projection, file_name) VALUES (?, ?, ?, ?)',
-    #                     (tol_sol, tol_res, projection_type, file_name))
-    #     elif table_name == 'Neural_Network':
-    #         cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    #                     (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
-    #     elif table_name == 'QoI_FOM':
-    #         if len(numpy_array)>0:
-    #             for key, value in numpy_array.items():
-    #                 CHECKK HERE IF THE COLUM MATCHING key EXISTS
-    #                 THEN ADD TO value THE ITEM file_name+key
-
-    #         else:
-    #             cursor.execute(f'INSERT INTO {table_name} (parameters, file_name, is_active) VALUES (?, ?, ?)',
-    #                         (serialized_mu, file_name, False))
-    #     else:
-    #         err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
-    #         raise Exception(err_msg)
-
-    #     conn.commit()
-    #     conn.close()
-
-    #     if table_name == "Neural_Network":
-    #         pass
-    #     else:
-    #         self.save_as_npy(numpy_array, file_name)
 
 
 

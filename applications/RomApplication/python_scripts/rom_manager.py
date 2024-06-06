@@ -140,7 +140,6 @@ class RomManager(object):
 
 
     def Test(self, mu_test=[None]):
-        #TODO come up with solutions for Test method
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         #######################
@@ -294,7 +293,7 @@ class RomManager(object):
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-                NonConvergedSolutionsGathering = True #how to activate this?
+                NonConvergedSolutionsGathering = self.general_rom_manager_parameters["ROM"]["store_nonconverged_fom_solutions"].GetBool()
                 if NonConvergedSolutionsGathering:
                     simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
@@ -805,6 +804,7 @@ class RomManager(object):
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
                 "print_singular_values": false,
+                "store_nonconverged_fom_solutions" : false,
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
