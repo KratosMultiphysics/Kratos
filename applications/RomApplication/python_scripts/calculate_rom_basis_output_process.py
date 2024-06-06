@@ -1,6 +1,7 @@
 # Import Python modules
 import json
 import numpy
+import sqlite3
 from pathlib import Path
 
 # Importing the Kratos Library
@@ -137,11 +138,47 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         return numpy.block(self.snapshots_data_list)
 
 
-    def _ComputeSVD(self, snapshots_matrix):
+    def _ComputeSVD(self, snapshots_matrix=None, nonconverged=False, data_base = None, mu_train=None):
 
-        # Calculate the randomized SVD of the snapshots matrix
-        u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
-        return u, sigma
+        if nonconverged:
+            #computing global basis
+            data = data_base.get_snapshots_matrix_from_database(mu_train, table_name=f'FOM')
+            u, s ,_ = numpy.linalg.svd(data, full_matrices=False)
+            conn = sqlite3.connect(data_base.database_name)
+            cursor = conn.cursor()
+            for mu in mu_train:
+                hash_mu, _ = data_base.get_hashed_mu_for_table('NonconvergedFOM', mu)
+                cursor.execute(f"SELECT file_name FROM {'NonconvergedFOM'} WHERE file_name = ?", (hash_mu,))
+                result = cursor.fetchone()
+                if result:
+                    file_name = result[0]
+                    data = data_base.get_single_numpy_from_database(file_name)
+                    u2, s2, _ = numpy.linalg.svd(data, full_matrices=False)
+                    u, s, _ = numpy.linalg.svd(numpy.c_[u*s, u2*s2], full_matrices=False)
+
+            tol = numpy.finfo(float).eps*max(s)/2
+            R = numpy.sum(s > tol)  # Definition of numerical rank
+            epsilon = self.svd_truncation_tolerance
+            if epsilon == 0:
+                K = R
+            else:
+                SingVsq = numpy.multiply(s,s)
+                SingVsq.sort()
+                normEf2 = numpy.sqrt(numpy.cumsum(SingVsq))
+                epsilon = epsilon*normEf2[-1] #relative tolerance
+                T = (sum(normEf2<epsilon))
+                K = len(s)-T
+            K = min(R,K)
+            u = u[:, :K]
+            s = s[:K]
+            sigma = s
+
+            return u, sigma
+
+        else:
+            # Calculate the randomized SVD of the snapshots matrix
+            u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+            return u, sigma
 
 
     def _PrintRomBasis(self, u, sigma):
