@@ -17,6 +17,8 @@
 
 // External includes
 
+#include "small_strain_U_Pw_diff_order_element.hpp"
+
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -214,6 +216,7 @@ protected:
     void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
                                                  ElementVariables& rVariables,
                                                  unsigned int      GPoint);
+    std::vector<double> GetPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations

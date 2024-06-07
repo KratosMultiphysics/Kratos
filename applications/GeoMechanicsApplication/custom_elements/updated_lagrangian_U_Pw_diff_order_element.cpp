@@ -48,79 +48,29 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 {
     KRATOS_TRY
 
+    SmallStrainUPwDiffOrderElement::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+                                                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+
     const GeometryType&   rGeom = GetGeometry();
-    const PropertiesType& rProp = this->GetProperties();
 
     // Definition of variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom, rProp, rCurrentProcessInfo);
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
-    // Stiffness matrix is always needed to calculate Biot coefficient
-    ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    if (CalculateResidualVectorFlag)
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-    RetentionLaw::Parameters RetentionParameters(rProp);
-
     // Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
-    const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
-    const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
-    auto strain_vectors = StressStrainUtilities::CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
-    std::vector<Matrix> constitutive_matrices;
-    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                         Variables.NuContainer, Variables.DNu_DXContainer,
-                                         strain_vectors, mStressVector, constitutive_matrices);
-
-    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
-        constitutive_matrices, this->GetProperties());
-    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Variables.NpContainer, Variables.PressureVector);
-    const auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
-    const auto degrees_of_saturation        = this->CalculateDegreesOfSaturation(fluid_pressures);
-    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
-    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
-    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B                      = b_matrices[GPoint];
-        Variables.F                      = deformation_gradients[GPoint];
-        Variables.StrainVector           = strain_vectors[GPoint];
-        Variables.ConstitutiveMatrix     = constitutive_matrices[GPoint];
-        Variables.BiotCoefficient        = biot_coefficients[GPoint];
-        Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
-        Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-        Variables.RelativePermeability   = relative_permeability_values[GPoint];
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
         if (CalculateStiffnessMatrixFlag) {
-            // Contributions to stiffness matrix calculated on the reference config
-            /* Material stiffness matrix */
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
-
-            /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
                 this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
-        }
-
-        if (CalculateResidualVectorFlag) {
-            // Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
         }
     }
 
@@ -201,6 +151,12 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     } else {
         SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
+}
+
+std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetPermeabilityUpdateFactors(
+    const std::vector<Vector>&) const
+{
+    return {};
 }
 
 //----------------------------------------------------------------------------------------

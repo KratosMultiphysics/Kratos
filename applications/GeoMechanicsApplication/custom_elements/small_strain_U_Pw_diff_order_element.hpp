@@ -314,6 +314,8 @@ protected:
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
+    [[nodiscard]] virtual std::vector<double> GetPermeabilityUpdateFactors(const std::vector<Vector>& strain_vectors) const;
+
 
     [[nodiscard]] SizeType GetNumberOfDOF() const;
 
