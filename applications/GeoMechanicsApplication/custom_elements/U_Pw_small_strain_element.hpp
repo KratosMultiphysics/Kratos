@@ -265,6 +265,8 @@ protected:
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] virtual std::vector<double> GetPermeabilityUpdateFactors(const std::vector<Vector>& strain_vectors) const;
+
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
@@ -286,9 +288,10 @@ protected:
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables& rVariables);
 
-    virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                         ElementVariables& rVariables,
-                                                         unsigned int      GPoint);
+    virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
+                                                         unsigned int  GPoint,
+                                                         const Matrix& rGradNpt,
+                                                         double        IntegrationCoefficient);
 
     VectorType GetPressureSolutionVector();
 
@@ -312,6 +315,7 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
 };
 
 // Class UPwSmallStrainElement
