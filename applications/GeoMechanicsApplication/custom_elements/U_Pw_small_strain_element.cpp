@@ -1266,7 +1266,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 {
     KRATOS_TRY
 
-    const auto coupling_matrix =
+    const BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix =
         (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
                      rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
