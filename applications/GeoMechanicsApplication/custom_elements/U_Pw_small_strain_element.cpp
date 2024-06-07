@@ -1255,10 +1255,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateSoilGamma(ElementVariables
 {
     KRATOS_TRY
 
-    auto density = GeoTransportEquationUtilities::CalculateSoilDensity(
-        rVariables.DegreeOfSaturation, this->GetProperties());
-
-    noalias(rVariables.SoilGamma) = density * rVariables.BodyAcceleration;
+    noalias(rVariables.SoilGamma) = GeoTransportEquationUtilities::CalculateSoilDensity(
+                                        rVariables.DegreeOfSaturation, this->GetProperties()) *
+                                    rVariables.BodyAcceleration;
 
     KRATOS_CATCH("")
 }
@@ -1292,10 +1291,10 @@ array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateCom
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> p_matrix =
+    BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    array_1d<double, TNumNodes> result = -prod(p_matrix, rVariables.DtPressureVector);
+    array_1d<double, TNumNodes> result = -prod(compressibility_matrix, rVariables.DtPressureVector);
 
     return result;
 
@@ -1385,12 +1384,12 @@ array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFlu
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TDim> p_dim_matrix =
+    BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
         prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
     array_1d<double, TNumNodes> result =
         rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
-        rVariables.RelativePermeability * prod(p_dim_matrix, rVariables.BodyAcceleration);
+        rVariables.RelativePermeability * prod(temp_matrix, rVariables.BodyAcceleration);
 
     return result;
 

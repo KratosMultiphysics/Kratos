@@ -1849,9 +1849,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
     BoundedMatrix<double, TDim, TDim> dim_matrix = prod(
         trans(rVariables.RotationMatrix),
         BoundedMatrix<double, TDim, TDim>(prod(rVariables.ConstitutiveMatrix, rVariables.RotationMatrix)));
-    BoundedMatrix<double, TNumNodes * TDim, TDim> u_dim_matrix = prod(trans(rVariables.Nu), dim_matrix);
+    BoundedMatrix<double, TNumNodes * TDim, TDim> temp_matrix = prod(trans(rVariables.Nu), dim_matrix);
     BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> stiffness_matrix =
-        prod(u_dim_matrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
+        prod(temp_matrix, rVariables.Nu) * rVariables.IntegrationCoefficient;
 
     // Distribute stiffness block matrix into the elemental matrix
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
@@ -1877,12 +1877,12 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        BoundedMatrix<double, TNumNodes, TNumNodes * TDim> pu_matrix =
+        BoundedMatrix<double, TNumNodes, TNumNodes * TDim> coupling_matrix =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
             trans(coupling_matrix);
 
         // Distribute transposed coupling block matrix into the elemental matrix
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, pu_matrix);
+        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
     }
 
     KRATOS_CATCH("")
@@ -1985,10 +1985,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateSoilGamma(Interfa
 {
     KRATOS_TRY
 
-    auto density = GeoTransportEquationUtilities::CalculateSoilDensity(
-        rVariables.DegreeOfSaturation, this->GetProperties());
-
-    noalias(rVariables.SoilGamma) = density * rVariables.BodyAcceleration;
+    noalias(rVariables.SoilGamma) = GeoTransportEquationUtilities::CalculateSoilDensity(
+                                        rVariables.DegreeOfSaturation, this->GetProperties()) *
+                                    rVariables.BodyAcceleration;
 
     KRATOS_CATCH("")
 }
@@ -1999,27 +1998,28 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes * TDim, TDim> u_dim_matrix =
+    BoundedMatrix<double, TNumNodes * TDim, TDim> temp_matrix =
         prod(trans(rVariables.Nu), trans(rVariables.RotationMatrix));
 
-    array_1d<double, TNumNodes * TDim> u_vector = prod(u_dim_matrix, rVariables.VoigtVector);
+    array_1d<double, TNumNodes * TDim> u_vector = prod(temp_matrix, rVariables.VoigtVector);
 
     BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient * rVariables.BishopCoefficient *
         outer_prod(u_vector, rVariables.Np) * rVariables.IntegrationCoefficient;
 
-    noalias(u_vector) = prod(coupling_matrix, rVariables.PressureVector);
+    noalias(u_vector) = prod(coupling_matrix, rVariables.PressureVector); // finally it is the coupling force vector
 
     // Distribute coupling block vector 1 into elemental vector
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        array_1d<double, TNumNodes> p_vector = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-                                               prod(trans(coupling_matrix), rVariables.VelocityVector);
+        array_1d<double, TNumNodes> coupling_flow_vector =
+            PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+            prod(trans(coupling_matrix), rVariables.VelocityVector);
 
         // Distribute coupling block vector 2 into elemental vector
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, p_vector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow_vector);
     }
 
     KRATOS_CATCH("")

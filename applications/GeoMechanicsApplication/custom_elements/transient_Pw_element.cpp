@@ -557,7 +557,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (compressibility_matrix * rVariables.DtPressureCoefficient);
+    rLeftHandSideMatrix += compressibility_matrix * rVariables.DtPressureCoefficient;
 
     KRATOS_CATCH("");
 }

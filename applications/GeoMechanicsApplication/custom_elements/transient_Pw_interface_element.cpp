@@ -580,7 +580,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (compressibility_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
+    rLeftHandSideMatrix += compressibility_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth;
 
     KRATOS_CATCH("")
 }
@@ -629,7 +629,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilit
             rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     array_1d<double, TNumNodes> compressibility_flow =
-        -1.0 * prod(compressibility_matrix * rVariables.JointWidth, rVariables.DtPressureVector);
+        -rVariables.JointWidth * prod(compressibility_matrix, rVariables.DtPressureVector);
 
     // Distribute compressibility block vector into elemental vector
     rRightHandSideVector += compressibility_flow;
