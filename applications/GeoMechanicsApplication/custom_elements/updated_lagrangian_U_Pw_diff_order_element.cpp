@@ -48,29 +48,25 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 {
     KRATOS_TRY
 
-    SmallStrainUPwDiffOrderElement::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
-                                                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    SmallStrainUPwDiffOrderElement::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+                                                 rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
+                                                 CalculateResidualVectorFlag);
 
-    const GeometryType&   rGeom = GetGeometry();
-
-    // Definition of variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    // Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
+    if (CalculateStiffnessMatrixFlag && Variables.ConsiderGeometricStiffness) {
+        const GeometryType& rGeom = GetGeometry();
 
-    const auto integration_coefficients =
-        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
+            rGeom.IntegrationPoints(this->GetIntegrationMethod());
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
 
-    for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-        if (CalculateStiffnessMatrixFlag) {
-            if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, Variables, GPoint);
+        for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
+            this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, GPoint,
+                                                          Variables.DNu_DXContainer[GPoint],
+                                                          integration_coefficients[GPoint]);
         }
     }
 
@@ -78,9 +74,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                                   ElementVariables& rVariables,
-                                                                                   unsigned int GPoint)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
+    MatrixType& rLeftHandSideMatrix, unsigned int GPoint, const Matrix& rDNuDx, const double IntegrationCoefficient)
 {
     KRATOS_TRY
 
@@ -91,8 +86,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
     Matrix ReducedKgMatrix =
-        prod(rVariables.DNu_DX,
-             rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
+        prod(rDNuDx, IntegrationCoefficient * Matrix(prod(StressTensor, trans(rDNuDx)))); // to be optimized
 
     Matrix UUMatrix(NumUNodes * Dim, NumUNodes * Dim);
     noalias(UUMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
@@ -153,8 +147,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     }
 }
 
-std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetPermeabilityUpdateFactors(
-    const std::vector<Vector>&) const
+std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetPermeabilityUpdateFactors(const std::vector<Vector>&) const
 {
     return {};
 }
