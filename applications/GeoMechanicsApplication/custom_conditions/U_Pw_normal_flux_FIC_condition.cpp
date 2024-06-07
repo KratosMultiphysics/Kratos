@@ -29,15 +29,11 @@ Condition::Pointer UPwNormalFluxFICCondition<TDim, TNumNodes>::Create(IndexType 
         new UPwNormalFluxFICCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -101,8 +97,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftH
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                               const ProcessInfo& CurrentProcessInfo)
@@ -161,15 +155,11 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRight
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwNormalFluxFICCondition<2, 2>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = Geom.Length();
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwNormalFluxFICCondition<3, 3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
@@ -177,16 +167,11 @@ void UPwNormalFluxFICCondition<3, 3>::CalculateElementLength(double& rElementLen
     rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwNormalFluxFICCondition<3, 4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
 }
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddLHSStabilization(
@@ -194,8 +179,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddLHSStabilization
 {
     this->CalculateAndAddBoundaryMassMatrix(rLeftHandSideMatrix, rVariables, rFICVariables);
 }
-
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassMatrix(
@@ -212,17 +195,12 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassMatr
                                  rFICVariables.ElementLength / 6.0);
 }
 
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddRHSStabilization(
     VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
 {
     this->CalculateAndAddBoundaryMassFlow(rRightHandSideVector, rVariables, rFICVariables);
 }
-
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow(
@@ -239,8 +217,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow
     // Distribute boundary mass flow vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwNormalFluxFICCondition<2, 2>;
 template class UPwNormalFluxFICCondition<3, 3>;

@@ -43,8 +43,6 @@ public:
     using MatrixType     = Matrix;
     using NormalFluxVariables = typename UPwNormalFluxCondition<TDim, TNumNodes>::NormalFluxVariables;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     UPwNormalFluxFICCondition() : UPwNormalFluxFICCondition(0, nullptr, nullptr) {}
 
     UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -57,15 +55,11 @@ public:
     {
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     struct NormalFluxFICVariables {
@@ -75,10 +69,6 @@ protected:
 
         array_1d<double, TNumNodes> DtPressureVector;
     };
-
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
@@ -104,13 +94,7 @@ protected:
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    // Member Variables
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     // Serialization
 
     friend class Serializer;
