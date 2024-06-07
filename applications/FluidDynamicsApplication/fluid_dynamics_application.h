@@ -55,6 +55,8 @@
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
+#include "custom_elements/incompressible_navier_stokes_p2_p1_continuous.h"
+
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/fs_werner_wengle_wall_condition.h"
 #include "custom_conditions/fs_generalized_wall_condition.h"
@@ -64,6 +66,7 @@
 #include "custom_conditions/two_fluid_navier_stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
+#include "custom_conditions/navier_stokes_p2_p1_continuous_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
@@ -424,6 +427,10 @@ private:
     const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
     const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
 
+    /// Incompressible Navier-Stokes div-stable wall condition
+    const NavierStokesP2P1ContinuousWallCondition<2> mNavierStokesP2P1ContinuousWallCondition2D;
+    const NavierStokesP2P1ContinuousWallCondition<3> mNavierStokesP2P1ContinuousWallCondition3D;
+
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
     const EmbeddedNavierStokes<3> mEmbeddedNavierStokes3D;
@@ -446,6 +453,10 @@ private:
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
+
+    /// Incompressible Navier-Stokes div-stable element
+    const IncompressibleNavierStokesP2P1Continuous<2> mIncompressibleNavierStokesP2P1Continuous2D6N;
+    const IncompressibleNavierStokesP2P1Continuous<3> mIncompressibleNavierStokesP2P1Continuous3D10N;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

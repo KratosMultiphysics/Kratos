@@ -11,8 +11,7 @@
 //                   Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FLUID_AUXILIARY_UTILITIES_H)
-#define KRATOS_FLUID_AUXILIARY_UTILITIES_H
+#pragma once
 
 // System includes
 
@@ -230,6 +229,15 @@ public:
         ModelPart& rModelPart,
         const bool CalculateNodalNeighbours = true);
 
+    /**
+     * @brief Postprocess the midpoint nodes pressure in P2P1 elements
+     * This function takes the edges' midpoint nodes in P2P1 elements and postprocess the pressure, which
+     * is assumed to be stored in PRESSURE historical variable, from the edges' endpoint values.
+     * Note that the nodal flag VISITED is used to mark the nodes which pressure has been already set.
+     * @param rModelPart The model part to which the pressure is to be postprocessed
+     */
+    static void PostprocessP2P1ContinuousPressure(ModelPart& rModelPart);
+
     ///@}
 private:
 
@@ -300,10 +308,33 @@ private:
         std::vector<array_1d<double,3>>& rNormals,
         Vector& rWeights);
 
+    /**
+     * @brief Auxilary function to postprocess one P2P1 edge pressure
+     * This function postprocesses the PRESSURE in a P2P1 element edge midpoint.
+     * Once the pressure value is set, the node is marked as VISITED.
+     * @param rGeometry Reference to current element geometry
+     * @param PostNodeLocalId Local id of the node to which the pressure is to be set
+     * @param EdgeNodeLocalIdI Local id of the i-node of the edge to which previous node belongs
+     * @param EdgeNodeLocalIdJ Local id of the j-node of the edge to which previous node belongs
+     */
+    static void PostprocessP2P1NodePressure(
+        GeometryType& rGeometry,
+        const std::size_t PostNodeLocalId,
+        const std::size_t EdgeNodeLocalIdI,
+        const std::size_t EdgeNodeLocalIdJ)
+    {
+        if (rGeometry[PostNodeLocalId].IsNot(VISITED)) {
+            rGeometry[PostNodeLocalId].SetLock();
+            const double p_i = rGeometry[EdgeNodeLocalIdI].FastGetSolutionStepValue(PRESSURE);
+            const double p_j = rGeometry[EdgeNodeLocalIdJ].FastGetSolutionStepValue(PRESSURE);
+            rGeometry[PostNodeLocalId].FastGetSolutionStepValue(PRESSURE) = 0.5 * (p_i + p_j);
+            rGeometry[PostNodeLocalId].Set(VISITED, true);
+            rGeometry[PostNodeLocalId].UnSetLock();
+        }
+    }
+
 };
 
 ///@}
 
 } // namespace Kratos
-
-#endif // KRATOS_FLUID_AUXILIARY_UTILITIES_H
