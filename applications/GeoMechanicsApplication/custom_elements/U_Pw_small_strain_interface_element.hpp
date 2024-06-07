@@ -232,36 +232,37 @@ protected:
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                        const InterfaceElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables);
 
     virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                      InterfaceElementVariables& rVariables);
+                                                      const InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&                rLeftHandSideMatrix,
-                                                   InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
+                                                   const InterfaceElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType&                rRightHandSideVector,
                                     InterfaceElementVariables& rVariables,
                                     unsigned int               GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType&                rRightHandSideVector,
-                                       InterfaceElementVariables& rVariables,
-                                       unsigned int               GPoint);
+    void CalculateAndAddStiffnessForce(VectorType&                      rRightHandSideVector,
+                                       const InterfaceElementVariables& rVariables,
+                                       unsigned int                     GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddCompressibilityFlow(VectorType&                rRightHandSideVector,
-                                                    InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
+                                                    const InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddPermeabilityFlow(VectorType&                rRightHandSideVector,
-                                                 InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
+                                                 const InterfaceElementVariables& rVariables);
 
-    virtual void CalculateAndAddFluidBodyFlow(VectorType&                rRightHandSideVector,
-                                              InterfaceElementVariables& rVariables);
+    virtual void CalculateAndAddFluidBodyFlow(VectorType&                      rRightHandSideVector,
+                                              const InterfaceElementVariables& rVariables);
 
     void InterpolateOutputDoubles(std::vector<double>& rOutput, const std::vector<double>& GPValues);
 

@@ -82,17 +82,17 @@ protected:
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassMatrix(MatrixType&             rLeftHandSideMatrix,
-                                           NormalFluxVariables&    rVariables,
-                                           NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddBoundaryMassMatrix(MatrixType&                   rLeftHandSideMatrix,
+                                           const NormalFluxVariables&    rVariables,
+                                           const NormalFluxFICVariables& rFICVariables);
 
     void CalculateAndAddRHSStabilization(VectorType&             rRightHandSideVector,
                                          NormalFluxVariables&    rVariables,
                                          NormalFluxFICVariables& rFICVariables);
 
-    void CalculateAndAddBoundaryMassFlow(VectorType&             rRightHandSideVector,
-                                         NormalFluxVariables&    rVariables,
-                                         NormalFluxFICVariables& rFICVariables);
+    void CalculateAndAddBoundaryMassFlow(VectorType&                   rRightHandSideVector,
+                                         NormalFluxVariables&          rVariables,
+                                         const NormalFluxFICVariables& rFICVariables);
 
 private:
     // Serialization
