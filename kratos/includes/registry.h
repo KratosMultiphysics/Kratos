@@ -151,18 +151,6 @@ public:
 
     static void RemoveItem(std::string const& ItemName);
 
-    /** Sets the current source of the registry
-     *  This function is used to keep track of which application is adding items to the registry
-     *  @param rCurrentSource The current source of the registry
-    */
-    static void SetCurrentSource(std::string const & rCurrentSource);
-
-    /** Gets the current source of the registry
-     *  This function is used to keep track of which application is adding items to the registry
-     *  @param return The current source of the registry
-    */
-    static std::string GetCurrentSource();
-
     ///@}
     ///@name Inquiry
     ///@{

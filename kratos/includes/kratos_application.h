@@ -129,12 +129,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpModelers(rOther.mpModelers) {}
 
     /// Destructor.
-    virtual ~KratosApplication() 
-    {
-        // This must be commented until tests have been fixed.
-        // DeregisterCommonComponents();
-        // DeregisterApplication();
-    }
+    virtual ~KratosApplication() {}
 
     ///@}
     ///@name Operations
@@ -146,28 +141,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     void RegisterKratosCore();
-
-    template<class TComponentsContainer>
-    void DeregisterComponent(std::string const & rComponentName);
-
-    /**
-     * @brief This method is used to unregister common components of the application.
-     * @details This method is used to unregister common components of the application. 
-     * The list of unregistered components are the ones exposed in the common KratosComponents interface:
-     * - Geometries
-     * - Elements
-     * - Conditions
-     * - MasterSlaveConstraints
-     * - Modelers
-     * - ConstitutiveLaws
-     */
-    void DeregisterCommonComponents();
-
-    /**
-     * @brief This method is used to unregister specific application components.
-     * @details This method is used to unregister specific application components.
-     */
-    virtual void DeregisterApplication();
 
     ///////////////////////////////////////////////////////////////////
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
