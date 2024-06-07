@@ -17,51 +17,49 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
     design_variables = optimization_settings["design_variables"]
     for design_variable in design_variables:
         if design_variable["type"].GetString() == "free_thickness":
-            if algorithm_name == "gradient_projection":
-                from .algorithm_free_thickness_optimization_v3 import AlgorithmFreeThicknessOptimizationv3
-                return AlgorithmFreeThicknessOptimizationv3(optimization_settings,
-                                                            analyzer,
-                                                            communicator,
-                                                            model_part_controller)
+            if design_variable["filtering_aproach"].GetString() == "initial":
 
-            elif algorithm_name == "relaxed_gradient_projection":
-                from .algorithm_free_thickness_optimization_v3_rgp import AlgorithmFreeThicknessOptimizationv3RGP
-                return AlgorithmFreeThicknessOptimizationv3RGP(optimization_settings,
-                                                                analyzer,
-                                                                communicator,
-                                                                model_part_controller)
+                    if algorithm_name == "gradient_projection":
+                        from .algorithm_shape_thickness_initial_filtering_gp import AlgorithmShapeThicknessInitialFilteringGradientProjection
+                        return AlgorithmShapeThicknessInitialFilteringGradientProjection(optimization_settings,
+                                                                                         analyzer,
+                                                                                         communicator,
+                                                                                         model_part_controller)
+
+                    elif algorithm_name == "relaxed_gradient_projection":
+                        from .algorithm_shape_thickness_initial_filtering_rgp import AlgorithmShapeThicknessInitialFilteringRelaxedGradientProjection
+                        return AlgorithmShapeThicknessInitialFilteringRelaxedGradientProjection(optimization_settings,
+                                                                                                analyzer,
+                                                                                                communicator,
+                                                                                                model_part_controller)
+                    else:
+                        RuntimeError("""Only Gradient Projection or Relaxed Gradient Projection algorithm
+                                    is available for Free Thickness optimization.""")
+
+            elif design_variable["filtering_aproach"].GetString() == "updated":
+                    if design_variables.size() > 1:
+                        RuntimeError("""Thickness optimization with updated filtering approach is not available with shape optimization simultaneously!
+                                    Use initial filtering instead.""")
+
+                    if algorithm_name == "gradient_projection":
+                        from .algorithm_thickness_updated_filtering_gp import AlgorithmThicknessUpdatedFilteringGradientProjection
+                        return AlgorithmThicknessUpdatedFilteringGradientProjection(optimization_settings,
+                                                                                    analyzer,
+                                                                                    communicator,
+                                                                                    model_part_controller)
+
+                    elif algorithm_name == "relaxed_gradient_projection":
+                        from .algorithm_thickness_updated_filtering_rgp import AlgorithmThicknessUpdatedFilteringRelaxedGradientProjection
+                        return AlgorithmThicknessUpdatedFilteringRelaxedGradientProjection(optimization_settings,
+                                                                                           analyzer,
+                                                                                           communicator,
+                                                                                           model_part_controller)
+                    else:
+                        RuntimeError("""Only Gradient Projection or Relaxed Gradient Projection algorithm
+                                    is available for Free Thickness optimization.""")
             else:
-                RuntimeError("""Only Gradient Projection or Relaxed Gradient Projection algorithm
-                             is available for Free Thickness optimization.""")
+                NameError("The following filtering approach is not supported by the algorithm factory: " + design_variable["filtering_aproach"].GetString())
 
-        elif design_variable["type"].GetString() in ["thickness_parameter", "free_thickness_original_vm"]:
-            if design_variables.size() > 1:
-                RuntimeError("""Thickness parameter optimization is not available with shape optimization simultaneously!
-                             Use Free Thickness optimization instead.""")
-            # TODO: remove free_thickness_original_vm after numerical experiments
-            if design_variable["type"].GetString() == "free_thickness_original_vm":
-                if algorithm_name == "gradient_projection":
-                    from .algorithm_free_thickness_optimization import AlgorithmFreeThicknessOptimization
-                    return AlgorithmFreeThicknessOptimization(optimization_settings,
-                                                            analyzer,
-                                                            communicator,
-                                                            model_part_controller)
-
-                elif algorithm_name == "relaxed_gradient_projection":
-                    from .algorithm_free_thickness_rgp import AlgorithmFreeThicknessRelaxedGradientProjection
-                    return AlgorithmFreeThicknessRelaxedGradientProjection(optimization_settings,
-                                                                        analyzer,
-                                                                        communicator,
-                                                                        model_part_controller)
-                else:
-                    RuntimeError("""Only Gradient Projection or Relaxed Gradient Projection algorithm
-                                 is available for Free Thickness optimization.""")
-
-            from .algorithm_thickness_optimization import AlgorithmThicknessOptimization
-            return AlgorithmThicknessOptimization(optimization_settings,
-                                                  analyzer,
-                                                  communicator,
-                                                  model_part_controller)
     else:
         if algorithm_name == "steepest_descent":
             from .algorithm_steepest_descent import AlgorithmSteepestDescent

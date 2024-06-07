@@ -26,7 +26,7 @@ import sys
 
 
 # ==============================================================================
-class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
+class AlgorithmThicknessUpdatedFilteringRelaxedGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = Kratos.Parameters("""

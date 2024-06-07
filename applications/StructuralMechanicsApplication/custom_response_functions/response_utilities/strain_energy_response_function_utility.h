@@ -88,6 +88,12 @@ public:
 		{
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
+			if (responseSettings.Has("step_size_thickness")) {
+				double delta_t = responseSettings["step_size_thickness"].GetDouble();
+				mDeltaThickness = delta_t;
+			} else {
+				mDeltaThickness = delta;
+			}
 		}
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
@@ -297,11 +303,11 @@ protected:
 				Vector perturbed_RHS = Vector(0);
 
 				const double t = elem_i.GetProperties().GetValue(THICKNESS);
-				const double perturbed_t = t + mDelta;
+				const double perturbed_t = t + mDeltaThickness;
 				elem_i.GetProperties().SetValue(THICKNESS, perturbed_t);
 				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
 				elem_i.GetProperties().SetValue(THICKNESS, t);
-				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDelta);
+				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDeltaThickness);
 
 				double& sens = elem_i.GetValue(THICKNESS_SENSITIVITY);
 				sens += gradient;
@@ -364,11 +370,11 @@ protected:
 				Vector perturbed_RHS = Vector(0);
 
 				const double t = cond_i.GetProperties().GetValue(THICKNESS);
-				const double perturbed_t = t + mDelta;
+				const double perturbed_t = t + mDeltaThickness;
 				cond_i.GetProperties().SetValue(THICKNESS, perturbed_t);
 				cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
 				cond_i.GetProperties().SetValue(THICKNESS, t);
-				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDelta);
+				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDeltaThickness);
 
 				double& sens = cond_i.GetValue(THICKNESS_SENSITIVITY);
 				sens += gradient;
@@ -467,6 +473,7 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
+	double mDeltaThickness;
 
 	///@}
 ///@name Private Operators

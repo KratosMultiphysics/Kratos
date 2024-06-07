@@ -17,7 +17,6 @@ from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_fact
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
-# from KratosMultiphysics.ShapeOptimizationApplication.algorithms import algorithm_gradient_projection
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
@@ -28,7 +27,7 @@ import math
 import numpy as np
 
 # ==============================================================================
-class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
+class AlgorithmShapeThicknessInitialFilteringGradientProjection(OptimizationAlgorithm):
     """
         Algorithm for free thickness optimization using a filtering operation which is
         defined on the initial geometry (thus not changing over the course of the optimization)
@@ -60,21 +59,14 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             elif design_variable["type"].GetString() == "free_thickness":
                 free_thickness_settings = design_variable.Clone()
 
+        self.thickness_bounds = free_thickness_settings["thickness_bounds"].GetVector()
+        self.max_bound_iter = 10
+
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
         self.optimization_settings = optimization_settings
         self.initial_mapper_settings = free_thickness_settings["filter"]
-
-        if free_thickness_settings.Has("projection"):
-            self.projection = free_thickness_settings["projection"]
-        else:
-            self.projection = False
-
-        if self.projection:
-            self.thickness_targets = free_thickness_settings["projection_settings"]["available_thicknesses"].GetVector()
-            self.beta = free_thickness_settings["projection_settings"]["initial_beta"].GetDouble()
-            self.q = free_thickness_settings["projection_settings"]["increase_beta_factor"].GetDouble()
 
         if free_thickness_settings.Has("create_property_copies"):
             self.create_property_copies = free_thickness_settings["create_property_copies"].GetBool()
@@ -101,7 +93,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 constraint["identifier"].GetString() : {
                     "gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT"),
                     "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_MAPPED"),
-                    "projected_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_PROJECTED")
+                    "active_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_ACTIVE")
                 }
             })
 
@@ -133,7 +125,6 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_MAPPED")
             initial_model_part.AddNodalSolutionStepVariable(nodal_variable)
 
-        initial_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE_CONTROL_PROJECTED)
         initial_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE_CONTROL)
         initial_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE)
 
@@ -176,14 +167,14 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
         if self.variable_scaling:
-            step_t = ( self.thickness_targets[len(self.thickness_targets)-1] - self.thickness_targets[0] ) / self.thickness_scaling_divisor
+            step_t = ( self.thickness_bounds[1] - self.thickness_bounds[0] ) / self.thickness_scaling_divisor
             h = KSO.GeometryUtilities(self.design_surface).CalculateAverageElementSize()
             step_x = h / self.shape_scaling_divisor
             self.shape_scaling_factor = step_x
             self.thickness_scaling_factor = step_t
-            KM.Logger.PrintInfo(f"Opt", f"Average element size {h}")
-            KM.Logger.PrintInfo(f"Opt", f"Shape scaling factor {self.shape_scaling_factor}")
-            KM.Logger.PrintInfo(f"Opt", f"Thickness scaling factor {self.thickness_scaling_factor}")
+            KM.Logger.PrintInfo("Opt", f"Average element size {h}")
+            KM.Logger.PrintInfo("Opt", f"Shape scaling factor {self.shape_scaling_factor}")
+            KM.Logger.PrintInfo("Opt", f"Thickness scaling factor {self.thickness_scaling_factor}")
 
         self.initial_mapper = mapper_factory.CreateMapper(self.initial_design_surface, self.initial_design_surface, self.initial_mapper_settings)
         self.initial_mapper.Initialize()
@@ -239,7 +230,6 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             if self.__isAlgorithmConverged():
                 break
             else:
-                self.__updateBeta()
                 if self.shape_opt:
                     self.__determineAbsoluteShapeChanges()
 
@@ -371,9 +361,11 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __mapThicknessGradients(self):
 
-        ### 1. Filter gradients
+        ### Filter gradients
         self.initial_mapper.Update()
         self.initial_mapper.InverseMap(KSO.DF1DT, KSO.DF1DT_MAPPED)
+
+        # copy to current model part
         self.variable_utils.CopyModelPartNodalVar(KSO.DF1DT_MAPPED, self.initial_model_part_controller.GetOptimizationModelPart(),
                                                   self.model_part_controller.GetOptimizationModelPart(), 0)
 
@@ -382,18 +374,11 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
             self.initial_mapper.InverseMap(gradient_variable, mapped_gradient_variable)
+            # copy to current model part
             self.variable_utils.CopyModelPartNodalVar(mapped_gradient_variable, self.initial_model_part_controller.GetOptimizationModelPart(),
                                                       self.model_part_controller.GetOptimizationModelPart(), 0)
 
-        ### 2. Project gradients to control thickness
-        self.__ProjectGradients(KSO.DF1DT_MAPPED, KSO.DF1DT_PROJECTED)
-
-        for constraint in self.constraints:
-            con_id = constraint["identifier"].GetString()
-            mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
-            projected_gradient_variable = self.constraint_gradient_variables[con_id]["projected_gradient"]
-            self.__ProjectGradients(mapped_gradient_variable, projected_gradient_variable)
-
+    # --------------------------------------------------------------------------
     def __mapShapeGradients(self):
 
         self.shape_mapper.Update()
@@ -408,14 +393,22 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeControlUpdate(self):
 
-        number_of_control_variables = len(self.design_surface.Nodes)
-        if self.shape_opt:
-            number_of_control_variables *= 4
+        self.deactivated_design_variables_indices = list()
 
-        prev_s = KM.Vector(number_of_control_variables)
+        # first set all thickness variables as active
+        nabla_f_t = KM.Vector()
+        self.optimization_utilities.AssembleVector(self.design_surface, nabla_f_t, KSO.DF1DT_MAPPED)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, nabla_f_t, KSO.DF1DT_ACTIVE)
 
-        max_inner_iter = 10
-        for inner_iter in range(max_inner_iter):
+        for constraint in self.constraints:
+            con_id = constraint["identifier"].GetString()
+            mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
+            active_gradient_variable = self.constraint_gradient_variables[con_id]["active_gradient"]
+            g_a_t = KM.Vector()
+            self.optimization_utilities.AssembleVector(self.design_surface, g_a_t, mapped_gradient_variable)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, g_a_t, active_gradient_variable)
+
+        for bound_iter in range(self.max_bound_iter):
 
             nabla_f = self.__assembleObjectiveGradient()
 
@@ -428,17 +421,16 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
                 s = nabla_f * (-1.0)
 
-                if self.projection:
-                    s = self.__ProjectSearchDirectionAndGradients(s, g_a_t_variables)
+                self.__FindActiveVariables(s, g_a_t_variables)
 
-                if not self.projection or (s - prev_s).norm_inf() == 0.0 or inner_iter == max_inner_iter - 1:
+                if self.__CheckBoundConvergence(bound_iter):
                     if s.norm_inf() > 0:
                         s *= self.step_size / s.norm_inf()
                     corr = 0.0 * s
+                    self.__ApplyBoundsStepSize(s, corr)
                     self.__saveAlgorithmResultsToVariables(s, corr)
                     return
                 else:
-                    prev_s = s
                     continue
 
             KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
@@ -459,37 +451,33 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 s,
                 corr)
 
-            if self.projection:
-                s = self.__ProjectSearchDirectionAndGradients(s, g_a_t_variables)
-
-            if not self.projection or (s - prev_s).norm_inf() == 0.0 or inner_iter == max_inner_iter - 1:
-                if corr.norm_inf() != 0.0:
-                    if corr.norm_inf() <= self.max_correction_share * self.step_size:
-                        delta = self.step_size - corr.norm_inf()
-                        s *= delta/s.norm_inf()
-                    else:
-                        KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {corr.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                        corr *= self.max_correction_share * self.step_size / corr.norm_inf()
-                        s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+            if corr.norm_inf() != 0.0:
+                if corr.norm_inf() <= self.max_correction_share * self.step_size:
+                    delta = self.step_size - corr.norm_inf()
+                    s *= delta/s.norm_inf()
                 else:
-                    if s.norm_inf() > 0:
-                        s *= self.step_size / s.norm_inf()
+                    KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {corr.norm_inf()} to {self.max_correction_share * self.step_size}.")
+                    corr *= self.max_correction_share * self.step_size / corr.norm_inf()
+                    s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+            else:
+                if s.norm_inf() > 0:
+                    s *= self.step_size / s.norm_inf()
 
+            self.__FindActiveVariables(s+corr, g_a_t_variables)
+
+            if self.__CheckBoundConvergence(bound_iter):
+
+                self.__ApplyBoundsStepSize(s, corr)
                 self.__saveAlgorithmResultsToVariables(s, corr)
                 return
             else:
-                prev_s = s
                 continue
 
     # --------------------------------------------------------------------------
     def __assembleObjectiveGradient(self):
 
         df_dt = KM.Vector()
-
-        if self.projection:
-            self.optimization_utilities.AssembleVector(self.design_surface, df_dt, KSO.DF1DT_PROJECTED)
-        else:
-            self.optimization_utilities.AssembleVector(self.design_surface, df_dt, KSO.DF1DT_MAPPED)
+        self.optimization_utilities.AssembleVector(self.design_surface, df_dt, KSO.DF1DT_ACTIVE)
 
         if self.shape_opt:
             df_dx = KM.Vector()
@@ -545,6 +533,36 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         return constraint_gradients
 
     # --------------------------------------------------------------------------
+    def __ApplyBoundsStepSize(self, s, corr):
+
+        delta_t_control = KM.Vector()
+        self.optimization_utilities.AssembleVector(self.design_surface, delta_t_control, KSO.THICKNESS_CHANGE_CONTROL)
+        t_init = KM.Vector()
+        self.optimization_utilities.AssembleVector(self.design_surface, t_init, KSO.THICKNESS_INITIAL)
+
+        for i in range(len(self.design_surface.Nodes)):
+            t = delta_t_control[i]
+            delta_t_bounds = np.zeros(2)
+            delta_t_bounds[0] = (self.thickness_bounds[0] - t_init[i])
+            delta_t_bounds[1] = (self.thickness_bounds[1] - t_init[i])
+            if self.variable_scaling:
+                delta_t_bounds[0] /= self.thickness_scaling_factor
+                delta_t_bounds[1] /= self.thickness_scaling_factor
+
+            update = s[i]+corr[i]
+            if update == 0.0:
+                continue
+
+            if t+update <= delta_t_bounds[0]:
+                alpha_bounded = (delta_t_bounds[0] - t) / update
+                s[i] *= alpha_bounded
+                corr[i] *= alpha_bounded
+            elif t+update >= delta_t_bounds[1]:
+                alpha_bounded = (delta_t_bounds[1] - t) / update
+                s[i] *= alpha_bounded
+                corr[i] *= alpha_bounded
+
+    # --------------------------------------------------------------------------
     def __saveAlgorithmResultsToVariables(self, search_direction, correction):
 
         s_t = KM.Vector(len(self.design_surface.Nodes))
@@ -592,26 +610,16 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __mapControlThicknessUpdate(self):
 
-        ### 4. Project control thickness to obtain filtered thickness
-        self.__ProjectThickness()
-
-        ### 5. Filter thickness to obtain physical thickness
-        if self.projection:
-            self.variable_utils.CopyModelPartNodalVar(KSO.THICKNESS_CHANGE_CONTROL_PROJECTED, self.model_part_controller.GetOptimizationModelPart(),
-                                                      self.initial_model_part_controller.GetOptimizationModelPart(), 0)
-            self.initial_mapper.Map(KSO.THICKNESS_CHANGE_CONTROL_PROJECTED, KSO.THICKNESS_CHANGE)
-
-        else:
-            self.variable_utils.CopyModelPartNodalVar(KSO.THICKNESS_CHANGE_CONTROL, self.model_part_controller.GetOptimizationModelPart(),
-                                                      self.initial_model_part_controller.GetOptimizationModelPart(), 0)
-            self.initial_mapper.Map(KSO.THICKNESS_CHANGE_CONTROL, KSO.THICKNESS_CHANGE)
+        ### Filter thickness to obtain physical thickness
+        self.variable_utils.CopyModelPartNodalVar(KSO.THICKNESS_CHANGE_CONTROL, self.model_part_controller.GetOptimizationModelPart(),
+                                                    self.initial_model_part_controller.GetOptimizationModelPart(), 0)
+        self.initial_mapper.Map(KSO.THICKNESS_CHANGE_CONTROL, KSO.THICKNESS_CHANGE)
 
         # damping for thickness
         self.initial_model_part_controller.DampNodalThicknessVariableIfSpecified(KSO.THICKNESS_CHANGE)
 
         self.variable_utils.CopyModelPartNodalVar(KSO.THICKNESS_CHANGE, self.initial_model_part_controller.GetOptimizationModelPart(),
                                                   self.model_part_controller.GetOptimizationModelPart(), 0)
-
 
     # --------------------------------------------------------------------------
     def __mapControlShapeUpdate(self):
@@ -630,12 +638,8 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
                 active_constraint_values.append(constraint_value)
-                if self.projection:
-                    active_constraint_thickness_variables.append(
-                        self.constraint_gradient_variables[identifier]["projected_gradient"])
-                else:
-                    active_constraint_thickness_variables.append(
-                        self.constraint_gradient_variables[identifier]["mapped_gradient"])
+                active_constraint_thickness_variables.append(
+                    self.constraint_gradient_variables[identifier]["active_gradient"])
 
                 if self.shape_opt:
                     active_constraint_shape_variables.append(
@@ -648,14 +652,9 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         identifier = constraint["identifier"].GetString()
         constraint_value = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=" or constraint_value >= 0:
-            if self.projection:
-                thickness_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
-                    self.design_surface, self.constraint_gradient_variables[identifier]["projected_gradient"]
-                )
-            else:
-                thickness_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
-                    self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
-                )
+            thickness_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
+                self.design_surface, self.constraint_gradient_variables[identifier]["active_gradient"]
+            )
             shape_gradient_norm = 0.0
             if self.shape_opt:
                 shape_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
@@ -708,12 +707,6 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 return True
 
     # --------------------------------------------------------------------------
-    def __updateBeta(self):
-
-        if self.projection:
-            self.beta *= self.q
-
-    # --------------------------------------------------------------------------
     def __determineAbsoluteShapeChanges(self):
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
@@ -756,36 +749,17 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         self.__mapElementGradientToNode(element_thicknesses, KSO.THICKNESS_INITIAL)
 
     # --------------------------------------------------------------------------
-    def __ProjectGradients(self, mapped_gradient_variable, projected_gradient_variable):
-
-        if not self.projection:
-            return
-
-        for node in self.design_surface.Nodes:
-            delta_t_control = node.GetSolutionStepValue(KSO.THICKNESS_CHANGE_CONTROL)
-            mapped_gradient = node.GetSolutionStepValue(mapped_gradient_variable)
-
-            delta_t_m = self.___GetInterval(node, delta_t_control)
-
-            w = (delta_t_control - delta_t_m[0]) / (delta_t_m[1] - delta_t_m[0])
-            tanh_numerator = 2 * np.tanh(self.beta * 0.5)
-            dw_dt_p = 1 / (delta_t_m[1] - delta_t_m[0])
-            dt_p_dw = ((delta_t_m[1] - delta_t_m[0]) / tanh_numerator) \
-                * (1 - np.tanh(self.beta * (w - 0.5))) * self.beta
-            projected_gradient = mapped_gradient * dw_dt_p * dt_p_dw
-
-            node.SetSolutionStepValue(projected_gradient_variable, 0, projected_gradient)
-
-    def __ProjectSearchDirectionAndGradients(self, search_direction, g_a_variables):
-
-        if not self.projection:
-            return search_direction
+    def __FindActiveVariables(self, search_direction, g_a_variables):
+        self.prev_deactivated_design_variables_indices = self.deactivated_design_variables_indices.copy()
 
         delta_t_control = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, delta_t_control, KSO.THICKNESS_CHANGE_CONTROL)
 
+        t_init = KM.Vector()
+        self.optimization_utilities.AssembleVector(self.design_surface, t_init, KSO.THICKNESS_INITIAL)
+
         nabla_f = KM.Vector()
-        self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DT_PROJECTED)
+        self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DT_ACTIVE)
 
         g_a = {}
         for g_a_variable in g_a_variables:
@@ -793,86 +767,45 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             self.optimization_utilities.AssembleVector(self.design_surface, constraint_gradient, g_a_variable)
             g_a[g_a_variable] = constraint_gradient
 
-        t_init = KM.Vector()
-        self.optimization_utilities.AssembleVector(self.design_surface, t_init, KSO.THICKNESS_INITIAL)
-
         for i in range(len(self.design_surface.Nodes)):
             t = delta_t_control[i]
-            delta_t_targets = np.zeros(len(self.thickness_targets))
-            for j in range(len(self.thickness_targets)):
-                delta_t_targets[j] = self.thickness_targets[j] - t_init[i]
+            delta_t_bounds = np.zeros(2)
+            delta_t_bounds[0] = (self.thickness_bounds[0] - t_init[i])
+            delta_t_bounds[1] = (self.thickness_bounds[1] - t_init[i])
+            if self.variable_scaling:
+                delta_t_bounds[0] /= self.thickness_scaling_factor
+                delta_t_bounds[1] /= self.thickness_scaling_factor
 
-            if t <= delta_t_targets[0] and search_direction[i] < 0.0:
-                search_direction[i] = 0.0
+            if t <= delta_t_bounds[0] and search_direction[i] < 0.0:
+                self.deactivated_design_variables_indices.append(i)
                 nabla_f[i] = 0.0
                 for constraint_gradient in g_a.values():
                     constraint_gradient[i] = 0.0
-            elif t >= delta_t_targets[-1] and search_direction[i] > 0.0:
-                search_direction[i] = 0.0
+            elif t >= delta_t_bounds[1] and search_direction[i] > 0.0:
+                self.deactivated_design_variables_indices.append(i)
                 nabla_f[i] = 0.0
                 for constraint_gradient in g_a.values():
                     constraint_gradient[i] = 0.0
 
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, nabla_f, KSO.DF1DT_PROJECTED)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, nabla_f, KSO.DF1DT_ACTIVE)
         for g_a_variable, constraint_gradient in g_a.items():
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, constraint_gradient, g_a_variable)
 
-        return search_direction
+    # --------------------------------------------------------------------------
+    def __CheckBoundConvergence(self, bound_iter):
+        if bound_iter == 0:
+            return False
 
-    def __ProjectThickness(self):
+        KM.Logger.PrintInfo("ShapeOpt", "Check variable bound convergence.")
 
-        if not self.projection:
-            return
+        if bound_iter == self.max_bound_iter - 1:
+            KM.Logger.PrintInfo("ShapeOpt", "Variable bound reached maximum iteration!")
+            return True
 
-        for node in self.design_surface.Nodes:
-            delta_t_control = node.GetSolutionStepValue(KSO.THICKNESS_CHANGE_CONTROL)
+        if self.deactivated_design_variables_indices == self.prev_deactivated_design_variables_indices:
+            KM.Logger.PrintInfo("ShapeOpt", "The active variables have not been modified, inner loop has converged.")
+            return True
 
-            bound = self.__CheckBounds(node, delta_t_control)
-            if bound:
-                delta_t_projected = bound
-            else:
-                delta_t_m = self.___GetInterval(node, delta_t_control)
-
-                w = (delta_t_control - delta_t_m[0]) / (delta_t_m[1] - delta_t_m[0])
-                tanh_denominator = np.tanh(self.beta * 0.5) + np.tanh(self.beta * (w - 0.5))
-                tanh_numerator = 2 * np.tanh(self.beta * 0.5)
-                tanh_term = tanh_denominator / tanh_numerator
-                delta_t_projected = delta_t_m[0] + (delta_t_m[1] - delta_t_m[0]) * tanh_term
-
-            node.SetSolutionStepValue(KSO.THICKNESS_CHANGE_CONTROL_PROJECTED, 0, delta_t_projected)
-
-    def ___GetInterval(self, node, delta_t_projected):
-
-        t_init = node.GetSolutionStepValue(KSO.THICKNESS_INITIAL)
-
-        delta_t_targets = KM.Vector(len(self.thickness_targets))
-
-        for i in range(len(self.thickness_targets)):
-            delta_t_targets[i] = self.thickness_targets[i] - t_init
-
-        if delta_t_projected <= delta_t_targets[0]:
-            return np.array([delta_t_targets[0], delta_t_targets[1]])
-        if delta_t_projected >= delta_t_targets[len(delta_t_targets)-1]:
-            return np.array([delta_t_targets[len(delta_t_targets)-2], delta_t_targets[len(delta_t_targets)-1]])
-
-        for i in range(len(delta_t_targets)-1):
-            if delta_t_projected >= delta_t_targets[i] and delta_t_projected <= delta_t_targets[i+1]:
-                return np.array([delta_t_targets[i], delta_t_targets[i+1]])
-
-    def __CheckBounds(self, node, delta_t_projected):
-
-        t_init = node.GetSolutionStepValue(KSO.THICKNESS_INITIAL)
-
-        delta_t_targets = KM.Vector(len(self.thickness_targets))
-
-        for i in range(len(self.thickness_targets)):
-            delta_t_targets[i] = self.thickness_targets[i] - t_init
-
-        if delta_t_projected <= delta_t_targets[0]:
-            return delta_t_targets[0]
-        elif delta_t_projected >= delta_t_targets[len(delta_t_targets)-1]:
-            return delta_t_targets[len(delta_t_targets)-1]
-
-        return None
+        return False
 
 # ==============================================================================

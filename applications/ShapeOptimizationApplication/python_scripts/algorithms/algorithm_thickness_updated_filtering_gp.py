@@ -24,7 +24,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer impo
 import math
 
 # ==============================================================================
-class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
+class AlgorithmThicknessUpdatedFilteringGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = KM.Parameters("""
@@ -74,8 +74,9 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_SEARCH_DIRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CORRECTION)
 
-        self.lower_bound = LowerBound(optimization_settings["design_variables"][0]["t_min"].GetDouble(), self.optimization_model_part)
-        self.upper_bound = UpperBound(optimization_settings["design_variables"][0]["t_max"].GetDouble(), self.optimization_model_part)
+        thickness_bounds = optimization_settings["design_variables"][0]["thickness_bounds"].GetVector()
+        self.lower_bound = LowerBound(thickness_bounds[0], self.optimization_model_part)
+        self.upper_bound = UpperBound(thickness_bounds[1], self.optimization_model_part)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
