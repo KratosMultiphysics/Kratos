@@ -14,24 +14,28 @@
 #if !defined(KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
 #define KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
-// Project includes
-#include "containers/array_1d.h"
 #include "custom_retention/retention_law.h"
-#include "custom_retention/retention_law_factory.h"
-#include "geometries/geometry.h"
+#include "geometries/geometry_data.h"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/kratos_export_api.h"
 #include "includes/serializer.h"
-#include "utilities/math_utils.h"
+#include "includes/smart_pointers.h"
+#include "includes/ublas_interface.h"
 
-// Application includes
-#include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
-#include "stress_state_policy.h"
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace Kratos
 {
+
+class StressStatePolicy;
+
+template <class T, std::size_t N>
+class array_1d;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public Element
 {
@@ -110,6 +114,8 @@ public:
                                       const std::vector<Matrix>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
+    using Element::SetValuesOnIntegrationPoints;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                       std::vector<int>&    rValues,
@@ -134,6 +140,8 @@ public:
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    using Element::CalculateOnIntegrationPoints;
 
     // Turn back information as a string.
     std::string Info() const override
@@ -177,7 +185,6 @@ protected:
         Matrix ConstitutiveMatrix;
 
         // Variables needed for consistency with the general constitutive law
-        double detF;
         Matrix F;
 
         // needed for updated Lagrangian:
@@ -204,7 +211,6 @@ protected:
         bool ConsiderGeometricStiffness;
 
         // stress/flow variables
-        double PermeabilityUpdateFactor;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;
@@ -238,10 +244,6 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    void InitializeBiotCoefficients(ElementVariables& rVariables, const bool& hasBiotCoefficient = false);
-
-    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
-
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateDerivativesOnInitialConfiguration(
@@ -252,15 +254,13 @@ protected:
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
-
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
@@ -270,17 +270,16 @@ protected:
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) const;
 
+    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables, const bool& hasBiotCoefficient) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
@@ -289,8 +288,6 @@ protected:
     void AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
-
-    SizeType GetVoigtSize() const;
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
@@ -309,15 +306,16 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;
 
     Vector GetPressureSolutionVector();
+
+    [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
+    [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
+
+    [[nodiscard]] SizeType GetNumberOfDOF() const;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
