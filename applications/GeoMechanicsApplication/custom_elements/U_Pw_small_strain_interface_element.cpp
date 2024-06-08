@@ -1873,11 +1873,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> undrained_coupling_matrix =
+        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> undrained_terms =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
             trans(coupling_matrix);
 
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, undrained_coupling_matrix);
+        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, undrained_terms);
     }
 
     KRATOS_CATCH("")

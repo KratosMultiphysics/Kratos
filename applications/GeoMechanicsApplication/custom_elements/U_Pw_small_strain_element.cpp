@@ -1168,10 +1168,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> undrained_coupling_matrix =
+        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> undrained_terms =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
             trans(coupling_matrix);
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, undrained_coupling_matrix);
+        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, undrained_terms);
     }
 
     KRATOS_CATCH("")
@@ -1275,10 +1275,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        const array_1d<double, TNumNodes> undrained_coupling_terms =
+        const array_1d<double, TNumNodes> undrained_terms =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
             prod(trans(coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, undrained_coupling_terms);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, undrained_terms);
     }
 
     KRATOS_CATCH("")
