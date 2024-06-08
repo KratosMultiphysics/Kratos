@@ -1736,22 +1736,24 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
         rVariables.DynamicViscosityInverse * GetProperties()[DENSITY_WATER] * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, rVariables.IntrinsicPermeability) * rVariables.IntegrationCoefficient;
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
+    const GeometryType& r_geom      = GetGeometry();
+    const SizeType      dimension   = r_geom.WorkingSpaceDimension();
+    const SizeType      num_U_nodes = r_geom.PointsNumber();
+    const SizeType      num_P_nodes = mpPressureGeometry->PointsNumber();
 
-    Vector body_acceleration = ZeroVector(Dim);
+    Vector body_acceleration = ZeroVector(dimension);
 
-    SizeType Index = 0;
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        for (SizeType idim = 0; idim < Dim; ++idim) {
-            body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index++];
+    SizeType index = 0;
+    for (SizeType i = 0; i < num_U_nodes; ++i) {
+        for (SizeType idim = 0; idim < dimension; ++idim) {
+            body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[index];
+            index++;
         }
     }
 
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rRightHandSideVector[NumUNodes * Dim + i] += inner_prod(row(grad_Np_T_perm, i), body_acceleration);
+    for (SizeType i = 0; i < num_P_nodes; ++i) {
+        rRightHandSideVector[num_U_nodes * dimension + i] +=
+            inner_prod(row(grad_Np_T_perm, i), body_acceleration);
     }
 
     KRATOS_CATCH("")
