@@ -281,9 +281,10 @@ public:
         double const k_roughness = (!rElementGeometry.Has(SURFACE_ROUGHNESS)) ? 1.0 : 1 - rElementGeometry.GetValue(MATERIAL_PARAMETER_C1)
                      * std::log10(rElementGeometry.GetValue(SURFACE_ROUGHNESS)) * std::log10((2 * UltimateStress) / rElementGeometry.GetValue(MATERIAL_PARAMETER_C2));
         double const h_roughness = (LocalNumberOfCycles < std::pow(10, c2_roughness)) ? 0.0 : (1.0 / c1_roughness) * std::log10(LocalNumberOfCycles / std::pow(10, c2_roughness));
+        double const k_fatigue = (std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) > (1.0 / r_fatigue_coefficients[0])) ? (1 / r_fatigue_coefficients[0]) : std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0));
 
         //These variables have been defined following the model described by S. Oller et al. in A continuum mechanics model for mechanical fatigue analysis (2005), equation 13 on page 184.
-        const double Se = k_residual_stress * std::pow((1.0 / k_stress_concentration), (h_stress_concentration - 1.0)) * std::pow(k_roughness, h_roughness) * (r_fatigue_coefficients[0] * UltimateStress);
+        const double Se = k_residual_stress * k_fatigue * std::pow(k_roughness, h_roughness) * (r_fatigue_coefficients[0] * UltimateStress);
         // const double Se = r_fatigue_coefficients[0] * UltimateStress;
         const double STHR1 = r_fatigue_coefficients[1];
         const double STHR2 = r_fatigue_coefficients[2];
