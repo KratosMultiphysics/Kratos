@@ -117,6 +117,21 @@ public:
         return 0;
     }
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (const std::size_t number_integration_points =
+                GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+            mRetentionLawVector.size() != number_integration_points) {
+            mRetentionLawVector.resize(number_integration_points);
+        }
+        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
+            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
+            mRetentionLawVector[i]->InitializeMaterial(
+                GetProperties(), GetGeometry(),
+                row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
+        }
+    }
+
 private:
 
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;
@@ -270,21 +285,6 @@ private:
         });
         return result;
     }
-
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (const std::size_t number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-            mRetentionLawVector.size() != number_integration_points) {
-            mRetentionLawVector.resize(number_integration_points);
-        }
-        for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-            mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
-            mRetentionLawVector[i]->InitializeMaterial(
-                GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()), i));
-        }
-    }
-
 
     double CalculateBiotModulusInverse(const ProcessInfo& rCurrentProcessInfo,
                                        const unsigned int integrationPointIndex) const

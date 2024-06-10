@@ -17,8 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/steady_state_Pw_interface_element.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_elements/transient_Pw_line_element.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -26,12 +25,12 @@ namespace Kratos
 
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SteadyStatePwPipingElement
-    : public SteadyStatePwInterfaceElement<TDim, TNumNodes>
+    : public TransientPwLineElement<TDim, TNumNodes>
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SteadyStatePwPipingElement);
 
-    using BaseType = SteadyStatePwInterfaceElement<TDim, TNumNodes>;
+    using BaseType = TransientPwLineElement<TDim, TNumNodes>;
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
@@ -46,48 +45,27 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-
-    using BaseType::CalculateRetentionResponse;
-    using BaseType::mRetentionLawVector;
-    using BaseType::mThisIntegrationMethod;
-
-    using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
-    using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
-
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     explicit SteadyStatePwPipingElement(IndexType NewId = 0)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
+        : TransientPwLineElement<TDim, TNumNodes>(NewId)
     {
     }
 
-    /// Constructor using an array of nodes
-    SteadyStatePwPipingElement(IndexType                          NewId,
-                               const NodesArrayType&              ThisNodes,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
-    {
-    }
-
-    /// Constructor using Geometry
-    SteadyStatePwPipingElement(IndexType                          NewId,
-                               GeometryType::Pointer              pGeometry,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    : TransientPwLineElement(NewId, pGeometry)
     {
     }
 
     /// Constructor using Properties
     SteadyStatePwPipingElement(IndexType                          NewId,
                                GeometryType::Pointer              pGeometry,
-                               PropertiesType::Pointer            pProperties,
-                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                               PropertiesType::Pointer            pProperties)
+        : TransientPwLineElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
 
     ~SteadyStatePwPipingElement() = default;
-
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Element::Pointer Create(IndexType               NewId,
@@ -109,12 +87,6 @@ public:
     void CalculateLength(const GeometryType& Geom);
 
 protected:
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo,
-                      bool               CalculateStiffnessMatrixFlag,
-                      bool               CalculateResidualVectorFlag) override;
-
     using BaseType::CalculateOnIntegrationPoints;
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
                                       std::vector<bool>&    rValues,
@@ -155,7 +127,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
     }
 
-}; // Class SteadyStatePwInterfaceElement
+}; // Class SteadyStatePwPipingElement
 
 } // namespace Kratos
 

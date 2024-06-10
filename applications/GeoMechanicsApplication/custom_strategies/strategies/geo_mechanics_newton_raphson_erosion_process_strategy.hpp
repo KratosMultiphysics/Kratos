@@ -101,6 +101,8 @@ public:
         // calculate max pipe height and pipe increment
         double amax = CalculateMaxPipeHeight(PipeElements);
 
+        KRATOS_INFO("PipingLoop") << "Max Pipe Height: " << amax << std::endl;
+
         // continue this loop, while the pipe is growing in length
         while (grow && (openPipeElements < n_el)) {
             // todo: JDN (20220817) : grow not used.
@@ -109,12 +111,19 @@ public:
             // get tip element and activate
             Element* tip_element = PipeElements.at(openPipeElements);
             openPipeElements += 1;
-            tip_element->SetValue(PIPE_ACTIVE, true);
+            tip_element->Set(ACTIVE, true);
+
+            KRATOS_INFO("PipingLoop") << "Tip Element ID: " << tip_element->Id() << std::endl;
+            KRATOS_INFO("PipingLoop") << " OPEN " << tip_element->Is(ACTIVE) << std::endl;
+            KRATOS_INFO("PipingLoop") << "Has Pipe Element Length: " << tip_element->Has(PIPE_ELEMENT_LENGTH) << std::endl;
 
             // Get all open pipe elements
             std::function<bool(Element*)> filter = [](Element* i) {
-                return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE);
+                return i->Has(PIPE_ELEMENT_LENGTH) && i->Is(ACTIVE);
             };
+
+
+
             filtered_elements OpenPipeElements = PipeElements | boost::adaptors::filtered(filter);
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
@@ -222,7 +231,7 @@ public:
             });
         }
 
-        KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
+        KRATOS_INFO("PipingLoop")
             << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
         for (const Element* pipeElement : PipeElements) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
@@ -249,7 +258,7 @@ private:
         int nOpenElements = 0;
 
         for (Element* pipe_element : PipeElements) {
-            if (pipe_element->GetValue(PIPE_ACTIVE)) {
+            if (pipe_element->Is(ACTIVE)) {
                 nOpenElements += 1;
             }
         }
@@ -268,6 +277,7 @@ private:
 
         if (Prop[PIPE_MODIFIED_D]) diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
         else diameter = Prop[PIPE_D_70];
+        KRATOS_INFO("PipingLoop") << "Particle Diameter: " << diameter << std::endl;
         return diameter;
     }
 
@@ -338,6 +348,8 @@ private:
         // calculate max pipe height and pipe increment
         double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
 
+        KRATOS_INFO("PipingLoop") << "da: " << da << std::endl;
+
         while (PipeIter < mPipingIterations && !equilibrium && converged) {
             // set equilibrium on true
             equilibrium = true;
@@ -355,7 +367,7 @@ private:
                 // Update depth of open piping Elements
                 equilibrium = true;
                 for (auto OpenPipeElement : open_pipe_elements) {
-                    auto pElement = static_cast<SteadyStatePwPipingElement<2, 4>*>(OpenPipeElement);
+                    auto pElement = static_cast<SteadyStatePwPipingElement<2, 2>*>(OpenPipeElement);
 
                     // get open pipe element geometry and properties
                     auto& Geom = OpenPipeElement->GetGeometry();
@@ -365,6 +377,13 @@ private:
                     double eq_height = pElement->CalculateEquilibriumPipeHeight(
                         prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
+
+                    // update permeability in the open pipe element
+                    auto permeability = current_height * current_height * current_height / 12.0;
+                    prop[PERMEABILITY_XX] = permeability;
+
+                    KRATOS_INFO("PipingLoop")
+                        << "Number of Open Pipe Elements: " << boost::size(open_pipe_elements) << std::endl;
 
                     // set erosion on true if current pipe height is greater than the equilibrium height
                     if (current_height > eq_height) {
@@ -380,14 +399,18 @@ private:
 
                     // check if equilibrium height and current pipe heights are diverging, stop
                     // picard iterations if this is the case and set pipe height on zero
+
+
                     if (!OpenPipeElement->GetValue(PIPE_EROSION) && (PipeIter > 1) &&
-                        ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT))) {
+                        (std::abs(eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT))) {
                         equilibrium = true;
                         OpenPipeElement->SetValue(PIPE_HEIGHT, small_pipe_height);
                     }
 
                     // calculate difference between equilibrium height and current pipe height
-                    OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
+                    OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, std::abs(eq_height - current_height));
+                    KRATOS_INFO("PipingLoop") << "DIFF_PIPE_HEIGHT: "
+                                              << OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT) << std::endl;
                 }
                 // increment piping iteration number
                 PipeIter += 1;
@@ -421,7 +444,7 @@ private:
                 // stable element found; pipe length does not increase during current time step
                 grow = false;
                 tip_element->SetValue(PIPE_EROSION, false);
-                tip_element->SetValue(PIPE_ACTIVE, false);
+                tip_element->Set(ACTIVE, false);
                 n_open_elements -= 1;
 
                 KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
