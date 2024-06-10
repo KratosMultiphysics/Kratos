@@ -297,12 +297,6 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
 
     def __SetUpInterfaceUtility(self):
-        # Calculate the required neighbours
-        nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
-        nodal_neighbours_process.Execute()
-        elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
-        elemental_neighbours_process.Execute()
-
         # Create the boundary elements and MLS basis
         settings = KratosMultiphysics.Parameters("""{}""")
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name)
@@ -314,14 +308,24 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
 
         if self.level_set_type == "discontinuous":
-            #TODO no nodal neighbors needed?!
+            # Calculate the required neighbours
+            elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbours_process.Execute()
+
             settings.AddEmptyValue("levelset_variable_name").SetString("ELEMENTAL_DISTANCES")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility(self.model, settings)
+
         else:
+            # Calculate the required neighbours
+            nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
+            nodal_neighbours_process.Execute()
+            elemental_neighbours_process = KratosMultiphysics.GenericFindElementalNeighboursProcess(self.main_model_part)
+            elemental_neighbours_process.Execute()
+
             settings.AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
             sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
-        sbm_interface_utility.CalculateExtensionOperator()
 
+        sbm_interface_utility.CalculateExtensionOperator()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Shifted-boundary interface utility initialized and extension operators were calculated.")
 
     def GetDistanceModificationProcess(self):

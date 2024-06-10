@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Franziska Wahl
 //
 
 // System includes
@@ -33,6 +33,7 @@
 #include "utilities/shifted_boundary_meshless_discontinuous_interface_utility.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
 #include <cstddef>
+#include <ostream>
 #include <vector>
 
 namespace Kratos
@@ -59,9 +60,8 @@ namespace
         std::size_t n_pos = 0;
 
         const Vector& r_distances = rElement.GetValue(rLevelSetVariable);
-        const std::size_t n_nodes = rElement.GetGeometry().PointsNumber();
 
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node){
+        for (std::size_t i_node = 0; i_node < r_distances.size(); ++i_node){
             if (r_distances[i_node] < 0.0){
                 n_neg++;
             } else {
@@ -86,6 +86,16 @@ namespace
         const Variable<Vector>& rLevelSetVariable)
     {
         std::size_t n_intersected_edges_extrapolated = 0;  //TODO
+
+        const Vector& r_edge_distances_extrapolated = rElement.GetValue(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED);
+
+        // Number of edges cut by extrapolated geometry, if not empty
+        for (std::size_t i = 0; i < r_edge_distances_extrapolated.size(); ++i) {
+            if (r_edge_distances_extrapolated[i] > 0.0) {
+                n_intersected_edges_extrapolated++;
+            }
+        }
+
         return n_intersected_edges_extrapolated > 0 ? true : false;
     }
 
@@ -336,12 +346,17 @@ namespace
             }
         }
 
-        //TODO: make incised elements BOUNDARY (they already are INTERFACE and ACTIVE) using ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
+        // Mark incised elements as BOUNDARY (they already are INTERFACE and ACTIVE) using ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED //TODO
+        //TODO ?? Mark neighboring elements of incised elements also as BOUNDARY, so that the support clouds of both sides are separated better
+        // --> PROBLEM that nodes that need support cloud could be only surrounded by BOUNDARY elements then and could not get support
+        std::size_t n_elements_incised = 0;
         for (auto& rElement : mpModelPart->Elements()) {
             if (IsIncised(rElement, *mpDiscontinuousLevelSetVariable)) {
                 rElement.Set(BOUNDARY, true);
+                n_elements_incised++;
             }
         }
+        KRATOS_WARNING("[ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility]") << "Number of incised elements: " << n_elements_incised << std::endl;
     }
 
     void ShiftedBoundaryMeshlessDiscontinuousInterfaceUtility::SetExtensionOperatorsForSplitElementNodes(
@@ -594,7 +609,7 @@ namespace
         // Loop the nodes that are involved in the current element
         for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
             const auto& r_node = r_geom[i_node];
-            if (ConsiderPositiveSide != IsNegative(rElement, i_node, *mpDiscontinuousLevelSetVariable)) {  //TODO active node
+            if (ConsiderPositiveSide != IsNegative(rElement, i_node, *mpDiscontinuousLevelSetVariable)) {
                 // If positive side is considered and node is positive OR negative side is considered and node is negative, then add the standard shape function contribution
                 // Note that we need to check for the ids to match in the geometry as nodes in the map are mixed
                 for (std::size_t i_cl = 0; i_cl < n_cl_nodes; ++i_cl) {
