@@ -36,7 +36,6 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mEchoLevel                = ThisParameters["echo_level"].GetInt();
     mExtrapolateNonHistorical = ThisParameters["extrapolate_non_historical"].GetBool();
     GetVariableLists(ThisParameters);
 }
@@ -81,7 +80,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
     auto& r_elements_array = mrModelPart.Elements();
 
     // Auxiliar values
-    block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls) {
+    block_for_each(r_elements_array, TLSType(), [this, &r_process_info](Element& rElem, TLSType& rTls) {
         // Only active elements
         if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
@@ -342,11 +341,11 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     };
 
     // Fill the average value
-    block_for_each(r_elements_array, [&](Element& rElem) {
+    block_for_each(r_elements_array, [this](Element& rElement) {
         // Only active elements
-        if (rElem.IsActive()) {
+        if (rElement.IsActive()) {
             // The geometry of the element
-            auto& r_this_geometry = rElem.GetGeometry();
+            auto& r_this_geometry = rElement.GetGeometry();
 
             const SizeType number_of_nodes = r_this_geometry.size();
             for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {

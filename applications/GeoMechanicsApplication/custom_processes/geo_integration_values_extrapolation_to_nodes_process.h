@@ -94,8 +94,6 @@ private:
     const Variable<double>& mrAverageVariable; /// The variable used to compute the average weight
     std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap = {}; /// The map containing the extrapolation matrix
 
-    SizeType mEchoLevel; /// The level of verbosity
-
     void   InitializeMaps();
     void   InitializeVariables();
     Matrix CalculateElementExtrapolationMatrix(Element&      rElem,
