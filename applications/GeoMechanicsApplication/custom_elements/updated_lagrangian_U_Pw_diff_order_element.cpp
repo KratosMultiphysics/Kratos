@@ -86,7 +86,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
     Matrix ReducedKgMatrix =
-        prod(rDNuDx, IntegrationCoefficient * Matrix(prod(StressTensor, trans(rDNuDx)))); // to be optimized
+        prod(rDNuDx, IntegrationCoefficient * Matrix(prod(StressTensor, trans(rDNuDx))));
 
     Matrix UUMatrix(NumUNodes * Dim, NumUNodes * Dim);
     noalias(UUMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);

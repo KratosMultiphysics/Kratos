@@ -842,7 +842,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
     Matrix ReducedKgMatrix =
         prod(rGradNpt,
-             IntegrationCoefficient * Matrix(prod(StressTensor, trans(rGradNpt)))); // to be optimized
+             IntegrationCoefficient * Matrix(prod(StressTensor, trans(rGradNpt))));
 
     Matrix UUMatrix(TNumNodes * TDim, TNumNodes * TDim);
     noalias(UUMatrix) = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
