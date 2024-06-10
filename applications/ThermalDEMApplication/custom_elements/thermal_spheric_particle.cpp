@@ -700,7 +700,7 @@ namespace Kratos
     const double new_radius_1 = r + mRadiusInitial * alpha * dTn;      // mixed (wrong)
     const double new_radius_2 = r * (1.0 + alpha * dTn);               // incremental
     const double new_radius_3 = mRadiusInitial * (1.0 + alpha * dT0);  // total
-    SetParticleRadius(new_radius_2);
+    SetParticleRadius(new_radius_3);
 
     // Update inertia
     SetParticleMomentInertia(CalculateMomentOfInertia());
