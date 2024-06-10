@@ -233,7 +233,7 @@ jobs:
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4 --mpi_flags="--hostfile ${GITHUB_WORKSPACE}/ci_hostfile"
 
   windows:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
@@ -422,7 +422,7 @@ jobs:
 
 
   windows-core-without-unity:
-    runs-on: windows-2022
+    runs-on: windows-2019
     needs: changed-files
     env:
       KRATOS_BUILD_TYPE: Custom
