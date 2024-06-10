@@ -54,7 +54,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         expected_heads    = [ 1., 0.5, 0. ]
         for head, expected_head in zip(heads, expected_heads):
             self.assertAlmostEqual(head, expected_head)
-       
+
     def test_8_noded_quadrilateral(self):
         directory  = 'test_integration_node_extrapolation'
         test_name = '8_noded_quadrilateral'
@@ -69,8 +69,4 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(head, expected_head)
         
 if __name__=="__main__":
-    tests = KratosGeoMechanicsExtrapolationTests()
-    tests.test_3_noded_triangle()
-    tests.test_4_noded_quadrilateral()
-    tests.test_6_noded_triangle()
-    tests.test_8_noded_quadrilateral()
+    KratosUnittest.main()
