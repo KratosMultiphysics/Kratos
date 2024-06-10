@@ -79,7 +79,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 private:
-    ModelPart& mrModelPart;         /// The main model part
+    ModelPart& mrModelPart; /// The main model part
 
     bool mExtrapolateNonHistorical; /// If the non-historical values are interpolated
 
@@ -92,9 +92,9 @@ private:
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables
 
     const Variable<double>* mpAverageVariable; /// The variable used to compute the average weight
-    std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap; /// The map containing the extrapolation matrix
+    std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap = {}; /// The map containing the extrapolation matrix
 
-    SizeType mEchoLevel;                                          /// The level of verbosity
+    SizeType mEchoLevel; /// The level of verbosity
 
     void   InitializeMaps();
     void   InitializeVariables();
@@ -105,6 +105,19 @@ private:
                                                GeometryData::IntegrationMethod this_integration_method,
                                                SizeType number_of_nodes,
                                                TLSType& rTls) const;
+    void   GetVariableLists(const Parameters& rParameters);
+
+    template <class T>
+    bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList)
+    {
+        const bool variable_is_of_correct_type = KratosComponents<Variable<T>>::Has(rVariableName);
+        if (variable_is_of_correct_type) {
+            auto& thisVariable = KratosComponents<Variable<T>>::Get(rVariableName);
+            rList.push_back(&thisVariable);
+        }
+
+        return variable_is_of_correct_type;
+    }
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);

@@ -40,26 +40,19 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
     // The average variable
     mpAverageVariable =
         &(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString()));
-    mExtrapolationMatrixMap = {};
+    GetVariableLists(ThisParameters);
+}
 
-    // We get the list of variables
-    for (const std::string& r_variable_name : ThisParameters["list_of_variables"].GetStringArray()) {
-        if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-            auto& thisVariable = KratosComponents<Variable<double>>::Get(r_variable_name);
-            mDoubleVariable.push_back(&thisVariable);
-        } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
-            auto& thisVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-            mArrayVariable.push_back(&thisVariable);
-        } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
-            auto& thisVariable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
-            mVectorVariable.push_back(&thisVariable);
-        } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) {
-            auto& thisVariable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
-            mMatrixVariable.push_back(&thisVariable);
-        } else {
-            KRATOS_ERROR << "Only double, array, vector and matrix variables are allowed in the "
-                            "variables list.";
-        }
+void GeoIntegrationValuesExtrapolationToNodesProcess::GetVariableLists(const Parameters& rParameters)
+{
+    for (const std::string& r_variable_name : rParameters["list_of_variables"].GetStringArray()) {
+        KRATOS_ERROR_IF_NOT(TryAddVariableToList(r_variable_name, mDoubleVariable) ||
+                            TryAddVariableToList(r_variable_name, mArrayVariable) ||
+                            TryAddVariableToList(r_variable_name, mVectorVariable) ||
+                            TryAddVariableToList(r_variable_name, mMatrixVariable))
+            << "Only double, array, vector and matrix variables are allowed in the "
+               "variables list."
+            << std::endl;
     }
 }
 
@@ -347,7 +340,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // Some definitions
     struct TLSType {
         Vector vector_J;
-        Vector  N;
+        Vector N;
     };
 
     // Fill the average value
