@@ -130,10 +130,13 @@ class Commander(object):
         '''
 
         self.exitCode = 0
+        print(f"About to run cpp tests; applications = {applications}")
 
         # importing the apps such that they get registered for the cpp-tests
         for application in applications:
+            print(f"About to import module '{application}'")
             import_module("KratosMultiphysics." + application)
+            print(f"Imported module '{application}'")
 
         if verbosity == 0:
             cpp_tests_verbosity = KM.Tester.Verbosity.QUITE
