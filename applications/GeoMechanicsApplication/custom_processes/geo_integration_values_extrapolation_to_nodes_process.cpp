@@ -334,26 +334,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     auto& r_elements_array = mrModelPart.Elements();
     auto  it_elem_begin    = r_elements_array.begin();
 
-    // Some definitions
-    struct TLSType {
-        Vector vector_J;
-        Vector N;
-    };
-
-    // Fill the average value
-    block_for_each(r_elements_array, [this](Element& rElement) {
-        // Only active elements
-        if (rElement.IsActive()) {
-            // The geometry of the element
-            auto& r_this_geometry = rElement.GetGeometry();
-
-            const SizeType number_of_nodes = r_this_geometry.size();
-            for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                auto& node_var_to_update = r_this_geometry[i_node].GetValue(mrAverageVariable);
-                AtomicAdd(node_var_to_update, 1.0);
-            }
-        }
-    });
+    FillAverageVariableForElements();
 
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(mrAverageVariable);
 
@@ -386,6 +367,18 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
             mSizeMatrixes.insert({p_var, aux_pair});
         }
     }
+}
+
+void GeoIntegrationValuesExtrapolationToNodesProcess::FillAverageVariableForElements() const
+{
+    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
+        if (rElement.IsActive()) {
+            for (auto& node : rElement.GetGeometry()) {
+                auto& node_var_to_update = node.GetValue(mrAverageVariable);
+                AtomicAdd(node_var_to_update, 1.0);
+            }
+        }
+    });
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()

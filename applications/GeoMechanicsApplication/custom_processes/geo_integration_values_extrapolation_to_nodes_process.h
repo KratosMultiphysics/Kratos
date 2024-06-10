@@ -116,6 +116,8 @@ private:
 
         return variable_is_of_correct_type;
     }
+
+    void FillAverageVariableForElements() const;
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);
