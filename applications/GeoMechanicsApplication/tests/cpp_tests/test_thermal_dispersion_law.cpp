@@ -33,11 +33,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
 
     const SizeType dimension = 2;
     GeoThermalDispersionLaw geo_thermal_dispersion_2D_law(dimension);
-    ProcessInfo info;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(
-            *cond_prop, info);
+        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(*cond_prop);
 
     Matrix expected_solution = ZeroMatrix(2, 2);
     expected_solution(0, 0) = 1125.0;
@@ -74,11 +72,9 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
     const SizeType dimension = 3;
     GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
-    ProcessInfo info;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(
-            *cond_prop, info);
+        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(*cond_prop);
 
     Matrix expected_solution = ZeroMatrix(3, 3);
     expected_solution(0, 0) = 800.0;

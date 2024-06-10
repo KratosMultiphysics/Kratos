@@ -26,12 +26,11 @@ GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
         << "Got invalid number of dimensions: " << mNumberOfDimensions << std::endl;
 }
 
-Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp,
-                                                                 const ProcessInfo& rProcessInfo) const
+Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp) const
 {
     Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
 
-    RetentionLaw::Parameters parameters(rProp, rProcessInfo);
+    RetentionLaw::Parameters parameters(rProp);
     auto                     retention_law  = RetentionLawFactory::Clone(rProp);
     const double             saturation     = retention_law->CalculateSaturation(parameters);
     const double             water_fraction = rProp[POROSITY] * saturation;
