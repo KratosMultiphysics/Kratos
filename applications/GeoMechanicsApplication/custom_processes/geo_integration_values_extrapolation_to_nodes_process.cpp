@@ -37,7 +37,6 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
 
     mEchoLevel                = ThisParameters["echo_level"].GetInt();
     mExtrapolateNonHistorical = ThisParameters["extrapolate_non_historical"].GetBool();
-    // The average variable
     mpAverageVariable =
         &(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString()));
     GetVariableLists(ThisParameters);
