@@ -13,6 +13,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // External includes
 
@@ -79,7 +80,7 @@ public:
      */
     Vector GetSensorValueVector() const override;
 
-    
+
 
     /**
      * @brief Calculate the current value of the sensor using the given model part.
@@ -88,7 +89,7 @@ public:
      * @return Vector        Calculated sensor value.
      */
     Vector CalculateValueVector(ModelPart& rModelPart) override;
-    
+
     void CalculateGradient(
         const Element& rAdjointElement,
         const Matrix& rResidualGradient,
@@ -169,10 +170,14 @@ public:
 private:
     ///@name Member Variables
     ///@{
-    
+
     Point mLocalPoint;
 
     Vector mSensorValueVector;
+
+    std::vector<Vector> mEigenVectorDerivative;
+
+
     //array_1d<double> mSensorValueVector;
 
     ///@}
@@ -184,9 +189,9 @@ private:
         const IndexType Size);
 
     void DetermineEigenvectorOfElement(
-        ModelPart::ElementType& rElement, 
-        const int eigenfrequency_id, 
-        Vector& rEigenvectorOfElement, 
+        ModelPart::ElementType& rElement,
+        const int eigenfrequency_id,
+        Vector& rEigenvectorOfElement,
         const ProcessInfo& CurrentProcessInfo);
 
     // void CalculateLeftHandSideDerivative(

@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "system_identification_application_variables.h"
@@ -37,7 +38,10 @@ EigenvectorSensor::EigenvectorSensor(
     : BaseType(rName, rLocation, Weight),
     mSensorValueVector(rSensorValueVector)
 
-{}
+{
+        int num_threads = ParallelUtilities::GetNumThreads();
+        mEigenVectorDerivative.resize(num_threads);
+}
 
 const Parameters EigenvectorSensor::GetSensorParameters() const
 {
@@ -73,7 +77,7 @@ void EigenvectorSensor::SetSensorValueVector(const Vector Value)
 {
     mSensorValueVector.resize(Value.size(), false);
     mSensorValueVector = Value;
-    
+
 }
 
 Vector EigenvectorSensor::GetSensorValueVector() const
@@ -90,7 +94,7 @@ Vector EigenvectorSensor::CalculateValueVector(ModelPart &rModelPart)
     //const SizeType dimension = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
     //const SizeType num_dofs_per_node =  2 * dimension; //3D case with rotation dofs also
     //const SizeType global_size = number_of_nodes * num_dofs_per_node;
-    
+
     Node& rnode = rModelPart.GetNode(1);
     Node::DofsContainerType& rnode_dofs = rnode.GetDofs();
     //Element::DofsVectorType adjoint_element_dofs;
@@ -104,7 +108,7 @@ Vector EigenvectorSensor::CalculateValueVector(ModelPart &rModelPart)
     SetVectorToZero(eigenvector, global_size);
 
     for (IndexType i_node = 0; i_node < rModelPart.NumberOfNodes(); i_node++) {
-        
+
         auto& r_node = rModelPart.GetNode(i_node+1);
         Matrix nodal_eigenvector = r_node.GetValue(EIGENVECTOR_MATRIX);
 
@@ -179,20 +183,23 @@ void EigenvectorSensor::CalculateGlobalPartialSensitivity(
     ModelPart& rModelPart)
 {
     KRATOS_TRY
-    rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
 
-    this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix, 
-                                                            rSensitivityGradient, rProcessInfo, rModelPart);
-    
-    Vector c_der = rSensitivityGradient;
-    Vector c = this->GetSensorValueVector();
-    Vector m = this->GetValue(SENSOR_MEASURED_VALUE_VECTOR);
+    const auto k = OpenMPUtils::ThisThread();
+    auto& r_eigen_vector_derivatives = mEigenVectorDerivative[k];
+
+
+    this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
+                                                            r_eigen_vector_derivatives, rProcessInfo, rModelPart);
+
+    const Vector& c_der = r_eigen_vector_derivatives;
+    const Vector& c = this->GetSensorValueVector();
+    const Vector& m = this->GetValue(SENSOR_MEASURED_VALUE_VECTOR);
     //std::cout << "current eigen is " << this->GetName() << std::endl;
     //std::cout << "measured is m " << m << std::endl;
 
-    double cc = inner_prod(c,c);
-    double mm = inner_prod(m,m);
-    double cm = inner_prod(c,m);
+    const double cc = inner_prod(c,c);
+    const double mm = inner_prod(m,m);
+    const double cm = inner_prod(c,m);
     double mc_der = inner_prod(m,c_der);
     double cc_der = inner_prod(c,c_der);
 
@@ -268,7 +275,7 @@ void EigenvectorSensor::SetVectorToZero(
 }
 
 // --------------------------------------------------------------------------
-void EigenvectorSensor::DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, 
+void EigenvectorSensor::DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id,
                                     Vector& rEigenvectorOfElement, const ProcessInfo& CurrentProcessInfo)
 {
     std::vector<std::size_t> eq_ids;
@@ -302,7 +309,7 @@ void EigenvectorSensor::CalculateElementContributionToPartialSensitivity(Element
                                     ModelPart& rModelPart)
 {
     KRATOS_TRY;
-    // Check if adjoint element has the design variable wrt. which sensitivity calculation is concucted and define the output size     
+    // Check if adjoint element has the design variable wrt. which sensitivity calculation is concucted and define the output size
     rAdjointElement.SetValue(DESIGN_VARIABLE_NAME, rVariableName);
     std::string& design_variable_name = rAdjointElement.GetValue(DESIGN_VARIABLE_NAME);
     //std::cout << design_variable_name << std::endl;
@@ -314,7 +321,7 @@ void EigenvectorSensor::CalculateElementContributionToPartialSensitivity(Element
 
     if (KratosComponents<Variable<double>>::Has(design_variable_name))
     {
-        
+
         Element::DofsVectorType adjoint_element_dofs;
         rAdjointElement.GetDofList(adjoint_element_dofs,rProcessInfo);
         const SizeType num_dofs = adjoint_element_dofs.size();
@@ -326,28 +333,31 @@ void EigenvectorSensor::CalculateElementContributionToPartialSensitivity(Element
         //std::cout << "LHS derivative is" << LHS_design_variable_derivative << std::endl;
         Matrix Massmatrix_design_variable_derivative = ZeroMatrix(num_dofs, num_dofs);
         rAdjointElement.Calculate(MASS_DESIGN_DERIVATIVE, Massmatrix_design_variable_derivative, rProcessInfo);
-        
+
         // Predetermine the necessary eigenvectors phi_i
         std::vector<Vector> eigenvector_of_element(1,Vector(0));
         DetermineEigenvectorOfElement(rAdjointElement, index_number, eigenvector_of_element[0], rProcessInfo);
 
         Vector eigen_vector_i = this->CalculateValueVector(rModelPart);
 
-        rSensitivityGradient = ZeroVector(eigen_vector_i.size());
+        if (rSensitivityGradient.size() != eigen_vector_i.size()) {
+            rSensitivityGradient.resize(eigen_vector_i.size(), false);
+        }
+        rSensitivityGradient.clear();
+
         //std::cout << "eigen vector is " << eigenvector_of_element[0] << std::endl;
         //GetWeightedSumOfEigenvectors(rAdjointElement, weighted_sum_of_eigenvectors, rProcessInfo);
-        
+
 
         //Calculate the output
-        Matrix extra = ZeroMatrix(num_dofs, num_dofs);
-        noalias(extra) = LHS_design_variable_derivative - eigen_value_i * Massmatrix_design_variable_derivative;
-        Vector F = prod(extra, eigenvector_of_element[0]);
+        const Matrix& extra = LHS_design_variable_derivative - eigen_value_i * Massmatrix_design_variable_derivative;
+        const Vector& F = prod(extra, eigenvector_of_element[0]);
 
         for (int j = 0; j < 20; j++){
             if (j == (index_number-1)){
                 double prefactor = (-1/(2*eigen_value_i)) * inner_prod(eigenvector_of_element[0], prod(LHS_design_variable_derivative, eigenvector_of_element[0]));
-                
-                rSensitivityGradient += prefactor * eigen_vector_i;
+
+                noalias(rSensitivityGradient) += eigen_vector_i * prefactor;
             }
             else{
                 double eigen_value_j = rProcessInfo[EIGENVALUE_VECTOR][j];
@@ -356,12 +366,12 @@ void EigenvectorSensor::CalculateElementContributionToPartialSensitivity(Element
                 const int num_node_dofs = num_dofs / rAdjointElement.GetGeometry().size();
                 for (const auto& r_node : rModelPart.Nodes()) {
                     //auto& r_node = rModelPart.GetNode(i_node+1);
-                    Matrix r_nodal_eigenvector_matrix = r_node.GetValue(EIGENVECTOR_MATRIX);
+                    const Matrix& r_nodal_eigenvector_matrix = r_node.GetValue(EIGENVECTOR_MATRIX);
                     //phi_j_phi_j += inner_prod(r_nodal_eigenvector_matrix(j,-1), r_nodal_eigenvector_matrix(j,-1));
                     for (int k = 0; k < num_node_dofs; k++) {
                         phi_j_phi_j += r_nodal_eigenvector_matrix(j, k+num_node_dofs) * r_nodal_eigenvector_matrix(j, k+num_node_dofs); //adding num_node_dofs coz accessing the adjoint solve
                     }
-                }       
+                }
                 double prefactor = (1/(eigen_value_i - eigen_value_j)) * phi_j_phi_j;
 
                 int current_node = 0;
@@ -378,9 +388,9 @@ void EigenvectorSensor::CalculateElementContributionToPartialSensitivity(Element
                         // rEigenvectorOfElement(dof_index_at_element) = rNodeEigenvectors((eigenfrequency_id-1), dof_index);
                     }
                     current_node +=1;
-                }               
-            }        
-        } 
+                }
+            }
+        }
         //std::cout << "sensitivity gradient is " << rSensitivityGradient[0] << std::endl;
     }
     else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_variable_name))
