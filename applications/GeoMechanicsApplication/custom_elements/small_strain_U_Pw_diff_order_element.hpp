@@ -260,26 +260,27 @@ protected:
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
+    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                              const ElementVariables& rVariables) const;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       unsigned int      GPoint);
+    void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
+                                       const ElementVariables& rVariables,
+                                       unsigned int            GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) const;
 
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
