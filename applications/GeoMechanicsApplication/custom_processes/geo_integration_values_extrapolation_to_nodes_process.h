@@ -91,7 +91,7 @@ private:
     std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables
 
-    const Variable<double>* mpAverageVariable; /// The variable used to compute the average weight
+    const Variable<double>& mrAverageVariable; /// The variable used to compute the average weight
     std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap = {}; /// The map containing the extrapolation matrix
 
     SizeType mEchoLevel; /// The level of verbosity
