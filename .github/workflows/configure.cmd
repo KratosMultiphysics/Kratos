@@ -1,3 +1,8 @@
+dir "%ProgramFiles%\Microsoft Visual Studio"
+dir "%ProgramFiles%\Microsoft Visual Studio\2019\"
+dir "%ProgramFiles%\Microsoft Visual Studio\2019\Enterprise\"
+dir "%ProgramFiles%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\"
+dir "%ProgramFiles%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build"
 call "%ProgramFiles%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 || goto :error
 
 set CC=cl.exe
