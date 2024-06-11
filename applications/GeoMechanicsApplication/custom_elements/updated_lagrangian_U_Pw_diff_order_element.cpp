@@ -53,9 +53,8 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
     if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
-        const auto& r_geometry         = GetGeometry();
-        const auto& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-        const auto  integration_coefficients =
+        const auto& integration_points = this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        const auto integration_coefficients =
             this->CalculateIntegrationCoefficients(integration_points, variables.detJuContainer);
 
         for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {

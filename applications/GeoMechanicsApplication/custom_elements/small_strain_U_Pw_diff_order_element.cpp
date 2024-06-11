@@ -1150,9 +1150,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
-    auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
-    const auto permeability_update_factors  = GetPermeabilityUpdateFactors(strain_vectors);
-    if (!permeability_update_factors.empty()) {
+    auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
+    if (const auto permeability_update_factors = GetPermeabilityUpdateFactors(strain_vectors);
+        !permeability_update_factors.empty()) {
         std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
                        permeability_update_factors.cbegin(), relative_permeability_values.begin(),
                        std::multiplies<>{});

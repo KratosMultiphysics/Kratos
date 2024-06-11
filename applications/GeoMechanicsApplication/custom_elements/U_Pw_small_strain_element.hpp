@@ -253,7 +253,6 @@ protected:
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] virtual std::vector<double> GetPermeabilityUpdateFactors(const std::vector<Vector>& strain_vectors) const;
 
-
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
     ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
@@ -275,7 +274,7 @@ protected:
     void CalculateSoilGamma(ElementVariables& rVariables);
 
     virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
-                                                         unsigned int  GPoint,
+                                                         const Vector& rStressVector,
                                                          const Matrix& rGradNpt,
                                                          double        IntegrationCoefficient);
 
@@ -301,7 +300,6 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-
 };
 
 // Class UPwSmallStrainElement

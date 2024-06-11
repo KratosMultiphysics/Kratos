@@ -54,20 +54,17 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                                                          rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
                                                          CalculateResidualVectorFlag);
+    ElementVariables variables;
+    this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-    if (CalculateStiffnessMatrixFlag) {
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-            this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
+        const auto& integration_points = this->GetGeometry().integration_points(mThisIntegrationMethod);
         const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
-        for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-            if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, GPoint,
-                                                              Variables.DN_DXContainer[GPoint],
-                                                              integration_coefficients[GPoint]);
+            this->CalculateIntegrationCoefficients(integration_points, variables.detJContainer);
+        for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
+            this->CalculateAndAddGeometricStiffnessMatrix(
+                rLeftHandSideMatrix, this->mStressVector[GPoint], variables.DN_DXContainer[GPoint],
+                integration_coefficients[GPoint]);
         }
     }
 

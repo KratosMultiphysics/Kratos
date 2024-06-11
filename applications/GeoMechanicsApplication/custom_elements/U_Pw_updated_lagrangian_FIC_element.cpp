@@ -138,7 +138,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
             /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
                 this->CalculateAndAddGeometricStiffnessMatrix(
-                    rLeftHandSideMatrix, GPoint, Variables.GradNpT, Variables.IntegrationCoefficient);
+                    rLeftHandSideMatrix, this->mStressVector[GPoint], Variables.GradNpT,
+                    Variables.IntegrationCoefficient);
         }
 
         if (CalculateResidualVectorFlag) {
