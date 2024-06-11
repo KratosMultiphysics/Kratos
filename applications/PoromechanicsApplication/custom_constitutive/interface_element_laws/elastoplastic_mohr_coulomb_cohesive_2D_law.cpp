@@ -45,6 +45,7 @@ void ElastoPlasticMohrCoulombCohesive2DLaw::InitializeMaterial( const Properties
     mPlasticStrainVector[1]    = 0.0;
     mOldPlasticStrainVector[0] = 0.0;
     mOldPlasticStrainVector[1] = 0.0;
+    mSlipTendency = 0.0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

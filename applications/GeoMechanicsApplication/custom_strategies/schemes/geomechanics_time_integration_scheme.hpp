@@ -117,15 +117,6 @@ public:
             rElementOrCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
-    void Initialize(ModelPart& rModelPart) override
-    {
-        Scheme<TSparseSpace, TDenseSpace>::Initialize(rModelPart);
-
-        KRATOS_TRY
-        SetTimeFactors(rModelPart);
-        KRATOS_CATCH("")
-    }
-
     void Predict(ModelPart& rModelPart, DofsArrayType&, TSystemMatrixType&, TSystemVectorType&, TSystemVectorType&) override
     {
         this->UpdateVariablesDerivatives(rModelPart);

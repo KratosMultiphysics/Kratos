@@ -143,12 +143,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixTyp
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -160,12 +159,11 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void TransientPwInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo&)
 {
     KRATOS_TRY
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < mRetentionLawVector.size(); ++GPoint) {
@@ -295,8 +293,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
         // VG: Perhaps a new parameter to get join width and not minimum joint width
         const double& JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
-        // create general parameters of retention law
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties(), rCurrentProcessInfo);
+        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -311,8 +308,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
                 Variables.LocalPermeabilityMatrix, JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
-            noalias(GradPressureTerm) +=
-                PORE_PRESSURE_SIGN_FACTOR * Variables.FluidDensity * Variables.BodyAcceleration;
+            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * Prop[DENSITY_WATER] * Variables.BodyAcceleration;
 
             noalias(LocalFluidFlux) = PORE_PRESSURE_SIGN_FACTOR * Variables.DynamicViscosityInverse *
                                       Variables.RelativePermeability *
@@ -474,8 +470,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     array_1d<double, TDim> RelDispVector;
     SFGradAuxVariables     SFGradAuxVars;
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
@@ -498,7 +493,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
         InterfaceElementUtilities::FillPermeabilityMatrix(
             Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
 
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
@@ -527,9 +522,6 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(In
     rVariables.IgnoreUndrained = false; // by inheritance? does not have a meaning for a Pw element
 
     rVariables.DynamicViscosityInverse = 1.0 / Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity            = Prop[DENSITY_WATER];
-    rVariables.SolidDensity            = Prop[DENSITY_SOLID];
-    rVariables.Porosity                = Prop[POROSITY];
 
     // ProcessInfo variables
     rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
@@ -578,31 +570,29 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(
-    MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables)
+    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient * rVariables.JointWidth);
+    rLeftHandSideMatrix += compressibility_matrix * rVariables.DtPressureCoefficient * rVariables.JointWidth;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                                     InterfaceElementVariables& rVariables)
+void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityMatrix(
+    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.LocalPermeabilityMatrix,
-        rVariables.RelativePermeability, rVariables.JointWidth, rVariables.IntegrationCoefficient);
+        rVariables.RelativePermeability * rVariables.JointWidth, rVariables.IntegrationCoefficient);
 
-    // Distribute permeability block matrix into the elemental matrix
-    rLeftHandSideMatrix += rVariables.PPMatrix;
+    rLeftHandSideMatrix += permeability_matrix;
 
     KRATOS_CATCH("")
 }
@@ -625,59 +615,59 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
-    VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+    VectorType& rRightHandSideVector, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    noalias(rVariables.PVector) =
-        -1.0 * prod(rVariables.PPMatrix * rVariables.JointWidth, rVariables.DtPressureVector);
+    const array_1d<double, TNumNodes> compressibility_flow =
+        -rVariables.JointWidth * prod(compressibility_matrix, rVariables.DtPressureVector);
 
-    // Distribute compressibility block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
+    rRightHandSideVector += compressibility_flow;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                                   InterfaceElementVariables& rVariables)
+void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(
+    VectorType& rRightHandSideVector, const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
+    const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
+        prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix);
 
-    noalias(rVariables.PPMatrix) = -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
-                                   rVariables.RelativePermeability *
-                                   prod(rVariables.PDimMatrix, trans(rVariables.GradNpT)) *
-                                   rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    const BoundedMatrix<double, TNumNodes, TNumNodes> permeability_matrix =
+        -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse *
+        rVariables.RelativePermeability * prod(temp_matrix, trans(rVariables.GradNpT)) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.PressureVector);
+    const array_1d<double, TNumNodes> permeability_flow =
+        -1.0 * prod(permeability_matrix, rVariables.PressureVector);
 
-    // Distribute permeability block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
+    rRightHandSideVector += permeability_flow;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                                InterfaceElementVariables& rVariables)
+                                                                                const InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
 
-    noalias(rVariables.PDimMatrix) = -PORE_PRESSURE_SIGN_FACTOR *
-                                     prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
-                                     rVariables.JointWidth * rVariables.IntegrationCoefficient;
+    const auto fluid_density = this->GetProperties()[DENSITY_WATER];
+    const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
+        -PORE_PRESSURE_SIGN_FACTOR * prod(rVariables.GradNpT, rVariables.LocalPermeabilityMatrix) *
+        rVariables.JointWidth * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
-                                  rVariables.RelativePermeability *
-                                  prod(rVariables.PDimMatrix, rVariables.BodyAcceleration);
+    const array_1d<double, TNumNodes> fluid_body_flow =
+        rVariables.DynamicViscosityInverse * fluid_density * rVariables.RelativePermeability *
+        prod(temp_matrix, rVariables.BodyAcceleration);
 
-    // Distribute fluid body flow block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
+    rRightHandSideVector += fluid_body_flow;
 
     KRATOS_CATCH("")
 }

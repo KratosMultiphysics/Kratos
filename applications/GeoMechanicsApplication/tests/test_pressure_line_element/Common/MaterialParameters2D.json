@@ -20,7 +20,8 @@
         "BIOT_COEFFICIENT"                 : 1.000000e+00,
         "RETENTION_LAW"                    : "SaturatedLaw",
         "SATURATED_SATURATION"             : 1.000000e+00,
-        "RESIDUAL_SATURATION"              : 0.000000e+00
+        "RESIDUAL_SATURATION"              : 0.000000e+00,
+        "CROSS_AREA"                       : 1.0
       },
       "Tables": { 
       }

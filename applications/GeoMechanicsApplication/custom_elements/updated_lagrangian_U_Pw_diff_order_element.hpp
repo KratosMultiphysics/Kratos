@@ -67,7 +67,6 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using SmallStrainUPwDiffOrderElement::CalculateCauchyStrain;
     using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
     using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
@@ -212,9 +211,9 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                 ElementVariables& rVariables,
-                                                 unsigned int      GPoint);
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                 const ElementVariables& rVariables,
+                                                 unsigned int            GPoint);
 
     ///@}
     ///@name Protected Operations

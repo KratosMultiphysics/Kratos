@@ -25,14 +25,42 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStatePolicy
 public:
     virtual ~StressStatePolicy() = default;
 
-    [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rGradNpT,
-                                                  const Vector&         rNp,
+    [[nodiscard]] virtual Matrix CalculateBMatrix(const Matrix&         rDN_DX,
+                                                  const Vector&         rN,
                                                   const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual double CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
                                                                  double DetJ,
                                                                  const Geometry<Node>& rGeometry) const = 0;
     [[nodiscard]] virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const = 0;
-    [[nodiscard]] virtual std::unique_ptr<StressStatePolicy> Clone() const = 0;
+    [[nodiscard]] virtual std::unique_ptr<StressStatePolicy> Clone() const               = 0;
+    [[nodiscard]] virtual const Vector&                      GetVoigtVector() const      = 0;
+    [[nodiscard]] virtual SizeType                           GetVoigtSize() const        = 0;
+    [[nodiscard]] virtual SizeType                           GetStressTensorSize() const = 0;
+
+protected:
+    static const Vector VoigtVector2D;
+    static const Vector VoigtVector3D;
+
+    static constexpr SizeType GetVoigtSize2D() { return VOIGT_SIZE_2D_PLANE_STRAIN; }
+
+    static constexpr SizeType GetVoigtSize3D() { return VOIGT_SIZE_3D; }
+
+    static constexpr SizeType GetStressTensorSize2D() { return STRESS_TENSOR_SIZE_2D; }
+
+    static constexpr SizeType GetStressTensorSize3D() { return STRESS_TENSOR_SIZE_3D; }
+
+private:
+    static Vector DefineVoigtVector(std::size_t Dimension);
+
+    static constexpr std::size_t GetVoigtSize(std::size_t Dimension)
+    {
+        return Dimension == N_DIM_3D ? GetVoigtSize3D() : GetVoigtSize2D();
+    }
+
+    static constexpr std::size_t GetStressTensorSize(std::size_t Dimension)
+    {
+        return Dimension == N_DIM_3D ? GetStressTensorSize3D() : GetStressTensorSize2D();
+    }
 };
 
 } // namespace Kratos
