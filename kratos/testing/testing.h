@@ -275,6 +275,7 @@ class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
+class AdditiveManufacturingApplicationFastSuite: public KratosCoreFastSuite {};
 
 // This classes are temporal and should be changed. Please see: GeoMechanicsApplication, StructuralMechanicsApplication or TrilinosApplication
 // TODO: Remove once every test includes its own suit
