@@ -165,8 +165,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
             } else {
                 // calculate the extrapolation matrix
                 extrapolation_matrix = mpExtrapolator->CalculateElementExtrapolationMatrix(
-                    r_this_geometry, integration_points_number, integration_points,
-                    this_integration_method, number_of_nodes);
+                    r_this_geometry, this_integration_method);
                 mExtrapolationMatrixMap[typeid(rElem).hash_code()] = extrapolation_matrix;
             }
 

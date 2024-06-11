@@ -29,11 +29,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     NodalExtrapolator nodal_extrapolator;
 
-    auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto integration_points   = geometry.IntegrationPoints(integration_method);
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        geometry, geometry.IntegrationPoints(integration_method).size(), integration_points,
-        integration_method, geometry.size());
+    auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    auto integration_points = geometry.IntegrationPoints(integration_method);
+    auto extrapolation_matrix =
+        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(3, 3);
@@ -54,11 +53,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     NodalExtrapolator nodal_extrapolator;
 
-    auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto integration_points   = geometry.IntegrationPoints(integration_method);
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        geometry, geometry.IntegrationPoints(integration_method).size(), integration_points,
-        integration_method, geometry.size());
+    auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    auto integration_points = geometry.IntegrationPoints(integration_method);
+    auto extrapolation_matrix =
+        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(6, 3);
@@ -81,11 +79,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     NodalExtrapolator nodal_extrapolator;
 
-    auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto integration_points   = geometry.IntegrationPoints(integration_method);
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        geometry, geometry.IntegrationPoints(integration_method).size(), integration_points,
-        integration_method, geometry.size());
+    auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    auto integration_points = geometry.IntegrationPoints(integration_method);
+    auto extrapolation_matrix =
+        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
@@ -108,11 +105,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     NodalExtrapolator nodal_extrapolator;
 
-    auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto integration_points   = geometry.IntegrationPoints(integration_method);
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        geometry, geometry.IntegrationPoints(integration_method).size(), integration_points,
-        integration_method, geometry.size());
+    auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    auto integration_points = geometry.IntegrationPoints(integration_method);
+    auto extrapolation_matrix =
+        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(8, 4);

@@ -34,10 +34,7 @@ public:
     };
 
     Matrix CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
-                                               SizeType      integration_points_number,
-                                               GeometryType::IntegrationPointsArrayType& integration_points,
-                                               GeometryData::IntegrationMethod this_integration_method,
-                                               SizeType number_of_nodes) const;
+                                               GeometryData::IntegrationMethod this_integration_method) const;
 };
 
 } // namespace Kratos

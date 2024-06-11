@@ -18,12 +18,12 @@ namespace Kratos
 {
 
 Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
-                                                              SizeType integration_points_number,
-                                                              GeometryType::IntegrationPointsArrayType& integration_points,
-                                                              GeometryData::IntegrationMethod this_integration_method,
-                                                              SizeType number_of_nodes) const
+                                                              GeometryData::IntegrationMethod this_integration_method) const
 {
     TLSType Tls;
+
+    const auto number_of_nodes = r_this_geometry.size();
+
     KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
 
@@ -32,6 +32,9 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_th
 
     KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
                     (number_of_nodes != 4 && number_of_nodes != 8));
+
+    const auto integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+    const auto number_of_integration_points = integration_points.size();
 
     // Sofar this works for 3, 4, 6 and 8 node planar elements
     // for 2 and 3 node line elements the extension is straightforward.
@@ -58,9 +61,9 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_th
     SizeType number_of_low_order_nodes = p_low_order_geometry->PointsNumber();
     Tls.N.resize(number_of_low_order_nodes);
     Matrix quasi_mass_mat = ZeroMatrix(number_of_low_order_nodes, number_of_low_order_nodes);
-    Matrix node_coefficient(number_of_low_order_nodes, integration_points_number);
+    Matrix node_coefficient(number_of_low_order_nodes, number_of_integration_points);
     Tls.vector_J = r_this_geometry.DeterminantOfJacobian(Tls.vector_J, this_integration_method);
-    for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+    for (IndexType i_gauss_point = 0; i_gauss_point < number_of_integration_points; ++i_gauss_point) {
         // local_coordinates --> isoparametric coordinates or for triangles area coordinates
         const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
         // shape function for this i.p.
