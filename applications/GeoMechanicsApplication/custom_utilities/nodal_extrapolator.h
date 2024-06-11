@@ -28,8 +28,10 @@ public:
     using SizeType     = std::size_t;
     using IndexType    = std::size_t;
 
-    Matrix CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
-                                               GeometryData::IntegrationMethod this_integration_method) const;
+    Matrix CalculateElementExtrapolationMatrix(GeometryType& rGeometry,
+                                               GeometryData::IntegrationMethod IntegrationMethod) const;
+    void   CheckIfGeometryIsSupported(const GeometryType& r_this_geometry) const;
+    std::unique_ptr<NodalExtrapolator::GeometryType> CreateLowerOrderGeometry(GeometryType& rGeometry) const;
 };
 
 } // namespace Kratos
