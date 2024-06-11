@@ -115,7 +115,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
