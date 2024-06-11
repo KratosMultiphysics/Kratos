@@ -37,32 +37,6 @@ Kernel::Kernel(bool IsDistributedRun) : mpKratosCoreApplication(Kratos::make_sha
 }
 
 Kernel::~Kernel() {
-    KratosComponents<Variable<bool>>::Clear();
-    KratosComponents<Variable<int>>::Clear();
-    KratosComponents<Variable<unsigned int>>::Clear();
-    KratosComponents<Variable<double>>::Clear();
-    KratosComponents<Variable<array_1d<double, 3>>>::Clear();
-    KratosComponents<Variable<array_1d<double, 4>>>::Clear();
-    KratosComponents<Variable<array_1d<double, 6>>>::Clear();
-    KratosComponents<Variable<array_1d<double, 9>>>::Clear();
-    KratosComponents<Variable<Quaternion<double>>>::Clear();
-    KratosComponents<Variable<Vector>>::Clear();
-    KratosComponents<Variable<Matrix>>::Clear();
-    KratosComponents<Variable<std::string>>::Clear();
-    KratosComponents<Variable<Flags>>::Clear();
-    KratosComponents<Flags>::Clear();
-
-    // This one seems to be handled correctly
-    // KratosComponents<DataCommunicator>::Clear();
-
-    KratosComponents<Geometry<Node>>::Clear();
-    KratosComponents<Element>::Clear();
-    KratosComponents<Condition>::Clear();
-    KratosComponents<ConstitutiveLaw>::Clear();
-    KratosComponents<Variable<ConstitutiveLaw::Pointer>>::Clear();
-    KratosComponents<MasterSlaveConstraint>::Clear();
-    KratosComponents<Modeler>::Clear();
-
     GetApplicationsList().clear();
 }
 
