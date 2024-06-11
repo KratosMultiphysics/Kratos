@@ -663,8 +663,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
         const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
@@ -676,18 +674,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                              strain_vectors, mStressVector, constitutive_matrices);
         const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
             constitutive_matrices, this->GetProperties());
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NContainer, Variables.PressureVector);
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(fluid_pressure);
-            const auto bishop_coefficient =
-                mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-
-            rOutput[GPoint] = mStressVector[GPoint] +
-                              PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] * bishop_coefficient *
-                                  fluid_pressure * this->GetStressStatePolicy().GetVoigtVector();
+            rOutput[GPoint] =
+                mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
+                                            bishop_coefficients[GPoint] * fluid_pressures[GPoint] *
+                                            this->GetStressStatePolicy().GetVoigtVector();
         }
     } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
         ElementVariables Variables;
@@ -839,17 +834,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
 {
     KRATOS_TRY
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
-    Matrix ReducedKgMatrix =
+    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
+    Matrix reduced_Kg_matrix =
         prod(rGradNpt,
-             IntegrationCoefficient * Matrix(prod(StressTensor, trans(rGradNpt))));
+             IntegrationCoefficient * Matrix(prod(stress_tensor, trans(rGradNpt))));
 
-    Matrix UUMatrix(TNumNodes * TDim, TNumNodes * TDim);
-    noalias(UUMatrix) = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
-    MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, TDim);
+    Matrix geometric_stiffness_matrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
+    MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, TDim);
 
     // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, UUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
 
     KRATOS_CATCH("")
 }
@@ -1155,7 +1149,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                            ElementVariables& rVariables)
+                                                                            const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1168,20 +1162,21 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                           ElementVariables& rVariables)
+                                                                           const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.UPMatrix) = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+    const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
         rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, rVariables.UPMatrix);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        noalias(rVariables.PUMatrix) = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-                                       rVariables.VelocityCoefficient * trans(rVariables.UPMatrix);
-        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, rVariables.PUMatrix);
+        const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
+            PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
+            trans(coupling_matrix);
+        GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, transposed_coupling_matrix);
     }
 
     KRATOS_CATCH("")
@@ -1189,16 +1184,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                                  ElementVariables& rVariables)
+                                                                                  const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(
-        rLeftHandSideMatrix, rVariables.PPMatrix * rVariables.DtPressureCoefficient);
+        rLeftHandSideMatrix, compressibility_matrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("")
 }
@@ -1229,15 +1224,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
-                                                                           ElementVariables& rVariables,
+                                                                           const ElementVariables& rVariables,
                                                                            unsigned int GPoint)
 {
     KRATOS_TRY
-
-    noalias(rVariables.UVector) =
+    const array_1d<double, TNumNodes * TDim> stiffness_force =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
 
     KRATOS_CATCH("")
 }
@@ -1250,11 +1244,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddMixBodyForce(VectorT
 
     this->CalculateSoilGamma(rVariables);
 
-    noalias(rVariables.UVector) = prod(trans(rVariables.Nu), rVariables.SoilGamma) *
-                                  rVariables.IntegrationCoefficientInitialConfiguration;
+    const array_1d<double, TNumNodes * TDim> mix_body_force =
+        prod(trans(rVariables.Nu), rVariables.SoilGamma) * rVariables.IntegrationCoefficientInitialConfiguration;
 
-    // Distribute body force block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, mix_body_force);
 
     KRATOS_CATCH("")
 }
@@ -1264,80 +1257,72 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateSoilGamma(ElementVariables
 {
     KRATOS_TRY
 
-    rVariables.Density = GeoTransportEquationUtilities::CalculateSoilDensity(
-        rVariables.DegreeOfSaturation, this->GetProperties());
-
-    noalias(rVariables.SoilGamma) = rVariables.Density * rVariables.BodyAcceleration;
+    noalias(rVariables.SoilGamma) = GeoTransportEquationUtilities::CalculateSoilDensity(
+                                        rVariables.DegreeOfSaturation, this->GetProperties()) *
+                                    rVariables.BodyAcceleration;
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
-                                                                          ElementVariables& rVariables)
+                                                                          const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    rVariables.UPMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                                       rVariables.B, this->GetStressStatePolicy().GetVoigtVector(),
-                                       rVariables.Np, rVariables.BiotCoefficient,
-                                       rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-    rVariables.UVector = prod(rVariables.UPMatrix, rVariables.PressureVector);
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, rVariables.UVector);
+    const BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix =
+        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                     rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                     rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+
+    const array_1d<double, TNumNodes * TDim> coupling_terms = prod(coupling_matrix, rVariables.PressureVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_terms);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        rVariables.PVector = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-                             prod(trans(rVariables.UPMatrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+        const array_1d<double, TNumNodes> transposed_coupling_matrix =
+            PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+            prod(trans(coupling_matrix), rVariables.VelocityVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, transposed_coupling_matrix);
     }
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(
-    BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-    array_1d<double, TNumNodes>&                 rPVector,
-    const ElementVariables&                      rVariables) const
+array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateCompressibilityFlow(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    noalias(rPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-
-    noalias(rPVector) = -prod(rPMatrix, rVariables.DtPressureVector);
+    return -prod(compressibility_matrix, rVariables.DtPressureVector);
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                                ElementVariables& rVariables)
+                                                                                const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    this->CalculateCompressibilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
-
-    // Distribute compressibility block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector,
+                                              this->CalculateCompressibilityFlow(rVariables));
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(
-    BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
-    array_1d<double, TNumNodes>&                 rPVector,
-    const ElementVariables&                      rVariables) const
+array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculatePermeabilityFlow(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    rPermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
+    const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
         rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
         rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
 
-    noalias(rPVector) = -prod(rPermeabilityMatrix, rVariables.PressureVector);
+    return -prod(permeability_matrix, rVariables.PressureVector);
 
     KRATOS_CATCH("")
 }
@@ -1377,43 +1362,36 @@ std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBishopCoeff
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                             ElementVariables& rVariables)
+                                                                             const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    this->CalculatePermeabilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
-
-    // Distribute permeability block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, this->CalculatePermeabilityFlow(rVariables));
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                                                    array_1d<double, TNumNodes>& rPVector,
-                                                                    const ElementVariables& rVariables) const
+array_1d<double, TNumNodes> UPwSmallStrainElement<TDim, TNumNodes>::CalculateFluidBodyFlow(const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    noalias(rPDimMatrix) = prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
+    const BoundedMatrix<double, TNumNodes, TDim> temp_matrix =
+        prod(rVariables.GradNpT, rVariables.PermeabilityMatrix) * rVariables.IntegrationCoefficient;
 
-    noalias(rPVector) = rVariables.DynamicViscosityInverse * rVariables.FluidDensity *
-                        rVariables.RelativePermeability * prod(rPDimMatrix, rVariables.BodyAcceleration);
+    return rVariables.DynamicViscosityInverse * this->GetProperties()[DENSITY_WATER] *
+           rVariables.RelativePermeability * prod(temp_matrix, rVariables.BodyAcceleration);
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                          ElementVariables& rVariables)
+                                                                          const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    this->CalculateFluidBodyFlow(rVariables.PDimMatrix, rVariables.PVector, rVariables);
-
-    // Distribute fluid body flow block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, this->CalculateFluidBodyFlow(rVariables));
 
     KRATOS_CATCH("")
 }
@@ -1524,9 +1502,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
         rVariables.ConsiderGeometricStiffness = rProp[CONSIDER_GEOMETRIC_STIFFNESS];
 
     rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity            = rProp[DENSITY_WATER];
-    rVariables.SolidDensity            = rProp[DENSITY_SOLID];
-    rVariables.Porosity                = rProp[POROSITY];
     GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, rProp);
 
     KRATOS_CATCH("")

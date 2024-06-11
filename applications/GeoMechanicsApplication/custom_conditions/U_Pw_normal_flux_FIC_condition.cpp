@@ -29,15 +29,11 @@ Condition::Pointer UPwNormalFluxFICCondition<TDim, TNumNodes>::Create(IndexType 
         new UPwNormalFluxFICCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod UPwNormalFluxFICCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -101,8 +97,6 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftH
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
                                                               const ProcessInfo& CurrentProcessInfo)
@@ -161,15 +155,11 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRight
     }
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwNormalFluxFICCondition<2, 2>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = Geom.Length();
 }
-
-//----------------------------------------------------------------------------------------
 
 template <>
 void UPwNormalFluxFICCondition<3, 3>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
@@ -177,16 +167,11 @@ void UPwNormalFluxFICCondition<3, 3>::CalculateElementLength(double& rElementLen
     rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
 }
 
-//----------------------------------------------------------------------------------------
-
 template <>
 void UPwNormalFluxFICCondition<3, 4>::CalculateElementLength(double& rElementLength, const GeometryType& Geom)
 {
     rElementLength = sqrt(4.0 * Geom.Area() / Globals::Pi);
 }
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddLHSStabilization(
@@ -195,24 +180,19 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddLHSStabilization
     this->CalculateAndAddBoundaryMassMatrix(rLeftHandSideMatrix, rVariables, rFICVariables);
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassMatrix(
-    MatrixType& rLeftHandSideMatrix, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
+    MatrixType& rLeftHandSideMatrix, const NormalFluxVariables& rVariables, const NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // Distribute boundary mass matrix into the elemental matrix
     // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
     GeoElementUtilities::AssemblePPBlockMatrix(
-        rLeftHandSideMatrix, rFICVariables.PPMatrix * rFICVariables.DtPressureCoefficient *
+        rLeftHandSideMatrix, compressibility_matrix * rFICVariables.DtPressureCoefficient *
                                  rFICVariables.ElementLength / 6.0);
 }
-
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddRHSStabilization(
@@ -221,24 +201,20 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddRHSStabilization
     this->CalculateAndAddBoundaryMassFlow(rRightHandSideVector, rVariables, rFICVariables);
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAndAddBoundaryMassFlow(
-    VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, NormalFluxFICVariables& rFICVariables)
+    VectorType& rRightHandSideVector, NormalFluxVariables& rVariables, const NormalFluxFICVariables& rFICVariables)
 {
-    noalias(rFICVariables.PPMatrix) = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rFICVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
     // it seems the factor of 1/6 comes when Eq. 2.56 substituted into Eqs.2.69/2.70 in Pouplana's PhD thesis.
     noalias(rVariables.PVector) =
-        prod(rFICVariables.PPMatrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
+        prod(compressibility_matrix * rFICVariables.ElementLength / 6.0, rFICVariables.DtPressureVector);
 
     // Distribute boundary mass flow vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwNormalFluxFICCondition<2, 2>;
 template class UPwNormalFluxFICCondition<3, 3>;

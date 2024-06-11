@@ -17,8 +17,6 @@
 
 // External includes
 
-#include "small_strain_U_Pw_diff_order_element.hpp"
-
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"

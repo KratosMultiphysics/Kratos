@@ -79,21 +79,19 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
+    const GeometryType& r_geom      = GetGeometry();
+    const SizeType      num_U_nodes = r_geom.PointsNumber();
+    const SizeType      dimension   = r_geom.WorkingSpaceDimension();
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
+    const auto stress_tensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
-    Matrix ReducedKgMatrix =
-        prod(rDNuDx, IntegrationCoefficient * Matrix(prod(StressTensor, trans(rDNuDx))));
+    const Matrix reduced_Kg_matrix =
+        prod(rDNuDx, IntegrationCoefficient * Matrix(prod(stress_tensor, trans(rDNuDx))));
 
-    Matrix UUMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    noalias(UUMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, Dim);
+    Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
+    MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);
 
-    // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, UUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
 
     KRATOS_CATCH("")
 }
