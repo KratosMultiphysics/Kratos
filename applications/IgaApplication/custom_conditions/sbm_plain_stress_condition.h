@@ -21,6 +21,8 @@
 // Project includes
 #include "iga_application_variables.h"
 
+#include "includes/constitutive_law.h"
+
 namespace Kratos
 {
     /// Condition for penalty support condition
@@ -90,6 +92,9 @@ namespace Kratos
             return Kratos::make_intrusive<SBMPlainStressCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
+
+
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         ///@}
         ///@name Operations
@@ -236,7 +241,31 @@ namespace Kratos
             pGetGeometry()->PrintData(rOStream);
         }
 
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
         ///@}
+
+    protected: 
+        ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+        void InitializeMaterial();
+
+        struct ConstitutiveVariables
+        {
+            Vector StrainVector;
+            Vector StressVector;
+            Matrix ConstitutiveMatrix;
+
+            /**
+            * @param StrainSize: The size of the strain vector in Voigt notation
+            */
+            ConstitutiveVariables(SizeType StrainSize)
+            {
+                StrainVector = ZeroVector(StrainSize);
+                StressVector = ZeroVector(StrainSize);
+                ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
+            }
+        };
 
     private:
         ///@name Serialization
@@ -255,6 +284,10 @@ namespace Kratos
         }
         /// Performs check if Penalty factor is provided.
         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+        std::vector<Matrix> mShapeFunctionDerivatives;
+
+        int mbasisFunctionsOrder;
 
         ///@}
 

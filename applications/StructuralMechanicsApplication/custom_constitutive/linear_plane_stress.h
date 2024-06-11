@@ -154,6 +154,13 @@ public:
 
     ///@}
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    std::string Info() const override;
+
+    void PrintInfo(std::ostream& rOStream) const override;
+
 protected:
 
     ///@name Protected static Member Variables

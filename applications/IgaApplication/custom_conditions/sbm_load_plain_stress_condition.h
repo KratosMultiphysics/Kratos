@@ -21,6 +21,8 @@
 // Project includes
 #include "iga_application_variables.h"
 
+#include "includes/constitutive_law.h"
+
 namespace Kratos
 {
     /// Condition for penalty support condition
@@ -94,6 +96,8 @@ namespace Kratos
         ///@}
         ///@name Operations
         ///@{
+
+        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
         * @brief This is called during the assembling process in order
@@ -236,6 +240,28 @@ namespace Kratos
         }
 
         ///@}
+    protected: 
+
+        ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+        void InitializeMaterial();
+
+        struct ConstitutiveVariables
+        {
+            Vector StrainVector;
+            Vector StressVector;
+            Matrix ConstitutiveMatrix;
+
+            /**
+            * @param StrainSize: The size of the strain vector in Voigt notation
+            */
+            ConstitutiveVariables(SizeType StrainSize)
+            {
+                StrainVector = ZeroVector(StrainSize);
+                StressVector = ZeroVector(StrainSize);
+                ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
+            }
+        };
 
     private:
         ///@name Serialization

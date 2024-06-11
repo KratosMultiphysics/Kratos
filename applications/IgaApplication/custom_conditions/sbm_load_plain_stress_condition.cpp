@@ -20,6 +20,32 @@
 
 namespace Kratos
 {
+
+    void SBMLoadPlainStressCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        InitializeMaterial();
+    }
+
+
+    void SBMLoadPlainStressCondition::InitializeMaterial()
+    {
+        KRATOS_TRY
+        if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+            const GeometryType& r_geometry = GetGeometry();
+            const Properties& r_properties = GetProperties();
+            const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+            mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+            mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+        } else
+            KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+        KRATOS_CATCH( "" );
+
+    }
+
+
     void SBMLoadPlainStressCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -79,199 +105,222 @@ namespace Kratos
         Vector projection(2);
         array_1d<double, 3> true_n;
         double n_ntilde;
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+
+        projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
+        projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
+
+        // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+        std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+        outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
+        outputFile.close();
+
+        Vector d(2);
+        d[0] = projection[0] - r_geometry.Center().X();
+        d[1] = projection[1] - r_geometry.Center().Y();
+        // d[0] = 0;
+        // d[1] = 0;
+
+        const Matrix& N = r_geometry.ShapeFunctionsValues();
+
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+
+        // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+
+        // Compute the normals
+        array_1d<double, 3> tangent_parameter_space;
+        array_1d<double, 3> normal_parameter_space;
+
+        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+        double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+        
+        // NEW FOR GENERAL JACOBIAN
+        normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
+        normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude; 
+        normal_parameter_space[2] = 0; 
+
+        // Neumann BC, the true normal is needed
+        array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
+        array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment2.GetGeometry()[1] - candidateClosestSkinSegment2.GetGeometry()[0];
+        array_1d<double,3> vectorOutOfPlane = ZeroVector(3);
+        vectorOutOfPlane[2] = 1.0;
+        
+        array_1d<double,3> crossProductSkinSegment1;
+        array_1d<double,3> crossProductSkinSegment2; 
+        MathUtils<double>::CrossProduct(crossProductSkinSegment1, vectorOutOfPlane, vectorSkinSegment1);
+        MathUtils<double>::CrossProduct(crossProductSkinSegment2, vectorOutOfPlane, vectorSkinSegment2);
+        
+        true_n = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
+        if (loopIdentifier == "inner") {
+            true_n = true_n / MathUtils<double>::Norm(true_n) ;
+        } else { // outer
+            true_n = - true_n / MathUtils<double>::Norm(true_n) ;
+        }
+        
+        // compute true tau (tangential unit vector)
+        array_1d<double, 3> true_tau ;
+        MathUtils<double>::CrossProduct(true_tau, true_n, vectorOutOfPlane); 
+
+        
+        Matrix H = ZeroMatrix(1, number_of_nodes);
+        Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+
+        // Compute all the derivatives of the basis functions involved
+        std::vector<Matrix> nShapeFunctionDerivatives;
+        for (int n = 1; n <= basisFunctionsOrder; n++) {
+            nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod()));
+        }
+
+
+        // Neumann (Taylor expansion of the gradient)
+        Matrix Hgrad = ZeroMatrix(number_of_nodes, 2);
+        for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            projection[0] = candidateClosestSkinSegment1.GetGeometry()[0].X() ;
-            projection[1] = candidateClosestSkinSegment1.GetGeometry()[0].Y() ;
-
-            // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-            std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-            outputFile << projection[0] << " " << projection[1] << " "  << r_geometry.Center().X() << " " << r_geometry.Center().Y() <<"\n";
-            outputFile.close();
-
-            Vector d(2);
-            d[0] = projection[0] - r_geometry.Center().X();
-            d[1] = projection[1] - r_geometry.Center().Y();
-            // d[0] = 0;
-            // d[1] = 0;
-
-            const Matrix& N = r_geometry.ShapeFunctionsValues();
-
-            Matrix Jacobian = ZeroMatrix(2,2);
-            Jacobian(0,0) = J0[point_number](0,0);
-            Jacobian(0,1) = J0[point_number](0,1);
-            Jacobian(1,0) = J0[point_number](1,0);
-            Jacobian(1,1) = J0[point_number](1,1);
-
-            // Calculating inverse jacobian and jacobian determinant
-            MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-
-            // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
-            noalias(DN_DX) = prod(DN_De[point_number],InvJ0);
-
-            // Compute the normals
-            array_1d<double, 3> tangent_parameter_space;
-            array_1d<double, 3> normal_parameter_space;
-
-            r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-            double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
-            
-            // NEW FOR GENERAL JACOBIAN
-            normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
-            normal_parameter_space[1] = - tangent_parameter_space[0] / magnitude; 
-            normal_parameter_space[2] = 0; 
-
-            // Neumann BC, the true normal is needed
-            array_1d<double,3> vectorSkinSegment1 = candidateClosestSkinSegment1.GetGeometry()[1] - candidateClosestSkinSegment1.GetGeometry()[0];
-            array_1d<double,3> vectorSkinSegment2 = candidateClosestSkinSegment2.GetGeometry()[1] - candidateClosestSkinSegment2.GetGeometry()[0];
-            array_1d<double,3> vectorOutOfPlane = ZeroVector(3);
-            vectorOutOfPlane[2] = 1.0;
-            
-            array_1d<double,3> crossProductSkinSegment1;
-            array_1d<double,3> crossProductSkinSegment2; 
-            MathUtils<double>::CrossProduct(crossProductSkinSegment1, vectorOutOfPlane, vectorSkinSegment1);
-            MathUtils<double>::CrossProduct(crossProductSkinSegment2, vectorOutOfPlane, vectorSkinSegment2);
-            
-            true_n = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
-            if (loopIdentifier == "inner") {
-                true_n = true_n / MathUtils<double>::Norm(true_n) ;
-            } else { // outer
-                true_n = - true_n / MathUtils<double>::Norm(true_n) ;
-            }
-            
-            // compute true tau (tangential unit vector)
-            array_1d<double, 3> true_tau ;
-            MathUtils<double>::CrossProduct(true_tau, true_n, vectorOutOfPlane); 
-
-            
-            Matrix H = ZeroMatrix(1, number_of_nodes);
-            Matrix H_sum = ZeroMatrix(1, number_of_nodes);
-
-            // Compute all the derivatives of the basis functions involved
-            std::vector<Matrix> nShapeFunctionDerivatives;
-            for (int n = 1; n <= basisFunctionsOrder; n++) {
-                nShapeFunctionDerivatives.push_back(r_geometry.ShapeFunctionDerivatives(n, point_number, this->GetIntegrationMethod()));
-            }
-
-
-            // Neumann (Taylor expansion of the gradient)
-            Matrix Hgrad = ZeroMatrix(number_of_nodes, 2);
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                H(0, i) = N(point_number, i);
-                double H_taylor_term_X = 0.0; // Reset for each node
-                double H_taylor_term_Y = 0.0; 
-                for (int n = 2; n <= basisFunctionsOrder; n++) {
-                    // Retrieve the appropriate derivative for the term
-                    Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
-                    for (int k = 0; k <= n-1; k++) {
-                        int n_k = n - 1 - k;
-                        double derivative = shapeFunctionDerivatives(i,k); 
-                        // Compute the Taylor term for this derivative
-                        H_taylor_term_X += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
-                    }
-                    for (int k = 0; k <= n-1; k++) {
-                        int n_k = n - 1 - k;
-                        double derivative = shapeFunctionDerivatives(i,k+1); 
-                        // Compute the Taylor term for this derivative
-                        H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
-                    }
+            H(0, i) = N(0, i);
+            double H_taylor_term_X = 0.0; // Reset for each node
+            double H_taylor_term_Y = 0.0; 
+            for (int n = 2; n <= basisFunctionsOrder; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& shapeFunctionDerivatives = nShapeFunctionDerivatives[n-1];
+                for (int k = 0; k <= n-1; k++) {
+                    int n_k = n - 1 - k;
+                    double derivative = shapeFunctionDerivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term_X += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
                 }
-                Hgrad(i,0) = H_taylor_term_X + DN_DX(i,0);
-                Hgrad(i,1) = H_taylor_term_Y + DN_DX(i,1);
-            }    
+                for (int k = 0; k <= n-1; k++) {
+                    int n_k = n - 1 - k;
+                    double derivative = shapeFunctionDerivatives(i,k+1); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term_Y += computeTaylorTerm(derivative, d[0], n_k, d[1], k);
+                }
+            }
+            Hgrad(i,0) = H_taylor_term_X + DN_DX(i,0);
+            Hgrad(i,1) = H_taylor_term_Y + DN_DX(i,1);
+        }    
+
+        // double nu = this->GetProperties().GetValue(POISSON_RATIO);
+        // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+
+        // Matrix D = ZeroMatrix(3,3);
+        // D(0,0) = 1; 
+        // D(0,1) = nu;
+        // D(1,0) = nu;
+        // D(1,1) = 1;
+        // D(2,2) = (1-nu)/2;
+        // D *= E/(1-nu*nu);
+
+        Vector old_displacement(mat_size);
+        GetValuesVector(old_displacement);
+
+        //----------------------------------------------
+
+        Matrix B_sum = ZeroMatrix(3,mat_size);
+
+        CalculateB(B_sum, Hgrad);
+
+        Matrix B = ZeroMatrix(3,mat_size);
+
+        CalculateB(B, DN_DX);
+
+        //---------- MODIFIED ----------------------------------------------------------------
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        Vector old_strain = prod(B,old_displacement);
+    
+        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetStrainVector(old_strain);
+
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.ConstitutiveMatrix);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+
+        const Matrix& r_D = Values.GetConstitutiveMatrix();
+        //---------------------
+        
+
+        //------------------------------
+        Matrix DB_sum = prod(r_D, B_sum); //
+
+        Matrix DB = prod(r_D, B); //
+
+
+        // dot product n cdot n_tilde
+        n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
+        // double tau_ntilde = true_tau[0] * normal_parameter_space[0] + true_tau[1] * normal_parameter_space[1];
+
+
+        double integration_factor = integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
+        for (IndexType i = 0; i < number_of_nodes; i++) {
+            for (IndexType j = 0; j < number_of_nodes; j++) {
+                
+                for (IndexType idim = 0; idim < 2; idim++) {
+                    const int id1 = 2*idim;
+                    const int iglob = 2*i+idim;
+
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int id2 = (id1+2)%3;
+                        const int jglob = 2*j+jdim;
+                        // -()
+                        rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
+
+                        rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
+                    }
+
+                }
+            }
+        }
+
+        // // Assembly     
+        if (CalculateResidualVectorFlag) {
 
             double nu = this->GetProperties().GetValue(POISSON_RATIO);
             double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+            Vector g_N = ZeroVector(2);
 
-            Matrix D = ZeroMatrix(3,3);
-            D(0,0) = 1; 
-            D(0,1) = nu;
-            D(1,0) = nu;
-            D(1,1) = 1;
-            D(2,2) = (1-nu)/2;
-            D *= E/(1-nu*nu);
+            // When "analysis_type" is "linear" temper = 0
+            const double x = projection[0];
+            const double y = projection[1];
 
-            // MODIFIED
-            Matrix B_sum = ZeroMatrix(3,mat_size);
+            g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * true_n[0] + E/(1+nu)*(cos(x)*cosh(y)) * true_n[1]; 
+            g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * true_n[0] + E/(1+nu)*(sin(x)*sinh(y)) * true_n[1]; 
 
-            CalculateB(B_sum, Hgrad);
 
-            Matrix B = ZeroMatrix(3,mat_size);
+            // g_N[0] = this->GetValue(FORCE_X); 
+            // g_N[1] = this->GetValue(FORCE_Y); 
 
-            CalculateB(B, DN_DX);
+            // g_N[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_X);
+            // g_N[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_Y);
             
-
-            //------------------------------
-            Matrix DB_sum = prod(D, B_sum); //
-
-            Matrix DB = prod(D, B); //
-
-
-            // dot product n cdot n_tilde
-            n_ntilde = true_n[0] * normal_parameter_space[0] + true_n[1] * normal_parameter_space[1];
-            // double tau_ntilde = true_tau[0] * normal_parameter_space[0] + true_tau[1] * normal_parameter_space[1];
-
-
-            double integration_factor = integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
             for (IndexType i = 0; i < number_of_nodes; i++) {
-                for (IndexType j = 0; j < number_of_nodes; j++) {
+                
+                for (IndexType zdim = 0; zdim < 2; zdim++) {
                     
-                    for (IndexType idim = 0; idim < 2; idim++) {
-                        const int id1 = 2*idim;
-                        const int iglob = 2*i+idim;
+                    rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde  * integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
 
-                        for (IndexType jdim = 0; jdim < 2; jdim++) {
-                            const int id2 = (id1+2)%3;
-                            const int jglob = 2*j+jdim;
-                            // -()
-                            rLeftHandSideMatrix(iglob, jglob) -= H(0,i)*(DB(id1, jglob)* normal_parameter_space[0] + DB(id2, jglob)* normal_parameter_space[1]) * integration_factor;
-
-                            rLeftHandSideMatrix(iglob, jglob) += H(0,i)*(DB_sum(id1, jglob)* true_n[0] + DB_sum(id2, jglob)* true_n[1]) * integration_factor * n_ntilde;
-                        }
-
-                    }
                 }
             }
 
-            // // Assembly     
-            if (CalculateResidualVectorFlag) {
-
-                double nu = this->GetProperties().GetValue(POISSON_RATIO);
-                double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-                Vector g_N = ZeroVector(2);
-
-                // When "analysis_type" is "linear" temper = 0
-                const double x = projection[0];
-                const double y = projection[1];
-
-                g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * true_n[0] + E/(1+nu)*(cos(x)*cosh(y)) * true_n[1]; 
-                g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * true_n[0] + E/(1+nu)*(sin(x)*sinh(y)) * true_n[1]; 
-
-
-                // g_N[0] = this->GetValue(FORCE_X); 
-                // g_N[1] = this->GetValue(FORCE_Y); 
-
-                // g_N[0] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_X);
-                // g_N[1] = candidateClosestSkinSegment1.GetGeometry()[0].GetValue(FORCE_Y);
-                
-                for (IndexType i = 0; i < number_of_nodes; i++) {
-                    
-                    for (IndexType zdim = 0; zdim < 2; zdim++) {
-                        
-                        rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * n_ntilde  * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);
-
-                    }
-                }
-                
-                Vector temp = ZeroVector(number_of_nodes);
-
-
-                GetValuesVector(temp);
-
-                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-                
-            }
+            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement);
+            
         }
         KRATOS_CATCH("")
     }

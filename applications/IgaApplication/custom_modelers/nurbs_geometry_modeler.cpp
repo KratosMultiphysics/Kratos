@@ -30,15 +30,15 @@ namespace Kratos
         // Read the refinements.iga.json
         // const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
         
-        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
-            << "Missing \"cad_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
-        const std::string cad_model_part_name = mParameters["model_part_name"].GetString();
-        ModelPart& cad_model_part = mpModel->HasModelPart(cad_model_part_name)
-            ? mpModel->GetModelPart(cad_model_part_name)
-            : mpModel->CreateModelPart(cad_model_part_name);
+        // KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+        //     << "Missing \"cad_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
+        // const std::string cad_model_part_name = mParameters["model_part_name"].GetString();
+        // ModelPart& cad_model_part = mpModel->HasModelPart(cad_model_part_name)
+        //     ? mpModel->GetModelPart(cad_model_part_name)
+        //     : mpModel->CreateModelPart(cad_model_part_name);
 
         //----------------------------------------------------------------------------------------------------------------
-
+        KRATOS_INFO_IF("NurbsGeometryModeler", mEchoLevel > 1) << "[NURBS MODELER]:: STARTING" << std::endl;
         // Get bounding box physical space.
         KRATOS_ERROR_IF_NOT(mParameters.Has("lower_point_xyz"))
             << "NurbsGeometryModeler: Missing \"lower_point_xyz\" section" << std::endl;
@@ -174,6 +174,7 @@ namespace Kratos
         auto p_surface_geometry = Kratos::make_shared<NurbsSurfaceGeometryType>(
             points, OrderU, OrderV, knot_vector_u, knot_vector_v);
 
+
         // Set up knots for knot refinement according to the given number of elements in each direction.
         double delta_knot_u = (B_uvw[0]-A_uvw[0]) / NumKnotSpansU;
         double knot_u = A_uvw[0];
@@ -196,23 +197,50 @@ namespace Kratos
 
 
         KRATOS_INFO_IF("::[NurbsGeometryModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+            << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
+
+        
+        // Create the Domain/Iga Model Part
+        const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
+        ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
+                                    ? mpModel->GetModelPart(iga_model_part_name)
+                                    : mpModel->CreateModelPart(iga_model_part_name);
+
         // Create the Surrogate Model part
-        ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart("surrogate_model_part_inner");
-        ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart("surrogate_model_part_outer");
+        std::string initial_skin_model_part_name;
+        if (!mParameters.Has("initial_skin_model_part_name")) initial_skin_model_part_name = "initial_skin_model_part_name";
+        else {
+            initial_skin_model_part_name = mParameters["initial_skin_model_part_name"].GetString();
+        }
+
+        std::string skin_model_part_name;
+        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+        else {
+            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+        }
+
+        std::string surrogate_model_part_name;
+        if (!mParameters.Has("surrogate_model_part_name")) surrogate_model_part_name = "surrogate_model_part";
+        else {
+            surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
+        }
+
+        
+        ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart(surrogate_model_part_name + "_inner");
+        ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart(surrogate_model_part_name + "_outer");
 
         // Skin model part refined after Snake Process
-        ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
-        ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
+        ModelPart& skin_model_part_in = mpModel->CreateModelPart(skin_model_part_name + "_in");
+        ModelPart& skin_model_part_out = mpModel->CreateModelPart(skin_model_part_name + "_out");
         // Initial Skin model part coming from mdpa
-        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
-                                        ? mpModel->GetModelPart("initial_skin_model_part_in")
-                                        : mpModel->CreateModelPart("initial_skin_model_part_in");
-        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
-                                    ? mpModel->GetModelPart("initial_skin_model_part_out")
-                                    : mpModel->CreateModelPart("initial_skin_model_part_out");
-        ModelPart& iga_model_part = mpModel->HasModelPart("IgaModelPart")
-                                    ? mpModel->GetModelPart("IgaModelPart")
-                                    : mpModel->CreateModelPart("IgaModelPart");
+        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart(initial_skin_model_part_name + "_in")
+                                        ? mpModel->GetModelPart(initial_skin_model_part_name + "_in")
+                                        : mpModel->CreateModelPart(initial_skin_model_part_name + "_in");
+        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart(initial_skin_model_part_name + "_out")
+                                    ? mpModel->GetModelPart(initial_skin_model_part_name + "_out")
+                                    : mpModel->CreateModelPart(initial_skin_model_part_name + "_out");
 
         double knot_step_u; double knot_step_v;
         const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");
@@ -223,14 +251,12 @@ namespace Kratos
                                                             refinements_parameters, mParameters, 
                                                             surrogate_model_part_inner, surrogate_model_part_outer) ;
         }
-
         //---------------------------------------------------------------------------------------------------------------------
         
         // Create the breps for the outer sbm boundary
         CreateBrepsSBMUtilities<Node, Point> CreateBrepsSBMUtilities(mEchoLevel);
 
         CreateBrepsSBMUtilities.CreateSurrogateBoundary(p_surface_geometry, r_model_part, surrogate_model_part_inner, surrogate_model_part_outer, A_uvw, B_uvw);
-
         // Perform knot refinement.
         PointerVector<NodeType> PointsRefined = p_surface_geometry->Points();
         if( NumKnotSpansU > 1) {
@@ -246,6 +272,7 @@ namespace Kratos
                 KnotsURefined, p_surface_geometry->KnotsV(),
                 WeightsRefined);
         }
+
         if( NumKnotSpansV > 1) {
 
             Vector KnotsVRefined;
@@ -262,8 +289,12 @@ namespace Kratos
         }
 
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        // if( r_model_part.NumberOfNodes() > 0 ){
+        //     node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        // }
+
+        if(r_model_part.GetParentModelPart().NumberOfNodes() > 0 ){
+            node_id = (r_model_part.GetParentModelPart().NodesEnd() - 1)->Id() + 1;
         }
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
@@ -371,23 +402,49 @@ namespace Kratos
         }
 
                KRATOS_INFO_IF("::[NurbsGeometryModeler]::", mEchoLevel > 0) << "Ending the CreateTheSnakeCoordinates" << std::endl;
+        KRATOS_ERROR_IF_NOT(mParameters.Has("model_part_name"))
+            << "Missing \"domain_model_part_name\" in NurbsGeometryModeler Parameters." << std::endl;
+
+        
+        // Create the Domain/Iga Model Part
+        const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
+        ModelPart& iga_model_part = mpModel->HasModelPart(iga_model_part_name)
+                                    ? mpModel->GetModelPart(iga_model_part_name)
+                                    : mpModel->CreateModelPart(iga_model_part_name);
+
         // Create the Surrogate Model part
-        ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart("surrogate_model_part_inner");
-        ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart("surrogate_model_part_outer");
+        std::string initial_skin_model_part_name;
+        if (!mParameters.Has("initial_skin_model_part_name")) initial_skin_model_part_name = "initial_skin_model_part_name";
+        else {
+            initial_skin_model_part_name = mParameters["initial_skin_model_part_name"].GetString();
+        }
+
+        std::string skin_model_part_name;
+        if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+        else {
+            skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+        }
+
+        std::string surrogate_model_part_name;
+        if (!mParameters.Has("surrogate_model_part_name")) surrogate_model_part_name = "surrogate_model_part";
+        else {
+            surrogate_model_part_name = mParameters["surrogate_model_part_name"].GetString();
+        }
+
+        
+        ModelPart& surrogate_model_part_inner = mpModel->CreateModelPart(surrogate_model_part_name + "_inner");
+        ModelPart& surrogate_model_part_outer = mpModel->CreateModelPart(surrogate_model_part_name + "_outer");
 
         // Skin model part refined after Snake Process
-        ModelPart& skin_model_part_in = mpModel->CreateModelPart("skin_model_part_in");
-        ModelPart& skin_model_part_out = mpModel->CreateModelPart("skin_model_part_out");
+        ModelPart& skin_model_part_in = mpModel->CreateModelPart(skin_model_part_name + "_in");
+        ModelPart& skin_model_part_out = mpModel->CreateModelPart(skin_model_part_name + "_out");
         // Initial Skin model part coming from mdpa
-        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart("initial_skin_model_part_in")
-                                        ? mpModel->GetModelPart("initial_skin_model_part_in")
-                                        : mpModel->CreateModelPart("initial_skin_model_part_in");
-        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart("initial_skin_model_part_out")
-                                    ? mpModel->GetModelPart("initial_skin_model_part_out")
-                                    : mpModel->CreateModelPart("initial_skin_model_part_out");
-        ModelPart& iga_model_part = mpModel->HasModelPart("IgaModelPart")
-                                    ? mpModel->GetModelPart("IgaModelPart")
-                                    : mpModel->CreateModelPart("IgaModelPart");
+        ModelPart& initial_skin_model_part_in = mpModel->HasModelPart(initial_skin_model_part_name + "_in")
+                                        ? mpModel->GetModelPart(initial_skin_model_part_name + "_in")
+                                        : mpModel->CreateModelPart(initial_skin_model_part_name + "_in");
+        ModelPart& initial_skin_model_part_out = mpModel->HasModelPart(initial_skin_model_part_name + "_out")
+                                    ? mpModel->GetModelPart(initial_skin_model_part_name + "_out")
+                                    : mpModel->CreateModelPart(initial_skin_model_part_name + "_out");
 
         double knot_step_u; double knot_step_v; double knot_step_w;
         const Parameters refinements_parameters = ReadParamatersFile("refinements.iga.json");

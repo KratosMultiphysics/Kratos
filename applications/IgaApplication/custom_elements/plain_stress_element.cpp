@@ -73,6 +73,30 @@ PlainStressElement::~PlainStressElement()
 {
 }
 
+void PlainStressElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    InitializeMaterial();
+}
+
+
+void PlainStressElement::InitializeMaterial()
+{
+    KRATOS_TRY
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH( "" );
+
+}
+
 
 // From classical Laplacian
 void PlainStressElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -80,7 +104,6 @@ void PlainStressElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_points = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension(); // dim = 2
@@ -95,94 +118,112 @@ void PlainStressElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         rRightHandSideVector.resize(mat_size,false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
+
+    //-------------------------------------------------------------------------
+
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     // Initialize DN_DX
     Matrix DN_DX(number_of_points,2);
     Matrix InvJ0(2,2);
-    Vector temp(mat_size);
-
+    
 
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
     Vector GP_parameter_coord(2); 
-    GP_parameter_coord = prod(r_geometry.Center(),J0[0]);
+    GP_parameter_coord = prod(r_geometry.Center(),J0[0]); // check if we have tu put "GetInitialPosition"
 
 
-    Vector volume_force_local(integration_points.size()*2);
+    Vector volume_force_local(2);
     /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     double nu = this->GetProperties().GetValue(POISSON_RATIO);
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
-    Matrix D = ZeroMatrix(3,3);
-    D(0,0) = 1; 
-    D(0,1) = nu;
-    D(1,0) = nu;
-    D(1,1) = 1;
-    D(2,2) = (1-nu)/2;
-    D *= E/(1-nu*nu);
+    Vector old_displacement(mat_size);
+    GetValuesVector(old_displacement);
 
     double factor = E/(1-nu*nu);
-    for(std::size_t i_point = 0; i_point < integration_points.size()*2; i_point = i_point+2)
-    {
 
-        // volume_force_local[i_point] = factor*(cos(x)*sinh(y)-nu*cos(y)*sinh(x)) - E/2/(1+nu)*(cos(x)*sinh(y)+cos(y)*sinh(x));
-        // volume_force_local[i_point+1] = factor*(sin(y)*cosh(x)-nu*sin(x)*cosh(y)) - E/2/(1+nu)*(-sin(x)*cosh(y) + sin(y)*cosh(x));
+    volume_force_local[0] = this->GetValue(BODY_FORCE_X);
+    volume_force_local[1] = this->GetValue(BODY_FORCE_Y);
 
-        volume_force_local[i_point] = this->GetValue(BODY_FORCE_X);
-        volume_force_local[i_point+1] = this->GetValue(BODY_FORCE_Y);
-    }
+    // r_geometry.Jacobian(J0, IntegrationPointIndex, this->GetIntegrationMethod());
+    
+    double DetJ0;
+    Matrix Jacobian = ZeroMatrix(2,2);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
 
-    for(std::size_t i_point = 0; i_point < integration_points.size(); ++i_point)
-    {
-        const IndexType IntegrationPointIndex = i_point ;
-        // r_geometry.Jacobian(J0, IntegrationPointIndex, this->GetIntegrationMethod());
-        
-        double DetJ0;
-        Matrix Jacobian = ZeroMatrix(2,2);
-        Jacobian(0,0) = J0[i_point](0,0);
-        Jacobian(0,1) = J0[i_point](0,1);
-        Jacobian(1,0) = J0[i_point](1,0);
-        Jacobian(1,1) = J0[i_point](1,1);
+    // Calculating inverse jacobian and jacobian determinant
+    MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
 
-        // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+    // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+    noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
-        // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
+    auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
+    const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0);
 
-        auto N = row(N_gausspoint,i_point); // these are the N which correspond to the gauss point "i_point"
-        const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0);
+    // MODIFIED
+    Matrix B = ZeroMatrix(3,mat_size);
 
-        // MODIFIED
-        Matrix B = ZeroMatrix(3,mat_size);
+    CalculateB(B, DN_DX);
 
-        CalculateB(B, DN_DX);
-        
 
-        //------------------------------
-        noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(trans(B), Matrix(prod(D, B))); //
+    //---------- MODIFIED ----------------------------------------------------------------
+    ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
 
-        // // Calculating the local RHS
-        for ( IndexType i = 0; i < number_of_points; ++i ) {
-            const SizeType index = 2* i;
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
 
-            for ( IndexType j = 0; j < 2; ++j )
-                rRightHandSideVector[index + j] += IntToReferenceWeight * N[i] * volume_force_local[i_point+j];
-        }
-        
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    Vector old_strain = prod(B,old_displacement);
+    
+    // Values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStrainVector(old_strain);
+
+    Values.SetStressVector(this_constitutive_variables.StressVector);
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+    mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2); 
+
+    const Vector& r_stress_vector = Values.GetStressVector();
+    const Matrix& r_D = Values.GetConstitutiveMatrix();
+    //-----------------------------------------------------------------------------------
+    
+
+    //------------------------------
+    noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(trans(B), Matrix(prod(r_D, B))); //
+
+    // // Calculating the local RHS
+    for ( IndexType i = 0; i < number_of_points; ++i ) {
+        const SizeType index = 2* i;
+
+        for ( IndexType j = 0; j < 2; ++j )
+            rRightHandSideVector[index + j] += IntToReferenceWeight * N[i] * volume_force_local[+j];
     }
 
 
     // RHS = ExtForces - K*temp;
-    GetValuesVector(temp);
+    
 
     // // RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+    // TO DO 
+    // Should be _int{B^T * \sigma}
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,old_displacement); 
 
     KRATOS_CATCH("")
 }
@@ -313,7 +354,7 @@ void PlainStressElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
     for (IndexType i = 0; i < nb_nodes; ++i)
     {
         // KRATOS_WATCH(r_geometry[i])
-        double output_solution_step_value = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_Y);
+        double output_solution_step_value = r_geometry[i].GetSolutionStepValue(DISPLACEMENT_X);
         rOutput += r_N(0, i) * output_solution_step_value;
         x_coord_gauss_point += r_N(0, i) * r_geometry[i].X0();
         y_coord_gauss_point += r_N(0, i) * r_geometry[i].Y0();
@@ -340,34 +381,6 @@ const IndexType PointNumber
 ) const
 {
 
-    // for(unsigned int node_element = 0; node_element<number_of_nodes; node_element++)
-    // {
-    //     KRATOS_WATCH(r_geometry[node_element].FastGetSolutionStepValue(BODY_FORCE))
-    // }
-    //--------------------------------------------------------------------------------------
-
-    // array_1d<double, 3> body_force;
-    // for (IndexType i = 0; i < 3; ++i)
-    //     body_force[i] = 0.0;
-
-    // const auto& r_properties = GetProperties();
-    // double density = 0.0;
-    // if (r_properties.Has( DENSITY ))
-    //     density = r_properties[DENSITY];
-
-    // if (r_properties.Has( VOLUME_ACCELERATION ))
-    //     noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
-
-    // const auto& r_geometry = GetGeometry();
-    // if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
-    //     Vector N(r_geometry.size());
-    //     N = r_geometry.ShapeFunctionsValues(N, rIntegrationPoints[PointNumber].Coordinates());
-    //     for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
-    //         noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    // }
-
-    // return body_force;
-
 
     // // FUTURE DEVELOPMENTS:
     // return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
@@ -379,26 +392,7 @@ void PlainStressElement::CalculateKinematicVariables(
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
-    // const auto& r_geometry = GetGeometry();
 
-    // const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-
-    // // Shape functions
-    // rThisKinematicVariables.N = r_geometry.ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
-
-    // rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
-
-    // KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
-
-    // // Compute B
-    // CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
-
-    // // Compute equivalent F
-    // GetValuesVector(rThisKinematicVariables.Displacements);
-    // Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
-    // noalias(strain_vector) = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
-    // ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
-    // rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
 void PlainStressElement::CalculateB(
