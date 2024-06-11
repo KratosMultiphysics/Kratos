@@ -24,8 +24,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_TRY
 
     // Base class checks for positive area and Id > 0
-    int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0) return ierr;
+    if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType&   rGeom = this->GetGeometry();
