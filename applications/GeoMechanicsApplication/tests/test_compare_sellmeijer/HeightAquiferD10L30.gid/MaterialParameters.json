@@ -65,7 +65,7 @@
                 },
                 "Variables": {
                     "YOUNG_MODULUS"                    : 100000,
-                    "POISSON_RATIO"                    : 0,
+                    "POISSON_RATIO"                    : 0.2,
                     "DENSITY_SOLID"                    : 2.650000e+03,
                     "DENSITY_WATER"                    : 1.000000e+03,
                     "POROSITY"                         : 1,
