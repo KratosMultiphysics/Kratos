@@ -58,7 +58,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
     if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
-        const auto& integration_points = this->GetGeometry().integration_points(mThisIntegrationMethod);
+        const auto& integration_points = this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
         const auto integration_coefficients =
             this->CalculateIntegrationCoefficients(integration_points, variables.detJContainer);
         for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
