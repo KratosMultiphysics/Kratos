@@ -135,7 +135,6 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
             this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
 
-            /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
                 this->CalculateAndAddGeometricStiffnessMatrix(
                     rLeftHandSideMatrix, this->mStressVector[GPoint], Variables.GradNpT,

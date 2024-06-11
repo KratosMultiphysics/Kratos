@@ -76,10 +76,9 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatr
     const SizeType      num_U_nodes = r_geom.PointsNumber();
     const SizeType      dimension   = r_geom.WorkingSpaceDimension();
 
-    const auto stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
-
     const Matrix reduced_Kg_matrix =
-        prod(rDNuDx, IntegrationCoefficient * Matrix(prod(stress_tensor, trans(rDNuDx))));
+        prod(rDNuDx, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rDNuDx)))) *
+        IntegrationCoefficient;
 
     Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
     MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);

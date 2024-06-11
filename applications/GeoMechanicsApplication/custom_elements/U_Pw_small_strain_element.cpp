@@ -834,9 +834,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMa
 {
     KRATOS_TRY
 
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
     Matrix reduced_Kg_matrix =
-        prod(rGradNpt, IntegrationCoefficient * Matrix(prod(stress_tensor, trans(rGradNpt))));
+        prod(rGradNpt, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rGradNpt)))) *
+        IntegrationCoefficient;
 
     Matrix geometric_stiffness_matrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
     MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, TDim);
