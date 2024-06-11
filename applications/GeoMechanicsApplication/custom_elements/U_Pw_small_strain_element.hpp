@@ -115,6 +115,8 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
+    using UPwBaseElement::CalculateOnIntegrationPoints;
+
     std::string Info() const override
     {
         return "U-Pw small strain Element #" + std::to_string(this->Id()) +
