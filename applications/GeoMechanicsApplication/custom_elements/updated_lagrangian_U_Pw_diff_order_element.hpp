@@ -211,9 +211,9 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                 ElementVariables& rVariables,
-                                                 unsigned int      GPoint);
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                 const ElementVariables& rVariables,
+                                                 unsigned int            GPoint);
 
     ///@}
     ///@name Protected Operations
