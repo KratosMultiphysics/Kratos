@@ -9,7 +9,10 @@
 //
 //  Main authors:    Richard Faasse
 //
+
 #include "nodal_extrapolator.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/triangle_2d_3.h"
 
 namespace Kratos
 {

@@ -12,6 +12,11 @@
 
 #pragma once
 
+#include "geometries/geometry.h"
+#include "includes/define.h"
+#include "includes/node.h"
+#include <cstddef>
+
 namespace Kratos
 {
 
