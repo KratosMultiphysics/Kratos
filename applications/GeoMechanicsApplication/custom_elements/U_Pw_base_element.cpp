@@ -142,10 +142,10 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     if (mStressVector.size() != number_of_integration_points) {
         mStressVector.resize(number_of_integration_points);
-        for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-            mStressVector[i].resize(GetStressStatePolicy().GetVoigtSize());
-            std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
-        }
+        std::for_each(mStressVector.begin(), mStressVector.end(), [this](auto& stress_vector) {
+            stress_vector.resize(GetStressStatePolicy().GetVoigtSize());
+            std::fill(stress_vector.begin(), stress_vector.end(), 0.0);
+        });
     }
 
     mStateVariablesFinalized.resize(number_of_integration_points);
@@ -166,15 +166,12 @@ void UPwBaseElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    // erasing stress vectors
-    for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-        mStressVector[i].clear();
-    }
+    std::for_each(mStressVector.begin(), mStressVector.end(),
+                  [](auto& stress_vector) { stress_vector.clear(); });
     mStressVector.clear();
 
-    for (unsigned int i = 0; i < mStateVariablesFinalized.size(); ++i) {
-        mStateVariablesFinalized[i].clear();
-    }
+    std::for_each(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(),
+                  [](auto& state_variables_finalized) { state_variables_finalized.clear(); });
     mStateVariablesFinalized.clear();
 
     KRATOS_CATCH("")
