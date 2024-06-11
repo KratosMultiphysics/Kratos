@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
+#include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
@@ -74,6 +75,13 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(Geom, this->GetIntegrationMethod());
+
+    const auto integration_coefficients_on_initial_configuration =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
+
     const auto deformation_gradients = this->CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
@@ -126,8 +134,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
+        Variables.IntegrationCoefficientInitialConfiguration =
+            integration_coefficients_on_initial_configuration[GPoint];
 
         if (CalculateStiffnessMatrixFlag) {
             // Contributions to stiffness matrix calculated on the reference config

@@ -912,6 +912,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(rGeom, this->GetIntegrationMethod());
+
+    const auto integration_coefficients_on_initial_configuration =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
+
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
@@ -956,8 +962,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
+        Variables.IntegrationCoefficientInitialConfiguration =
+            integration_coefficients_on_initial_configuration[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
