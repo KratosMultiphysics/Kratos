@@ -173,7 +173,7 @@ protected:
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
-    virtual unsigned int GetNumberOfDOF() const;
+    virtual std::size_t GetNumberOfDOF() const;
 
     StressStatePolicy& GetStressStatePolicy() const;
 

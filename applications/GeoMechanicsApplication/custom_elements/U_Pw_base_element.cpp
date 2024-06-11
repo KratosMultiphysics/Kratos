@@ -478,7 +478,7 @@ void UPwBaseElement::CalculateJacobianOnCurrentConfiguration(double& detJ, Matri
     KRATOS_CATCH("")
 }
 
-unsigned int UPwBaseElement::GetNumberOfDOF() const
+std::size_t UPwBaseElement::GetNumberOfDOF() const
 {
     return this->GetGeometry().PointsNumber() * (this->GetGeometry().WorkingSpaceDimension() + 1);
 }

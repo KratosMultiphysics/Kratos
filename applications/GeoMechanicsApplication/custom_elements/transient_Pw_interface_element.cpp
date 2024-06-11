@@ -741,7 +741,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::GetSecondDerivativesVector(Ve
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t TransientPwInterfaceElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
 }
