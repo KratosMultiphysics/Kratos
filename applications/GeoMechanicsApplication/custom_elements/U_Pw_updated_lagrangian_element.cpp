@@ -21,7 +21,6 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                       NodesArrayType const& ThisNodes,
@@ -31,7 +30,6 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
         NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                       GeometryType::Pointer pGeom,
@@ -41,7 +39,6 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                             this->GetStressStatePolicy().Clone()));
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                                                 VectorType& rRightHandSideVector,
@@ -71,7 +68,6 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -83,7 +79,6 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     }
 }
 
-//----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -108,8 +103,6 @@ std::vector<double> UPwUpdatedLagrangianElement<TDim, TNumNodes>::GetPermeabilit
 {
     return {};
 }
-
-//----------------------------------------------------------------------------------------
 
 template class UPwUpdatedLagrangianElement<2, 3>;
 template class UPwUpdatedLagrangianElement<2, 4>;
