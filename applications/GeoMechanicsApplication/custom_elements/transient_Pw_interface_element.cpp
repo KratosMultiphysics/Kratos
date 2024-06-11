@@ -119,7 +119,7 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessInfo&
 {
     KRATOS_TRY
 
-    UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
 
     // Compute initial gap of the joint
     this->CalculateInitialGap(this->GetGeometry());

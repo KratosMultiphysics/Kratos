@@ -32,7 +32,6 @@
 namespace Kratos
 {
 
-template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwBaseElement : public Element
 {
 public:

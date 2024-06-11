@@ -54,7 +54,7 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     KRATOS_TRY
 
     // Verify generic variables
-    int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     const PropertiesType& Prop = this->GetProperties();
