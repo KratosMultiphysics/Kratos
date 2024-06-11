@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetInsert1, KratosCoreFastSuite)
 
     auto itr = test_container.begin();
     for (; itr != test_container.end() - 1; ++itr) {
-        KRATOS_EXPECT_TRUE(&*(itr) - &*(itr + 1) < 0);
+        KRATOS_EXPECT_TRUE(&*(itr) < &*(itr + 1));
     }
 }
 
