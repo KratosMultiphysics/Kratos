@@ -25,6 +25,9 @@
 
 namespace Kratos
 {
+
+class Extrapolator;
+
 /**
  * @class IntegrationValuesExtrapolationToNodesProcess
  * @ingroup GeoMechanicsApplication
@@ -41,11 +44,6 @@ public:
     using SizeType     = std::size_t;
     using IndexType    = std::size_t;
 
-    struct TLSType {
-        Vector vector_J;
-        Vector N;
-    };
-
     KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
 
     GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
@@ -59,8 +57,7 @@ public:
     GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
                                                     Parameters ThisParameters = Parameters(R"({})"));
 
-    ~GeoIntegrationValuesExtrapolationToNodesProcess() override = default;
-    ;
+    ~GeoIntegrationValuesExtrapolationToNodesProcess() override;
 
     void operator()() { Execute(); }
 
@@ -87,6 +84,7 @@ private:
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
     std::vector<const Variable<Vector>*> mVectorVariable; /// The vector variables to compute
     std::vector<const Variable<Matrix>*> mMatrixVariable; /// The matrix variables to compute
+    std::unique_ptr<Extrapolator>        mpExtrapolator;
 
     std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables
@@ -94,16 +92,10 @@ private:
     const Variable<double>& mrAverageVariable; /// The variable used to compute the average weight
     std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap = {}; /// The map containing the extrapolation matrix
 
-    void   InitializeMaps();
-    void   InitializeVariables();
-    Matrix CalculateElementExtrapolationMatrix(Element&      rElem,
-                                               GeometryType& r_this_geometry,
-                                               SizeType      integration_points_number,
-                                               GeometryType::IntegrationPointsArrayType& integration_points,
-                                               GeometryData::IntegrationMethod this_integration_method,
-                                               SizeType number_of_nodes,
-                                               TLSType& rTls) const;
-    void   GetVariableLists(const Parameters& rParameters);
+    void InitializeMaps();
+    void InitializeVariables();
+
+    void GetVariableLists(const Parameters& rParameters);
 
     template <class T>
     bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList)
