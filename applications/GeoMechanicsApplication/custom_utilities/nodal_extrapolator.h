@@ -28,11 +28,6 @@ public:
     using SizeType     = std::size_t;
     using IndexType    = std::size_t;
 
-    struct TLSType {
-        Vector vector_J;
-        Vector N;
-    };
-
     Matrix CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
                                                GeometryData::IntegrationMethod this_integration_method) const;
 };

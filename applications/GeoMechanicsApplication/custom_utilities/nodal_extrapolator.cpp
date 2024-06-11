@@ -20,8 +20,6 @@ namespace Kratos
 Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
                                                               GeometryData::IntegrationMethod this_integration_method) const
 {
-    TLSType Tls;
-
     const auto number_of_nodes = r_this_geometry.size();
 
     KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
@@ -41,7 +39,7 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_th
     // for volume elements ( hexa, tetra, wedge ) the midside node interpolation step is more elaborate
     GeometryType*                 p_low_order_geometry = &r_this_geometry;
     std::unique_ptr<GeometryType> p_new_low_order_geometry;
-    switch (r_this_geometry.PointsNumber()) {
+    switch (number_of_nodes) {
     case 6:
         p_new_low_order_geometry = std::make_unique<Triangle2D3<Node>>(
             r_this_geometry(0), r_this_geometry(1), r_this_geometry(2));
@@ -59,19 +57,21 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_th
 
     // calculate extrapolation matrix towards corner nodes
     SizeType number_of_low_order_nodes = p_low_order_geometry->PointsNumber();
-    Tls.N.resize(number_of_low_order_nodes);
+
+    Vector N              = ZeroVector(number_of_low_order_nodes);
     Matrix quasi_mass_mat = ZeroMatrix(number_of_low_order_nodes, number_of_low_order_nodes);
     Matrix node_coefficient(number_of_low_order_nodes, number_of_integration_points);
-    Tls.vector_J = r_this_geometry.DeterminantOfJacobian(Tls.vector_J, this_integration_method);
+    Vector vector_J;
+    vector_J = r_this_geometry.DeterminantOfJacobian(vector_J, this_integration_method);
     for (IndexType i_gauss_point = 0; i_gauss_point < number_of_integration_points; ++i_gauss_point) {
         // local_coordinates --> isoparametric coordinates or for triangles area coordinates
         const array_1d<double, 3>& r_local_coordinates = integration_points[i_gauss_point].Coordinates();
         // shape function for this i.p.
-        p_low_order_geometry->ShapeFunctionsValues(Tls.N, r_local_coordinates);
-        quasi_mass_mat += outer_prod(Tls.N, Tls.N) * Tls.vector_J[i_gauss_point] *
-                          integration_points[i_gauss_point].Weight();
+        p_low_order_geometry->ShapeFunctionsValues(N, r_local_coordinates);
+        quasi_mass_mat +=
+            outer_prod(N, N) * vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
         column(node_coefficient, i_gauss_point) =
-            Tls.N * Tls.vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
+            N * vector_J[i_gauss_point] * integration_points[i_gauss_point].Weight();
     }
 
     double MetricDet;
