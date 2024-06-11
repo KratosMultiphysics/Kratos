@@ -9,16 +9,16 @@
 //
 //  Main authors:    Richard Faasse
 //
-#include "extrapolator.h"
+#include "nodal_extrapolator.h"
 
 namespace Kratos
 {
 
-Matrix Extrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
-                                                         SizeType      integration_points_number,
-                                                         GeometryType::IntegrationPointsArrayType& integration_points,
-                                                         GeometryData::IntegrationMethod this_integration_method,
-                                                         SizeType number_of_nodes) const
+Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& r_this_geometry,
+                                                              SizeType integration_points_number,
+                                                              GeometryType::IntegrationPointsArrayType& integration_points,
+                                                              GeometryData::IntegrationMethod this_integration_method,
+                                                              SizeType number_of_nodes) const
 {
     TLSType Tls;
     KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&

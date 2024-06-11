@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-class Extrapolator;
+class NodalExtrapolator;
 
 /**
  * @class IntegrationValuesExtrapolationToNodesProcess
@@ -84,7 +84,7 @@ private:
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
     std::vector<const Variable<Vector>*> mVectorVariable; /// The vector variables to compute
     std::vector<const Variable<Matrix>*> mMatrixVariable; /// The matrix variables to compute
-    std::unique_ptr<Extrapolator>        mpExtrapolator;
+    std::unique_ptr<NodalExtrapolator>   mpExtrapolator;
 
     std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables

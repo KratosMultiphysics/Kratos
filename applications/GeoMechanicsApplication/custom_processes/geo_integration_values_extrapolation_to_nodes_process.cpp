@@ -17,7 +17,7 @@
 
 // Include the point locator
 #include "custom_processes/geo_integration_values_extrapolation_to_nodes_process.h"
-#include "custom_utilities/extrapolator.h"
+#include "custom_utilities/nodal_extrapolator.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -33,7 +33,7 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
     ModelPart& rMainModelPart, Parameters ThisParameters)
     : mrModelPart(rMainModelPart),
       mrAverageVariable(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString())),
-      mpExtrapolator(std::make_unique<Extrapolator>())
+      mpExtrapolator(std::make_unique<NodalExtrapolator>())
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);

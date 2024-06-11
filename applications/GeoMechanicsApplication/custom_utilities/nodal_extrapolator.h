@@ -15,7 +15,7 @@
 namespace Kratos
 {
 
-class Extrapolator
+class NodalExtrapolator
 {
 public:
     using NodeType     = Node;
