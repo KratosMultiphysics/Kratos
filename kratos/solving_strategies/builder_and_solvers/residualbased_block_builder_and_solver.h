@@ -228,6 +228,9 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        // // TIME
+        // auto start = std::chrono::high_resolution_clock::now();
+
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
@@ -257,6 +260,16 @@ public:
                 }
             }
         }
+
+        // // TIME
+        // auto end = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<long double> duration = end - start;
+        // long double elapsedTime = duration.count();
+
+        // std::ofstream outputFile_time("time_txt_files/assemble_time.txt", std::ios::app);
+        // outputFile_time << std::scientific << std::setprecision(20); // Imposta la precisione a 10^-20
+        // outputFile_time << elapsedTime << "\n";
+        // outputFile_time.close();
 
         // // CONDITION NUMBER
         // ConditionNumberUtility mpConditionNumberUtility;

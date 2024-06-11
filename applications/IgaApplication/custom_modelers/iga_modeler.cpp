@@ -310,10 +310,7 @@ namespace Kratos
                     integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
                 }
             }
-            // TIME
-            // Inizia il timer
-            auto start = std::chrono::high_resolution_clock::now();
-            // TIME
+
             if (GeometryType == "SurfaceEdge"
                 && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
             {
@@ -525,12 +522,16 @@ namespace Kratos
             << "Creating elements of type " << rElementName
             << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
+        SizeType num_elements = std::distance(rGeometriesBegin, rGeometriesEnd);
+        new_element_list.reserve(num_elements);
+
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
         {
             new_element_list.push_back(
                 rReferenceElement.Create(rIdCounter, (*it), pProperties));
             for (SizeType i = 0; i < (*it)->size(); ++i) {
-                rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.AddNode((*it)->pGetPoint(i));
+                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
         }
@@ -582,7 +583,8 @@ namespace Kratos
                 }
                 for (SizeType i = 0; i < (*it)->size(); ++i) {
                     // These are the control points associated with the basis functions involved in the condition we are creating
-                    rModelPart.AddNode((*it)->pGetPoint(i));
+                    // rModelPart.AddNode((*it)->pGetPoint(i));
+                    rModelPart.Nodes().push_back((*it)->pGetPoint(i));
                 }
                 rIdCounter++;
                 countListClosestCondition++;
@@ -603,7 +605,8 @@ namespace Kratos
                 }
                 for (SizeType i = 0; i < (*it)->size(); ++i) {
                     // These are the control points associated with the basis functions involved in the condition we are creating
-                    rModelPart.AddNode((*it)->pGetPoint(i));
+                    // rModelPart.AddNode((*it)->pGetPoint(i));
+                    rModelPart.Nodes().push_back((*it)->pGetPoint(i));
                 }
                 rIdCounter++;
                 countListClosestCondition++;
@@ -635,7 +638,8 @@ namespace Kratos
             new_condition_list.push_back(
                 rReferenceCondition.Create(rIdCounter, (*it), pProperties));
             for (SizeType i = 0; i < (*it)->size(); ++i) {
-                rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.AddNode((*it)->pGetPoint(i));
+                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
         }
