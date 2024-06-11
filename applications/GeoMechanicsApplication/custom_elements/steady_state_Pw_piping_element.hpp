@@ -47,7 +47,6 @@ public:
     /// The definition of the sizetype
     using SizeType = std::size_t;
 
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
 
@@ -56,32 +55,37 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    SteadyStatePwPipingElement(IndexType NewId = 0)
+    explicit SteadyStatePwPipingElement(IndexType NewId = 0)
         : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    SteadyStatePwPipingElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes)
+    SteadyStatePwPipingElement(IndexType                          NewId,
+                               const NodesArrayType&              ThisNodes,
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry)
+    SteadyStatePwPipingElement(IndexType                          NewId,
+                               GeometryType::Pointer              pGeometry,
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    SteadyStatePwPipingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    SteadyStatePwPipingElement(IndexType                          NewId,
+                               GeometryType::Pointer              pGeometry,
+                               PropertiesType::Pointer            pProperties,
+                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : SteadyStatePwInterfaceElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~SteadyStatePwPipingElement() override {}
+    ~SteadyStatePwPipingElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -107,8 +111,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     using BaseType::CalculateOnIntegrationPoints;
     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,

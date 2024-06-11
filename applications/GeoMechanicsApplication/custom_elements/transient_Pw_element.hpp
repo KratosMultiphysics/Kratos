@@ -45,7 +45,6 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using BaseType::CalculateRetentionResponse;
     using BaseType::mConstitutiveLawVector;
     using BaseType::mIsInitialised;
     using BaseType::mRetentionLawVector;
@@ -54,29 +53,30 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
+    explicit TransientPwElement(IndexType NewId = 0) : BaseType(NewId) {}
 
     /// Constructor using an array of nodes
-    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : BaseType(NewId, ThisNodes)
+    TransientPwElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : BaseType(NewId, pGeometry)
+    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    TransientPwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : BaseType(NewId, pGeometry, pProperties)
+    TransientPwElement(IndexType                          NewId,
+                       GeometryType::Pointer              pGeometry,
+                       PropertiesType::Pointer            pProperties,
+                       std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~TransientPwElement() override {}
+    ~TransientPwElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -93,9 +93,9 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo&) override;
 
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo&) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -153,8 +153,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo) override;
 
@@ -164,11 +164,13 @@ protected:
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
-    void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
-    void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                              const ElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityFlow(VectorType&             rRightHandSideVector,
+                                         const ElementVariables& rVariables) override;
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                            const ElementVariables& rVariables) override;
 
     unsigned int GetNumberOfDOF() const override;
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

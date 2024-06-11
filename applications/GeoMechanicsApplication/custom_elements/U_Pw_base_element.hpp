@@ -27,6 +27,7 @@
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "stress_state_policy.h"
 
 namespace Kratos
 {
@@ -42,14 +43,23 @@ public:
     explicit UPwBaseElement(IndexType NewId = 0) : Element(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
+    UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, ThisNodes), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    {
+    }
 
     /// Constructor using Geometry
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
+    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, pGeometry), mpStressStatePolicy{std::move(pStressStatePolicy)}
+    {
+    }
 
     /// Constructor using Properties
-    UPwBaseElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    UPwBaseElement(IndexType                          NewId,
+                   GeometryType::Pointer              pGeometry,
+                   PropertiesType::Pointer            pProperties,
+                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : Element(NewId, pGeometry, pProperties), mpStressStatePolicy{std::move(pStressStatePolicy)}
     {
         // this is needed for interface elements
         mThisIntegrationMethod = this->GetIntegrationMethod();
@@ -60,12 +70,6 @@ public:
     UPwBaseElement& operator=(const UPwBaseElement&)     = delete;
     UPwBaseElement(UPwBaseElement&&) noexcept            = delete;
     UPwBaseElement& operator=(UPwBaseElement&&) noexcept = delete;
-
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
-
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -160,43 +164,19 @@ protected:
                               bool               CalculateStiffnessMatrixFlag,
                               bool               CalculateResidualVectorFlag);
 
-    virtual double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                   unsigned int PointNumber,
-                                                   double       detJ);
+    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
+                                           double detJ) const;
+    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+                                                         const Vector& rDetJs) const;
 
     void CalculateDerivativesOnInitialConfiguration(
         double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
-    /**
-     * @brief This functions calculate the derivatives in the reference frame
-     * @param J0 The jacobian in the reference configuration
-     * @param InvJ0 The inverse of the jacobian in the reference configuration
-     * @param DN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the reference configuration
-     */
-    void CalculateJacobianOnCurrentConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
-
-    /**
-     * @brief This functions calculate the derivatives in the current frame
-     * @param rJ The jacobian in the current configuration
-     * @param rInvJ The inverse of the jacobian in the current configuration
-     * @param rDN_DX The gradient derivative of the shape function
-     * @param PointNumber The id of the integration point considered
-     * @param ThisIntegrationMethod The integration method considered
-     * @return The determinant of the jacobian in the current configuration
-     */
-    double CalculateDerivativesOnCurrentConfiguration(Matrix&          rJ,
-                                                      Matrix&          rInvJ,
-                                                      Matrix&          rDN_DX,
-                                                      const IndexType& PointNumber,
-                                                      IntegrationMethod ThisIntegrationMethod) const;
-
     virtual unsigned int GetNumberOfDOF() const;
+
+    StressStatePolicy& GetStressStatePolicy() const;
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
@@ -208,11 +188,11 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     }
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
 
-}; // Class UPwBaseElement
+    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
+};
+
+// Class UPwBaseElement
 
 } // namespace Kratos

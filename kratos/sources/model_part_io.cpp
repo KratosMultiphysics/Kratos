@@ -1123,9 +1123,9 @@ void ModelPartIO::SkipBlock(std::string const& BlockName)
         if(word == "End")
         {
             ReadWord(word);
-            if(number_of_nested_blocks == 0){
-                    if(CheckStatement(word , BlockName))
-                        break;
+            if(number_of_nested_blocks == 0) {
+                CheckStatement(word , BlockName);
+                break;
             } else {
                 number_of_nested_blocks--;
             }
@@ -5009,7 +5009,7 @@ ModelPartIO& ModelPartIO::ReadWord(std::string& Word)
     Word.clear();
 
     char c = SkipWhiteSpaces();
-    while(!mpStream->eof() && !IsWhiteSpace(c))
+    while(!mpStream->eof() && !std::isspace(c))
     {
         Word += c;
         c = GetCharacter();
@@ -5032,7 +5032,7 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
         if(c == 'E')
         {
             word.clear();
-            while(!mpStream->eof() && !IsWhiteSpace(c))
+            while(!mpStream->eof() && !std::isspace(c))
             {
                 word += c;
                 c = GetCharacter();
@@ -5055,7 +5055,7 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
         else if (c == 'B')
         {
             word.clear();
-            while (!mpStream->eof() && !IsWhiteSpace(c))
+            while (!mpStream->eof() && !std::isspace(c))
             {
                 word += c;
                 c = GetCharacter();
@@ -5082,14 +5082,9 @@ ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& Block
 char ModelPartIO::SkipWhiteSpaces()
 {
     char c = GetCharacter();
-    while(IsWhiteSpace(c))
+    while(std::isspace(c))
         c = GetCharacter();
     return c;
-}
-
-bool ModelPartIO::IsWhiteSpace(char C)
-{
-    return ((C == ' ') || (C == '\t') || (C == '\r') || (C == '\n'));
 }
 
 char ModelPartIO::GetCharacter() //Getting the next character skipping comments
@@ -5125,20 +5120,9 @@ char ModelPartIO::GetCharacter() //Getting the next character skipping comments
 
 }
 
-bool ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord)
+void ModelPartIO::CheckStatement(std::string const& rStatement, std::string const& rGivenWord) const
 {
-    bool result = false;
-    if(rGivenWord != rStatement)
-    {
-        std::stringstream buffer;
-        buffer << "A \"" << rStatement << "\" statement was expected but the given statement was \"";
-        buffer <<  rGivenWord << "\"" << " [Line " << mNumberOfLines << " ]";
-        KRATOS_ERROR << buffer.str() << std::endl;
-    }
-    else
-        result = true;
-
-    return result;
+    KRATOS_ERROR_IF(rGivenWord != rStatement )<< "A \"" << rStatement << "\" statement was expected but the given statement was \"" << rGivenWord << "\"" << " [Line " << mNumberOfLines << " ]" << std::endl;
 }
 
 void ModelPartIO::ResetInput()

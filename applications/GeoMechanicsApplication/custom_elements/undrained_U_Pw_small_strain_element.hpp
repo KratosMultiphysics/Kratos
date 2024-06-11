@@ -51,32 +51,37 @@ public:
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    /// Default Constructor
-    UndrainedUPwSmallStrainElement(IndexType NewId = 0)
+    explicit UndrainedUPwSmallStrainElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    UndrainedUPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UndrainedUPwSmallStrainElement(IndexType                          NewId,
+                                   const NodesArrayType&              ThisNodes,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UndrainedUPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    UndrainedUPwSmallStrainElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UndrainedUPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UndrainedUPwSmallStrainElement(IndexType                          NewId,
+                                   GeometryType::Pointer              pGeometry,
+                                   PropertiesType::Pointer            pProperties,
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~UndrainedUPwSmallStrainElement() override {}
+    ~UndrainedUPwSmallStrainElement() = default;
 
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,

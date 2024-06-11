@@ -319,6 +319,8 @@ public:
                 noalias(rNodalStress) = ZeroMatrix(3,3);
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
+                itNode->FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE) = 0.0;
+                itNode->FastGetSolutionStepValue(NODAL_SLIP_TENDENCY) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
             }
 
@@ -350,6 +352,10 @@ public:
                     const double InvNodalJointArea = 1.0/NodalJointArea;
                     double& NodalJointWidth = itNode->FastGetSolutionStepValue(NODAL_JOINT_WIDTH);
                     NodalJointWidth *= InvNodalJointArea;
+                    double& NodalMidPlaneLiquidPressure = itNode->FastGetSolutionStepValue(NODAL_MID_PLANE_LIQUID_PRESSURE);
+                    NodalMidPlaneLiquidPressure *= InvNodalJointArea;
+                    double& NodalSlipTendency = itNode->FastGetSolutionStepValue(NODAL_SLIP_TENDENCY);
+                    NodalSlipTendency *= InvNodalJointArea;
                     double& NodalJointDamage = itNode->FastGetSolutionStepValue(NODAL_JOINT_DAMAGE);
                     NodalJointDamage *= InvNodalJointArea;
                 }

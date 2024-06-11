@@ -57,6 +57,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianElement
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType       = UPwSmallStrainElement<TDim, TNumNodes>;
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
@@ -78,7 +79,6 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
@@ -86,32 +86,37 @@ public:
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwUpdatedLagrangianElement(IndexType NewId = 0) : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
+    explicit UPwUpdatedLagrangianElement(IndexType NewId = 0)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
     }
 
     /// Constructor using an array of nodes
-    UPwUpdatedLagrangianElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes)
+    UPwUpdatedLagrangianElement(IndexType                          NewId,
+                                const NodesArrayType&              ThisNodes,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
-    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry)
+    UPwUpdatedLagrangianElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Properties
-    UPwUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    UPwUpdatedLagrangianElement(IndexType                          NewId,
+                                GeometryType::Pointer              pGeometry,
+                                PropertiesType::Pointer            pProperties,
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
-    /// Destructor
-    ~UPwUpdatedLagrangianElement() override {}
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    ~UPwUpdatedLagrangianElement() = default;
 
     /**
      * @brief Creates a new element
@@ -214,8 +219,8 @@ protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
-                      const bool         CalculateStiffnessMatrixFlag,
-                      const bool         CalculateResidualVectorFlag) override;
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     ///@}
     ///@name Protected Operations
@@ -264,27 +269,13 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        typedef UPwSmallStrainElement<TDim, TNumNodes> BaseClass;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseClass);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    /// Assignment operator.
-    // UPwUpdatedLagrangianElement& operator=(const UPwUpdatedLagrangianElement& rOther);
-    /// Copy constructor.
-    // UPwUpdatedLagrangianElement(const UPwUpdatedLagrangianElement& rOther);
-    ///@}
-
 }; // Class UPwUpdatedLagrangianElement
 
 ///@}
