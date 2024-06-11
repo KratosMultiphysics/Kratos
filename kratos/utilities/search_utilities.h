@@ -225,17 +225,19 @@ public:
         const double Tolerance
         )
     {
+        // Check if the tolerance is negative, if negative we don't even check
+        if (Tolerance < 0) {
+            return false;
+        }
+
         // Get the bounding box points
         auto max_point = rBoundingBox.GetMaxPoint();
         auto min_point = rBoundingBox.GetMinPoint();
 
-        // Apply Tolerances (only in non zero BB cases)
-        const double epsilon = std::numeric_limits<double>::epsilon();
-        if (norm_2(max_point) > epsilon && norm_2(min_point) > epsilon) {
-            for (unsigned int i=0; i<3; ++i) {
-                max_point[i] += Tolerance;
-                min_point[i] -= Tolerance;
-            }
+        // Apply Tolerances
+        for (unsigned int i = 0; i < 3; ++i) {
+            max_point[i] += Tolerance;
+            min_point[i] -= Tolerance;
         }
 
         // The Bounding Box check

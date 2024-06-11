@@ -80,6 +80,12 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
         self.rom_manager = settings["rom_manager"].GetBool()
 
+        # Set the flag to print the Singular Values vector corresponding to the SVD modes
+        self.print_singular_values = settings["print_singular_values"].GetBool()
+        if self.print_singular_values and self.rom_basis_output_format == "json":
+            err_msg = 'Cannot print singular values if using the "json" output format for CalculateRomBasisOutputProcess. Please use "numpy" instead.'
+            raise Exception(err_msg)
+
 
     @classmethod
     def GetDefaultParameters(self):
@@ -93,7 +99,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
             "rom_basis_output_folder" : "rom_data",
-            "svd_truncation_tolerance": 1.0e-6
+            "svd_truncation_tolerance": 1.0e-6,
+            "print_singular_values": false
         }""")
 
         return default_settings
@@ -133,12 +140,11 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def _ComputeSVD(self, snapshots_matrix):
 
         # Calculate the randomized SVD of the snapshots matrix
-        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        return u, sigma
 
-        return u
 
-
-    def _PrintRomBasis(self, u):
+    def _PrintRomBasis(self, u, sigma):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
@@ -190,6 +196,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             node_ids = numpy.array(node_ids)
             numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
             numpy.save(self.rom_basis_output_folder / "NodeIds.npy", node_ids)
+            if self.print_singular_values:
+                numpy.save(self.rom_basis_output_folder / "SingularValuesVector.npy", sigma)
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
@@ -200,7 +208,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             json.dump(rom_basis_dict, f, indent = 4)
 
 
-
     def ExecuteFinalize(self):
         # Prepare a NumPy array with the snapshots data
         self.n_nodes = self.model_part.NumberOfNodes()
@@ -208,8 +215,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         self.n_nodal_unknowns = len(self.snapshot_variables_list)
 
         if not self.rom_manager:
-            u = self._ComputeSVD(self._GetSnapshotsMatrix())
-            self._PrintRomBasis(u)
+            u, sigma = self._ComputeSVD(self._GetSnapshotsMatrix())
+            self._PrintRomBasis(u, sigma)
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"

@@ -68,11 +68,12 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
+-DMAKE_TRILINOS_OPTIONAL=ON                                            \
 -DCMAKE_C_COMPILER=gcc                                                 \
 -DCMAKE_CXX_COMPILER=g++                                               \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
--DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
+-DBOOST_ROOT="/workspace/boost/boost_1_74_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=ON                                              \

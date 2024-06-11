@@ -89,9 +89,13 @@ public:
         const Variable<TDataType>& rVariable,
         const IndexType DomainSize);
 
-    static void CopySolutionStepVariablesList(
+    static void SetSolutionStepVariablesList(
         ModelPart& rDestinationModelPart,
         const ModelPart& rOriginModelPart);
+
+    static bool IsSolutionStepVariablesListASubSet(
+        const ModelPart& rMainSetModelPart,
+        const ModelPart& rSubSetModelPart);
 
     static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,

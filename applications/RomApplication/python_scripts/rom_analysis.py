@@ -2,7 +2,7 @@ import importlib
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
@@ -45,14 +45,22 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])
 
             # Inner ROM settings
-            self.rom_bns_settings = self.rom_parameters["rom_settings"]["rom_bns_settings"]
+            self.rom_bns_settings = self.rom_parameters["rom_settings"]["rom_bns_settings"] if self.rom_parameters["rom_settings"].Has("rom_bns_settings") else KratosMultiphysics.Parameters("""{}""")
+
+            # Retrieve the ROM and HROM formats from settings, defaulting to 'json' for backward compatibility with earlier file formats and configurations.
+            # TODO: Consider switching the default to 'numpy' for ROM and another more efficient format for HROM
+            # for improved efficiency with large datasets in future versions.
+            self.rom_format = self.rom_parameters["rom_format"].GetString() if self.rom_parameters.Has("rom_format") else "json"
+            self.hrom_format = (self.rom_parameters["hrom_settings"]["hrom_format"].GetString()
+                                if self.rom_parameters["hrom_settings"].Has("hrom_format")
+                                else "json")
 
             # HROM operations flags
             self.rom_basis_process_list_check = True
             self.rom_basis_output_process_check = True
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
-            self.rom_manager = self.rom_parameters["rom_manager"].GetBool()
+            self.rom_manager = self.rom_parameters["rom_manager"].GetBool() if self.rom_parameters.Has("rom_manager") else False
             if self.run_hrom and self.train_hrom:
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
@@ -97,7 +105,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
             # Create the ROM solver
-            return new_python_solvers_wrapper_rom.CreateSolver(
+            return python_solvers_wrapper_rom.CreateSolver(
                 self.model,
                 self.project_parameters)
 
@@ -148,7 +156,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
             # Set the right nodal ROM basis
-            if self.rom_parameters["rom_format"].GetString() == "json":
+            if self.rom_format == "json":
                 aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
                 for node in computing_model_part.Nodes:
                     node_id = str(node.Id)
@@ -169,7 +177,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                                 aux[j,i] = petrov_galerkin_nodal_modes[node_id][j][i].GetDouble()
                         node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
 
-            elif self.rom_parameters["rom_format"].GetString() == "numpy":
+            elif self.rom_format == "numpy":
 
                 # Load node IDs and right modes
                 node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
@@ -219,7 +227,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     self._GetSolver(),
                     self.rom_parameters)
             elif self.run_hrom:
-                if self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "json":
+                if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
                     for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
@@ -227,7 +235,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
                     for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
+                elif self.hrom_format == "numpy":
                     # Set the HROM weights in elements and conditions
                     element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
