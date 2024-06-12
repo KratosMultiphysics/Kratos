@@ -22,8 +22,7 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
             "perturbation_size"            : 1e-8,
             "adapt_perturbation_size"      : true,
             "list_of_sensors"              : [],
-            "aggregation_technique"        : "square_sum",
-            "p_coefficient"                : -1,
+            "p_coefficient"                : 1,
             "output_settings"              : {
                 "output_sensor_sensitivity_fields": false,
                 "output_folder"                   : "Optimization_Results/sensor_sensitivity_fields"
@@ -39,13 +38,10 @@ class SystemIdentificationStaticAnalysis(AnalysisStage):
         self.listof_sensors = GetSensors(model_part, sensor_settings["list_of_sensors"].values())
 
         aggregation_technique = sensor_settings["aggregation_technique"].GetString()
-        if aggregation_technique == "square_sum":
-            self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction()
-        elif aggregation_technique == "p_norm":
-            p_coefficient = sensor_settings["p_coefficient"].GetDouble()
-            self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualPNormResponseFunction(p_coefficient)
-        else:
-            raise RuntimeError(f"aggregation_technique: {aggregation_technique} is not valid.")
+
+        p_coefficient = sensor_settings["p_coefficient"].GetDouble()
+        self.measurement_residual_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(p_coefficient)
+
         for sensor in self.listof_sensors:
             sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.measurement_residual_response_function.AddSensor(sensor)

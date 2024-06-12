@@ -21,7 +21,6 @@
 #include "custom_sensors/sensor.h"
 #include "custom_sensors/sensor_view.h"
 #include "custom_sensors/measurement_residual_response_function.h"
-#include "custom_sensors/measurement_residual_p_norm_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/strain_sensor.h"
 
@@ -100,19 +99,11 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         ;
 
     py::class_<MeasurementResidualResponseFunction, MeasurementResidualResponseFunction::Pointer, AdjointResponseFunction>(sensor_module, "MeasurementResidualResponseFunction")
-        .def(py::init<>())
+        .def(py::init<const double>())
         .def("AddSensor", &MeasurementResidualResponseFunction::AddSensor, py::arg("sensor"))
         .def("Clear", &MeasurementResidualResponseFunction::Clear)
         .def("GetSensorsList", &MeasurementResidualResponseFunction::GetSensorsList)
         .def("__str__", PrintObject<MeasurementResidualResponseFunction>)
-        ;
-
-    py::class_<MeasurementResidualPNormResponseFunction, MeasurementResidualPNormResponseFunction::Pointer, AdjointResponseFunction>(sensor_module, "MeasurementResidualPNormResponseFunction")
-        .def(py::init<const double>())
-        .def("AddSensor", &MeasurementResidualPNormResponseFunction::AddSensor, py::arg("sensor"))
-        .def("Clear", &MeasurementResidualPNormResponseFunction::Clear)
-        .def("GetSensorsList", &MeasurementResidualPNormResponseFunction::GetSensorsList)
-        .def("__str__", PrintObject<MeasurementResidualPNormResponseFunction>)
         ;
 
     py::class_<DisplacementSensor, DisplacementSensor::Pointer, Sensor>(sensor_module, "DisplacementSensor")
