@@ -62,7 +62,7 @@ std::string UnaryExpression<TOperationType>::Info() const
 
     if constexpr(std::is_same_v<TOperationType, UnaryOperations::Absolute>) {
         msg << "Abs";
-    } else if constexpr(std::is_same_v<TOperationType, UnaryOperations::Logarithmic>) {
+    } else if constexpr(std::is_same_v<TOperationType, UnaryOperations::Logarithm>) {
         msg << "Log";
     } else {
         static_assert(!std::is_same_v<TOperationType, TOperationType>, "Unsupported unary operation type.");
