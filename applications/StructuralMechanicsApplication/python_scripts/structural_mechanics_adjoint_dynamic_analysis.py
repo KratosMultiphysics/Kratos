@@ -13,6 +13,8 @@ class StructuralMechanicsAdjointDynamicAnalysis(StructuralMechanicsAnalysis):
         if solver_settings["time_stepping"].Has("time_step"):
             if not solver_settings["time_stepping"]["time_step"].GetDouble() < 0:
                 raise Exception("StructuralMechanicsAdjointDynamicAnalysis: " + '"time_step" in adjoint problem has to be negative!')
+        elif solver_settings["time_stepping"].Has("time_step_table"):
+            raise Exception("StructuralMechanicsAdjointDynamicAnalysis: there is currently no variable time stepping possible!")
 
         # Setting start and end time
         if not project_parameters["problem_data"].Has("start_time"):
