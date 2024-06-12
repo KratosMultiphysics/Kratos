@@ -124,6 +124,11 @@ class TestComputeMassMomentOfInertia(KratosUnittest.TestCase):
         elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
         elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
 
+        elem1.Initialize(mp.ProcessInfo)
+        elem2.Initialize(mp.ProcessInfo)
+        elem3.Initialize(mp.ProcessInfo)
+        elem4.Initialize(mp.ProcessInfo)
+
         p1 = KratosMultiphysics.Point(1.8, 0.0, 0.0)
         p2 = KratosMultiphysics.Point(1.8, 2.0, 0.0)
 
