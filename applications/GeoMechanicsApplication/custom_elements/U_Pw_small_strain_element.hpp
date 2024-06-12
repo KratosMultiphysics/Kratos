@@ -251,6 +251,7 @@ protected:
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
@@ -272,9 +273,10 @@ protected:
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables& rVariables);
 
-    virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                         const ElementVariables& rVariables,
-                                                         unsigned int            GPoint);
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
+                                                 const Vector& rStressVector,
+                                                 const Matrix& rGradNpt,
+                                                 double        IntegrationCoefficient) const;
 
     VectorType GetPressureSolutionVector();
 

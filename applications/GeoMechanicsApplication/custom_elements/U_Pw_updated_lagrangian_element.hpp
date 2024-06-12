@@ -222,6 +222,8 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -276,7 +278,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
-}; // Class UPwUpdatedLagrangianElement
+};
+
+// Class UPwUpdatedLagrangianElement
 
 ///@}
 ///@name Type Definitions
