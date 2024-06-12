@@ -259,7 +259,7 @@ public:
             }
         }
 
-        // // CONDITION NUMBER
+        // // // CONDITION NUMBER
         // ConditionNumberUtility mpConditionNumberUtility;
         // const double condition_number = mpConditionNumberUtility.GetConditionNumber(A);
         // const double minimum_eigenvalue = mpConditionNumberUtility.GetMinimumEigenvalue(A);

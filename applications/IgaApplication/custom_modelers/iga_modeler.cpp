@@ -501,7 +501,8 @@ namespace Kratos
             new_element_list.push_back(
                 rReferenceElement.Create(rIdCounter, (*it), pProperties));
             for (SizeType i = 0; i < (*it)->size(); ++i) {
-                rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.AddNode((*it)->pGetPoint(i));
+                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
         }
@@ -550,7 +551,8 @@ namespace Kratos
             }
             for (SizeType i = 0; i < (*it)->size(); ++i) {
                 // These are the control points associated with the basis functions involved in the condition we are creating
-                rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.AddNode((*it)->pGetPoint(i));
+                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
             countListClosestCondition++;
@@ -580,7 +582,8 @@ namespace Kratos
             new_condition_list.push_back(
                 rReferenceCondition.Create(rIdCounter, (*it), pProperties));
             for (SizeType i = 0; i < (*it)->size(); ++i) {
-                rModelPart.AddNode((*it)->pGetPoint(i));
+                // rModelPart.AddNode((*it)->pGetPoint(i));
+                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
             }
             rIdCounter++;
         }

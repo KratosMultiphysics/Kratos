@@ -130,7 +130,7 @@ namespace Kratos
         normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
         
         // Collins, Lozinsky & Scovazzi innovation
-        double Guglielmo_innovation = 1.0;  // = 1 -> Penalty approach
+        double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
                                             // = -1 -> Free-penalty approach
         if (penalty == -1.0) {
             penalty_integration = 0.0;
