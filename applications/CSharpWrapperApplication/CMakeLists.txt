@@ -7,6 +7,9 @@ include(pybind11Tools)
 
 include_directories(${KRATOS_SOURCE_DIR}/kratos)
 include_directories(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/RomApplication)
 
 set(KRATOS_WRAPPER_SOURCES_CORE
         ## MAIN FILES
@@ -40,7 +43,7 @@ set( KRATOS_WRAPPER_SOURCES_PYTHON_INTERFACE
         )
 
 add_library(KratosCSharpWrapperCore SHARED ${KRATOS_WRAPPER_SOURCES_CORE} ${KRATOS_WRAPPER_TESTING_SOURCES})
-target_link_libraries(KratosCSharpWrapperCore PUBLIC KratosCore KratosStructuralMechanicsCore)
+target_link_libraries(KratosCSharpWrapperCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosConvectionDiffusionCore KratosRomApplicationCore KratosConstitutiveLawsCore)
 set_target_properties(KratosCSharpWrapperCore PROPERTIES COMPILE_DEFINITIONS "CSHARP_WRAPPER_APPLICATION=EXPORT,API")
 
 ###############################################################

@@ -38,6 +38,10 @@ namespace CSharpKratosWrapper {
 
         void init(const char *MDPAFilePath, const char *JSONFilePath = NULL);
 
+        void initConvDiff(const char* MDPAFilePath, const char* JSONFilePath = NULL);
+
+        void initRom(const char* MDPAFilePath, const char* JSONFilePath = NULL, const char* JSONRomFilePath = NULL);
+
         void initWithSettings(const char *JSONFilePath = NULL);
 
         void calculate();

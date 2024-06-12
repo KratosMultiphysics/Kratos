@@ -32,8 +32,21 @@ namespace CSharpKratosWrapper
 
 void KratosInternals::initInternals() {
     mApplication.Register();
+    mConstitutiveLaws.Register();
     mKernel.Initialize();
 }
+
+void KratosInternals::initInternalsRom() {
+    mRomApplication.Register();
+    mRomEnable = true;
+}
+
+void KratosInternals::initInternalsConvDiff() {
+    mConvectionDiffusion.Register();
+    mConvDiffEnabled = true;
+}
+
+
 
 void KratosInternals::initModelPart() {
     mModel.Reset();
@@ -51,6 +64,29 @@ void KratosInternals::initModelPart() {
     r_model_part.AddNodalSolutionStepVariable(Kratos::DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(Kratos::REACTION);
     r_model_part.AddNodalSolutionStepVariable(Kratos::VOLUME_ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(Kratos::POSITIVE_FACE_PRESSURE);
+
+    if(mRomEnable) {
+
+        r_model_part.AddNodalSolutionStepVariable(Kratos::ROM_BASIS);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::HROM_WEIGHT);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::NODAL_AREA);
+    }
+
+
+    if (mConvDiffEnabled) {
+
+        r_model_part.AddNodalSolutionStepVariable(Kratos::TEMPERATURE);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::AMBIENT_TEMPERATURE);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::FACE_HEAT_FLUX);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::EMISSIVITY);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::CONVECTION_COEFFICIENT);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::HEAT_FLUX);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::DENSITY);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::CONDUCTIVITY);
+        r_model_part.AddNodalSolutionStepVariable(Kratos::VELOCITY);
+    }
+
 
     // Adding custom variables
     const std::size_t n_variables = mSettingsParameters["solver_settings"]["auxiliary_variables_list"].size();
@@ -91,6 +127,69 @@ void KratosInternals::loadSettingsParameters(const std::string& rJSONFilePath) {
 
     Kratos::Parameters default_parameters = GetDefaultParameters();
     mSettingsParameters.RecursivelyAddMissingParameters(default_parameters);
+}
+
+void KratosInternals::loadRomParameters(const std::string& rJSONFilePath) {
+    if (rJSONFilePath != "") {
+        std::ifstream infile(rJSONFilePath);
+        if (!infile.good()) std::cout << "JSON file: " << rJSONFilePath << " cannot be found" << std::endl;
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+        mRomParameters = Kratos::Parameters(buffer.str());
+    }
+
+    Kratos::Parameters defualt_rom_parameters = GetDefaultRomParameters();
+    mRomParameters.RecursivelyAddMissingParameters(defualt_rom_parameters);
+}
+
+void KratosInternals::loadHRomParameters(const std::string& rJSONFilePath) {
+    if (rJSONFilePath != "") {
+        std::ifstream infile(rJSONFilePath);
+        if (!infile.good()) std::cout << "JSON file: " << rJSONFilePath << " cannot be found" << std::endl;
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+        mHRomParameters = Kratos::Parameters(buffer.str());
+    }
+
+    Kratos::Parameters defualt_hrom_parameters = GetDefaultHRomParameters();
+    mHRomParameters.RecursivelyAddMissingParameters(defualt_hrom_parameters);
+}
+
+void KratosInternals::initRomGeometry() {
+    // Getting model part
+    auto& r_model_part = GetMainModelPart();
+
+    const size_t nodal_dofs = mRomParameters["rom_settings"]["nodal_unknowns"].size();
+    const int rom_dofs = mRomParameters["rom_settings"]["number_of_rom_dofs"].GetInt();
+
+    for each (auto & node in r_model_part.Nodes()) {
+        auto aux = Kratos::Matrix(nodal_dofs, rom_dofs);
+        for (int j = 0; j < nodal_dofs; j++) {
+            std::string Counter = std::to_string(node.Id());
+
+            for (int i = 0; i < rom_dofs; i++) {
+                auto nodal_modes = mRomParameters["nodal_modes"][Counter].GetMatrix();
+                aux(j, i) = nodal_modes(j, i);
+            }
+        }
+        node.SetValue(Kratos::ROM_BASIS, aux);
+    }
+}
+
+void KratosInternals::initHRomWeight() {
+    // Getting model part
+    auto& r_model_part = GetMainModelPart();
+
+    for (auto key = mHRomParameters["Elements"].begin(); key != mHRomParameters["Elements"].end(); ++key) {
+        int index = std::stoi(key.name()) + 1;
+        r_model_part.GetElement(index).SetValue(Kratos::HROM_WEIGHT, mHRomParameters["Elements"][key.name()].GetDouble());
+    }
+
+    for (auto key = mHRomParameters["Conditions"].begin(); key != mHRomParameters["Conditions"].end(); ++key) {
+        int index = std::stoi(key.name()) + 1;
+        r_model_part.GetCondition(index).SetValue(Kratos::HROM_WEIGHT, mHRomParameters["Conditions"][key.name()].GetDouble());
+    }
+
 }
 
 void KratosInternals::initDofs() {
@@ -140,7 +239,7 @@ void KratosInternals::initProperties() {
     } else { // We read the materials json
         Kratos::Parameters material_settings = Kratos::Parameters(R"({"Parameters": {"materials_filename": ""}})" );
         material_settings["Parameters"]["materials_filename"].SetString(r_materials_filename);
-        Kratos::ReadMaterialsUtility(material_settings, mModel);
+        Kratos::ReadMaterialsUtility readMat = Kratos::ReadMaterialsUtility(material_settings, mModel);
     }
 }
 
@@ -159,6 +258,9 @@ void KratosInternals::initSolver() {
             }
         }
     }
+
+    std::string analysisType = mSettingsParameters["solver_settings"]["analysis_type"].GetString();
+
     ResidualBasedEliminationBuilderAndSolverType::Pointer pBuilderAndSolver = Kratos::make_shared<ResidualBasedEliminationBuilderAndSolverType>(pSolver);
     ResidualBasedIncrementalUpdateStaticSchemeType::Pointer pScheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
     const double residual_relative_tolerance = mSettingsParameters["solver_settings"]["residual_relative_tolerance"].GetDouble();
@@ -171,25 +273,198 @@ void KratosInternals::initSolver() {
     const bool reformStepDofs = mSettingsParameters["solver_settings"]["reform_dofs_at_each_step"].GetBool();
     const bool moveMeshFlag = mSettingsParameters["solver_settings"]["move_mesh_flag"].GetBool();
 
-    pmStrategy = Kratos::make_shared < ResidualBasedNewtonRaphsonStrategyType >(
-        GetMainModelPart(),
-        pScheme,
-        pSolver,
-        pConvergenceCriterion,
-        pBuilderAndSolver,
-        maxIters,
-        computerReactions,
-        reformStepDofs,
-        moveMeshFlag);
+    const bool calculateReactionFlag = mSettingsParameters["solver_settings"]["calculate_reaction_flag"].GetBool();
+    const bool calculateNormDxFlag = mSettingsParameters["solver_settings"]["calculate_norm_dx_flag"].GetBool();
 
-    pmStrategy->SetEchoLevel(mSettingsParameters["problem_data"]["echo_level"].GetInt());
-    pmStrategy->Check();
+    if (analysisType == "linear") {
+        pmLinearStrategy = Kratos::make_shared<ResidualBasedLinearStrategyType>(
+            GetMainModelPart(),
+            pScheme,
+            pBuilderAndSolver,
+            calculateReactionFlag,
+            reformStepDofs,
+            calculateNormDxFlag,
+            moveMeshFlag
+            );
+
+    }
+
+    if (analysisType == "non_linear") {
+        pmStrategy = Kratos::make_shared < ResidualBasedNewtonRaphsonStrategyType >(
+            GetMainModelPart(),
+            pScheme,
+            pConvergenceCriterion,
+            pBuilderAndSolver,
+            maxIters,
+            computerReactions,
+            reformStepDofs,
+            moveMeshFlag);
+
+        pmStrategy->SetEchoLevel(mSettingsParameters["problem_data"]["echo_level"].GetInt());
+        pmStrategy->Check();
+    }
+}
+
+void KratosInternals::initSolverRom() {
+    LinearSolverType::Pointer pSolver = nullptr;
+    // User specified a linear solver
+    std::cout << mSettingsParameters["solver_settings"]<< std::endl;
+    if (mSettingsParameters["solver_settings"]["linear_solver_settings"].Has("solver_type")) {
+        pSolver = LinearSolverFactoryType().Create(mSettingsParameters["solver_settings"]["linear_solver_settings"]);
+    }
+    else { // Automatic
+        std::array<std::string, 5> linear_solvers_by_speed = { "pastix", "super_lu", "skyline_lu_factorization" };
+        for (auto& r_name_solver : linear_solvers_by_speed) {
+            if (LinearSolverFactoryType().Has(r_name_solver)) {
+                mSettingsParameters["solver_settings"]["linear_solver_settings"].AddEmptyValue("solver_type").SetString(r_name_solver);
+                pSolver = LinearSolverFactoryType().Create(mSettingsParameters["solver_settings"]["linear_solver_settings"]);
+                break;
+            }
+        }
+    }
+
+    std::string analysisType = mSettingsParameters["solver_settings"]["analysis_type"].GetString();
+
+    ROMBuilderAndSolverType::Pointer pBuilderAndSolver = Kratos::make_shared<ROMBuilderAndSolverType>(pSolver, mRomParameters["rom_settings"]);
+    ResidualBasedIncrementalUpdateStaticSchemeType::Pointer pScheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
+    const double residual_relative_tolerance = mSettingsParameters["solver_settings"]["residual_relative_tolerance"].GetDouble();
+    const double residual_absolute_tolerance = mSettingsParameters["solver_settings"]["residual_absolute_tolerance"].GetDouble();
+    ResidualCriteriaType::Pointer pConvergenceCriterion = Kratos::make_shared<ResidualCriteriaType>(residual_relative_tolerance, residual_absolute_tolerance);
+    pConvergenceCriterion->SetEchoLevel(mSettingsParameters["solver_settings"]["echo_level"].GetInt());
+
+    const int maxIters = mSettingsParameters["solver_settings"]["max_iteration"].GetInt();
+    const bool computerReactions = mSettingsParameters["solver_settings"]["compute_reactions"].GetBool();
+    const bool reformStepDofs = mSettingsParameters["solver_settings"]["reform_dofs_at_each_step"].GetBool();
+    const bool moveMeshFlag = mSettingsParameters["solver_settings"]["move_mesh_flag"].GetBool();
+
+    const bool calculateReactionFlag = mSettingsParameters["solver_settings"]["calculate_reaction_flag"].GetBool();
+    const bool calculateNormDxFlag = mSettingsParameters["solver_settings"]["calculate_norm_dx_flag"].GetBool();
+
+    if (analysisType == "linear") {
+
+        pmLinearStrategy = Kratos::make_shared<ResidualBasedLinearStrategyType>(
+            GetMainModelPart(),
+            pScheme,
+            pBuilderAndSolver,
+            calculateReactionFlag,
+            reformStepDofs,
+            calculateNormDxFlag,
+            moveMeshFlag
+            );
+
+        pmLinearStrategy->SetEchoLevel(mSettingsParameters["problem_data"]["echo_level"].GetInt());
+        pmLinearStrategy->Check();
+    }
+
+    if (analysisType == "non_linear") {
+        pmStrategy = Kratos::make_shared < ResidualBasedNewtonRaphsonStrategyType >(
+            GetMainModelPart(),
+            pScheme,
+            pConvergenceCriterion,
+            pBuilderAndSolver,
+            maxIters,
+            computerReactions,
+            reformStepDofs,
+            moveMeshFlag);
+
+        pmStrategy->SetEchoLevel(mSettingsParameters["problem_data"]["echo_level"].GetInt());
+        pmStrategy->Check();
+    }
+}
+
+void KratosInternals::initSolverConvDiff() {
+    LinearSolverType::Pointer pSolver = nullptr;
+    // User specified a linear solver
+    std::cout << mSettingsParameters["solver_settings"] << std::endl;
+    if (mSettingsParameters["solver_settings"]["linear_solver_settings"].Has("solver_type")) {
+        pSolver = LinearSolverFactoryType().Create(mSettingsParameters["solver_settings"]["linear_solver_settings"]);
+    }
+    else { // Automatic
+        std::array<std::string, 5> linear_solvers_by_speed = { "pastix", "super_lu", "skyline_lu_factorization" };
+        for (auto& r_name_solver : linear_solvers_by_speed) {
+            if (LinearSolverFactoryType().Has(r_name_solver)) {
+                mSettingsParameters["solver_settings"]["linear_solver_settings"].AddEmptyValue("solver_type").SetString(r_name_solver);
+                pSolver = LinearSolverFactoryType().Create(mSettingsParameters["solver_settings"]["linear_solver_settings"]);
+                break;
+            }
+        }
+    }
+
+    std::string analysisType = mSettingsParameters["solver_settings"]["analysis_type"].GetString();
+
+    ROMBuilderAndSolverType::Pointer pBuilderAndSolver = Kratos::make_shared<ROMBuilderAndSolverType>(pSolver, mRomParameters["rom_settings"]);
+    ResidualBasedIncrementalUpdateStaticSchemeType::Pointer pScheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticSchemeType>();
+    const double residual_relative_tolerance = mSettingsParameters["solver_settings"]["residual_relative_tolerance"].GetDouble();
+    const double residual_absolute_tolerance = mSettingsParameters["solver_settings"]["residual_absolute_tolerance"].GetDouble();
+    ResidualCriteriaType::Pointer pConvergenceCriterion = Kratos::make_shared<ResidualCriteriaType>(residual_relative_tolerance, residual_absolute_tolerance);
+    pConvergenceCriterion->SetEchoLevel(mSettingsParameters["solver_settings"]["echo_level"].GetInt());
+
+    const int maxIters = mSettingsParameters["solver_settings"]["max_iteration"].GetInt();
+    const bool computerReactions = mSettingsParameters["solver_settings"]["compute_reactions"].GetBool();
+    const bool reformStepDofs = mSettingsParameters["solver_settings"]["reform_dofs_at_each_step"].GetBool();
+    const bool moveMeshFlag = mSettingsParameters["solver_settings"]["move_mesh_flag"].GetBool();
+
+    const bool calculateReactionFlag = mSettingsParameters["solver_settings"]["calculate_reaction_flag"].GetBool();
+    const bool calculateNormDxFlag = mSettingsParameters["solver_settings"]["calculate_norm_dx_flag"].GetBool();
+
+    if (analysisType == "linear") {
+
+        pmConvStrategy = Kratos::make_shared<ResidualBasedConvectionDiffusionStrategyType>(
+            GetMainModelPart(),
+            pSolver,
+            true,
+            2,
+            2
+            );
+
+        pmConvStrategy->SetEchoLevel(mSettingsParameters["problem_data"]["echo_level"].GetInt());
+        pmConvStrategy->Check();
+    }
+
+    if (analysisType == "non_linear") {
+        pmNonLinearConvStrategy = Kratos::make_shared < ResidualBasedConvectionDiffusionStrategyNonLinearType >(
+            GetMainModelPart(),
+            pSolver,
+            true,
+            2,
+            30,
+            1e-6
+         );
+
+        pmNonLinearConvStrategy->SetEchoLevel(mSettingsParameters["problem_data"]["echo_level"].GetInt());
+        pmNonLinearConvStrategy->Check();
+    }
 }
 
 void KratosInternals::solve() {
-    // TODO: Add everything related with the delta time, time, steps... (this is important in many solvers)
-    pmStrategy->Solve();
+    std::string analysisType = mSettingsParameters["solver_settings"]["analysis_type"].GetString();
+
+
+    if (mConvDiffEnabled) {
+        if (analysisType == "linear") {
+            // TODO: Add everything related with the delta time, time, steps... (this is important in many solvers)
+            pmConvStrategy->Solve();
+        }
+
+        if (analysisType == "non_linear") {
+            // TODO: Add everything related with the delta time, time, steps... (this is important in many solvers)
+            pmNonLinearConvStrategy->Solve();
+        }
+    }
+
+    else {
+        if (analysisType == "linear") {
+            // TODO: Add everything related with the delta time, time, steps... (this is important in many solvers)
+            pmLinearStrategy->Solve();
+        }
+
+        if (analysisType == "non_linear") {
+            // TODO: Add everything related with the delta time, time, steps... (this is important in many solvers)
+            pmStrategy->Solve();
+        }
+    }
 }
+
 
 Kratos::ModelPart& KratosInternals::GetMainModelPart() {
     return mModel.GetModelPart(mModelpartName);
@@ -232,6 +507,8 @@ Kratos::Parameters KratosInternals::GetDefaultParameters() {
             "clear_storage"                     : false,
             "move_mesh_flag"                    : true,
             "multi_point_constraints_used"      : true,
+            "calculate_norm_dx_flag"            : false,
+            "calculate_reaction_flag"           : false,
             "convergence_criterion"             : "residual_criterion",
             "displacement_relative_tolerance"   : 1.0e-4,
             "displacement_absolute_tolerance"   : 1.0e-9,
@@ -250,5 +527,30 @@ Kratos::Parameters KratosInternals::GetDefaultParameters() {
     })" );
 
     return default_parameters;
+}
+
+Kratos::Parameters KratosInternals::GetDefaultRomParameters() {
+    Kratos::Parameters default_rom_parameters = Kratos::Parameters(R"(
+     {
+            "rom_settings": {
+            "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
+            "number_of_rom_dofs": 3
+            }
+     })");
+
+    return default_rom_parameters;
+}
+
+
+Kratos::Parameters KratosInternals::GetDefaultHRomParameters() {
+    Kratos::Parameters default_hrom_parameters = Kratos::Parameters(R"(
+     {
+            "Elements": {
+            },
+            "Conditions":{
+            }
+     })");
+
+    return default_hrom_parameters;
 }
 }
