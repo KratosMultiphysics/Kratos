@@ -502,6 +502,8 @@ class GiDOutputFileReader:
             value["value"] = float(words[1])
         elif self.result_type == "Vector":
             value["value"] = [float(x) for x in words[1:]]
+        elif self.result_type == "Matrix":
+            value["value"] = [float(x) for x in words[1:]]
         self.output_data["results"][self.result_name][-1]["values"].append(value)
 
     def _process_gauss_point_result(self, words):

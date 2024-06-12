@@ -67,6 +67,24 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::GetVariableLists(const Par
                "variables list."
             << std::endl;
     }
+
+    for (const auto p_var : mDoubleVariable) {
+        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
+            << "Double variable: " << p_var->Name() << std::endl;
+    }
+    for (const auto p_var : mArrayVariable) {
+        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
+            << "Array variable: " << p_var->Name() << std::endl;
+    }
+
+    for (const auto p_var : mVectorVariable) {
+        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
+            << "Vector variable: " << p_var->Name() << std::endl;
+    }
+    for (const auto p_var : mMatrixVariable) {
+        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
+            << "Matrix variable: " << p_var->Name() << std::endl;
+    }
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::Execute()
@@ -175,7 +193,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 rElem.CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     double aux_sol = 0.;
-                    // double aux_sol = inner_prod( row(extrapolation_matrix, i_node), aux_result);
                     for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                         aux_sol += extrapolation_matrix(i_node, i_gauss_point) * aux_result[i_gauss_point];
                     }
@@ -194,12 +211,11 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                         double nodal_area = r_this_geometry[i_node].GetValue(mrAverageVariable);
-                        array_1d<double, 3>& aux_value =
-                            mExtrapolateNonHistorical
-                                ? r_this_geometry[i_node].GetValue(*p_var)
-                                : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         const array_1d<double, 3>& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
                                                              aux_result[i_gauss_point] / nodal_area;
+                        auto& aux_value = mExtrapolateNonHistorical
+                                              ? r_this_geometry[i_node].GetValue(*p_var)
+                                              : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
                         AtomicAdd(aux_value, aux_sol);
                     }
                 }
@@ -211,12 +227,12 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 rElem.CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
                 for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        double  nodal_area    = r_this_geometry[i_node].GetValue(mrAverageVariable);
-                        Vector& aux_value     = mExtrapolateNonHistorical
-                                                    ? r_this_geometry[i_node].GetValue(*p_var)
-                                                    : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        const Vector& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
-                                                aux_result[i_gauss_point] / nodal_area;
+                        double nodal_area   = r_this_geometry[i_node].GetValue(mrAverageVariable);
+                        auto&  aux_value    = mExtrapolateNonHistorical
+                                                  ? r_this_geometry[i_node].GetValue(*p_var)
+                                                  : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
+                        const auto& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
+                                              aux_result[i_gauss_point] / nodal_area;
                         for (IndexType i_comp = 0; i_comp < aux_sol.size(); ++i_comp) {
                             AtomicAdd(aux_value[i_comp], aux_sol[i_comp]);
                         }
