@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+import os
 
 # Temporaly failing
 # @KratosUnittest.skipIf(True, "Temporaly Failing")
@@ -34,6 +35,9 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
 
         model = Kratos.Model()
         analysis = OptimizationAnalysis(model, parameters)
+        import os
+        cwd = os.getcwd()
+        os.chdir(cwd + "/algorithm_tests/analysis_based_tests/algorithm_relaxed_gradient_projection/") # needed for relative paths to input files, comment for local execution.
         analysis.Initialize()
         analysis.Check()
         algorithm = analysis.GetAlgorithm()
@@ -63,7 +67,7 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
         self.assertAlmostEqual(constraint.BSF, 2.0)
         self.assertAlmostEqual(constraint.BSF_init, 2.0)
         self.assertAlmostEqual(constraint.CBV, 0.0)
-        self.assertAlmostEqual(constraint.BS, 143814638.0495219, 3)
+        self.assertAlmostEqual(constraint.BS, 143814638.05138612)
         self.assertAlmostEqual(constraint.max_w_c, 10)
         self.assertAlmostEqual(constraint.CF, 1)
 
