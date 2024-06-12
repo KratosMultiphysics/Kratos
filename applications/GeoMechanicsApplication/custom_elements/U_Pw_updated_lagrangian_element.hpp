@@ -71,12 +71,12 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mRetentionLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
 

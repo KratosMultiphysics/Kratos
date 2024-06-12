@@ -26,7 +26,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement : public UPwBaseElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement : public UPwBaseElement
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwSmallStrainElement);
@@ -40,25 +40,25 @@ public:
     using MatrixType     = Matrix;
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mRetentionLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::mIsInitialised;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mIsInitialised;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
 
-    explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim, TNumNodes>(NewId) {}
+    explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
     /// Constructor using Geometry
     UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
@@ -67,7 +67,7 @@ public:
                           GeometryType::Pointer              pGeometry,
                           PropertiesType::Pointer            pProperties,
                           std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
     }
 
@@ -97,7 +97,7 @@ public:
                                       const std::vector<Vector>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
-    using UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints;
+    using UPwBaseElement::SetValuesOnIntegrationPoints;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
@@ -114,6 +114,8 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
+
+    using UPwBaseElement::CalculateOnIntegrationPoints;
 
     std::string Info() const override
     {

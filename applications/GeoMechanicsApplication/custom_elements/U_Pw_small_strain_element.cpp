@@ -46,7 +46,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     // Base class checks for positive area and Id > 0
     // Verify generic variables
-    int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
