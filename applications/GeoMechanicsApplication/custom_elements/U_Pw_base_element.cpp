@@ -492,21 +492,13 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandS
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                                                        double detJ) const
-
-{
-    return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
     auto result = std::vector<double>{};
     std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
                    std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
+        return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ, GetGeometry());
     });
     return result;
 }

@@ -168,6 +168,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
     const Matrix& NContainer = r_geom.ShapeFunctionsValues(mThisIntegrationMethod);
     Vector        detJContainer(NumGPoints);
     r_geom.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Element variables
     InterfaceElementVariables Variables;
@@ -193,8 +195,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMassMatrix(Matrix
 
         this->CalculateJointWidth(Variables.JointWidth, LocalRelDispVector[TDim - 1], MinimumJointWidth, GPoint);
 
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1239,6 +1240,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
     Geom.Jacobian(JContainer, mThisIntegrationMethod);
     Vector detJContainer(NumGPoints);
     Geom.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, detJContainer);
 
     // Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, CurrentProcessInfo);
@@ -1279,8 +1282,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], detJContainer[GPoint]);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);

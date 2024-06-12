@@ -215,14 +215,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
     rGeom.ShapeFunctionsIntegrationPointsGradients(Variables.DN_DXContainer,
                                                    Variables.detJContainer, mThisIntegrationMethod);
 
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
+
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         noalias(Variables.GradNpT) = Variables.DN_DXContainer[GPoint];
         Variables.detJ             = Variables.detJContainer[GPoint];
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(IntegrationPoints[GPoint], Variables.detJ);
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         for (unsigned int node = 0; node < TNumNodes; ++node) {
             double HydraulicDischarge = 0;
@@ -914,7 +916,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto det_Js_initial_configuration =
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(rGeom, this->GetIntegrationMethod());
-
     const auto integration_coefficients_on_initial_configuration =
         this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
 
