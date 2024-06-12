@@ -791,12 +791,12 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		const double s_p = data.YieldStressCompression;
 		const double s_i = s_p;
 		const double s_j = s_p;
-		const double s_u = data.ResidualStressCompression;
+		const double s_u = std::abs(data.ResidualStressCompression);
 		const double s_r = s_u;
 		const double s_k = s_r + (s_p - s_r) * c1;
 
 		const double e_0 = s_0 / young_modulus;
-		double e_p = data.YieldStrainCompression;
+		double e_p = std::abs(data.YieldStrainCompression);
 		const double alpha  = 2.0 * (e_p - s_p / young_modulus);
 		double e_j = e_p + alpha * c2;
 		double e_k = e_j + alpha * (1.0 - c2);
@@ -805,18 +805,35 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 		double e_i = s_p / young_modulus;
 
 		const double Gc1 = 0.5 * s_p * e_p;
-		const double Gc2 = EvaluateBezierArea(e_p, e_j, e_k, s_p, s_j, s_k);
-		const double Gc3 = EvaluateBezierArea(e_k, e_r, e_u, s_k, s_r, s_u);
+		const double Gc2 = (EvaluateBezierArea(e_p, e_j, e_k, s_p, s_j, s_k));
+		const double Gc3 = (EvaluateBezierArea(e_k, e_r, e_u, s_k, s_r, s_u));
 		const double bezier_fracture_energy = Gc1 + Gc2 + Gc3;
 
 		const double stretcher = (specific_fracture_energy - Gc1) / (bezier_fracture_energy - Gc1) - 1.0;
 
 		if (stretcher <= -1.0){
 			std::stringstream ss;
-			ss << "FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
+			ss << "\n FRACTURE_ENERGY_COMPRESSION is too low" << std::endl;
+			ss << "C1 = " << data.BezierControllerC1 <<std::endl;
+			ss << "C2 = " << data.BezierControllerC2 <<std::endl;
+			ss << "C3 = " << data.BezierControllerC3 <<std::endl;
 			ss << "Characteristic Length = " << data.CharacteristicLength <<std::endl;
-			ss << "Input Gc/lch = " << specific_fracture_energy << std::endl;
-			ss << "To avoid constitutive snap-back, FRACTURE_ENERGY_COMPRESSION should be at least = " << Gc1 << std::endl;
+			ss << "Gc = " << data.FractureEnergyCompression <<std::endl;
+			ss << "E = " << young_modulus << std::endl;
+			ss << "yield compr = " << data.YieldStressCompression << std::endl;
+			ss << "strain yield compr = " << data.YieldStrainCompression << std::endl;
+			ss << "stretcher = " << stretcher << std::endl;
+			ss << "e_0 = " << e_0 << std::endl;
+			ss << "e_i = " << e_i << std::endl;
+			ss << "e_p = " << e_p << std::endl;
+			ss << "e_j = " << e_j << std::endl;
+			ss << "e_k = " << e_k << std::endl;
+			ss << "e_r = " << e_r << std::endl;
+			ss << "e_u = " << e_u << std::endl;
+			ss << "Gc1 = " << Gc1 << std::endl;
+			ss << "Gc2 = " << Gc2 << std::endl;
+			ss << "Gc3 = " << Gc3 << std::endl;
+			ss << "Total energy = " << bezier_fracture_energy << std::endl;
 			std::cout << ss.str();
 			exit(-1);
 		}
