@@ -99,7 +99,7 @@ Expression::ConstPointer ExpressionUtils::Log(const Expression::ConstPointer& rp
 {
     KRATOS_TRY
 
-    return UnaryExpression<UnaryOperations::Logarithmic>::Create(rpExpression);
+    return UnaryExpression<UnaryOperations::Logarithm>::Create(rpExpression);
 
     KRATOS_CATCH("");
 }

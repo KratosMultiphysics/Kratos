@@ -74,6 +74,6 @@ std::string UnaryExpression<TOperationType>::Info() const
 
 // template instantiations
 template class UnaryExpression<UnaryOperations::Absolute>;
-template class UnaryExpression<UnaryOperations::Logarithmic>;
+template class UnaryExpression<UnaryOperations::Logarithm>;
 
 } // namespace Kratos
