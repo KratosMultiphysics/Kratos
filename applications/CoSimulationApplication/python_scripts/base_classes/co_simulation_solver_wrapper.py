@@ -65,13 +65,6 @@ class CoSimulationSolverWrapper:
         if self.__HasIO():
             self.__GetIO().Finalize()
 
-    def SetTime (self,current_time):
-        # this method is only required for steady solvers which need to
-        # get the global time of the cosimulation to update internal
-        # parameter depending on the cosimulation time
-        # It must be implemented in the derived solver wrapper class.
-        pass
-
     def AdvanceInTime(self, current_time):
         # in case a solver does not provide time information (e.g. external or steady solvers),
         # then this solver should return "0.0" here

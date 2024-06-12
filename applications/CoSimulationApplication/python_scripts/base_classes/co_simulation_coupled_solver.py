@@ -81,9 +81,8 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         self.process_info = KM.ProcessInfo()
 
         # TODO initialize this in a restart
-        self.time = 0.0
         self.process_info[KM.STEP] = 0
-        self.process_info[KM.TIME] = self.time
+        self.process_info[KM.TIME] = 0.0
         self.process_info[KM.IS_RESTARTED] = False
 
         self.solver_wrappers = self.__CreateSolverWrappers(models)
@@ -179,7 +178,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
     def InitializeSolutionStep(self):
         for solver in self.solver_wrappers.values():
-            solver.SetTime(self.time)
             solver.InitializeSolutionStep()
 
         for predictor in self.predictors_list:
