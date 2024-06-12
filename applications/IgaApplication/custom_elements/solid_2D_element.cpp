@@ -22,7 +22,7 @@
 #include "utilities/geometry_utilities.h"
 
 // Application includes
-#include "custom_elements/plain_stress_element.h"
+#include "custom_elements/solid_2D_element.h"
 
 #include "utilities/math_utils.h"
 #include "utilities/function_parser_utility.h"
@@ -31,7 +31,7 @@
 namespace Kratos
 {
 
-PlainStressElement::PlainStressElement(
+Solid2DElement::Solid2DElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(
@@ -40,7 +40,7 @@ PlainStressElement::PlainStressElement(
 {
 }
 
-PlainStressElement::PlainStressElement(
+Solid2DElement::Solid2DElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -51,35 +51,35 @@ PlainStressElement::PlainStressElement(
 {
 }
 
-Element::Pointer PlainStressElement::Create(
+Element::Pointer Solid2DElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<PlainStressElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<Solid2DElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer PlainStressElement::Create(
+Element::Pointer Solid2DElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<PlainStressElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<Solid2DElement>(NewId, pGeom, pProperties);
 }
 
 // Deconstructor
 
-PlainStressElement::~PlainStressElement()
+Solid2DElement::~Solid2DElement()
 {
 }
 
-void PlainStressElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+void Solid2DElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
 }
 
 
-void PlainStressElement::InitializeMaterial()
+void Solid2DElement::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -99,7 +99,7 @@ void PlainStressElement::InitializeMaterial()
 
 
 // From classical Laplacian
-void PlainStressElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void Solid2DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -168,7 +168,10 @@ void PlainStressElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
     auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
-    const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0);
+
+    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+
+    const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
     // MODIFIED
     Matrix B = ZeroMatrix(3,mat_size);
@@ -230,7 +233,7 @@ void PlainStressElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
 // From classical Laplacian
-void PlainStressElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void Solid2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
@@ -238,7 +241,7 @@ void PlainStressElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 
 
 // From classical Laplacian
-void PlainStressElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void Solid2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -248,7 +251,7 @@ void PlainStressElement::CalculateRightHandSide(VectorType& rRightHandSideVector
 
 
 
-void PlainStressElement::EquationIdVector(
+void Solid2DElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -271,7 +274,7 @@ void PlainStressElement::EquationIdVector(
         KRATOS_CATCH("")
     };
 
-    void PlainStressElement::GetDofList(
+    void Solid2DElement::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -293,7 +296,7 @@ void PlainStressElement::EquationIdVector(
 
 
 
-int PlainStressElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int Solid2DElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     // // Verify that the constitutive law exists
     // if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
@@ -316,23 +319,22 @@ int PlainStressElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 
-Element::IntegrationMethod PlainStressElement::GetIntegrationMethod() const
+Element::IntegrationMethod Solid2DElement::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 
 
-void PlainStressElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void Solid2DElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     // ConstitutiveLaw::Parameters constitutive_law_parameters(
     //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-    // for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-    //     mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
-    //         constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
-    // }
+    // mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
 
+    
+/////////////////////////
     const auto& r_geometry = GetGeometry();
     const SizeType nb_nodes = r_geometry.size();
 
@@ -366,16 +368,68 @@ void PlainStressElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
         output_file << rOutput << " " << x_coord_gauss_point << " " << y_coord_gauss_point << " " <<integration_points[0].Weight() << std::endl;
         output_file.close();
+    } 
+}
+
+void Solid2DElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+
+    // ConstitutiveLaw::Parameters constitutive_law_parameters(
+    //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+    // mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+}
+
+
+// RESULTS ON GAUSS POINTS 11 06 24
+void Solid2DElement::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+    if (rOutput.size() != r_integration_points.size())
+    {
+        rOutput.resize(r_integration_points.size());
+    }
+
+    if (mpConstitutiveLaw->Has(rVariable)) {
+        mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
+    } else {
+        KRATOS_WATCH(rVariable);
+        KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
+    }
+}
+void Solid2DElement::CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 >>& rVariable,
+        std::vector<array_1d<double, 3 >>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
+
+    if (mpConstitutiveLaw->Has(rVariable)) {
+        mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
+    } else {
+            KRATOS_WATCH(rVariable);
+            KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
     }
 }
 
-void PlainStressElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-}
+
 
 //------------------------------------------------------------------------------------
 // MODIFIED
 //------------------------------------------------------------------------------------
-array_1d<double, 3> PlainStressElement::GetBodyForce(
+array_1d<double, 3> Solid2DElement::GetBodyForce(
 const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
 const IndexType PointNumber
 ) const
@@ -386,7 +440,7 @@ const IndexType PointNumber
     // return StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
 }
 
-void PlainStressElement::CalculateKinematicVariables(
+void Solid2DElement::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
@@ -395,7 +449,7 @@ void PlainStressElement::CalculateKinematicVariables(
 
 }
 
-void PlainStressElement::CalculateB(
+void Solid2DElement::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -420,7 +474,7 @@ void PlainStressElement::CalculateB(
 
 
 
-void PlainStressElement::GetValuesVector(
+void Solid2DElement::GetValuesVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();

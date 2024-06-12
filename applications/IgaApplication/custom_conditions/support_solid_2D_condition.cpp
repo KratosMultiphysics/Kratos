@@ -16,18 +16,18 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/support_plain_stress_condition.h"
+#include "custom_conditions/support_solid_2D_condition.h"
 
 namespace Kratos
 {
 
-    void SupportPlainStressCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    void SupportSolid2DCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         InitializeMaterial();
     }
 
 
-    void SupportPlainStressCondition::InitializeMaterial()
+    void SupportSolid2DCondition::InitializeMaterial()
     {
         KRATOS_TRY
         if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -44,7 +44,7 @@ namespace Kratos
         KRATOS_CATCH( "" );
 
     }
-    void SupportPlainStressCondition::CalculateAll(
+    void SupportSolid2DCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -106,19 +106,8 @@ namespace Kratos
         normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
 
         // MODIFIED
-        double nu = this->GetProperties().GetValue(POISSON_RATIO);
-        double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-
         Vector old_displacement(mat_size);
         GetValuesVector(old_displacement);
-
-        // Matrix D = ZeroMatrix(3,3);
-        // D(0,0) = 1; 
-        // D(0,1) = nu;
-        // D(1,0) = nu;
-        // D(1,1) = 1;
-        // D(2,2) = (1-nu)/2;
-        // D *= E/(1-nu*nu);
 
         
         /////
@@ -143,8 +132,9 @@ namespace Kratos
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[0],InvJ0);
 
-        //auto N = row(N_gausspoint,0); // these are the N which correspond to the gauss point "i_point"
-        //const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0);
+        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+
+        const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
 
         // MODIFIED
         Matrix B = ZeroMatrix(3,mat_size);
@@ -190,7 +180,7 @@ namespace Kratos
 
 
         // Differential area
-        double penalty_integration = penalty * integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
+        double penalty_integration = penalty * IntToReferenceWeight;
 
         // Guglielmo innovaction
         double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
@@ -206,7 +196,7 @@ namespace Kratos
         //CalculateB(B, DN_DX);
 
         Matrix DB = prod(r_D,B);
-        double integration_factor = integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
+        double integration_factor = IntToReferenceWeight;
         for (IndexType i = 0; i < number_of_nodes; i++) {
             for (IndexType j = 0; j < number_of_nodes; j++) {
                 
@@ -274,14 +264,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    int SupportPlainStressCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SupportSolid2DCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void SupportPlainStressCondition::EquationIdVector(
+    void SupportSolid2DCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -300,7 +290,7 @@ namespace Kratos
         }
     }
 
-    void SupportPlainStressCondition::GetDofList(
+    void SupportSolid2DCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -319,7 +309,7 @@ namespace Kratos
     };
 
 
-    void SupportPlainStressCondition::GetValuesVector(
+    void SupportSolid2DCondition::GetValuesVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -338,7 +328,7 @@ namespace Kratos
         }
     }
 
-    void SupportPlainStressCondition::CalculateB(
+    void SupportSolid2DCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {

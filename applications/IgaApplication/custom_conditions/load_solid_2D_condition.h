@@ -8,37 +8,31 @@
 //                   Kratos default license: kratos/license.txt
 //
 
-#if !defined(KRATOS_SUPPORT_PLAIN_STRESS_CONDITION_H_INCLUDED )
-#define  KRATOS_SUPPORT_PLAIN_STRESS_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LOAD_PLAIN_STRESS_CONDITION_H_INCLUDED )
+#define  KRATOS_LOAD_PLAIN_STRESS_CONDITION_H_INCLUDED
 
 
 // System includes
 #include "includes/define.h"
 #include "includes/condition.h"
-#include "utilities/math_utils.h"
-#include "includes/variables.h"
-
 
 // External includes
 
 // Project includes
 #include "iga_application_variables.h"
 
-// Project includes
-#include "includes/constitutive_law.h"
-
 namespace Kratos
 {
     /// Condition for penalty support condition
-    class SupportPlainStressCondition
+    class LoadSolid2DCondition
         : public Condition
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Counted pointer definition of SupportPlainStressCondition
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SupportPlainStressCondition);
+        /// Counted pointer definition of LoadSolid2DCondition
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LoadSolid2DCondition);
 
         /// Size types
         typedef std::size_t SizeType;
@@ -47,18 +41,16 @@ namespace Kratos
         ///@}
         ///@name Life Cycle
         ///@{
-        
-        void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Constructor with Id and geometry
-        SupportPlainStressCondition(
+        LoadSolid2DCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
         {};
 
         /// Constructor with Id, geometry and property
-        SupportPlainStressCondition(
+        LoadSolid2DCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -66,11 +58,11 @@ namespace Kratos
         {};
 
         /// Default constructor
-        SupportPlainStressCondition() : Condition()
+        LoadSolid2DCondition() : Condition()
         {};
 
         /// Destructor
-        virtual ~SupportPlainStressCondition() override
+        virtual ~LoadSolid2DCondition() override
         {};
 
         ///@}
@@ -84,7 +76,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SupportPlainStressCondition>(
+            return Kratos::make_intrusive<LoadSolid2DCondition>(
                 NewId, pGeom, pProperties);
         };
 
@@ -95,7 +87,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties
         ) const override
         {
-            return Kratos::make_intrusive<SupportPlainStressCondition>(
+            return Kratos::make_intrusive<LoadSolid2DCondition>(
                 NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
@@ -205,9 +197,7 @@ namespace Kratos
 
         void GetValuesVector(Vector& rValues) const;
 
-        void CalculateB(
-            Matrix& rB, 
-            Matrix& r_DN_DX) const;
+
         ///@}
         ///@name Check
         ///@{
@@ -223,14 +213,14 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"SupportPlainStressCondition\" #" << Id();
+            buffer << "\"LoadSolid2DCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"SupportPlainStressCondition\" #" << Id();
+            rOStream << "\"LoadSolid2DCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -240,50 +230,6 @@ namespace Kratos
         }
 
         ///@}
-
-    protected:
-
-    
-    /**
-     * Internal variables used in the constitutive calculations
-     */
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
-
-            if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
-
-            if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
-
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
-
-    ///@name Protected static Member Variables
-    ///@{
-    void InitializeMaterial();
-
-    //@}
-    ///@name Protected member Variables
-    ///@{
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
-
-    ///@}
 
     private:
         ///@name Serialization
@@ -303,8 +249,8 @@ namespace Kratos
 
         ///@}
 
-    }; // Class SupportPenaltyLaplacianCondition
+    }; // Class LoadSolid2DCondition
 
 }  // namespace Kratos.
 
-#endif // SupportPlainStressCondition  defined
+#endif // LoadSolid2DCondition  defined

@@ -16,11 +16,11 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/load_plain_stress_condition.h"
+#include "custom_conditions/load_solid_2D_condition.h"
 
 namespace Kratos
 {
-    void LoadPlainStressCondition::CalculateAll(
+    void LoadSolid2DCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -85,83 +85,84 @@ namespace Kratos
         outputFile << std::setprecision(14); // Set precision to 10^-14
         outputFile << GP_parameter_coord[0] << " " << GP_parameter_coord[1]  <<"\n";
         outputFile.close();
+
+        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+
+        const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
         
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+        const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        Matrix Jacobian = ZeroMatrix(2,2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
+        Matrix InvJ0_23 = ZeroMatrix(2,3);
+        InvJ0_23(0,0) = InvJ0(0,0);
+        InvJ0_23(0,1) = InvJ0(0,1);
+        InvJ0_23(1,0) = InvJ0(1,0);
+        InvJ0_23(1,1) = InvJ0(1,1);
+        InvJ0_23(0,2) = 0;
+        InvJ0_23(1,2) = 0;
+
+        // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0],InvJ0_23);
+        
+        Matrix H = ZeroMatrix(1, number_of_nodes);
+        for (IndexType i = 0; i < number_of_nodes; ++i)
         {
-            const Matrix& N = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+            H(0, i)            = N(0, i);
+        }
 
-            Matrix Jacobian = ZeroMatrix(2,2);
-            Jacobian(0,0) = J0[point_number](0,0);
-            Jacobian(0,1) = J0[point_number](0,1);
-            Jacobian(1,0) = J0[point_number](1,0);
-            Jacobian(1,1) = J0[point_number](1,1);
 
-            // Calculating inverse jacobian and jacobian determinant
-            MathUtils<double>::InvertMatrix(Jacobian,InvJ0,DetJ0);
-            Matrix InvJ0_23 = ZeroMatrix(2,3);
-            InvJ0_23(0,0) = InvJ0(0,0);
-            InvJ0_23(0,1) = InvJ0(0,1);
-            InvJ0_23(1,0) = InvJ0(1,0);
-            InvJ0_23(1,1) = InvJ0(1,1);
-            InvJ0_23(0,2) = 0;
-            InvJ0_23(1,2) = 0;
+        // // Assembly     
+        if (CalculateResidualVectorFlag) {
 
-            // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias(DN_DX) = prod(DN_De[point_number],InvJ0_23);
+            double nu = this->GetProperties().GetValue(POISSON_RATIO);
+            double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+            Vector g_N = ZeroVector(2);
+
+            // When "analysis_type" is "linear" temper = 0
+            const double x = GP_parameter_coord[0];
+            const double y = GP_parameter_coord[1];
+
+            g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
+            g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
+
+            // g_N[0] = this->GetValue(FORCE_X); 
+            // g_N[1] = this->GetValue(FORCE_Y); 
             
-            Matrix H = ZeroMatrix(1, number_of_nodes);
-            for (IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                H(0, i)            = N(point_number, i);
-            }
-
-
-            // // Assembly     
-            if (CalculateResidualVectorFlag) {
-
-                double nu = this->GetProperties().GetValue(POISSON_RATIO);
-                double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-                Vector g_N = ZeroVector(2);
-
-                // When "analysis_type" is "linear" temper = 0
-                const double x = GP_parameter_coord[0];
-                const double y = GP_parameter_coord[1];
-
-                g_N[0] = E/(1+nu)*(-sin(x)*sinh(y)) * normal_parameter_space[0] + E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[1]; 
-                g_N[1] = E/(1+nu)*(cos(x)*cosh(y)) * normal_parameter_space[0] + E/(1+nu)*(sin(x)*sinh(y)) * normal_parameter_space[1]; 
-
-                // g_N[0] = this->GetValue(FORCE_X); 
-                // g_N[1] = this->GetValue(FORCE_Y); 
+            for (IndexType i = 0; i < number_of_nodes; i++) {
                 
-                for (IndexType i = 0; i < number_of_nodes; i++) {
+                for (IndexType zdim = 0; zdim < 2; zdim++) {
                     
-                    for (IndexType zdim = 0; zdim < 2; zdim++) {
-                        
-                        rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * integration_points[point_number].Weight() * std::abs(determinant_jacobian_vector[point_number]);;
+                    rRightHandSideVector[2*i+zdim] += H(0,i)*g_N[zdim] * IntToReferenceWeight;
 
-                    }
                 }
-                
-                Vector temp = ZeroVector(number_of_nodes);
-
-
-                GetValuesVector(temp);
-
-                noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-                
             }
+            
+            Vector temp = ZeroVector(number_of_nodes);
+
+
+            GetValuesVector(temp);
+
+            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+            
         }
         KRATOS_CATCH("")
     }
 
-    int LoadPlainStressCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int LoadSolid2DCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void LoadPlainStressCondition::EquationIdVector(
+    void LoadSolid2DCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -180,7 +181,7 @@ namespace Kratos
         }
     }
 
-    void LoadPlainStressCondition::GetDofList(
+    void LoadSolid2DCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -199,7 +200,7 @@ namespace Kratos
     };
 
 
-    void LoadPlainStressCondition::GetValuesVector(
+    void LoadSolid2DCondition::GetValuesVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();

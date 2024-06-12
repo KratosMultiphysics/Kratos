@@ -22,7 +22,7 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
 */
-class PlainStressElement
+class Solid2DElement
     : public Element
 {
 protected:
@@ -100,8 +100,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PlainStressElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PlainStressElement);
+    /// Counted pointer of Solid2DElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Solid2DElement);
 
     // static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -112,17 +112,17 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Default constructor.
-    PlainStressElement(
+    Solid2DElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    PlainStressElement(
+    Solid2DElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~PlainStressElement();
+    virtual ~Solid2DElement();
 
     ///@}
     ///@name Operators
@@ -160,7 +160,7 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    PlainStressElement() : Element()
+    Solid2DElement() : Element()
     {
     }
 
@@ -256,7 +256,30 @@ public:
 
 
     ///@}
+/**
+    * @brief Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
+    /**
+    * @brief Calculate a Vector Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+    
 
     /**
      * @brief This function computes the body force
@@ -392,14 +415,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    //PlainStressElement& operator=(const PlainStressElement& rOther);
+    //Solid2DElement& operator=(const Solid2DElement& rOther);
 
     /// Copy constructor.
-    //PlainStressElement(const PlainStressElement& rOther);
+    //Solid2DElement(const Solid2DElement& rOther);
 
     ///@}
 
-}; // Class PlainStressElement
+}; // Class Solid2DElement
 
 ///@}
 
@@ -414,11 +437,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    PlainStressElement& rThis);
+				    Solid2DElement& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PlainStressElement& rThis)
+				    const Solid2DElement& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

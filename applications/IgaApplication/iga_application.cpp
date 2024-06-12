@@ -62,13 +62,13 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLaplacianLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSupportPlainStressCondition(0, Condition::GeometryType::Pointer(
+    , mSupportSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mLoadPlainStressCondition(0, Condition::GeometryType::Pointer(
+    , mLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSBMPlainStressCondition(0, Condition::GeometryType::Pointer(
+    , mSBMSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSBMLoadPlainStressCondition(0, Condition::GeometryType::Pointer(
+    , mSBMLoadSolid2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
@@ -91,7 +91,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
-    KRATOS_REGISTER_ELEMENT("PlainStressElement", mPlainStressElement)
+    KRATOS_REGISTER_ELEMENT("Solid2DElement", mSolid2DElement)
     KRATOS_REGISTER_ELEMENT("ConvDiffIGAElement", mConvDiffIGAElement)
 
     // CONDITIONS
@@ -110,10 +110,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SBMLaplacianNeumannCondition", mSBMLaplacianNeumannCondition)
     KRATOS_REGISTER_CONDITION("SBMSupportLagrangeCondition", mSBMSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportLaplacianLagrangeCondition", mSupportLaplacianLagrangeCondition)
-    KRATOS_REGISTER_CONDITION("SupportPlainStressCondition", mSupportPlainStressCondition)
-    KRATOS_REGISTER_CONDITION("LoadPlainStressCondition", mLoadPlainStressCondition)
-    KRATOS_REGISTER_CONDITION("SBMPlainStressCondition", mSBMPlainStressCondition)
-    KRATOS_REGISTER_CONDITION("SBMLoadPlainStressCondition", mSBMLoadPlainStressCondition)
+    KRATOS_REGISTER_CONDITION("SupportSolid2DCondition", mSupportSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("LoadSolid2DCondition", mLoadSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SBMSolid2DCondition", mSBMSolid2DCondition)
+    KRATOS_REGISTER_CONDITION("SBMLoadSolid2DCondition", mSBMLoadSolid2DCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);

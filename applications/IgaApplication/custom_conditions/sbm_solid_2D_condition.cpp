@@ -16,17 +16,17 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/sbm_plain_stress_condition.h"
+#include "custom_conditions/sbm_solid_2D_condition.h"
 
 namespace Kratos
 {
-    void SBMPlainStressCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+    void SBMSolid2DCondition:: Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         InitializeMaterial();
     }
 
 
-    void SBMPlainStressCondition::InitializeMaterial()
+    void SBMSolid2DCondition::InitializeMaterial()
     {
         KRATOS_TRY
         if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -44,7 +44,7 @@ namespace Kratos
 
     }
 
-    void SBMPlainStressCondition::CalculateAll(
+    void SBMSolid2DCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -161,8 +161,6 @@ namespace Kratos
         normal_physical_space = prod(trans(J0[0]),normal_parameter_space);
 
         // MODIFIED
-        double nu = this->GetProperties().GetValue(POISSON_RATIO);
-        double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
         Vector old_displacement(mat_size);
         GetValuesVector(old_displacement);
@@ -203,7 +201,11 @@ namespace Kratos
 
 
         // Differential area
-        double penalty_integration = penalty * integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
+
+        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+
+        const double IntToReferenceWeight = integration_points[0].Weight() * std::abs(DetJ0) * thickness;
+        double penalty_integration = penalty * IntToReferenceWeight;
 
         // Guglielmo innovaction
         double Guglielmo_innovation = -1.0;  // = 1 -> Penalty approach
@@ -250,7 +252,7 @@ namespace Kratos
         //-----------------------------------------------------------------------------------
 
         Matrix DB = prod(r_D,B);
-        double integration_factor = integration_points[0].Weight() * std::abs(determinant_jacobian_vector[0]);
+        double integration_factor = IntToReferenceWeight;
         for (IndexType i = 0; i < number_of_nodes; i++) {
             for (IndexType j = 0; j < number_of_nodes; j++) {
                 
@@ -322,14 +324,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    int SBMPlainStressCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int SBMSolid2DCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
             << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
         return 0;
     }
 
-    void SBMPlainStressCondition::EquationIdVector(
+    void SBMSolid2DCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -348,7 +350,7 @@ namespace Kratos
         }
     }
 
-    void SBMPlainStressCondition::GetDofList(
+    void SBMSolid2DCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -367,7 +369,7 @@ namespace Kratos
     };
 
 
-    void SBMPlainStressCondition::GetValuesVector(
+    void SBMSolid2DCondition::GetValuesVector(
         Vector& rValues) const
     {
         const SizeType number_of_control_points = GetGeometry().size();
@@ -387,7 +389,7 @@ namespace Kratos
     }
 
     /// Reads in a json formatted file and returns its KratosParameters instance.
-    Parameters SBMPlainStressCondition::ReadParamatersFile(
+    Parameters SBMSolid2DCondition::ReadParamatersFile(
         const std::string& rDataFileName) const
     {
         std::ifstream infile(rDataFileName);
@@ -399,7 +401,7 @@ namespace Kratos
     };
 
 
-    void SBMPlainStressCondition::CalculateB(
+    void SBMSolid2DCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
@@ -422,7 +424,7 @@ namespace Kratos
         }
     }
 
-    unsigned long long SBMPlainStressCondition::factorial(int n) 
+    unsigned long long SBMSolid2DCondition::factorial(int n) 
     {
         if (n == 0) return 1;
         unsigned long long result = 1;
@@ -431,13 +433,13 @@ namespace Kratos
     }
 
     // Function to compute a single term in the Taylor expansion
-    double SBMPlainStressCondition::computeTaylorTerm(double derivative, double dx, int n_k, double dy, int k)
+    double SBMSolid2DCondition::computeTaylorTerm(double derivative, double dx, int n_k, double dy, int k)
     {
         return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (factorial(k) * factorial(n_k));    
     }
 
 
-    void SBMPlainStressCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void SBMSolid2DCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         const auto& r_geometry = GetGeometry();
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
