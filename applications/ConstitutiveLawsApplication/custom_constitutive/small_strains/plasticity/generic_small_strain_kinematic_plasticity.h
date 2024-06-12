@@ -430,7 +430,9 @@ protected:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters &rValues,
+        const Vector& rPlasticStrain);
 
     ///@}
     ///@name Private  Access

@@ -236,20 +236,48 @@ public:
                 noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
                 noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
 
-                // Apply the perturbation twice
-                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, 2.0*pertubation, i_component);
+                // Apply the perturbation (negative)
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, - pertubation, i_component);
 
                 // We continue with the calculations
                 IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
                 // Compute stress (minus)
+                const Vector strain_minus = r_perturbed_strain;
+                const Vector stress_minus = r_perturbed_integrated_stress;
+
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+
+                // Apply the perturbation (positive)
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, 2.0*pertubation, i_component);
+
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+                // Compute stress (plus)
                 const Vector strain_2_plus = r_perturbed_strain;
                 const Vector stress_2_plus = r_perturbed_integrated_stress;
+
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+
+                // Apply the perturbation (positive)
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, -2.0*pertubation, i_component);
+
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+                // Compute stress (plus)
+                const Vector strain_2_minus = r_perturbed_strain;
+                const Vector stress_2_minus = r_perturbed_integrated_stress;
 
                 // Finally we compute the components
                 const SizeType voigt_size = stress_plus.size();
                 for (IndexType row = 0; row < voigt_size; ++row) {
-                    auxiliary_tensor(row, i_component) = (stress_plus[row] - unperturbed_stress_vector_gp[row]) / pertubation - (stress_2_plus[row] - 2.0 * stress_plus[row] + unperturbed_stress_vector_gp[row]) / (2.0 * pertubation);
+                    auxiliary_tensor(row, i_component) = (-stress_2_plus[row] + 8.0*stress_plus[row] -8.0*stress_minus[row] + stress_2_minus[row]) / (12.0*pertubation);
                 }
 
                 // Reset the values to the initial ones
@@ -403,6 +431,38 @@ public:
         )
     {
         CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold, ApproximationOrder);
+    }
+
+    /**
+     * @brief This method computes the secant tensor as dS/dE with respect to the origin
+     * @param rValues The properties of the CL
+     */
+    static void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues)
+    {
+        const auto &r_strain = rValues.GetStrainVector();
+        const auto &r_stress = rValues.GetStressVector();
+        const SizeType strain_size = r_strain.size();
+        auto &r_D = rValues.GetConstitutiveMatrix();
+
+        for (IndexType i = 0; i < strain_size; i++)
+            for (IndexType j = 0; j < strain_size; j++)
+                r_D(i, j) = r_stress[i] / r_strain[j];
+    }
+
+    /**
+     * @brief This method computes the secant tensor as dS/dE with respect to the origin
+     * @param rValues The properties of the CL
+     */
+    static void CalculateOrthogonalSecantTensor(ConstitutiveLaw::Parameters& rValues)
+    {
+        const auto &r_strain = rValues.GetStrainVector();
+        const auto &r_stress = rValues.GetStressVector();
+        const SizeType strain_size = r_strain.size();
+        auto &r_D = rValues.GetConstitutiveMatrix();
+
+        for (IndexType i = 0; i < strain_size; i++)
+            for (IndexType j = 0; j < strain_size; j++)
+                r_D(i, j) = -r_strain[j] / r_stress[i];
     }
 
 protected:

@@ -41,8 +41,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix2D3NGivesCorrectResults, Kr
     const double RelativePermeability     = 0.02;
     const double PermeabilityUpdateFactor = 1.5;
     PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<2, 3>(
-        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, RelativePermeability,
-        PermeabilityUpdateFactor, IntegrationCoefficient);
+        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix,
+        RelativePermeability * PermeabilityUpdateFactor, IntegrationCoefficient);
 
     BoundedMatrix<double, 3, 3> PMatrix;
     // clang-format off
@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix3D4NGivesCorrectResults, Kr
     const double RelativePermeability     = 0.1;
     const double PermeabilityUpdateFactor = 2.0;
     PermeabilityMatrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix<3, 4>(
-        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix, RelativePermeability,
-        PermeabilityUpdateFactor, IntegrationCoefficient);
+        GradNpT, DynamicViscosityInverse, MaterialPermeabilityMatrix,
+        RelativePermeability * PermeabilityUpdateFactor, IntegrationCoefficient);
 
     BoundedMatrix<double, 4, 4> PMatrix;
     // clang-format off
