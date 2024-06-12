@@ -47,7 +47,6 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
                     process.Execute()
                     time_incr = self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT]
                     self.time += time_incr
-                    print(str(time_incr))
                     self._GetSolver().GetComputingModelPart().ProcessInfo[CLA.TIME_INCREMENT] = 0.0
                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
                 self.InitializeSolutionStep()
