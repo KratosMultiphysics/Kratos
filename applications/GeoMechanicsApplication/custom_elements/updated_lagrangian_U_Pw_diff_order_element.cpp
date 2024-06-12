@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -63,43 +64,47 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
     if (CalculateResidualVectorFlag)
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(rProp, rCurrentProcessInfo);
+    RetentionLaw::Parameters RetentionParameters(rProp);
 
     // Loop over integration points
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         rGeom.IntegrationPoints(this->GetIntegrationMethod());
 
-    const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
     const auto b_matrices = this->CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
-    auto strain_vectors = this->CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto strain_vectors = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
 
-    // Computing in all integrations points
+    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+        constitutive_matrices, this->GetProperties());
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NpContainer, Variables.PressureVector);
+    const auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto degrees_of_saturation        = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
+    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+
     for (IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
-        // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B = b_matrices[GPoint];
-
-        // Compute strain
-        Variables.F                  = deformation_gradients[GPoint];
-        Variables.StrainVector       = strain_vectors[GPoint];
-        Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
-
-        CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
-
+        Variables.B                      = b_matrices[GPoint];
+        Variables.F                      = deformation_gradients[GPoint];
+        Variables.StrainVector           = strain_vectors[GPoint];
+        Variables.ConstitutiveMatrix     = constitutive_matrices[GPoint];
+        Variables.BiotCoefficient        = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
+        Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
+        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
+        Variables.RelativePermeability   = relative_permeability_values[GPoint];
         Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
             IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
 
@@ -123,28 +128,25 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 }
 
 //----------------------------------------------------------------------------------------
-void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                                   ElementVariables& rVariables,
-                                                                                   unsigned int GPoint)
+void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
+    MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
+    const GeometryType& r_geom      = GetGeometry();
+    const SizeType      num_U_nodes = r_geom.PointsNumber();
+    const SizeType      dimension   = r_geom.WorkingSpaceDimension();
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
+    const auto stress_tensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
 
-    Matrix ReducedKgMatrix =
+    const Matrix reduced_Kg_matrix =
         prod(rVariables.DNu_DX,
-             rVariables.IntegrationCoefficient * Matrix(prod(StressTensor, trans(rVariables.DNu_DX)))); // to be optimized
+             rVariables.IntegrationCoefficient * Matrix(prod(stress_tensor, trans(rVariables.DNu_DX)))); // to be optimized
 
-    Matrix UUMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    noalias(UUMatrix) = ZeroMatrix(NumUNodes * Dim, NumUNodes * Dim);
-    MathUtils<double>::ExpandAndAddReducedMatrix(UUMatrix, ReducedKgMatrix, Dim);
+    Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
+    MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);
 
-    // Distribute stiffness block matrix into the elemental matrix
-    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, UUMatrix);
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
 
     KRATOS_CATCH("")
 }

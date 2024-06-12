@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace Kratos
 {
@@ -46,6 +47,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 
     UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
 
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < TDim; ++i) {
         mNodalConstitutiveTensor[i].resize(VoigtSize);
 
@@ -135,12 +137,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     }
     Matrix DtStressContainer(NumGPoints, TDim);
 
-    Vector StressVector(VoigtSize);
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Vector     StressVector(VoigtSize);
 
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
-    auto       strain_vectors        = this->CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
@@ -190,12 +193,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
     // Containers for extrapolation variables
     Matrix DtStressContainer(NumGPoints, TDim);
 
-    Vector StressVector(VoigtSize);
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Vector     StressVector(VoigtSize);
 
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
-    auto       strain_vectors        = this->CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain, VoigtSize);
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
@@ -283,12 +287,11 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
-
+    Matrix AuxNodalConstitutiveTensor(NumNodes, this->GetStressStatePolicy().GetVoigtSize());
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
 
-        for (unsigned int j = 0; j < VoigtSize; j++)
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++)
             noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor, j);
     }
 
@@ -320,7 +323,8 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
@@ -346,7 +350,8 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
@@ -371,7 +376,8 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(const array
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix, ConstitutiveTensorContainer[i]);
@@ -440,25 +446,31 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     FICElementVariables FICVariables;
     this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
 
-    // create general parameters of retention law
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties(), CurrentProcessInfo);
-
-    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     const auto deformation_gradients = this->CalculateDeformationGradients();
-    auto       strain_vectors        = this->CalculateStrains(
-        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain);
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NContainer, Variables.DN_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients =
+        GeoTransportEquationUtilities::CalculateBiotCoefficients(constitutive_matrices, Prop);
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, Prop);
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
-    // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        // Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
         Variables.B                  = b_matrices[GPoint];
         Variables.F                  = deformation_gradients[GPoint];
@@ -469,16 +481,15 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        // Compute ShapeFunctionsSecondOrderGradients
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables, Variables);
+        Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
-
-        // set shear modulus from stiffness matrix
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
-        // calculate Bulk modulus from stiffness matrix
-        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
+        Variables.BiotCoefficient    = biot_coefficients[GPoint];
+        Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
+        Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
 
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -710,6 +721,7 @@ void UPwSmallStrainFICElement<2, 3>::InitializeSecondOrderTerms(FICElementVariab
 
     const SizeType Dim = 2;
 
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
@@ -727,6 +739,7 @@ void UPwSmallStrainFICElement<2, 4>::InitializeSecondOrderTerms(FICElementVariab
     const SizeType NumNodes = 4;
 
     // Voigt identity matrix
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
     rFICVariables.VoigtMatrix(0, 0)    = 1.0;
@@ -750,8 +763,8 @@ void UPwSmallStrainFICElement<3, 4>::InitializeSecondOrderTerms(FICElementVariab
 {
     KRATOS_TRY
 
-    const SizeType Dim = 3;
-
+    const SizeType Dim       = 3;
+    auto const     VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
@@ -770,6 +783,7 @@ void UPwSmallStrainFICElement<3, 8>::InitializeSecondOrderTerms(FICElementVariab
     const SizeType NumNodes = 8;
 
     // Voigt identity matrix
+    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
     rFICVariables.VoigtMatrix(0, 0)    = 1.0;
@@ -907,8 +921,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddLHSStabilization(
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                         ElementVariables& rVariables,
-                                                                         FICElementVariables& rFICVariables)
+                                                                         const ElementVariables& rVariables,
+                                                                         const FICElementVariables& rFICVariables)
 {
     // No necessary
 }
@@ -916,18 +930,18 @@ void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientMatrix(MatrixT
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                         ElementVariables& rVariables,
-                                                                         FICElementVariables& rFICVariables)
+                                                                         const ElementVariables& rVariables,
+                                                                         const FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.PUMatrix) =
+    const BoundedMatrix<double, 4, 4 * 2> coupling_matrix =
         PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * 0.25 *
         rFICVariables.ElementLength * rFICVariables.ElementLength * rVariables.BiotCoefficient *
         prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
     // Distribute strain gradient matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, rVariables.PUMatrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
     KRATOS_CATCH("")
 }
@@ -936,8 +950,8 @@ void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientMatrix(MatrixT
 
 template <>
 void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                         ElementVariables& rVariables,
-                                                                         FICElementVariables& rFICVariables)
+                                                                         const ElementVariables& rVariables,
+                                                                         const FICElementVariables& rFICVariables)
 {
     // No necessary
 }
@@ -945,18 +959,18 @@ void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientMatrix(MatrixT
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                         ElementVariables& rVariables,
-                                                                         FICElementVariables& rFICVariables)
+                                                                         const ElementVariables& rVariables,
+                                                                         const FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.PUMatrix) =
+    const BoundedMatrix<double, 8, 8 * 3> strain_gradient_matrix =
         PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * 0.25 *
         rFICVariables.ElementLength * rFICVariables.ElementLength * rVariables.BiotCoefficient *
         prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
     // Distribute strain gradient matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, rVariables.PUMatrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, strain_gradient_matrix);
 
     KRATOS_CATCH("")
 }
@@ -965,7 +979,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientMatrix(MatrixT
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+    MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
     KRATOS_TRY;
 
@@ -975,12 +989,12 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientM
                                     rFICVariables.ElementLength * rVariables.BiotCoefficient /
                                     (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
-                                   prod(rVariables.GradNpT, rFICVariables.DimUMatrix) *
-                                   rVariables.IntegrationCoefficient;
+    const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> dt_stress_gradient_matrix =
+        -rVariables.VelocityCoefficient * StabilizationParameter / 3.0 *
+        prod(rVariables.GradNpT, rFICVariables.DimUMatrix) * rVariables.IntegrationCoefficient;
 
     // Distribute DtStressGradient Matrix into the elemental matrix
-    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, rVariables.PUMatrix);
+    GeoElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix, dt_stress_gradient_matrix);
 
     KRATOS_CATCH("")
 }
@@ -996,7 +1010,7 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 3;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1008,7 +1022,7 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1045,7 +1059,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 4;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1057,7 +1071,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1109,7 +1123,7 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 4;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1121,7 +1135,7 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1145,7 +1159,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
     const SizeType NumNodes = 8;
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             for (unsigned int k = 0; k < Dim; k++) {
                 rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
 
@@ -1157,7 +1171,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
     }
 
     for (unsigned int i = 0; i < Dim; ++i) {
-        for (unsigned int j = 0; j < VoigtSize; j++) {
+        for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
             for (unsigned int k = 0; k < Dim; k++)
@@ -1271,7 +1285,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientMatrix(
-    MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+    MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables, const FICElementVariables& rFICVariables)
 {
     KRATOS_TRY;
 
@@ -1280,14 +1294,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientM
     const double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
                                           SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PPMatrix) =
+    const BoundedMatrix<double, TNumNodes, TNumNodes> compressibility_matrix =
         rVariables.DtPressureCoefficient * StabilizationParameter *
         (SignBiotCoefficient - 2.0 * rFICVariables.ShearModulus * rVariables.BiotModulusInverse /
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
     // Distribute pressure gradient block matrix into the elemental matrix
-    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, rVariables.PPMatrix);
+    GeoElementUtilities::AssemblePPBlockMatrix(rLeftHandSideMatrix, compressibility_matrix);
 
     KRATOS_CATCH("")
 }
@@ -1312,8 +1326,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddRHSStabilization(
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables,
-                                                                       FICElementVariables& rFICVariables)
+                                                                       const ElementVariables& rVariables,
+                                                                       const FICElementVariables& rFICVariables)
 {
     // No necessary
 }
@@ -1321,20 +1335,20 @@ void UPwSmallStrainFICElement<2, 3>::CalculateAndAddStrainGradientFlow(VectorTyp
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables,
-                                                                       FICElementVariables& rFICVariables)
+                                                                       const ElementVariables& rVariables,
+                                                                       const FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
-                                   rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
-                                   prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
-                                   rVariables.IntegrationCoefficient;
+    const BoundedMatrix<double, 4, 4 * 2> transposed_coupling_matrix =
+        0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
+        rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
+        prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = prod(rVariables.PUMatrix, rVariables.VelocityVector);
+    array_1d<double, 4> strain_gradient_flow = prod(transposed_coupling_matrix, rVariables.VelocityVector);
 
     // Distribute Strain Gradient vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, strain_gradient_flow);
 
     KRATOS_CATCH("")
 }
@@ -1342,8 +1356,8 @@ void UPwSmallStrainFICElement<2, 4>::CalculateAndAddStrainGradientFlow(VectorTyp
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables,
-                                                                       FICElementVariables& rFICVariables)
+                                                                       const ElementVariables& rVariables,
+                                                                       const FICElementVariables& rFICVariables)
 {
     // Not necessary
 }
@@ -1351,20 +1365,20 @@ void UPwSmallStrainFICElement<3, 4>::CalculateAndAddStrainGradientFlow(VectorTyp
 //----------------------------------------------------------------------------------------
 template <>
 void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientFlow(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables,
-                                                                       FICElementVariables& rFICVariables)
+                                                                       const ElementVariables& rVariables,
+                                                                       const FICElementVariables& rFICVariables)
 {
     KRATOS_TRY
 
-    noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
-                                   rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
-                                   prod(rVariables.GradNpT, rFICVariables.StrainGradients) *
-                                   rVariables.IntegrationCoefficient;
+    const BoundedMatrix<double, 8, 8 * 3> strain_gradient_matrix =
+        0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength *
+        rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR) *
+        prod(rVariables.GradNpT, rFICVariables.StrainGradients) * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = prod(rVariables.PUMatrix, rVariables.VelocityVector);
+    array_1d<double, 8> strain_gradient_flow = prod(strain_gradient_matrix, rVariables.VelocityVector);
 
     // Distribute Strain Gradient vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, strain_gradient_flow);
 
     KRATOS_CATCH("")
 }
@@ -1372,7 +1386,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateAndAddStrainGradientFlow(VectorTyp
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientFlow(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+    VectorType& rRightHandSideVector, const ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
     KRATOS_TRY;
 
@@ -1382,12 +1396,12 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientF
                                     (rVariables.BiotCoefficient * (-PORE_PRESSURE_SIGN_FACTOR)) /
                                     (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PVector) = StabilizationParameter / 3.0 *
-                                  prod(rVariables.GradNpT, rFICVariables.DimVector) *
-                                  rVariables.IntegrationCoefficient;
+    const array_1d<double, TNumNodes> stress_gradient_flow =
+        StabilizationParameter / 3.0 * prod(rVariables.GradNpT, rFICVariables.DimVector) *
+        rVariables.IntegrationCoefficient;
 
     // Distribute DtStressGradient block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, stress_gradient_flow);
 
     KRATOS_CATCH("")
 }
@@ -1432,7 +1446,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(FICEl
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientFlow(
-    VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
+    VectorType& rRightHandSideVector, const ElementVariables& rVariables, const FICElementVariables& rFICVariables)
 {
     KRATOS_TRY;
 
@@ -1440,16 +1454,17 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
     double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *
                                     SignBiotCoefficient / (8.0 * rFICVariables.ShearModulus);
 
-    noalias(rVariables.PPMatrix) =
+    const BoundedMatrix<double, TNumNodes, TNumNodes> pressure_gradient_matrix =
         StabilizationParameter *
         (SignBiotCoefficient - 2.0 * rFICVariables.ShearModulus * rVariables.BiotModulusInverse /
                                    (3.0 * SignBiotCoefficient)) *
         prod(rVariables.GradNpT, trans(rVariables.GradNpT)) * rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0 * prod(rVariables.PPMatrix, rVariables.DtPressureVector);
+    const array_1d<double, TNumNodes> pressure_gradient_flow =
+        -1.0 * prod(pressure_gradient_matrix, rVariables.DtPressureVector);
 
     // Distribute PressureGradient block vector into elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, rVariables.PVector);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, pressure_gradient_flow);
 
     KRATOS_CATCH("")
 }

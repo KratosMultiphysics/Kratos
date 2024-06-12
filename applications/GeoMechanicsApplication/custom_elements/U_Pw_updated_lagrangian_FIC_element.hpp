@@ -77,7 +77,6 @@ public:
     using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
     using UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus;
-    using UPwSmallStrainElement<TDim, TNumNodes>::CalculateBulkModulus;
 
     using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
     using FICElementVariables = typename UPwSmallStrainFICElement<TDim, TNumNodes>::FICElementVariables;

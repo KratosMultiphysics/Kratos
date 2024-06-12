@@ -124,21 +124,12 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-    static constexpr SizeType VoigtSize = (TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    static constexpr SizeType StressTensorSize =
-        (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
-
     struct ElementVariables {
         /// Properties variables
         bool   IgnoreUndrained;
         bool   UseHenckyStrain;
         bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
-        double FluidDensity;
-        double SolidDensity;
-        double Density;
-        double Porosity;
-        double PermeabilityUpdateFactor;
 
         double                            BiotCoefficient;
         double                            BiotModulusInverse;
@@ -155,9 +146,6 @@ protected:
         array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> VolumeAcceleration;
 
-        /// General elemental variables
-        Vector VoigtVector;
-
         /// Variables computed at each GP
         Matrix                                        B;
         BoundedMatrix<double, TDim, TNumNodes * TDim> Nu;
@@ -173,18 +161,14 @@ protected:
         Matrix GradNpTInitialConfiguration;
 
         Matrix                                    F;
-        double                                    detF;
         Vector                                    detJContainer;
         Matrix                                    NContainer;
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
 
         /// Retention Law parameters
-        double FluidPressure;
         double DegreeOfSaturation;
-        double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
-        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
         double detJ;
@@ -193,14 +177,7 @@ protected:
         double IntegrationCoefficientInitialConfiguration;
 
         // Auxiliary Variables
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes * TDim> UUMatrix;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes>        UPMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes * TDim>        PUMatrix;
-        BoundedMatrix<double, TNumNodes, TNumNodes>               PPMatrix;
-        Matrix                                                    UVoigtMatrix;
-        BoundedMatrix<double, TNumNodes, TDim>                    PDimMatrix;
-        array_1d<double, TNumNodes * TDim>                        UVector;
-        array_1d<double, TNumNodes>                               PVector;
+        Matrix UVoigtMatrix;
     };
 
     void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
@@ -220,13 +197,7 @@ protected:
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    void SetConstitutiveParameters(ElementVariables& rVariables, ConstitutiveLaw::Parameters& rConstitutiveParameters);
-
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
-
-    void InitializeBiotCoefficients(ElementVariables& rVariables, bool hasBiotCoefficient = false);
-
-    double CalculatePermeabilityUpdateFactor(const Vector& rStrainVector) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
@@ -234,55 +205,38 @@ protected:
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
-    virtual void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
-    virtual void CalculateAndAddPermeabilityMatrix(MatrixType&             rLeftHandSideMatrix,
-                                                   const ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                      const ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       unsigned int      GPoint);
+    void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
+                                       const ElementVariables& rVariables,
+                                       unsigned int            GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
 
-    virtual void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                                    const ElementVariables& rVariables);
 
-    virtual void CalculateCompressibilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                              array_1d<double, TNumNodes>&                 rPVector,
-                                              const ElementVariables& rVariables) const;
+    virtual array_1d<double, TNumNodes> CalculateCompressibilityFlow(const ElementVariables& rVariables) const;
 
-    virtual void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
+    virtual void CalculateAndAddPermeabilityFlow(VectorType&             rRightHandSideVector,
+                                                 const ElementVariables& rVariables);
+    virtual array_1d<double, TNumNodes> CalculatePermeabilityFlow(const ElementVariables& rVariables) const;
 
-    virtual void CalculatePermeabilityFlow(BoundedMatrix<double, TNumNodes, TNumNodes>& rPMatrix,
-                                           array_1d<double, TNumNodes>&                 rPVector,
-                                           const ElementVariables& rVariables) const;
+    virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
+    virtual array_1d<double, TNumNodes> CalculateFluidBodyFlow(const ElementVariables& rVariables) const;
 
-    virtual void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-    virtual void CalculateFluidBodyFlow(BoundedMatrix<double, TNumNodes, TDim>& rPDimMatrix,
-                                        array_1d<double, TNumNodes>&            rPVector,
-                                        const ElementVariables&                 rVariables) const;
-
-    double CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const;
-    double CalculateBiotCoefficient(const ElementVariables& rVariables, bool hasBiotCoefficient) const;
-
-    virtual Vector      CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
-    virtual Vector      CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements) const;
-    virtual Vector      CalculateStrain(const Matrix& rDeformationGradient,
-                                        const Matrix& rB,
-                                        const Vector& rDisplacements,
-                                        bool          UseHenckyStrain) const;
-    std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
-                                         const std::vector<Matrix>& rBs,
-                                         const Vector&              rDisplacements,
-                                         bool                       UseHenckyStrain) const;
+    virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
     Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
     std::vector<Matrix> CalculateDeformationGradients() const;
@@ -295,9 +249,8 @@ protected:
     std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
                                                              const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
+    [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
+    [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
 
     ///
     /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
@@ -319,9 +272,9 @@ protected:
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables& rVariables);
 
-    virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType&       rLeftHandSideMatrix,
-                                                         ElementVariables& rVariables,
-                                                         unsigned int      GPoint);
+    virtual void CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
+                                                         const ElementVariables& rVariables,
+                                                         unsigned int            GPoint);
 
     VectorType GetPressureSolutionVector();
 
