@@ -166,12 +166,14 @@ void UPwBaseElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    std::for_each(mStressVector.begin(), mStressVector.end(),
-                  [](auto& stress_vector) { stress_vector.clear(); });
+    for (auto& r_stress_vector : mStressVector) {
+        r_stress_vector.clear();
+    }
     mStressVector.clear();
 
-    std::for_each(mStateVariablesFinalized.begin(), mStateVariablesFinalized.end(),
-                  [](auto& state_variables_finalized) { state_variables_finalized.clear(); });
+    for (auto& r_state_variables : mStateVariablesFinalized) {
+        r_state_variables.clear();
+    }
     mStateVariablesFinalized.clear();
 
     KRATOS_CATCH("")
