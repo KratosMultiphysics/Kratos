@@ -346,7 +346,7 @@ public:
         //     rSpans,
         //     *(mpNurbsCurve.get()), Start, End,
         //     surface_spans_u, surface_spans_v,
-        //     1e-6);
+        //     1e-12);
     }
 
     /* @brief Provides the nurbs boundaries of the NURBS/B-Spline curve.
