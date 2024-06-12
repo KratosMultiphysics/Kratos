@@ -142,10 +142,10 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     if (mStressVector.size() != number_of_integration_points) {
         mStressVector.resize(number_of_integration_points);
-        std::for_each(mStressVector.begin(), mStressVector.end(), [this](auto& stress_vector) {
-            stress_vector.resize(GetStressStatePolicy().GetVoigtSize());
-            std::fill(stress_vector.begin(), stress_vector.end(), 0.0);
-        });
+        for (auto& r_stress_vector : mStressVector) {
+            r_stress_vector.resize(GetStressStatePolicy().GetVoigtSize());
+            std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
+        }
     }
 
     mStateVariablesFinalized.resize(number_of_integration_points);
