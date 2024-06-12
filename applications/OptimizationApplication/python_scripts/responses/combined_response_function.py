@@ -46,9 +46,14 @@ class CombinedResponseFunction(ResponseFunction):
         self.list_of_responses: 'list[tuple[ResponseFunction, float]]' = []
         for response_params in parameters["combining_responses"].values():
             response_params.ValidateAndAssignDefaults(default_settings["combining_responses"].values()[0])
+            response_name = response_params["response_name"].GetString()
+            
+            if response_name not in [response.GetName() for response in optimization_problem.GetListOfResponses()]:
+                raise RuntimeError(f"\"{response_name}\" not found in the optimization problem. Please check whether this reponse is defined before the \"{self.GetName()}\".")
+
             self.list_of_responses.append(
                 (
-                    self.optimization_problem.GetResponse(response_params["response_name"].GetString()),
+                    self.optimization_problem.GetResponse(response_name),
                     response_params["response_weight"].GetDouble()
                 ))
 
