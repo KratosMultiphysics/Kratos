@@ -74,10 +74,9 @@ public:
      * @param ModelerParameters Parameters of the discretization
      */
     CadTessellationModeler(
-        Model& rModel,
-        Parameters ModelerParameters = Parameters())
-        : Modeler(rModel, ModelerParameters)
-        , mpModel(&rModel)
+        Model &rModel,
+        Parameters ModelerParameters)
+        : Modeler(rModel, ModelerParameters), mpModel(&rModel)
     {
     }
 
@@ -103,6 +102,11 @@ public:
     Modeler::Pointer Create(
         Model& rModel,
         const Parameters ModelParameters) const override;
+
+    /**
+     * @brief This method provides the defaults parameters, if they are not specified by the user
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Stages
