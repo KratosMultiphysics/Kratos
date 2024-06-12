@@ -381,6 +381,21 @@ public:
                                             const Variable<Vector>& rStressVariable,
                                              Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
+     * Calculates the LHS to design variable derivative.
+     * this is done by finite differencing of the Calculate function of the primal element
+     */
+    void CalculateLeftHandSideDesignVariableDerivative(const Variable<double>& rDesignVariable,
+                                                        Matrix& rOutput,
+                                                        const ProcessInfo& rCurrentProcessInfo);
+    /**
+     * Calculates the MassMatrix to design variable derivative.
+     * this is done by finite differencing of the Calculate function of the primal element
+     */
+    void CalculateMassMatrixDesignVariableDerivative(const Variable<double>& rDesignVariable,
+                                                        Matrix& rOutput,
+                                                        const ProcessInfo& rCurrentProcessInfo);
+    
+    /**
      * Gets the pointer to the primal element.
      */
     Element::Pointer pGetPrimalElement()

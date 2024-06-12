@@ -23,6 +23,7 @@
 #include "custom_sensors/measurement_residual_response_function.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/strain_sensor.h"
+#include "custom_sensors/eigenvalue_sensor.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -135,6 +136,15 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("weight"))
         .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
         ;
+
+    py::class_<EigenvalueSensor, EigenvalueSensor::Pointer, Sensor>(sensor_module, "EigenvalueSensor")
+        .def(py::init<const std::string&,const Point&,const double>(),
+            py::arg("name"),
+            py::arg("location"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &EigenvalueSensor::GetDefaultParameters)
+        ;
+
 }
 
 } // namespace Kratos::Python

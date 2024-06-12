@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "structural_mechanics_application_variables.h"
+#include "system_identification_application_variables.h"
 
 namespace Kratos
 {
@@ -31,7 +31,7 @@ namespace Kratos
  */
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteDifferenceUtility
+class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) FiniteDifferenceUtility
 {
 public:
 

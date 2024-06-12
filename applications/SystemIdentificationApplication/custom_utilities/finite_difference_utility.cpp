@@ -174,37 +174,42 @@ namespace Kratos
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-// Here central differencing is implemented:
+        // Here central differencing is implemented:
         if ( rElement.GetProperties().Has(rDesignVariable) )
         {
             if ( (rOutput.size1() != rLHS.size1()) || (rOutput.size2() != rLHS.size2() ) )
                 rOutput.resize(rLHS.size1(), rLHS.size2(), false);
             rOutput.clear();
 
-// Create LHS matrices for central differencing
+            // Create LHS matrices for central differencing
             Matrix LHS_peturbed_plus = ZeroMatrix(rLHS.size1(), rLHS.size2());
-            Matrix LHS_peturbed_minus = ZeroMatrix(rLHS.size1(), rLHS.size2());
-// Save property pointer
+            //Matrix LHS_peturbed_minus = ZeroMatrix(rLHS.size1(), rLHS.size2());
+            // Save property pointer
             Properties::Pointer p_global_properties = rElement.pGetProperties();
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
             rElement.SetProperties(p_local_property);
             const double initial_property_value = rElement.GetProperties()[rDesignVariable];
-// Positive peturbation
+
+            // Positive peturbation
             //std::cout << "perturbation size  " << rPertubationSize << std::endl;
             p_local_property->SetValue(rDesignVariable, (initial_property_value + rPertubationSize));
 
             //rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
             //rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
             rElement.CalculateLeftHandSide(LHS_peturbed_plus, rCurrentProcessInfo);
-// Negative peturbation
+            std::cout<< "perturbed lhs is " << LHS_peturbed_plus << std::endl;
+
+            // Negative peturbation
             //p_local_property->SetValue(rDesignVariable, (initial_property_value - rPertubationSize));
 
             //rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
             //rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
             //rElement.CalculateLeftHandSide(LHS_peturbed_minus, rCurrentProcessInfo);
-// Reset peturbation
+            
+            // Reset peturbation
             rElement.SetProperties(p_global_properties);
-// Output calculation
+            
+            // Output calculation
             noalias(rOutput) = (LHS_peturbed_plus - rLHS) / ( rPertubationSize);
         }
         else
