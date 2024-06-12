@@ -222,7 +222,7 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
-    std::vector<double> GetPermeabilityUpdateFactors(const std::vector<Vector>& strain_vectors) const override;
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations

@@ -830,7 +830,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMatrix(
-    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rGradNpt, double IntegrationCoefficient)
+    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rGradNpt, double IntegrationCoefficient) const
 {
     KRATOS_TRY
 
@@ -928,13 +928,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
-
-    if (const auto permeability_update_factors = GetPermeabilityUpdateFactors(strain_vectors);
-        !permeability_update_factors.empty()) {
-        std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                       permeability_update_factors.cbegin(), relative_permeability_values.begin(),
-                       std::multiplies<>{});
-    }
+    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
+                   std::multiplies<>{});
 
     const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
@@ -973,9 +970,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::GetPermeabilityUpdateFactors(const std::vector<Vector>& strain_vectors) const
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>& rStrainVectors) const
 {
-    return GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors,
+    return GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(rStrainVectors,
                                                                              this->GetProperties());
 }
 

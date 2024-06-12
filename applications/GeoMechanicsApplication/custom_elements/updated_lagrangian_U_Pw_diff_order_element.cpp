@@ -68,7 +68,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateAll(MatrixType&        rLeft
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
-    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rDNuDx, const double IntegrationCoefficient)
+    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rDNuDx, const double IntegrationCoefficient) const
 {
     KRATOS_TRY
 
@@ -134,7 +134,7 @@ void UpdatedLagrangianUPwDiffOrderElement::CalculateOnIntegrationPoints(const Va
     }
 }
 
-std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetPermeabilityUpdateFactors(const std::vector<Vector>&) const
+std::vector<double> Kratos::UpdatedLagrangianUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const
 {
     return {};
 }

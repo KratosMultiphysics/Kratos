@@ -99,7 +99,8 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwUpdatedLagrangianElement<TDim, TNumNodes>::GetPermeabilityUpdateFactors(const std::vector<Vector>&) const
+std::vector<double> UPwUpdatedLagrangianElement<TDim, TNumNodes>::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>&) const
 {
     return {};
 }
