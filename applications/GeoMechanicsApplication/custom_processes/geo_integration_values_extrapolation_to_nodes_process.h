@@ -132,7 +132,10 @@ private:
         }
     }
 
-    void FillAverageVariableForElements() const;
+    void   FillAverageVariableForElements() const;
+    Matrix GetExtrapolationMatrix(const Element&                         rElem,
+                                  GeometryType&                          r_this_geometry,
+                                  const GeometryData::IntegrationMethod& this_integration_method);
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);

@@ -174,17 +174,9 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
             const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
             auto integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const SizeType integration_points_number = integration_points.size();
-            Matrix         extrapolation_matrix;
-            // check if the element type hash is in the extrapolation matrix map
 
-            if (mExtrapolationMatrixMap.count(typeid(rElem).hash_code()) > 0) {
-                extrapolation_matrix = mExtrapolationMatrixMap[typeid(rElem).hash_code()];
-            } else {
-                // calculate the extrapolation matrix
-                extrapolation_matrix = mpExtrapolator->CalculateElementExtrapolationMatrix(
-                    r_this_geometry, this_integration_method);
-                mExtrapolationMatrixMap[typeid(rElem).hash_code()] = extrapolation_matrix;
-            }
+            const Matrix extrapolation_matrix =
+                GetExtrapolationMatrix(rElem, r_this_geometry, this_integration_method);
 
             for (const auto p_var : mDoubleVariable) {
                 AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
@@ -235,6 +227,23 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
     }
 }
 
+Matrix GeoIntegrationValuesExtrapolationToNodesProcess::GetExtrapolationMatrix(
+    const Element&                         rElem,
+    GeometricalObject::GeometryType&       r_this_geometry,
+    const GeometryData::IntegrationMethod& this_integration_method)
+{
+    Matrix result;
+    // check if the element type hash is in the extrapolation matrix map
+    if (mExtrapolationMatrixMap.count(typeid(rElem).hash_code()) > 0) {
+        result = mExtrapolationMatrixMap[typeid(rElem).hash_code()];
+    } else {
+        // calculate the extrapolation matrix
+        result = mpExtrapolator->CalculateElementExtrapolationMatrix(r_this_geometry, this_integration_method);
+        mExtrapolationMatrixMap[typeid(rElem).hash_code()] = result;
+    }
+    return result;
+}
+
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 {
     // Initializing some auxiliar values
@@ -244,7 +253,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Initialize values
-    block_for_each(r_nodes_array, [&](Node& rNode) {
+    block_for_each(r_nodes_array, [this, zero_array](Node& rNode) {
         if (mExtrapolateNonHistorical) {
             // We initialize the doubles values
             for (const auto p_var : mDoubleVariable) {
@@ -295,7 +304,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Remove average variable
-    block_for_each(r_nodes_array, [&](Node& rNode) {
+    block_for_each(r_nodes_array, [this](Node& rNode) {
         auto& data = rNode.GetData();
         data.Erase(mrAverageVariable);
 
