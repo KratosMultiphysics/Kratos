@@ -161,11 +161,11 @@ protected:
                                          const ElementVariables& rVariables,
                                          BoundedMatrix<double, TDim, TDim>& DeterminantJacobian) const;
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       unsigned int      GPoint) const;
+    void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
+                                       const ElementVariables& rVariables,
+                                       unsigned int            GPoint) const;
     void SetRotationalInertiaVector(const PropertiesType& Prop, Vector& RotationalInertia) const;
 
     void InitializeElementVariables(ElementVariables&            rVariables,

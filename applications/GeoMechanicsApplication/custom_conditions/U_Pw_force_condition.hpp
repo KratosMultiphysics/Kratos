@@ -24,70 +24,73 @@
 namespace Kratos
 {
 
-template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwForceCondition : public UPwCondition<TDim,TNumNodes>
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwForceCondition : public UPwCondition<TDim, TNumNodes>
 {
-
 public:
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwForceCondition);
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwForceCondition );
-    
-    using IndexType = std::size_t;
+    using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node;
-    using GeometryType = Geometry<NodeType>;
+    using NodeType       = Node;
+    using GeometryType   = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType = Vector;
-    using MatrixType = Matrix;
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    using VectorType     = Vector;
+    using MatrixType     = Matrix;
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwForceCondition() : UPwCondition<TDim,TNumNodes>() {}
-    
+    UPwForceCondition() : UPwCondition<TDim, TNumNodes>() {}
+
     // Constructor 1
-    UPwForceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
-    
+    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+    {
+    }
+
     // Constructor 2
-    UPwForceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+    {
+    }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
-  
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Condition::Pointer Create(IndexType               NewId,
+                              NodesArrayType const&   ThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
-protected:   
-    
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+protected:
     // Member Variables
-        
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void CalculateRHS(VectorType& rRightHandSideVector,
-                      const ProcessInfo& CurrentProcessInfo) override;
-        
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
     // Member Variables
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
-    
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-    
+
 }; // class UPwForceCondition.
 
 } // namespace Kratos.

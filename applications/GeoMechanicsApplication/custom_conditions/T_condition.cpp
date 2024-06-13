@@ -15,7 +15,8 @@
 #include "custom_conditions/T_condition.h"
 #include "custom_utilities/dof_utilities.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoTCondition<TDim, TNumNodes>::GeoTCondition() : Condition()
@@ -29,8 +30,8 @@ GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType NewId, GeometryType::Poi
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType NewId,
-                                              GeometryType::Pointer pGeometry,
+GeoTCondition<TDim, TNumNodes>::GeoTCondition(IndexType               NewId,
+                                              GeometryType::Pointer   pGeometry,
                                               PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
@@ -46,13 +47,13 @@ void GeoTCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofLis
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                          VectorType& rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                                          VectorType&        rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    rLeftHandSideMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    rLeftHandSideMatrix  = ZeroMatrix(TNumNodes, TNumNodes);
     rRightHandSideVector = ZeroVector(TNumNodes);
 
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
@@ -67,16 +68,15 @@ void GeoTCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rRes
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                                  VectorType& rRightHandSideVector,
+void GeoTCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                                  VectorType&        rRightHandSideVector,
                                                   const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector,
-                                                  const ProcessInfo& rCurrentProcessInfo)
+void GeoTCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
