@@ -41,23 +41,32 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : pub
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // Default constructor
-    SmallStrainUPwDiffOrderElement();
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mIsInitialised;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
 
-    // Constructor 1
+    SmallStrainUPwDiffOrderElement() : UPwBaseElement() {}
+
+    /// Constructor using an array of nodes
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+    {
+    }
 
-    // Constructor 2
+    /// Constructor using Geometry
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+    {
+    }
 
-    // Destructor
-    ~SmallStrainUPwDiffOrderElement() override;
+    ~SmallStrainUPwDiffOrderElement() override = default;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,
@@ -72,7 +81,6 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -81,7 +89,6 @@ public:
 
     void ResetConstitutiveLaw() override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
@@ -99,8 +106,6 @@ public:
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
@@ -115,7 +120,6 @@ public:
 
     using Element::SetValuesOnIntegrationPoints;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                       std::vector<int>&    rValues,
                                       const ProcessInfo&   rCurrentProcessInfo) override;
@@ -157,8 +161,6 @@ public:
         rOStream << "U-Pw small strain different order Element #" << Id()
                  << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
     struct ElementVariables {
@@ -217,15 +219,6 @@ protected:
         double VelocityCoefficient;
         double DtPressureCoefficient;
     };
-
-    // Member Variables
-
-    using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mRetentionLawVector;
-    using UPwBaseElement::mStateVariablesFinalized;
-    using UPwBaseElement::mStressVector;
-
-    bool mIsInitialised = false;
 
     GeometryType::Pointer mpPressureGeometry;
 
@@ -312,8 +305,6 @@ protected:
 
     [[nodiscard]] SizeType GetNumberOfDOF() const override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
@@ -340,8 +331,6 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
-
-    std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
 
 }; // Class SmallStrainUPwDiffOrderElement
 

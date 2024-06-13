@@ -34,43 +34,20 @@
 
 namespace Kratos
 {
-
-// Default Constructor
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : UPwBaseElement() {}
-
-// Constructor 1
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
-                                                               GeometryType::Pointer pGeometry,
-                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-    : UPwBaseElement(NewId, pGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
-{
-}
-
-// Constructor 2
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType               NewId,
-                                                               GeometryType::Pointer   pGeometry,
-                                                               PropertiesType::Pointer pProperties,
-                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-    : UPwBaseElement(NewId, pGeometry, pProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
-{
-}
-
-SmallStrainUPwDiffOrderElement::~SmallStrainUPwDiffOrderElement() = default;
-
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SmallStrainUPwDiffOrderElement(
-        NewId, GetGeometry().Create(ThisNodes), pProperties, mpStressStatePolicy->Clone()));
+        NewId, GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -1246,7 +1223,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        mpStressStatePolicy->GetVoigtSize());
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
@@ -1327,7 +1304,7 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     }
 
     // Variables computed at each integration point
-    const SizeType VoigtSize = mpStressStatePolicy->GetVoigtSize();
+    const SizeType VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
 
     rVariables.B.resize(VoigtSize, NumUNodes * Dim, false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize, NumUNodes * Dim);
@@ -1463,7 +1440,7 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementVariables& rVari
 
 Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
-    return mpStressStatePolicy->CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
+    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
 }
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
@@ -1480,7 +1457,7 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
 double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
                                                                        double detJ) const
 {
-    return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
+    return this->GetStressStatePolicy().CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficients(
@@ -1769,7 +1746,7 @@ GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMe
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
+    return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int GPoint) const
