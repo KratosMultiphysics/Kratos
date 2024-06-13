@@ -78,8 +78,6 @@ public:
 private:
     ModelPart& mrModelPart; /// The main model part
 
-    bool mExtrapolateNonHistorical = false; /// If the non-historical values are interpolated
-
     std::vector<const Variable<double>*> mDoubleVariable;             /// The double variables
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
     std::vector<const Variable<Vector>*> mVectorVariable; /// The vector variables to compute
@@ -125,9 +123,7 @@ private:
                 source += extrapolation_matrix(i_node, i_gauss_point) * aux_result[i_gauss_point];
             }
             source /= r_this_geometry[i_node].GetValue(mrAverageVariable);
-            T& destination = mExtrapolateNonHistorical
-                                 ? r_this_geometry[i_node].GetValue(rVariable)
-                                 : r_this_geometry[i_node].FastGetSolutionStepValue(rVariable);
+            T& destination = r_this_geometry[i_node].FastGetSolutionStepValue(rVariable);
             AtomicAdd(destination, source);
         }
     }

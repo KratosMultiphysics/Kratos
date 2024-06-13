@@ -64,24 +64,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::GetVariableLists(const Par
                "variables list."
             << std::endl;
     }
-
-    for (const auto p_var : mDoubleVariable) {
-        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
-            << "Double variable: " << p_var->Name() << std::endl;
-    }
-    for (const auto p_var : mArrayVariable) {
-        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
-            << "Array variable: " << p_var->Name() << std::endl;
-    }
-
-    for (const auto p_var : mVectorVariable) {
-        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
-            << "Vector variable: " << p_var->Name() << std::endl;
-    }
-    for (const auto p_var : mMatrixVariable) {
-        KRATOS_INFO("GeoIntegrationValuesExtrapolationToNodesProcess")
-            << "Matrix variable: " << p_var->Name() << std::endl;
-    }
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::Execute()
@@ -92,10 +74,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::Execute()
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop()
 {
-    // We initialize the average variable
     VariableUtils().SetNonHistoricalVariable(mrAverageVariable, 0.0, mrModelPart.Nodes());
-
-    // We initialize the map of coincident and maps of sizes
     InitializeMaps();
 }
 
@@ -165,7 +144,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
 
     // Auxiliar values
     block_for_each(r_elements_array, [this, &r_process_info](Element& rElem) {
-        // Only active elements
         if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
             const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
@@ -195,32 +173,17 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
     });
 
     // Assemble nodal data
-    if (mExtrapolateNonHistorical) {
-        for (const auto p_var : mDoubleVariable) {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
-        }
-        for (const auto p_var : mArrayVariable) {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
-        }
-        for (const auto p_var : mVectorVariable) {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
-        }
-        for (const auto p_var : mMatrixVariable) {
-            mrModelPart.GetCommunicator().AssembleNonHistoricalData(*p_var);
-        }
-    } else {
-        for (const auto p_var : mDoubleVariable) {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
-        }
-        for (const auto p_var : mArrayVariable) {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
-        }
-        for (const auto p_var : mVectorVariable) {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
-        }
-        for (const auto p_var : mMatrixVariable) {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
-        }
+    for (const auto p_var : mDoubleVariable) {
+        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+    }
+    for (const auto p_var : mArrayVariable) {
+        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+    }
+    for (const auto p_var : mVectorVariable) {
+        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+    }
+    for (const auto p_var : mMatrixVariable) {
+        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
     }
 }
 
@@ -251,46 +214,20 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 
     // Initialize values
     block_for_each(r_nodes_array, [this, zero_array](Node& rNode) {
-        if (mExtrapolateNonHistorical) {
-            // We initialize the doubles values
-            for (const auto p_var : mDoubleVariable) {
-                rNode.SetValue(*p_var, 0.0);
-            }
-            // We initialize the arrays values
-            for (const auto p_var : mArrayVariable) {
-                rNode.SetValue(*p_var, zero_array);
-            }
-            // We initialize the vectors values
-            for (const auto p_var : mVectorVariable) {
-                const Vector zero_vector = ZeroVector(mSizeVectors[p_var]);
-                rNode.SetValue(*p_var, zero_vector);
-            }
-            // We initialize the matrix values
-            for (const auto p_var : mMatrixVariable) {
-                const Matrix zero_matrix =
-                    ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
-                rNode.SetValue(*p_var, zero_matrix);
-            }
-        } else {
-            // We initialize the doubles values
-            for (const auto p_var : mDoubleVariable) {
-                rNode.FastGetSolutionStepValue(*p_var) = 0.0;
-            }
-            // We initialize the arrays values
-            for (const auto p_var : mArrayVariable) {
-                rNode.FastGetSolutionStepValue(*p_var) = zero_array;
-            }
-            // We initialize the vectors values
-            for (const auto p_var : mVectorVariable) {
-                const Vector zero_vector               = ZeroVector(mSizeVectors[p_var]);
-                rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
-            }
-            // We initialize the matrix values
-            for (const auto p_var : mMatrixVariable) {
-                const Matrix zero_matrix =
-                    ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
-                rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
-            }
+        // We initialize the doubles values
+        for (const auto p_var : mDoubleVariable) {
+            rNode.FastGetSolutionStepValue(*p_var) = 0.0;
+        } // We initialize the arrays values
+        for (const auto p_var : mArrayVariable) {
+            rNode.FastGetSolutionStepValue(*p_var) = zero_array;
+        } // We initialize the vectors values
+        for (const auto p_var : mVectorVariable) {
+            const Vector zero_vector               = ZeroVector(mSizeVectors[p_var]);
+            rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
+        } // We initialize the matrix values
+        for (const auto p_var : mMatrixVariable) {
+            const Matrix zero_matrix = ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
+            rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
         }
     });
 }
@@ -304,24 +241,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     block_for_each(r_nodes_array, [this](Node& rNode) {
         auto& data = rNode.GetData();
         data.Erase(mrAverageVariable);
-
-        if (mExtrapolateNonHistorical) {
-            for (const auto p_var : mDoubleVariable) {
-                data.Erase(*p_var);
-            }
-
-            for (const auto p_var : mArrayVariable) {
-                data.Erase(*p_var);
-            }
-
-            for (const auto p_var : mVectorVariable) {
-                data.Erase(*p_var);
-            }
-
-            for (const auto p_var : mMatrixVariable) {
-                data.Erase(*p_var);
-            }
-        }
     });
 }
 
