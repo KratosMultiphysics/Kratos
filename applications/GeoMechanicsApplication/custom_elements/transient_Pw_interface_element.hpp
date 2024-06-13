@@ -145,26 +145,26 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType&                rLeftHandSideMatrix,
-                                              InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                              const InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddPermeabilityMatrix(MatrixType&                rLeftHandSideMatrix,
-                                           InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityMatrix(MatrixType&                      rLeftHandSideMatrix,
+                                           const InterfaceElementVariables& rVariables) override;
 
     void CalculateAndAddRHS(VectorType&                rRightHandSideVector,
                             InterfaceElementVariables& rVariables,
                             unsigned int               GPoint) override;
 
-    void CalculateAndAddCompressibilityFlow(VectorType&                rRightHandSideVector,
-                                            InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddCompressibilityFlow(VectorType&                      rRightHandSideVector,
+                                            const InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddPermeabilityFlow(VectorType&                rRightHandSideVector,
-                                         InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddPermeabilityFlow(VectorType&                      rRightHandSideVector,
+                                         const InterfaceElementVariables& rVariables) override;
 
-    void CalculateAndAddFluidBodyFlow(VectorType&                rRightHandSideVector,
-                                      InterfaceElementVariables& rVariables) override;
+    void CalculateAndAddFluidBodyFlow(VectorType&                      rRightHandSideVector,
+                                      const InterfaceElementVariables& rVariables) override;
 
-    unsigned int GetNumberOfDOF() const override;
+    std::size_t GetNumberOfDOF() const override;
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;

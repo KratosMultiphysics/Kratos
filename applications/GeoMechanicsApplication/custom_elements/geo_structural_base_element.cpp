@@ -120,7 +120,7 @@ int GeoStructuralBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType
     CalculateAll(rLeftHandSideMatrix, TempVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -377,7 +377,7 @@ void GeoStructuralBaseElement<TDim, TNumNodes>::CalculateNodalCrossDirection(Mat
                     "for a particular element ... illegal operation!!"
                  << this->Id() << std::endl;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

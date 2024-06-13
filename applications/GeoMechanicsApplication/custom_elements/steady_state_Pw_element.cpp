@@ -130,7 +130,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------
