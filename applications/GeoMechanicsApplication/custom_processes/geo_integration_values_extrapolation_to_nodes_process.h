@@ -110,19 +110,23 @@ private:
     template <class T>
     void AddIntegrationContributionsToNodes(Element&           rElem,
                                             const Variable<T>& rVariable,
-                                            const ProcessInfo& rProcessInfo,
                                             const Matrix&      extrapolation_matrix,
                                             const SizeType     integration_points_number)
     {
         auto&          r_this_geometry = rElem.GetGeometry();
-        std::vector<T> aux_result(integration_points_number);
-        rElem.CalculateOnIntegrationPoints(rVariable, aux_result, rProcessInfo);
+        std::vector<T> values_on_integration_points(integration_points_number);
+        rElem.CalculateOnIntegrationPoints(rVariable, values_on_integration_points,
+                                           mrModelPart.GetProcessInfo());
+
         for (IndexType i_node = 0; i_node < r_this_geometry.PointsNumber(); ++i_node) {
-            T source = extrapolation_matrix(i_node, 0) * aux_result[0];
-            for (IndexType i_gauss_point = 1; i_gauss_point < aux_result.size(); ++i_gauss_point) {
-                source += extrapolation_matrix(i_node, i_gauss_point) * aux_result[i_gauss_point];
+            // We first initialize the source, which we need to do by getting the first value,
+            // because we don't know the size of the dynamically allocated Vector/Matrix
+            T source = extrapolation_matrix(i_node, 0) * values_on_integration_points[0];
+            for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
+                source += extrapolation_matrix(i_node, i_gauss_point) * values_on_integration_points[i_gauss_point];
             }
             source /= r_this_geometry[i_node].GetValue(mrAverageVariable);
+
             T& destination = r_this_geometry[i_node].FastGetSolutionStepValue(rVariable);
             AtomicAdd(destination, source);
         }
@@ -132,6 +136,19 @@ private:
     Matrix GetExtrapolationMatrix(const Element&                         rElem,
                                   GeometryType&                          r_this_geometry,
                                   const GeometryData::IntegrationMethod& this_integration_method);
+    bool   ModelPartContainsAtLeastOneElement();
+    void   AddIntegrationContributionsForAllVariableLists(Element&       rElem,
+                                                          const SizeType integration_points_number,
+                                                          const Matrix&  extrapolation_matrix);
+    void   AssembleNodalDataForAllVariableLists();
+
+    template <class T>
+    void AssembleNodalData(const std::vector<const Variable<T>*>& rVariableList)
+    {
+        for (const auto p_var : rVariableList) {
+            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        }
+    }
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);

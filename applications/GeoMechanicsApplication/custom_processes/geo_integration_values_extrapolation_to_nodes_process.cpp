@@ -80,20 +80,13 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop(
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 {
-    // The list of elements
-    auto& r_elements_array = mrModelPart.Elements();
-    auto  it_elem_begin    = r_elements_array.begin();
-
     FillAverageVariableForElements();
 
-    mrModelPart.GetCommunicator().AssembleNonHistoricalData(mrAverageVariable);
-
-    // The process info
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
 
     // First we check if the model part contains at least one element
-    if (r_elements_array.size() != 0) {
-        // The first iterator of elements
+    if (ModelPartContainsAtLeastOneElement()) {
+        auto        it_elem_begin         = mrModelPart.Elements().begin();
         const auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
 
         // Auxiliar values
@@ -119,6 +112,11 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     }
 }
 
+bool GeoIntegrationValuesExtrapolationToNodesProcess::ModelPartContainsAtLeastOneElement()
+{
+    return !mrModelPart.Elements().empty();
+}
+
 void GeoIntegrationValuesExtrapolationToNodesProcess::FillAverageVariableForElements() const
 {
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
@@ -129,61 +127,52 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::FillAverageVariableForElem
             }
         }
     });
+
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(mrAverageVariable);
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 {
-    // We initialize the values
     InitializeVariables();
 
-    // The process info
-    const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
-
-    // The list of elements
-    auto& r_elements_array = mrModelPart.Elements();
-
-    // Auxiliar values
-    block_for_each(r_elements_array, [this, &r_process_info](Element& rElem) {
+    block_for_each(mrModelPart.Elements(), [this](Element& rElem) {
         if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
             const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
-            auto integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-            const SizeType integration_points_number = integration_points.size();
-
             const Matrix extrapolation_matrix =
                 GetExtrapolationMatrix(rElem, r_this_geometry, this_integration_method);
 
-            for (const auto p_var : mDoubleVariable) {
-                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
-                                                   extrapolation_matrix, integration_points_number);
-            }
-            for (const auto p_var : mArrayVariable) {
-                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
-                                                   extrapolation_matrix, integration_points_number);
-            }
-            for (const auto p_var : mVectorVariable) {
-                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
-                                                   extrapolation_matrix, integration_points_number);
-            }
-            for (const auto p_var : mMatrixVariable) {
-                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
-                                                   extrapolation_matrix, integration_points_number);
-            }
+            const SizeType integration_points_number =
+                r_this_geometry.IntegrationPoints(this_integration_method).size();
+            AddIntegrationContributionsForAllVariableLists(rElem, integration_points_number, extrapolation_matrix);
         }
     });
 
-    // Assemble nodal data
+    AssembleNodalDataForAllVariableLists();
+}
+
+void GeoIntegrationValuesExtrapolationToNodesProcess::AssembleNodalDataForAllVariableLists()
+{
+    AssembleNodalData(mDoubleVariable);
+    AssembleNodalData(mArrayVariable);
+    AssembleNodalData(mVectorVariable);
+    AssembleNodalData(mMatrixVariable);
+}
+
+void GeoIntegrationValuesExtrapolationToNodesProcess::AddIntegrationContributionsForAllVariableLists(
+    Element& rElem, const SizeType integration_points_number, const Matrix& extrapolation_matrix)
+{
     for (const auto p_var : mDoubleVariable) {
-        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        AddIntegrationContributionsToNodes(rElem, *p_var, extrapolation_matrix, integration_points_number);
     }
     for (const auto p_var : mArrayVariable) {
-        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        AddIntegrationContributionsToNodes(rElem, *p_var, extrapolation_matrix, integration_points_number);
     }
     for (const auto p_var : mVectorVariable) {
-        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        AddIntegrationContributionsToNodes(rElem, *p_var, extrapolation_matrix, integration_points_number);
     }
     for (const auto p_var : mMatrixVariable) {
-        mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
+        AddIntegrationContributionsToNodes(rElem, *p_var, extrapolation_matrix, integration_points_number);
     }
 }
 
