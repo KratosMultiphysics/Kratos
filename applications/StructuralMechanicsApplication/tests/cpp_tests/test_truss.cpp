@@ -70,6 +70,12 @@ std::pair<Node::Pointer, Node::Pointer> CreateEndNodes(ModelPart& rModelPart, do
   return std::make_pair(p_bottom_node, p_top_node);
 }
 
+std::shared_ptr<StubBilinearLaw> CreateStubBilinearLaw(double Elongation, double Length, double TangentModulus1, double TangentModulus2)
+{
+    const auto linear_strain = Elongation / Length;
+    return std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, TangentModulus1, TangentModulus2);
+}
+
 }
 
 
@@ -255,13 +261,12 @@ namespace Testing
         auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
         AddDisplacementDofsElement(r_model_part);
 
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
         constexpr auto elongation = 0.01;
-        constexpr auto linear_strain = elongation / length;
         constexpr auto tangent_modulus_1 = 2.0e+03;
         constexpr auto tangent_modulus_2 = 1.0e+03;
-        auto p_test_law = std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_test_law);
+        auto p_stub_law = CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_stub_law);
 
         std::vector<ModelPart::IndexType> element_nodes {1,2};
         auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
@@ -285,13 +290,12 @@ namespace Testing
         auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
         AddDisplacementDofsElement(r_model_part);
 
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
         constexpr auto elongation = 0.01;
-        constexpr auto linear_strain = elongation / length;
         constexpr auto tangent_modulus_1 = 2.0e+03;
         constexpr auto tangent_modulus_2 = 1.0e+03;
-        auto p_test_law = std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_test_law);
+        auto p_stub_law = CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_stub_law);
 
         std::vector<ModelPart::IndexType> element_nodes {1,2};
         auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
