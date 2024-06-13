@@ -36,13 +36,13 @@ namespace Kratos
 {
 
 // Default Constructor
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element() {}
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : UPwBaseElement() {}
 
 // Constructor 1
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
                                                                GeometryType::Pointer pGeometry,
                                                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-    : Element(NewId, pGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
+    : UPwBaseElement(NewId, pGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
 }
 
@@ -51,7 +51,7 @@ SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType        
                                                                GeometryType::Pointer   pGeometry,
                                                                PropertiesType::Pointer pProperties,
                                                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-    : Element(NewId, pGeometry, pProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
+    : UPwBaseElement(NewId, pGeometry, pProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
 }
 

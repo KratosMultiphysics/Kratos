@@ -14,11 +14,11 @@
 #if !defined(KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
 #define KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
+#include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_retention/retention_law.h"
 #include "geometries/geometry_data.h"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
-#include "includes/element.h"
 #include "includes/kratos_export_api.h"
 #include "includes/serializer.h"
 #include "includes/smart_pointers.h"
@@ -37,7 +37,7 @@ class StressStatePolicy;
 template <class T, std::size_t N>
 class array_1d;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public UPwBaseElement
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
@@ -330,12 +330,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     // Private Operations
