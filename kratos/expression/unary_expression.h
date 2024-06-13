@@ -26,8 +26,8 @@ namespace Kratos {
 
 namespace UnaryOperations
 {
-    struct Absolute   { static inline constexpr double Evaluate(const double V) { return std::abs(V); } };
-    struct Logarithm  { static inline constexpr double Evaluate(const double V) { return std::log(V); } };
+    struct Absolute   { static inline double Evaluate(const double V) { return std::abs(V); } };
+    struct Logarithm  { static inline double Evaluate(const double V) { return std::log(V); } };
 }
 
 template <class TOperationType>
