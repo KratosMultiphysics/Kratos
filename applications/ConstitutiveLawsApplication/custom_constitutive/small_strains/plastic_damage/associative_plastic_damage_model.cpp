@@ -516,17 +516,17 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
         const int curve_type = r_mat_properties[HARDENING_CURVE];
         switch (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::LinearSoftening: {
-                    const double xi = rPDParameters.PlasticDamageProportion;
-                    double K0;
-                    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-                    if (xi == 1.0) { //Necessary to avoid indetermination
-                        rPDParameters.Threshold = K0 * (1.0 - rPDParameters.TotalDissipation);
-                        rPDParameters.Slope = -K0;
-                    } else {
-                        rPDParameters.Threshold = K0 * (std::sqrt((2.0 - xi) * (2.0 - xi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - xi)) - xi) / (2.0 * (1.0 - xi));
-                        rPDParameters.Slope = -K0 / (std::sqrt((2.0 - xi) * (2.0 - xi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - xi)));
-                    }
-                    break;
+                const double xi = rPDParameters.PlasticDamageProportion;
+                double K0;
+                GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+                if (xi == 1.0) { //Necessary to avoid indetermination
+                    rPDParameters.Threshold = K0 * (1.0 - rPDParameters.TotalDissipation);
+                    rPDParameters.Slope = -K0;
+                } else {
+                    rPDParameters.Threshold = K0 * (std::sqrt((2.0 - xi) * (2.0 - xi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - xi)) - xi) / (2.0 * (1.0 - xi));
+                    rPDParameters.Slope = -K0 / (std::sqrt((2.0 - xi) * (2.0 - xi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - xi)));
+                }
+                break;
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
                 ResidualFunctionType implicit_function   = ExponentialSofteningImplicitFunction();
