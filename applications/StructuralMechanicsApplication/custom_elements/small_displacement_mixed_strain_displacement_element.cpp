@@ -886,6 +886,60 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoin
 /***********************************************************************************/
 
 void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+
+    const SizeType number_of_integration_points = r_integration_points.size();
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points, false);
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            bool value;
+            mConstitutiveLawVector[point_number]->GetValue( rVariable, value);
+            rOutput[point_number] = value;
+        }
+    } else {
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(r_geometry,GetProperties(),rCurrentProcessInfo);
+
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+            bool solution;
+            solution = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, solution);
+            rOutput[ii] = solution;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacementMixedStrainDisplacementElement::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
