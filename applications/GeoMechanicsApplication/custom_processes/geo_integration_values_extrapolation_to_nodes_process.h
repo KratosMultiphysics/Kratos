@@ -77,6 +77,12 @@ private:
 
     void GetVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixSizesOfVariables();
+    void InitializeSizesOfVectorVariables(Element&           rFirstElement,
+                                          SizeType           NumberOfIntegrationPoints,
+                                          const ProcessInfo& rProcessInfo);
+    void InitializeSizesOfMatrixVariables(Element&           rFirstElement,
+                                          SizeType           NumberOfIntegrationPoints,
+                                          const ProcessInfo& rProcessInfo);
     void InitializeVariables();
     void InitializeAverageVariablesForElements() const;
 
@@ -120,11 +126,15 @@ private:
     Matrix GetExtrapolationMatrix(const Element&                         rElement,
                                   GeometryType&                          rGeometry,
                                   const GeometryData::IntegrationMethod& rIntegrationMethod);
-    bool   ModelPartContainsAtLeastOneElement() const;
-    void   AddIntegrationContributionsForAllVariableLists(Element&      rElem,
-                                                          SizeType      NumberOfIntegrationPoints,
-                                                          const Matrix& rExtrapolationMatrix);
-    void   AssembleNodalDataForAllVariableLists();
+    bool   ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
+    void   CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
+    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement);
+
+    bool ModelPartContainsAtLeastOneElement() const;
+    void AddIntegrationContributionsForAllVariableLists(Element&      rElem,
+                                                        SizeType      NumberOfIntegrationPoints,
+                                                        const Matrix& rExtrapolationMatrix);
+    void AssembleNodalDataForAllVariableLists();
 
     template <class T>
     void AssembleNodalData(const std::vector<const Variable<T>*>& rVariableList)
@@ -133,21 +143,11 @@ private:
             mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
         }
     }
-
-    bool   ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
-    void   CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
-    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement);
-    void   InitializeSizesOfVectorVariables(Element&           rFirstElement,
-                                            SizeType           NumberOfIntegrationPoints,
-                                            const ProcessInfo& rProcessInfo);
-    void   InitializeSizesOfMatrixVariables(Element&           rFirstElement,
-                                            SizeType           NumberOfIntegrationPoints,
-                                            const ProcessInfo& rProcessInfo);
 };
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);
 
-inline std::ostream& operator<<(std::ostream& rOStream, const GeoIntegrationValuesExtrapolationToNodesProcess& rThis)
+inline std::ostream& operator<<(std::ostream& rOStream, const GeoIntegrationValuesExtrapolationToNodesProcess&)
 {
     return rOStream;
 }
