@@ -22,17 +22,17 @@ namespace
 
 using namespace Kratos;
 
-class BilinearTestLaw : public ConstitutiveLaw
+class StubBilinearLaw : public ConstitutiveLaw
 {
 public:
     // Only implement the interface that is needed by the test
-    BilinearTestLaw(double Strain, double TangentModulus1, double TangentModulus2) :
+  StubBilinearLaw(double Strain, double TangentModulus1, double TangentModulus2) :
  mStrain{Strain}, mTangentModuli{TangentModulus1, TangentModulus2}
   {}
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return std::make_shared<BilinearTestLaw>(*this);
+        return std::make_shared<StubBilinearLaw>(*this);
     }
 
     SizeType GetStrainSize() const override
@@ -248,7 +248,7 @@ namespace Testing
         constexpr auto linear_strain = elongation / length;
         constexpr auto tangent_modulus_1 = 2.0e+03;
         constexpr auto tangent_modulus_2 = 1.0e+03;
-        auto p_test_law = std::make_shared<BilinearTestLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
+        auto p_test_law = std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_test_law);
 
         std::vector<ModelPart::IndexType> element_nodes {1,2};
@@ -283,7 +283,7 @@ namespace Testing
       constexpr auto linear_strain = elongation / length;
       constexpr auto tangent_modulus_1 = 2.0e+03;
       constexpr auto tangent_modulus_2 = 1.0e+03;
-      auto p_test_law = std::make_shared<BilinearTestLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
+      auto p_test_law = std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
       p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_test_law);
 
       std::vector<ModelPart::IndexType> element_nodes {1,2};
