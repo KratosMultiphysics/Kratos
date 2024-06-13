@@ -16,7 +16,7 @@
             "input_filename":   "single_element"
         },
         "material_import_settings":              {
-            "materials_filename":       "../common/MaterialParameters.json"
+            "materials_filename":       "../common/MaterialParameters_updated_lagrange.json"
         },
         "time_stepping":              {
             "time_step":            1.0

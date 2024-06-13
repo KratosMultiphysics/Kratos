@@ -121,23 +121,6 @@ public:
         }
     }
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void GetNodalVariableMatrix(Matrix&                      rNodalVariableMatrix,
-                                              const Element::GeometryType& rGeom,
-                                              const Variable<array_1d<double, 3>>& Variable,
-                                              IndexType SolutionStepIndex = 0)
-    {
-        rNodalVariableMatrix.resize(TNumNodes, TDim, false);
-
-        for (IndexType node = 0; node < TNumNodes; ++node) {
-            const array_1d<double, 3>& NodalVariableAux =
-                rGeom[node].FastGetSolutionStepValue(Variable, SolutionStepIndex);
-
-            for (IndexType iDim = 0; iDim < TDim; ++iDim)
-                rNodalVariableMatrix(node, iDim) = NodalVariableAux[iDim];
-        }
-    }
-
     static inline void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                               const Element::PropertiesType& Prop)
     {

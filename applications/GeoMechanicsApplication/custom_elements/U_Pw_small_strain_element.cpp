@@ -46,7 +46,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     // Base class checks for positive area and Id > 0
     // Verify generic variables
-    int ierr = UPwBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
@@ -830,14 +830,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(Ma
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddGeometricStiffnessMatrix(
-    MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables, unsigned int GPoint)
+    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rGradNpt, double IntegrationCoefficient) const
 {
     KRATOS_TRY
 
-    const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
-    const Matrix reduced_Kg_matrix =
-        prod(rVariables.GradNpT, rVariables.IntegrationCoefficient *
-                                     Matrix(prod(stress_tensor, trans(rVariables.GradNpT)))); // to be optimized
+    Matrix reduced_Kg_matrix =
+        prod(rGradNpt, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rGradNpt)))) *
+        IntegrationCoefficient;
 
     Matrix geometric_stiffness_matrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
     MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, TDim);
@@ -929,11 +928,11 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
-    const auto permeability_update_factors = GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(
-        strain_vectors, this->GetProperties());
-    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                   permeability_update_factors.cbegin(), relative_permeability_values.begin(),
+    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
+
     const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -968,6 +967,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     }
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<double> UPwSmallStrainElement<TDim, TNumNodes>::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>& rStrainVectors) const
+{
+    return GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(rStrainVectors,
+                                                                             this->GetProperties());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

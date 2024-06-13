@@ -172,7 +172,7 @@ protected:
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) override;
 
-    unsigned int GetNumberOfDOF() const override;
+    std::size_t GetNumberOfDOF() const override;
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
