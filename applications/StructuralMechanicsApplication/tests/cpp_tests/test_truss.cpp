@@ -17,6 +17,8 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 
+#include <utility>
+
 namespace
 {
 
@@ -59,6 +61,13 @@ ModelPart& CreateTestModelPart(Model& rModel)
   r_result.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
   r_result.AddNodalSolutionStepVariable(DISPLACEMENT);
   return r_result;
+}
+
+std::pair<Node::Pointer, Node::Pointer> CreateEndNodes(ModelPart& rModelPart, double VerticalDistance)
+{
+  auto p_bottom_node = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+  auto p_top_node = rModelPart.CreateNewNode(2, 0.0, 0.0, VerticalDistance);
+  return std::make_pair(p_bottom_node, p_top_node);
 }
 
 }
@@ -242,10 +251,8 @@ namespace Testing
         Model current_model;
         auto& r_model_part = CreateTestModelPart(current_model);
 
-        // Create two nodes and a truss element
         constexpr auto length = 2.0;
-        auto p_bottom_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-        auto p_top_node = r_model_part.CreateNewNode(2, 0.0, 0.0, length);
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
         AddDisplacementDofsElement(r_model_part);
 
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
@@ -274,10 +281,8 @@ namespace Testing
         Model current_model;
         auto& r_model_part = CreateTestModelPart(current_model);
 
-        // Create two nodes and a truss element
         constexpr auto length = 2.0;
-        auto p_bottom_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-        auto p_top_node = r_model_part.CreateNewNode(2, 0.0, 0.0, length);
+        auto [p_bottom_node, p_top_node] = CreateEndNodes(r_model_part, length);
         AddDisplacementDofsElement(r_model_part);
 
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
