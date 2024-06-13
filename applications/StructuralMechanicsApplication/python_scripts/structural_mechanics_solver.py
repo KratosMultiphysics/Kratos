@@ -186,19 +186,22 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUMETRIC_STRAIN)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_STRAIN)
         if self.settings["strain_vector_dofs"].GetBool():
+            dim = self.settings["domain_size"].GetInt()
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XX)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XY)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XX)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_YY)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_YY)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XY)
-            if self.settings["domain_size"].GetInt() == 3:
+            if dim == 3:
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_ZZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_YZ)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XZ)
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_ZZ)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XY)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XY)
+            if dim == 3:
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_YZ)
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_YZ)
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_STRAIN_VECTOR_XZ)
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.REACTION_NODAL_STRAIN_VECTOR_XZ)
+
         if self.settings["displacement_control"].GetBool():
             # Add displacement-control variables
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LOAD_FACTOR)
@@ -223,11 +226,13 @@ class MechanicalSolver(PythonSolver):
         if self.settings["volumetric_strain_dofs"].GetBool():
             dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
         if self.settings["strain_vector_dofs"].GetBool():
+            dim = self.settings["domain_size"].GetInt()
             dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XX", "REACTION_NODAL_STRAIN_VECTOR_XX"])
             dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_YY", "REACTION_NODAL_STRAIN_VECTOR_YY"])
-            dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XY", "REACTION_NODAL_STRAIN_VECTOR_XY"])
-            if self.settings["domain_size"].GetInt() == 3:
+            if dim == 3:
                 dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_ZZ", "REACTION_NODAL_STRAIN_VECTOR_ZZ"])
+            dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XY", "REACTION_NODAL_STRAIN_VECTOR_XY"])
+            if dim == 3:
                 dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_YZ", "REACTION_NODAL_STRAIN_VECTOR_YZ"])
                 dofs_and_reactions_to_add.append(["NODAL_STRAIN_VECTOR_XZ", "REACTION_NODAL_STRAIN_VECTOR_XZ"])
         if self.settings["displacement_control"].GetBool():
