@@ -46,29 +46,16 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
 
-    GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
-                                                    Parameters ThisParameters = Parameters(R"({})"));
-
-    /**
-     * @brief The constructor of the integration values extraplation using a model part
-     * @param rMainModelPart The model part from where extrapolate values
-     * @param ThisParameters The parameters containing all the information needed
-     */
+    GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel, Parameters rParameters = Parameters(R"({})"));
     GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
-                                                    Parameters ThisParameters = Parameters(R"({})"));
+                                                    Parameters rParameters = Parameters(R"({})"));
 
     ~GeoIntegrationValuesExtrapolationToNodesProcess() override;
 
-    void operator()() { Execute(); }
-
-    void Execute() override;
-
-    void ExecuteBeforeSolutionLoop() override;
-
-    void ExecuteFinalizeSolutionStep() override;
-
-    void ExecuteFinalize() override;
-
+    void             Execute() override;
+    void             ExecuteBeforeSolutionLoop() override;
+    void             ExecuteFinalizeSolutionStep() override;
+    void             ExecuteFinalize() override;
     const Parameters GetDefaultParameters() const override;
 
     std::string Info() const override { return "GeoIntegrationValuesExtrapolationToNodesProcess"; }
@@ -76,24 +63,22 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 private:
-    ModelPart& mrModelPart; /// The main model part
+    ModelPart& mrModelPart;
 
-    std::vector<const Variable<double>*> mDoubleVariable;             /// The double variables
-    std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
-    std::vector<const Variable<Vector>*> mVectorVariable; /// The vector variables to compute
-    std::vector<const Variable<Matrix>*> mMatrixVariable; /// The matrix variables to compute
-    std::unique_ptr<NodalExtrapolator>   mpExtrapolator = std::make_unique<NodalExtrapolator>();
-
-    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizesOfVectorVariables; /// The size of the vector variables
-    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizesOfMatrixVariables; /// The size of the matrixes variables
-
-    const Variable<double>& mrAverageVariable; /// The variable used to compute the average weight
-    std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap = {}; /// The map containing the extrapolation matrix
-
-    void InitializeVectorAndMatrixSizesOfVariables();
-    void InitializeVariables();
+    std::vector<const Variable<double>*>              mDoubleVariables;
+    std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
+    std::vector<const Variable<Vector>*>              mVectorVariables;
+    std::vector<const Variable<Matrix>*>              mMatrixVariables;
+    const Variable<double>&                           mrAverageVariable;
+    std::unordered_map<SizeType, Matrix>              mExtrapolationMatrixMap = {};
+    std::unique_ptr<NodalExtrapolator> mpExtrapolator = std::make_unique<NodalExtrapolator>();
+    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizesOfVectorVariables;
+    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizesOfMatrixVariables;
 
     void GetVariableLists(const Parameters& rParameters);
+    void InitializeVectorAndMatrixSizesOfVariables();
+    void InitializeVariables();
+    void InitializeAverageVariablesForElements() const;
 
     template <class T>
     bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList)
@@ -108,38 +93,37 @@ private:
     }
 
     template <class T>
-    void AddIntegrationContributionsToNodes(Element&           rElem,
+    void AddIntegrationContributionsToNodes(Element&           rElement,
                                             const Variable<T>& rVariable,
-                                            const Matrix&      extrapolation_matrix,
-                                            const SizeType     integration_points_number)
+                                            const Matrix&      rExtrapolationMatrix,
+                                            SizeType           NumberOfIntegrationPoints)
     {
-        auto&          r_this_geometry = rElem.GetGeometry();
-        std::vector<T> values_on_integration_points(integration_points_number);
-        rElem.CalculateOnIntegrationPoints(rVariable, values_on_integration_points,
-                                           mrModelPart.GetProcessInfo());
+        auto&          r_this_geometry = rElement.GetGeometry();
+        std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
+        rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points,
+                                              mrModelPart.GetProcessInfo());
 
-        for (IndexType i_node = 0; i_node < r_this_geometry.PointsNumber(); ++i_node) {
+        for (IndexType iNode = 0; iNode < r_this_geometry.PointsNumber(); ++iNode) {
             // We first initialize the source, which we need to do by getting the first value,
             // because we don't know the size of the dynamically allocated Vector/Matrix
-            T source = extrapolation_matrix(i_node, 0) * values_on_integration_points[0];
+            T source = rExtrapolationMatrix(iNode, 0) * values_on_integration_points[0];
             for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
-                source += extrapolation_matrix(i_node, i_gauss_point) * values_on_integration_points[i_gauss_point];
+                source += rExtrapolationMatrix(iNode, i_gauss_point) * values_on_integration_points[i_gauss_point];
             }
-            source /= r_this_geometry[i_node].GetValue(mrAverageVariable);
+            source /= r_this_geometry[iNode].GetValue(mrAverageVariable);
 
-            T& destination = r_this_geometry[i_node].FastGetSolutionStepValue(rVariable);
+            T& destination = r_this_geometry[iNode].FastGetSolutionStepValue(rVariable);
             AtomicAdd(destination, source);
         }
     }
 
-    void   InitializeAverageVariablesForElements() const;
-    Matrix GetExtrapolationMatrix(const Element&                         rElem,
-                                  GeometryType&                          r_this_geometry,
-                                  const GeometryData::IntegrationMethod& this_integration_method);
+    Matrix GetExtrapolationMatrix(const Element&                         rElement,
+                                  GeometryType&                          rGeometry,
+                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
     bool   ModelPartContainsAtLeastOneElement() const;
-    void   AddIntegrationContributionsForAllVariableLists(Element&       rElem,
-                                                          const SizeType integration_points_number,
-                                                          const Matrix&  extrapolation_matrix);
+    void   AddIntegrationContributionsForAllVariableLists(Element&      rElem,
+                                                          SizeType      NumberOfIntegrationPoints,
+                                                          const Matrix& rExtrapolationMatrix);
     void   AssembleNodalDataForAllVariableLists();
 
     template <class T>
@@ -150,16 +134,16 @@ private:
         }
     }
 
-    bool   ExtrapolationMatrixIsCachedFor(const Element& rElem) const;
-    void   CacheExtrapolationMatrixFor(const Element& rElem, const Matrix& rExtrapolationMatrix);
-    Matrix GetCachedExtrapolationMatrixFor(const Element& rElem);
-    void   InitializeSizesOfVectorVariables(Element&           r_first_element,
-                                            SizeType           integration_points_number,
-                                            const ProcessInfo& r_process_info);
-    void   InitializeSizesOfMatrixVariables(Element&           r_first_element,
-                                            SizeType           integration_points_number,
-                                            const ProcessInfo& r_process_info);
-}; // Class IntegrationValuesExtrapolationToNodesProcess
+    bool   ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
+    void   CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
+    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement);
+    void   InitializeSizesOfVectorVariables(Element&           rFirstElement,
+                                            SizeType           NumberOfIntegrationPoints,
+                                            const ProcessInfo& rProcessInfo);
+    void   InitializeSizesOfMatrixVariables(Element&           rFirstElement,
+                                            SizeType           NumberOfIntegrationPoints,
+                                            const ProcessInfo& rProcessInfo);
+};
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);
 
