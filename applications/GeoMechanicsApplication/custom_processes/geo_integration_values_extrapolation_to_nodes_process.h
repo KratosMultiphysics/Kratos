@@ -84,13 +84,13 @@ private:
     std::vector<const Variable<Matrix>*> mMatrixVariable; /// The matrix variables to compute
     std::unique_ptr<NodalExtrapolator>   mpExtrapolator = std::make_unique<NodalExtrapolator>();
 
-    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
-    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables
+    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizesOfVectorVariables; /// The size of the vector variables
+    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizesOfMatrixVariables; /// The size of the matrixes variables
 
     const Variable<double>& mrAverageVariable; /// The variable used to compute the average weight
     std::unordered_map<SizeType, Matrix> mExtrapolationMatrixMap = {}; /// The map containing the extrapolation matrix
 
-    void InitializeMaps();
+    void InitializeVectorAndMatrixSizesOfVariables();
     void InitializeVariables();
 
     void GetVariableLists(const Parameters& rParameters);
@@ -132,11 +132,11 @@ private:
         }
     }
 
-    void   FillAverageVariableForElements() const;
+    void   InitializeAverageVariablesForElements() const;
     Matrix GetExtrapolationMatrix(const Element&                         rElem,
                                   GeometryType&                          r_this_geometry,
                                   const GeometryData::IntegrationMethod& this_integration_method);
-    bool   ModelPartContainsAtLeastOneElement();
+    bool   ModelPartContainsAtLeastOneElement() const;
     void   AddIntegrationContributionsForAllVariableLists(Element&       rElem,
                                                           const SizeType integration_points_number,
                                                           const Matrix&  extrapolation_matrix);
@@ -149,6 +149,16 @@ private:
             mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
         }
     }
+
+    bool   ExtrapolationMatrixIsCachedFor(const Element& rElem) const;
+    void   CacheExtrapolationMatrixFor(const Element& rElem, const Matrix& rExtrapolationMatrix);
+    Matrix GetCachedExtrapolationMatrixFor(const Element& rElem);
+    void   InitializeSizesOfVectorVariables(Element&           r_first_element,
+                                            SizeType           integration_points_number,
+                                            const ProcessInfo& r_process_info);
+    void   InitializeSizesOfMatrixVariables(Element&           r_first_element,
+                                            SizeType           integration_points_number,
+                                            const ProcessInfo& r_process_info);
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
 inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);

@@ -74,51 +74,58 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::Execute()
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop()
 {
-    VariableUtils().SetNonHistoricalVariable(mrAverageVariable, 0.0, mrModelPart.Nodes());
-    InitializeMaps();
+    InitializeAverageVariablesForElements();
+    InitializeVectorAndMatrixSizesOfVariables();
 }
 
-void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
+void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVectorAndMatrixSizesOfVariables()
 {
-    FillAverageVariableForElements();
-
-    const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
-
-    // First we check if the model part contains at least one element
     if (ModelPartContainsAtLeastOneElement()) {
-        auto        it_elem_begin         = mrModelPart.Elements().begin();
-        const auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
+        auto r_first_element = mrModelPart.Elements().begin();
 
-        // Auxiliar values
-        const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
+        const GeometryData::IntegrationMethod this_integration_method =
+            r_first_element->GetIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points =
-            r_this_geometry_begin.IntegrationPoints(this_integration_method);
+            r_first_element->GetGeometry().IntegrationPoints(this_integration_method);
         const SizeType integration_points_number = integration_points.size();
 
-        // We init the vector sizes
-        for (const auto p_var : mVectorVariable) {
-            std::vector<Vector> aux_result(integration_points_number);
-            it_elem_begin->CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-            mSizeVectors.insert({p_var, aux_result[0].size()});
-        }
-
-        // We init the matrix sizes
-        for (const auto p_var : mMatrixVariable) {
-            std::vector<Matrix> aux_result(integration_points_number);
-            it_elem_begin->CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-            std::pair<SizeType, SizeType> aux_pair(aux_result[0].size1(), aux_result[0].size2());
-            mSizeMatrixes.insert({p_var, aux_pair});
-        }
+        const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
+        InitializeSizesOfVectorVariables(*r_first_element, integration_points_number, r_process_info);
+        InitializeSizesOfMatrixVariables(*r_first_element, integration_points_number, r_process_info);
     }
 }
 
-bool GeoIntegrationValuesExtrapolationToNodesProcess::ModelPartContainsAtLeastOneElement()
+bool GeoIntegrationValuesExtrapolationToNodesProcess::ModelPartContainsAtLeastOneElement() const
 {
     return !mrModelPart.Elements().empty();
 }
 
-void GeoIntegrationValuesExtrapolationToNodesProcess::FillAverageVariableForElements() const
+void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeSizesOfVectorVariables(
+    Element& r_first_element, SizeType integration_points_number, const ProcessInfo& r_process_info)
 {
+    for (const auto p_var : mVectorVariable) {
+        std::vector<Vector> values_on_integration_points(integration_points_number);
+        r_first_element.CalculateOnIntegrationPoints(*p_var, values_on_integration_points, r_process_info);
+        mSizesOfVectorVariables.insert({p_var, values_on_integration_points[0].size()});
+    }
+}
+
+void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeSizesOfMatrixVariables(
+    Element& r_first_element, SizeType integration_points_number, const ProcessInfo& r_process_info)
+{
+    for (const auto p_var : mMatrixVariable) {
+        std::vector<Matrix> values_on_integration_points(integration_points_number);
+        r_first_element.CalculateOnIntegrationPoints(*p_var, values_on_integration_points, r_process_info);
+        std::pair<SizeType, SizeType> matrix_dimensions(values_on_integration_points[0].size1(),
+                                                        values_on_integration_points[0].size2());
+        mSizesOfMatrixVariables.try_emplace(p_var, matrix_dimensions);
+    }
+}
+
+void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeAverageVariablesForElements() const
+{
+    VariableUtils().SetNonHistoricalVariable(mrAverageVariable, 0.0, mrModelPart.Nodes());
+
     block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
         if (rElement.IsActive()) {
             for (auto& node : rElement.GetGeometry()) {
@@ -181,41 +188,48 @@ Matrix GeoIntegrationValuesExtrapolationToNodesProcess::GetExtrapolationMatrix(
     GeometricalObject::GeometryType&       r_this_geometry,
     const GeometryData::IntegrationMethod& this_integration_method)
 {
-    Matrix result;
-    // check if the element type hash is in the extrapolation matrix map
-    if (mExtrapolationMatrixMap.count(typeid(rElem).hash_code()) > 0) {
-        result = mExtrapolationMatrixMap[typeid(rElem).hash_code()];
-    } else {
-        // calculate the extrapolation matrix
-        result = mpExtrapolator->CalculateElementExtrapolationMatrix(r_this_geometry, this_integration_method);
-        mExtrapolationMatrixMap[typeid(rElem).hash_code()] = result;
+    if (!ExtrapolationMatrixIsCachedFor(rElem)) {
+        CacheExtrapolationMatrixFor(rElem, mpExtrapolator->CalculateElementExtrapolationMatrix(
+                                               r_this_geometry, this_integration_method));
     }
-    return result;
+
+    return GetCachedExtrapolationMatrixFor(rElem);
+}
+
+bool GeoIntegrationValuesExtrapolationToNodesProcess::ExtrapolationMatrixIsCachedFor(const Element& rElem) const
+{
+    return mExtrapolationMatrixMap.count(typeid(rElem).hash_code()) > 0;
+}
+
+Matrix GeoIntegrationValuesExtrapolationToNodesProcess::GetCachedExtrapolationMatrixFor(const Element& rElem)
+{
+    return mExtrapolationMatrixMap[typeid(rElem).hash_code()];
+}
+
+void GeoIntegrationValuesExtrapolationToNodesProcess::CacheExtrapolationMatrixFor(const Element& rElem,
+                                                                                  const Matrix& rExtrapolationMatrix)
+{
+    mExtrapolationMatrixMap[typeid(rElem).hash_code()] = rExtrapolationMatrix;
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 {
-    // Initializing some auxiliar values
-    array_1d<double, 3> zero_array = ZeroVector(3);
+    const array_1d<double, 3> zero_array = ZeroVector(3);
 
-    // The list of nodes
-    auto& r_nodes_array = mrModelPart.Nodes();
-
-    // Initialize values
-    block_for_each(r_nodes_array, [this, zero_array](Node& rNode) {
-        // We initialize the doubles values
+    block_for_each(mrModelPart.Nodes(), [this, zero_array](Node& rNode) {
         for (const auto p_var : mDoubleVariable) {
             rNode.FastGetSolutionStepValue(*p_var) = 0.0;
-        } // We initialize the arrays values
+        }
         for (const auto p_var : mArrayVariable) {
             rNode.FastGetSolutionStepValue(*p_var) = zero_array;
-        } // We initialize the vectors values
+        }
         for (const auto p_var : mVectorVariable) {
-            const Vector zero_vector               = ZeroVector(mSizeVectors[p_var]);
+            const Vector zero_vector               = ZeroVector(mSizesOfVectorVariables[p_var]);
             rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
-        } // We initialize the matrix values
+        }
         for (const auto p_var : mMatrixVariable) {
-            const Matrix zero_matrix = ZeroMatrix(mSizeMatrixes[p_var].first, mSizeMatrixes[p_var].second);
+            const Matrix zero_matrix =
+                ZeroMatrix(mSizesOfMatrixVariables[p_var].first, mSizesOfMatrixVariables[p_var].second);
             rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
         }
     });
@@ -223,14 +237,8 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
 {
-    // The list of nodes
-    auto& r_nodes_array = mrModelPart.Nodes();
-
-    // Remove average variable
-    block_for_each(r_nodes_array, [this](Node& rNode) {
-        auto& data = rNode.GetData();
-        data.Erase(mrAverageVariable);
-    });
+    block_for_each(mrModelPart.Nodes(),
+                   [this](Node& rNode) { rNode.GetData().Erase(mrAverageVariable); });
 }
 
 } // namespace Kratos.
