@@ -32,6 +32,10 @@ void ControlUtils::AssignEquivalentProperties(
 {
     KRATOS_TRY
 
+    // TODO: To be removed once the PointerVectorSet mutable find is fixed.
+    rSourceContainer.Sort();
+    rDestinationContainer.Sort();
+
     const IndexType number_of_entities = rSourceContainer.size();
 
     KRATOS_ERROR_IF_NOT(number_of_entities == rDestinationContainer.size())
