@@ -14,6 +14,7 @@
 
 #include "custom_processes/geo_integration_values_extrapolation_to_nodes_process.h"
 #include "custom_utilities/nodal_extrapolator.h"
+#include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
@@ -165,16 +166,20 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::AddIntegrationContribution
     Element& rElem, SizeType NumberOfIntegrationPoints, const Matrix& rExtrapolationMatrix)
 {
     for (const auto p_var : mDoubleVariables) {
-        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix, NumberOfIntegrationPoints);
+        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
+                                           NumberOfIntegrationPoints, AtomicAdd<double>);
     }
     for (const auto p_var : mArrayVariables) {
-        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix, NumberOfIntegrationPoints);
+        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
+                                           NumberOfIntegrationPoints, AtomicAdd<double, 3>);
     }
     for (const auto p_var : mVectorVariables) {
-        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix, NumberOfIntegrationPoints);
+        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
+                                           NumberOfIntegrationPoints, AtomicAddVector<Vector, Vector>);
     }
     for (const auto p_var : mMatrixVariables) {
-        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix, NumberOfIntegrationPoints);
+        AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
+                                           NumberOfIntegrationPoints, AtomicAddMatrix<Matrix, Matrix>);
     }
 }
 

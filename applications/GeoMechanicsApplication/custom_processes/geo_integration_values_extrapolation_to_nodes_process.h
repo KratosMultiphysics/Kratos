@@ -98,11 +98,12 @@ private:
         return variable_is_of_correct_type;
     }
 
-    template <class T>
+    template <class T, class U>
     void AddIntegrationContributionsToNodes(Element&           rElement,
                                             const Variable<T>& rVariable,
                                             const Matrix&      rExtrapolationMatrix,
-                                            SizeType           NumberOfIntegrationPoints)
+                                            SizeType           NumberOfIntegrationPoints,
+                                            const U&           rAtomicAddOperation)
     {
         auto&          r_this_geometry = rElement.GetGeometry();
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
@@ -119,7 +120,7 @@ private:
             source /= r_this_geometry[iNode].GetValue(mrAverageVariable);
 
             T& destination = r_this_geometry[iNode].FastGetSolutionStepValue(rVariable);
-            AtomicAdd(destination, source);
+            rAtomicAddOperation(destination, source);
         }
     }
 
