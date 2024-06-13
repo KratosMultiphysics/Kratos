@@ -304,7 +304,7 @@ namespace Testing
         p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, 0.0};
         p_top_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, elongation};
 
-        auto p_truss_element = dynamic_cast<TrussElementLinear3D2N*>(p_element.get());
+        auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);
         KRATOS_EXPECT_NEAR(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()), 1.0e-10);
     }
