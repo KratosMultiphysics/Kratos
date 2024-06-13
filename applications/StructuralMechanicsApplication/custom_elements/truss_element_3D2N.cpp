@@ -1039,7 +1039,7 @@ void TrussElement3D2N::CalculateLumpedMassVector(
     KRATOS_CATCH("")
 }
 
-double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const
+double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     return ReturnTangentModulus1D(CalculateGreenLagrangeStrain(), rCurrentProcessInfo);
