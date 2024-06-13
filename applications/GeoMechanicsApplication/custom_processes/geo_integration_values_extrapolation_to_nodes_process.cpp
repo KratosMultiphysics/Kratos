@@ -308,24 +308,22 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
         auto& data = rNode.GetData();
         data.Erase(mrAverageVariable);
 
-        // We erase the doubles values
-        for (const auto p_var : mDoubleVariable) {
-            if (mExtrapolateNonHistorical) data.Erase(*p_var);
-        }
+        if (mExtrapolateNonHistorical) {
+            for (const auto p_var : mDoubleVariable) {
+                data.Erase(*p_var);
+            }
 
-        // We erase the arrays values
-        for (const auto p_var : mArrayVariable) {
-            if (mExtrapolateNonHistorical) data.Erase(*p_var);
-        }
+            for (const auto p_var : mArrayVariable) {
+                data.Erase(*p_var);
+            }
 
-        // We erase the vectors values
-        for (const auto p_var : mVectorVariable) {
-            if (mExtrapolateNonHistorical) data.Erase(*p_var);
-        }
+            for (const auto p_var : mVectorVariable) {
+                data.Erase(*p_var);
+            }
 
-        // We erase the matrix values
-        for (const auto p_var : mMatrixVariable) {
-            if (mExtrapolateNonHistorical) data.Erase(*p_var);
+            for (const auto p_var : mMatrixVariable) {
+                data.Erase(*p_var);
+            }
         }
     });
 }
