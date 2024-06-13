@@ -1461,23 +1461,6 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementVariables& rVari
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int GPoint) const
-{
-    KRATOS_TRY
-
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
-
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod())[GPoint];
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
-
-    KRATOS_CATCH("")
-}
-
 Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
     return mpStressStatePolicy->CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
@@ -1827,19 +1810,6 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateDeformationGradient
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                                             Matrix& rJ,
-                                                                             Matrix& rInvJ,
-                                                                             unsigned int GPoint) const
-{
-    KRATOS_TRY
-
-    rJ = GetGeometry().Jacobian(rJ, GPoint, this->GetIntegrationMethod());
-    MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
-
-    KRATOS_CATCH("")
-}
-
 SizeType SmallStrainUPwDiffOrderElement::GetNumberOfDOF() const
 {
     return GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension() +
@@ -1850,11 +1820,6 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), *mpPressureGeometry,
                                                       GetGeometry().WorkingSpaceDimension());
-}
-
-const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
-{
-    return *mpStressStatePolicy;
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()

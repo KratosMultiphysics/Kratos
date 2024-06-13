@@ -229,13 +229,14 @@ protected:
 
     GeometryType::Pointer mpPressureGeometry;
 
-    virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
+    void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
+                                          const ProcessInfo& CurrentProcessInfo) override;
 
-    virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo,
-                              bool               CalculateStiffnessMatrixFlag,
-                              bool               CalculateResidualVectorFlag);
+    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                      VectorType&        rRightHandSideVector,
+                      const ProcessInfo& rCurrentProcessInfo,
+                      bool               CalculateStiffnessMatrixFlag,
+                      bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
@@ -244,9 +245,6 @@ protected:
     void InitializeProperties(ElementVariables& rVariables);
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
-
-    void CalculateDerivativesOnInitialConfiguration(
-        double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DN_DX, unsigned int PointNumber) const;
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
                                            double detJ) const;
@@ -306,17 +304,13 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
-
-    const StressStatePolicy& GetStressStatePolicy() const;
-
     Vector GetPressureSolutionVector();
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
 
-    [[nodiscard]] SizeType GetNumberOfDOF() const;
+    [[nodiscard]] SizeType GetNumberOfDOF() const override;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
