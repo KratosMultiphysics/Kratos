@@ -1,16 +1,18 @@
 ---
 title: Log
-keywords: 
+keywords:
 tags: [log, expression]
 sidebar: kratos_expressions
-summary: 
+summary:
 ---
 
 ## Introduction
 
 This computes the component-wise natural logarithm of the given expression. Assume the input expression is given by $$\underline{\mathbf{u}} = \left\lbrace u_{ij},  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$ where the $$i^{th}$$ entity's $$j^{th}$$ component is represented by $$u_{ij}$$ with $$i\in \left[0, M\right)$$ for each entity and $$j\in \left[0, N\right)$$ for each component in each entity. The Following equation illustrates the formulation of the resulting expression.
 
-:warning: **This method returns nan for any component which is $$u_{ij} < 0.0$$ and inf for any component $$u_{ij} = 0.0$$**.
+> ##### WARNING
+>
+> This method returns nan for any component which is $$u_{ij} < 0.0$$ and inf for $$u_{ij} = 0.0$$.
 
 <p align="center">$$ Log\left(\underline{\mathbf{u}}\right) = \left\lbrace log\left(u_{ij}\right),  \forall (i,j)\in\left[0, M\right)\times\left[0, N\right)\right\rbrace$$</p>
 
@@ -52,9 +54,9 @@ for node in model_part.Nodes:
 
 Expected output:
 ```console
- |  /           |                  
- ' /   __| _` | __|  _ \   __|    
- . \  |   (   | |   (   |\__ \  
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
 _|\_\_|  \__,_|\__|\___/ ____/
            Multi-Physics 9.5."0"-core/expression/feature/add_log_expression-c757d39762-Release-x86_64
            Compiled for GNU/Linux and Python3.12 with GCC-14.1
