@@ -11,18 +11,17 @@
 //                   Anne van de Graaf
 //
 #include "apply_vector_constraint_table_process.h"
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "apply_component_table_process.hpp"
+#include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 
 namespace Kratos
 {
 
-ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Kratos::ModelPart&        rModelPart,
+ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Kratos::ModelPart& rModelPart,
                                                                      const Kratos::Parameters& rSettings)
-    : Process(Flags()),
-      mrModelPart(rModelPart)
+    : Process(Flags()), mrModelPart(rModelPart)
 {
     const auto parameters_list = CreateParametersForActiveComponents(rSettings);
     for (const auto& parameters : parameters_list) {
@@ -31,7 +30,6 @@ ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Kratos::Mod
 }
 
 ApplyVectorConstraintTableProcess::~ApplyVectorConstraintTableProcess() = default;
-
 
 std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(const Parameters& rSettings)
 {
@@ -74,20 +72,21 @@ Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const
 std::size_t ApplyVectorConstraintTableProcess::ComponentToIndex(char component)
 {
     switch (component) {
-        case 'X':
-            return 0;
-        case 'Y':
-            return 1;
-        case 'Z':
-            return 2;
+    case 'X':
+        return 0;
+    case 'Y':
+        return 1;
+    case 'Z':
+        return 2;
 
-        default:
-            KRATOS_ERROR << "ApplyVectorConstraintTableProcess: Unknown component '" << component << "'" << std::endl;
+    default:
+        KRATOS_ERROR << "ApplyVectorConstraintTableProcess: Unknown component '" << component << "'"
+                     << std::endl;
     }
 }
 
-ApplyVectorConstraintTableProcess::ProcessUniquePointer
-ApplyVectorConstraintTableProcess::MakeProcessFor(const Parameters& rParameters) const
+ApplyVectorConstraintTableProcess::ProcessUniquePointer ApplyVectorConstraintTableProcess::MakeProcessFor(
+    const Parameters& rParameters) const
 {
     if (rParameters.Has("table")) {
         return std::make_unique<ApplyComponentTableProcess>(mrModelPart, rParameters);
@@ -110,4 +109,9 @@ void ApplyVectorConstraintTableProcess::ExecuteInitializeSolutionStep()
     }
 }
 
+std::string ApplyVectorConstraintTableProcess::Info() const
+{
+    return "ApplyVectorConstraintTableProcess";
 }
+
+} // namespace Kratos

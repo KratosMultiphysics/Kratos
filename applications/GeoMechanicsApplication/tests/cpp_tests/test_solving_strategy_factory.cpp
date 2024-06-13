@@ -44,7 +44,7 @@ const std::string testParameters = R"(
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  true,
-        "move_mesh_flag":                     false,
+        "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
@@ -56,7 +56,7 @@ const std::string testParameters = R"(
         "newmark_theta":                      0.5,
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
-        "strategy_type":                      "newton_raphson_strategy",
+        "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
@@ -90,6 +90,7 @@ const std::string testParameters = R"(
     }
 )";
 
+
 KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefined, KratosGeoMechanicsFastSuite)
 {
     Model model;
@@ -101,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefin
             parameters, dummy_model_part), "The parameter strategy_type is undefined, aborting.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRaphsonStrategy, KratosGeoMechanicsFastSuite)
 {
     Model model;
     const int buffer_size = 2;
@@ -111,8 +112,43 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy
     const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, dummy_model_part);
 
+    KRATOS_EXPECT_TRUE(created_strategy->GetMoveMeshFlag()) // since it is set to true in the parameters
     KRATOS_EXPECT_NE(created_strategy, nullptr);
     KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLineSearchStrategy, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    const int buffer_size = 2;
+    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("line_search");
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(
+            parameters, dummy_model_part);
+
+    KRATOS_EXPECT_TRUE(created_strategy->GetMoveMeshFlag()) // since it is set to true in the parameters
+    KRATOS_EXPECT_NE(created_strategy, nullptr);
+    KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CreatedLineSearchStrategyUsesMaxIterationsInput, KratosGeoMechanicsFastSuite)
+{
+    Model      model;
+    const int  buffer_size      = 2;
+    auto&      dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    Parameters parameters{testParameters};
+    parameters["strategy_type"].SetString("line_search");
+    const auto max_number_of_iterations = 30;
+    parameters["max_iterations"].SetInt(max_number_of_iterations);
+
+    const auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+
+    using LineSearchStrategyType = LineSearchStrategy<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+    auto p_line_search_strategy = dynamic_cast<LineSearchStrategyType*>(created_strategy.get());
+    KRATOS_EXPECT_NE(p_line_search_strategy, nullptr);
+    KRATOS_EXPECT_EQ(static_cast<int>(p_line_search_strategy->GetMaxIterationNumber()), max_number_of_iterations);
 }
 
 }

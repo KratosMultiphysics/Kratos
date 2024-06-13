@@ -10,42 +10,14 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#pragma once
 #include <string>
 #include <iostream>
 
-#include <fstream>
-#include <iterator>
-#include <algorithm>
-
 // Project includes
-#include "containers/model.h"
 #include "testing/testing.h"
 #include "custom_workflows/dgeoflow.h"
 #include "flow_stubs.h"
-
-bool compareFiles(const std::string &p1, const std::string &p2)
-{
-    std::ifstream f1(p1, std::ifstream::binary | std::ifstream::ate);
-    std::ifstream f2(p2, std::ifstream::binary | std::ifstream::ate);
-
-    if (f1.fail() || f2.fail())
-    {
-        return false; // file problem
-    }
-
-    if (f1.tellg() != f2.tellg())
-    {
-        return false; // size mismatch
-    }
-
-    // seek back to beginning and use std::equal to compare contents
-    f1.seekg(0, std::ifstream::beg);
-    f2.seekg(0, std::ifstream::beg);
-    return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
-                      std::istreambuf_iterator<char>(),
-                      std::istreambuf_iterator<char>(f2.rdbuf()));
-}
+#include "test_utilities.h"
 
 namespace Kratos::Testing
 {
@@ -56,10 +28,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_1.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -67,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     std::string original = (std::string) workingDirectory + "/test_head_extrapolate_1.orig.res";
     std::string result = (std::string) workingDirectory + "/test_head_extrapolate_1.post.res";
 
-    KRATOS_EXPECT_TRUE(compareFiles(original, result))
+    KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
  KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_2, KratosGeoMechanicsIntegrationSuite)
@@ -76,10 +52,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_2.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -87,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_1, KratosGeoMechanicsInt
     std::string original = (std::string) workingDirectory + "/test_head_extrapolate_2.orig.res";
     std::string result = (std::string) workingDirectory + "/test_head_extrapolate_2.post.res";
 
-    KRATOS_EXPECT_TRUE(compareFiles(original, result))
+    KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsIntegrationSuite)
@@ -96,10 +76,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_3.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -107,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsInt
     std::string original = (std::string) workingDirectory + "/test_head_extrapolate_3.orig.res";
     std::string result = (std::string) workingDirectory + "/test_head_extrapolate_3.post.res";
 
-    KRATOS_EXPECT_TRUE(compareFiles(original, result))
+    KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsIntegrationSuite)
@@ -116,10 +100,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsInt
     auto projectFile = "ProjectParameters_4.json";
 
     auto execute = Kratos::KratosExecute();
-    int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
-                                             0, 0, 0,
-                                             "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                             &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+    const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(0, 0, 0);
+    const Kratos::KratosExecute::CallBackFunctions call_back_functions(&flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyProgress,
+                                                                 &flow_stubs::emptyLog,
+                                                                 &flow_stubs::emptyCancel);
+
+    const int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info, "", call_back_functions);
 
     KRATOS_EXPECT_EQ(status, 0);
 
@@ -127,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsInt
     std::string original = (std::string) workingDirectory + "/test_head_extrapolate_4.orig.res";
     std::string result = (std::string) workingDirectory + "/test_head_extrapolate_4.post.res";
 
-    KRATOS_EXPECT_TRUE(compareFiles(original, result))
+    KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(original, result))
 }
 
 }

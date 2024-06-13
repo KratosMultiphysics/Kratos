@@ -33,19 +33,21 @@ const std::string parameter_json_settings = R"(
                                                     "material_import_settings":
                                                     {
                                                         "materials_filename": "MaterialParameters1.json"
-                                                    }
+                                                    },
+                                                    "problem_domain_sub_model_part_list": [],
+                                                    "processes_sub_model_part_list": []
                                                 }
                                             }
                                             )"; // these have material_import settings
 
 
-void RunStage(KratosGeoSettlement& rSettlement) {
-    rSettlement.RunStage("",
-                         "",
-                         [](const char *) {/* kept empty as a stub method */},
-                         [](const double) {/* kept empty as a stub method */},
-                         [](const char *) {/* kept empty as a stub method */},
-                         []() { return false; });
+int RunStage(KratosGeoSettlement& rSettlement) {
+    return rSettlement.RunStage("",
+                                "",
+                                [](const char *) {/* kept empty as a stub method */},
+                                [](const double) {/* kept empty as a stub method */},
+                                [](const char *) {/* kept empty as a stub method */},
+                                []() { return false; });
 }
 
 void ExpectNumberOfReadCallsIsEqualToOne(const KratosGeoSettlement &rSettlement)
@@ -83,8 +85,11 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFast
                                    std::make_unique<StubProcessInfoParser>(),
                                    std::make_unique<StubTimeLoopExecutor>());
 
-    RunStage(settlement);
+    const auto exit_status = RunStage(settlement);
 
+    // At the moment the parameter_json_settings do not contain enough info to instantiate the solving strategy.
+    // That is why the exit_status is now 1, as with other tests in this suite.
+    KRATOS_EXPECT_EQ(exit_status, 1);
     ExpectNumberOfReadCallsIsEqualToOne(settlement);
     ExpectNumberOfMaterialCallsEqualTo(1, settlement);
 }

@@ -929,7 +929,10 @@ template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,4> >;
+template class FluidElement< QSVMSDEMCoupledData<2,6> >;
+template class FluidElement< QSVMSDEMCoupledData<2,9> >;
 template class FluidElement< QSVMSDEMCoupledData<3,8> >;
+template class FluidElement< QSVMSDEMCoupledData<3,27> >;
 
 template class FluidElement< FICData<2,3> >;
 template class FluidElement< FICData<3,4> >;

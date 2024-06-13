@@ -56,6 +56,117 @@ public:
     static std::string GetGeometryName(const GeometryData::KratosGeometryType TypeOfGeometry);
 
     /**
+     * @brief Returns the local coordinates of a given arbitrary point for a given linear tetrahedra
+     * @details Based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch09.d/AFEM.Ch09.pdf. Section 9.1.6
+     * @param rGeometry The geometry to be considered
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    template<class TGeometryType>
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesPlanarFaceTetrahedra(
+        const TGeometryType& rGeometry,
+        typename TGeometryType::CoordinatesArrayType& rResult,
+        const typename TGeometryType::CoordinatesArrayType& rPoint
+        )
+    {
+        // Debug check that it is at least a tetrahedra
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) << "Geometry should be a tetrahedra in order to use PointLocalCoordinatesPlanarFaceTetrahedra" << std::endl;
+
+        // Compute RHS
+        array_1d<double,4> X;
+        X[0] = 1.0;
+        X[1] = rPoint[0];
+        X[2] = rPoint[1];
+        X[3] = rPoint[2];
+
+        // Auxiliary coordinates
+        const auto& r_coordinates_0 = rGeometry[0].Coordinates();
+        const auto& r_coordinates_1 = rGeometry[1].Coordinates();
+        const auto& r_coordinates_2 = rGeometry[2].Coordinates();
+        const auto& r_coordinates_3 = rGeometry[3].Coordinates();
+        const double x1 = r_coordinates_0[0];
+        const double y1 = r_coordinates_0[1];
+        const double z1 = r_coordinates_0[2];
+        const double x2 = r_coordinates_1[0];
+        const double y2 = r_coordinates_1[1];
+        const double z2 = r_coordinates_1[2];
+        const double x3 = r_coordinates_2[0];
+        const double y3 = r_coordinates_2[1];
+        const double z3 = r_coordinates_2[2];
+        const double x4 = r_coordinates_3[0];
+        const double y4 = r_coordinates_3[1];
+        const double z4 = r_coordinates_3[2];
+
+        // Auxiliary diff
+        const double x12 = x1 - x2;
+        const double x13 = x1 - x3;
+        const double x14 = x1 - x4;
+        const double x21 = x2 - x1;
+        const double x24 = x2 - x4;
+        const double x31 = x3 - x1;
+        const double x32 = x3 - x2;
+        const double x34 = x3 - x4;
+        const double x42 = x4 - x2;
+        const double x43 = x4 - x3;
+        const double y12 = y1 - y2;
+        const double y13 = y1 - y3;
+        const double y14 = y1 - y4;
+        const double y21 = y2 - y1;
+        const double y24 = y2 - y4;
+        const double y31 = y3 - y1;
+        const double y32 = y3 - y2;
+        const double y34 = y3 - y4;
+        const double y42 = y4 - y2;
+        const double y43 = y4 - y3;
+        const double z12 = z1 - z2;
+        const double z13 = z1 - z3;
+        const double z14 = z1 - z4;
+        const double z21 = z2 - z1;
+        const double z24 = z2 - z4;
+        const double z31 = z3 - z1;
+        const double z32 = z3 - z2;
+        const double z34 = z3 - z4;
+        const double z42 = z4 - z2;
+        const double z43 = z4 - z3;
+
+        // Compute LHS
+        BoundedMatrix<double, 4,4> invJ;
+        const double aux_volume = 1.0/(6.0*rGeometry.Volume());
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
+
+        // Compute result
+        const array_1d<double,4> result = prod(invJ, X);
+
+        // Resize if needed
+        if (rResult.size() != 3) {
+            rResult.resize(3,false);
+        }
+
+        // Copy result
+        rResult[0] = result[1];
+        rResult[1] = result[2];
+        rResult[2] = result[3];
+
+        return rResult;
+    }
+
+    /**
      * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
      * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
      * @param rDN_DX a stack matrix of size 4*3 to store the shape function's derivatives

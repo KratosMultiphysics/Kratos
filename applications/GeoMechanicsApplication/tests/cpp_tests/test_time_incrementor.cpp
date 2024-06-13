@@ -29,6 +29,7 @@ struct AdaptiveTimeIncrementorSettings
     std::size_t MaxNumOfCycles{8};
     double      ReductionFactor{0.5};
     double      IncreaseFactor{2.0};
+    double      MaxDeltaTimeFactor{1000.0};
     std::size_t MinNumOfIterations{3};
     std::size_t MaxNumOfIterations{15};
 };
@@ -41,6 +42,7 @@ AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncremento
                                    rSettings.MaxNumOfCycles,
                                    rSettings.ReductionFactor,
                                    rSettings.IncreaseFactor,
+                                   rSettings.MaxDeltaTimeFactor,
                                    rSettings.MinNumOfIterations,
                                    rSettings.MaxNumOfIterations};
 }
@@ -166,6 +168,15 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenIncreaseFactorIsSmall
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(MakeAdaptiveTimeIncrementor(settings),
                                       "Increase factor must be greater than or equal to 1, but got 0.5")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxDeltaTimeFactorIsSmallerThanOne, KratosGeoMechanicsFastSuite)
+{
+    AdaptiveTimeIncrementorSettings settings;
+    settings.MaxDeltaTimeFactor = 0.9;
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MakeAdaptiveTimeIncrementor(settings),
+                                      "Max_delta_time_factor must be greater than or equal to 1, but got 0.9")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenIncreaseFactorEqualsOne, KratosGeoMechanicsFastSuite)
@@ -384,6 +395,31 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingEndTime, Kratos
 
     time_incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFactor, KratosGeoMechanicsFastSuite)
+{
+    AdaptiveTimeIncrementorSettings settings;
+    settings.MaxDeltaTimeFactor = 1.5; // lower than the increase factor, this should lead to truncation
+    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state   = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    previous_state.num_of_iterations = settings.MinNumOfIterations - 1; // this should normally increase the increment
+
+    time_incrementor.PostTimeStepExecution(previous_state);
+    KRATOS_EXPECT_DOUBLE_EQ(settings.MaxDeltaTimeFactor * settings.StartIncrement, time_incrementor.GetIncrement());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMechanicsFastSuite)
+{
+    AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
+    settings.StartIncrement = 7.9999;
+    auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    auto previous_state   = TimeStepEndState{};
+    previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+
+    time_incrementor.PostTimeStepExecution(previous_state);
+    KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
 
 }

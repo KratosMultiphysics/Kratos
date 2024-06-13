@@ -57,6 +57,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/MedApplication.py KratosMultiphysics/MedApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_registry_lists.py KratosMultiphysics/MedApplication/python_registry_lists.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -77,6 +78,33 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosMedCore DESTINATION libs )
 install(TARGETS KratosMedApplication DESTINATION libs )
+
+file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP)
+file(TO_CMAKE_PATH "${MED_ROOT}/lib" MED_ROOT_DEP)
+
+# Track down DLL and install them along with Kratos libs.
+# This is disabled until I can make it work in linux. Please do not delete it.
+# install(CODE "set(HDF5_ROOT_DEP \"${HDF5_ROOT_DEP}\")")
+# install(CODE "set(MED_ROOT_DEP \"${MED_ROOT_DEP}\")")
+# install(CODE [[
+#   file(GET_RUNTIME_DEPENDENCIES
+#     RESOLVED_DEPENDENCIES_VAR RES
+#     UNRESOLVED_DEPENDENCIES_VAR UNRES
+#     CONFLICTING_DEPENDENCIES_PREFIX CONFLICTING_DEPENDENCIES
+#     DIRECTORIES ${HDF5_ROOT_DEP} ${MED_ROOT_DEP}
+#     LIBRARIES $<TARGET_FILE:KratosMedCore>
+#     PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+#     POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+#   )
+
+#   foreach(_file ${RES})
+#     file(INSTALL
+#       DESTINATION "${CMAKE_INSTALL_PREFIX}/libs"
+#       TYPE SHARED_LIBRARY
+#       FILES "${_file}"
+#     )
+#   endforeach()
+# ]])
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMedCore" PARENT_SCOPE)
