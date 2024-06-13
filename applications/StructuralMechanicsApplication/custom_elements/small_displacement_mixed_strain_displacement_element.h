@@ -347,6 +347,17 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
@@ -373,6 +384,29 @@ public:
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+      * @brief Set a int Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        const std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+      * @brief Set a double Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     ///@}
     ///@name Access
@@ -724,6 +758,8 @@ private:
         for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
             // Recompute the kinematics
             CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+
+            noalias(constitutive_variables.StrainVector) = kinematic_variables.EquivalentStrain;
 
             // Set the constitutive variables
             SetConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points);
