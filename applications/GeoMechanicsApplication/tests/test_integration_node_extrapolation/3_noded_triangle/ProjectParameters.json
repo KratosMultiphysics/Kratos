@@ -164,7 +164,6 @@
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
           "list_of_variables" : ["HYDRAULIC_HEAD"],
-          "extrapolate_non_historical" : false,
           "average_variable"           : "NODAL_AREA"
         }
       }

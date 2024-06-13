@@ -78,13 +78,13 @@ public:
 private:
     ModelPart& mrModelPart; /// The main model part
 
-    bool mExtrapolateNonHistorical; /// If the non-historical values are interpolated
+    bool mExtrapolateNonHistorical = false; /// If the non-historical values are interpolated
 
     std::vector<const Variable<double>*> mDoubleVariable;             /// The double variables
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariable; /// The array variables to compute
     std::vector<const Variable<Vector>*> mVectorVariable; /// The vector variables to compute
     std::vector<const Variable<Matrix>*> mMatrixVariable; /// The matrix variables to compute
-    std::unique_ptr<NodalExtrapolator>   mpExtrapolator;
+    std::unique_ptr<NodalExtrapolator>   mpExtrapolator = std::make_unique<NodalExtrapolator>();
 
     std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables

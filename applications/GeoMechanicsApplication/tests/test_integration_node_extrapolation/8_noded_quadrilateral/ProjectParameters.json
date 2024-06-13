@@ -225,7 +225,6 @@
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
           "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_VECTOR", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
-          "extrapolate_non_historical" : false,
           "average_variable"           : "NODAL_AREA"
         }
       }

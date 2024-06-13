@@ -34,8 +34,7 @@ class GeoIntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process
             "model_part_name"            : "",
             "echo_level"                 : 0,
             "average_variable"           : "NODAL_AREA",
-            "list_of_variables"          : [],
-            "extrapolate_non_historical" : true
+            "list_of_variables"          : []
         }
         """
         )
@@ -48,7 +47,6 @@ class GeoIntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process
         extrapolation_parameters.AddValue("echo_level", settings["echo_level"])
         extrapolation_parameters.AddValue("average_variable", settings["average_variable"])
         extrapolation_parameters.AddValue("list_of_variables", settings["list_of_variables"])
-        extrapolation_parameters.AddValue("extrapolate_non_historical", settings["extrapolate_non_historical"])
         self.geo_integration_values_extrapolation_to_nodes_process = KratosGeo.GeoIntegrationValuesExtrapolationToNodesProcess(self.model_part, extrapolation_parameters)
 
     def ExecuteBeforeSolutionLoop(self):

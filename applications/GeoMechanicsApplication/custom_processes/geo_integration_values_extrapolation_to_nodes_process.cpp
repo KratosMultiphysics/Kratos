@@ -32,13 +32,11 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
 GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolationToNodesProcess(
     ModelPart& rMainModelPart, Parameters ThisParameters)
     : mrModelPart(rMainModelPart),
-      mrAverageVariable(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString())),
-      mpExtrapolator(std::make_unique<NodalExtrapolator>())
+      mrAverageVariable(KratosComponents<Variable<double>>::Get(ThisParameters["average_variable"].GetString()))
 {
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mExtrapolateNonHistorical = ThisParameters["extrapolate_non_historical"].GetBool();
     GetVariableLists(ThisParameters);
 }
 
@@ -51,8 +49,7 @@ const Parameters GeoIntegrationValuesExtrapolationToNodesProcess::GetDefaultPara
         "model_part_name"            : "",
         "echo_level"                 : 0,
         "average_variable"           : "NODAL_AREA",
-        "list_of_variables"          : [],
-        "extrapolate_non_historical" : true
+        "list_of_variables"          : []
     })");
 }
 
