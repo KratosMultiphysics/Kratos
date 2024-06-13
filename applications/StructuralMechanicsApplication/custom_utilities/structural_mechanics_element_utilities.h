@@ -156,7 +156,7 @@ array_1d<double, 3> GetBodyForce(
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @return whether to compute the lumped mass-matrix
  */
-bool ComputeLumpedMassMatrix(
+bool KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeLumpedMassMatrix(
     const Properties& rProperties,
     const ProcessInfo& rCurrentProcessInfo);
 
@@ -195,7 +195,7 @@ double GetRayleighBeta(
  * @param rElement The Element for which the mass-matrix should be computed
  * @return The density after apply the mass factor to the element
  */
-double GetDensityForMassMatrixComputation(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GetDensityForMassMatrixComputation(const Element& rElement);
 
 /**
  * @brief Method to calculate the rayleigh damping-matrix
@@ -257,6 +257,44 @@ void BuildRotationMatrix(
     const array_1d<double, 3>& rv1,
     const array_1d<double, 3>& rv2,
     const array_1d<double, 3>& rv3);
+
+/**
+ * @brief This function fills a rotation matrix from an angle of the beam
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 3 dofs per node: u,v,theta
+ */
+void BuildRotationMatrixFor2D2NBeam(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const double AlphaAngle);
+
+/**
+ * @brief This function fills an element size rotation matrix a local rotation matrix
+ * @param rRotationMatrix The rotation matrix from local to global axes
+ * It assumes 3 dofs per node: u,v,theta
+ */
+void BuildElementSizeRotationMatrixFor2D2NBeam(
+    const BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    BoundedMatrix<double, 6, 6>& rElementSizeRotationMatrix);
+
+/**
+ * @brief This function computes the inclination angle of a 2 noded beam
+ * @param rGeometry The geometry of the beam
+ * It assumes 3 dofs per node: u,v,theta
+ */
+double GetReferenceRotationAngle2D2NBeam(const GeometryType &rGeometry);
+
+/**
+ * @brief This function computes the inclination angle of a 3 noded beam
+ * @param rGeometry The geometry of the beam
+ * It assumes 3 dofs per node: u,v,theta
+ */
+double GetReferenceRotationAngle2D3NBeam(const GeometryType &rGeometry);
+
+/**
+ * @brief This function computes the shear psi factor
+ * @param rValues The constitutive law parameters
+ */
+double CalculatePhi(const Properties& rProperties, const double L);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

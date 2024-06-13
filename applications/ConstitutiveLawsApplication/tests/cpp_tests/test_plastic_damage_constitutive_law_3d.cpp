@@ -71,11 +71,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawPlasticDamageInternalVariables, KratosC
     ModelPart& r_test_model_part = current_model.CreateModelPart("Main");
     PD_CL cl = PD_CL();
 
-    KRATOS_CHECK(cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS));  // = True
-    KRATOS_CHECK(cl.Has(PLASTIC_DISSIPATION));  // = True
-    KRATOS_CHECK(cl.Has(PLASTIC_STRAIN_VECTOR));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_DISSIPATION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(PLASTIC_STRAIN_VECTOR));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
 
     Vector internal_variables_w(9);
     internal_variables_w[0] = 0.0;
@@ -91,16 +91,16 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawPlasticDamageInternalVariables, KratosC
     Vector internal_variables_r;  // CL should internally resize it to 6
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
 
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 9., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[6], 0.6, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[7], 0.7, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[8], 0.8, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 9., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[6], 0.6, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[7], 0.7, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[8], 0.8, 1.e-5);  // = True
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawPlasticDamageExponential, KratosConstitutiveLawsFastSuite)
@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawPlasticDamageExponential, KratosConstit
 
     //Check the results
     for (int comp = 0; comp < 6; comp++) {
-        KRATOS_CHECK_NEAR(expected_value[comp], TestStress[comp], 0.0001e+08);
+        KRATOS_EXPECT_NEAR(expected_value[comp], TestStress[comp], 0.0001e+08);
     }
 }
 

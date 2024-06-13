@@ -57,14 +57,14 @@ KRATOS_TEST_CASE_IN_SUITE(HCFDataContainerFatigueTest, KratosConstitutiveLawsFas
 
     mFatigueData.CalculateFatigueParameters(material_properties, HCFVariables);
 
-    KRATOS_CHECK_NEAR(HCFVariables.Alphat, 0.0309, 1.0e-6);
-    KRATOS_CHECK_NEAR(HCFVariables.Sth, 2.6071e+08, 1.0e+04);
-    KRATOS_CHECK_NEAR(HCFVariables.CyclesToFailure, 22406, 1.0);
-    KRATOS_CHECK_NEAR(HCFVariables.B0, 0.000231689, 1.0e-9);
+    KRATOS_EXPECT_NEAR(HCFVariables.Alphat, 0.0309, 1.0e-6);
+    KRATOS_EXPECT_NEAR(HCFVariables.Sth, 2.6071e+08, 1.0e+04);
+    KRATOS_EXPECT_NEAR(HCFVariables.CyclesToFailure, 22406, 1.0);
+    KRATOS_EXPECT_NEAR(HCFVariables.B0, 0.000231689, 1.0e-9);
 
     mFatigueData.CalculateFatigueReductionFactorAndWohlerStress(material_properties, HCFVariables);
 
-    KRATOS_CHECK_NEAR(HCFVariables.FatigueReductionFactor, 0.999655, 1.0e-6);
-    KRATOS_CHECK_NEAR(HCFVariables.WohlerStress, 0.975555, 1.0e-6);
+    KRATOS_EXPECT_NEAR(HCFVariables.FatigueReductionFactor, 0.999655, 1.0e-6);
+    KRATOS_EXPECT_NEAR(HCFVariables.WohlerStress, 0.975555, 1.0e-6);
 }
 } // namespace Kratos::Testing

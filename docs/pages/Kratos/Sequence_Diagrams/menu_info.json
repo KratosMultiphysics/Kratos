@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "kratos_sequence_diagrams",
+    "landing_page": "General/AnalysisStage.md",
+    "additional_menu_options": {
+        "title": "sidebar",
+        "product": "Sequence Diagrams"
+    }
+}

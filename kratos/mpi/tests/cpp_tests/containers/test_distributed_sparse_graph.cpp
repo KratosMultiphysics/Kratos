@@ -346,7 +346,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedCSRConstructionMPI, KratosMPICo
         auto GlobalJ = item.first.second;
         const double reference_value = item.second;
         const double value = A.GetLocalDataByGlobalId(GlobalI,GlobalJ);
-        KRATOS_CHECK_NEAR(reference_value, value, 1e-14);
+        KRATOS_EXPECT_NEAR(reference_value, value, 1e-14);
 
     }
 
@@ -429,16 +429,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
         auto global_i = b.GetNumbering().GlobalId(i);
         auto it = reference_b_map.find(global_i);
         const auto& ref_value = it->second;
-        KRATOS_CHECK_NEAR(b(i),  ref_value, 1e-14 );
+        KRATOS_EXPECT_NEAR(b(i),  ref_value, 1e-14 );
     }
     //test importing
     std::vector<DistTestingInternals::IndexType> to_import{39, 0,37,2};
     DistributedVectorImporter<double,DistTestingInternals::IndexType> importer(b.GetComm(),to_import,b.GetNumbering());   //this operation is expensive since it requires mounting the communication plan
     auto x = importer.ImportData(b);
-    KRATOS_CHECK_NEAR(x[0],  3, 1e-14 );
-    KRATOS_CHECK_NEAR(x[1],  1, 1e-14 );
-    KRATOS_CHECK_NEAR(x[2],  4, 1e-14 );
-    KRATOS_CHECK_NEAR(x[3],  2, 1e-14 );
+    KRATOS_EXPECT_NEAR(x[0],  3, 1e-14 );
+    KRATOS_EXPECT_NEAR(x[1],  1, 1e-14 );
+    KRATOS_EXPECT_NEAR(x[2],  4, 1e-14 );
+    KRATOS_EXPECT_NEAR(x[3],  2, 1e-14 );
 
     //Test SPMV
     DistributedCsrMatrix<double, DistTestingInternals::IndexType> A(Agraph);
@@ -461,7 +461,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     for(unsigned int i=0; i<y.LocalSize(); ++i)
     {
         DistTestingInternals::IndexType global_i = y.GetNumbering().GlobalId(i);
-        KRATOS_CHECK_NEAR(y[i],  reference_spmv_res[global_i], 1e-14 );
+        KRATOS_EXPECT_NEAR(y[i],  reference_spmv_res[global_i], 1e-14 );
     }
 
     //testing AMGCL interface
@@ -476,7 +476,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     for(unsigned int i=0; i<y.LocalSize(); ++i)
     {
         IndexType global_i = y.GetNumbering().GlobalId(i);
-        KRATOS_CHECK_NEAR(y[i],  reference_spmv_res[global_i], 1e-14 );
+        KRATOS_EXPECT_NEAR(y[i],  reference_spmv_res[global_i], 1e-14 );
     }
 
     //check round trip krtos_csr->amgcl->kratos_csr
@@ -495,7 +495,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorConstructionMPI, Kr
     for(unsigned int i=0; i<y.LocalSize(); ++i)
     {
         DistTestingInternals::IndexType global_i = y.GetNumbering().GlobalId(i);
-        KRATOS_CHECK_NEAR(y[i],  reference_spmv_res[global_i], 1e-14 );
+        KRATOS_EXPECT_NEAR(y[i],  reference_spmv_res[global_i], 1e-14 );
     }
 }
 
@@ -586,7 +586,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
                 KRATOS_ERROR << "entry " << i << " " << j << "not found in A_map" <<std::endl;
 
             double v = Amap.find(item.first)->second;
-            KRATOS_CHECK_NEAR(v,reference_v,1e-14);
+            KRATOS_EXPECT_NEAR(v,reference_v,1e-14);
         }
     }
 
@@ -601,7 +601,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
     for(DistTestingInternals::IndexType i_local=0; i_local<y.LocalSize(); ++i_local)
     {
         DistTestingInternals::IndexType i_global = y.GetNumbering().GlobalId(i_local);
-        KRATOS_CHECK_NEAR(y[i_local], yserial(i_global), 1e-14);
+        KRATOS_EXPECT_NEAR(y[i_local], yserial(i_global), 1e-14);
     }
 
     //check TransposeSpMV
@@ -613,7 +613,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(RectangularMatrixConstructionMPI, KratosMP
     for(unsigned int i=0; i<x.LocalSize(); ++i)
     {
         DistTestingInternals::IndexType global_i = x.GetNumbering().GlobalId(i);
-        KRATOS_CHECK_NEAR(x[i],  reference_transpose_spmv_res[global_i], 1e-14 );
+        KRATOS_EXPECT_NEAR(x[i],  reference_transpose_spmv_res[global_i], 1e-14 );
     }
 
 }
@@ -625,42 +625,42 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedSystemVectorOperationsMPI, Krat
     DistTestingInternals::IndexType local_size = 4;
     DistributedNumbering<DistTestingInternals::IndexType> numbering(rComm,local_size);
     DistributedSystemVector<double,DistTestingInternals::IndexType> a(numbering);
-    KRATOS_CHECK_EQUAL(a.LocalSize(), local_size);
+    KRATOS_EXPECT_EQ(a.LocalSize(), local_size);
     a.SetValue(5.0);
     for(unsigned int i=0; i<a.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(a[i], 5.0,1e-14);
+        KRATOS_EXPECT_NEAR(a[i], 5.0,1e-14);
 
     DistributedSystemVector<double,DistTestingInternals::IndexType> b(numbering);
     b.SetValue(3.0);
-    KRATOS_CHECK_EQUAL(b.LocalSize(), local_size);
+    KRATOS_EXPECT_EQ(b.LocalSize(), local_size);
     for(unsigned int i=0; i<b.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(b[i], 3.0,1e-14);
+        KRATOS_EXPECT_NEAR(b[i], 3.0,1e-14);
 
     DistributedSystemVector<double,DistTestingInternals::IndexType> c(a);
-    KRATOS_CHECK_EQUAL(c.LocalSize(), local_size);
-    KRATOS_CHECK_EQUAL(c.Size(), local_size*rComm.Size());
+    KRATOS_EXPECT_EQ(c.LocalSize(), local_size);
+    KRATOS_EXPECT_EQ(c.Size(), local_size*rComm.Size());
     for(unsigned int i=0; i<c.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 5.0,1e-14);
 
     c += b;
     for(unsigned int i=0; i<c.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 8.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 8.0,1e-14);
 
     c -= b;
     for(unsigned int i=0; i<c.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 5.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 5.0,1e-14);
 
     c.Add(3.0,a);
     for(unsigned int i=0; i<c.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 20.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 20.0,1e-14);
 
     c*=2.0;
     for(unsigned int i=0; i<c.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 40.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 40.0,1e-14);
 
     c/=4.0;
     for(unsigned int i=0; i<c.LocalSize(); ++i)
-        KRATOS_CHECK_NEAR(c[i], 10.0,1e-14);
+        KRATOS_EXPECT_NEAR(c[i], 10.0,1e-14);
 }
 
 
@@ -830,7 +830,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMul
             IndexType J = item.first.second;
             double ref_value = item.second;
             std::cout << I << " " << J << " " << ref_value << std::endl;
-            KRATOS_CHECK_EQUAL(ref_value,C.GetLocalDataByGlobalId(I,J));
+            KRATOS_EXPECT_EQ(ref_value,C.GetLocalDataByGlobalId(I,J));
         }
     }
 }

@@ -45,7 +45,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeVector, KratosTrilinosApplicat
     auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
 
     // Check
-    KRATOS_CHECK_EQUAL(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size(vector));
+    KRATOS_EXPECT_EQ(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size(vector));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeMatrix, KratosTrilinosApplicationMPITestSuite)
@@ -58,8 +58,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSizeMatrix, KratosTrilinosApplicat
     auto vector = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
 
     // Check
-    KRATOS_CHECK_EQUAL(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size1(vector));
-    KRATOS_CHECK_EQUAL(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size2(vector));
+    KRATOS_EXPECT_EQ(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size1(vector));
+    KRATOS_EXPECT_EQ(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size2(vector));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicationMPITestSuite)
@@ -77,7 +77,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosDotProduct, KratosTrilinosApplicat
     }
 
     // Check
-    KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::Dot(vector1, vector2));
+    KRATOS_EXPECT_DOUBLE_EQ(ref, TrilinosSparseSpaceType::Dot(vector1, vector2));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationMPITestSuite)
@@ -90,8 +90,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMaxMin, KratosTrilinosApplicationM
     auto vector = TrilinosCPPTestUtilities::GenerateDummySparseVector(r_comm, size);
 
     // Check
-    KRATOS_CHECK_DOUBLE_EQUAL(0.0, TrilinosSparseSpaceType::Min(vector));
-    KRATOS_CHECK_DOUBLE_EQUAL(static_cast<double>(size - 1), TrilinosSparseSpaceType::Max(vector));
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, TrilinosSparseSpaceType::Min(vector));
+    KRATOS_EXPECT_DOUBLE_EQ(static_cast<double>(size - 1), TrilinosSparseSpaceType::Max(vector));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosApplicationMPITestSuite)
@@ -109,7 +109,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormVector, KratosTrilinosAppli
     ref = std::sqrt(ref);
 
     // Check
-    KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::TwoNorm(vector));
+    KRATOS_EXPECT_DOUBLE_EQ(ref, TrilinosSparseSpaceType::TwoNorm(vector));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix1, KratosTrilinosApplicationMPITestSuite)
@@ -127,7 +127,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix1, KratosTrilinosAppl
     ref = std::sqrt(ref);
 
     // Check
-    KRATOS_CHECK_DOUBLE_EQUAL(ref, TrilinosSparseSpaceType::TwoNorm(matrix));
+    KRATOS_EXPECT_DOUBLE_EQ(ref, TrilinosSparseSpaceType::TwoNorm(matrix));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix2, KratosTrilinosApplicationMPITestSuite)
@@ -141,7 +141,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosTwoNormMatrix2, KratosTrilinosAppl
     auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
 
     // Check
-    KRATOS_CHECK_DOUBLE_EQUAL(TrilinosLocalSpaceType::TwoNorm(local_matrix), TrilinosSparseSpaceType::TwoNorm(matrix));
+    KRATOS_EXPECT_DOUBLE_EQ(TrilinosLocalSpaceType::TwoNorm(local_matrix), TrilinosSparseSpaceType::TwoNorm(matrix));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosMultMatrixVector, KratosTrilinosApplicationMPITestSuite)
@@ -633,16 +633,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
     // Test the norm of the matrix
     double norm = 0.0;
     norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
     if (r_comm.Rank() == 0) {
         const auto& raw_values = matrix12x12.ExpertExtractValues();
-        KRATOS_CHECK_DOUBLE_EQUAL(raw_values[0], 1.0);
+        KRATOS_EXPECT_DOUBLE_EQ(raw_values[0], 1.0);
     }
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosIsDistributed, KratosTrilinosApplicationMPITestSuite)
 {
-    KRATOS_CHECK(TrilinosSparseSpaceType::IsDistributed());
+    KRATOS_EXPECT_TRUE(TrilinosSparseSpaceType::IsDistributed());
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplicationMPITestSuite)
@@ -662,17 +662,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplic
     // Test the norm of the matrix
     double norm = 0.0;
     norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::NO_SCALING);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
     norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 3.0);
     norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
-    KRATOS_CHECK_NEAR(norm, 2.124591464, 1.0e-6);
+    KRATOS_EXPECT_NEAR(norm, 2.124591464, 1.0e-6);
     norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 12.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 12.0);
     norm = TrilinosSparseSpaceType::GetAveragevalueDiagonal(matrix12x12);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 6.5);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 6.5);
     norm = TrilinosSparseSpaceType::GetMinDiagonal(matrix12x12);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
 }
 
 } // namespace Kratos::Testing

@@ -2,19 +2,16 @@
     "rom_manager": false,
     "train_hrom": false,
     "run_hrom": false,
+    "assembling_strategy": "elemental",
     "rom_format":"numpy",
     "projection_strategy": "petrov_galerkin",
-    "train_petrov_galerkin": {
-        "train": false,
-        "basis_strategy": "residuals",
-        "include_phi": false
-    },
     "rom_settings": {
         "nodal_unknowns": [
             "TEMPERATURE"
         ],
         "number_of_rom_dofs": 24,
-        "petrov_galerkin_number_of_rom_dofs": 51
+        "petrov_galerkin_number_of_rom_dofs": 51,
+        "rom_bns_settings": {}
     },
     "hrom_settings": {},
     "nodal_modes": {

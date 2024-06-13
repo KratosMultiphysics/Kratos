@@ -433,6 +433,38 @@ public:
         CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold, ApproximationOrder);
     }
 
+    /**
+     * @brief This method computes the secant tensor as dS/dE with respect to the origin
+     * @param rValues The properties of the CL
+     */
+    static void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues)
+    {
+        const auto &r_strain = rValues.GetStrainVector();
+        const auto &r_stress = rValues.GetStressVector();
+        const SizeType strain_size = r_strain.size();
+        auto &r_D = rValues.GetConstitutiveMatrix();
+
+        for (IndexType i = 0; i < strain_size; i++)
+            for (IndexType j = 0; j < strain_size; j++)
+                r_D(i, j) = r_stress[i] / r_strain[j];
+    }
+
+    /**
+     * @brief This method computes the secant tensor as dS/dE with respect to the origin
+     * @param rValues The properties of the CL
+     */
+    static void CalculateOrthogonalSecantTensor(ConstitutiveLaw::Parameters& rValues)
+    {
+        const auto &r_strain = rValues.GetStrainVector();
+        const auto &r_stress = rValues.GetStressVector();
+        const SizeType strain_size = r_strain.size();
+        auto &r_D = rValues.GetConstitutiveMatrix();
+
+        for (IndexType i = 0; i < strain_size; i++)
+            for (IndexType j = 0; j < strain_size; j++)
+                r_D(i, j) = -r_strain[j] / r_stress[i];
+    }
+
 protected:
     ///@name Protected static Member Variables
     ///@{

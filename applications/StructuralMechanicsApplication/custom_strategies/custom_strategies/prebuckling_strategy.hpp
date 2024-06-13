@@ -357,7 +357,7 @@ public:
                 pBuilderAndSolver->SetUpDofSet(pScheme, rModelPart);
 
                 KRATOS_INFO_IF("Setup Dofs Time", BaseType::GetEchoLevel() > 0 )
-                    << setup_dofs_time.ElapsedSeconds() << std::endl;
+                    << setup_dofs_time << std::endl;
 
                 // Set global equation ids
                 BuiltinTimer setup_system_time;
@@ -365,7 +365,7 @@ public:
                 pBuilderAndSolver->SetUpSystem(rModelPart);
 
                 KRATOS_INFO_IF("Setup System Time", BaseType::GetEchoLevel() > 0 )
-                    << setup_system_time.ElapsedSeconds() << std::endl;
+                    << setup_system_time << std::endl;
 
                 // Resize and initialize system matrices
                 BuiltinTimer system_matrix_resize_time;
@@ -378,12 +378,12 @@ public:
                     pScheme, mpStiffnessMatrixPrevious, _pDx, _pb, rModelPart);
 
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 )
-                    << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                    << system_matrix_resize_time << std::endl;
 
             }
 
             KRATOS_INFO_IF("System Construction Time", BaseType::GetEchoLevel() > 0 )
-                << system_construction_time.ElapsedSeconds() << std::endl;
+                << system_construction_time << std::endl;
 
             // Initial operations ... things that are constant over the solution
             // step
@@ -493,7 +493,7 @@ public:
             }
         }
         KRATOS_INFO_IF("Nonlinear Loadstep Time: ", BaseType::GetEchoLevel() > 0)
-                << system_solve_time.ElapsedSeconds() << std::endl;
+                << system_solve_time << std::endl;
 
         if ( !is_converged ) {
             KRATOS_INFO_IF("Nonlinear Loadstep: ", this->GetEchoLevel() > 0)

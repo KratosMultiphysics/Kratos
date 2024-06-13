@@ -43,8 +43,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic3DInterfaceLaw
-    : public LinearElastic2DInterfaceLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic3DInterfaceLaw : public LinearElastic2DInterfaceLaw
 {
 public:
     ///@name Type Definitions
@@ -63,7 +62,7 @@ public:
     static constexpr SizeType Dimension = N_DIM_3D;
 
     /// Counted pointer of LinearElastic2DInterfaceLaw
-    KRATOS_CLASS_POINTER_DEFINITION( LinearElastic3DInterfaceLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(LinearElastic3DInterfaceLaw);
 
     ///@name Life Cycle
     ///@{
@@ -91,19 +90,13 @@ public:
      * @brief Dimension of the law:
      * @return The dimension were the law is working
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return Dimension;
-    }
+    SizeType WorkingSpaceDimension() override { return Dimension; }
 
     /**
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() const override
-    {
-        return VOIGT_SIZE_3D_INTERFACE;
-    }
+    SizeType GetStrainSize() const override { return VOIGT_SIZE_3D_INTERFACE; }
 
     ///@}
     ///@name Access
@@ -132,7 +125,6 @@ public:
     ///@}
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -161,14 +153,13 @@ protected:
      * @param rStressVector The stress vector in Voigt notation
      * @param rValues Parameters of the constitutive law
      */
-    void CalculatePK2Stress(const Vector& rStrainVector,
-                            Vector& rStressVector,
+    void CalculatePK2Stress(const Vector&                rStrainVector,
+                            Vector&                      rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
 
@@ -197,12 +188,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic2DInterfaceLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic2DInterfaceLaw)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic2DInterfaceLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic2DInterfaceLaw)
     }
 }; // Class LinearElastic2DInterfaceLaw
-}
+} // namespace Kratos

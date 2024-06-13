@@ -1122,10 +1122,10 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateOnIntegrationPoints
 
             // Call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR) {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
             } else {
-                // Compute material reponse
+                // Compute material response
                 CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, i_gauss, r_integration_points, ConstitutiveLaw::StressMeasure_PK2);
             }
 

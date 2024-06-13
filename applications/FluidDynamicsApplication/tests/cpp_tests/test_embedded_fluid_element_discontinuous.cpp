@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, output_uncut[counter], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, output_uncut[counter], 1e-6);
 
         counter++;
     }
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, output_cut[counter], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, output_cut[counter], 1e-6);
 
         counter++;
     }
@@ -186,7 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
         // KRATOS_WATCH(RHS);
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, output_slip_cut[counter], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, output_slip_cut[counter], 1e-6);
 
         counter++;
     }
@@ -219,7 +219,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElementDiscontinuous2D3N, FluidDynamicsApplica
         //std::cout << i->Info() << std::setprecision(10) << std::endl;
         //KRATOS_WATCH(RHS);
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, output_incised[counter], 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, output_incised[counter], 1e-6);
 
         counter++;
     }

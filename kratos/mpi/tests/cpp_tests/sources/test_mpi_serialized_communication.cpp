@@ -44,9 +44,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, Kra
 
     for (auto& node: recv_node_container)
     {
-        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)send_rank);
-        KRATOS_CHECK_EQUAL(node.Z(), 0.1*send_rank);
-        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
+        KRATOS_EXPECT_EQ(node.Id(), (unsigned int)send_rank);
+        KRATOS_EXPECT_EQ(node.Z(), 0.1*send_rank);
+        KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
     }
 }
 
@@ -81,9 +81,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendAndRecv, 
 
         for (auto& node: model_part.Nodes())
         {
-            KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)send_rank);
-            KRATOS_CHECK_EQUAL(node.Z(), 0.1*send_rank);
-            KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
+            KRATOS_EXPECT_EQ(node.Id(), (unsigned int)send_rank);
+            KRATOS_EXPECT_EQ(node.Z(), 0.1*send_rank);
+            KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*send_rank);
         }
     }
 }
@@ -112,9 +112,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, Kr
 
     for (auto& node: model_part.Nodes())
     {
-        KRATOS_CHECK_EQUAL(node.Id(), (unsigned int)source_rank);
-        KRATOS_CHECK_EQUAL(node.Z(), 0.1*source_rank);
-        KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*source_rank);
+        KRATOS_EXPECT_EQ(node.Id(), (unsigned int)source_rank);
+        KRATOS_EXPECT_EQ(node.Z(), 0.1*source_rank);
+        KRATOS_EXPECT_EQ(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*source_rank);
     }
 }
 

@@ -1,5 +1,6 @@
 #define EXPORT __declspec(dllexport)
 #include "kratos_external_bindings.h"
+#include "custom_workflows/custom_workflow_factory.h"
 
 extern "C"
 {
@@ -23,24 +24,22 @@ extern "C"
                                                void __stdcall         reportTextualProgress(const char*),
                                                bool __stdcall         shouldCancel())
     {
-        int errorCode = instance->ExecuteFlowAnalysis(workingDirectory,
+        const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(minCriticalHead, maxCriticalHead, stepCriticalHead);
+        const Kratos::KratosExecute::CallBackFunctions call_back_functions(logCallback,
+                                                                     reportProgress,
+                                                                     reportTextualProgress,
+                                                                     shouldCancel);
+
+        return instance->ExecuteFlowAnalysis(workingDirectory,
                                                       projectFile,
-                                                      minCriticalHead,
-                                                      maxCriticalHead,
-                                                      stepCriticalHead,
+                                                      critical_head_info,
                                                       criticalHeadBoundaryModelPartName,
-                                                      logCallback,
-                                                      reportProgress,
-                                                      reportTextualProgress,
-                                                      shouldCancel);
-        return errorCode;
+                                                      call_back_functions);
     }
-
-
 
     EXPORT Kratos::KratosGeoSettlement* KratosGeoSettlement_CreateInstance()
     {
-        return new Kratos::KratosGeoSettlement{};
+        return Kratos::CustomWorkflowFactory::CreateKratosGeoSettlement();
     }
 
     EXPORT int __stdcall runSettlementStage(Kratos::KratosGeoSettlement* instance,

@@ -220,74 +220,74 @@ KRATOS_TEST_CASE_IN_SUITE(SearchProcessKDTree, KratosContactStructuralMechanicsF
     std::size_t aux_index;
     auto& r_cond_1 = r_model_part.GetCondition(1);
     auto p_indexes_pairs_1 = r_cond_1.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_1->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_1->size(), 2);
     aux_index = p_indexes_pairs_1->GetId(p_indexes_pairs_1->begin());
-    KRATOS_CHECK(aux_index == 10 || aux_index == 9);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 9);
     auto it_pair_check = p_indexes_pairs_1->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_1->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 10 || aux_index == 9);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 9);
 
     auto& r_cond_2 = r_model_part.GetCondition(2);
     auto p_indexes_pairs_2 = r_cond_2.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_2->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_2->size(), 2);
     aux_index = p_indexes_pairs_2->GetId(p_indexes_pairs_2->begin());
-    KRATOS_CHECK(aux_index == 10 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 11);
     it_pair_check = p_indexes_pairs_2->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_2->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 10 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 11);
 
     auto& r_cond_3 = r_model_part.GetCondition(3);
     auto p_indexes_pairs_3 = r_cond_3.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_3->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_3->size(), 2);
     aux_index = p_indexes_pairs_3->GetId(p_indexes_pairs_3->begin());
-    KRATOS_CHECK(aux_index == 12 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 11);
     it_pair_check = p_indexes_pairs_3->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_3->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 11);
 
     auto& r_cond_4 = r_model_part.GetCondition(4);
     auto p_indexes_pairs_4 = r_cond_4.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 3);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_4->size(), 3);
     aux_index = p_indexes_pairs_4->GetId(p_indexes_pairs_4->begin());
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
     it_pair_check = p_indexes_pairs_4->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_4->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
     it_pair_check++;
     aux_index = p_indexes_pairs_4->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
 
     auto& r_cond_5 = r_model_part.GetCondition(5);
     auto p_indexes_pairs_5 = r_cond_5.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_5->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_5->size(), 2);
     aux_index = p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin());
-    KRATOS_CHECK(aux_index == 14 || aux_index == 15);
+    KRATOS_EXPECT_TRUE(aux_index == 14 || aux_index == 15);
     it_pair_check = p_indexes_pairs_5->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_5->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 14 || aux_index == 15);
+    KRATOS_EXPECT_TRUE(aux_index == 14 || aux_index == 15);
 
     auto& r_cond_6 = r_model_part.GetCondition(6);
     auto p_indexes_pairs_6 = r_cond_6.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_6->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_6->size(), 2);
     aux_index = p_indexes_pairs_6->GetId(p_indexes_pairs_6->begin());
-    KRATOS_CHECK(aux_index == 16 || aux_index == 15);
+    KRATOS_EXPECT_TRUE(aux_index == 16 || aux_index == 15);
     it_pair_check = p_indexes_pairs_6->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_6->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 16 || aux_index == 15);
+    KRATOS_EXPECT_TRUE(aux_index == 16 || aux_index == 15);
 
     auto& r_cond_7 = r_model_part.GetCondition(7);
     auto p_indexes_pairs_7 = r_cond_7.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_7->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_7->size(), 0);
 
     auto& r_cond_8 = r_model_part.GetCondition(8);
     auto p_indexes_pairs_8 = r_cond_8.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_8->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_8->size(), 0);
 }
 
 /**
@@ -370,63 +370,63 @@ KRATOS_TEST_CASE_IN_SUITE(SearchProcessKDTreeWithOBB, KratosContactStructuralMec
     std::size_t aux_index;
     auto& r_cond_1 = r_model_part.GetCondition(1);
     auto p_indexes_pairs_1 = r_cond_1.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_1->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_1->size(), 2);
     aux_index = p_indexes_pairs_1->GetId(p_indexes_pairs_1->begin());
-    KRATOS_CHECK(aux_index == 10 || aux_index == 9);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 9);
     auto it_pair_check = p_indexes_pairs_1->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_1->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 10 || aux_index == 9);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 9);
 
     auto& r_cond_2 = r_model_part.GetCondition(2);
     auto p_indexes_pairs_2 = r_cond_2.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_2->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_2->size(), 2);
     aux_index = p_indexes_pairs_2->GetId(p_indexes_pairs_2->begin());
-    KRATOS_CHECK(aux_index == 10 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 11);
     it_pair_check = p_indexes_pairs_2->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_2->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 10 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 11);
 
     auto& r_cond_3 = r_model_part.GetCondition(3);
     auto p_indexes_pairs_3 = r_cond_3.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_3->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_3->size(), 2);
     aux_index = p_indexes_pairs_3->GetId(p_indexes_pairs_3->begin());
-    KRATOS_CHECK(aux_index == 12 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 11);
     it_pair_check = p_indexes_pairs_3->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_3->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 11);
 
     auto& r_cond_4 = r_model_part.GetCondition(4);
     auto p_indexes_pairs_4 = r_cond_4.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 3);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_4->size(), 3);
     aux_index = p_indexes_pairs_4->GetId(p_indexes_pairs_4->begin());
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
     it_pair_check = p_indexes_pairs_4->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_4->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
     it_pair_check++;
     aux_index = p_indexes_pairs_4->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
 
     auto& r_cond_5 = r_model_part.GetCondition(5);
     auto p_indexes_pairs_5 = r_cond_5.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_5->size(), 1);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin()), 14);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_5->size(), 1);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin()), 14);
 
     auto& r_cond_6 = r_model_part.GetCondition(6);
     auto p_indexes_pairs_6 = r_cond_6.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_6->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_6->size(), 0);
 
     auto& r_cond_7 = r_model_part.GetCondition(7);
     auto p_indexes_pairs_7 = r_cond_7.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_7->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_7->size(), 0);
 
     auto& r_cond_8 = r_model_part.GetCondition(8);
     auto p_indexes_pairs_8 = r_cond_8.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_8->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_8->size(), 0);
 }
 
 /**
@@ -510,63 +510,63 @@ KRATOS_TEST_CASE_IN_SUITE(SearchProcessOctree, KratosContactStructuralMechanicsF
     std::size_t aux_index;
     auto& r_cond_1 = r_model_part.GetCondition(1);
     auto p_indexes_pairs_1 = r_cond_1.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_1->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_1->size(), 2);
     aux_index = p_indexes_pairs_1->GetId(p_indexes_pairs_1->begin());
-    KRATOS_CHECK(aux_index == 10 || aux_index == 9);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 9);
     auto it_pair_check = p_indexes_pairs_1->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_1->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 10 || aux_index == 9);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 9);
 
     auto& r_cond_2 = r_model_part.GetCondition(2);
     auto p_indexes_pairs_2 = r_cond_2.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_2->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_2->size(), 2);
     aux_index = p_indexes_pairs_2->GetId(p_indexes_pairs_2->begin());
-    KRATOS_CHECK(aux_index == 10 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 11);
     it_pair_check = p_indexes_pairs_2->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_2->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 10 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 10 || aux_index == 11);
 
     auto& r_cond_3 = r_model_part.GetCondition(3);
     auto p_indexes_pairs_3 = r_cond_3.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_3->size(), 2);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_3->size(), 2);
     aux_index = p_indexes_pairs_3->GetId(p_indexes_pairs_3->begin());
-    KRATOS_CHECK(aux_index == 12 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 11);
     it_pair_check = p_indexes_pairs_3->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_3->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 11);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 11);
 
     auto& r_cond_4 = r_model_part.GetCondition(4);
     auto p_indexes_pairs_4 = r_cond_4.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_4->size(), 3);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_4->size(), 3);
     aux_index = p_indexes_pairs_4->GetId(p_indexes_pairs_4->begin());
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
     it_pair_check = p_indexes_pairs_4->begin();
     it_pair_check++;
     aux_index = p_indexes_pairs_4->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
     it_pair_check++;
     aux_index = p_indexes_pairs_4->GetId(it_pair_check);
-    KRATOS_CHECK(aux_index == 12 || aux_index == 13 || aux_index == 14);
+    KRATOS_EXPECT_TRUE(aux_index == 12 || aux_index == 13 || aux_index == 14);
 
     auto& r_cond_5 = r_model_part.GetCondition(5);
     auto p_indexes_pairs_5 = r_cond_5.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_5->size(), 1);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin()), 14);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_5->size(), 1);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_5->GetId(p_indexes_pairs_5->begin()), 14);
 
     auto& r_cond_6 = r_model_part.GetCondition(6);
     auto p_indexes_pairs_6 = r_cond_6.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_6->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_6->size(), 0);
 
     auto& r_cond_7 = r_model_part.GetCondition(7);
     auto p_indexes_pairs_7 = r_cond_7.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_7->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_7->size(), 0);
 
     auto& r_cond_8 = r_model_part.GetCondition(8);
     auto p_indexes_pairs_8 = r_cond_8.GetValue(INDEX_MAP);
-    KRATOS_CHECK_EQUAL(p_indexes_pairs_8->size(), 0);
+    KRATOS_EXPECT_EQ(p_indexes_pairs_8->size(), 0);
 }
 
 }  // namespace Kratos::Testing.

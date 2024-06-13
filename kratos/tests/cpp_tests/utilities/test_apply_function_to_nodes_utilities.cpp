@@ -35,11 +35,11 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFunctionToNodesUtility, KratosCoreFastSuite)
     )input");
 
     auto p_function = Kratos::make_shared<GenericFunctionUtility>("x+2*y", parameters);
-    KRATOS_CHECK(p_function->DependsOnSpace());
-    KRATOS_CHECK(p_function->UseLocalSystem());
-    KRATOS_CHECK_STRING_EQUAL(p_function->FunctionBody(), "x+2*y");
-    KRATOS_CHECK_DOUBLE_EQUAL(p_function->CallFunction(4.0,3.0,0.0,0.0), 10);
-    KRATOS_CHECK_DOUBLE_EQUAL(p_function->RotateAndCallFunction(4.0,3.0,0.0,0.0), 11);
+    KRATOS_EXPECT_TRUE(p_function->DependsOnSpace());
+    KRATOS_EXPECT_TRUE(p_function->UseLocalSystem());
+    KRATOS_EXPECT_EQ(p_function->FunctionBody(), "x+2*y");
+    KRATOS_EXPECT_DOUBLE_EQ(p_function->CallFunction(4.0,3.0,0.0,0.0), 10);
+    KRATOS_EXPECT_DOUBLE_EQ(p_function->RotateAndCallFunction(4.0,3.0,0.0,0.0), 11);
 
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFunctionToNodesUtility, KratosCoreFastSuite)
     utility.ApplyFunction(TEMPERATURE, 1.0);
 
     for (auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(TEMPERATURE) - (r_node.Y() + 2.0 * r_node.X()), 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(TEMPERATURE) - (r_node.Y() + 2.0 * r_node.X()), 0.0);
     }
 }
 

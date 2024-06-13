@@ -75,7 +75,7 @@ namespace Testing
 
         // Check results
         const double tolerance = 1.0e-12;
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
     }
 
     /**
@@ -128,7 +128,7 @@ namespace Testing
 
         // Check results
         const double tolerance = 1.0e-12;
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(cl_parameters.GetStressVector(), strain_vect, tolerance)
     }
 
 } // namespace Testing

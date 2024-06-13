@@ -66,9 +66,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
     ModelPart &test_model_part = current_model.CreateModelPart("Main");
     MC cl = MC();
 
-    KRATOS_CHECK(cl.Has(DAMAGE));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
 
     Vector internal_variables_w(3);
     internal_variables_w[0] = 0.0;
@@ -77,9 +77,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageInternalVariables,
     Vector internal_variables_r;
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
 
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 2., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
 }
 
 
@@ -184,12 +184,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosCons
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, 0.0001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, 0.0001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, 0.001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Tres, TestT, 0.0001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Rres, TestR, 0.001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(MCres, TestMC, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(VMres, TestVM, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(DPres, TestDP, 0.001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Tres, TestT, 0.0001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Rres, TestR, 0.001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(SJres, TestSJ, 0.0001e+06);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosConstitutiveLawsFastSuite)
@@ -293,12 +293,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     TestSJ = cl_parameters.GetStressVector();
 
     //Check the results
-    KRATOS_CHECK_VECTOR_NEAR(MCres, TestMC, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(DPres, TestDP, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Tres, TestT, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(Rres, TestR, 0.00001e+06);
-    KRATOS_CHECK_VECTOR_NEAR(SJres, TestSJ, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(MCres, TestMC, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(VMres, TestVM, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(DPres, TestDP, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Tres, TestT, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(Rres, TestR, 0.00001e+06);
+    KRATOS_EXPECT_VECTOR_NEAR(SJres, TestSJ, 0.00001e+06);
 }
 } // namespace Testing
 } // namespace Kratos

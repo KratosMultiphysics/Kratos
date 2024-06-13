@@ -113,7 +113,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
 
     error_message << "Value error(s) found" << std::endl;
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
@@ -150,7 +150,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
 
     error_message << "Fixity error(s) found" << std::endl;
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
@@ -188,7 +188,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCom
     error_message << "Value error(s) found" << std::endl;
     error_message << "Fixity error(s) found" << std::endl;
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         MpiDebugUtilities::CheckHistoricalVariable(model_part, PRESSURE),
         error_message.str()
     );
@@ -247,7 +247,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
 
     error_message << "Value error(s) found" << std::endl;
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         MpiDebugUtilities::CheckNonHistoricalVariable(model_part, model_part.Nodes(), PRESSURE),
         error_message.str()
     );

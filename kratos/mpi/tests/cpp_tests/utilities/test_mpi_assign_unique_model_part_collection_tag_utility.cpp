@@ -91,7 +91,7 @@ namespace Kratos::Testing
         const std::string filename = "mpi_test";
 
         AssignUniqueModelPartCollectionTagUtility::WriteTagsToJson(filename + std::to_string(rank), collections);
-        KRATOS_CHECK_EQUAL(collections.size(), 8);
+        KRATOS_EXPECT_EQ(collections.size(), 8);
 
         r_data_communicator.Barrier();
         for (int i = 0; i < size; i++) {
@@ -99,10 +99,10 @@ namespace Kratos::Testing
                 IndexStringMapType read_collections;
                 AssignUniqueModelPartCollectionTagUtility::ReadTagsFromJson(filename + std::to_string(i), read_collections);
 
-                KRATOS_CHECK_EQUAL(collections.size(),read_collections.size());
+                KRATOS_EXPECT_EQ(collections.size(),read_collections.size());
 
                 for (IndexType j = 0; j < read_collections.size(); j++) {
-                    KRATOS_CHECK_EQUAL(collections[j], read_collections[j]);
+                    KRATOS_EXPECT_EQ(collections[j], read_collections[j]);
                 }
             }
         }

@@ -225,24 +225,24 @@ KRATOS_TEST_CASE_IN_SUITE(SelfContactUtilities1, KratosContactStructuralMechanic
     //IOSelfContactDebug(r_model_part);
 
     // Slave conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->IsNot(MASTER));
 
     // Master conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->Is(MASTER));
 }
 
 /**
@@ -271,46 +271,46 @@ KRATOS_TEST_CASE_IN_SUITE(SelfContactUtilities2, KratosContactStructuralMechanic
     //IOSelfContactDebug(r_model_part);
 
     // Slave conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(12)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(12)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(12)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(12)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(12)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(12)->IsNot(MASTER));
 
     // Inactive conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(11)->IsNot(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(11)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(11)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(11)->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(11)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(11)->Is(MASTER));
 
     // Master conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(9)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(9)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(9)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(10)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(10)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(10)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(9)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(9)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(9)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(10)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(10)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(10)->Is(MASTER));
 }
 
 /**
@@ -339,69 +339,69 @@ KRATOS_TEST_CASE_IN_SUITE(SelfContactUtilities3, KratosContactStructuralMechanic
     //IOSelfContactDebug(r_model_part);
 
     // Slave conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(1)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(11)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(11)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(11)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(2)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(12)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(12)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(12)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(10)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(10)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(10)->IsNot(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(20)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(20)->Is(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(20)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(1)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(11)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(11)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(11)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(2)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(12)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(12)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(12)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(10)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(10)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(10)->IsNot(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(20)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(20)->Is(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(20)->IsNot(MASTER));
 
     // Inactive conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(3)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(13)->IsNot(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(13)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(13)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(9)->IsNot(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(9)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(9)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(19)->IsNot(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(19)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(19)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(3)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(13)->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(13)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(13)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(9)->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(9)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(9)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(19)->IsNot(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(19)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(19)->Is(MASTER));
 
     // Master conditions
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(4)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(14)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(14)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(14)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(5)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(15)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(15)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(15)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(6)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(16)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(16)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(16)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(7)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(17)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(17)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(17)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(8)->Is(MASTER));
-    KRATOS_CHECK(r_model_part.pGetCondition(18)->Is(ACTIVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(18)->IsNot(SLAVE));
-    KRATOS_CHECK(r_model_part.pGetCondition(18)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(4)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(14)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(14)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(14)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(5)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(15)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(15)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(15)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(6)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(16)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(16)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(16)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(7)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(17)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(17)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(17)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(8)->Is(MASTER));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(18)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(18)->IsNot(SLAVE));
+    KRATOS_EXPECT_TRUE(r_model_part.pGetCondition(18)->Is(MASTER));
 }
 }  // namespace Kratos::Testing.

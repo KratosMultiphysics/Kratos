@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -21,9 +21,7 @@
 #include "constraints/linear_master_slave_constraint.h"
 #include "constraints/slip_constraint.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 
 template <class TVariableType>
@@ -49,6 +47,7 @@ void AddConstraintToPython(pybind11::module &m)
     pybind11::class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer, MasterSlaveConstraint::BaseType, Flags>(m, "MasterSlaveConstraint")
     .def(pybind11::init<>())
     .def(pybind11::init<int>())
+    .def("IsActive", &MasterSlaveConstraint::IsActive)
 
     .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
@@ -151,10 +150,6 @@ void AddConstraintToPython(pybind11::module &m)
         array_1d<double,3>
         >())
     ;
-
-
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

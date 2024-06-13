@@ -52,10 +52,10 @@ KRATOS_TEST_CASE_IN_SUITE(AssignParentElementConditionsProcess1, KratosContactSt
     AssignParentElementConditionsProcess(r_model_part, r_model_part).Execute();
 
     // Check the parent element
-    KRATOS_CHECK_EQUAL(p_cond1->GetValue(PARENT_ELEMENT), p_element);
-    KRATOS_CHECK_EQUAL(p_cond2->GetValue(PARENT_ELEMENT), p_element);
-    KRATOS_CHECK_EQUAL(p_cond3->GetValue(PARENT_ELEMENT), p_element);
-    KRATOS_CHECK_EQUAL(p_cond4->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond1->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond2->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond3->GetValue(PARENT_ELEMENT), p_element);
+    KRATOS_EXPECT_EQ(p_cond4->GetValue(PARENT_ELEMENT), p_element);
 }
 
 }  // namespace Kratos::Testing.

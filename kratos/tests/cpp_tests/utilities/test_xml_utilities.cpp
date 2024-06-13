@@ -30,7 +30,7 @@ namespace Kratos::Testing {
 KRATOS_TEST_CASE_IN_SUITE(XmlElementGetTagName, KratosCoreFastSuite)
 {
     XmlExpressionElement element("TestElement");
-    KRATOS_CHECK_EQUAL(element.GetTagName(), "TestElement");
+    KRATOS_EXPECT_EQ(element.GetTagName(), "TestElement");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementAddAndGetAttributes, KratosCoreFastSuite)
@@ -41,10 +41,10 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementAddAndGetAttributes, KratosCoreFastSuite)
 
     auto attributes = element.GetAttributes();
 
-    KRATOS_CHECK_EQUAL(attributes[0].first, "Attribute1");
-    KRATOS_CHECK_EQUAL(attributes[0].second, "Value1");
-    KRATOS_CHECK_EQUAL(attributes[1].first, "Attribute2");
-    KRATOS_CHECK_EQUAL(attributes[1].second, "Value2");
+    KRATOS_EXPECT_EQ(attributes[0].first, "Attribute1");
+    KRATOS_EXPECT_EQ(attributes[0].second, "Value1");
+    KRATOS_EXPECT_EQ(attributes[1].first, "Attribute2");
+    KRATOS_EXPECT_EQ(attributes[1].second, "Value2");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementClearAttributes, KratosCoreFastSuite)
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearAttributes, KratosCoreFastSuite)
     element.ClearAttributes();
 
     auto attributes = element.GetAttributes();
-    KRATOS_CHECK_EQUAL(attributes.size(), 0);
+    KRATOS_EXPECT_EQ(attributes.size(), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementAddElement, KratosCoreFastSuite)
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementAddElement, KratosCoreFastSuite)
     element.AddElement(childElement);
 
     auto children = element.GetElements();
-    KRATOS_CHECK_EQUAL(children[0]->GetTagName(), "ChildElement");
+    KRATOS_EXPECT_EQ(children[0]->GetTagName(), "ChildElement");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementGetElements, KratosCoreFastSuite)
@@ -76,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementGetElements, KratosCoreFastSuite)
     element.AddElement(childElement2);
 
     auto children = element.GetElements("ChildElement");
-    KRATOS_CHECK_EQUAL(children.size(), 1);
-    KRATOS_CHECK_EQUAL(children[0]->GetTagName(), "ChildElement");
+    KRATOS_EXPECT_EQ(children.size(), 1);
+    KRATOS_EXPECT_EQ(children[0]->GetTagName(), "ChildElement");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
     element.ClearElements();
 
     auto children = element.GetElements();
-    KRATOS_CHECK_EQUAL(children.size(), 0);
+    KRATOS_EXPECT_EQ(children.size(), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWrite, KratosCoreFastSuite)
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWrite, KratosCoreFastSuite)
     XmlOStreamAsciiWriter writer(ss, 4);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
                        "   <TestElement Attribute1=\"Value1\">\n"
                        "      <ChildElement/>\n"
                        "   </TestElement>\n");
@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiChar, KratosCoreF
     XmlOStreamAsciiWriter writer(ss, 4);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"UInt8\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
             "     0  1  2  3  4  5  0  1  2  3  4  5  6  7  8\n"
             "   </DataArray>\n");
@@ -158,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiInt, KratosCoreFa
     XmlOStreamAsciiWriter writer(ss, 4);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"Int32\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
             "     0  1  2  3  4  5  0  1  2  3  4  5  6  7  8\n"
             "   </DataArray>\n");
@@ -186,7 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiDouble, KratosCor
     XmlOStreamAsciiWriter writer(ss, 1);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
             "     0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  6.0e+00  7.0e+00  8.0e+00\n"
             "   </DataArray>\n");
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiMixed, KratosCore
     XmlOStreamAsciiWriter writer(ss, 1);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
             "     0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  0.0e+00  1.0e+00  2.0e+00  3.0e+00  4.0e+00  5.0e+00  6.0e+00  7.0e+00  8.0e+00\n"
             "   </DataArray>\n");
@@ -242,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryChar, KratosCore
     XmlOStreamBase64BinaryWriter writer(ss);
     writer.WriteElement(element, 1);
 
-        KRATOS_CHECK_EQUAL(ss.str(),
+        KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"UInt8\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
             "     DwAAAAABAgMEBQABAgMEBQYHCA==\n"
             "   </DataArray>\n");
@@ -270,7 +270,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryInt, KratosCoreF
     XmlOStreamBase64BinaryWriter writer(ss);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"Int32\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
             "     PAAAAAAAAAABAAAAAgAAAAMAAAAEAAAABQAAAAAAAAABAAAAAgAAAAMAAAAEAAAABQAAAAYAAAAHAAAACAAAAA==\n"
             "   </DataArray>\n");
@@ -298,7 +298,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryDouble, KratosCo
     XmlOStreamBase64BinaryWriter writer(ss);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
             "     eAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==\n"
             "   </DataArray>\n");
@@ -326,7 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryMixed, KratosCor
     XmlOStreamBase64BinaryWriter writer(ss);
     writer.WriteElement(element, 1);
 
-    KRATOS_CHECK_EQUAL(ss.str(),
+    KRATOS_EXPECT_EQ(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
             "     eAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==\n"
             "   </DataArray>\n");

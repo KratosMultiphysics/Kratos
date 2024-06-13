@@ -49,7 +49,7 @@ namespace Kratos
         {
             Parameters this_parameters = Parameters(R"({"name" : "explicit_builder"})");
             ExplicitBuilderType::Pointer p_explicit_builder = ExplicitBuilderFactoryType().Create(this_parameters);
-            KRATOS_CHECK_STRING_EQUAL(p_explicit_builder->Info(), "ExplicitBuilder");
+            KRATOS_EXPECT_EQ(p_explicit_builder->Info(), "ExplicitBuilder");
         }
 
     } // namespace Testing

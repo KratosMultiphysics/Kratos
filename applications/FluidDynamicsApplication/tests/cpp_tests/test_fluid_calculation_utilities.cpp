@@ -123,8 +123,8 @@ namespace Testing {
             }
         }
 
-        KRATOS_CHECK_NEAR(density, check_density, 1e-16);
-        KRATOS_CHECK_VECTOR_NEAR(displacement, check_displacement, 1e-16);
+        KRATOS_EXPECT_NEAR(density, check_density, 1e-16);
+        KRATOS_EXPECT_VECTOR_NEAR(displacement, check_displacement, 1e-16);
     }
 
     template<unsigned int TDim, class EvaluationMethodType, class NodalDataRetrievalType>
@@ -171,8 +171,8 @@ namespace Testing {
             }
         }
 
-        KRATOS_CHECK_VECTOR_NEAR(density_gradient, check_density_gradient, 1e-16);
-        KRATOS_CHECK_MATRIX_NEAR(displacement_gradient, check_displacement_gradient, 1e-16);
+        KRATOS_EXPECT_VECTOR_NEAR(density_gradient, check_density_gradient, 1e-16);
+        KRATOS_EXPECT_MATRIX_NEAR(displacement_gradient, check_displacement_gradient, 1e-16);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(FluidCalculationUtilitiesEvaluateInPoint2D, FluidDynamicsApplicationFastSuite)

@@ -85,7 +85,7 @@ namespace Kratos
 //             ShellToSolidShellProcessGiDIODebug(this_model_part);
 
             for (auto& elem : this_model_part.Elements())
-                KRATOS_CHECK_EQUAL(elem.GetGeometry().size(), 6);
+                KRATOS_EXPECT_EQ(elem.GetGeometry().size(), 6);
         }
 
         /**
@@ -116,7 +116,7 @@ namespace Kratos
 //             ShellToSolidShellProcessGiDIODebug(this_model_part);
 
             for (auto& elem : this_model_part.Elements())
-                KRATOS_CHECK_EQUAL(elem.GetGeometry().size(), 6);
+                KRATOS_EXPECT_EQ(elem.GetGeometry().size(), 6);
         }
 
         /**
@@ -152,14 +152,14 @@ namespace Kratos
 //             ShellToSolidShellProcessGiDIODebug(this_model_part);
 
             for (auto& elem : this_model_part.GetSubModelPart("Upper_").Conditions())
-                KRATOS_CHECK_EQUAL(elem.GetGeometry().size(), 3);
+                KRATOS_EXPECT_EQ(elem.GetGeometry().size(), 3);
             for (auto& elem : this_model_part.GetSubModelPart("Lower_").Conditions())
-                KRATOS_CHECK_EQUAL(elem.GetGeometry().size(), 3);
+                KRATOS_EXPECT_EQ(elem.GetGeometry().size(), 3);
 
             for (auto& node : this_model_part.GetSubModelPart("Upper_").Nodes())
-                KRATOS_CHECK_NEAR(node.FastGetSolutionStepValue(NORMAL)[2],  1.0, 1.0e-12);
+                KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(NORMAL)[2],  1.0, 1.0e-12);
             for (auto& node : this_model_part.GetSubModelPart("Lower_").Nodes())
-                KRATOS_CHECK_NEAR(node.FastGetSolutionStepValue(NORMAL)[2], -1.0, 1.0e-12);
+                KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(NORMAL)[2], -1.0, 1.0e-12);
         }
 
         /**
@@ -201,7 +201,7 @@ namespace Kratos
 //             ShellToSolidShellProcessGiDIODebug(this_model_part);
 
             for (auto& elem : this_model_part.Elements())
-                KRATOS_CHECK_EQUAL(elem.GetGeometry().size(), 3);
+                KRATOS_EXPECT_EQ(elem.GetGeometry().size(), 3);
         }
 
     } // namespace Testing

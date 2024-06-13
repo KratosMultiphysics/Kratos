@@ -30,10 +30,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModel
 
     DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
-    KRATOS_CHECK(main_model_part.IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.IsDistributed());
 
-    KRATOS_CHECK_EQUAL(main_model_part.NumberOfSubModelParts(), 0);
-    KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(main_model_part.NumberOfSubModelParts(), 0);
+    KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_WithNodes, KratosMPICoreFastSuite)
@@ -50,10 +50,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModel
 
     DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
-    KRATOS_CHECK(main_model_part.IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.IsDistributed());
 
-    KRATOS_CHECK_EQUAL(main_model_part.NumberOfSubModelParts(), 0);
-    KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(main_model_part.NumberOfSubModelParts(), 0);
+    KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), num_nodes);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_Empty, KratosMPICoreFastSuite)
@@ -70,11 +70,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModel
 
     DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
-    KRATOS_CHECK(main_model_part.IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.IsDistributed());
 
-    KRATOS_CHECK_EQUAL(main_model_part.NumberOfSubModelParts(), 1);
-    KRATOS_CHECK(main_model_part.HasSubModelPart("sub"));
-    KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(main_model_part.NumberOfSubModelParts(), 1);
+    KRATOS_EXPECT_TRUE(main_model_part.HasSubModelPart("sub"));
+    KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModelPart_WithNodes, KratosMPICoreFastSuite)
@@ -102,12 +102,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_1_SubModel
 
     DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
-    KRATOS_CHECK(main_model_part.IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.IsDistributed());
 
-    KRATOS_CHECK_EQUAL(main_model_part.NumberOfSubModelParts(), 1);
-    KRATOS_CHECK(main_model_part.HasSubModelPart("sub"));
-    KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), num_nodes_main+num_nodes_sub);
-    KRATOS_CHECK_EQUAL(main_model_part.GetSubModelPart("sub").GetCommunicator().GlobalNumberOfNodes(), num_nodes_sub);
+    KRATOS_EXPECT_EQ(main_model_part.NumberOfSubModelParts(), 1);
+    KRATOS_EXPECT_TRUE(main_model_part.HasSubModelPart("sub"));
+    KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), num_nodes_main+num_nodes_sub);
+    KRATOS_EXPECT_EQ(main_model_part.GetSubModelPart("sub").GetCommunicator().GlobalNumberOfNodes(), num_nodes_sub);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubModelParts_Empty, KratosMPICoreFastSuite)
@@ -125,12 +125,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubModel
 
     DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
-    KRATOS_CHECK(main_model_part.IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.IsDistributed());
 
-    KRATOS_CHECK_EQUAL(main_model_part.NumberOfSubModelParts(), 2);
-    KRATOS_CHECK(main_model_part.HasSubModelPart("sub"));
-    KRATOS_CHECK(main_model_part.HasSubModelPart("another_sub"));
-    KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(main_model_part.NumberOfSubModelParts(), 2);
+    KRATOS_EXPECT_TRUE(main_model_part.HasSubModelPart("sub"));
+    KRATOS_EXPECT_TRUE(main_model_part.HasSubModelPart("another_sub"));
+    KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubModelParts_Empty, KratosMPICoreFastSuite)
@@ -149,22 +149,22 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubMo
 
     DistributedModelPartInitializer(main_model_part, Testing::GetDefaultDataCommunicator(), 0).Execute();
 
-    KRATOS_CHECK(main_model_part.IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.IsDistributed());
 
-    KRATOS_CHECK_EQUAL(main_model_part.NumberOfSubModelParts(), 2);
-    KRATOS_CHECK(main_model_part.HasSubModelPart("sub"));
-    KRATOS_CHECK(main_model_part.HasSubModelPart("another_sub"));
-    KRATOS_CHECK(main_model_part.GetSubModelPart("sub").IsDistributed());
-    KRATOS_CHECK(main_model_part.GetSubModelPart("another_sub").IsDistributed());
+    KRATOS_EXPECT_EQ(main_model_part.NumberOfSubModelParts(), 2);
+    KRATOS_EXPECT_TRUE(main_model_part.HasSubModelPart("sub"));
+    KRATOS_EXPECT_TRUE(main_model_part.HasSubModelPart("another_sub"));
+    KRATOS_EXPECT_TRUE(main_model_part.GetSubModelPart("sub").IsDistributed());
+    KRATOS_EXPECT_TRUE(main_model_part.GetSubModelPart("another_sub").IsDistributed());
 
     ModelPart& sub_mp = main_model_part.GetSubModelPart("sub");
-    KRATOS_CHECK_EQUAL(sub_mp.NumberOfSubModelParts(), 1);
-    KRATOS_CHECK(sub_mp.HasSubModelPart("sub_sub"));
-    KRATOS_CHECK(sub_mp.GetSubModelPart("sub_sub").IsDistributed());
-    KRATOS_CHECK_IS_FALSE(main_model_part.HasSubModelPart("sub_sub"));
-    KRATOS_CHECK_IS_FALSE(main_model_part.GetSubModelPart("another_sub").HasSubModelPart("sub_sub"));
+    KRATOS_EXPECT_EQ(sub_mp.NumberOfSubModelParts(), 1);
+    KRATOS_EXPECT_TRUE(sub_mp.HasSubModelPart("sub_sub"));
+    KRATOS_EXPECT_TRUE(sub_mp.GetSubModelPart("sub_sub").IsDistributed());
+    KRATOS_EXPECT_FALSE(main_model_part.HasSubModelPart("sub_sub"));
+    KRATOS_EXPECT_FALSE(main_model_part.GetSubModelPart("another_sub").HasSubModelPart("sub_sub"));
 
-    KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
 }  // namespace Kratos::Testing

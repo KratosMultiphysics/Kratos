@@ -101,14 +101,14 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_EquationIdVector, Krat
     for (const auto& r_condition : r_model_part.Conditions())
     {
         r_condition.EquationIdVector(eqn_ids, r_model_part.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(eqn_ids.size(), r_condition.GetGeometry().PointsNumber() * 3);
+        KRATOS_EXPECT_EQ(eqn_ids.size(), r_condition.GetGeometry().PointsNumber() * 3);
         const auto& r_geometry = r_condition.GetGeometry();
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
-            KRATOS_CHECK_EQUAL(eqn_ids[local_index++], r_geometry[i_node].Id() * 4);
-            KRATOS_CHECK_EQUAL(eqn_ids[local_index++], r_geometry[i_node].Id() * 4 + 1);
-            KRATOS_CHECK_EQUAL(eqn_ids[local_index++], r_geometry[i_node].Id() * 4 + 3);
+            KRATOS_EXPECT_EQ(eqn_ids[local_index++], r_geometry[i_node].Id() * 4);
+            KRATOS_EXPECT_EQ(eqn_ids[local_index++], r_geometry[i_node].Id() * 4 + 1);
+            KRATOS_EXPECT_EQ(eqn_ids[local_index++], r_geometry[i_node].Id() * 4 + 3);
         }
     }
 }
@@ -124,19 +124,19 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_GetDofList, KratosRans
     for (const auto& r_condition : r_model_part.Conditions())
     {
         r_condition.GetDofList(dofs, r_model_part.GetProcessInfo());
-        KRATOS_CHECK_EQUAL(dofs.size(), r_condition.GetGeometry().PointsNumber() * 3);
+        KRATOS_EXPECT_EQ(dofs.size(), r_condition.GetGeometry().PointsNumber() * 3);
         const auto& r_geometry = r_condition.GetGeometry();
         IndexType local_index = 0;
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
-            KRATOS_CHECK_EQUAL(dofs[local_index]->GetVariable(), VELOCITY_X);
-            KRATOS_CHECK_EQUAL(dofs[local_index++]->EquationId(),
+            KRATOS_EXPECT_EQ(dofs[local_index]->GetVariable(), VELOCITY_X);
+            KRATOS_EXPECT_EQ(dofs[local_index++]->EquationId(),
                                r_geometry[i_node].Id() * 4);
-            KRATOS_CHECK_EQUAL(dofs[local_index]->GetVariable(), VELOCITY_Y);
-            KRATOS_CHECK_EQUAL(dofs[local_index++]->EquationId(),
+            KRATOS_EXPECT_EQ(dofs[local_index]->GetVariable(), VELOCITY_Y);
+            KRATOS_EXPECT_EQ(dofs[local_index++]->EquationId(),
                                r_geometry[i_node].Id() * 4 + 1);
-            KRATOS_CHECK_EQUAL(dofs[local_index]->GetVariable(), PRESSURE);
-            KRATOS_CHECK_EQUAL(dofs[local_index++]->EquationId(),
+            KRATOS_EXPECT_EQ(dofs[local_index]->GetVariable(), PRESSURE);
+            KRATOS_EXPECT_EQ(dofs[local_index++]->EquationId(),
                                r_geometry[i_node].Id() * 4 + 3);
         }
     }
@@ -164,8 +164,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
     ref_RHS = ZeroVector(6);
     ref_LHS = ZeroMatrix(6, 6);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
@@ -176,8 +176,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalSystem, 
     ref_RHS = ZeroVector(6);
     ref_LHS = ZeroMatrix(6, 6);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide, KratosRansFastSuite)
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
     // setting reference values
     ref_LHS = ZeroMatrix(6, 6);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
@@ -210,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLeftHandSide,
     // setting reference values
     ref_LHS = ZeroMatrix(6, 6);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide, KratosRansFastSuite)
@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
     // setting reference values
     ref_RHS = ZeroVector(6);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
@@ -243,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateRightHandSide
     // setting reference values
     ref_RHS = ZeroVector(6);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix, KratosRansFastSuite)
@@ -266,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     // setting reference values
     ref_LHS = ZeroMatrix(6, 6);
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
@@ -283,7 +283,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateDampingMatrix
     ref_LHS(4, 1) = 6.2647267728420064e-01;
     ref_LHS(4, 4) = 6.2647267728420064e-01;
 
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocityContribution,
@@ -311,8 +311,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     ref_RHS[0] = -4.0637878787878788e+02;
     ref_RHS[3] = -3.8843939393939399e+02;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     // checking for wall function
     r_condition.SetValue(RANS_IS_WALL_FUNCTION_ACTIVE, 1);
@@ -334,17 +334,17 @@ KRATOS_TEST_CASE_IN_SUITE(RansVMSMonolithicKBasedWall2D2N_CalculateLocalVelocity
     ref_LHS(4, 1) = 6.2647267728420064e-01;
     ref_LHS(4, 4) = 6.2647267728420064e-01;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 
     const array_1d<double, 3>& friction_velocity = r_condition.GetValue(FRICTION_VELOCITY);
     array_1d<double, 3> ref_friction_velocity;
     ref_friction_velocity[0] = -1.4662487952948189e+00;
     ref_friction_velocity[1] = -1.5821577909702991e+00;
     ref_friction_velocity[2] = -1.3023203585537833e+00;
-    KRATOS_CHECK_VECTOR_NEAR(friction_velocity, ref_friction_velocity, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(friction_velocity, ref_friction_velocity, 1e-12);
 
-    KRATOS_CHECK_NEAR(r_condition.GetValue(RANS_Y_PLUS), 2.6361075494608794e+01, 1e-12);
+    KRATOS_EXPECT_NEAR(r_condition.GetValue(RANS_Y_PLUS), 2.6361075494608794e+01, 1e-12);
 }
 
 } // namespace Testing

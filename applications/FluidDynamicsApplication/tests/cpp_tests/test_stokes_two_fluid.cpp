@@ -124,7 +124,7 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1.0);
+            KRATOS_EXPECT_VECTOR_NEAR(theoretical_rhs, RHS, 1.0);
         }
 
         // /** Checks the StokesTwoFluid3D4N element
@@ -154,7 +154,7 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             std::vector<double> theoretical_rhs = {14.8262,27.1782, 39.1214, -2.04821e+06, 17.2867, 29.6168, 41.549, 411458,19.7418, 32.0938, 44.015, 685764, 22.2078, 34.5488, 46.492, 950986};
-            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 10.0);
+            KRATOS_EXPECT_VECTOR_NEAR(theoretical_rhs, RHS, 10.0);
         }
 
         // /** Checks the StokesTwoFluid3D4N element
@@ -185,7 +185,7 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             std::vector<double> theoretical_rhs = {0.039501,0.0600744,-0.328102,7026.02,0.0117953,0.0213953,-0.377754,411.433,0.0115203,0.0211214,-0.378029,685.739,0.0112459,0.0208464,-0.378303,-8123.29}; // namespace Testing
-            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1e-2);
+            KRATOS_EXPECT_VECTOR_NEAR(theoretical_rhs, RHS, 1e-2);
         }
     }
 }  // namespace Kratos.

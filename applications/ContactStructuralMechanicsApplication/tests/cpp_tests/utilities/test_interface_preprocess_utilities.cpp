@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessCondition2D, KratosContactStructura
     auto utility = InterfacePreprocessCondition(r_model_part);
     utility.GenerateInterfacePart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
+    KRATOS_EXPECT_TRUE(r_model_part.NumberOfConditions() == 2);
 }
 
 /**
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessCondition3D, KratosContactStructura
     auto utility = InterfacePreprocessCondition(r_model_part);
     utility.GenerateInterfacePart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
+    KRATOS_EXPECT_TRUE(r_model_part.NumberOfConditions() == 4);
 }
 
 } // namespace Kratos::Testing

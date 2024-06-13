@@ -47,11 +47,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvinInternalVariables, KratosConstitu
 
     ViscousGeneralizedKelvin<ElasticIsotropic3D> cl = ViscousGeneralizedKelvin<ElasticIsotropic3D>();
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
 
     // This constitutive law does not use internal variables
     // TODO (marandra): check that this is compatible con API
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
+    KRATOS_EXPECT_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
 }
 
 
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvin, KratosConstitutiveLawsFastSuite
     test_kelvin_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_kelvin_stress, kelvin_res, 1.0);
+    KRATOS_EXPECT_VECTOR_NEAR(test_kelvin_stress, kelvin_res, 1.0);
 }
 } // namespace Testing
 } // namespace Kratos

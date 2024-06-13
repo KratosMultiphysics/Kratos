@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License          BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -975,6 +975,124 @@ public:
     ///@{
 
     /**
+    * @brief Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
+
+        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+
+        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
+
+        return 1;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Local coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+	noalias(rProjectionPointLocalCoordinates) = rPointLocalCoordinates;
+        double sum_coordinates = 0.0;
+        for(unsigned int i = 0 ; i < 2 ; i++){ // It's a triangle, so only (local) xi and eta
+            if (rProjectionPointLocalCoordinates[i] < 0.0) { // Clipping to zero
+                rProjectionPointLocalCoordinates[i] = 0.0;
+            }
+            sum_coordinates += rProjectionPointLocalCoordinates[i];
+        }
+        
+        // Clipping to line y=1-x
+        if (sum_coordinates>1.0){
+            for(unsigned int i = 0 ; i < 2 ; i++){ 
+                rProjectionPointLocalCoordinates[i] /= sum_coordinates;
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Global coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Calculate the point of interest global coordinates
+        // Note that rProjectionPointLocalCoordinates is used as initial guess
+        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
+
+        // Calculate the projection point local coordinates from the input point local coordinates
+        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
+        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
+    }
+
+    /**
     * @brief Computes the distance between an point in
     *        global coordinates and the closest point
     *        of this geometry.
@@ -1432,11 +1550,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1607,85 +1730,6 @@ public:
         }
 
         return rResult;
-    }
-
-    ///@}
-    ///@name Spatial Operations
-    ///@{
-
-    /**
-    * @brief Projects a certain point on the geometry, or finds
-    *        the closest point, depending on the provided
-    *        initial guess. The external point does not necessary
-    *        lay on the geometry.
-    *        It shall deal as the interface to the mathematical
-    *        projection function e.g. the Newton-Raphson.
-    *        Thus, the breaking criteria does not necessarily mean
-    *        that it found a point on the surface, if it is really
-    *        the closest if or not. It shows only if the breaking
-    *        criteria, defined by the tolerance is reached.
-    *
-    *        This function requires an initial guess, provided by
-    *        rProjectedPointLocalCoordinates.
-    *        This function can be a very costly operation.
-    *
-    * @param rPointGlobalCoordinates the point to which the
-    *        projection has to be found.
-    * @param rProjectedPointGlobalCoordinates the location of the
-    *        projection in global coordinates.
-    * @param rProjectedPointLocalCoordinates the location of the
-    *        projection in local coordinates.
-    *        The variable is as initial guess!
-    * @param Tolerance accepted of orthogonal error to projection.
-    * @return It is chosen to take an int as output parameter to
-    *         keep more possibilities within the interface.
-    *         0 -> failed
-    *         1 -> converged
-    */
-    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
-    int ProjectionPoint(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        ) const override
-    {
-        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
-
-        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
-
-        this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
-
-        return 1;
-    }
-
-    int ProjectionPointLocalToLocalSpace(
-        const CoordinatesArrayType& rPointLocalCoordinates,
-        CoordinatesArrayType& rProjectionPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        for (std::size_t  i = 0; i < 3; ++i) {
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] < 0.0) ? 0.0 : rPointLocalCoordinates[i];
-            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] > 1.0) ? 1.0 : rPointLocalCoordinates[i];
-        }
-
-        return 1;
-    }
-
-    int ProjectionPointGlobalToLocalSpace(
-        const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectionPointLocalCoordinates,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-    ) const override
-    {
-        // Calculate the point of interest global coordinates
-        // Note that rProjectionPointLocalCoordinates is used as initial guess
-        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
-
-        // Calculate the projection point local coordinates from the input point local coordinates
-        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
-        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
     }
 
     ///@}

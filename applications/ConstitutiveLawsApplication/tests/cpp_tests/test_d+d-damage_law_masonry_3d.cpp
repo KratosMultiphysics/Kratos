@@ -53,14 +53,14 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosConstitut
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(DAMAGE_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(DAMAGE_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
     Vector internal_variables_w(6);
     internal_variables_w[0] = 0.0;
     internal_variables_w[1] = 0.1;
@@ -71,13 +71,13 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosConstitut
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;  // CL should internally resize it to 6
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 6., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 6., 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.0, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.1, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[2], 0.2, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[3], 0.3, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[4], 0.4, 1.e-5);  // = True
+    KRATOS_EXPECT_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosConstitutiveLawsFastSuite)
@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosConstitutiv
     test_masonry3d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosConstitutiveLawsFastSuite)
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosConstitutiveLaw
     test_masonry3d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosConstitutiveLawsFastSuite)
@@ -297,7 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosConstitutiveLaws
     test_masonry3d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
 } // namespace Testing

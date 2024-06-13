@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(ALMVariablesProcess, KratosContactStructuralMechanicsF
 //     // DEBUG
 //     GiDIODebugALMVariables(this_model_part);
 
-    KRATOS_CHECK_LESS_EQUAL(std::abs((initial_penalty - 305.858)/initial_penalty), tolerance);
-    KRATOS_CHECK_LESS_EQUAL(std::abs((scale_factor - 305.858)/scale_factor), tolerance);
+    KRATOS_EXPECT_LE(std::abs((initial_penalty - 305.858)/initial_penalty), tolerance);
+    KRATOS_EXPECT_LE(std::abs((scale_factor - 305.858)/scale_factor), tolerance);
 }
 }  // namespace Kratos::Testing.

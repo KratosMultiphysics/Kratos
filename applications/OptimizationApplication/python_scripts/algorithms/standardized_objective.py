@@ -29,7 +29,7 @@ class StandardizedObjective(ResponseRoutine):
         super().__init__(master_control, response)
 
         if required_buffer_size < 2:
-            raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetReponse().GetName()} ]")
+            raise RuntimeError(f"Standardized objective requires 2 as minimum buffer size. [ response name = {self.GetResponseName()} ]")
 
         component_data_view = ComponentDataView(response, optimization_problem)
         component_data_view.SetDataBuffer(required_buffer_size)
@@ -54,10 +54,10 @@ class StandardizedObjective(ResponseRoutine):
         if self.__unbuffered_data.HasValue("initial_value"):
             return self.__unbuffered_data["initial_value"] * self.__scaling
         else:
-            raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
+            raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
 
     def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
-        with TimeLogger(f"StandardizedObjective::Calculate {self.GetReponse().GetName()} value", None, "Finished"):
+        with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} value", None, "Finished"):
             response_value = self.CalculateValue(control_field)
             standardized_response_value = response_value * self.__scaling
 
@@ -80,12 +80,12 @@ class StandardizedObjective(ResponseRoutine):
 
     def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
 
-        with TimeLogger(f"StandardizedObjective::Calculate {self.GetReponse().GetName()} gradients", None, "Finished"):
+        with TimeLogger(f"StandardizedObjective::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
             if save_field:
                 # save the physical gradients for post processing in unbuffered data container.
                 for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
+                    variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
                     for physical_gradient_expression in physical_gradient.GetContainerExpressions():
                         if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                         # cloning is a cheap operation, it only moves underlying pointers
@@ -94,7 +94,7 @@ class StandardizedObjective(ResponseRoutine):
 
                 # save the filtered gradients for post processing in unbuffered data container.
                 for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
+                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.
@@ -113,9 +113,10 @@ class StandardizedObjective(ResponseRoutine):
 
     def GetInfo(self) -> dict:
         info = {
-            "name": self.GetReponse().GetName(),
+            "name": self.GetResponseName(),
             "type": self.__objective_type,
             "value": self.GetValue(),
+            "std_value": self.GetStandardizedValue(),
             "abs_change": self.GetAbsoluteChange(),
             "rel_change [%]": self.GetRelativeChange() * 100.0
         }

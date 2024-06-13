@@ -10,12 +10,17 @@
 //  Main author:     Jordi Cotela
 //
 
+// System includes
 #include <algorithm>
-#include "includes/parallel_environment.h"
 
+// External includes
+
+// Project includes
+#include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
+#include "mpi/utilities/data_communicator_factory.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)       \
@@ -109,8 +114,19 @@ std::vector<__VA_ARGS__> MPIDataCommunicator::MaxAll(const std::vector<__VA_ARGS
 void MPIDataCommunicator::MaxAll(                                                                           \
     const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
     AllReduceDetail(rLocalValues, rGlobalValues, MPI_MAX);                                                  \
-}                                                                                                           \
+}
+#endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(...)                      \
+std::pair<__VA_ARGS__, int> MPIDataCommunicator::MinLocAll(const __VA_ARGS__& rLocalValue) const {          \
+    std::pair<__VA_ARGS__, int> local_values({rLocalValue, Rank()});                                        \
+    return AllReduceDetailWithLocation(local_values, MPI_MINLOC);                                           \
+}                                                                                                           \
+std::pair<__VA_ARGS__, int> MPIDataCommunicator::MaxLocAll(const __VA_ARGS__& rLocalValue) const {          \
+    std::pair<__VA_ARGS__, int> local_values({rLocalValue, Rank()});                                        \
+    return AllReduceDetailWithLocation(local_values, MPI_MAXLOC);                                           \
+}
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
@@ -458,6 +474,32 @@ bool MPIDataCommunicator::IsNullOnThisRank() const
     return mComm == MPI_COMM_NULL;
 }
 
+const DataCommunicator& MPIDataCommunicator::GetSubDataCommunicator(
+    const std::vector<int>& rRanks,
+    const std::string& rNewCommunicatorName
+    ) const
+{
+    // Initial check
+    const int rank = Rank();
+    const int total_size = Size();
+    KRATOS_ERROR_IF_NOT(rRanks.size() <= static_cast<std::size_t>(total_size)) << "Inconsistency between the communicator total world size: " << total_size << " and the number of ranks required: " << rRanks.size() << std::endl;
+
+    // Retrieve data communicator
+    const DataCommunicator& r_data_communicator = ParallelEnvironment::HasDataCommunicator(rNewCommunicatorName) ? ParallelEnvironment::GetDataCommunicator(rNewCommunicatorName) : DataCommunicatorFactory::CreateFromRanksAndRegister(*this, rRanks, rNewCommunicatorName);
+    const auto it_find = std::find(rRanks.begin(), rRanks.end(), rank);
+    if (it_find != rRanks.end()) {
+        KRATOS_ERROR_IF_NOT(r_data_communicator.IsDefinedOnThisRank()) << "The rank " << rank << " does not participate in the existing data communicator " << rNewCommunicatorName  << " despite being in the provided rank list" << std::endl;
+        const std::size_t world_size = static_cast<std::size_t >(r_data_communicator.Size());
+        KRATOS_ERROR_IF_NOT(rRanks.size() == world_size) << "Inconsistency between the communicator world size: " << world_size << " and the number of ranks required: " << rRanks.size() << std::endl;
+        std::size_t number_of_active_ranks = 1;
+        number_of_active_ranks = r_data_communicator.SumAll(number_of_active_ranks);
+        KRATOS_ERROR_IF_NOT(number_of_active_ranks == rRanks.size()) << "Inconsistency between the number of active ranks: " << number_of_active_ranks << " and the number of ranks required: " << rRanks.size() << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT(r_data_communicator.IsNullOnThisRank()) << "The rank " << rank << " participates in the existing data communicator " << rNewCommunicatorName << " despite not being in the provided rank list" << std::endl;
+    }
+    return r_data_communicator;
+}
+
 // IO
 
 std::string MPIDataCommunicator::Info() const
@@ -497,6 +539,13 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 6>)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 9>)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Vector)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Matrix)
+
+// MinLoc and MaxLoc AllReduce operations
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(char)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(long unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(double)
 
 // Broadcast operations
 
@@ -586,7 +635,7 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
 {
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(Root)))
     << "In call to MPI_Reduce: " << Root << " is not a valid rank." << std::endl;
     const int local_size = mpi_send_msg.Size(rLocalValues);
@@ -597,7 +646,7 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(local_size != reduced_size,Root))
     << "Input error in call to MPI_Reduce for rank " << Root << ": "
     << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int ierr = MPI_Reduce(
         mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
@@ -649,7 +698,7 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
 {
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     const int local_size = mpi_send_msg.Size(rLocalValues);
     const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
@@ -658,7 +707,7 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(local_size != reduced_size))
     << "Input error in call to MPI_Allreduce for rank " << Rank() << ": "
     << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int ierr = MPI_Allreduce(
         mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
@@ -669,8 +718,11 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     mpi_recv_msg.Update(rReducedValues);
 }
 
-template<class TDataType> TDataType MPIDataCommunicator::AllReduceDetail(
-    const TDataType& rLocalValues, MPI_Op Operation) const
+template<class TDataType>
+TDataType MPIDataCommunicator::AllReduceDetail(
+    const TDataType& rLocalValues,
+    MPI_Op Operation
+    ) const
 {
     TDataType global_values(rLocalValues);
     AllReduceDetail(rLocalValues, global_values, Operation);
@@ -694,13 +746,31 @@ std::vector<TDataType> MPIDataCommunicator::AllReduceDetailVector(
     return reduced_values;
 }
 
+template<class TDataType>
+std::pair<TDataType, int> MPIDataCommunicator::AllReduceDetailWithLocation(
+    const std::pair<TDataType, int>& rLocalValues,
+    MPI_Op Operation
+    ) const
+{
+    struct {
+        std::conditional_t<std::is_same<TDataType,char>::value, int, TDataType> value;
+        int rank;
+    } local_reduce, global_reduce;
+    local_reduce.value = rLocalValues.first;
+    local_reduce.rank = rLocalValues.second;
+    MPI_Datatype data_type = MPIMessage<std::pair<TDataType, int>>().DataType();
+    MPI_Allreduce(&local_reduce, &global_reduce, 1, data_type, Operation, mComm);
+    std::pair<TDataType, int> global_values({static_cast<TDataType>(global_reduce.value), global_reduce.rank});
+    return global_values;
+}
+
 template<class TDataType> void MPIDataCommunicator::ScanDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
     MPI_Op Operation) const
 {
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     const int local_size = mpi_send_msg.Size(rLocalValues);
     const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
@@ -709,7 +779,7 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(local_size != reduced_size))
     << "Input error in call to MPI_Scan for rank " << Rank() << ": "
     << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int ierr = MPI_Scan(
         mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
@@ -879,13 +949,13 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const
 {
     MPIMessage<TDataType> mpi_message;
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Bcast: " << SourceRank << " is not a valid rank." << std::endl;
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(mpi_message.Size(rBuffer)))
     << "Input error in call to MPI_Bcast: "
     << "The buffer does not have the same size on all ranks." << std::endl;
-    #endif
+#endif
 
     const int ierr = MPI_Bcast(
         mpi_message.Buffer(rBuffer), mpi_message.Size(rBuffer),
@@ -903,7 +973,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     MPIMessage<TSendDataType> mpi_send_msg;
     MPIMessage<TRecvDataType> mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Scatter: " << SourceRank << " is not a valid rank." << std::endl;
     const int send_size = mpi_send_msg.Size(rSendValues);
@@ -915,7 +985,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     << "Input error in call to MPI_Scatter for rank " << SourceRank << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << recv_size * Size() << " values to send expected)." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int sends_per_rank = mpi_recv_msg.Size(rRecvValues);
     const int ierr = MPI_Scatter(
@@ -957,9 +1027,9 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
         const TDataType& rSendValues, const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
         TDataType& rRecvValues, const int SourceRank) const
 {
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     ValidateScattervInput(rSendValues, rSendCounts, rSendOffsets, rRecvValues, SourceRank);
-    #endif
+#endif
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
@@ -1010,7 +1080,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Gat
     MPIMessage<TSendDataType> mpi_send_msg;
     MPIMessage<TRecvDataType> mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
     << "In call to MPI_Gather: " << RecvRank << " is not a valid rank." << std::endl;
     const int send_size = mpi_send_msg.Size(rSendValues);
@@ -1022,7 +1092,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Gat
     << "Input error in call to MPI_Gather for rank " << RecvRank << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << send_size * Size() << " values to receive expected)." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Gather(
@@ -1060,9 +1130,9 @@ template<class TDataType> void MPIDataCommunicator::GathervDetail(
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
     const int RecvRank) const
 {
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     ValidateGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets, RecvRank);
-    #endif
+#endif
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
@@ -1116,7 +1186,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
 {
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     const int send_size = mpi_send_msg.Size(rSendValues);
     const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
@@ -1126,7 +1196,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     << "Input error in call to MPI_Allgather for rank " << Rank() << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << send_size * Size() << " values to receive expected)." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Allgather(
@@ -1156,9 +1226,9 @@ void MPIDataCommunicator::AllGathervDetail(
     const TDataType& rSendValues, TDataType& rRecvValues,
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
 {
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     ValidateAllGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets);
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 

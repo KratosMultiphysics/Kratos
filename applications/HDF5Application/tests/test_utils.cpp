@@ -314,60 +314,60 @@ void TestModelPartFactory::AddElementsAndConditionsSubModelPart()
 
 void CompareNodes(HDF5::NodesContainerType& rNodes1, HDF5::NodesContainerType& rNodes2)
 {
-    KRATOS_CHECK(rNodes1.size() == rNodes2.size());
-    KRATOS_CHECK(rNodes1.size() > 0);
+    KRATOS_EXPECT_TRUE(rNodes1.size() == rNodes2.size());
+    KRATOS_EXPECT_TRUE(rNodes1.size() > 0);
     for (const auto& r_node_1 : rNodes1)
     {
         HDF5::NodeType& r_node_2 = rNodes2[r_node_1.Id()];
         for (unsigned i = 0; i < 3; ++i)
-            KRATOS_CHECK(r_node_1.Coordinates()[i] == r_node_2.Coordinates()[i]);
+            KRATOS_EXPECT_TRUE(r_node_1.Coordinates()[i] == r_node_2.Coordinates()[i]);
     }
 }
 
 void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsContainerType& rElements2)
 {
-    KRATOS_CHECK(rElements1.size() == rElements2.size());
-    KRATOS_CHECK(rElements1.size() > 0);
+    KRATOS_EXPECT_TRUE(rElements1.size() == rElements2.size());
+    KRATOS_EXPECT_TRUE(rElements1.size() > 0);
     for (auto it = rElements1.begin(); it != rElements1.end(); ++it)
     {
         HDF5::ElementType& r_elem_1 = *it;
         HDF5::ElementType& r_elem_2 = rElements2[r_elem_1.Id()];
-        KRATOS_CHECK(GeometricalObject::IsSame(r_elem_1, r_elem_2));
+        KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(r_elem_1, r_elem_2));
         for (unsigned i = 0; i < r_elem_1.GetGeometry().size(); ++i)
         {
-            KRATOS_CHECK(r_elem_1.GetGeometry()[i].Id() == r_elem_2.GetGeometry()[i].Id());
-            KRATOS_CHECK(r_elem_1.GetProperties().Id() == r_elem_2.GetProperties().Id());
+            KRATOS_EXPECT_TRUE(r_elem_1.GetGeometry()[i].Id() == r_elem_2.GetGeometry()[i].Id());
+            KRATOS_EXPECT_TRUE(r_elem_1.GetProperties().Id() == r_elem_2.GetProperties().Id());
         }
     }
 }
 
 void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::ConditionsContainerType& rConditions2)
 {
-    KRATOS_CHECK(rConditions1.size() == rConditions2.size());
-    KRATOS_CHECK(rConditions1.size() > 0);
+    KRATOS_EXPECT_TRUE(rConditions1.size() == rConditions2.size());
+    KRATOS_EXPECT_TRUE(rConditions1.size() > 0);
     for (auto it = rConditions1.begin(); it != rConditions1.end(); ++it)
     {
         HDF5::ConditionType& r_cond_1 = *it;
         HDF5::ConditionType& r_cond_2 = rConditions2[r_cond_1.Id()];
-        KRATOS_CHECK(GeometricalObject::IsSame(r_cond_1, r_cond_2));
+        KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(r_cond_1, r_cond_2));
         for (unsigned i = 0; i < r_cond_1.GetGeometry().size(); ++i)
         {
-            KRATOS_CHECK(r_cond_1.GetGeometry()[i].Id() == r_cond_2.GetGeometry()[i].Id());
-            KRATOS_CHECK(r_cond_1.GetProperties().Id() == r_cond_2.GetProperties().Id());
+            KRATOS_EXPECT_TRUE(r_cond_1.GetGeometry()[i].Id() == r_cond_2.GetGeometry()[i].Id());
+            KRATOS_EXPECT_TRUE(r_cond_1.GetProperties().Id() == r_cond_2.GetProperties().Id());
         }
     }
 }
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
 {
-    KRATOS_CHECK(rModelPart1.IsSubModelPart() == rModelPart2.IsSubModelPart());
+    KRATOS_EXPECT_TRUE(rModelPart1.IsSubModelPart() == rModelPart2.IsSubModelPart());
     if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfNodes() > 0)
         CompareNodes(rModelPart1.Nodes(), rModelPart2.Nodes());
     if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfElements() > 0)
         CompareElements(rModelPart1.Elements(), rModelPart2.Elements());
     if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfConditions() > 0)
        CompareConditions(rModelPart1.Conditions(), rModelPart2.Conditions());
-    KRATOS_CHECK(rModelPart1.NumberOfSubModelParts() == rModelPart2.NumberOfSubModelParts());
+    KRATOS_EXPECT_TRUE(rModelPart1.NumberOfSubModelParts() == rModelPart2.NumberOfSubModelParts());
     for (ModelPart& sub_model_part_1 : rModelPart1.SubModelParts())
     {
         ModelPart& sub_model_part_2 = rModelPart2.GetSubModelPart(sub_model_part_1.Name());
@@ -378,7 +378,7 @@ void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
 void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
                                    HDF5::NodesContainerType& rNodes2)
 {
-    KRATOS_CHECK(rNodes1.size() == rNodes2.size());
+    KRATOS_EXPECT_TRUE(rNodes1.size() == rNodes2.size());
     for (auto& r_node1 : rNodes1)
     {
         auto& r_node2 = rNodes2[r_node1.Id()];
@@ -416,7 +416,7 @@ public:
                     DataValueContainer const& rData2,
                     Flags const&)
     {
-        KRATOS_CHECK(rData1.Has(rVariable) && rData2.Has(rVariable));
+        KRATOS_EXPECT_TRUE(rData1.Has(rVariable) && rData2.Has(rVariable));
         CompareValues(rData1[rVariable], rData2[rVariable]);
     }
 };
@@ -431,34 +431,34 @@ public:
                     DataValueContainer const&,
                     Flags const& rFlags2)
     {
-        KRATOS_CHECK(rFlags1.Is(rVariable) == rFlags2.Is(rVariable));
+        KRATOS_EXPECT_TRUE(rFlags1.Is(rVariable) == rFlags2.Is(rVariable));
     }
 };
 
 void CompareValues(int i1, int i2)
 {
-    KRATOS_CHECK(i1 == i2);
+    KRATOS_EXPECT_TRUE(i1 == i2);
 }
 
 void CompareValues(double d1, double d2)
 {
-    KRATOS_CHECK(d1 == d2);
+    KRATOS_EXPECT_TRUE(d1 == d2);
 }
 
 void CompareValues(HDF5::Vector<double> const& v1, HDF5::Vector<double> const& v2)
 {
-    KRATOS_CHECK(v1.size() == v2.size());
+    KRATOS_EXPECT_TRUE(v1.size() == v2.size());
     for (std::size_t i = 0; i < v1.size(); ++i)
-        KRATOS_CHECK(v1(i) == v2(i));
+        KRATOS_EXPECT_TRUE(v1(i) == v2(i));
 }
 
 void CompareValues(HDF5::Matrix<double> const& m1, HDF5::Matrix<double> const& m2)
 {
-    KRATOS_CHECK(m1.size1() == m2.size1());
-    KRATOS_CHECK(m1.size2() == m2.size2());
+    KRATOS_EXPECT_TRUE(m1.size1() == m2.size1());
+    KRATOS_EXPECT_TRUE(m1.size2() == m2.size2());
     for (std::size_t i = 0; i < m1.size1(); ++i)
         for (std::size_t j = 0; j < m1.size2(); ++j)
-            KRATOS_CHECK(m1(i,j) == m2(i,j));
+            KRATOS_EXPECT_TRUE(m1(i,j) == m2(i,j));
 }
 }
 

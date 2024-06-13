@@ -46,13 +46,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckModelPartHasRotationDoF, KratosContactStructuralM
     VariableUtils().AddDof(DISPLACEMENT_Z, r_model_part);
 
     // Check there is not rotation
-    KRATOS_CHECK_IS_FALSE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
+    KRATOS_EXPECT_FALSE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
 
     VariableUtils().AddDof(ROTATION_X, r_model_part);
     VariableUtils().AddDof(ROTATION_Y, r_model_part);
     VariableUtils().AddDof(ROTATION_Z, r_model_part);
 
     // Check there is not rotation
-    KRATOS_CHECK(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
+    KRATOS_EXPECT_TRUE(ContactUtilities::CheckModelPartHasRotationDoF(r_model_part));
 }
 }  // namespace Kratos::Testing.

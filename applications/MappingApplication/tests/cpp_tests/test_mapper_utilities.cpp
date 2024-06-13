@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMapp
 
     for (const auto& r_node : model_part/*.GetCommunicator().LocalMesh()*/.Nodes())
     {
-        KRATOS_CHECK_EQUAL(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
+        KRATOS_EXPECT_EQ(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
         idx += 1;
     }
 }
@@ -85,13 +85,13 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeLocalBoundingBox, KratosMapping
 
     // std::cout << MapperUtilities::BoundingBoxStringStream(bbox) << std::endl;
 
-    KRATOS_CHECK_EQUAL(bbox.size(), 6);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[0], 12.6);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[1], -9.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[2], 25.3);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[3], -17.13);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[4], 16.4);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
+    KRATOS_EXPECT_EQ(bbox.size(), 6);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[0], 12.6);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[1], -9.2);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[2], 25.3);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[3], -17.13);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[4], 16.4);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[5], -8.3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox, KratosMappingApplicationSerialTestSuite)
@@ -108,13 +108,13 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeGlobalBoundingBox, KratosMappin
 
     // std::cout << MapperUtilities::BoundingBoxStringStream(bbox) << std::endl;
 
-    KRATOS_CHECK_EQUAL(bbox.size(), 6);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[0], 12.6);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[1], -9.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[2], 25.3);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[3], -17.13);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[4], 16.4);
-    KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
+    KRATOS_EXPECT_EQ(bbox.size(), 6);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[0], 12.6);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[1], -9.2);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[2], 25.3);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[3], -17.13);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[4], 16.4);
+    KRATOS_EXPECT_DOUBLE_EQ(bbox[5], -8.3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMappingApplicationSerialTestSuite)
@@ -136,12 +136,12 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
                                               -1.5, -10.3, 20.6, 3.4, 3.77, -20.8,
                                               25.998, 6.4, 50.6, 15.2, 10.88, 4.12};
 
-    KRATOS_CHECK_EQUAL(bounding_boxes.size(), (6*comm_size)); // ensure the test is set up correctly
+    KRATOS_EXPECT_EQ(bounding_boxes.size(), (6*comm_size)); // ensure the test is set up correctly
 
     // xmax, xmin,  ymax, ymin,  zmax, zmin
     const std::vector<double> missized_bounding_boxes {10.5, -2.8, 3.89};
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::FillBufferBeforeLocalSearch(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::FillBufferBeforeLocalSearch(
         local_systems,
         missized_bounding_boxes,
         buffer_size_estimate,
@@ -170,16 +170,16 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
         send_sizes);
 
     // preforming checks on the buffer
-    KRATOS_CHECK_EQUAL(send_buffer.size(), comm_size); // equal to comm_size, should not have changed
-    KRATOS_CHECK_EQUAL(send_sizes.size(), comm_size); // equal to comm_size, should not have changed
+    KRATOS_EXPECT_EQ(send_buffer.size(), comm_size); // equal to comm_size, should not have changed
+    KRATOS_EXPECT_EQ(send_sizes.size(), comm_size); // equal to comm_size, should not have changed
 
-    KRATOS_CHECK_EQUAL(send_sizes[0], 8); // two objs with each 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_sizes[1], 8); // two objs with each 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_sizes[2], 4); // one obj with 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_sizes[0], 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_sizes[1], 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_sizes[2], 4); // one obj with 4 doubles are sent to this bbox
 
-    KRATOS_CHECK_EQUAL(send_buffer[0].size(), 8); // two objs with each 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_buffer[1].size(), 8); // two objs with each 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_buffer[2].size(), 4); // one obj with 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_buffer[0].size(), 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_buffer[1].size(), 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_buffer[2].size(), 4); // one obj with 4 doubles are sent to this bbox
 
     // set up expected send buffer
     std::vector<double> exp_send_buffer_rank_1 {0.0, -2.0, 3.5, 3.0,
@@ -195,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     // compare the send buffers
     for (IndexType i=0; i<exp_send_buffer.size(); ++i)
         for (IndexType j=0; j<exp_send_buffer[i].size(); ++j)
-            KRATOS_CHECK_DOUBLE_EQUAL(send_buffer[i][j], exp_send_buffer[i][j]);
+            KRATOS_EXPECT_DOUBLE_EQ(send_buffer[i][j], exp_send_buffer[i][j]);
 
     /////
     // now we "update" the Interface and then check the buffers again
@@ -221,16 +221,16 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
         send_sizes);
 
     // preforming checks on the buffer
-    KRATOS_CHECK_EQUAL(send_buffer.size(), comm_size); // equal to comm_size, should not have changed
-    KRATOS_CHECK_EQUAL(send_sizes.size(), comm_size); // equal to comm_size, should not have changed
+    KRATOS_EXPECT_EQ(send_buffer.size(), comm_size); // equal to comm_size, should not have changed
+    KRATOS_EXPECT_EQ(send_sizes.size(), comm_size); // equal to comm_size, should not have changed
 
-    KRATOS_CHECK_EQUAL(send_sizes[0], 4); // one obj with 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_sizes[1], 8); // two objs with each 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_sizes[2], 12); // three objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_sizes[0], 4); // one obj with 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_sizes[1], 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_sizes[2], 12); // three objs with each 4 doubles are sent to this bbox
 
-    KRATOS_CHECK_EQUAL(send_buffer[0].size(), 4); // one obj with 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_buffer[1].size(), 8); // two objs with each 4 doubles are sent to this bbox
-    KRATOS_CHECK_EQUAL(send_buffer[2].size(), 12); // three objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_buffer[0].size(), 4); // one obj with 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_buffer[1].size(), 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_EXPECT_EQ(send_buffer[2].size(), 12); // three objs with each 4 doubles are sent to this bbox
 
     // set up expected send buffer
     std::vector<double> exp_send_buffer_rank_1_2 {1.0, 10.0, -25.0, 3.0};
@@ -247,7 +247,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     // compare the send buffers
     for (IndexType i=0; i<exp_send_buffer_2.size(); ++i)
         for (IndexType j=0; j<exp_send_buffer_2[i].size(); ++j)
-            KRATOS_CHECK_DOUBLE_EQUAL(send_buffer[i][j], exp_send_buffer_2[i][j]);
+            KRATOS_EXPECT_DOUBLE_EQ(send_buffer[i][j], exp_send_buffer_2[i][j]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, KratosMappingApplicationSerialTestSuite)
@@ -287,7 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
     MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
 
     // throws bcs "interface_info_container" has the wrong size
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer,
         p_ref_interface_info,
         comm_rank,
@@ -296,14 +296,14 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
 
     interface_info_container.resize(comm_size);
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer_wrong,
         p_ref_interface_info,
         comm_rank,
         interface_info_container),
         "Error: Rank 16 received a wrong buffer-size from rank 3!");
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer_wrong_2,
         p_ref_interface_info,
         comm_rank,
@@ -317,28 +317,28 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
         interface_info_container);
 
     // Check the created InterfaceInfos
-    KRATOS_CHECK_EQUAL(interface_info_container[0].size(), 2);
-    KRATOS_CHECK_EQUAL(interface_info_container[1].size(), 3);
-    KRATOS_CHECK_EQUAL(interface_info_container[2].size(), 0);
-    KRATOS_CHECK_EQUAL(interface_info_container[3].size(), 1);
+    KRATOS_EXPECT_EQ(interface_info_container[0].size(), 2);
+    KRATOS_EXPECT_EQ(interface_info_container[1].size(), 3);
+    KRATOS_EXPECT_EQ(interface_info_container[2].size(), 0);
+    KRATOS_EXPECT_EQ(interface_info_container[3].size(), 1);
 
-    KRATOS_CHECK_EQUAL(interface_info_container[0][0]->GetLocalSystemIndex(), 0);
-    KRATOS_CHECK_EQUAL(interface_info_container[0][1]->GetLocalSystemIndex(), 15);
-    KRATOS_CHECK_EQUAL(interface_info_container[1][0]->GetLocalSystemIndex(), 0);
-    KRATOS_CHECK_EQUAL(interface_info_container[1][1]->GetLocalSystemIndex(), 2);
-    KRATOS_CHECK_EQUAL(interface_info_container[1][2]->GetLocalSystemIndex(), 44);
-    KRATOS_CHECK_EQUAL(interface_info_container[3][0]->GetLocalSystemIndex(), 3);
+    KRATOS_EXPECT_EQ(interface_info_container[0][0]->GetLocalSystemIndex(), 0);
+    KRATOS_EXPECT_EQ(interface_info_container[0][1]->GetLocalSystemIndex(), 15);
+    KRATOS_EXPECT_EQ(interface_info_container[1][0]->GetLocalSystemIndex(), 0);
+    KRATOS_EXPECT_EQ(interface_info_container[1][1]->GetLocalSystemIndex(), 2);
+    KRATOS_EXPECT_EQ(interface_info_container[1][2]->GetLocalSystemIndex(), 44);
+    KRATOS_EXPECT_EQ(interface_info_container[3][0]->GetLocalSystemIndex(), 3);
 
     const auto coords_to_check = interface_info_container[1][0]->Coordinates();
     Point coords_exp(-21.0, 73.5, 35.89);
 
     for (IndexType i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(coords_to_check[i], coords_exp[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(coords_to_check[i], coords_exp[i]);
 
     // Test if the "Create" function returns the correct object
     const auto& r_arg_1 = *p_ref_interface_info;
     const auto& r_arg_2 = *interface_info_container[0][0];
-    KRATOS_CHECK_EQUAL(typeid(r_arg_1), typeid(r_arg_2));
+    KRATOS_EXPECT_EQ(typeid(r_arg_1), typeid(r_arg_2));
 
     /////
     // now we "update" the Interface and then check again
@@ -364,17 +364,17 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
         interface_info_container);
 
     // Check the created InterfaceInfos
-    KRATOS_CHECK_EQUAL(interface_info_container[0].size(), 3);
-    KRATOS_CHECK_EQUAL(interface_info_container[1].size(), 2);
-    KRATOS_CHECK_EQUAL(interface_info_container[2].size(), 1);
-    KRATOS_CHECK_EQUAL(interface_info_container[3].size(), 0);
+    KRATOS_EXPECT_EQ(interface_info_container[0].size(), 3);
+    KRATOS_EXPECT_EQ(interface_info_container[1].size(), 2);
+    KRATOS_EXPECT_EQ(interface_info_container[2].size(), 1);
+    KRATOS_EXPECT_EQ(interface_info_container[3].size(), 0);
 
-    KRATOS_CHECK_EQUAL(interface_info_container[0][0]->GetLocalSystemIndex(), 0);
-    KRATOS_CHECK_EQUAL(interface_info_container[0][1]->GetLocalSystemIndex(), 15);
-    KRATOS_CHECK_EQUAL(interface_info_container[0][2]->GetLocalSystemIndex(), 18);
-    KRATOS_CHECK_EQUAL(interface_info_container[1][0]->GetLocalSystemIndex(), 2);
-    KRATOS_CHECK_EQUAL(interface_info_container[1][1]->GetLocalSystemIndex(), 44);
-    KRATOS_CHECK_EQUAL(interface_info_container[2][0]->GetLocalSystemIndex(), 0);
+    KRATOS_EXPECT_EQ(interface_info_container[0][0]->GetLocalSystemIndex(), 0);
+    KRATOS_EXPECT_EQ(interface_info_container[0][1]->GetLocalSystemIndex(), 15);
+    KRATOS_EXPECT_EQ(interface_info_container[0][2]->GetLocalSystemIndex(), 18);
+    KRATOS_EXPECT_EQ(interface_info_container[1][0]->GetLocalSystemIndex(), 2);
+    KRATOS_EXPECT_EQ(interface_info_container[1][1]->GetLocalSystemIndex(), 44);
+    KRATOS_EXPECT_EQ(interface_info_container[2][0]->GetLocalSystemIndex(), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosMappingApplicationSerialTestSuite)
@@ -432,10 +432,10 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     // Now some the checks are performed to make sure the objects are correctly initialized
     std::vector<int> found_id(1);
     p_nearest_neighbor_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_1);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found_1);
     double neighbor_dist;
     p_nearest_neighbor_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_1_1);
 
     const double dist_2_2 = coords_2.Distance(*interface_node_2);
 
@@ -445,9 +445,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_2);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found_2);
     p_nearest_neighbor_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_2_2);
 
     const double dist_3_3 = coords_3.Distance(*interface_node_3);
 
@@ -457,9 +457,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_3);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found_3);
     p_nearest_neighbor_info_3->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_3_3);
 
     // Now finally we can construct the container
     MapperInterfaceInfoPointerVectorType interface_info_container(2);
@@ -496,8 +496,8 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     serializer_1.load("obj", serializer_helper_new_1);
 
     // Checking for the sizes of the container
-    KRATOS_CHECK_EQUAL(interface_info_container_new[0].size(), 1);
-    KRATOS_CHECK_EQUAL(interface_info_container_new[1].size(), 2);
+    KRATOS_EXPECT_EQ(interface_info_container_new[0].size(), 1);
+    KRATOS_EXPECT_EQ(interface_info_container_new[1].size(), 2);
 
     // Checking the objects inside the container
     const auto& r_info_1 = interface_info_container_new[1][0];
@@ -505,23 +505,23 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const auto& r_info_3 = interface_info_container_new[0][0];
 
     r_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_1);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found_1);
     r_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_2);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found_2);
     r_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_3);
+    KRATOS_EXPECT_EQ(found_id[0], expected_id_found_3);
 
     r_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_1_1);
     r_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_2_2);
     r_info_3->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
+    KRATOS_EXPECT_DOUBLE_EQ(neighbor_dist, dist_3_3);
 
     // Test if the correct object type was created
     const auto& r_arg_1 = *r_info_1;
     const auto& r_arg_2 = *p_ref_nearest_neighbor_info;
-    KRATOS_CHECK_EQUAL(typeid(r_arg_1), typeid(r_arg_2));
+    KRATOS_EXPECT_EQ(typeid(r_arg_1), typeid(r_arg_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, KratosMappingApplicationSerialTestSuite)
@@ -530,7 +530,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, Kra
     ModelPart& model_part = current_model.CreateModelPart("Generated");
     CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
-    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+    KRATOS_EXPECT_GE(model_part.NumberOfNodes(), 0);
 
     std::vector<Kratos::unique_ptr<MapperLocalSystem>> mapper_local_systems;
 
@@ -539,7 +539,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, Kra
         model_part.GetCommunicator(),
         mapper_local_systems);
 
-    KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), mapper_local_systems.size());
+    KRATOS_EXPECT_EQ(model_part.NumberOfNodes(), mapper_local_systems.size());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_EraseNodalVariable, KratosMappingApplicationSerialTestSuite)
@@ -548,18 +548,18 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_EraseNodalVariable, KratosMappingAppli
     ModelPart& model_part = current_model.CreateModelPart("Generated");
     CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
-    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+    KRATOS_EXPECT_GE(model_part.NumberOfNodes(), 0);
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.Has(DISPLACEMENT_X));
+        KRATOS_EXPECT_FALSE(r_node.Has(DISPLACEMENT_X));
         r_node[DISPLACEMENT_X] = 15.3;
-        KRATOS_CHECK(r_node.Has(DISPLACEMENT_X));
+        KRATOS_EXPECT_TRUE(r_node.Has(DISPLACEMENT_X));
     }
 
     MapperUtilities::EraseNodalVariable(model_part, DISPLACEMENT_X);
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.Has(DISPLACEMENT_X));
+        KRATOS_EXPECT_FALSE(r_node.Has(DISPLACEMENT_X));
     }
 }
 
@@ -569,19 +569,19 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SaveCurrentConfiguration, KratosMappin
     ModelPart& model_part = current_model.CreateModelPart("Generated");
     CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
-    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+    KRATOS_EXPECT_GE(model_part.NumberOfNodes(), 0);
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_EXPECT_FALSE(r_node.Has(CURRENT_COORDINATES));
     }
 
     MapperUtilities::SaveCurrentConfiguration(model_part);
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK(r_node.Has(CURRENT_COORDINATES));
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), r_node[CURRENT_COORDINATES][0]);
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), r_node[CURRENT_COORDINATES][1]);
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), r_node[CURRENT_COORDINATES][2]);
+        KRATOS_EXPECT_TRUE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.X(), r_node[CURRENT_COORDINATES][0]);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.Y(), r_node[CURRENT_COORDINATES][1]);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.Z(), r_node[CURRENT_COORDINATES][2]);
     }
 }
 
@@ -591,12 +591,12 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_RestoreCurrentConfiguration, KratosMap
     ModelPart& model_part = current_model.CreateModelPart("Generated");
     CppTestsUtilities::Create2DGeometry(model_part, "Element2D3N", false);
 
-    KRATOS_CHECK_GREATER_EQUAL(model_part.NumberOfNodes(), 0);
+    KRATOS_EXPECT_GE(model_part.NumberOfNodes(), 0);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::RestoreCurrentConfiguration(model_part), "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MapperUtilities::RestoreCurrentConfiguration(model_part), "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!");
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_EXPECT_FALSE(r_node.Has(CURRENT_COORDINATES));
         r_node.X() += 0.1;
         r_node.Y() -= 0.125;
         r_node.Z() += 0.33;
@@ -608,19 +608,19 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_RestoreCurrentConfiguration, KratosMap
     VariableUtils().UpdateCurrentToInitialConfiguration(model_part.Nodes());
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK(r_node.Has(CURRENT_COORDINATES));
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), r_node.X0());
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), r_node.Y0());
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), r_node.Z0());
+        KRATOS_EXPECT_TRUE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.X(), r_node.X0());
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.Y(), r_node.Y0());
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.Z(), r_node.Z0());
     }
 
     MapperUtilities::RestoreCurrentConfiguration(model_part);
 
     for (auto& r_node : model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.Has(CURRENT_COORDINATES));
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.X(), (r_node.X0()+0.1));
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Y(), (r_node.Y0()-0.125));
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.Z(), (r_node.Z0()+0.33));
+        KRATOS_EXPECT_FALSE(r_node.Has(CURRENT_COORDINATES));
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.X(), (r_node.X0()+0.1));
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.Y(), (r_node.Y0()-0.125));
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.Z(), (r_node.Z0()+0.33));
     }
 }
 
@@ -631,12 +631,12 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointsAreCollinear, KratosMappingAppli
     Point p3(2,0,0);
     Point p4(2,1,0);
 
-    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p1,p2,p3));
-    KRATOS_CHECK(MapperUtilities::PointsAreCollinear(p2,p3,p1));
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p2,p4));
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p1,p3,p4));
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
-    KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
+    KRATOS_EXPECT_TRUE(MapperUtilities::PointsAreCollinear(p1,p2,p3));
+    KRATOS_EXPECT_TRUE(MapperUtilities::PointsAreCollinear(p2,p3,p1));
+    KRATOS_EXPECT_FALSE(MapperUtilities::PointsAreCollinear(p1,p2,p4));
+    KRATOS_EXPECT_FALSE(MapperUtilities::PointsAreCollinear(p1,p3,p4));
+    KRATOS_EXPECT_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
+    KRATOS_EXPECT_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
 }
 
 }  // namespace Kratos::Testing

@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "testing/testing.h"
 
 // Application includes
@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Int, KratosStatisticsFastSuite)
 
     const int test_value = 10;
     const int return_value = MethodUtilities::RaiseToPower(test_value, 2);
-    KRATOS_CHECK_EQUAL(std::pow(test_value, 2), return_value);
+    KRATOS_EXPECT_EQ(std::pow(test_value, 2), return_value);
 
     KRATOS_CATCH("");
 }
@@ -43,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Double, KratosStatisticsFastSuite)
 
     const double test_value = 10.2;
     const double return_value = MethodUtilities::RaiseToPower(test_value, 2);
-    KRATOS_CHECK_NEAR(std::pow(test_value, 2), return_value, 1e-12);
+    KRATOS_EXPECT_NEAR(std::pow(test_value, 2), return_value, 1e-12);
 
     KRATOS_CATCH("");
 }
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Array, KratosStatisticsFastSuite)
     analytical_value[1] = std::pow(test_value[1], 2);
     analytical_value[2] = std::pow(test_value[2], 2);
 
-    KRATOS_CHECK_VECTOR_NEAR(analytical_value, return_value, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(analytical_value, return_value, 1e-12);
 
     KRATOS_CATCH("");
 }
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Vector, KratosStatisticsFastSuite)
     analytical_value[4] = std::pow(test_value[4], 2);
     analytical_value[5] = std::pow(test_value[5], 2);
 
-    KRATOS_CHECK_VECTOR_NEAR(analytical_value, return_value, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(analytical_value, return_value, 1e-12);
 
     KRATOS_CATCH("");
 }
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseToPower_Matrix, KratosStatisticsFastSuite)
     analytical_value(1, 0) = std::pow(test_value(1, 0), 2);
     analytical_value(1, 1) = std::pow(test_value(1, 1), 2);
 
-    KRATOS_CHECK_MATRIX_NEAR(analytical_value, return_value, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(analytical_value, return_value, 1e-12);
 
     KRATOS_CATCH("");
 }

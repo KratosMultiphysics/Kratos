@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
     // Expected Values at Nodes
     array_1d<double, 18> expected_values {3, 2 ,0, 6, 4, 0, 6, 4 ,0, 3, 2 ,0, 3, 2 ,0, 3, 2 ,0};
 
-    KRATOS_CHECK_VECTOR_NEAR(nodal_force_values, expected_values, 1.0e-12)
+    KRATOS_EXPECT_VECTOR_NEAR(nodal_force_values, expected_values, 1.0e-12)
 }
 
 } // namespace Testing
