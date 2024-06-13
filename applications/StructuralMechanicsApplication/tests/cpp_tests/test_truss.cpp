@@ -27,10 +27,10 @@ using namespace Kratos;
 class StubBilinearLaw : public ConstitutiveLaw
 {
 public:
-    // Only implement the interface that is needed by the test
-  StubBilinearLaw(double Strain, double TangentModulus1, double TangentModulus2) :
- mStrain{Strain}, mTangentModuli{TangentModulus1, TangentModulus2}
-  {}
+    // Only implement the interface that is needed by the tests
+    StubBilinearLaw(double Strain, double TangentModulus1, double TangentModulus2) :
+        mStrain{Strain}, mTangentModuli{TangentModulus1, TangentModulus2}
+    {}
 
     ConstitutiveLaw::Pointer Clone() const override
     {
@@ -267,9 +267,8 @@ namespace Testing
         constexpr auto elongation = 0.01;
         constexpr auto tangent_modulus_1 = 2.0e+03;
         constexpr auto tangent_modulus_2 = 1.0e+03;
-        auto p_stub_law = CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2);
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_stub_law);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2));
 
         std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
         auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
@@ -295,9 +294,8 @@ namespace Testing
         constexpr auto elongation = 0.01;
         constexpr auto tangent_modulus_1 = 2.0e+03;
         constexpr auto tangent_modulus_2 = 1.0e+03;
-        auto p_stub_law = CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2);
         auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_stub_law);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, CreateStubBilinearLaw(elongation, length, tangent_modulus_1, tangent_modulus_2));
 
         std::vector<ModelPart::IndexType> element_nodes {p_bottom_node->Id(), p_top_node->Id()};
         auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
