@@ -53,6 +53,14 @@ private:
     array_1d<double, 2> mTangentModuli{2.0, 1.0};
 };
 
+ModelPart& CreateTestModelPart(Model& rModel)
+{
+  auto&r_result = rModel.CreateModelPart("ModelPart", 1);
+  r_result.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+  r_result.AddNodalSolutionStepVariable(DISPLACEMENT);
+  return r_result;
+}
+
 }
 
 
@@ -231,11 +239,8 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(TangentModulusOfTrussElement3D2NUsesGreenLagrangeStrain, KratosStructuralMechanicsFastSuite)
     {
-        // Set up the model part
         Model current_model;
-        auto& r_model_part = current_model.CreateModelPart("ModelPart",1);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        auto& r_model_part = CreateTestModelPart(current_model);
 
         // Create two nodes and a truss element
         constexpr auto length = 2.0;
@@ -266,37 +271,34 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(TangentModulusOfTrussElementLinear3D2NUsesLinearStrain, KratosStructuralMechanicsFastSuite)
     {
-      // Set up the model part
-      Model current_model;
-      auto& r_model_part = current_model.CreateModelPart("ModelPart",1);
-      r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-      r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        Model current_model;
+        auto& r_model_part = CreateTestModelPart(current_model);
 
-      // Create two nodes and a truss element
-      constexpr auto length = 2.0;
-      auto p_bottom_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-      auto p_top_node = r_model_part.CreateNewNode(2, 0.0, 0.0, length);
-      AddDisplacementDofsElement(r_model_part);
+        // Create two nodes and a truss element
+        constexpr auto length = 2.0;
+        auto p_bottom_node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        auto p_top_node = r_model_part.CreateNewNode(2, 0.0, 0.0, length);
+        AddDisplacementDofsElement(r_model_part);
 
-      auto p_elem_prop = r_model_part.CreateNewProperties(0);
-      constexpr auto elongation = 0.01;
-      constexpr auto linear_strain = elongation / length;
-      constexpr auto tangent_modulus_1 = 2.0e+03;
-      constexpr auto tangent_modulus_2 = 1.0e+03;
-      auto p_test_law = std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
-      p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_test_law);
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        constexpr auto elongation = 0.01;
+        constexpr auto linear_strain = elongation / length;
+        constexpr auto tangent_modulus_1 = 2.0e+03;
+        constexpr auto tangent_modulus_2 = 1.0e+03;
+        auto p_test_law = std::make_shared<StubBilinearLaw>(1.0001 * linear_strain, tangent_modulus_1, tangent_modulus_2);
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_test_law);
 
-      std::vector<ModelPart::IndexType> element_nodes {1,2};
-      auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
-      p_element->Initialize(r_model_part.GetProcessInfo());
+        std::vector<ModelPart::IndexType> element_nodes {1,2};
+        auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
+        p_element->Initialize(r_model_part.GetProcessInfo());
 
-      // Set the displacements for testing
-      p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, 0.0};
-      p_top_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, elongation};
+        // Set the displacements for testing
+        p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, 0.0};
+        p_top_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, elongation};
 
-      auto p_truss_element = dynamic_cast<TrussElementLinear3D2N*>(p_element.get());
-      KRATOS_EXPECT_NE(p_truss_element, nullptr);
-      KRATOS_EXPECT_NEAR(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()), 1.0e-10);
+        auto p_truss_element = dynamic_cast<TrussElementLinear3D2N*>(p_element.get());
+        KRATOS_EXPECT_NE(p_truss_element, nullptr);
+        KRATOS_EXPECT_NEAR(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()), 1.0e-10);
     }
 
 }
