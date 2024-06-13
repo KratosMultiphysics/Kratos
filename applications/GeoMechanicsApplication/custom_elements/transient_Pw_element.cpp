@@ -276,7 +276,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -442,14 +442,14 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
 
     RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
-    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
-        GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NContainer, Variables.PressureVector);
+    const auto relative_permeability_values = this->CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
     std::vector<double> biot_coefficients(NumGPoints, Prop[BIOT_COEFFICIENT]);
-    const auto          fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-        Variables.NContainer, Variables.PressureVector);
-    const auto degrees_of_saturation     = this->CalculateDegreesOfSaturation(fluid_pressures);
+    const auto          degrees_of_saturation = this->CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = this->CalculateDerivativesOfSaturation(fluid_pressures);
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, Prop);
@@ -464,8 +464,8 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
         GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
             Variables.BodyAcceleration, Variables.NContainer, Variables.VolumeAcceleration, GPoint);
 
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
         Variables.RelativePermeability = relative_permeability_values[GPoint];
+        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
 
         Variables.BiotCoefficient    = biot_coefficients[GPoint];
         Variables.BiotModulusInverse = biot_moduli_inverse[GPoint];
@@ -548,17 +548,16 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       r
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                               ElementVariables& rVariables)
+                                                                               const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    rVariables.PPMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    // Distribute compressibility block matrix into the elemental matrix
-    rLeftHandSideMatrix += (rVariables.PPMatrix * rVariables.DtPressureCoefficient);
+    rLeftHandSideMatrix += compressibility_matrix * rVariables.DtPressureCoefficient;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -567,58 +566,49 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       r
                                                              ElementVariables& rVariables,
                                                              unsigned int      GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                          ElementVariables& rVariables)
+                                                                          const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    this->CalculatePermeabilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
+    rRightHandSideVector += this->CalculatePermeabilityFlow(rVariables);
 
-    // Distribute permeability block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                       ElementVariables& rVariables)
+                                                                       const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    this->CalculateFluidBodyFlow(rVariables.PDimMatrix, rVariables.PVector, rVariables);
+    rRightHandSideVector += this->CalculateFluidBodyFlow(rVariables);
 
-    // Distribute fluid body flow block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                             ElementVariables& rVariables)
+                                                                             const ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    this->CalculateCompressibilityFlow(rVariables.PPMatrix, rVariables.PVector, rVariables);
+    rRightHandSideVector += this->CalculateCompressibilityFlow(rVariables);
 
-    // Distribute compressibility block vector into elemental vector
-    rRightHandSideVector += rVariables.PVector;
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -639,7 +629,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& 
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
 }

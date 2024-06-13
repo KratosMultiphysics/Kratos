@@ -114,6 +114,8 @@ public:
                                       const std::vector<Matrix>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
+    using Element::SetValuesOnIntegrationPoints;
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                       std::vector<int>&    rValues,
@@ -138,6 +140,8 @@ public:
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    using Element::CalculateOnIntegrationPoints;
 
     // Turn back information as a string.
     std::string Info() const override
@@ -250,31 +254,33 @@ protected:
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
+    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                              const ElementVariables& rVariables) const;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType&       rRightHandSideVector,
-                                       ElementVariables& rVariables,
-                                       unsigned int      GPoint);
+    void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
+                                       const ElementVariables& rVariables,
+                                       unsigned int            GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) const;
 
     [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
+    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
@@ -301,10 +307,6 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    void CalculateRetentionResponse(ElementVariables&         rVariables,
-                                    RetentionLaw::Parameters& rRetentionParameters,
-                                    unsigned int              GPoint);
-
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
     const StressStatePolicy& GetStressStatePolicy() const;
@@ -313,6 +315,9 @@ protected:
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
+    [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
+
+    [[nodiscard]] SizeType GetNumberOfDOF() const;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
