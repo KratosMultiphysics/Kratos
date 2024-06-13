@@ -1040,7 +1040,7 @@ void TrussElement3D2N::CalculateLumpedMassVector(
 }
 
 
-double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
+double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
     double tangent_modulus(0.00);

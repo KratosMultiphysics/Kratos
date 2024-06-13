@@ -246,7 +246,7 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo);
+        double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) const;
 
         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
