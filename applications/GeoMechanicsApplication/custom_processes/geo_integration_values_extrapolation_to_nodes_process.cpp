@@ -174,7 +174,6 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
             const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
             auto integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
             const SizeType integration_points_number = integration_points.size();
-            const SizeType number_of_nodes           = r_this_geometry.size();
             Matrix         extrapolation_matrix;
             // check if the element type hash is in the extrapolation matrix map
 
@@ -187,78 +186,21 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
                 mExtrapolationMatrixMap[typeid(rElem).hash_code()] = extrapolation_matrix;
             }
 
-            // We add the doubles values
             for (const auto p_var : mDoubleVariable) {
-                std::vector<double> aux_result(integration_points_number);
-                rElem.CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    double aux_sol = 0.;
-                    for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                        aux_sol += extrapolation_matrix(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                    }
-                    aux_sol /= r_this_geometry[i_node].GetValue(mrAverageVariable);
-                    auto& aux_value = mExtrapolateNonHistorical
-                                          ? r_this_geometry[i_node].GetValue(*p_var)
-                                          : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                    AtomicAdd(aux_value, aux_sol);
-                }
+                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
+                                                   extrapolation_matrix, integration_points_number);
             }
-
-            // We add the arrays values
             for (const auto p_var : mArrayVariable) {
-                std::vector<array_1d<double, 3>> aux_result(integration_points_number);
-                rElem.CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        double nodal_area = r_this_geometry[i_node].GetValue(mrAverageVariable);
-                        const array_1d<double, 3>& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
-                                                             aux_result[i_gauss_point] / nodal_area;
-                        auto& aux_value = mExtrapolateNonHistorical
-                                              ? r_this_geometry[i_node].GetValue(*p_var)
-                                              : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        AtomicAdd(aux_value, aux_sol);
-                    }
-                }
+                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
+                                                   extrapolation_matrix, integration_points_number);
             }
-
-            // We add the vectors values
             for (const auto p_var : mVectorVariable) {
-                std::vector<Vector> aux_result(integration_points_number);
-                rElem.CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        double nodal_area   = r_this_geometry[i_node].GetValue(mrAverageVariable);
-                        auto&  aux_value    = mExtrapolateNonHistorical
-                                                  ? r_this_geometry[i_node].GetValue(*p_var)
-                                                  : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        const auto& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
-                                              aux_result[i_gauss_point] / nodal_area;
-                        for (IndexType i_comp = 0; i_comp < aux_sol.size(); ++i_comp) {
-                            AtomicAdd(aux_value[i_comp], aux_sol[i_comp]);
-                        }
-                    }
-                }
+                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
+                                                   extrapolation_matrix, integration_points_number);
             }
-
-            // We add the matrix values
             for (const auto p_var : mMatrixVariable) {
-                std::vector<Matrix> aux_result(integration_points_number);
-                rElem.CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                        double  nodal_area    = r_this_geometry[i_node].GetValue(mrAverageVariable);
-                        Matrix& aux_value     = mExtrapolateNonHistorical
-                                                    ? r_this_geometry[i_node].GetValue(*p_var)
-                                                    : r_this_geometry[i_node].FastGetSolutionStepValue(*p_var);
-                        const Matrix& aux_sol = extrapolation_matrix(i_node, i_gauss_point) *
-                                                aux_result[i_gauss_point] / nodal_area;
-                        for (IndexType i_comp = 0; i_comp < aux_sol.size1(); ++i_comp) {
-                            for (IndexType j_comp = 0; j_comp < aux_sol.size2(); ++j_comp) {
-                                AtomicAdd(aux_value(i_comp, j_comp), aux_sol(i_comp, j_comp));
-                            }
-                        }
-                    }
-                }
+                AddIntegrationContributionsToNodes(rElem, *p_var, r_process_info,
+                                                   extrapolation_matrix, integration_points_number);
             }
         }
     });

@@ -109,6 +109,29 @@ private:
         return variable_is_of_correct_type;
     }
 
+    template <class T>
+    void AddIntegrationContributionsToNodes(Element&           rElem,
+                                            const Variable<T>& rVariable,
+                                            const ProcessInfo& rProcessInfo,
+                                            const Matrix&      extrapolation_matrix,
+                                            const SizeType     integration_points_number)
+    {
+        auto&          r_this_geometry = rElem.GetGeometry();
+        std::vector<T> aux_result(integration_points_number);
+        rElem.CalculateOnIntegrationPoints(rVariable, aux_result, rProcessInfo);
+        for (IndexType i_node = 0; i_node < r_this_geometry.PointsNumber(); ++i_node) {
+            T source = extrapolation_matrix(i_node, 0) * aux_result[0];
+            for (IndexType i_gauss_point = 1; i_gauss_point < aux_result.size(); ++i_gauss_point) {
+                source += extrapolation_matrix(i_node, i_gauss_point) * aux_result[i_gauss_point];
+            }
+            source /= r_this_geometry[i_node].GetValue(mrAverageVariable);
+            T& destination = mExtrapolateNonHistorical
+                                 ? r_this_geometry[i_node].GetValue(rVariable)
+                                 : r_this_geometry[i_node].FastGetSolutionStepValue(rVariable);
+            AtomicAdd(destination, source);
+        }
+    }
+
     void FillAverageVariableForElements() const;
 }; // Class IntegrationValuesExtrapolationToNodesProcess
 
