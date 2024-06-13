@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
+#pragma once
 
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_retention/retention_law.h"
@@ -221,15 +220,15 @@ protected:
 
     // Member Variables
 
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+
+    bool mIsInitialised = false;
 
     GeometryType::Pointer mpPressureGeometry;
-    std::vector<Vector>   mStressVector;
-    std::vector<Vector>   mStateVariablesFinalized;
-    bool                  mIsInitialised = false;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
     virtual void CalculateAll(MatrixType&        rLeftHandSideMatrix,
@@ -353,5 +352,3 @@ private:
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_SMALL_STRAIN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED  defined
