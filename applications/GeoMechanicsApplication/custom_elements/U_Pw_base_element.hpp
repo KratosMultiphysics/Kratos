@@ -32,7 +32,6 @@
 namespace Kratos
 {
 
-template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwBaseElement : public Element
 {
 public:
@@ -40,7 +39,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwBaseElement);
 
-    explicit UPwBaseElement(IndexType NewId = 0) : Element(NewId) {}
+    using Element::Element;
 
     /// Constructor using an array of nodes
     UPwBaseElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -174,7 +173,7 @@ protected:
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const;
 
-    virtual unsigned int GetNumberOfDOF() const;
+    virtual std::size_t GetNumberOfDOF() const;
 
     StressStatePolicy& GetStressStatePolicy() const;
 
