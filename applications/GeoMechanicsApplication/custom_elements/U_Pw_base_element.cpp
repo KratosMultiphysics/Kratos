@@ -435,7 +435,6 @@ void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
 std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
