@@ -8,7 +8,7 @@ summary: A tree is a widely used abstract data type that represents a hierarchic
 
 # Tree
 
-![A generic, and so non-binary, unsorted, and with duplicated labels; arbitrary diagram of a tree](images/tree.png)
+![A generic, and so non-binary, unsorted, and with duplicated labels; arbitrary diagram of a tree](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Search/tree.png)
 
 ## Description
 

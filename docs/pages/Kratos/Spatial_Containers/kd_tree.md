@@ -8,7 +8,7 @@ summary: A k-d tree (short for k-dimensional tree) is a space-partitioning data 
 
 # KDTree
 
-![A 3-d tree](images/3dtree.png)
+![A 3-d tree](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Search/3dtree.png)
 
 ## Description
 

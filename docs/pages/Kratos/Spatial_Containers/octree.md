@@ -8,7 +8,7 @@ summary: A tree where each node has up to eight children.
 
 # OcTree
 
-![Schematic drawing of an octree](images/octree.png)
+![Schematic drawing of an octree](https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Search/octree.png)
 
 ## Description
 
