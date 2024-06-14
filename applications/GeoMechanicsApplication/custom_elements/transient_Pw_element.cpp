@@ -629,7 +629,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateKinematics(ElementVariables& 
 
 //----------------------------------------------------------------------------------------
 template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t TransientPwElement<TDim, TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
 }
