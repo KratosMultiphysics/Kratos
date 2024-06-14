@@ -13,6 +13,8 @@
 //                   Richard Faasse
 
 #include "custom_processes/geo_integration_values_extrapolation_to_nodes_process.h"
+#include "containers/model.h"
+#include "custom_utilities/nodal_extrapolator.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -27,7 +29,8 @@ GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolati
 GeoIntegrationValuesExtrapolationToNodesProcess::GeoIntegrationValuesExtrapolationToNodesProcess(
     ModelPart& rMainModelPart, Parameters rParameters)
     : mrModelPart(rMainModelPart),
-      mrAverageVariable(KratosComponents<Variable<double>>::Get(rParameters["average_variable"].GetString()))
+      mrAverageVariable(KratosComponents<Variable<double>>::Get(rParameters["average_variable"].GetString())),
+      mpExtrapolator(std::make_unique<NodalExtrapolator>())
 {
     const Parameters default_parameters = GetDefaultParameters();
     rParameters.ValidateAndAssignDefaults(default_parameters);

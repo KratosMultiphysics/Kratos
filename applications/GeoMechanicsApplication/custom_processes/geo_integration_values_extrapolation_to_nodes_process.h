@@ -12,22 +12,23 @@
 
 #pragma once
 
-// System includes
-#include <unordered_map>
-
-// External includes
-
-// Project includes
-#include "containers/model.h"
-#include "custom_utilities/nodal_extrapolator.h"
+#include "geometries/geometry.h"
+#include "includes/element.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
+#include "includes/node.h"
 #include "processes/process.h"
+
+#include <unordered_map>
 
 namespace Kratos
 {
 
+class Model;
+class ModelPart;
 class NodalExtrapolator;
+
+class ProcessInfo;
 
 /**
  * @class IntegrationValuesExtrapolationToNodesProcess
@@ -72,7 +73,7 @@ private:
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable;
     std::unordered_map<SizeType, Matrix>              mExtrapolationMatrixMap = {};
-    std::unique_ptr<NodalExtrapolator> mpExtrapolator = std::make_unique<NodalExtrapolator>();
+    std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizesOfVectorVariables;
     std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizesOfMatrixVariables;
 
