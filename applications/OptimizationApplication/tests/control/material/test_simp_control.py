@@ -23,6 +23,10 @@ class TestSimpControl(kratos_unittest.TestCase):
             "output_all_fields": true,
             "list_of_materials": [
                 {
+                    "density": 0.0,
+                    "young_modulus": 0.0
+                },
+                {
                     "density": 7850.0,
                     "young_modulus": 206900000000.0
                 }
@@ -134,6 +138,10 @@ class TestSimpControl(kratos_unittest.TestCase):
         parameters = Kratos.Parameters("""{
             "controlled_model_part_names": ["shell"],
             "list_of_materials": [
+                {
+                    "density": 0.0,
+                    "young_modulus": 0.0
+                },
                 {
                     "density": 7850.0,
                     "young_modulus": 206900000000.0
