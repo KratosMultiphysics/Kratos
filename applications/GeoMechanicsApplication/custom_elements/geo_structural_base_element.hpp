@@ -118,7 +118,6 @@ protected:
         array_1d<double, TNumNodes * TDim> DisplacementVector;
         array_1d<double, TNumNodes * TDim> VelocityVector;
         array_1d<double, TNumNodes * TDim> NodalVolumeAcceleration;
-        array_1d<double, TNumNodes * TDim> UVector;
 
         Vector DofValuesVector;
 

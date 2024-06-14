@@ -189,6 +189,12 @@ private:
     /// Pointer to the distance variable.
     const Variable<double>* mpDistanceVariable = &DISTANCE;
 
+    /// Pointer to the skin saved distance variable.
+    const Variable<double>* mpSkinDistanceVariable = &DISTANCE;
+
+    /// The flag to check if the distance is saved in the skin
+    Flags mIdVisitedFlag = VISITED;
+
     /// This flag is used in order to check if the values are historical
     bool mHistoricalValue = true;
 

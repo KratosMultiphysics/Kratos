@@ -122,19 +122,19 @@ class AlgorithmGradientProjection(Algorithm):
                     ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(constr_grad[i], constr_grad[j])
                     ntn[j, i] = ntn[i, j]
 
-                # get the inverse of ntn
-                ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
+            # get the inverse of ntn
+            ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
 
-                # create the identity matrix
-                identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
-                for i in range(number_of_active_constraints):
-                    identity_matrix[i, i] = 1.0
+            # create the identity matrix
+            identity_matrix = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints, 0.0)
+            for i in range(number_of_active_constraints):
+                identity_matrix[i, i] = 1.0
 
-                # solve for inverse of ntn
-                self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
+            # solve for inverse of ntn
+            self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
-                search_direction = - (obj_grad - CollectiveListVectorProduct(constr_grad, ntn_inverse * CollectiveListCollectiveProduct(constr_grad, obj_grad)))
-                correction = - CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
+            search_direction = - (obj_grad - CollectiveListVectorProduct(constr_grad, ntn_inverse * CollectiveListCollectiveProduct(constr_grad, obj_grad)))
+            correction = - CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
         correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
         if correction_norm > self.correction_size:
             correction *= self.correction_size / correction_norm

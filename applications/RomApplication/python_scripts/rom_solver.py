@@ -92,6 +92,8 @@ def CreateSolver(cls, model, custom_settings):
             return self.settings["rom_settings"], projection_strategy
 
         def _AssignMissingInnerRomParameters(self, projection_strategy):
+            if not self.settings["rom_settings"].Has("rom_bns_settings"):
+                self.settings["rom_settings"].AddEmptyValue("rom_bns_settings")
             monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
             if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
