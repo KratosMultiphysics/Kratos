@@ -436,11 +436,10 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::CurveByPointsHardeningImplicit
 
         // Compute volumetric fracture energy in the transition by-points -> exponential
         double g_by_points = 0.5 * K0 * E0;
-        IndexType i = 1;
-        for (i; i < size_curve; ++i) {
+        for (IndexType i = 1; i < size_curve; ++i) {
             g_by_points += 0.5 * (s_by_points(i - 1) + s_by_points(i)) * (e_by_points(i) - e_by_points(i - 1));
         }
-        g_by_points = g_by_points - (0.5 * xi * s_by_points(i-1) * e_by_points(i-1) + 0.5 * (1.0 - xi) * s_by_points(i-1) * s_by_points(i-1) / C0);
+        g_by_points = g_by_points - (0.5 * xi * s_by_points(size_curve-1) * e_by_points(size_curve-1) + 0.5 * (1.0 - xi) * s_by_points(size_curve-1) * s_by_points(size_curve-1) / C0);
         const double pd_dissipation_threshold = (g_by_points) / g;
         const double A = s_by_points(size_curve - 1) / (0.5 * (1.0 - xi) * s_by_points(size_curve - 1) * s_by_points(size_curve - 1) / C0 + 0.5 * xi * s_by_points(size_curve - 1)
                         * e_by_points(size_curve - 1) - (1.0 - pd_dissipation_threshold) * g);
@@ -474,11 +473,10 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::CurveByPointsHardeningImplicit
 
         // Compute volumetric fracture energy in the transition by-points -> exponential
         double g_by_points = 0.5 * K0 * E0;
-        IndexType i = 1;
-        for (i; i < size_curve; ++i) {
+        for (IndexType i = 1; i < size_curve; ++i) {
             g_by_points += 0.5 * (s_by_points(i - 1) + s_by_points(i)) * (e_by_points(i) - e_by_points(i - 1));
         }
-        g_by_points = g_by_points - (0.5 * xi * s_by_points(i-1) * e_by_points(i-1) + 0.5 * (1.0 - xi) * s_by_points(i-1) * s_by_points(i-1) / C0);
+        g_by_points = g_by_points - (0.5 * xi * s_by_points(size_curve-1) * e_by_points(size_curve-1) + 0.5 * (1.0 - xi) * s_by_points(size_curve-1) * s_by_points(size_curve-1) / C0);
         const double pd_dissipation_threshold = (g_by_points) / g;
 
         const double A = s_by_points(size_curve - 1) / (0.5 * (1.0 - xi) * s_by_points(size_curve - 1) * s_by_points(size_curve - 1) / C0 + 0.5 * xi * s_by_points(size_curve - 1)
@@ -552,23 +550,23 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                 break;
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints: {
+                const auto& r_material_properties = rValues.GetMaterialProperties();
                 const double xi = rPDParameters.PlasticDamageProportion;
-                const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
-                const double C0 = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+                const double g = CalculateVolumetricFractureEnergy(r_material_properties, rPDParameters);
+                const double C0 = r_material_properties[YOUNG_MODULUS];
                 double K0;
                 GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
                 const double E0 = K0 / C0; // Yield strain
-                const Vector& s_by_points = rValues.GetMaterialProperties()[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
-                const Vector& e_by_points = rValues.GetMaterialProperties()[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
+                const Vector& s_by_points = r_material_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
+                const Vector& e_by_points = r_material_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
                 const SizeType size_curve = s_by_points.size();
 
                 // Compute volumetric fracture energies of each region
                 double g_by_points = 0.5 * K0 * E0;
-                IndexType i = 1;
-                for (i; i < size_curve; ++i) {
+                for (IndexType i = 1; i < size_curve; ++i) {
                     g_by_points += 0.5 * (s_by_points(i - 1) + s_by_points(i)) * (e_by_points(i) - e_by_points(i - 1));
                 }
-                g_by_points = g_by_points - (0.5 * xi * s_by_points(i-1) * e_by_points(i-1) + 0.5 * (1.0 - xi) * s_by_points(i-1) * s_by_points(i-1) / C0);
+                g_by_points = g_by_points - (0.5 * xi * s_by_points(size_curve-1) * e_by_points(size_curve-1) + 0.5 * (1.0 - xi) * s_by_points(size_curve-1) * s_by_points(size_curve-1) / C0);
                 const double g_exponential = g - g_by_points;
 
                 KRATOS_ERROR_IF(g_exponential < 0.0) << "Fracture energy too low in CurveDefinedByPoints of plasticity..."  << std::endl;
@@ -597,7 +595,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                         } else {
                             const double A = (1.0 - xi) * ((e_by_points(i) - e_by_points(i-1)) / (s_by_points(i) - s_by_points(i-1)) - E0 / K0);
                             const double B = xi * (s_by_points(i-1) * (e_by_points(i) - e_by_points(i-1)) / (s_by_points(i) - s_by_points(i-1)) - e_by_points(i-1));
-                            // const double current_dissipation = (rPDParameters.TotalDissipation == 0.0) ? (pd_dissipation_next_point - pd_dissipation_previous_point) * 0.1 : rPDParameters.TotalDissipation;
                             const double C = s_by_points(i-1) * (xi * e_by_points(i-1) - s_by_points(i-1) * ((e_by_points(i) - e_by_points(i-1)) / (s_by_points(i) - s_by_points(i-1)) - (1.0-xi) * E0 / K0)) - 2.0 * g * (rPDParameters.TotalDissipation - pd_dissipation_previous_point);
                             if (s_by_points(i-1) <= s_by_points(i)) { // While hardening positive square root
                                 rPDParameters.Threshold = (rPDParameters.TotalDissipation == 0.0) ? s_by_points(i-1) : (- B + std::sqrt(B * B - 4.0 * A * C)) / (2.0 * A);
@@ -1223,6 +1220,13 @@ int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
     KRATOS_ERROR_IF(!rMaterialProperties.Has(FRACTURE_ENERGY))           << "FRACTURE_ENERGY not provided in the material properties" << std::endl;
     KRATOS_ERROR_IF(!rMaterialProperties.Has(HARDENING_CURVE))           << "HARDENING_CURVE not provided in the material properties" << std::endl;
     KRATOS_ERROR_IF(!rMaterialProperties.Has(PLASTIC_DAMAGE_PROPORTION)) << "PLASTIC_DAMAGE_PROPORTION not provided in the material properties" << std::endl;
+
+    // Checking curves
+    const int curve_type = rMaterialProperties[HARDENING_CURVE];
+    if (static_cast<GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type) == GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints) {
+        KRATOS_ERROR_IF(!rMaterialProperties.Has(EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE))  << "EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE not provided in the material properties" << std::endl;
+        KRATOS_ERROR_IF(!rMaterialProperties.Has(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE))       << "TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE not provided in the material properties" << std::endl;
+    }
     return aux_out;
 }
 
