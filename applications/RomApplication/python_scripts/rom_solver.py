@@ -38,6 +38,8 @@ def CreateSolver(cls, model, custom_settings):
                 "elemental_galerkin": KratosROM.ROMBuilderAndSolver,
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver,
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "custom_lspg": KratosROM.AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "global_custom": KratosROM.AnnPromGlobalROMBuilderAndSolver,
                 "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
                 "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver
             }
@@ -47,12 +49,34 @@ def CreateSolver(cls, model, custom_settings):
                 err_msg = f"'Solving_strategy': '{solving_strategy}' is not available. Please select one of the following: {list(available_solving_strategies.keys())}."
                 raise ValueError(err_msg)
 
+        def _CreateLineSearchStrategy(self):
+            projection_strategy = self.settings["projection_strategy"].GetString()
+
+            if not "custom" in projection_strategy:
+                solution_strategy = super()._CreateLineSearchStrategy()
+            else:
+                if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+                    settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+                    settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+                else:
+                    settings = self._GetDefaultLineSearchParameters()
+                settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+                settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+                settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+                settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+                computing_model_part = self.GetComputingModelPart()
+                time_scheme = self._GetScheme()
+                convergence_criterion = self._GetConvergenceCriterion()
+                builder_and_solver = self._GetBuilderAndSolver()
+                print('BUILDER AND SOLVER: ', builder_and_solver)
+                solution_strategy = KratosROM.AnnPromLineSearchStrategy(computing_model_part,
+                    time_scheme,
+                    convergence_criterion,
+                    builder_and_solver,
+                    settings)
+            return solution_strategy
+
         def _ValidateAndReturnRomParameters(self):
-            # Check that the number of ROM DOFs has been provided
-            n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
-            if not n_rom_dofs > 0:
-                err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
-                raise Exception(err_msg)
 
             # Check if the nodal unknowns have been provided by the user
             # If not, take the DOFs list from the base solver
@@ -74,7 +98,7 @@ def CreateSolver(cls, model, custom_settings):
                 KratosMultiphysics.Logger.PrintWarning("::[ROMSolver]:: ", warn_msg)
 
             # For now, only Galerkin and Petrov-Galerkin projections have the elemental or global approach option
-            if projection_strategy in ("galerkin", "petrov_galerkin"): #TODO: Possibility of doing elemental lspg
+            if projection_strategy in ("galerkin", "petrov_galerkin", "custom"): #TODO: Possibility of doing elemental lspg
                 available_assembling_strategies = {
                     "global",
                     "elemental"
@@ -88,6 +112,13 @@ def CreateSolver(cls, model, custom_settings):
 
             self._AssignMissingInnerRomParameters(projection_strategy)
 
+            # Check that the number of ROM DOFs has been provided
+            if not "custom" in projection_strategy:
+                n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
+                if not n_rom_dofs > 0:
+                    err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
+                    raise Exception(err_msg)
+
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy
 
@@ -95,7 +126,7 @@ def CreateSolver(cls, model, custom_settings):
             if not self.settings["rom_settings"].Has("rom_bns_settings"):
                 self.settings["rom_settings"].AddEmptyValue("rom_bns_settings")
             monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
-            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin"):
+            if projection_strategy in ("global_galerkin", "lspg", "global_petrov_galerkin", "global_custom", "custom_lspg"):
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
     return ROMSolver(model, custom_settings)

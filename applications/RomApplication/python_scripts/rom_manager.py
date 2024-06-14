@@ -8,12 +8,6 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
-try:
-    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
-    have_tensorflow = True
-except ImportError:
-    have_tensorflow = False
-
 
 
 class RomManager(object):
@@ -220,7 +214,8 @@ class RomManager(object):
         if store_snapshots:
             self._StoreSnapshotsMatrix(snapshots_matrix_name, fom_snapshots)
 
-    def RunROM(self, mu_run=[None]):
+    def RunROM(self, mu_run=[None], nn_rom_interface=None):
+        customROM=None ## This is temporary and should be done in a better way
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
@@ -234,10 +229,22 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "PG")
+        #########################################
+        ######  Custom ROM (Galerkin-like) ######
+        elif chosen_projection_strategy == "custom":
+            print("Got custom strategy string")
+            self._ChangeRomFlags(simulation_to_run = "custom")
+            customROM='annprom'
+        #########################################
+        ######  Custom LSPG ######
+        elif chosen_projection_strategy == "custom_lspg":
+            print("Got custom strategy string")
+            self._ChangeRomFlags(simulation_to_run = "custom_lspg")
+            customROM='annprom'
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.__LaunchRunROM(mu_run)
+        self.__LaunchRunROM(mu_run, customROM, nn_rom_interface)
 
     def RunHROM(self, mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -528,8 +535,8 @@ class RomManager(object):
         SnapshotsMatrix = np.block(SnapshotsMatrix)
 
         return SnapshotsMatrix
-        
-    def __LaunchRunROM(self, mu_run):
+
+    def __LaunchRunROM(self, mu_run, customROM=None, nn_rom_interface=None):
         """
         This method should be parallel capable
         """
@@ -542,8 +549,8 @@ class RomManager(object):
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, customROM=customROM))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, nn_rom_interface=nn_rom_interface)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
@@ -667,6 +674,16 @@ class RomManager(object):
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
                 f["rom_settings"]['rom_bns_settings'] = self._SetPetrovGalerkinBnSParameters()
+            elif simulation_to_run=='custom':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="custom"
+                f["rom_settings"]['rom_bns_settings'] = self._SetGalerkinBnSParameters()
+            elif simulation_to_run=='custom_lspg':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="custom_lspg"
+                f["rom_settings"]['rom_bns_settings'] = self._SetLSPGBnSParameters()
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
