@@ -75,10 +75,8 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
-
     const auto det_Js_initial_configuration =
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(Geom, this->GetIntegrationMethod());
-
     const auto integration_coefficients_on_initial_configuration =
         this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
 
