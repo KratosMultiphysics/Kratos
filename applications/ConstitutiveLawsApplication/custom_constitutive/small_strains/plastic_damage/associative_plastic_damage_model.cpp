@@ -1223,7 +1223,7 @@ int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
 
     // Checking curves
     const int curve_type = rMaterialProperties[HARDENING_CURVE];
-    if (static_cast<GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type) == GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints) {
+    if (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type) == GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints) {
         KRATOS_ERROR_IF(!rMaterialProperties.Has(EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE))  << "EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE not provided in the material properties" << std::endl;
         KRATOS_ERROR_IF(!rMaterialProperties.Has(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE))       << "TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE not provided in the material properties" << std::endl;
     }
