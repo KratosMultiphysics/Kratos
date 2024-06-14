@@ -39,7 +39,7 @@ public:
 
     SizeType GetStrainSize() const override
     {
-        return 3;
+        return 1;
     }
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override
@@ -75,8 +75,8 @@ std::shared_ptr<StubBilinearLaw> CreateStubBilinearLaw(double Elongation, double
     const auto linear_strain = Elongation / Length;
     const auto new_length = Length + Elongation;
     const auto green_lagrange_strain = (new_length * new_length - Length * Length) / (2.0 * Length * Length);
-    const auto mean_strain = 0.5 * (linear_strain + green_lagrange_strain);
-    return std::make_shared<StubBilinearLaw>(mean_strain, TangentModulus1, TangentModulus2);
+    const auto threshold_strain = 0.5 * (linear_strain + green_lagrange_strain);
+    return std::make_shared<StubBilinearLaw>(threshold_strain, TangentModulus1, TangentModulus2);
 }
 
 }
@@ -274,12 +274,12 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("TrussElement3D2N", 1, element_nodes, p_elem_prop);
         p_element->Initialize(r_model_part.GetProcessInfo());
 
-        p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, 0.0};
-        p_top_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, elongation};
+        p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
+        p_top_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, elongation};
 
         auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);
-        KRATOS_EXPECT_NEAR(tangent_modulus_2, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()), 1.0e-8);
+        KRATOS_EXPECT_DOUBLE_EQ(tangent_modulus_2, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()));
     }
 
     KRATOS_TEST_CASE_IN_SUITE(TangentModulusOfTrussElementLinear3D2NUsesLinearStrain, KratosStructuralMechanicsFastSuite)
@@ -301,12 +301,12 @@ namespace Testing
         auto p_element = r_model_part.CreateNewElement("TrussLinearElement3D2N", 1, element_nodes, p_elem_prop);
         p_element->Initialize(r_model_part.GetProcessInfo());
 
-        p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, 0.0};
-        p_top_node->FastGetSolutionStepValue(DISPLACEMENT, 0) = array_1d<double, 3>{0.0, 0.0, elongation};
+        p_bottom_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, 0.0};
+        p_top_node->FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.0, elongation};
 
         auto p_truss_element = dynamic_cast<TrussElement3D2N*>(p_element.get());
         KRATOS_EXPECT_NE(p_truss_element, nullptr);
-        KRATOS_EXPECT_NEAR(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()), 1.0e-10);
+        KRATOS_EXPECT_DOUBLE_EQ(tangent_modulus_1, p_truss_element->ReturnTangentModulus1D(r_model_part.GetProcessInfo()));
     }
 
 }
