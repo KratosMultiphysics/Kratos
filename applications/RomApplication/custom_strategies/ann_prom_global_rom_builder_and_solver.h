@@ -268,11 +268,6 @@ public:
         mRefSnapshot = eigenRefSnapshot;
     }
 
-    bool GetMonotonicityPreservingFlag() const noexcept
-    {
-        return mMonotonicityPreservingFlag;
-    }
-
     void MonotonicityPreserving(
         TSystemMatrixType& rA,
         TSystemVectorType& rB
@@ -449,6 +444,7 @@ public:
 
         eigen_phi_global=mSVDPhiMatrices[0]+phisig_sup*mIntermediateGradients[mIntermediateGradients.size()-1].transpose()*mSVDPhiMatrices[2];
 
+        // KRATOS_WATCH(phisig_sup)
         eigen_rx = mRefSnapshot + mSVDPhiMatrices[0]*eigen_rom_unknowns + phisig_sup*mLayersOut[mLayersOut.size()-1];
 
     }
@@ -880,10 +876,14 @@ protected:
 
         RomSystemVectorType& xrom = r_root_mp.GetValue(ROM_SOLUTION_BASE);
         RomSystemVectorType& xromTotal = r_root_mp.GetValue(ROM_SOLUTION_TOTAL);
+        // KRATOS_WATCH(xrom);
+        // KRATOS_WATCH(xromTotal);
         xrom = xromTotal;
         RomSystemVectorType& dxrom = r_root_mp.GetValue(ROM_SOLUTION_INCREMENT);
+        // KRATOS_WATCH(dxrom);
 
         Vector& xBase = r_root_mp.GetValue(SOLUTION_BASE);
+        // KRATOS_WATCH(xBase);
         Vector xNew (rDx.size());
 
         const auto solving_timer = BuiltinTimer();

@@ -140,7 +140,7 @@ class RomNeuralNetworkTrainer(object):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
         for layer_size in layers_size:
-            layer_out=layers.Dense(layer_size, 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
+            layer_out=layers.Dense(int(layer_size), 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
         output_layer=layers.Dense(n_sup-n_inf, 'linear', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
 
         network=Model(input_layer, output_layer)
@@ -212,7 +212,7 @@ class RomNeuralNetworkTrainer(object):
         with open(str(model_path)+"/train_config.json", "w") as ae_config_json_file:
             json.dump(training_parameters_dict, ae_config_json_file)
 
-        network.save_weights(str(model_path)+"/model_weights.h5")
+        network.save_weights(str(model_path)+"/model.weights.h5")
         with open(str(model_path)+"/history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
 
@@ -232,7 +232,7 @@ class RomNeuralNetworkTrainer(object):
         network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
-        network.load_weights(str(model_path)+'/model_weights.h5')
+        network.load_weights(str(model_path)+'/model.weights.h5')
 
         S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup = self._GetEvaluationData(model_properties)
 

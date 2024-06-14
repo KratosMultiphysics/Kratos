@@ -2,7 +2,7 @@ import importlib
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
@@ -61,14 +61,22 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])
 
             # Inner ROM settings
-            self.rom_bns_settings = self.rom_parameters["rom_settings"]["rom_bns_settings"]
+            self.rom_bns_settings = self.rom_parameters["rom_settings"]["rom_bns_settings"] if self.rom_parameters["rom_settings"].Has("rom_bns_settings") else KratosMultiphysics.Parameters("""{}""")
+
+            # Retrieve the ROM and HROM formats from settings, defaulting to 'json' for backward compatibility with earlier file formats and configurations.
+            # TODO: Consider switching the default to 'numpy' for ROM and another more efficient format for HROM
+            # for improved efficiency with large datasets in future versions.
+            self.rom_format = self.rom_parameters["rom_format"].GetString() if self.rom_parameters.Has("rom_format") else "json"
+            self.hrom_format = (self.rom_parameters["hrom_settings"]["hrom_format"].GetString()
+                                if self.rom_parameters["hrom_settings"].Has("hrom_format")
+                                else "json")
 
             # HROM operations flags
             self.rom_basis_process_list_check = True
             self.rom_basis_output_process_check = True
             self.run_hrom = self.rom_parameters["run_hrom"].GetBool() if self.rom_parameters.Has("run_hrom") else False
             self.train_hrom = self.rom_parameters["train_hrom"].GetBool() if self.rom_parameters.Has("train_hrom") else False
-            self.rom_manager = self.rom_parameters["rom_manager"].GetBool()
+            self.rom_manager = self.rom_parameters["rom_manager"].GetBool() if self.rom_parameters.Has("rom_manager") else False
             if self.run_hrom and self.train_hrom:
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
@@ -113,7 +121,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
             # Create the ROM solver
-            return new_python_solvers_wrapper_rom.CreateSolver(
+            return python_solvers_wrapper_rom.CreateSolver(
                 self.model,
                 self.project_parameters)
 
@@ -164,28 +172,10 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             # rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
             # Set the right nodal ROM basis
-            if self.rom_parameters["rom_format"].GetString() == "json":
-                # aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
-                # for node in computing_model_part.Nodes:
-                #     node_id = str(node.Id)
-                #     for j in range(nodal_dofs):
-                #         for i in range(rom_dofs):
-                #             aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
-                #     node.SetValue(KratosROM.ROM_BASIS, aux)
-
-                # Set the left nodal ROM basis if it is different than the right nodal ROM basis (i.e. Petrov-Galerkin)
-                if (self.solving_strategy == "petrov_galerkin"):
-                    petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
-                    petrov_galerkin_nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
-                    aux = KratosMultiphysics.Matrix(petrov_galerkin_nodal_dofs, self.petrov_galerkin_rom_dofs)
-                    for node in computing_model_part.Nodes:
-                        node_id = str(node.Id)
-                        for j in range(petrov_galerkin_nodal_dofs):
-                            for i in range(self.petrov_galerkin_rom_dofs):
-                                aux[j,i] = petrov_galerkin_nodal_modes[node_id][j][i].GetDouble()
-                        node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
-
-            elif self.rom_parameters["rom_format"].GetString() == "numpy":
+            if self.rom_format == "json":
+                print('JSON format not supported for ANNPROM architecture')
+                exit()
+            elif self.rom_format == "numpy":
                 # Set the nodal ROM basis
                 # node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
                 node_ids = np.arange(computing_model_part.NumberOfNodes())+1
@@ -193,19 +183,33 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                 # if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                 #     right_modes.reshape(-1,1)
                 # right_modes = right_modes[:,:rom_dofs]
-                if (self.solving_strategy == "petrov_galerkin"):
+
+                # Handle left modes for Petrov-Galerkin strategy
+                if self.solving_strategy == "petrov_galerkin":
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
                     left_modes = np.load(self.rom_basis_output_folder / "LeftBasisMatrix.npy")
-                    if left_modes.ndim ==1:
-                        left_modes.reshape(-1,1)
-                    left_modes = left_modes[:,:petrov_galerkin_rom_dofs]
 
+                    # Ensure left_modes is a 2D array
+                    if left_modes.ndim == 1:
+                        left_modes = left_modes.reshape(-1, 1)
+
+                    # Trim left_modes based on Petrov-Galerkin ROM DOFs
+                    left_modes = left_modes[:, :petrov_galerkin_rom_dofs]
+
+                # Preprocess to create a mapping from node ID to index
+                node_id_to_index = {nid: idx for idx, nid in enumerate(node_ids)}
+
+                # Loop over each node in computing_model_part
                 for node in computing_model_part.Nodes:
-                    offset = np.where(node_ids == node.Id)[0][0]*nodal_dofs
-                    # node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :])) # ROM basis
-                    if (self.solving_strategy == "petrov_galerkin"):
-                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :])) # ROM basis
+                    index = node_id_to_index[node.Id]
+                    offset = index * nodal_dofs
 
+                    # Set ROM basis for the node
+                    # node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :])) # ROM basis
+
+                    # Set Petrov-Galerkin ROM basis if applicable
+                    if self.solving_strategy == "petrov_galerkin":
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset + nodal_dofs, :]))
 
             # Check for HROM stages
             if self.train_hrom:
@@ -217,7 +221,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                     self._GetSolver(),
                     self.rom_parameters)
             elif self.run_hrom:
-                if self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "json":
+                if self.hrom_format == "json":
                     # Set the HROM weights in elements and conditions
                     hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
                     for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
@@ -225,7 +229,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                     hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
                     for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
+                elif self.hrom_format == "numpy":
                     # Set the HROM weights in elements and conditions
                     element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
@@ -235,6 +239,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
                         computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
                     for i in range(np.size(condition_indexes)):
                         computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
+
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
@@ -336,6 +341,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
         def GetPetrovGalerkinTrainUtility(self):
             return self.__petrov_galerkin_training_utility
 
+
         def Finalize(self):
             # This calls the physics Finalize
             super().Finalize()
@@ -344,7 +350,7 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             if self.train_hrom and not self.rom_manager:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
-                
+
             # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
             if self.train_petrov_galerkin and not self.rom_manager:
                 self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()

@@ -8,6 +8,12 @@ from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulat
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
+try:
+    from KratosMultiphysics.RomApplication.rom_nn_trainer import RomNeuralNetworkTrainer
+    have_tensorflow = True
+except ImportError:
+    have_tensorflow = False
+
 
 
 class RomManager(object):

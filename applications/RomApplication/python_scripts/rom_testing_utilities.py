@@ -2,6 +2,7 @@ import importlib
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication.rom_analysis
+import KratosMultiphysics.RomApplication.rom_analysis_custom
 
 def SetUpSimulationInstance(model, parameters, customROM=None):
     """ Creates and returns a ROM simulation instance """
@@ -19,8 +20,6 @@ def SetUpSimulationInstance(model, parameters, customROM=None):
     if not customROM is None:
         if customROM == 'annprom':
             instance_factory = KratosMultiphysics.RomApplication.rom_analysis_custom.CreateCustomRomAnalysisInstance
-        elif customROM == 'pod' or customROM == 'pod_lspg':
-            instance_factory = KratosMultiphysics.RomApplication.rom_analysis_pod.CreatePODRomAnalysisInstance
         else:
             print('')
             instance_factory = None
