@@ -14,27 +14,10 @@
 #pragma once
 
 #include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_retention/retention_law.h"
-#include "geometries/geometry_data.h"
-#include "includes/constitutive_law.h"
-#include "includes/define.h"
 #include "includes/kratos_export_api.h"
-#include "includes/serializer.h"
-#include "includes/smart_pointers.h"
-#include "includes/ublas_interface.h"
-
-#include <iosfwd>
-#include <memory>
-#include <string>
-#include <vector>
 
 namespace Kratos
 {
-
-class StressStatePolicy;
-
-template <class T, std::size_t N>
-class array_1d;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public UPwBaseElement
 {
@@ -49,7 +32,6 @@ public:
 
     using UPwBaseElement::UPwBaseElement;
 
-    /// Constructor using an array of nodes
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
@@ -57,7 +39,6 @@ public:
     {
     }
 
-    /// Constructor using Geometry
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
@@ -300,7 +281,7 @@ private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
     GeometryType::Pointer mpPressureGeometry;
-    
+
     // Serialization
 
     friend class Serializer;
