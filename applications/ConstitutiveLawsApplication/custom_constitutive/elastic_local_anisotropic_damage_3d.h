@@ -189,6 +189,12 @@ public:
                                  Vector& rDamageVector,
                                  Vector& rStrainVariables);
 
+    void TensorProduct6(Matrix& rOutput,
+                        const Vector& rVector1,
+                        const Vector& rVector2);
+
+
+
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stress
      * @param rValues The specific parameters of the current constitutive law
@@ -322,7 +328,7 @@ protected:
      * @brief This method calculates the linearized tangent operator
      */
 
-    void CalculatePartialDerivatives(BoundedMatrix6x3Type& dHdk,
+    void CalculatePartialDerivatives(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
                                     const Properties& rMaterialProperties,
                                     const Vector& DamageVector,
                                     const BoundedVectorType& Kappa0,
@@ -345,10 +351,31 @@ protected:
      * @param Voigtform
      */
     void CalculateDerivativesofEigenvalues(BoundedMatrix3x6Type &DerivativesofEigenvalues,
-                                           const BoundedVectorType &EigenvaluesVector,
+                                           BoundedVectorType &EigenvaluesVector,
                                            const BoundedVectorVoigtType &Voigtform,
                                            const Variable<Vector>& rThisVariable);
 
+
+    void MultiplyTensors(BoundedMatrixVoigtType& dSdE,
+                        const array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+                        const Vector& StrainVector);
+    void GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+                const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                const BoundedMatrix3x6Type& dkdE);
+    void GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+                const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
+                const BoundedMatrixType& dDdkappa);
+        /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This method computes the secant tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
 private:
 
     ///@name Static Member Variables

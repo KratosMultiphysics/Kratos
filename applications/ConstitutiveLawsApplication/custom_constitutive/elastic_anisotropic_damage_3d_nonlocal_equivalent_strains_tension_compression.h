@@ -90,6 +90,7 @@ public:
 
     struct InternalDamageVariables{
         BoundedMatrixType DamageMatrix = ZeroMatrix(3,3);
+        BoundedVectorType PrincipalDamageVector = ZeroVector(3);
         BoundedVectorType StrainHistoryParameter = ZeroVector(3);
         BoundedVectorType kappa = ZeroVector(3);
         Vector EquivalentStrainsTC = ZeroVector(2);
@@ -185,7 +186,7 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    //bool Has(const Variable<Vector>& rThisVariable) override;
+    bool Has(const Variable<Vector>& rThisVariable) override;
 
     /**
      * @brief Returns the value of a specified variable (Vector)
@@ -472,6 +473,17 @@ protected:
                                 const BoundedVectorType& Principal_Strains
                                 );
 
+    void TensorProduct6(Matrix& rOutput,
+                        const Vector& rVector1,
+                        const Vector& rVector2);
+
+    void TensorProduct(
+    BoundedMatrixVoigtType& dHdNL1,
+    BoundedMatrixVoigtType& dHdNL2,
+    const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
+    const BoundedVectorType& Vector1,
+    const BoundedVectorType& Vector2
+    );
     /**
      * @brief the derivatives of eigen values with respect to the matrix elements
      * @param DerivativesofEigenvalues
@@ -503,7 +515,7 @@ protected:
                                     );
 
 
-    
+
 
     /**
      * @brief This method computes the stress and constitutive tensor
@@ -523,7 +535,7 @@ private:
 
     ///@name Member Variables
     ///@{
-    
+
     ///@}
 
     ///@name Private Operators

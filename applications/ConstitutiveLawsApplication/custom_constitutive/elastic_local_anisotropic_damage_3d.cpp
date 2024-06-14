@@ -10,11 +10,15 @@
 //
 //  Main authors:    athira vadakkekkara
 //  Collaborators:
-//
+// Todo: 1. redefine dHdK to 6x6x3 manually giving each component of dHdD and multiply each component by corresponding dDdk
+// 2. redefine dkde to 3x6 as before , dkdepr is identity matrix
+// 3. multiply 1 and 2 -chatgpt
+// 4. multiply with strain vector -chatgpt - get the 6,6 matrix and add to effective_stress_matrix
 
 // Project includes
 #include "elastic_local_anisotropic_damage_3d.h"
 #include "constitutive_laws_application_variables.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -196,13 +200,12 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
+    KRATOS_WATCH(r_constitutive_law_options)
     KRATOS_WATCH(r_strain_vector)
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
     rStrainVariables = mStrainVariables;
-    KRATOS_WATCH(mStrainVariables)
     // If we compute the tangent moduli or the stress
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
-        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ))
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
@@ -226,7 +229,10 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         BoundedMatrixVoigtType EffStiffnessMatrix = ZeroMatrix(6, 6);
         BoundedMatrix3x6Type dEprdE = ZeroMatrix(3,6);
         BoundedMatrixType dkdEpr = ZeroMatrix(3,3);
-        BoundedMatrix6x3Type dHdk   = ZeroMatrix(6,3);
+        array_1d<BoundedMatrix<double, 6, 6>, 3> dHdk;
+        for (SizeType i = 0; i < Dimension; ++i){
+            dHdk[i] = ZeroMatrix(6,6);
+        }
         Vector max_history_e = ZeroVector(3);
 
         double k0t, k0c;
@@ -241,7 +247,6 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
             k0c = (10./3.) * ft/E;
         }
         BoundedVectorType principal_strains = ZeroVector(3);
-
         GetEigenValues(principal_strains, STRAIN, r_strain_vector);  //calculate prinicpal strains
         for(SizeType i = 0; i < Dimension; ++i) {
             k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
@@ -251,9 +256,6 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
             kappa[i]       = std::max(max_history_e[i], k0[i]);
             F[i]           = fabs(principal_strains[i])-kappa[i];
         }
-        KRATOS_WATCH(kappa)
-        KRATOS_WATCH(F)
-        KRATOS_WATCH(k0)
         //Compute damage in principal directions
         for (SizeType i = 0; i < Dimension; ++i) {
             if (kappa[i]>= 0 && kappa[i]<=k0[i]) {
@@ -267,21 +269,69 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
                 damage_vector[i] = 0.0;
             }
         }
+        KRATOS_WATCH(beta1)
+        KRATOS_WATCH(beta2)
+        KRATOS_WATCH(k0)
+        KRATOS_WATCH(kappa)
         KRATOS_WATCH(damage_vector)
-        CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
-        noalias(r_stress_vector)       = prod(EffStiffnessMatrix,r_strain_vector);
-        CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
-        const BoundedMatrix3x6Type b = prod(dkdEpr, dEprdE);
-        noalias(r_constitutive_matrix) = EffStiffnessMatrix + prod(dHdk, b);
+        if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
+            CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
+            // KRATOS_WATCH(dkdEpr)
+            // KRATOS_WATCH(dEprdE)
+            noalias(r_stress_vector)       = prod(EffStiffnessMatrix,r_strain_vector);
+            // CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
+            // const BoundedMatrix3x6Type dkdE = prod(dkdEpr, dEprdE);
+            // array_1d<BoundedMatrix<double, 6, 6>, 6> dHdE;
+            // for (SizeType i = 0; i < VoigtSize; ++i){
+            // dHdE[i] = ZeroMatrix(6,6);
+            // }
+            // GetdHdE(dHdE, dHdk, dkdE);
+            // BoundedMatrixVoigtType dSdE = ZeroMatrix(6,6);
+            // MultiplyTensors(dSdE, dHdE, r_strain_vector);
+            // noalias(r_constitutive_matrix) = EffStiffnessMatrix + dSdE;
+            // KRATOS_WATCH(dkdE)
+            // KRATOS_WATCH(dHdk)
+            // KRATOS_WATCH(EffStiffnessMatrix)
+            // KRATOS_WATCH(dHdE)
+            // KRATOS_WATCH(dSdE)
+            // KRATOS_WATCH(r_constitutive_matrix)
+            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                this->CalculateTangentTensor(rParametersValues);
+            }
+        }
+        KRATOS_WATCH(r_stress_vector)
+
         rDamageVector = damage_vector;
         rStrainVariables = max_history_e;
-        KRATOS_WATCH(r_stress_vector);
         KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
         KRATOS_WATCH("-------------------------------------------");
         }
     KRATOS_CATCH("")
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticAnisotropicDamage::TensorProduct6(
+    Matrix& rOutput,
+    const Vector& rVector1,
+    const Vector& rVector2)
+{
+    KRATOS_TRY
+    KRATOS_DEBUG_ERROR_IF(rVector1.size()!=6 || rVector2.size()!=6) << "check the size of vectors  ";
+
+    if (rOutput.size1() != 6 || rOutput.size1() != 6) {
+        rOutput.resize(6, 6,false);
+    }
+    for(int i=0; i<6; ++i){
+        for(int j=0; j<6; ++j){
+            rOutput(i,j)= rVector1[i] * rVector2[j];
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -296,14 +346,33 @@ void ElasticAnisotropicDamage::GetEigenValues(
     BoundedMatrixType EigenVectors;
     BoundedMatrixType EigenValues = ZeroMatrix(3,3);
     VectorToTensor(MatrixForm, VectorForm, rThisVariable);
-    //prinicpal values, max and min
     MathUtils<double>::GaussSeidelEigenSystem(MatrixForm, EigenVectors, EigenValues);
     Pri_Values[0] = EigenValues(0,0);
     Pri_Values[1] = EigenValues(1,1);
     Pri_Values[2] = EigenValues(2,2);
     KRATOS_CATCH("")
 }
+/***********************************************************************************/
+/***********************************************************************************/
+void ElasticAnisotropicDamage::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+{
+    KRATOS_TRY
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
 
+    const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
+    const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
+
+    if (tangent_operator_estimation == TangentOperatorEstimation::Analytic) {
+        KRATOS_ERROR << "Analytic solution not available" << std::endl;
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (first order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+    } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+    }
+    KRATOS_CATCH("")
+}
 //************************************************************************************
 //************************************************************************************
 
@@ -372,18 +441,20 @@ void ElasticAnisotropicDamage::CalculateParameters(
     BoundedVectorType principal_strains = ZeroVector(3);
     double det_M;
     CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
-    //KRATOS_WATCH(DamageVector)
     GetDamageEffectTensor(M, DamageVector);
-    //KRATOS_WATCH(M)
+    KRATOS_WATCH(M)
     MathUtils<double>::InvertMatrix(M, Inv_M, det_M);
-    //KRATOS_WATCH(Inv_M)
     const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inv_M));
     EffStiffnessMatrix = prod(Inv_M,a);
     GetEigenValues(principal_strains, STRAIN, r_strain_vector);
     CalculateDerivativesofEigenvalues(dEprdE, principal_strains, r_strain_vector, STRAIN);
     for(SizeType i = 0; i < Dimension; ++i){
         if(DamageVector[i] > 0){
-            dkdEpr(i,i) = 1;
+            if(principal_strains[i]<0){
+                dkdEpr(i,i) = -1;
+            }else{
+                dkdEpr(i,i) = 1;
+            }
         }
     }
     KRATOS_CATCH("")
@@ -393,7 +464,7 @@ void ElasticAnisotropicDamage::CalculateParameters(
 //************************************************************************************
 
 void ElasticAnisotropicDamage::CalculatePartialDerivatives(
-    BoundedMatrix6x3Type& dHdk,
+    array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
     const Properties& rMaterialProperties,
     const Vector& DamageVector,
     const BoundedVectorType& Kappa0,
@@ -406,18 +477,36 @@ void ElasticAnisotropicDamage::CalculatePartialDerivatives(
     const double E   = rMaterialProperties[YOUNG_MODULUS];
     const double nu  = rMaterialProperties[POISSON_RATIO];
     const double E_factor =  E/((1 + nu ) * (1- 2 * nu));
-    BoundedVectorType dDdkappa = ZeroVector(3);
-    for(SizeType i =0; i < Dimension; ++i){
-        dDdkappa[i]   =  (1- DamageVector[i]) * (Beta1[i]/Kappa[i] + Beta2[i]/Kappa0[i]);
-        dHdk(i,i) = E_factor * (-2 * (1-DamageVector[i]) * (1-nu) * dDdkappa[i]);
+    BoundedMatrixType dDdkappa = ZeroMatrix(3,3);
+    array_1d<BoundedMatrix<double, 6, 6>, 3> dHdD;
+    for (SizeType i = 0; i < Dimension; ++i){
+        dHdD[i] = ZeroMatrix(6,6);
     }
-    dHdk(3,1) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[1]+DamageVector[2]))-1) * dDdkappa[1] ;
-    dHdk(3,2) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[1]+DamageVector[2]))-1) * dDdkappa[2];
-    dHdk(4,0) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[2]))-1) * dDdkappa[0];
-    dHdk(4,2) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[2]))-1) * dDdkappa[2];
-    dHdk(5,0) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[1]))-1) * dDdkappa[0];
-    dHdk(5,1) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[1]))-1) * dDdkappa[1];
-    KRATOS_CATCH("22")
+    for(SizeType i =0; i < Dimension; ++i){
+        dDdkappa(i,i)   =  (1- DamageVector[i]) * (Beta1[i]/Kappa[i] + Beta2[i]/Kappa0[i]);
+    }
+    for(SizeType i =0; i < Dimension; ++i){
+        for(SizeType j = 0; j < Dimension; ++j){
+            for(SizeType k = 0; k < Dimension; ++k){
+                dHdD[i](i,i) = E_factor * (-2 * (1-DamageVector[i]) * (1-nu));
+                if(j != k && (i==j ||i ==k)){
+                    SizeType m = (i==j) ? k : j;
+                    dHdD[i](j,k) = -E_factor * nu * (1 - DamageVector[m]);
+                }
+            }
+        }
+    }
+    dHdD[0](4,4) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[2]))-1) ;
+    dHdD[0](5,5) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[0]+DamageVector[1]))-1) ;
+    dHdD[1](3,3) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[1]+DamageVector[2]))-1) ;
+    dHdD[1](5,5) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[1]+DamageVector[0]))-1) ;
+    dHdD[2](3,3) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[2]+DamageVector[1]))-1) ;
+    dHdD[2](4,4) = E_factor * 0.5 * (1-2*nu) * ((0.5 * (DamageVector[2]+DamageVector[0]))-1) ;
+    KRATOS_WATCH(dDdkappa)
+    KRATOS_WATCH(dHdD)
+    GetdHdk(dHdk, dHdD, dDdkappa);
+
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -450,7 +539,7 @@ void ElasticAnisotropicDamage::VectorToTensor(
 
 void ElasticAnisotropicDamage::CalculateDerivativesofEigenvalues(
      BoundedMatrix3x6Type &DerivativesofEigenvalues,
-     const BoundedVectorType &EigenvaluesVector,
+     BoundedVectorType &EigenvaluesVector,
      const BoundedVectorVoigtType &Voigtform,
      const Variable<Vector>& rThisVariable
     )
@@ -459,26 +548,126 @@ void ElasticAnisotropicDamage::CalculateDerivativesofEigenvalues(
     BoundedMatrixType Matrixform;
     VectorToTensor(Matrixform, Voigtform, rThisVariable);
     BoundedMatrixType DerivtivesMatrix;
-    for(SizeType i = 0; i < Dimension; ++i){
-        for(SizeType j = 0; j < Dimension; ++j){
-            if(i != j && Matrixform(i,j)< eps){
-                Matrixform(i,j) = eps;
+    // for(SizeType i = 0; i < Dimension; ++i){
+    //     for(SizeType j = 0; j < Dimension; ++j){
+    //         if(i != j && Matrixform(i,j)< eps){
+    //             Matrixform(i,j) = eps;
+    //         }
+    //     }
+    // }
+    if( (fabs(EigenvaluesVector(0)-EigenvaluesVector(1)) < 2.0*eps ) && ( fabs(EigenvaluesVector(0)-EigenvaluesVector(2)) < 2.0*eps ) && ( fabs(EigenvaluesVector(1)-EigenvaluesVector(2)) < 2.0*eps ) ){
+        EigenvaluesVector(0) = EigenvaluesVector(0) + 1.1*eps;
+        EigenvaluesVector(1) = EigenvaluesVector(1) + 0.75*eps;
+        EigenvaluesVector(2) = EigenvaluesVector(2) + 0.5*eps;
+        DerivativesofEigenvalues(0,0) = 1.0;
+        DerivativesofEigenvalues(1,1) = 1.0;
+        DerivativesofEigenvalues(2,2) = 1.0;
+    }else{
+        if( fabs(EigenvaluesVector(0)-EigenvaluesVector(1)) < eps ) EigenvaluesVector(1) = EigenvaluesVector(1) - eps;
+        if( fabs(EigenvaluesVector(1)-EigenvaluesVector(2)) < eps ) EigenvaluesVector(2) = EigenvaluesVector(2) - eps;
+
+    }
+    Matrix indx = ZeroMatrix(3, 3);
+    Vector Vectorform_squared(6);
+    Vector dSprdS_entries(6);
+    Vector dI1dS = ZeroVector(6);
+    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
+
+    indx(0,1)= indx(1,0)= indx(2,2)=1.0;
+    indx(0,2)= indx(1,1)= indx(2,0)=2.0;
+    Matrix Matrixform_squared = ZeroMatrix(3,3);
+    Matrixform_squared = prod(Matrixform, Matrixform);
+    Vectorform_squared[0]= Matrixform_squared(0,0);
+    Vectorform_squared[1]= Matrixform_squared(1,1);
+    Vectorform_squared[2]= Matrixform_squared(2,2);
+    Vectorform_squared[3]= Matrixform_squared(1,2);
+    Vectorform_squared[4]= Matrixform_squared(0,2);
+    Vectorform_squared[5]= Matrixform_squared(0,1);
+
+    for(int i=0; i<3; ++i){
+        dSprdS_entries  = Vectorform_squared - ( EigenvaluesVector(indx(1,i)) + EigenvaluesVector(indx(2,i)) )*(Voigtform) + EigenvaluesVector(indx(1,i)) * EigenvaluesVector(indx(2,i)) * dI1dS;
+        dSprdS_entries /=  (EigenvaluesVector(indx(0,i)) - EigenvaluesVector(indx(1,i)) ) * ( EigenvaluesVector(indx(0,i)) - EigenvaluesVector(indx(2,i)) );
+        for(int j=0; j<6; ++j){
+            DerivativesofEigenvalues(i,j)= dSprdS_entries[j];
+        }
+        for(int k=3; k<6; ++k){
+            DerivativesofEigenvalues(i,k) *= 2.;
+        }
+    }
+    // for(SizeType i = 0; i < Dimension; ++i){
+    //     BoundedMatrixType AminusLambdaMatrix = Matrixform - EigenvaluesVector[i] * IdentityMatrix(Dimension, Dimension);
+    //     BoundedMatrixType cofactor_matrix = MathUtils<double>::CofactorMatrix(AminusLambdaMatrix);
+    //     const double trace = cofactor_matrix(0,0) + cofactor_matrix(1,1) + cofactor_matrix(2,2);
+    //     DerivtivesMatrix= (1/trace) * cofactor_matrix;
+    //     DerivativesofEigenvalues(i,0) = DerivtivesMatrix(0,0);
+    //     DerivativesofEigenvalues(i,1) = DerivtivesMatrix(1,1);
+    //     DerivativesofEigenvalues(i,2) = DerivtivesMatrix(2,2);
+    //     DerivativesofEigenvalues(i,3) = DerivtivesMatrix(1,2);
+    //     DerivativesofEigenvalues(i,4) = DerivtivesMatrix(0,2);
+    //     DerivativesofEigenvalues(i,5) = DerivtivesMatrix(0,1);
+    // }
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticAnisotropicDamage::MultiplyTensors(BoundedMatrixVoigtType& dSdE,
+    const array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+    const Vector& StrainVector
+    )
+{
+    KRATOS_TRY
+    for (SizeType i = 0; i < VoigtSize; ++i) {
+        for (SizeType j = 0; j < VoigtSize; ++j) {
+            for (SizeType k = 0; k < VoigtSize; ++k) {
+                dSdE(i,j) += dHdE[k](i,j)* StrainVector[k];
             }
         }
     }
-    for(SizeType i = 0; i < Dimension; ++i){
-        BoundedMatrixType AminusLambdaMatrix = Matrixform - EigenvaluesVector[i] * IdentityMatrix(Dimension, Dimension);
-        BoundedMatrixType cofactor_matrix = MathUtils<double>::CofactorMatrix(AminusLambdaMatrix);
-        const double trace = cofactor_matrix(0,0) + cofactor_matrix(1,1) + cofactor_matrix(2,2);
-        DerivtivesMatrix= (1/trace) * cofactor_matrix;
-        DerivativesofEigenvalues(i,0) = DerivtivesMatrix(0,0);
-        DerivativesofEigenvalues(i,1) = DerivtivesMatrix(1,1);
-        DerivativesofEigenvalues(i,2) = DerivtivesMatrix(2,2);
-        DerivativesofEigenvalues(i,3) = DerivtivesMatrix(1,2);
-        DerivativesofEigenvalues(i,4) = DerivtivesMatrix(0,2);
-        DerivativesofEigenvalues(i,5) = DerivtivesMatrix(0,1);
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticAnisotropicDamage::GetdHdk(array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdk,
+    const array_1d<BoundedMatrix<double, 6, 6>, 3>& dHdD,
+    const BoundedMatrixType& dDdkappa
+    )
+{
+    KRATOS_TRY
+    for (SizeType i = 0; i < Dimension; ++i) {
+        for (SizeType j = 0; j < VoigtSize; ++j) {
+            for (SizeType m = 0; m < VoigtSize; ++m) {
+                for (SizeType k = 0; k < Dimension; ++k) {
+                   dHdk[i](j,m) += dHdD[k](j,m) * dDdkappa(k,i);
+                }
+            }
+        }
     }
-    KRATOS_CATCH("22")
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticAnisotropicDamage::GetdHdE(array_1d<BoundedMatrix<double, 6, 6>, 6>& dHdE,
+    const array_1d<BoundedMatrix<double, 6, 6>, 3>&dHdk,
+    const BoundedMatrix3x6Type& dkdE
+    )
+{
+    KRATOS_TRY
+    for (SizeType i = 0; i < VoigtSize; ++i) {
+        for (SizeType j = 0; j < VoigtSize; ++j) {
+            for (SizeType m = 0; m < VoigtSize; ++m) {
+                for (SizeType k = 0; k < Dimension; ++k) {
+                   dHdE[i](j,m) += dHdk[k](j,m) * dkdE(k,i);
+                }
+            }
+        }
+    }
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
