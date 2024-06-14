@@ -47,7 +47,7 @@ public:
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
 
-    SmallStrainUPwDiffOrderElement() : UPwBaseElement() {}
+    using UPwBaseElement::UPwBaseElement;
 
     /// Constructor using an array of nodes
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -78,7 +78,7 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
-    
+
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
@@ -218,8 +218,6 @@ protected:
         double DtPressureCoefficient;
     };
 
-    GeometryType::Pointer mpPressureGeometry;
-
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;
 
@@ -236,11 +234,6 @@ protected:
     void InitializeProperties(ElementVariables& rVariables);
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
-
-    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                           double detJ) const;
-    std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-                                                         const Vector& rDetJs) const;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
 
@@ -306,6 +299,8 @@ protected:
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
+    GeometryType::Pointer mpPressureGeometry;
+    
     // Serialization
 
     friend class Serializer;

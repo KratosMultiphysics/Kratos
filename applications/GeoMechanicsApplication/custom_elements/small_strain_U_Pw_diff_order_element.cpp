@@ -1454,23 +1454,6 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
     return result;
 }
 
-double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                                                       double detJ) const
-{
-    return this->GetStressStatePolicy().CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
-}
-
-std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficients(
-    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
-{
-    auto result = std::vector<double>{};
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
-    });
-    return result;
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
                                                         ElementVariables& rVariables) const
 {
