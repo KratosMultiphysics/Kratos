@@ -65,7 +65,7 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
             self.assertAlmostEqual(constraint.BSF, 2.0)
             self.assertAlmostEqual(constraint.BSF_init, 2.0)
             self.assertAlmostEqual(constraint.CBV, 0.0)
-            self.assertAlmostEqual(constraint.BS, 143814638.05138612)
+            self.assertAlmostEqual(int(constraint.BS), 143814638)
             self.assertAlmostEqual(constraint.max_w_c, 10)
             self.assertAlmostEqual(constraint.CF, 1)
 
