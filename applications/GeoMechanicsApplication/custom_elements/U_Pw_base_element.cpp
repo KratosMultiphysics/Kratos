@@ -436,8 +436,7 @@ void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
 }
 
 //----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<double> UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoefficients(
+std::vector<double> UPwBaseElement::CalculateIntegrationCoefficients(
     const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
 {
     auto result = std::vector<double>{};

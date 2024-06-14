@@ -1281,7 +1281,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateMaterialStiffness
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        // Compute weighting coefficient for integration
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         // Compute stiffness matrix
