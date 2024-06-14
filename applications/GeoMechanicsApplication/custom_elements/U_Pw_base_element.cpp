@@ -19,21 +19,18 @@
 namespace Kratos
 {
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     // Base class checks for positive area and Id > 0
-    int ierr = Element::Check(rCurrentProcessInfo);
-    if (ierr != 0) return ierr;
+    if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType&   rGeom = this->GetGeometry();
 
     // verify nodal variables and dofs
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
+    for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
         if (rGeom[i].SolutionStepsDataHas(DISPLACEMENT) == false)
             KRATOS_ERROR << "missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
 
@@ -108,9 +105,9 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
                         "invalid value at element"
                      << this->Id() << std::endl;
 
-    if (TDim == 2) {
+    if (this->GetGeometry().WorkingSpaceDimension() == 2) {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
+        for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
             if (rGeom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << rGeom[i].Id() << std::endl;
         }
@@ -118,12 +115,10 @@ int UPwBaseElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInf
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -147,9 +142,9 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
 
     if (mStressVector.size() != number_of_integration_points) {
         mStressVector.resize(number_of_integration_points);
-        for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-            mStressVector[i].resize(GetStressStatePolicy().GetVoigtSize());
-            std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
+        for (auto& r_stress_vector : mStressVector) {
+            r_stress_vector.resize(GetStressStatePolicy().GetVoigtSize());
+            std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
         }
     }
 
@@ -167,40 +162,33 @@ void UPwBaseElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProc
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::ResetConstitutiveLaw()
+void UPwBaseElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    // erasing stress vectors
-    for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-        mStressVector[i].clear();
+    for (auto& r_stress_vector : mStressVector) {
+        r_stress_vector.clear();
     }
     mStressVector.clear();
 
-    for (unsigned int i = 0; i < mStateVariablesFinalized.size(); ++i) {
-        mStateVariablesFinalized[i].clear();
+    for (auto& r_state_variables : mStateVariablesFinalized) {
+        r_state_variables.clear();
     }
     mStateVariablesFinalized.clear();
 
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
+void UPwBaseElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod UPwBaseElement<TDim, TNumNodes>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
 {
     GeometryData::IntegrationMethod GI_GAUSS;
 
-    switch (TNumNodes) {
+    switch (this->GetGeometry().PointsNumber()) {
     case 3:
         GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
         break;
@@ -221,11 +209,9 @@ GeometryData::IntegrationMethod UPwBaseElement<TDim, TNumNodes>::GetIntegrationM
     return GI_GAUSS;
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                           VectorType&        rRightHandSideVector,
-                                                           const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                                          VectorType&        rRightHandSideVector,
+                                          const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -239,10 +225,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rL
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
-                                                            const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -256,10 +239,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        r
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                             const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -273,16 +253,12 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateRightHandSide(VectorType& rRightH
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
+void UPwBaseElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -293,10 +269,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatri
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
-                                                             const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -315,32 +288,24 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType&        
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
+void UPwBaseElement::GetValuesVector(Vector& rValues, int Step) const
 {
     rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
+void UPwBaseElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
+void UPwBaseElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                   const std::vector<Vector>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
+                                                  const std::vector<Vector>& rValues,
+                                                  const ProcessInfo&         rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -350,11 +315,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                   const std::vector<Matrix>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVariable,
+                                                  const std::vector<Matrix>& rValues,
+                                                  const ProcessInfo&         rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -365,11 +328,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                                                   const std::vector<double>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
+                                                  const std::vector<double>& rValues,
+                                                  const ProcessInfo&         rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -380,11 +341,9 @@ void UPwBaseElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                                                   std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                                  std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -398,11 +357,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
-                                                                   std::vector<array_1d<double, 3>>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                                  std::vector<array_1d<double, 3>>&    rValues,
+                                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -413,11 +370,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                   std::vector<Matrix>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                  std::vector<Matrix>&    rValues,
+                                                  const ProcessInfo&      rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -428,11 +383,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                   std::vector<Vector>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                  std::vector<Vector>&    rValues,
+                                                  const ProcessInfo&      rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -443,11 +396,9 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                                                   std::vector<double>& rValues,
-                                                                   const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                  std::vector<double>&    rValues,
+                                                  const ProcessInfo&      rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -458,10 +409,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variabl
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
-                                                                       const ProcessInfo& CurrentProcessInfo)
+void UPwBaseElement::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -472,14 +420,11 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixTyp
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                   VectorType&        rRightHandSideVector,
-                                                   const ProcessInfo& CurrentProcessInfo,
-                                                   const bool         CalculateStiffnessMatrixFlag,
-                                                   const bool         CalculateResidualVectorFlag)
+void UPwBaseElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
+                                  VectorType&        rRightHandSideVector,
+                                  const ProcessInfo& CurrentProcessInfo,
+                                  const bool         CalculateStiffnessMatrixFlag,
+                                  const bool         CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -503,9 +448,7 @@ std::vector<double> UPwBaseElement<TDim, TNumNodes>::CalculateIntegrationCoeffic
     return result;
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration(
+void UPwBaseElement::CalculateDerivativesOnInitialConfiguration(
     double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int GPoint) const
 {
     KRATOS_TRY
@@ -522,12 +465,7 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                                              Matrix& rJ,
-                                                                              Matrix& rInvJ,
-                                                                              unsigned int GPoint) const
+void UPwBaseElement::CalculateJacobianOnCurrentConfiguration(double& detJ, Matrix& rJ, Matrix& rInvJ, unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -537,40 +475,17 @@ void UPwBaseElement<TDim, TNumNodes>::CalculateJacobianOnCurrentConfiguration(do
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-template <unsigned int TDim, unsigned int TNumNodes>
-unsigned int UPwBaseElement<TDim, TNumNodes>::GetNumberOfDOF() const
+std::size_t UPwBaseElement::GetNumberOfDOF() const
 {
-    return TNumNodes * (TDim + 1);
+    return this->GetGeometry().PointsNumber() * (this->GetGeometry().WorkingSpaceDimension() + 1);
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-Element::DofsVectorType UPwBaseElement<TDim, TNumNodes>::GetDofs() const
+Element::DofsVectorType UPwBaseElement::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(this->GetGeometry(),
                                                       this->GetGeometry().WorkingSpaceDimension());
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-StressStatePolicy& UPwBaseElement<TDim, TNumNodes>::GetStressStatePolicy() const
-{
-    return *mpStressStatePolicy;
-}
-
-//----------------------------------------------------------------------------------------
-template class UPwBaseElement<2, 3>;
-template class UPwBaseElement<2, 4>;
-template class UPwBaseElement<3, 4>;
-template class UPwBaseElement<3, 6>;
-template class UPwBaseElement<3, 8>;
-
-template class UPwBaseElement<2, 6>;
-template class UPwBaseElement<2, 8>;
-template class UPwBaseElement<2, 9>;
-template class UPwBaseElement<2, 10>;
-template class UPwBaseElement<2, 15>;
-template class UPwBaseElement<3, 10>;
-template class UPwBaseElement<3, 20>;
-template class UPwBaseElement<3, 27>;
+StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }
 
 } // Namespace Kratos

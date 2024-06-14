@@ -211,9 +211,7 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&             rLeftHandSideMatrix,
-                                                 const ElementVariables& rVariables,
-                                                 unsigned int            GPoint);
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
 
     ///@}
     ///@name Protected Operations
@@ -230,6 +228,11 @@ protected:
     ///@}
 
 private:
+    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
+                                                 const Vector& rStressVector,
+                                                 const Matrix& rDNuDx,
+                                                 const double  IntegrationCoefficient) const;
+
     ///@name Static Member Variables
     ///@{
 

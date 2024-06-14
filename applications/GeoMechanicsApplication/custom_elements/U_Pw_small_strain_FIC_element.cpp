@@ -46,7 +46,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    UPwBaseElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
 
     auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < TDim; ++i) {
@@ -86,7 +86,7 @@ int UPwSmallStrainFICElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------------------
