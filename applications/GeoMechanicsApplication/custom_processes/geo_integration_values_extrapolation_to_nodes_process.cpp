@@ -13,7 +13,6 @@
 //                   Richard Faasse
 
 #include "custom_processes/geo_integration_values_extrapolation_to_nodes_process.h"
-#include "custom_utilities/nodal_extrapolator.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 

@@ -19,6 +19,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_utilities/nodal_extrapolator.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
