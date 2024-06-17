@@ -293,7 +293,7 @@ class RomManager(object):
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-                NonConvergedSolutionsGathering = self.general_rom_manager_parameters["ROM"]["store_nonconverged_fom_solutions"].GetBool()
+                NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
                 if NonConvergedSolutionsGathering:
                     simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
@@ -312,7 +312,7 @@ class RomManager(object):
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
-            if self.general_rom_manager_parameters["ROM"]["store_nonconverged_fom_solutions"].GetBool():
+            if self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool():
                 u,sigma = BasisOutputProcess._ComputeSVD(nonconverged = True,data_base =  self.data_base, mu_train=mu_train )
             else:
                 u,sigma = BasisOutputProcess._ComputeSVD(snapshots_matrix =self.data_base.get_snapshots_matrix_from_database(mu_train), nonconverged = False) #Calling the RomOutput Process for creating the RomParameter.json
@@ -797,6 +797,7 @@ class RomManager(object):
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "output_name": "id",                         // "id" , "mu"
+            "store_nonconverged_fom_solutions": false,
             "ROM":{
                 "svd_truncation_tolerance": 1e-5,
                 "model_part_name": "Structure",                            // This changes depending on the simulation: Structure, FluidModelPart, ThermalPart #TODO: Idenfity it automatically
@@ -807,7 +808,7 @@ class RomManager(object):
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
                 "print_singular_values": false,
-                "store_nonconverged_fom_solutions" : false,
+                "use_non_converged_sols" : false,
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
