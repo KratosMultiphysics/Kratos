@@ -124,14 +124,14 @@ class RomManager(object):
 
     def TrainAnnEnhancedROM(self, mu_train, mu_validation):
         counter = 0
-        self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
+        self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter)
         in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
         if not in_database:
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
         elif in_database and self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["retrain_if_exists"].GetBool():
             while in_database:
                 counter+=1
-                self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["training"]["model_number"].SetInt(counter)
+                self.general_rom_manager_parameters["ROM"]["ann_enhanced_settings"]["online"]["model_number"].SetInt(counter) #the model launched, if not changed, will be the one trained last
                 in_database, _ = self.data_base.check_if_in_database("Neural_Network", mu_train)
             self._LaunchTrainNeuralNetwork(mu_train,mu_validation)
 
@@ -834,8 +834,7 @@ class RomManager(object):
                         "additional_params": [1e-4, 10, 400]
                     },
                     "training":{
-                        "retrain_if_exists" : false,  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
-                        "model_number" : 0     // this part of the parameters will be updated with the number of trained models that exist for the same mu_train and NN hyperparameters combination
+                        "retrain_if_exists" : false  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
                     },
                     "online":{
                         "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched
