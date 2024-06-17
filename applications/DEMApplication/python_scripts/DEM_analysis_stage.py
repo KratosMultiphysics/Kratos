@@ -543,12 +543,19 @@ class DEMAnalysisStage(AnalysisStage):
         delta_time = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
 
-        self.BoundingBoxMinX_update += delta_time * move_velocity
-        self.BoundingBoxMinY_update += delta_time * move_velocity
-        self.BoundingBoxMinZ_update += delta_time * move_velocity
-        self.BoundingBoxMaxX_update -= delta_time * move_velocity
-        self.BoundingBoxMaxY_update -= delta_time * move_velocity
-        self.BoundingBoxMaxZ_update -= delta_time * move_velocity
+        control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
+        if control_bool_vector[0]:
+            self.BoundingBoxMinX_update += delta_time * move_velocity
+        if control_bool_vector[1]:
+            self.BoundingBoxMinY_update += delta_time * move_velocity
+        if control_bool_vector[2]:
+            self.BoundingBoxMinZ_update += delta_time * move_velocity
+        if control_bool_vector[3]:
+            self.BoundingBoxMaxX_update -= delta_time * move_velocity
+        if control_bool_vector[4]:
+            self.BoundingBoxMaxY_update -= delta_time * move_velocity
+        if control_bool_vector[5]:
+            self.BoundingBoxMaxZ_update -= delta_time * move_velocity
 
         self._GetSolver().search_strategy = OMP_DEMSearch(self.BoundingBoxMinX_update,
                                                         self.BoundingBoxMinY_update,

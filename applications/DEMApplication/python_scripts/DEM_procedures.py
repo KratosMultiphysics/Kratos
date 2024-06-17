@@ -835,12 +835,19 @@ class Procedures():
         
         b_box_low = Array3()
         b_box_high = Array3()
-        self.b_box_minX += delta_time * move_velocity
-        self.b_box_minY += delta_time * move_velocity
-        self.b_box_minZ += delta_time * move_velocity
-        self.b_box_maxX -= delta_time * move_velocity
-        self.b_box_maxY -= delta_time * move_velocity
-        self.b_box_maxZ -= delta_time * move_velocity
+        control_bool_vector = self.DEM_parameters["BoundingBoxMoveOptionDetail"].GetVector()
+        if control_bool_vector[0]:
+            self.b_box_minX += delta_time * move_velocity
+        if control_bool_vector[1]:
+            self.b_box_minY += delta_time * move_velocity
+        if control_bool_vector[2]:
+            self.b_box_minZ += delta_time * move_velocity
+        if control_bool_vector[3]:
+            self.b_box_maxX -= delta_time * move_velocity
+        if control_bool_vector[4]:
+            self.b_box_maxY -= delta_time * move_velocity
+        if control_bool_vector[5]:
+            self.b_box_maxZ -= delta_time * move_velocity
         b_box_low[0] = self.b_box_minX
         b_box_low[1] = self.b_box_minY
         b_box_low[2] = self.b_box_minZ
