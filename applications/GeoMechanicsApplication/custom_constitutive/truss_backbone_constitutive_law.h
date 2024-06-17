@@ -33,13 +33,11 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TrussBackboneConstitutiveLaw : public ConstitutiveLaw
 {
 public:
-    using ProcessInfoType = ProcessInfo;
-    using BaseType        = ConstitutiveLaw;
-    using SizeType        = std::size_t;
+    using BaseType = ConstitutiveLaw;
 
     KRATOS_CLASS_POINTER_DEFINITION(TrussBackboneConstitutiveLaw);
 
-    ConstitutiveLaw::Pointer Clone() const override;
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     void GetLawFeatures(Features& rFeatures) override;
 
@@ -61,9 +59,9 @@ public:
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
-    bool RequiresInitializeMaterialResponse() override { return false; }
+    bool RequiresInitializeMaterialResponse() override;
 
-    SizeType GetStrainSize() const override { return 1; }
+    [[nodiscard]] SizeType GetStrainSize() const override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -74,37 +72,22 @@ public:
      * @param rElementGeometry: The geometry of the element
      * @param rCurrentProcessInfo: The current process info instance
      */
-    int Check(const Properties&   rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo&  rCurrentProcessInfo) const override;
+    [[nodiscard]] int Check(const Properties&   rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
     double mAccumulatedStrain   = 0.;
     double mPreviousAxialStrain = 0.;
     double mUnReLoadCenter      = 0.;
 
-    double BackboneStress(const double Strain) const;
-    double BackboneStiffness(const double Strain) const;
-    double CalculateUnReLoadAmplitude(ConstitutiveLaw::Parameters& rParameterValues) const;
-    bool IsWithinUnReLoading(const double Strain, ConstitutiveLaw::Parameters& rParameterValues) const;
+    [[nodiscard]] double BackboneStress(double Strain) const;
+    [[nodiscard]] double BackboneStiffness(double Strain) const;
+    [[nodiscard]] double CalculateUnReLoadAmplitude(double YoungsModulus) const;
+    [[nodiscard]] bool IsWithinUnReLoading(double Strain, double YoungsModulus) const;
 
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("AccumulatedStrain", mAccumulatedStrain);
-        rSerializer.save("PreviousAxialStrain", mPreviousAxialStrain);
-        rSerializer.save("UnReload", mUnReLoadCenter);
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("AccumulatedStrain", mAccumulatedStrain);
-        rSerializer.load("PreviousAxialStrain", mPreviousAxialStrain);
-        rSerializer.load("UnReload", mUnReLoadCenter);
-    }
-
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // Class TrussBackboneConstitutiveLaw
 } // namespace Kratos.
