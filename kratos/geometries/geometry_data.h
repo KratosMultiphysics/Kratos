@@ -84,6 +84,8 @@ public:
         GI_EXTENDED_GAUSS_3,
         GI_EXTENDED_GAUSS_4,
         GI_EXTENDED_GAUSS_5,
+        GI_LOBATTO_1,
+        GI_LOBATTO_2,
         NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
 
