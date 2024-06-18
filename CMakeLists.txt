@@ -5,6 +5,9 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
+# Defining the base source folder
+set(KRATOS_BASE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Setting some policies
 # No recursive dereferencing
 if(POLICY CMP0054)
@@ -498,7 +501,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
         endif(NOT DEFINED TETGEN_LIBRARIES)
     elseif(DEFINED USE_TETGEN_NONFREE_TPL_URL)
         # Use TetGen from external source (download)
-        set(TETGEN_EXT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen)
+        set(TETGEN_EXT_PATH ${KRATOS_BASE_FOLDER}/external_libraries/tetgen)
 
         find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
         if(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
