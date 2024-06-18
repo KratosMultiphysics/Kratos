@@ -99,7 +99,7 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         ;
 
     py::class_<MeasurementResidualResponseFunction, MeasurementResidualResponseFunction::Pointer, AdjointResponseFunction>(sensor_module, "MeasurementResidualResponseFunction")
-        .def(py::init<const double>())
+        .def(py::init<const double>(), py::arg("p_coefficient"))
         .def("AddSensor", &MeasurementResidualResponseFunction::AddSensor, py::arg("sensor"))
         .def("Clear", &MeasurementResidualResponseFunction::Clear)
         .def("GetSensorsList", &MeasurementResidualResponseFunction::GetSensorsList)
