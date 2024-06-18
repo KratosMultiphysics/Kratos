@@ -8,7 +8,9 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//
+//                   Jonathan Nuttall
+//                   Wijtze Pieter Kikstra
+//                   Richard Faasse
 
 #pragma once
 
@@ -121,8 +123,7 @@ private:
             }
             source /= r_this_geometry[iNode].GetValue(mrAverageVariable);
 
-            T& destination = r_this_geometry[iNode].FastGetSolutionStepValue(rVariable);
-            rAtomicAddOperation(destination, source);
+            rAtomicAddOperation(r_this_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
         }
     }
 
