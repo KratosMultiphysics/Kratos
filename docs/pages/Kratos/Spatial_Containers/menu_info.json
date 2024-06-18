@@ -1,8 +1,12 @@
 {
     "side_bar_name": "kratos_spatial_containers",
-    "landing_page": "tree.md",
+    "landing_page": "Trees_And_Searches/tree.md",
     "additional_menu_options": {
         "title": "sidebar",
         "product": "Spatial Containers"
-    }
+    },
+    "custom_entries": [
+        "Trees_And_Searches",
+        "Search_Containers"
+    ]
 }

@@ -57,4 +57,4 @@ The `TreeNode` class is a generic node in a tree data structure that organizes s
 
 ## Usage
 
-**TODO**
+Examples in from [`KDTree`](kd_tree.md), [`OcTree`](octree.md), [`BinsDynamic`](bins_dynamic.md) and [`BinsStatic`](bins_static.md)  classes.
