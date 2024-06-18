@@ -255,7 +255,7 @@ void UPwBaseElement::CalculateRightHandSide(VectorType& rRightHandSideVector, co
 
 void UPwBaseElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
 {
-    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
+    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(this->GetDofs());
 }
 
 void UPwBaseElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)

@@ -79,8 +79,6 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
-
     void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;

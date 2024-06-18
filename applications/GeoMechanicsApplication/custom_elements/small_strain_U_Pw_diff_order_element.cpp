@@ -300,11 +300,6 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
-{
-    rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
-}
-
 void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
