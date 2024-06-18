@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <cmath>
 
 // Project includes
 #include "expression/expression.h"
@@ -23,10 +24,14 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/**
- * @brief Unary abs expression used to get the absolute values of a given input expression.
- */
-class KRATOS_API(KRATOS_CORE) UnaryAbsExpression : public Expression {
+namespace UnaryOperations
+{
+    struct Absolute   { static inline double Evaluate(const double V) { return std::abs(V); } };
+    struct Logarithm  { static inline double Evaluate(const double V) { return std::log(V); } };
+}
+
+template <class TOperationType>
+class KRATOS_API(KRATOS_CORE) UnaryExpression : public Expression {
 public:
     ///@name Type definitions
     ///@{
@@ -37,7 +42,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    UnaryAbsExpression(Expression::ConstPointer pExpression);
+    UnaryExpression(Expression::ConstPointer pExpression);
 
     ///@}
     ///@name Public operations

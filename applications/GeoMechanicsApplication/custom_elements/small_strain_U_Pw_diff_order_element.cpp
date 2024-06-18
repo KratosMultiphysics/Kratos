@@ -34,43 +34,20 @@
 
 namespace Kratos
 {
-
-// Default Constructor
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement() : Element() {}
-
-// Constructor 1
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
-                                                               GeometryType::Pointer pGeometry,
-                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-    : Element(NewId, pGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
-{
-}
-
-// Constructor 2
-SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType               NewId,
-                                                               GeometryType::Pointer   pGeometry,
-                                                               PropertiesType::Pointer pProperties,
-                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-    : Element(NewId, pGeometry, pProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
-{
-}
-
-SmallStrainUPwDiffOrderElement::~SmallStrainUPwDiffOrderElement() = default;
-
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new SmallStrainUPwDiffOrderElement(
-        NewId, GetGeometry().Create(ThisNodes), pProperties, mpStressStatePolicy->Clone()));
+        NewId, GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new SmallStrainUPwDiffOrderElement(NewId, pGeom, pProperties, mpStressStatePolicy->Clone()));
+    return Element::Pointer(new SmallStrainUPwDiffOrderElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
 }
 
 int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -408,7 +385,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
         GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(r_geom, integration_method);
 
     const auto integration_coefficients =
-        CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
+        this->CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
     const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
         r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
@@ -999,8 +976,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        RetentionLaw::Parameters RetentionParameters(GetProperties());
-
         const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
@@ -1012,18 +987,15 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                                              strain_vectors, mStressVector, constitutive_matrices);
         const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
             constitutive_matrices, this->GetProperties());
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            Variables.NpContainer, Variables.PressureVector);
+        const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressure(
-                Variables.Np, Variables.PressureVector);
-            RetentionParameters.SetFluidPressure(fluid_pressure);
-            const auto bishop_coefficient =
-                mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
-
-            rOutput[GPoint] = mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
-                                                          bishop_coefficient * fluid_pressure *
-                                                          GetStressStatePolicy().GetVoigtVector();
+            rOutput[GPoint] =
+                mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
+                                            bishop_coefficients[GPoint] * fluid_pressures[GPoint] *
+                                            GetStressStatePolicy().GetVoigtVector();
         }
     } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
         ElementVariables Variables;
@@ -1138,7 +1110,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
     const auto integration_coefficients =
-        CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
+
+    const auto det_Js_initial_configuration =
+        GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(rGeom, this->GetIntegrationMethod());
+
+    const auto integration_coefficients_on_initial_configuration =
+        this->CalculateIntegrationCoefficients(IntegrationPoints, det_Js_initial_configuration);
+
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
@@ -1156,11 +1135,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, rProp);
     auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
-    const auto permeability_update_factors =
-        GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors, GetProperties());
-    std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                   permeability_update_factors.cbegin(), relative_permeability_values.begin(),
+    const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
+
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     for (unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint) {
@@ -1178,8 +1157,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
-        Variables.IntegrationCoefficientInitialConfiguration = this->CalculateIntegrationCoefficient(
-            IntegrationPoints[GPoint], Variables.detJInitialConfiguration);
+        Variables.IntegrationCoefficientInitialConfiguration =
+            integration_coefficients_on_initial_configuration[GPoint];
 
         // Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -1190,6 +1169,11 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     }
 
     KRATOS_CATCH("")
+}
+
+std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const
+{
+    return GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(rStrainVectors, GetProperties());
 }
 
 std::vector<double> SmallStrainUPwDiffOrderElement::CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures)
@@ -1246,13 +1230,13 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        mpStressStatePolicy->GetVoigtSize());
+        this->GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto integration_coefficients =
-        CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
+        this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJuContainer);
 
     const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
         b_matrices, constitutive_matrices, integration_coefficients);
@@ -1327,7 +1311,7 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     }
 
     // Variables computed at each integration point
-    const SizeType VoigtSize = mpStressStatePolicy->GetVoigtSize();
+    const SizeType VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
 
     rVariables.B.resize(VoigtSize, NumUNodes * Dim, false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize, NumUNodes * Dim);
@@ -1461,26 +1445,9 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementVariables& rVari
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration(
-    double& detJ, Matrix& J0, Matrix& InvJ0, Matrix& DNu_DX0, unsigned int GPoint) const
-{
-    KRATOS_TRY
-
-    const GeometryType&                             rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        rGeom.IntegrationPoints(this->GetIntegrationMethod());
-
-    GeometryUtils::JacobianOnInitialConfiguration(rGeom, IntegrationPoints[GPoint], J0);
-    const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod())[GPoint];
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ);
-    GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
-
-    KRATOS_CATCH("")
-}
-
 Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
-    return mpStressStatePolicy->CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
+    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
 }
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
@@ -1491,23 +1458,6 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
         result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
     }
 
-    return result;
-}
-
-double SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                                                       double detJ) const
-{
-    return mpStressStatePolicy->CalculateIntegrationCoefficient(rIntegrationPoint, detJ, GetGeometry());
-}
-
-std::vector<double> SmallStrainUPwDiffOrderElement::CalculateIntegrationCoefficients(
-    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints, const Vector& rDetJs) const
-{
-    auto result = std::vector<double>{};
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                   std::back_inserter(result), [this](const auto& rIntegrationPoint, const auto& rDetJ) {
-        return this->CalculateIntegrationCoefficient(rIntegrationPoint, rDetJ);
-    });
     return result;
 }
 
@@ -1565,16 +1515,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                          ElementVariables& rVariables) const
+                                                                          const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    Matrix CompressibilityMatrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
+    const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
-    // Distribute compressibility block matrix into the elemental matrix
     GeoElementUtilities::AssemblePPBlockMatrix(
-        rLeftHandSideMatrix, CompressibilityMatrix * rVariables.DtPressureCoefficient);
+        rLeftHandSideMatrix, compressibility_matrix * rVariables.DtPressureCoefficient);
 
     KRATOS_CATCH("")
 }
@@ -1603,14 +1552,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddRHS(VectorType&       rRight
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
-                                                                   ElementVariables& rVariables,
-                                                                   unsigned int      GPoint)
+                                                                   const ElementVariables& rVariables,
+                                                                   unsigned int GPoint)
 {
     KRATOS_TRY
 
-    Vector StiffnessForce =
+    Vector stiffness_force =
         -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, StiffnessForce);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
 
     KRATOS_CATCH("")
 }
@@ -1647,22 +1596,22 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRi
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
-                                                                  ElementVariables& rVariables) const
+                                                                  const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    Matrix CouplingMatrix = (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                                         rVariables.B, GetStressStatePolicy().GetVoigtVector(),
-                                         rVariables.Np, rVariables.BiotCoefficient,
-                                         rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-    Vector CouplingForce = prod(CouplingMatrix, rVariables.PressureVector);
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, CouplingForce);
+    const Matrix coupling_matrix =
+        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                     rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                     rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+    const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
     if (!rVariables.IgnoreUndrained) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-        Vector CouplingFlow = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
-                              prod(trans(CouplingMatrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, CouplingFlow);
+        const Vector coupling_flow = PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
+                                     prod(trans(coupling_matrix), rVariables.VelocityVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow);
     }
 
     KRATOS_CATCH("")
@@ -1712,81 +1661,57 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                     ElementVariables& rVariables) const
+                                                                     const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
-    Matrix PermeabilityMatrix =
+    const Matrix permeability_matrix =
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, Matrix(prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)))) *
         rVariables.IntegrationCoefficient;
 
-    Vector PermeabilityFlow = -prod(PermeabilityMatrix, rVariables.PressureVector);
+    const Vector permeability_flow = -prod(permeability_matrix, rVariables.PressureVector);
 
-    // Distribute permeability block vector into the elemental vector
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, PermeabilityFlow);
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);
 
     KRATOS_CATCH("")
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                  ElementVariables& rVariables)
+                                                                  const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    Matrix GradNpTPerm =
+    const Matrix grad_Np_T_perm =
         rVariables.DynamicViscosityInverse * GetProperties()[DENSITY_WATER] * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, rVariables.IntrinsicPermeability) * rVariables.IntegrationCoefficient;
 
-    const GeometryType& rGeom     = GetGeometry();
-    const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-    const SizeType      NumUNodes = rGeom.PointsNumber();
-    const SizeType      NumPNodes = mpPressureGeometry->PointsNumber();
+    const GeometryType& r_geom      = GetGeometry();
+    const SizeType      dimension   = r_geom.WorkingSpaceDimension();
+    const SizeType      num_U_nodes = r_geom.PointsNumber();
+    const SizeType      num_P_nodes = mpPressureGeometry->PointsNumber();
 
-    Vector BodyAcceleration = ZeroVector(Dim);
+    Vector body_acceleration = ZeroVector(dimension);
 
-    SizeType Index = 0;
-    for (SizeType i = 0; i < NumUNodes; ++i) {
-        for (SizeType idim = 0; idim < Dim; ++idim) {
-            BodyAcceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index++];
+    SizeType index = 0;
+    for (SizeType i = 0; i < num_U_nodes; ++i) {
+        for (SizeType idim = 0; idim < dimension; ++idim) {
+            body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[index];
+            index++;
         }
     }
 
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rRightHandSideVector[NumUNodes * Dim + i] += inner_prod(row(GradNpTPerm, i), BodyAcceleration);
+    for (SizeType i = 0; i < num_P_nodes; ++i) {
+        rRightHandSideVector[num_U_nodes * dimension + i] +=
+            inner_prod(row(grad_Np_T_perm, i), body_acceleration);
     }
 
     KRATOS_CATCH("")
 }
 
-GeometryData::IntegrationMethod SmallStrainUPwDiffOrderElement::GetIntegrationMethod() const
-{
-    GeometryData::IntegrationMethod GI_GAUSS;
-
-    switch (GetGeometry().PointsNumber()) {
-    case 3:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 6:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    case 10:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
-        break;
-    case 15:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
-        break;
-    default:
-        GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        break;
-    }
-
-    return GI_GAUSS;
-}
-
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    return mpStressStatePolicy->CalculateGreenLagrangeStrain(rDeformationGradient);
+    return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int GPoint) const
@@ -1827,19 +1752,6 @@ std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateDeformationGradient
     return result;
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration(double& detJ,
-                                                                             Matrix& rJ,
-                                                                             Matrix& rInvJ,
-                                                                             unsigned int GPoint) const
-{
-    KRATOS_TRY
-
-    rJ = GetGeometry().Jacobian(rJ, GPoint, this->GetIntegrationMethod());
-    MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ);
-
-    KRATOS_CATCH("")
-}
-
 SizeType SmallStrainUPwDiffOrderElement::GetNumberOfDOF() const
 {
     return GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension() +
@@ -1850,11 +1762,6 @@ Element::DofsVectorType SmallStrainUPwDiffOrderElement::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), *mpPressureGeometry,
                                                       GetGeometry().WorkingSpaceDimension());
-}
-
-const StressStatePolicy& SmallStrainUPwDiffOrderElement::GetStressStatePolicy() const
-{
-    return *mpStressStatePolicy;
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector()

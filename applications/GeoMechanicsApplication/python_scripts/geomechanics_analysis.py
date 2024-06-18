@@ -215,8 +215,9 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
-            for node in self._GetSolver().GetComputingModelPart().Nodes:
-                self._CalculateIncrementalDisplacement(node)
+            if self._GetSolver().settings["solver_type"].GetString() == "U_Pw":
+                for node in self._GetSolver().GetComputingModelPart().Nodes:
+                    self._CalculateIncrementalDisplacement(node)
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
