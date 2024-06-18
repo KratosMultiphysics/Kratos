@@ -581,22 +581,6 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                                                  std::vector<ConstitutiveLaw::Pointer>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    if (rVariable == CONSTITUTIVE_LAW) {
-        rValues.resize(mConstitutiveLawVector.size());
-        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-            rValues[i] = mConstitutiveLawVector[i];
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                                   std::vector<double>&    rOutput,
                                                                   const ProcessInfo& rCurrentProcessInfo)

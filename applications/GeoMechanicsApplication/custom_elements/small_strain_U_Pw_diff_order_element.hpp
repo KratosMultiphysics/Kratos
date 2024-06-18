@@ -107,10 +107,6 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      std::vector<ConstitutiveLaw::Pointer>&    rValues,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
     using Element::CalculateOnIntegrationPoints;
 
     // Turn back information as a string.
