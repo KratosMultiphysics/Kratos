@@ -433,47 +433,8 @@ Matrix& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
     Matrix& rValue
     )
 {
-    if (rThisVariable == SECANT_CONSTITUTIVE_MATRIX) {
-        rValue.resize(VoigtSize, VoigtSize, false);
-        // Integrate Stress Damage
-        const Flags& r_constitutive_law_options = rValues.GetOptions();
 
-        // We get the strain vector
-        auto& r_strain_vector = rValues.GetStrainVector();
-
-        //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
-        }
-
-        auto constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
-
-        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
-
-        // Converged values
-        double threshold = this->GetThreshold();
-        double damage = this->GetDamage();
-
-        // S0 = C:(E-E0) + S0
-        BoundedArrayType predictive_stress_vector = prod(constitutive_matrix, r_strain_vector);
-        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
-
-        double uniaxial_stress;
-        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-
-        const double F = uniaxial_stress - threshold;
-
-        if (F > threshold_tolerance) { // Elastic case
-            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-            // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
-        }
-        noalias(rValue) = constitutive_matrix * (1.0 - damage);
-        return rValue;
-    } else {
     return BaseType::CalculateValue(rValues, rThisVariable, rValue);
-    }
 }
 
 /***********************************************************************************/
