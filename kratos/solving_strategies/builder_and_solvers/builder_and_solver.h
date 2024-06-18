@@ -648,6 +648,40 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Temporary virtual definition for its use in the RomApplication
+     * @param rRomUnknowns Reduced solution to be decoded
+     * @param rx Vector to hold resulting full-space solution
+     */
+    virtual void GetXAndDecoderGradient(
+        Vector rRomUnknowns,
+        Vector& rx)
+    {
+        KRATOS_ERROR << "GetXAndDecoderGradient is not implemented in base BuilderAndSolver" << std::endl;
+    }
+
+    /**
+     * @brief Temporary virtual definition for its use in the RomApplication
+     * @param rRomUnknowns Reduced solution to be decoded
+     * @param rx Vector to hold resulting full-space solution
+     */
+    virtual void GetXFromDecoder(
+        Vector rRomUnknowns,
+        Vector& rx)
+    {
+        KRATOS_ERROR << "GetXFromDecoder is not implemented in base BuilderAndSolver" << std::endl;
+    }
+
+    /**
+     * @brief Temporary virtual definition for its use in the RomApplication
+     * @returns Phi_effective matrix.
+     */
+    virtual Matrix GetPhiEffectiveMatrix()
+    const
+    {
+        KRATOS_ERROR << "GetPhiEffectiveMatrix is not implemented in base BuilderAndSolver" << std::endl;
+    }
+
     ///@}
     ///@name Access
     ///@{

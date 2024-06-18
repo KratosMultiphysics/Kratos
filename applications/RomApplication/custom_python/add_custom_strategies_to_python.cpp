@@ -33,6 +33,12 @@
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
 #include "custom_strategies/global_petrov_galerkin_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_global_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_lspg_rom_builder_and_solver.h"
+#include "custom_strategies/ann_prom_line_search_strategy.h"
+
+/* Convergence criterias */
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -51,6 +57,27 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+
+    typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
+
+    typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+
+    //********************************************************************
+    //********************************************************************
+
+    typedef AnnPromLineSearchStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLineSearchStrategyType;
+
+    // Line search Contact Strategy
+    py::class_< AnnPromLineSearchStrategyType,
+        typename AnnPromLineSearchStrategyType::Pointer,
+        BaseSolvingStrategyType  >(m, "AnnPromLineSearchStrategy")
+        .def(py::init < ModelPart&, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
+        ;
+
 
     //********************************************************************
     //********************************************************************
@@ -86,6 +113,30 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<GlobalPetrovGalerkinROMBuilderAndSolverType, typename GlobalPetrovGalerkinROMBuilderAndSolverType::Pointer, GlobalROMBuilderAndSolverType>(m, "GlobalPetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
+
+
+    typedef AnnPromGlobalROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromGlobalROMBuilderAndSolverType;
+
+    py::class_<AnnPromGlobalROMBuilderAndSolverType, typename AnnPromGlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromGlobalROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetNumberOfNNLayers", &AnnPromGlobalROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetNNLayer", &AnnPromGlobalROMBuilderAndSolverType::SetNNLayer)
+    .def("SetPhiMatrices", &AnnPromGlobalROMBuilderAndSolverType::SetPhiMatrices)
+    .def("SetReferenceSnapshot", &AnnPromGlobalROMBuilderAndSolverType::SetReferenceSnapshot)
+    ;
+
+    typedef AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+
+    py::class_<AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("SetNumberOfROMModes", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfROMModes)
+    .def("SetNumberOfNNLayers", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNumberOfNNLayers)
+    .def("SetNNLayer", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetNNLayer)
+    .def("SetPhiMatrices", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetPhiMatrices)
+    .def("SetReferenceSnapshot", &AnnPromLeastSquaresPetrovGalerkinROMBuilderAndSolverType::SetReferenceSnapshot)
+    ;
+
 
 
 }
