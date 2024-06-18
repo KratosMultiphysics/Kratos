@@ -67,9 +67,9 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
         # #self.max_force=0.00625 # for bigger domain
         # self.force_slope=self.max_force/self.timesteps
         # pointload=min(self.force_slope*self.step,self.max_force)
-        for node in self.model_part.Nodes:
+        # for node in self.model_part.Nodes:
 
-            print("#############################################      node.Id ",node.Id," COUPLING FORCE ON PARTICLE  = ",node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE))
+        #     print("#############################################      node.Id ",node.Id," COUPLING FORCE ON PARTICLE  = ",node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE))
             
         #     particle_weight = node.GetSolutionStepValue(VCA.PARTICLE_COUPLING_WEIGHT)
         #     if(particle_weight==0):
