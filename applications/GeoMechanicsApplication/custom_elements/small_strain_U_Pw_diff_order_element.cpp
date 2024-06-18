@@ -539,19 +539,6 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-                                                                  const std::vector<double>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
-    }
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                                   const std::vector<Vector>& rValues,
                                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -572,19 +559,6 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
         for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
             mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
         }
-    }
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                  const std::vector<Matrix>& rValues,
-                                                                  const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
     }
 
     KRATOS_CATCH("")
