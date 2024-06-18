@@ -218,24 +218,6 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::ResetConstitutiveLaw()
-{
-    KRATOS_TRY
-
-    // erasing stress vectors
-    for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-        mStressVector[i].clear();
-    }
-    mStressVector.clear();
-
-    for (unsigned int i = 0; i < mStateVariablesFinalized.size(); ++i) {
-        mStateVariablesFinalized[i].clear();
-    }
-    mStateVariablesFinalized.clear();
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -314,26 +296,6 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix
 
     rMassMatrix = ZeroMatrix(GetNumberOfDOF(), GetNumberOfDOF());
     GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateDampingMatrix(MatrixType&        rDampingMatrix,
-                                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    MatrixType mass_matrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-
-    MatrixType stiffness_matrix = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    this->CalculateMaterialStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
-
-    const auto& r_prop = this->GetProperties();
-    rDampingMatrix     = GeoEquationOfMotionUtilities::CalculateDampingMatrix(
-        r_prop.Has(RAYLEIGH_ALPHA) ? r_prop[RAYLEIGH_ALPHA] : rCurrentProcessInfo[RAYLEIGH_ALPHA],
-        r_prop.Has(RAYLEIGH_BETA) ? r_prop[RAYLEIGH_BETA] : rCurrentProcessInfo[RAYLEIGH_BETA],
-        mass_matrix, stiffness_matrix);
 
     KRATOS_CATCH("")
 }
