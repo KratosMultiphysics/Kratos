@@ -758,7 +758,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const SizeType system_size = n_nodes * (strain_size + dim);
     const SizeType displ_size = n_nodes * dim;
 
-    Matrix lumped_M = rM;
+    // Matrix lumped_M = rM;
     // lumped_M.clear();
     // for (IndexType i = 0; i < lumped_M.size1(); ++i) {
     //     for (IndexType j = 0; j < lumped_M.size2(); ++j) {
@@ -774,7 +774,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     // Assemble M
     for (IndexType i = 0; i < rM.size1(); ++i)
         for (IndexType j = 0; j < rM.size2(); ++j)
-            rLHS(i + displ_size, j + displ_size) = lumped_M(i, j);
+            rLHS(i + displ_size, j + displ_size) = rM(i, j);
 
     // Assemble Q
     for (IndexType i = 0; i < rQ.size1(); ++i)
