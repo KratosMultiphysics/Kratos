@@ -285,52 +285,6 @@ void SmallStrainUPwDiffOrderElement::GetDofList(DofsVectorType& rElementalDofLis
     rElementalDofList = GetDofs();
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                          VectorType&        rRightHandSideVector,
-                                                          const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rLeftHandSideMatrix                     = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    rRightHandSideVector                    = ZeroVector{GetNumberOfDOF()};
-    const auto CalculateStiffnessMatrixFlag = true;
-    const auto CalculateResidualVectorFlag  = true;
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
-                                                           const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    rLeftHandSideMatrix                     = ZeroMatrix{GetNumberOfDOF(), GetNumberOfDOF()};
-    auto       dummy_right_hand_side_vector = Vector{};
-    const auto CalculateStiffnessMatrixFlag = true;
-    const auto CalculateResidualVectorFlag  = false;
-    CalculateAll(rLeftHandSideMatrix, dummy_right_hand_side_vector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("")
-}
-
-void SmallStrainUPwDiffOrderElement::CalculateRightHandSide(VectorType&        rRightHandSideVector,
-                                                            const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    auto dummy_left_hand_side_matrix        = Matrix{};
-    rRightHandSideVector                    = ZeroVector{GetNumberOfDOF()};
-    const auto CalculateStiffnessMatrixFlag = false;
-    const auto CalculateResidualVectorFlag  = true;
-    CalculateAll(dummy_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo,
-                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
-    KRATOS_CATCH("")
-}
-
 void SmallStrainUPwDiffOrderElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

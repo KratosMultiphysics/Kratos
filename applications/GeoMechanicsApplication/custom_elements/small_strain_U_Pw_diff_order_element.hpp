@@ -79,14 +79,6 @@ public:
 
     void ResetConstitutiveLaw() override;
 
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
