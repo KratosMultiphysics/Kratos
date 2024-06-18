@@ -602,6 +602,19 @@ public:
      * in the minimization of the implicit function
      */
     ResidualFunctionType ExponentialHardeningImplicitFunctionDerivative();
+
+    /**
+     * @brief Implicit function that relates the
+     * plastic-damage energy dissipation with the
+     * uniaxial stress threshold
+     */
+    ResidualFunctionType CurveByPointsHardeningImplicitFunction();
+
+    /**
+     * @brief Implicit function derivative to be used
+     * in the minimization of the implicit function
+     */
+    ResidualFunctionType CurveByPointsHardeningImplicitFunctionDerivative();
 protected:
 
     ///@name Protected static Member Variables

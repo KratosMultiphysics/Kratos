@@ -25,8 +25,7 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainInterfaceElement
-    : public UPwBaseElement<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : public UPwBaseElement
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwSmallStrainInterfaceElement);
@@ -38,23 +37,20 @@ public:
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType     = Vector;
     using MatrixType     = Matrix;
-    using UPwBaseElement<TDim, TNumNodes>::mConstitutiveLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mRetentionLawVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStressVector;
-    using UPwBaseElement<TDim, TNumNodes>::mStateVariablesFinalized;
-    using UPwBaseElement<TDim, TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwBaseElement<TDim, TNumNodes>::mThisIntegrationMethod;
+    using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+    using UPwBaseElement::mThisIntegrationMethod;
 
-    explicit UPwSmallStrainInterfaceElement(IndexType NewId = 0)
-        : UPwBaseElement<TDim, TNumNodes>(NewId)
-    {
-    }
+    explicit UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
     {
     }
 
@@ -62,7 +58,7 @@ public:
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
     {
     }
 
@@ -71,7 +67,7 @@ public:
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -109,6 +105,8 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                       std::vector<array_1d<double, 3>>&    rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
+    
+    using UPwBaseElement::CalculateOnIntegrationPoints;
 
 protected:
     struct SFGradAuxVariables {

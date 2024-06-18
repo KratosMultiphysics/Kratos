@@ -164,7 +164,7 @@ protected:
     void CalculateAndAddFluidBodyFlow(VectorType&                      rRightHandSideVector,
                                       const InterfaceElementVariables& rVariables) override;
 
-    unsigned int GetNumberOfDOF() const override;
+    std::size_t GetNumberOfDOF() const override;
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
