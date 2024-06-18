@@ -259,11 +259,10 @@ protected:
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
 
-    [[nodiscard]] SizeType GetNumberOfDOF() const override;
+    [[nodiscard]] SizeType       GetNumberOfDOF() const override;
+    [[nodiscard]] DofsVectorType GetDofs() const override;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
-
     GeometryType::Pointer mpPressureGeometry;
 
     // Serialization

@@ -173,11 +173,10 @@ protected:
 
     virtual std::size_t GetNumberOfDOF() const;
 
-    StressStatePolicy& GetStressStatePolicy() const;
+    StressStatePolicy&                   GetStressStatePolicy() const;
+    [[nodiscard]] virtual DofsVectorType GetDofs() const;
 
 private:
-    [[nodiscard]] DofsVectorType GetDofs() const;
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

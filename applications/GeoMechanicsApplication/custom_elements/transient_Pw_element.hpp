@@ -172,15 +172,10 @@ protected:
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) override;
 
-    std::size_t GetNumberOfDOF() const override;
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::size_t                  GetNumberOfDOF() const override;
+    [[nodiscard]] DofsVectorType GetDofs() const override;
 
 private:
-    /// Member Variables
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    [[nodiscard]] DofsVectorType GetDofs() const;
-
     /// Serialization
 
     friend class Serializer;
