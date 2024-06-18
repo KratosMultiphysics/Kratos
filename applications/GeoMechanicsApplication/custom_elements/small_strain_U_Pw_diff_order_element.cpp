@@ -305,16 +305,6 @@ void SmallStrainUPwDiffOrderElement::EquationIdVector(EquationIdVectorType& rRes
     rResult = Geo::DofUtilities::ExtractEquationIdsFrom(GetDofs());
 }
 
-void SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
-{
-    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
-}
-
-void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
-{
-    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
-}
-
 void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

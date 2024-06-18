@@ -81,9 +81,6 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
-
     void SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,
                                       const std::vector<double>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
