@@ -25,7 +25,7 @@
 // #include "custom_utilities/constitutive_law_utilities.h"
 #include "../DEMFEM_volume_coupling_application.h"
 #include "volume_coupling_element.h"
-
+#include <iostream>
 
 // 
 namespace Kratos
@@ -87,15 +87,24 @@ double VolumeCouplingElement::GetIntegrationWeight(const GeometryType::Integrati
 {
     auto P = this->GetIntegrationMethod();
     auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), PointNumber);
+
     double interpolated_coupling_weight_at_int_point=0; 
     //std::cout<<"shape function at int point: "<<N;
     //std::cout<<"geometry size: "<<this->GetGeometry().size();
+    // if condition to check if the integration pointy cordinate is less than 0.16
+    if (rThisIntegrationPoints[PointNumber].Coordinates()[1] < 0.16)
+
+    {
+
+   
     for (int i=0; i < this->GetGeometry().size(); i++)
     {
        interpolated_coupling_weight_at_int_point += N[i]*this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
        //std::cout<<" nodal coupling weight ="<<this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT)<<std::endl;
        //KRATOS_WATCH( N[i]);
        
+    }
+
     }
 
     //interpolated_coupling_weight_at_int_point =0.5;
@@ -121,20 +130,42 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
 
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
         const SizeType number_of_integration_points = integration_points.size();
+        array_1d<double, 3> global_coordinates;
 
 
         // Loop over each integration point
         for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+
+            // if (integration_points[point_number].Coordinates()[1] < 0.16)
+            // {
             // Calculate the coupling weight for this integration point
             auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), point_number);
             double coupling_weight_on_this_integration_point = 0.0;
+            // check y cordinate of integration point to be less than 0.16
+
             for (SizeType i = 0; i < this->GetGeometry().size(); ++i) 
             {
                     coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);      
             }
-
+            
             // Scale the stress vector at this integration point by the calculated coupling weight
             rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
+            std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
+            // print the location of the integration point
+            std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
+            // print the location of the element
+            std::cout<<"element location: "<<this->GetGeometry().Center()<<std::endl;
+            // print the 'CAUCHY_STRESS_VECTOR' for this element
+            std::cout<<"CAUCHY_STRESS_VECTOR: "<<rOutput[point_number]<<std::endl;
+            // get cordinates of integration point using globalCoordinates function
+            //auto global_coordinates = ZeroVector(3);
+            
+            global_coordinates = this->GetGeometry().GlobalCoordinates(global_coordinates,integration_points[point_number].Coordinates());
+            // print the global coordinates of the integration point
+            std::cout<<"global coordinates: "<<global_coordinates<<std::endl;
+
+  
+            // }
         }
     }
 }

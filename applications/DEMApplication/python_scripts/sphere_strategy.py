@@ -374,6 +374,9 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
+        # for properties in self.spheres_model_part.GetProperties():
+        #     print(properties)
+
         ######################################################################################################
         # node_ids = [22,38,55,86] # for assigning loads to the top nodes
         # self.step+=1
