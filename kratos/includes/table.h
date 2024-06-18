@@ -48,8 +48,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @class Table
  * @ingroup KratosCore
  * @brief This class represents the value of its variable depending to other variable.
@@ -238,7 +238,7 @@ public:
     {
         mData.push_back(RecordType(X,Y));
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -649,15 +649,13 @@ public:
 
         TResultType result;
         if(X <= mData[0].first)
-            //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
-            return 0.0;
+            return InterpolateDerivative(mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
 
         for(std::size_t i = 1 ; i < size ; i++)
             if(X <= mData[i].first)
                 return InterpolateDerivative( mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
 
-        // If it lies outside the table values we will return 0.0.
-        return 0.0;
+        return InterpolateDerivative(mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
     }
      TResultType& InterpolateDerivative( TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
     {
@@ -667,7 +665,7 @@ public:
         if (dx < epsilon)
         {
             dx=epsilon;
-            KRATOS_WARNING("") 
+            KRATOS_WARNING("")
             << "*******************************************\n"
             << "*** ATTENTION: SMALL dX WHEN COMPUTING  ***\n"
             << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
@@ -676,7 +674,7 @@ public:
         Result= dy/dx;
         return Result;
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -684,7 +682,7 @@ public:
     {
         mData.clear();
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -868,6 +866,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
+#endif // KRATOS_TABLE_H_INCLUDED  defined
 
 
