@@ -49,6 +49,13 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TransientPwElement3D20N", mTransientPwElement3D20N)
     KRATOS_REGISTER_ELEMENT("TransientPwElement3D27N", mTransientPwElement3D27N)
 
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D2N", mTransientPwLineElement2D2N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D3N", mTransientPwLineElement2D3N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D4N", mTransientPwLineElement2D4N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement2D5N", mTransientPwLineElement2D5N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement3D2N", mTransientPwLineElement3D2N)
+    KRATOS_REGISTER_ELEMENT("TransientPwLineElement3D3N", mTransientPwLineElement3D3N)
+
     KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement2D4N", mTransientPwInterfaceElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D6N", mTransientPwInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D8N", mTransientPwInterfaceElement3D8N)
@@ -220,6 +227,13 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D20N", mTransientThermalElement3D20N)
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement3D27N", mTransientThermalElement3D27N)
 
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D2N", mTransientThermalLineElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D3N", mTransientThermalLineElement2D3N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D4N", mTransientThermalLineElement2D4N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement2D5N", mTransientThermalLineElement2D5N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement3D2N", mTransientThermalLineElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoTransientThermalLineElement3D3N", mTransientThermalLineElement3D3N)
+
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
@@ -247,6 +261,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D5N", mPwNormalFluxCondition2D5N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
+
+    KRATOS_REGISTER_CONDITION("PwPointFluxCondition2D1N", mPwPointFluxCondition2D1N)
+    KRATOS_REGISTER_CONDITION("PwPointFluxCondition3D1N", mPwPointFluxCondition3D1N)
 
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
@@ -300,6 +317,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D8N", mGeoTNormalFluxCondition3D8N)
     KRATOS_REGISTER_CONDITION("GeoTNormalFluxCondition3D9N", mGeoTNormalFluxCondition3D9N)
 
+    KRATOS_REGISTER_CONDITION("GeoThermalPointFluxCondition2D1N", mGeoThermalPointFluxCondition2D1N)
+    KRATOS_REGISTER_CONDITION("GeoThermalPointFluxCondition3D1N", mGeoThermalPointFluxCondition3D1N)
+
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D2N", mGeoTMicroClimateFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D3N", mGeoTMicroClimateFluxCondition2D3N)
     KRATOS_REGISTER_CONDITION("GeoTMicroClimateFluxCondition2D4N", mGeoTMicroClimateFluxCondition2D4N)
@@ -335,8 +355,6 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw",     mGeoThermalDispersion2DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion3DLaw",     mGeoThermalDispersion3DLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
@@ -361,6 +379,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
+    KRATOS_REGISTER_VARIABLE( THERMAL_LAW_NAME)
 
     // Variables for Micro-Climate boundary
     KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )
@@ -404,6 +423,7 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE( CRITICAL_DISPLACEMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TOTAL_DISPLACEMENT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INCREMENTAL_DISPLACEMENT )
 
     KRATOS_REGISTER_VARIABLE( IS_CONVERGED )
 

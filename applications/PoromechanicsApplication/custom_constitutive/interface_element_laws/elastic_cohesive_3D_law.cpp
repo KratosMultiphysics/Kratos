@@ -173,6 +173,10 @@ void ElasticCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
     rStressVector[1] = StrainVector[1] * rVariables.ShearStiffness;
     rStressVector[2] = StrainVector[2] * rVariables.NormalStiffness * cp;
 
+    // Add initial stresses contribution
+    const Element::GeometryType& geometry = rValues.GetElementGeometry();
+    InterfaceElementUtilities::AddInitialInterfaceStresses3D(rStressVector, rValues, geometry);
+
 }
 
 } // Namespace Kratos
