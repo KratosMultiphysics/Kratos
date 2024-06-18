@@ -166,44 +166,11 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
-    const auto& r_properties = GetProperties();
-    const auto& r_geometry   = GetGeometry();
-    const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+    UPwBaseElement::Initialize(rCurrentProcessInfo);
 
-    mConstitutiveLawVector.resize(number_of_integration_points);
-
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        mConstitutiveLawVector[i] = r_properties[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLawVector[i]->InitializeMaterial(
-            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), i));
-    }
-
-    mRetentionLawVector.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mRetentionLawVector.size(); ++i) {
-        mRetentionLawVector[i] = RetentionLawFactory::Clone(r_properties);
-        mRetentionLawVector[i]->InitializeMaterial(
-            r_properties, r_geometry, row(r_geometry.ShapeFunctionsValues(GetIntegrationMethod()), i));
-    }
-
-    if (mStressVector.size() != number_of_integration_points) {
-        mStressVector.resize(number_of_integration_points);
-        for (unsigned int i = 0; i < mStressVector.size(); ++i) {
-            mStressVector[i].resize(GetStressStatePolicy().GetVoigtSize());
-            std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
-        }
-    }
-
-    mStateVariablesFinalized.resize(number_of_integration_points);
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        int nStateVariables = 0;
-        nStateVariables = mConstitutiveLawVector[i]->GetValue(NUMBER_OF_UMAT_STATE_VARIABLES, nStateVariables);
-        if (nStateVariables > 0) {
-            mConstitutiveLawVector[i]->SetValue(STATE_VARIABLES, mStateVariablesFinalized[i], rCurrentProcessInfo);
-        }
-    }
-
-    const auto number_of_U_nodes = r_geometry.PointsNumber();
-    const auto dimension         = r_geometry.WorkingSpaceDimension();
+    const auto& r_geometry        = GetGeometry();
+    const auto  number_of_U_nodes = r_geometry.PointsNumber();
+    const auto  dimension         = r_geometry.WorkingSpaceDimension();
 
     switch (number_of_U_nodes) {
     case 6: // 2D T6P3
