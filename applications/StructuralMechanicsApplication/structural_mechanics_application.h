@@ -80,6 +80,7 @@
 #include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 #include "custom_elements/timoshenko_beam_element_2D2N.h"
+#include "custom_elements/small_displacement_mixed_strain_displacement_element.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
@@ -326,6 +327,11 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement2D3N;
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement2D4N;
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement3D4N;
+    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement3D8N;
 
     const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
     const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
