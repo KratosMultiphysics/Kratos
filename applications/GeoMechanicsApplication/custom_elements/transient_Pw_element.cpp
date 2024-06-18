@@ -37,12 +37,6 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientPwElement<TDim, TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
-{
-    rElementalDofList = GetDofs();
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                               const ProcessInfo& rCurrentProcessInfo)
 {

@@ -181,7 +181,7 @@ void UPwBaseElement::ResetConstitutiveLaw()
 
 void UPwBaseElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
-    rElementalDofList = GetDofs();
+    rElementalDofList = this->GetDofs();
 }
 
 GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
@@ -290,17 +290,17 @@ void UPwBaseElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, const Pr
 
 void UPwBaseElement::GetValuesVector(Vector& rValues, int Step) const
 {
-    rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(this->GetDofs(), Step);
 }
 
 void UPwBaseElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
 }
 
 void UPwBaseElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(GetDofs(), Step);
+    rValues = Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(this->GetDofs(), Step);
 }
 
 void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
