@@ -197,8 +197,14 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Integration method initialization
-        // mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
+        const auto &r_props = GetProperties();
+
+        const int integration_order = r_props.Has(INTEGRATION_ORDER) ? r_props[INTEGRATION_ORDER] : 2;
+        if (integration_order == 2)
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
+        else
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_3;
+
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law Vector initialisation
@@ -758,13 +764,17 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     const SizeType system_size = n_nodes * (strain_size + dim);
     const SizeType displ_size = n_nodes * dim;
 
-    // Matrix lumped_M = rM;
-    // lumped_M.clear();
-    // for (IndexType i = 0; i < lumped_M.size1(); ++i) {
-    //     for (IndexType j = 0; j < lumped_M.size2(); ++j) {
-    //         lumped_M(i,i) += rM(i,j);
-    //     }
-    // }
+    Matrix lumped_M = rM;
+    const auto &r_props = GetProperties();
+    const bool compute_lumped_mass = r_props.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_props[COMPUTE_LUMPED_MASS_MATRIX] : false;
+    if (compute_lumped_mass) {
+        lumped_M.clear();
+        for (IndexType i = 0; i < lumped_M.size1(); ++i) {
+            for (IndexType j = 0; j < lumped_M.size2(); ++j) {
+                lumped_M(i, i) += rM(i, j);
+            }
+        }
+    }
 
     // Assemble K
     for (IndexType i = 0; i < rK.size1(); ++i)
@@ -774,7 +784,7 @@ void SmallDisplacementMixedStrainDisplacementElement::AssembleLHS(
     // Assemble M
     for (IndexType i = 0; i < rM.size1(); ++i)
         for (IndexType j = 0; j < rM.size2(); ++j)
-            rLHS(i + displ_size, j + displ_size) = rM(i, j);
+            rLHS(i + displ_size, j + displ_size) = lumped_M(i, j);
 
     // Assemble Q
     for (IndexType i = 0; i < rQ.size1(); ++i)

@@ -1025,8 +1025,8 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
-                // Collocation extended
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                // Collocation extended
                 Quadrature < QuadrilateralCollocationIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralCollocationIntegrationPoints2,
@@ -1041,6 +1041,8 @@ private:
                 Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints3,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1078,7 +1080,9 @@ private:
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_LOBATTO_1 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_LOBATTO_2 )
+                    GeometryData::IntegrationMethod::GI_LOBATTO_2 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_3 )
             }
         };
         return shape_functions_values;
@@ -1105,6 +1109,7 @@ private:
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_2 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_3 )
             }
         };
         return shape_functions_local_gradients;
