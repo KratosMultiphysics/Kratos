@@ -37,8 +37,8 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         reader     = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
         heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
-                                                                             node_ids=[1, 5])
-        expected_heads    = [ 1., 0. ]
+                                                                             node_ids=[2, 4])
+        expected_heads    = [ 0., 1. ]
         for head, expected_head in zip(heads, expected_heads):
             self.assertAlmostEqual(head, expected_head)
 
