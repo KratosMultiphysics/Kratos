@@ -8,11 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
+//                   Alejandro Cornejo
 //
 //
 
-#if !defined(KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -87,10 +87,10 @@ public:
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00 , -1.00, 0.50 ),
-            IntegrationPointType(  1.00 , -1.00, 0.50 ),
-            IntegrationPointType(  1.00 ,  1.00, 0.50 ),
-            IntegrationPointType( -1.00 ,  1.00, 0.50 )
+            IntegrationPointType( -1.00 , -1.00, 1.0 ),
+            IntegrationPointType(  1.00 , -1.00, 1.0 ),
+            IntegrationPointType(  1.00 ,  1.00, 1.0 ),
+            IntegrationPointType( -1.00 ,  1.00, 1.0 )
         }};
         return s_integration_points;
     }
@@ -105,9 +105,54 @@ public:
 }; // Class QuadrilateralGaussLobattoIntegrationPoints2
 
 
+class QuadrilateralGaussLobattoIntegrationPoints3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints3);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 9;
+    }
+
+    static const IntegrationPointsArrayType& IntegrationPoints()
+    {
+        const double one_third = 1.0 / 3.0;
+        const double four_thirds = 4.0 * one_third;
+        static const IntegrationPointsArrayType s_integration_points{{
+            IntegrationPointType( -1.00 ,  1.00, one_third ),
+            IntegrationPointType( -1.00 , -1.00, one_third ),
+            IntegrationPointType(  1.00 , -1.00, one_third ),
+            IntegrationPointType(  1.00 ,  1.00, one_third ),
+
+            IntegrationPointType(  0.00 ,  1.00, four_thirds ),
+            IntegrationPointType( -1.00 ,  0.00, four_thirds ),
+            IntegrationPointType(  0.00 , -1.00, four_thirds ),
+            IntegrationPointType(  1.00 ,  0.00, four_thirds ),
+
+            IntegrationPointType(  0.00 , 0.00, four_thirds )
+        }};
+        return s_integration_points;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Quadrilateral Gauss-Lobatto integration 3 ";
+        return buffer.str();
+    }
+
+}; // Class QuadrilateralGaussLobattoIntegrationPoints3
 
 }
-
-#endif // KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 
