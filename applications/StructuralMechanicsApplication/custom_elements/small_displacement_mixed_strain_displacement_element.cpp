@@ -198,14 +198,8 @@ void SmallDisplacementMixedStrainDisplacementElement::Initialize(
         // Integration method initialization
         const auto &r_props = GetProperties();
 
-        // const int integration_order = r_props.Has(INTEGRATION_ORDER) ? r_props[INTEGRATION_ORDER] : 2;
-        // if (integration_order == 2)
-        //     mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
-        // else
-        //     mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_3;
-
         mThisIntegrationMethod     = GeometryData::IntegrationMethod::GI_LOBATTO_2;
-        mMassThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_2;
+        mMassThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
         const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -429,13 +423,11 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
 
         // Contributions to the LHS
         noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
 
     const auto& r_lobatto_integration_points = GetGeometry().IntegrationPoints(mMassThisIntegrationMethod);
@@ -456,8 +448,10 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
                 lumped_m(i, i) += m(i, j);
             }
         }
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl);
         noalias(RHSe) += w_gauss * prod(lumped_m, kinematic_variables.NodalStrains);
         noalias(M)    += w_gauss * lumped_m;
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
 
     K *= tau;
@@ -538,7 +532,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
         // Contributions to the LHS
         noalias(K) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.B)));
         noalias(Q) += w_gauss * prod(trans(kinematic_variables.B), Matrix(prod(constitutive_variables.D, kinematic_variables.N_epsilon)));
-        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
     }
 
     const auto& r_lobatto_integration_points = GetGeometry().IntegrationPoints(mMassThisIntegrationMethod);
@@ -559,6 +552,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
                 lumped_m(i, i) += m(i, j);
             }
         }
+        noalias(G) += w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.B);
         noalias(M) += w_gauss * lumped_m;
     }
 
@@ -641,7 +635,6 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
         }
 
         // Contributions to the RHS
-        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl);
         noalias(RHSu) -= w_gauss * prod(trans(kinematic_variables.B), constitutive_variables.StressVector);
     }
 
@@ -664,6 +657,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
             }
         }
         noalias(RHSe) += w_gauss * prod(lumped_m, kinematic_variables.NodalStrains);
+        noalias(RHSe) -= w_gauss * prod(trans(kinematic_variables.N_epsilon), kinematic_variables.SymmGradientDispl);
     }
 
     RHSe *= (1.0 - tau);
