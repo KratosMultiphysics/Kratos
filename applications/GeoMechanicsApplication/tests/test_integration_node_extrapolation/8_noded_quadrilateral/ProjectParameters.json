@@ -87,7 +87,7 @@
                         "node_output":         true,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["HYDRAULIC_HEAD", "CAUCHY_STRESS_VECTOR", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
+                        "nodal_results":       ["HYDRAULIC_HEAD", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
                         "gauss_point_results": []
                     },
                     "point_data_configuration":  []
@@ -164,7 +164,7 @@
         "process_name" :  "GeoIntegrationValuesExtrapolationToNodesProcess",
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
-          "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_VECTOR", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
+          "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
           "average_variable"           : "NODAL_AREA"
         }
       }
