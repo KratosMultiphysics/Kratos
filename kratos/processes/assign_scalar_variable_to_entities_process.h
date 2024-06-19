@@ -124,6 +124,8 @@ public:
     ///@name Input and output
     ///@{
 
+    static const Parameters GetSpecifications(Parameters rParameters);
+
     /// Turn back information as a string.
     std::string Info() const override
     {

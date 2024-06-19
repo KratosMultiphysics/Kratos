@@ -108,3 +108,20 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
         """
         for process in self.aux_processes:
             process.ExecuteFinalizeSolutionStep()
+
+    @staticmethod
+    def GetSpecifications(settings):
+        # Set base empty specifications for processes
+        specifications = KratosMultiphysics.Parameters("""{
+            "required_solution_step_data_variables" : [],
+            "required_dofs" : [],
+            "flags_used" : [],
+            "documentation" : "This process assigns a given value (vector) to the nodes belonging a certain submodelpart."
+        }""")
+
+        # Customize specifications according to input settings
+        specifications["required_solution_step_data_variables"].SetStringArray([settings["variable_name"].GetString()])
+        if any(settings["constrained"].values()):
+            specifications["required_dofs"].SetStringArray([settings["variable_name"].GetString()])
+
+        return specifications

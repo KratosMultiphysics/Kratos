@@ -60,3 +60,7 @@ class AssignScalarVariableToNodesProcess(assign_scalar_variable_to_entities_proc
 
         # Construct the base process.
         super().__init__(Model, settings)
+
+    @staticmethod
+    def GetSpecifications(settings):
+        return super(AssignScalarVariableToNodesProcess, AssignScalarVariableToNodesProcess).GetSpecifications(settings)
