@@ -480,8 +480,9 @@ protected:
     ///@{
 
     IntegrationMethod mThisIntegrationMethod;                     /// Currently selected integration methods
+    IntegrationMethod mMassThisIntegrationMethod;                 /// Currently selected integration methods for the mass matrix
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    IntegrationPointsArrayType mIntegrationPointsArray;
+    // IntegrationPointsArrayType mIntegrationPointsArray;
 
     ///@}
     ///@name Protected Operators

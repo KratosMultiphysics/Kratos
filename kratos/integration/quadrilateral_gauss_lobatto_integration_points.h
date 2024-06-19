@@ -126,20 +126,20 @@ public:
 
     static const IntegrationPointsArrayType& IntegrationPoints()
     {
-        const double one_third = 1.0 / 3.0;
-        const double four_thirds = 4.0 * one_third;
+        const double one_over_nine  = 1.0 / 9.0;
+        const double four_over_nine = 4.0 * one_over_nine;
         static const IntegrationPointsArrayType s_integration_points{{
-            IntegrationPointType( -1.00 ,  1.00, one_third ),
-            IntegrationPointType( -1.00 , -1.00, one_third ),
-            IntegrationPointType(  1.00 , -1.00, one_third ),
-            IntegrationPointType(  1.00 ,  1.00, one_third ),
+            IntegrationPointType( -1.00 ,  1.00, one_over_nine ),
+            IntegrationPointType( -1.00 , -1.00, one_over_nine ),
+            IntegrationPointType(  1.00 , -1.00, one_over_nine ),
+            IntegrationPointType(  1.00 ,  1.00, one_over_nine ),
 
-            IntegrationPointType(  0.00 ,  1.00, four_thirds ),
-            IntegrationPointType( -1.00 ,  0.00, four_thirds ),
-            IntegrationPointType(  0.00 , -1.00, four_thirds ),
-            IntegrationPointType(  1.00 ,  0.00, four_thirds ),
+            IntegrationPointType(  0.00 ,  1.00, four_over_nine ),
+            IntegrationPointType( -1.00 ,  0.00, four_over_nine ),
+            IntegrationPointType(  0.00 , -1.00, four_over_nine ),
+            IntegrationPointType(  1.00 ,  0.00, four_over_nine ),
 
-            IntegrationPointType(  0.00 , 0.00, four_thirds )
+            IntegrationPointType(  0.00 , 0.00, 4.0*four_over_nine )
         }};
         return s_integration_points;
     }
