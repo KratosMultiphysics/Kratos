@@ -399,12 +399,12 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
     const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
     SizeType n_gauss = r_integration_points.size();
-    // Gauss IP loop
+    // Stress related IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -432,7 +432,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLocalSystem(
 
     const auto& r_lobatto_integration_points = GetGeometry().IntegrationPoints(mMassThisIntegrationMethod);
     n_gauss = r_lobatto_integration_points.size();
-    // Lobatto IP loop
+    // second IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
         CalculateKinematicVariables(kinematic_variables, i_gauss, mMassThisIntegrationMethod);
 
@@ -516,9 +516,9 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateLeftHandSide(
     // Gauss IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -604,19 +604,18 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateRightHandSide(
     cons_law_values.SetStressVector(constitutive_variables.StrainVector);
     cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
 
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-    SizeType n_gauss = r_integration_points.size();
-
     Vector RHSu(dim * n_nodes), RHSe(strain_size * n_nodes);
     noalias(RHSu) = ZeroVector(dim * n_nodes);
     noalias(RHSe) = ZeroVector(strain_size * n_nodes);
 
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    SizeType n_gauss = r_integration_points.size();
     // IP loop
     for (IndexType i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
 
-        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(GetIntegrationMethod()), i_gauss);
+        const auto body_force = GetBodyForce(r_geometry.IntegrationPoints(mThisIntegrationMethod), i_gauss);
 
-        CalculateKinematicVariables(kinematic_variables, i_gauss, GetIntegrationMethod());
+        CalculateKinematicVariables(kinematic_variables, i_gauss, mThisIntegrationMethod);
 
         double w_gauss = kinematic_variables.detJ0 * r_integration_points[i_gauss].Weight();
         if (dim == 2 && r_props.Has(THICKNESS))
@@ -908,7 +907,7 @@ void SmallDisplacementMixedStrainDisplacementElement::CalculateKinematicVariable
     const GeometryType::IntegrationMethod& rIntegrationMethod) const
 {
     const auto& r_geometry = GetGeometry();
-    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(rIntegrationMethod);
 
     // Shape functions
     rKinVariables.N = r_geometry.ShapeFunctionsValues(rKinVariables.N, r_integration_points[IP].Coordinates());
