@@ -21,13 +21,8 @@
               "DYNAMIC_VISCOSITY"        :  1e-3,
               "THICKNESS"                :  1.0,
               "BIOT_COEFFICIENT"         :  1.0,
-              "RETENTION_LAW"                    : "SaturatedLaw",
-              "SATURATED_SATURATION"             :  1.0,
-              "RESIDUAL_SATURATION"              :  0.06203,
-              "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" :  2.561,
-              "VAN_GENUCHTEN_GN"                 :  1.377,
-              "VAN_GENUCHTEN_GL"                 :  1.25,
-              "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
+              "RETENTION_LAW"            : "SaturatedLaw",
+              "SATURATED_SATURATION"     :  1.0
          },
          "Tables": {}
       }

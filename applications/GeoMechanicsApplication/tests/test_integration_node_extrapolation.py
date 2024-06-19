@@ -63,24 +63,24 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
         reader     = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, test_name+'.post.res'))
         heads             = test_helper.GiDOutputFileReader.nodal_values_at_time("HYDRAULIC_HEAD", 1, simulation_output,
-                                                                             node_ids=[1, 5, 9])
+                                                                             node_ids=[2, 4, 8])
         expected_heads    = [ 1.09636, 0.292984, 1.29298]
         for head, expected_head in zip(heads, expected_heads):
             self.assertAlmostEqual(head, expected_head)
 
 
         cauchy_stress_tensors             = test_helper.GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", 1, simulation_output,
-                                                                                     node_ids=[1, 5, 9])
+                                                                                     node_ids=[2, 4, 8])
         expected_tensors    = [ [-1501.6, -6006.41, -1501.6, -376.767, 0, 0],
                                 [733.933, 2935.73, 733.933, -370.876, 0, 0],
-                                [-8.04945, -32.1978, -8.04945, -373.822, 0, 0]]
+                                [-8.04944, -32.1978, -8.04944, -373.822, 0, 0]]
         for cauchy_stress_tensor, expected_tensor in zip(cauchy_stress_tensors, expected_tensors):
             for (cauchy_stress, expected) in zip(cauchy_stress_tensor, expected_tensor):
                 self.assertAlmostEqual(cauchy_stress, expected)
 
 
         fluid_flux_vectors             = test_helper.GiDOutputFileReader.nodal_values_at_time("FLUID_FLUX_VECTOR", 1, simulation_output,
-                                                                                                         node_ids=[1, 5, 9])
+                                                                                                         node_ids=[2, 4, 8])
         expected_fluid_flux_vectors    = [ [1.38449e-05, -4.52218e-07, 0],
                             [-3.51008e-06, 2.17395e-05, 0],
                             [5.16742e-06, 1.157e-05, 0]]
