@@ -47,8 +47,6 @@ Begin SubModelPart soil
 End SubModelPart
 
 Begin SubModelPart Body_Acceleration-auto-1
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
     1
     2
