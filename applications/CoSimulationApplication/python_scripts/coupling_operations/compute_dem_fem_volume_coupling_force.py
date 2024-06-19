@@ -50,7 +50,7 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
 
         utils = VCA.DEMFEMVolumeCouplingUtilities()
 
-        utils.AssignPointLoads(self.model_part,node_ids,pointload) # assigning point loads to the top nodes
+        # utils.AssignPointLoads(self.model_part,node_ids,pointload) # assigning point loads to the top nodes
         utils.SetNodalCouplingWeightsOnFEMLinearly(self.model_part,self.y_fem_boundary,self.y_dem_boundary,self.tolerance,self.weight_fem_boundary,self.weight_dem_boundary) 
         utils.CalculateDisplacementDifference(self.model_part,self.dt) # calculating displacement difference
         utils.CalculateNodalCouplingForces(self.model_part,self.penalty_max) # calculating nodal coupling forces including point load
