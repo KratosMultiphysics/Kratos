@@ -33,12 +33,36 @@ public:
         rOutput = mIntegrationDoubleValues;
     }
 
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                      std::vector<Matrix>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        rOutput = mIntegrationMatrixValues;
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                      std::vector<array_1d<double, 3>>&    rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rOutput = mIntegrationArrayValues;
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        rOutput = mIntegrationVectorValues;
+    }
+
     IntegrationMethod GetIntegrationMethod() const override
     {
         return GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
-    std::vector<double> mIntegrationDoubleValues = {};
+    std::vector<double>              mIntegrationDoubleValues = {};
+    std::vector<Matrix>              mIntegrationMatrixValues = {};
+    std::vector<Vector>              mIntegrationVectorValues = {};
+    std::vector<array_1d<double, 3>> mIntegrationArrayValues  = {};
 };
 
 ModelPart& CreateModelPartWithTwoStubElements(Model& model)
@@ -46,6 +70,9 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model)
     auto& model_part = model.CreateModelPart("MainModelPart");
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
+    model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR);
+    model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
+    model_part.AddNodalSolutionStepVariable(FLUID_FLUX_VECTOR);
     auto node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     auto node_3 = model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -191,6 +218,135 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
     KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
+{
+    //   This test uses the following two-element system.
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+    //
+    Model model;
+    auto& model_part = CreateModelPartWithTwoStubElements(model);
+
+    // Linear field in x between -1 and 1
+    static_cast<StubElement&>(model_part.Elements()[1]).mIntegrationMatrixValues = {
+        ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, 0.57735), ScalarMatrix(3, 3, 0.57735),
+        ScalarMatrix(3, 3, -0.57735)};
+
+    // Linear field in y between -1 and 1
+    static_cast<StubElement&>(model_part.Elements()[2]).mIntegrationMatrixValues = {
+        ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, 0.57735),
+        ScalarMatrix(3, 3, 0.57735)};
+
+    auto parameters = Parameters(R"(
+     {
+         "model_part_name"            : "MainModelPart",
+         "echo_level"                 : 0,
+         "average_variable"           : "NODAL_AREA",
+         "list_of_variables"          : ["CAUCHY_STRESS_TENSOR"]
+     })");
+
+    GeoIntegrationValuesExtrapolationToNodesProcess process(model_part, parameters);
+    process.Execute();
+
+    std::vector<Matrix> expected_values = {ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 0),
+                                           ScalarMatrix(3, 3, 1),  ScalarMatrix(3, 3, -1),
+                                           ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 1)};
+    std::vector<Matrix> actual_values;
+    std::transform(
+        model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+        [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
+
+    for (int i = 0; i < expected_values.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_NEAR(actual_values[i], expected_values[i], 1e-6)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
+{
+    //   This test uses the following two-element system.
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+    //
+    Model model;
+    auto& model_part = CreateModelPartWithTwoStubElements(model);
+
+    // Linear field in x between -1 and 1
+    static_cast<StubElement&>(model_part.Elements()[1]).mIntegrationVectorValues = {
+        ScalarVector(6, -0.57735), ScalarVector(6, 0.57735), ScalarVector(6, 0.57735),
+        ScalarVector(6, -0.57735)};
+
+    // Linear field in y between -1 and 1
+    static_cast<StubElement&>(model_part.Elements()[2]).mIntegrationVectorValues = {
+        ScalarVector(6, -0.57735), ScalarVector(6, -0.57735), ScalarVector(6, 0.57735), ScalarVector(6, 0.57735)};
+
+    auto parameters = Parameters(R"(
+     {
+         "model_part_name"            : "MainModelPart",
+         "echo_level"                 : 0,
+         "average_variable"           : "NODAL_AREA",
+         "list_of_variables"          : ["CAUCHY_STRESS_VECTOR"]
+     })");
+
+    GeoIntegrationValuesExtrapolationToNodesProcess process(model_part, parameters);
+    process.Execute();
+
+    std::vector<Vector> expected_values = {ScalarVector(6, -1), ScalarVector(6, 0),
+                                           ScalarVector(6, 1),  ScalarVector(6, -1),
+                                           ScalarVector(6, -1), ScalarVector(6, 1)};
+    std::vector<Vector> actual_values;
+    std::transform(
+        model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+        [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
+
+    for (int i = 0; i < expected_values.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFields, KratosGeoMechanicsFastSuite)
+{
+    //   This test uses the following two-element system.
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+    //
+    Model model;
+    auto& model_part = CreateModelPartWithTwoStubElements(model);
+
+    // Linear field in x between -1 and 1
+    static_cast<StubElement&>(model_part.Elements()[1]).mIntegrationArrayValues = {
+        ScalarVector(3, -0.57735), ScalarVector(3, 0.57735), ScalarVector(3, 0.57735),
+        ScalarVector(3, -0.57735)};
+
+    // Linear field in y between -1 and 1
+    static_cast<StubElement&>(model_part.Elements()[2]).mIntegrationArrayValues = {
+        ScalarVector(3, -0.57735), ScalarVector(3, -0.57735), ScalarVector(3, 0.57735), ScalarVector(3, 0.57735)};
+
+    auto parameters = Parameters(R"(
+     {
+         "model_part_name"            : "MainModelPart",
+         "echo_level"                 : 0,
+         "average_variable"           : "NODAL_AREA",
+         "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
+     })");
+
+    GeoIntegrationValuesExtrapolationToNodesProcess process(model_part, parameters);
+    process.Execute();
+
+    std::vector<Vector>              expected_values = {ScalarVector(3, -1), ScalarVector(3, 0),
+                                                        ScalarVector(3, 1),  ScalarVector(3, -1),
+                                                        ScalarVector(3, -1), ScalarVector(3, 1)};
+    std::vector<array_1d<double, 3>> actual_values;
+    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
+
+    for (int i = 0; i < expected_values.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
+    }
 }
 
 } // namespace Kratos::Testing
