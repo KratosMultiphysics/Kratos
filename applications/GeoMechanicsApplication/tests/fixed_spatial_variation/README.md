@@ -18,7 +18,7 @@ End Table
 - Constraints:
     - Displacements on the bottom are fixed in all directions.
     - Displacements on the sides are fixed in the X direction.
-    - Water pressures on the top are varying from 0 to -5000, and on the bottom from -40000 to -30000. These are fixed in time.
+    - Water pressures on the top are varying from 0 to -5000, and on the bottom from -40000 to -30000. These are constant in time.
 
 - Material:
     - The material is elastic according to the GeoLinearElasticPlaneStrain2DLaw.
