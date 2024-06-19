@@ -224,13 +224,11 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
             rNode.FastGetSolutionStepValue(*p_var) = zero_array;
         }
         for (const auto p_var : mVectorVariables) {
-            const Vector zero_vector               = ZeroVector(mSizesOfVectorVariables[p_var]);
-            rNode.FastGetSolutionStepValue(*p_var) = zero_vector;
+            rNode.FastGetSolutionStepValue(*p_var) = ZeroVector(mSizesOfVectorVariables[p_var]);
         }
         for (const auto p_var : mMatrixVariables) {
-            const Matrix zero_matrix =
+            rNode.FastGetSolutionStepValue(*p_var) =
                 ZeroMatrix(mSizesOfMatrixVariables[p_var].first, mSizesOfMatrixVariables[p_var].second);
-            rNode.FastGetSolutionStepValue(*p_var) = zero_matrix;
         }
     });
 }
