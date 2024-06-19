@@ -479,10 +479,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod;                     /// Currently selected integration methods
-    IntegrationMethod mMassThisIntegrationMethod;                 /// Currently selected integration methods for the mass matrix
+    IntegrationMethod mThisIntegrationMethod;                     /// Integration method for stress related terms (Lobatto)
+    IntegrationMethod mMassThisIntegrationMethod;                 /// Integration method for the rest (Gauss)
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    // IntegrationPointsArrayType mIntegrationPointsArray;
 
     ///@}
     ///@name Protected Operators
