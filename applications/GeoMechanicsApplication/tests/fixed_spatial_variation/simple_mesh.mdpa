@@ -13,19 +13,19 @@ End Properties
 
 
 Begin Nodes
-  1  1.0000000000 -2.0000000000 0.0000000000
-  2  0.0000000000 -2.0000000000 0.0000000000
-  4  1.0000000000 0.0000000000 0.0000000000
-  5  0.0000000000 0.0000000000 0.0000000000
-  6  0.5000000000 -2.000000000 0.0000000000
-  9  0.0000000000 -1.000000000 0.0000000000
- 10  1.0000000000 -1.000000000 0.0000000000
- 13  0.5000000000 0.0000000000 0.0000000000
+  1  0.0000000000 -2.0000000000 0.0000000000
+  2  1.0000000000 -2.0000000000 0.0000000000
+  3  1.0000000000 0.0000000000 0.0000000000
+  4  0.0000000000 0.0000000000 0.0000000000
+  5  0.5000000000 -2.000000000 0.0000000000
+  6  1.0000000000 -1.000000000 0.0000000000
+  7  0.5000000000 0.0000000000 0.0000000000
+  8  0.0000000000 -1.000000000 0.0000000000
 End Nodes
 
 
 Begin Elements UPwSmallStrainElement2D8N
-  1  1  2 1 4 5 6 10 13 9 
+  1  1  1 2 3 4 5 6 7 8
 End Elements
 
 
@@ -36,12 +36,12 @@ Begin SubModelPart soil
   Begin SubModelPartNodes
     1
     2
+    3
     4
     5
     6
-    9
-    10
-    13
+    7
+    8
   End SubModelPartNodes
   Begin SubModelPartElements
     1
@@ -56,12 +56,12 @@ Begin SubModelPart Body_Acceleration-auto-1
   Begin SubModelPartNodes
     1
     2
+    3
     4
     5
     6
-    9
-    10
-    13
+    7
+    8
   End SubModelPartNodes
   Begin SubModelPartElements
     1
@@ -75,9 +75,9 @@ Begin SubModelPart Top
   1
   End SubModelPartTables
   Begin SubModelPartNodes
+    3
     4
-    5
-    13
+    7
   End SubModelPartNodes
   Begin SubModelPartElements
   End SubModelPartElements
@@ -92,7 +92,7 @@ Begin SubModelPart Base
   Begin SubModelPartNodes
     1
     2
-    6
+    5
   End SubModelPartNodes
   Begin SubModelPartElements
   End SubModelPartElements
