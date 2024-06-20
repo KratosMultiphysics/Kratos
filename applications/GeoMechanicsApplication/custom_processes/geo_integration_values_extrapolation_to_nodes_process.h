@@ -18,6 +18,7 @@
 #include "includes/element.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "includes/node.h"
 #include "processes/process.h"
 
@@ -50,19 +51,23 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
 
-    GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel, Parameters rParameters = Parameters(R"({})"));
-    GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
-                                                    Parameters rParameters = Parameters(R"({})"));
+    explicit GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
+                                                             Parameters rParameters = Parameters(R"({})"));
+    explicit GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
+                                                             Parameters rParameters = Parameters(R"({})"));
 
     ~GeoIntegrationValuesExtrapolationToNodesProcess() override;
 
-    void             Execute() override;
-    void             ExecuteBeforeSolutionLoop() override;
-    void             ExecuteFinalizeSolutionStep() override;
-    void             ExecuteFinalize() override;
-    const Parameters GetDefaultParameters() const override;
+    void                           Execute() override;
+    void                           ExecuteBeforeSolutionLoop() override;
+    void                           ExecuteFinalizeSolutionStep() override;
+    void                           ExecuteFinalize() override;
+    [[nodiscard]] const Parameters GetDefaultParameters() const override;
 
-    std::string Info() const override { return "GeoIntegrationValuesExtrapolationToNodesProcess"; }
+    [[nodiscard]] std::string Info() const override
+    {
+        return "GeoIntegrationValuesExtrapolationToNodesProcess";
+    }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
@@ -127,18 +132,18 @@ private:
         }
     }
 
-    Matrix GetExtrapolationMatrix(const Element&                         rElement,
-                                  GeometryType&                          rGeometry,
-                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
-    bool   ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
+    Matrix             GetExtrapolationMatrix(const Element&                         rElement,
+                                              GeometryType&                          rGeometry,
+                                              const GeometryData::IntegrationMethod& rIntegrationMethod);
+    [[nodiscard]] bool ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     void   CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
     Matrix GetCachedExtrapolationMatrixFor(const Element& rElement);
 
-    bool ModelPartContainsAtLeastOneElement() const;
-    void AddIntegrationContributionsForAllVariableLists(Element&      rElem,
-                                                        SizeType      NumberOfIntegrationPoints,
-                                                        const Matrix& rExtrapolationMatrix);
-    void AssembleNodalDataForAllVariableLists();
+    [[nodiscard]] bool ModelPartContainsAtLeastOneElement() const;
+    void               AddIntegrationContributionsForAllVariableLists(Element&      rElem,
+                                                                      SizeType      NumberOfIntegrationPoints,
+                                                                      const Matrix& rExtrapolationMatrix);
+    void               AssembleNodalDataForAllVariableLists();
 
     template <class T>
     void AssembleNodalData(const std::vector<const Variable<T>*>& rVariableList)
@@ -149,7 +154,10 @@ private:
     }
 };
 
-inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess& rThis);
+inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess&)
+{
+    return rIStream;
+}
 
 inline std::ostream& operator<<(std::ostream& rOStream, const GeoIntegrationValuesExtrapolationToNodesProcess&)
 {
