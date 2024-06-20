@@ -91,7 +91,7 @@ private:
     void InitializeAverageVariablesForElements() const;
 
     template <class T>
-    bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList)
+    bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList) const
     {
         const bool variable_is_of_correct_type = KratosComponents<Variable<T>>::Has(rVariableName);
         if (variable_is_of_correct_type) {

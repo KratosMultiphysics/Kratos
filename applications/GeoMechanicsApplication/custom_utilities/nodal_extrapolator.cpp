@@ -22,8 +22,8 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& rGeo
 {
     CheckIfGeometryIsSupported(rGeometry);
 
-    auto          p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
-    GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
+    auto p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
+    const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
 
     Matrix extrapolation_matrix =
         CalculateExtrapolationMatrixForCornerNodes(rGeometry, IntegrationMethod, p_corner_geometry);
@@ -37,7 +37,7 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& rGeo
 
 Matrix NodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(
     const NodalExtrapolator::GeometryType& rGeometry,
-    GeometryData::IntegrationMethod&       IntegrationMethod,
+    const GeometryData::IntegrationMethod& IntegrationMethod,
     const NodalExtrapolator::GeometryType& rCornerGeometry) const
 {
     SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();

@@ -54,6 +54,8 @@ public:
         rOutput = mIntegrationVectorValues;
     }
 
+    using Element::CalculateOnIntegrationPoints;
+
     IntegrationMethod GetIntegrationMethod() const override
     {
         return GeometryData::IntegrationMethod::GI_GAUSS_2;
