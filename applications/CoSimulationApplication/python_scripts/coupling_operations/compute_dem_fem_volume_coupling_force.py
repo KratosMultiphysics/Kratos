@@ -117,12 +117,12 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         #                     elem.GetNodes()[n].SetSolutionStepValue(SMA.POINT_LOAD, elem.GetNodes()[n].GetSolutionStepValue(SMA.POINT_LOAD) + 1* vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT))
         #                     elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) -1* vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem 
         #print("After calculation of point loads")
-        for node in self.model_part.Nodes: 
+        # for node in self.model_part.Nodes: 
         #     if(node.GetSolutionStepValue(KM.NODAL_MAUX))!=0:
                 #print("For node id:",node.Id,", for particle coupling force=",node.GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE))
                 #node.SetSolutionStepValue(SMA.POINT_LOAD, node.GetSolutionStepValue(SMA.POINT_LOAD) / (1-node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT))) # dividing by nodal coupling weight, replace 0 by VCA.NODAL_COUPLING_WEIGHT in the future.
                 #  print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
-                print("For node id:",node.Id,", nodal coupling weight=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT))
+                # print("For node id:",node.Id,", nodal coupling weight=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT))
                 #node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE, node.GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) / node.GetSolutionStepValue(KM.NODAL_MAUX))
                 ###node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE, -1*node.GetSolutionStepValue(SMA.POINT_LOAD) / node.GetSolutionStepValue(KM.NODAL_MAUX))
                 # print("For node id:",node.Id,", lagrange displacement=",node.GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT))
