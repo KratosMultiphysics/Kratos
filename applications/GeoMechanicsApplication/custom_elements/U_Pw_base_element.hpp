@@ -163,8 +163,6 @@ protected:
                               bool               CalculateStiffnessMatrixFlag,
                               bool               CalculateResidualVectorFlag);
 
-    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointType& rIntegrationPoint,
-                                           double detJ) const;
     std::vector<double> CalculateIntegrationCoefficients(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
                                                          const Vector& rDetJs) const;
 
