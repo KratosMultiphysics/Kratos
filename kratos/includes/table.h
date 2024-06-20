@@ -446,9 +446,6 @@ public:
     using RecordType = std::pair<TArgumentType, result_row_type>;
     using TableContainerType = std::vector<RecordType>;
 
-    template <typename T>
-    using Variable = Variable<T>;
-
     using XVariableType = Variable<TArgumentType>;
     using YVariableType = Variable<TResultType>;
 
