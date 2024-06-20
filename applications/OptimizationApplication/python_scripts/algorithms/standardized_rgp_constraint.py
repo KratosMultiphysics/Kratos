@@ -29,7 +29,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
     The reference value for the constraint either can be the "initial_value" or a specified value.
 
-    It can be used only with relaxed_gradient_projection_algorithm. The class contains neccessary functions to compute critical zones. 
+    It can be used only with relaxed_gradient_projection_algorithm. The class contains neccessary functions to compute critical zones.
 
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 4):
@@ -156,7 +156,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
                     self.CF -= 0.5
                     self.CF = max (self.CF, 1.0)
 
-        self.BS = self.BSF * max_delta
+        self.BS = max(self.BSF * max_delta, 1e-6)
         # Update BSF if zig zaging
         if step > 3:
             if delta_values[0] * delta_values[1] < 0.0 and delta_values[1] * delta_values[2] < 0.0:
@@ -208,32 +208,14 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
         return standardized_response_value
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
-
+    def CalculateStandardizedGradient(self) -> KratosOA.CollectiveExpression:
         with TimeLogger(f"StandardizedRGPConstraint::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
-            if save_field:
-                # save the physical gradients for post processing in unbuffered data container.
-                for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                    variable_name = f"d{self.GetResponseName()}_d{physical_var.Name()}"
-                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                        # cloning is a cheap operation, it only moves underlying pointers
-                        # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
-
-                # save the filtered gradients for post processing in unbuffered data container.
-                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                    variable_name = f"d{self.GetResponseName()}_d{control.GetName()}"
-                    if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                    # cloning is a cheap operation, it only moves underlying pointers
-                    # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
-
-        if self.IsEqualityType():
-            factor = 1.0 if self.GetStandardizedValue() > 0.0 else -1.0
-        else: factor = 1.0
-        return gradient_collective_expression * self.__scaling * factor
+            if self.IsEqualityType():
+                factor = 1.0 if self.GetStandardizedValue() > 0.0 else -1.0
+            else:
+                factor = 1.0
+            return gradient_collective_expression * self.__scaling * factor
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
@@ -249,7 +231,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
         return self.GetStandardizedValue(step_index) * is_violated
 
     def GetRelativeViolation(self, step_index: int = 0) -> float:
-        return self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else None
+        return self.GetAbsoluteViolation(step_index) / self.GetReferenceValue() if abs(self.GetReferenceValue()) > 1e-12 else 0.0
 
     def GetRelativeChange(self) -> float:
         if self.__optimization_problem.GetStep() > 1:
@@ -270,6 +252,6 @@ class StandardizedRGPConstraint(ResponseRoutine):
             "abs_change": self.GetAbsoluteChange(),
             "abs_violation": self.GetAbsoluteViolation(),
             "rel_change [%]": self.GetRelativeChange() * 100.0,
-            "rel_violation [%]": self.GetRelativeViolation() * 100.0
+            "rel_violation [%]": self.GetRelativeViolation() * 100.0 if not self.GetReferenceValue() == 0.0 else str(None)
         }
         return info

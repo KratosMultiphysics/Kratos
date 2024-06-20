@@ -142,3 +142,6 @@ class OptimizationAnalysis:
         algorithm_settings = self.project_parameters["algorithm_settings"]
         algorithm_settings.AddMissingParameters(default_settings)
         self.__algorithm = OptimizationComponentFactory(self.model, algorithm_settings, self.optimization_problem)
+
+    def GetAlgorithm(self):
+        return self.__algorithm
