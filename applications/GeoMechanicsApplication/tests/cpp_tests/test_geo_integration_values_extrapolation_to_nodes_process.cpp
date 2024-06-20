@@ -259,7 +259,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
         model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
 
-    for (int i = 0; i < expected_values.size(); ++i) {
+    for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_MATRIX_NEAR(actual_values[i], expected_values[i], 1e-6)
     }
 }
@@ -302,7 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
         model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
 
-    for (int i = 0; i < expected_values.size(); ++i) {
+    for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
     }
 }
@@ -344,7 +344,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
 
-    for (int i = 0; i < expected_values.size(); ++i) {
+    for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
     }
 }
