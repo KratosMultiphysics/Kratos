@@ -16,7 +16,7 @@
             "input_filename":   "simple_mesh"
         },
         "material_import_settings":              {
-            "materials_filename":       "MaterialParameters.json"
+            "materials_filename":       "../common/MaterialParameters.json"
         },
         "time_stepping":              {
             "time_step":                1.0,
@@ -165,7 +165,7 @@
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
           "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
-          "average_variable"           : "NODAL_AREA"
+          "average_variable"  : "NODAL_AREA"
         }
       }
     ]    

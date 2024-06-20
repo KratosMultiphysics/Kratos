@@ -49,23 +49,20 @@ Matrix NodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(
     Vector      determinants_of_jacobian;
     determinants_of_jacobian = rGeometry.DeterminantOfJacobian(determinants_of_jacobian, IntegrationMethod);
 
-    const Matrix& shape_functions_values_at_gauss_points =
+    const Matrix& shape_functions_values_at_integration_points =
         rCornerGeometry.ShapeFunctionsValues(IntegrationMethod);
 
-    for (IndexType i_gauss_point = 0; i_gauss_point < number_of_integration_points; ++i_gauss_point) {
-        const Vector N = row(shape_functions_values_at_gauss_points, i_gauss_point);
-        quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i_gauss_point] *
-                          integration_points[i_gauss_point].Weight();
-        column(node_coefficient, i_gauss_point) =
-            N * determinants_of_jacobian[i_gauss_point] * integration_points[i_gauss_point].Weight();
+    for (IndexType i = 0; i < number_of_integration_points; ++i) {
+        const Vector N = row(shape_functions_values_at_integration_points, i);
+        quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * integration_points[i].Weight();
+        column(node_coefficient, i) = N * determinants_of_jacobian[i] * integration_points[i].Weight();
     }
 
     double metric_determinant;
     Matrix quasi_mass_mat_inverse;
     MathUtils<double>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
 
-    auto extrapolation_matrix = Matrix{prod(quasi_mass_mat_inverse, node_coefficient)};
-    return extrapolation_matrix;
+    return Matrix{prod(quasi_mass_mat_inverse, node_coefficient)};
 }
 
 void NodalExtrapolator::AddRowsForMidsideNodes(const NodalExtrapolator::GeometryType& rGeometry,

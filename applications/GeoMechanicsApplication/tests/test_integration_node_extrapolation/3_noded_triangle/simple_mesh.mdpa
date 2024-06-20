@@ -1,7 +1,5 @@
-
 Begin Properties 1
 End Properties
-
 
 Begin Nodes
   1  1.0000000000 -2.0000000000 0.0000000000
@@ -11,15 +9,12 @@ Begin Nodes
   5  0.0000000000  0.0000000000 0.0000000000
 End Nodes
 
-
 Begin Elements SteadyStatePwElement2D3N
   1  1  4 5 3
   2  1  2 1 3
   3  1  3 5 2
   4  1  4 3 1
 End Elements
-
-
 
 Begin SubModelPart soil
   Begin SubModelPartNodes
@@ -59,16 +54,17 @@ Begin SubModelPart Body_Acceleration-auto-1
     4
   End SubModelPartElements
 End SubModelPart
+
 Begin SubModelPart Top
   Begin SubModelPartNodes
     4
     5
   End SubModelPartNodes
 End SubModelPart
+
 Begin SubModelPart Base
   Begin SubModelPartNodes
     1
     2
   End SubModelPartNodes
 End SubModelPart
-

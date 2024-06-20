@@ -30,7 +30,9 @@ public:
 
     Matrix CalculateElementExtrapolationMatrix(GeometryType& rGeometry,
                                                GeometryData::IntegrationMethod IntegrationMethod) const;
-    void   CheckIfGeometryIsSupported(const GeometryType& r_this_geometry) const;
+
+private:
+    void CheckIfGeometryIsSupported(const GeometryType& r_this_geometry) const;
     std::unique_ptr<NodalExtrapolator::GeometryType> CreateLowerOrderGeometry(GeometryType& rGeometry) const;
     void AddRowsForMidsideNodes(const NodalExtrapolator::GeometryType& rGeometry, Matrix& extrapolation_matrix) const;
     Matrix CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,

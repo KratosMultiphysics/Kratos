@@ -13,7 +13,6 @@ End Table
 Begin Properties 1
 End Properties
 
-
 Begin Nodes
   1  0.0000000000 -2.0000000000 0.0000000000
   2  1.0000000000 -2.0000000000 0.0000000000
@@ -25,12 +24,9 @@ Begin Nodes
   8  0.0000000000 -1.0000000000 0.0000000000
 End Nodes
 
-
 Begin Elements UPwSmallStrainElement2D8N
   1  1  1 2 3 4 5 6 7 8
 End Elements
-
-
 
 Begin SubModelPart soil
   Begin SubModelPartNodes
@@ -66,7 +62,7 @@ End SubModelPart
 
 Begin SubModelPart Top
   Begin SubModelPartTables
-  1
+    1
   End SubModelPartTables
   Begin SubModelPartNodes
     3
@@ -77,7 +73,7 @@ End SubModelPart
 
 Begin SubModelPart Base
   Begin SubModelPartTables
-  2
+    2
   End SubModelPartTables
   Begin SubModelPartNodes
     1
