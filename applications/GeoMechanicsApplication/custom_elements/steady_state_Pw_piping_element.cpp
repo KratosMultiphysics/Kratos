@@ -76,7 +76,7 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
         KRATOS_ERROR << "PIPE_MODEL_FACTOR has Key zero, is not defined or has "
                         "an invalid value at element "
                      << this->Id() << std::endl;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 
     return ierr;
 }
@@ -103,7 +103,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& 
         this->SetValue(PIPE_ACTIVE, false);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <>

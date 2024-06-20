@@ -108,7 +108,7 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
 
     return ierr;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
