@@ -107,9 +107,9 @@ double VolumeCouplingElement::GetIntegrationWeight(const GeometryType::Integrati
 
     // }
 
-    //interpolated_coupling_weight_at_int_point =0.5;
-    // return (1-interpolated_coupling_weight_at_int_point) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
-    return interpolated_coupling_weight_at_int_point* SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
+    interpolated_coupling_weight_at_int_point = 0;
+    return (1-interpolated_coupling_weight_at_int_point) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
+    // return interpolated_coupling_weight_at_int_point* SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
 
 }
 
@@ -149,9 +149,12 @@ void VolumeCouplingElement::CalculateOnIntegrationPoints(
                     coupling_weight_on_this_integration_point += N[i] * this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);      
             }
             
+
+            // for experiements:
+            coupling_weight_on_this_integration_point =0;
             // Scale the stress vector at this integration point by the calculated coupling weight
-            // rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
-            rOutput[point_number] *= coupling_weight_on_this_integration_point;
+            rOutput[point_number] *= (1-coupling_weight_on_this_integration_point);
+            // rOutput[point_number] *= coupling_weight_on_this_integration_point;
             std::cout<<"integration point weight "<<(1-coupling_weight_on_this_integration_point)<<std::endl;
             // print the location of the integration point
             std::cout<<"integration point location: "<<integration_points[point_number].Coordinates()<<std::endl;
