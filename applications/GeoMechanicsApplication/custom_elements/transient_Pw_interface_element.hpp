@@ -166,9 +166,9 @@ protected:
 
     std::size_t GetNumberOfDOF() const override;
 
+private:
     [[nodiscard]] DofsVectorType GetDofs() const override;
 
-private:
     /// Serialization
     friend class Serializer;
 
