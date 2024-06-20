@@ -21,6 +21,7 @@
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_sensors_to_python.h"
+#include "custom_python/add_custom_response_to_python.h"
 #include "system_identification_application.h"
 #include "system_identification_application_variables.h"
 
@@ -36,6 +37,7 @@ PYBIND11_MODULE(KratosSystemIdentificationApplication, m)
 
     AddCustomUtilitiesToPython(m);
     AddCustomSensorsToPython(m);
+    AddCustomResponseToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_DISPLACEMENT)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_ROTATION)
@@ -50,6 +52,16 @@ PYBIND11_MODULE(KratosSystemIdentificationApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_MEASURED_VALUE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_ERROR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SENSOR_ELEMENT_ID)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPUTED_EIGENVECTOR_MATRIX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVECTOR_MATRIX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MEASURED_EIGENVECTOR_MATRIX)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPUTED_EIGENVALUE_VECTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVALUE_VECTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MEASURED_EIGENVALUE_VECTOR)
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, YOUNG_MODULUS_SENSITIVITY)
 }
 
 } // namespace Kratos::Python

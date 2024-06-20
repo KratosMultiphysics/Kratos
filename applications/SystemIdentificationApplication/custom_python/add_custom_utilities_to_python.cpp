@@ -22,6 +22,7 @@
 // Application includes
 #include "custom_utilities/control_utils.h"
 #include "custom_utilities/smooth_clamper.h"
+#include "custom_utilities/finite_difference_utility.h"
 
 // Include base h
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -58,6 +59,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
     AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
     AddSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
-}
+    }
 
 } // namespace Kratos::Python
