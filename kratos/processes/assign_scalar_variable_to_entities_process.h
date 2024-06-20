@@ -124,7 +124,22 @@ public:
     ///@name Input and output
     ///@{
 
-    static const Parameters GetSpecifications(Parameters rParameters);
+    static Parameters GetSpecifications(const Parameters rParameters)
+    {
+        const Parameters specifications = Parameters(R"({
+            "required_solution_step_data_variables" : [],
+            "required_dofs" : [],
+            "flags_used" : [],
+            "documentation" : "This is the base process."
+        })");
+
+        if constexpr (std::is_same<TEntity, Node>::value && THistorical == AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable) {
+            const std::vector<std::string> req_var_vect{rParameters["variable_name"].GetString()};
+            specifications["required_solution_step_data_variables"].SetStringArray(req_var_vect);
+        }
+
+        return specifications;
+    }
 
     /// Turn back information as a string.
     std::string Info() const override

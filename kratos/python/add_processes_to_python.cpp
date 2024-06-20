@@ -535,12 +535,12 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>, AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"AssignScalarVariableToNodesProcess")
     .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
-    // .def_static("GetSpecifications", [](const Parameters rParameters){return AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetSpecifications(rParameters);})
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>, AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"AssignScalarVariableHistoricalToNodesProcess")
     .def(py::init<Model&, Parameters >())
     .def(py::init<ModelPart&, Parameters >())
+    .def_static("GetSpecifications", &AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetSpecifications)
     ;
 
     py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
