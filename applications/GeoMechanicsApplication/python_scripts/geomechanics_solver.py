@@ -497,6 +497,20 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          compute_reactions,
                                                                                          reform_step_dofs,
                                                                                          move_mesh_flag)
+        elif strategy_type.lower() == "newton_raphson_linear_elastic":
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
+            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(self.computing_model_part,
+                                                                                         self.scheme,
+                                                                                         self.linear_solver,
+                                                                                         self.convergence_criterion,
+                                                                                         builder_and_solver,
+                                                                                         self.strategy_params,
+                                                                                         max_iters,
+                                                                                         compute_reactions,
+                                                                                         reform_step_dofs,
+                                                                                         move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
