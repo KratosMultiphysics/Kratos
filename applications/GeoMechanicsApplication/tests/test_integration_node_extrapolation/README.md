@@ -1,4 +1,4 @@
-# Integration to Node Extrapolation Tests
+# Integration Point to Node Extrapolation Tests
 
 This folder contains a series of tests to test the process that extrapolates integration point values to nodes. The functionality is found in `GeoIntegrationValuesExtrapolationToNodesProcess`. The meshes used are simple rectangular domains, built up using either a single 4- or 8-noded quadrilateral, or four 3- or 6-noded triangles.
 

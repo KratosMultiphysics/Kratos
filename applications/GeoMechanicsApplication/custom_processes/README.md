@@ -17,14 +17,16 @@ Conceptually the process consists of the following steps:
 5. Divide the nodal values by the count to get the average value.
 
 ### Restrictions
-Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrpolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
+Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
 
 ### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
 ```json
 {
-  "process_name": "GeoIntegrationValuesExtrapolationToNodesProcess",
-  "Parameters":   {
+  "python_module": "geo_integration_values_extrapolation_to_nodes_process",
+  "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+  "process_name":  "GeoIntegrationValuesExtrapolationToNodesProcess",
+  "Parameters":    {
     "model_part_name":   "ModelPartName",
     "list_of_variables": ["Variable1", "Variable2", "Variable3"],
     "average_variable":  "NODAL_AREA"
