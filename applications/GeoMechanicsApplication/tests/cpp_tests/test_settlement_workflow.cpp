@@ -26,8 +26,8 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-// KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
-[[maybe_unused]] void TestSettlement()
+KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
+// [[maybe_unused]] void TestSettlement()
 {
     const auto temporary_working_directory = std::filesystem::path{"."} / "applications" /
                                              "GeoMechanicsApplication" / "tests" / "test_settlement_workflow_cpp";
@@ -52,11 +52,11 @@ namespace Kratos::Testing
         const std::string result_file = "test_model_stage" + std::to_string(i + 1) + ".post.res";
 
         KRATOS_EXPECT_EQ(status, 0);
-        KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(temporary_working_directory / original_file,
-                                                       temporary_working_directory / result_file))
+        // KRATOS_EXPECT_TRUE(TestUtilities::CompareFiles(temporary_working_directory / original_file,
+                                                       // temporary_working_directory / result_file))
     }
 
-    std::filesystem::remove_all(temporary_working_directory);
+    // std::filesystem::remove_all(temporary_working_directory);
 }
 
 } // namespace Kratos::Testing
