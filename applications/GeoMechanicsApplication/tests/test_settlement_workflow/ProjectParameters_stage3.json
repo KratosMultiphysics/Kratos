@@ -93,7 +93,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","INCREMENTAL_DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","VOLUME_ACCELERATION"],
+                        "nodal_results":       ["DISPLACEMENT","INCREMENTAL_DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE","VOLUME_ACCELERATION", "TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"],
                         "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","ENGINEERING_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR","HYDRAULIC_HEAD"]
                     },
                     "point_data_configuration":  []
@@ -177,6 +177,17 @@
             "table":           [0,0,0]
         }
     }],
-        "auxiliar_process_list": []
+        "auxiliar_process_list": [
+            {
+                "python_module": "geo_integration_values_extrapolation_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name" :  "GeoIntegrationValuesExtrapolationToNodesProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain",
+                    "list_of_variables" : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"],
+                    "average_variable"  : "NODAL_AREA"
+                }
+            }
+        ]
     }
 }
