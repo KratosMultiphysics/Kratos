@@ -153,7 +153,7 @@ void GeoIntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionSte
         }
     });
 
-    // AssembleNodalDataForAllVariableLists();
+    AssembleNodalDataForAllVariableLists();
 }
 
 void GeoIntegrationValuesExtrapolationToNodesProcess::AssembleNodalDataForAllVariableLists()
