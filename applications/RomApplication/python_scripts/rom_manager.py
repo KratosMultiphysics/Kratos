@@ -794,6 +794,7 @@ class RomManager(object):
             "save_gid_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "save_vtk_output": false,                    // false, true #if true, it must exits previously in the ProjectParameters.json
             "output_name": "id",                         // "id" , "mu"
+            "store_nonconverged_fom_solutions": false,
             "ROM":{
                 "svd_truncation_tolerance": 1e-5,
                 "model_part_name": "Structure",                            // This changes depending on the simulation: Structure, FluidModelPart, ThermalPart #TODO: Idenfity it automatically
@@ -804,7 +805,7 @@ class RomManager(object):
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
                 "print_singular_values": false,
-                "store_nonconverged_fom_solutions" : false,
+                "use_non_converged_sols" : false,
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
                 },
@@ -830,8 +831,7 @@ class RomManager(object):
                         "additional_params": [1e-4, 10, 400]
                     },
                     "training":{
-                        "retrain_if_exists" : false,  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
-                        "model_number" : 0     // this part of the parameters will be updated with the number of trained models that exist for the same mu_train and NN hyperparameters combination
+                        "retrain_if_exists" : false  // If false only one model will be trained for each the mu_train and NN hyperparameters combination
                     },
                     "online":{
                         "model_number": 0   // out of the models existing for the same parameters, this is the model that will be lauched

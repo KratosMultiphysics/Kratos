@@ -1,6 +1,7 @@
 import numpy as np
 import pathlib
 import json
+import sqlite3
 
 import tensorflow as tf
 from keras.models import Model
@@ -74,11 +75,36 @@ class RomNeuralNetworkTrainer(object):
         Q_inf_val = (phisig_inv_inf@S_val).T
         Q_sup_train = (phisig_inv_sup@S_train).T
         Q_sup_val = (phisig_inv_sup@S_val).T
+        Q_inf_train_original = Q_inf_train.copy()
+
+        UseNonConvergedSolutionsGathering = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
+        if UseNonConvergedSolutionsGathering:
+            #fetching nonconverged sols for enlarginign training samples in ann enhanced prom
+            conn = sqlite3.connect(self.data_base.database_name)
+            cursor = conn.cursor()
+            for mu in self.mu_train:
+                hash_mu, _ = self.data_base.get_hashed_mu_for_table('NonconvergedFOM', mu)
+                cursor.execute(f"SELECT file_name FROM {'NonconvergedFOM'} WHERE file_name = ?", (hash_mu,))
+                result = cursor.fetchone()
+                if result:
+                    file_name = result[0]
+                    data = self.data_base.get_single_numpy_from_database(file_name)
+                    max_number_of_nonconverged_sols = 1000  #making sure not all data is contained
+                    number_of_cols = data.shape[1]
+
+                    if True: #use all data !!! data.shape[1] <= max_number_of_nonconverged_sols:
+                        pass
+                    else:
+                        indices = np.linspace(0, number_of_cols - 1, max_number_of_nonconverged_sols).astype(int)
+                        data = data[:, indices]
+
+                    Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
+                    Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
 
         phisig_norm_matrix = phisig_sup.T @ phisig_sup
 
-        rescaling_factor = np.mean(np.square((phisig_inf@Q_inf_train.T)-S_train))
-        rescaling_factor *= S_train.shape[0]/Q_sup_train.shape[1]
+        rescaling_factor = np.mean(np.square((phisig_inf@Q_inf_train_original.T)-S_train))
+        rescaling_factor *= S_train.shape[0]/Q_inf_train_original.shape[1]
 
         return Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor
 
