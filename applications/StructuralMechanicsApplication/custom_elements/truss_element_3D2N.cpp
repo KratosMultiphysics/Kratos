@@ -1042,17 +1042,24 @@ void TrussElement3D2N::CalculateLumpedMassVector(
 
 double TrussElement3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+    return ReturnTangentModulus1D(CalculateGreenLagrangeStrain(), rCurrentProcessInfo);
+    KRATOS_CATCH("")
+}
+
+double TrussElement3D2N::ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
     double tangent_modulus(0.00);
     Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    strain_vector[0] = CalculateGreenLagrangeStrain();
+    strain_vector[0] = Strain;
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Values.SetStrainVector(strain_vector);
 
     mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,tangent_modulus);
     return tangent_modulus;
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 
