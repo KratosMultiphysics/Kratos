@@ -372,12 +372,12 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        // const double plasticity_tol = 0.05;
+        const double plasticity_tol = 0.05;
         // int time = rValues.GetProcessInfo()[TIME];
         
         double F = uniaxial_stress - threshold;
 
-        if (F > threshold_tolerance && first_nonlinearity) {
+        if (F > threshold_tolerance && first_nonlinearity && (1.0 / fatigue_reduction_factor - 1.0) <= plasticity_tol) {
             HighCycleFatigueLawIntegrator<6>::CalculateRelaxationFactor(nominal_uniaxial_stress,
                                                                         uniaxial_residual_stress,
                                                                         threshold,          
@@ -387,11 +387,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
                                                                         first_nonlinearity);
             mFirstCycleRelaxationFactor = first_cycle_relaxation_factor;
             mRelaxationFactor = relaxation_factor;
-            
-            // if (relaxation_factor < 0.3319){
-            //     KRATOS_WATCH("RelaxationFactor")
-            //     KRATOS_WATCH(relaxation_factor)
-            // }
+           
         }
         
         threshold /= (1 - damage);
