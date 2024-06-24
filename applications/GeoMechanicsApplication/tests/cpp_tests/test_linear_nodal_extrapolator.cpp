@@ -83,10 +83,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
-    expected_extrapolation_matrix <<= 1.8660254037844386, -0.5,  0.13397459621556132, -0.5,
-                                      -0.5, 1.8660254037844386, -0.5, 0.13397459621556132,
-                                      0.13397459621556132, -0.5, 1.8660254037844386, -0.5,
-                                      -0.5, 0.13397459621556132, -0.5, 1.8660254037844386;
+    expected_extrapolation_matrix <<= 1.866025, -0.5,       0.133974, -0.5,
+                                     -0.5,       1.866025, -0.5,       0.133974,
+                                      0.133974, -0.5,       1.866025, -0.5,
+                                     -0.5,       0.133974, -0.5,       1.866025;
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -108,14 +108,14 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(8, 4);
-    expected_extrapolation_matrix <<= 1.8660254037844386, -0.5,  0.13397459621556132, -0.5,
-                                      -0.5, 1.8660254037844386, -0.5, 0.13397459621556132,
-                                      0.13397459621556132, -0.5, 1.8660254037844386, -0.5,
-                                      -0.5, 0.13397459621556132, -0.5, 1.8660254037844386,
-                                      0.683013,0.683013,-0.183013,-0.183013,
-                                      -0.183013,0.683013,0.683013,-0.183013,
-                                      -0.183013,-0.183013,0.683013,0.683013,
-                                      0.683013,-0.183013,-0.183013,0.683013;
+    expected_extrapolation_matrix <<= 1.866025, -0.5,       0.133974, -0.5,
+                                     -0.5,       1.866025, -0.5,       0.133974,
+                                      0.133974, -0.5,       1.866025, -0.5,
+                                     -0.5,       0.133974, -0.5,       1.866025,
+                                      0.683013,  0.683013, -0.183013, -0.183013,
+                                     -0.183013,  0.683013,  0.683013, -0.183013,
+                                     -0.183013, -0.183013,  0.683013,  0.683013,
+                                      0.683013, -0.183013, -0.183013,  0.683013;
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
