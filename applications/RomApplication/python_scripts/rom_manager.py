@@ -281,9 +281,12 @@ class RomManager(object):
     def _LaunchFOM(self, mu_train, gid_and_vtk_name='FOM_Fit'):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
         for Id, mu in enumerate(mu_train):
-            in_database, _ = self.data_base.check_if_in_database("FOM", mu)
-            if not in_database:
+            fom_in_database, _ = self.data_base.check_if_in_database("FOM", mu)
+            nonconverged_fom_in_database, _ = self.data_base.check_if_in_database("NonconvergedFOM", mu)
+            if not fom_in_database or (NonConvergedSolutionsGathering and not nonconverged_fom_in_database):
                 parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
                 parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
                 parameters_copy = self._StoreResultsByName(parameters_copy,gid_and_vtk_name,mu,Id)
@@ -292,16 +295,16 @@ class RomManager(object):
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-                NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
                 if NonConvergedSolutionsGathering:
                     simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
-                self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
-                for process in simulation._GetListOfOutputProcesses():
-                    if isinstance(process, CalculateRomBasisOutputProcess):
-                        BasisOutputProcess = process
-                SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-                self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
+                if not fom_in_database:
+                    self.data_base.add_to_database("QoI_FOM", mu, simulation.GetFinalData())
+                    for process in simulation._GetListOfOutputProcesses():
+                        if isinstance(process, CalculateRomBasisOutputProcess):
+                            BasisOutputProcess = process
+                    SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+                    self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
                 if NonConvergedSolutionsGathering:
                     self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
 
