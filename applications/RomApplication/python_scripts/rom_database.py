@@ -207,55 +207,55 @@ class RomDatabase(object):
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
 
-        if table_name == 'FOM':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
-                        (serialized_mu, file_name))
-        elif table_name == 'ROM':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'HROM':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'NonconvergedFOM':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, file_name) VALUES (?, ?)',
-                        (serialized_mu, file_name))
-        elif table_name == 'NonconvergedROM':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'NonconvergedHROM':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'ResidualsProjected':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, projection_type, tol_sol, tol_res, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'SingularValues_Residuals':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, projection_type, tol_sol, tol_res, decoder_type, non_converged_fom_14_bool, file_name))
+        queries = {
+            'FOM': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
+            'ROM': 'INSERT INTO {table} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
+            'HROM': 'INSERT INTO {table} (parameters, tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'NonconvergedFOM': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
+            'NonconvergedROM': 'INSERT INTO {table} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
+            'NonconvergedHROM': 'INSERT INTO {table} (parameters, tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'ResidualsProjected': 'INSERT INTO {table} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'SingularValues_Residuals': 'INSERT INTO {table} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'PetrovGalerkinSnapshots': 'INSERT INTO {table} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'RightBasis': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
+            'SingularValues_Solution': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
+            'LeftBasis': 'INSERT INTO {table} (tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'HROM_Elements': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
+            'HROM_Weights': 'INSERT INTO {table} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
+            'Neural_Network': 'INSERT INTO {table} (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'QoI_FOM': 'INSERT INTO {table} (parameters, file_name, is_active) VALUES (?, ?, ?)',
+            'QoI_ROM': 'INSERT INTO {table} (parameters, tol_sol, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'QoI_HROM': 'INSERT INTO {table} (parameters, tol_sol, tol_res, type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        }
+
+        if table_name not in queries:
+            err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(queries.keys())}'
+            raise Exception(err_msg)
+
+        query = queries[table_name].format(table=table_name)
+
+        if table_name in ['FOM', 'NonconvergedFOM']:
+            cursor.execute(query, (serialized_mu, file_name))
+        elif table_name in ['ROM', 'NonconvergedROM']:
+            cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
+        elif table_name in ['HROM', 'NonconvergedHROM']:
+            cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
+        elif table_name in ['ResidualsProjected', 'SingularValues_Residuals']:
+            cursor.execute(query, (serialized_mu, projection_type, tol_sol, tol_res, decoder_type, non_converged_fom_14_bool, file_name))
         elif table_name == 'PetrovGalerkinSnapshots':
-            cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
-        elif table_name == 'RightBasis':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',(tol_sol, non_converged_fom_14_bool, file_name))
-        elif table_name == 'SingularValues_Solution':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',(tol_sol, non_converged_fom_14_bool, file_name))
+            cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
+        elif table_name in ['RightBasis', 'SingularValues_Solution']:
+            cursor.execute(query, (tol_sol, non_converged_fom_14_bool, file_name))
         elif table_name == 'LeftBasis':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol, type_of_projection, type_of_decoder,  using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        (tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
-        elif table_name == 'HROM_Elements':
-            cursor.execute(f'INSERT INTO {table_name} (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
-                        (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
-        elif table_name == 'HROM_Weights':
-            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?)',
-                        (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
+            cursor.execute(query, (tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, file_name))
+        elif table_name in ['HROM_Elements', 'HROM_Weights']:
+            cursor.execute(query, (tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
         elif table_name == 'Neural_Network':
-            cursor.execute(f'INSERT INTO {table_name}  (tol_sol , modes , layers_size, batch_size, epochs, scheduler, base_lr, additional_params, model_number, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                        (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
+            cursor.execute(query, (tol_sol, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, file_name))
         elif table_name == 'QoI_FOM':
             if len(numpy_array) > 0:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, file_name, is_active) VALUES (?, ?, ?)',
-                            (serialized_mu, file_name, True))
+                cursor.execute(query, (serialized_mu, file_name, True))
                 for key, value in numpy_array.items():
-                    # Check if the column exists
                     cursor.execute(f"PRAGMA table_info({table_name})")
                     columns = [info[1] for info in cursor.fetchall()]
                     if key not in columns:
@@ -263,14 +263,11 @@ class RomDatabase(object):
                     cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
                     self.save_as_npy(value, file_name+key)
             else:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, file_name, is_active) VALUES (?, ?, ?)',
-                            (serialized_mu, file_name, False))
+                cursor.execute(query, (serialized_mu, file_name, False))
         elif table_name == 'QoI_ROM':
             if len(numpy_array) > 0:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            (serialized_mu, tol_sol, projection_type,decoder_type, non_converged_fom_14_bool, file_name, True))
+                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name, True))
                 for key, value in numpy_array.items():
-                    # Check if the column exists
                     cursor.execute(f"PRAGMA table_info({table_name})")
                     columns = [info[1] for info in cursor.fetchall()]
                     if key not in columns:
@@ -278,14 +275,11 @@ class RomDatabase(object):
                     cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
                     self.save_as_npy(value, file_name+key)
             else:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            (serialized_mu, tol_sol, projection_type,decoder_type, non_converged_fom_14_bool, file_name, False))
+                cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
         elif table_name == 'QoI_HROM':
             if len(numpy_array) > 0:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                            (serialized_mu, tol_sol, tol_res, projection_type,decoder_type, non_converged_fom_14_bool, file_name, True))
+                cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, True))
                 for key, value in numpy_array.items():
-                    # Check if the column exists
                     cursor.execute(f"PRAGMA table_info({table_name})")
                     columns = [info[1] for info in cursor.fetchall()]
                     if key not in columns:
@@ -293,19 +287,17 @@ class RomDatabase(object):
                     cursor.execute(f'UPDATE {table_name} SET {key} = ? WHERE file_name = ?', (value, file_name))
                     self.save_as_npy(value, file_name+key)
             else:
-                cursor.execute(f'INSERT INTO {table_name} (parameters, tol_sol, tol_res,  type_of_projection, type_of_decoder, using_non_converged_sols, file_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                            (serialized_mu, tol_sol, tol_res, projection_type,decoder_type, non_converged_fom_14_bool, file_name, False))
-        else:
-            err_msg = f'Error: table_name: {table_name} not available. Available options are: {", ".join(self.table_names)}'
-            raise Exception(err_msg)
+                cursor.execute(query, (serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool, file_name, False))
 
         conn.commit()
         conn.close()
 
-        if table_name == "Neural_Network" or table_name == 'QoI_FOM' or table_name == 'QoI_ROM' or table_name == 'QoI_HROM':
+        if table_name in ["Neural_Network", 'QoI_FOM' , 'QoI_ROM' ,'QoI_HROM']:
             pass
         else:
             self.save_as_npy(numpy_array, file_name)
+
+
 
 
 
