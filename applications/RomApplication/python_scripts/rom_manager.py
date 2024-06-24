@@ -854,6 +854,7 @@ class RomManager(object):
                             2,
                             2
                         ],
+                        "NN_gradient_regularisation_weight": 0.0,
                         "lr_strategy": {                // Learning Rate update strategy
                             "scheduler": "const",       // 'const', 'steps', 'sgdr'
                             "base_lr": 0.01,            // Initial LR

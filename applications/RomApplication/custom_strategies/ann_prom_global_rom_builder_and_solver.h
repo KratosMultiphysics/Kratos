@@ -409,6 +409,7 @@ public:
     {
 
         EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1];
+        // EigenDynamicMatrix phisig_sup = mSVDPhiMatrices[1]*0;
 
         Eigen::Map<EigenDynamicVector> eigen_rom_unknowns(rRomUnknowns.data().begin(), rRomUnknowns.size());
         Eigen::Map<EigenDynamicMatrix> eigen_phi_global(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
@@ -444,7 +445,6 @@ public:
 
         eigen_phi_global=mSVDPhiMatrices[0]+phisig_sup*mIntermediateGradients[mIntermediateGradients.size()-1].transpose()*mSVDPhiMatrices[2];
 
-        // KRATOS_WATCH(phisig_sup)
         eigen_rx = mRefSnapshot + mSVDPhiMatrices[0]*eigen_rom_unknowns + phisig_sup*mLayersOut[mLayersOut.size()-1];
 
     }
