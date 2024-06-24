@@ -52,7 +52,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
 
     explicit GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
-                                                             Parameters rParameters = Parameters(R"({})"));
+                                                             Parameters ThisParameters = Parameters(R"({})"));
     explicit GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
                                                              Parameters rParameters = Parameters(R"({})"));
 
@@ -79,19 +79,19 @@ private:
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable;
-    std::unordered_map<SizeType, Matrix>              mExtrapolationMatrixMap = {};
+    mutable std::map<SizeType, Matrix>                mExtrapolationMatrixMap = {};
     std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
-    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizesOfVectorVariables;
-    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizesOfMatrixVariables;
+    std::map<const Variable<Vector>*, Vector>         mDefaultValuesOfVectorVariables;
+    std::map<const Variable<Matrix>*, Matrix>         mDefaultValuesOfMatrixVariables;
 
-    void GetVariableLists(const Parameters& rParameters);
+    void FillVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixSizesOfVariables();
-    void InitializeSizesOfVectorVariables(Element&           rFirstElement,
-                                          SizeType           NumberOfIntegrationPoints,
-                                          const ProcessInfo& rProcessInfo);
-    void InitializeSizesOfMatrixVariables(Element&           rFirstElement,
-                                          SizeType           NumberOfIntegrationPoints,
-                                          const ProcessInfo& rProcessInfo);
+    void InitializeDefaultsOfVectorVariables(Element&           rFirstElement,
+                                             SizeType           NumberOfIntegrationPoints,
+                                             const ProcessInfo& rProcessInfo);
+    void InitializeDefaultsOfMatrixVariables(Element&           rFirstElement,
+                                             SizeType           NumberOfIntegrationPoints,
+                                             const ProcessInfo& rProcessInfo);
     void InitializeVariables();
     void InitializeAverageVariablesForElements() const;
 
@@ -134,16 +134,15 @@ private:
 
     Matrix             GetExtrapolationMatrix(const Element&                         rElement,
                                               GeometryType&                          rGeometry,
-                                              const GeometryData::IntegrationMethod& rIntegrationMethod);
+                                              const GeometryData::IntegrationMethod& rIntegrationMethod) const;
     [[nodiscard]] bool ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
-    void   CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix);
-    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement);
+    void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix) const;
+    Matrix GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    [[nodiscard]] bool ModelPartContainsAtLeastOneElement() const;
-    void               AddIntegrationContributionsForAllVariableLists(Element&      rElem,
-                                                                      SizeType      NumberOfIntegrationPoints,
-                                                                      const Matrix& rExtrapolationMatrix);
-    void               AssembleNodalDataForAllVariableLists();
+    void AddIntegrationContributionsForAllVariableLists(Element&      rElem,
+                                                        SizeType      NumberOfIntegrationPoints,
+                                                        const Matrix& rExtrapolationMatrix);
+    void AssembleNodalDataForAllVariableLists();
 
     template <class T>
     void AssembleNodalData(const std::vector<const Variable<T>*>& rVariableList)
@@ -153,15 +152,5 @@ private:
         }
     }
 };
-
-inline std::istream& operator>>(std::istream& rIStream, GeoIntegrationValuesExtrapolationToNodesProcess&)
-{
-    return rIStream;
-}
-
-inline std::ostream& operator<<(std::ostream& rOStream, const GeoIntegrationValuesExtrapolationToNodesProcess&)
-{
-    return rOStream;
-}
 
 } // namespace Kratos.
