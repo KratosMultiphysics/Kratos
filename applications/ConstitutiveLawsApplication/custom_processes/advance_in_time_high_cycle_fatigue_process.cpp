@@ -38,6 +38,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
+    std::vector<double> damage_matrix, damage_fiber;
+    std::vector<double> high_cycle_fatigue_damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
     if (!process_info[DAMAGE_ACTIVATION]) {
@@ -48,8 +50,11 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         for (auto& r_elem : mrModelPart.Elements()) {
             unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
             r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+            r_elem.CalculateOnIntegrationPoints(DAMAGE_MATRIX, damage_matrix, process_info);
+            r_elem.CalculateOnIntegrationPoints(DAMAGE_FIBER, damage_fiber, process_info);
+            r_elem.CalculateOnIntegrationPoints(HIGH_CYCLE_FATIGUE_DAMAGE, high_cycle_fatigue_damage, process_info);
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                    if (damage[i] > 0.0) {
+                    if (high_cycle_fatigue_damage[i] > 0.0) {
                         process_info[DAMAGE_ACTIVATION] = true;
                         break;
                     }
@@ -205,6 +210,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
+        
         for (unsigned int i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
                 double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
@@ -220,6 +226,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
         }
     }
 	rIncrement = min_time_increment;
+    
 }
 
 /***********************************************************************************/
@@ -258,7 +265,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
                 if (period[i] == 0.0) {
                     local_cycles_increment = 0;
                 } else {
-                    local_cycles_increment = std::trunc(Increment / period[i]);
+                    local_cycles_increment = std::trunc(Increment / period[i] );
                     time_increment = std::trunc(Increment / period[i]) * period[i];
                     previous_cycle_time[i] += time_increment;
                 }
