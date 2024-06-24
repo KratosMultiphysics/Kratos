@@ -659,6 +659,10 @@ namespace Kratos {
 
         if (r_process_info[DOMAIN_IS_PERIODIC]) {
             mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
+            if (is_time_to_mark_and_remove){ //in "periodic" condition, we should also could delete particles
+                mpParticleCreatorDestructor->DestroyParticles<Cluster3D>(*mpCluster_model_part);
+                mpParticleCreatorDestructor->DestroyParticles<SphericParticle>(r_model_part);
+            }
         } else if (is_time_to_mark_and_remove) {
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox<Cluster3D>(*mpCluster_model_part);
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox<SphericParticle>(r_model_part);
