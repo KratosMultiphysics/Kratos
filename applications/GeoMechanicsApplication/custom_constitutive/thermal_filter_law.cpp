@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& rProp, const ProcessInfo&) const
+Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& rProp) const
 {
     return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
 }

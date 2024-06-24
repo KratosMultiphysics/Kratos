@@ -111,7 +111,7 @@ public:
      */
     double CalculateLinearStrain();
 
-    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * @brief This function updates the internal forces
      * @param rinternalForces The internal forces
@@ -121,6 +121,9 @@ public:
         BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    double ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo) override;
+    using TrussElement3D2N::ReturnTangentModulus1D;
 
 private:
 

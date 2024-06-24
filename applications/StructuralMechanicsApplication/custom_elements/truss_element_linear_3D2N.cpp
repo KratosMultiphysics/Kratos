@@ -55,6 +55,7 @@ TrussElement3D2N::msLocalSize>
 TrussElementLinear3D2N::CreateElementStiffnessMatrix(
     const ProcessInfo& rCurrentProcessInfo)
 {
+
     KRATOS_TRY
     BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
         ZeroMatrix(msLocalSize, msLocalSize);
@@ -90,6 +91,7 @@ void TrussElementLinear3D2N::AddPrestressLinear(
 void TrussElementLinear3D2N::CalculateRightHandSide(
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
+
     KRATOS_TRY
     rRightHandSideVector = ZeroVector(msLocalSize);
 
@@ -108,6 +110,7 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
 void TrussElementLinear3D2N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
+
     KRATOS_TRY
 
     // resizing the matrices + create memory for LHS
@@ -197,22 +200,6 @@ void TrussElementLinear3D2N::WriteTransformationCoordinates(
     KRATOS_CATCH("");
 }
 
-double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    double tangent_modulus(0.00);
-    Vector strain_vector = ZeroVector(mpConstitutiveLaw->GetStrainSize());
-    strain_vector[0] = CalculateLinearStrain();
-
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Values.SetStrainVector(strain_vector);
-
-    mpConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,tangent_modulus);
-    return tangent_modulus;
-    KRATOS_CATCH("");
-}
-
-
 double TrussElementLinear3D2N::CalculateLinearStrain()
 {
     KRATOS_TRY;
@@ -272,6 +259,13 @@ void TrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentPro
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->FinalizeMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
     KRATOS_CATCH("");
+}
+
+double TrussElementLinear3D2N::ReturnTangentModulus1D(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    return ReturnTangentModulus1D(CalculateLinearStrain(), rCurrentProcessInfo);
+    KRATOS_CATCH("")
 }
 
 

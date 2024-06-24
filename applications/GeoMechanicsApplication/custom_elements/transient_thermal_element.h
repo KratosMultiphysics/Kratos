@@ -88,8 +88,8 @@ public:
         
         const auto integration_coefficients = CalculateIntegrationCoefficients(det_J_container);
         const auto conductivity_matrix =
-            CalculateConductivityMatrix(dN_dX_container, integration_coefficients, rCurrentProcessInfo);
-        const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients, rCurrentProcessInfo);
+            CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
+        const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
 
         AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                     rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
@@ -266,11 +266,10 @@ private:
 
     BoundedMatrix<double, TNumNodes, TNumNodes> CalculateConductivityMatrix(
         const GeometryType::ShapeFunctionsGradientsType& rShapeFunctionGradients,
-        const Vector&                                    rIntegrationCoefficients,
-        const ProcessInfo&                               rCurrentProcessInfo) const
+        const Vector&                                    rIntegrationCoefficients) const
     {
         const auto law = CreateThermalLaw();
-        const auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties(), rCurrentProcessInfo);
+        const auto constitutive_matrix = law->CalculateThermalDispersionMatrix(GetProperties());
 
         auto result = BoundedMatrix<double, TNumNodes, TNumNodes>{ZeroMatrix{TNumNodes, TNumNodes}};
         for (unsigned int integration_point_index = 0;
@@ -285,11 +284,10 @@ private:
         return result;
     }
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients,
-                                                                        const ProcessInfo& rCurrentProcessInfo) const
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCapacityMatrix(const Vector& rIntegrationCoefficients) const
     {
         const auto&              r_properties = GetProperties();
-        RetentionLaw::Parameters parameters(r_properties, rCurrentProcessInfo);
+        RetentionLaw::Parameters parameters(r_properties);
         auto                     retention_law = RetentionLawFactory::Clone(r_properties);
         const double             saturation    = retention_law->CalculateSaturation(parameters);
         const auto c_water = r_properties[POROSITY] * saturation * r_properties[DENSITY_WATER] *

@@ -18,7 +18,7 @@
 #include "expression/binary_expression.h"
 #include "expression/literal_expression.h"
 #include "expression/literal_flat_expression.h"
-#include "expression/unary_abs_expression.h"
+#include "expression/unary_expression.h"
 #include "expression/unary_slice_expression.h"
 #include "expression/unary_statistics_expression.h"
 #include "utilities/parallel_utilities.h"
@@ -90,7 +90,16 @@ Expression::ConstPointer ExpressionUtils::Abs(const Expression::ConstPointer& rp
 {
     KRATOS_TRY
 
-    return UnaryAbsExpression::Create(rpExpression);
+    return UnaryExpression<UnaryOperations::Absolute>::Create(rpExpression);
+
+    KRATOS_CATCH("");
+}
+
+Expression::ConstPointer ExpressionUtils::Log(const Expression::ConstPointer& rpExpression)
+{
+    KRATOS_TRY
+
+    return UnaryExpression<UnaryOperations::Logarithm>::Create(rpExpression);
 
     KRATOS_CATCH("");
 }

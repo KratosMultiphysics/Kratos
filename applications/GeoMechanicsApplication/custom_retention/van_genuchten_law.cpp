@@ -25,7 +25,7 @@ RetentionLaw::Pointer VanGenuchtenLaw::Clone() const
     return Kratos::make_shared<VanGenuchtenLaw>(*this);
 }
 
-double VanGenuchtenLaw::CalculateSaturation(Parameters &rParameters)
+double VanGenuchtenLaw::CalculateSaturation(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -47,7 +47,7 @@ double VanGenuchtenLaw::CalculateSaturation(Parameters &rParameters)
     KRATOS_CATCH("")
 }
 
-double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters &rParameters)
+double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -60,7 +60,7 @@ double VanGenuchtenLaw::CalculateEffectiveSaturation(Parameters &rParameters)
     KRATOS_CATCH("")
 }
 
-double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters &rParameters)
+double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters &rParameters) const
 {
     KRATOS_TRY
     const double &p = rParameters.GetFluidPressure();
@@ -82,7 +82,7 @@ double VanGenuchtenLaw::CalculateDerivativeOfSaturation(Parameters &rParameters)
     KRATOS_CATCH("")
 }
 
-double VanGenuchtenLaw::CalculateRelativePermeability(Parameters &rParameters)
+double VanGenuchtenLaw::CalculateRelativePermeability(Parameters &rParameters) const
 {
     KRATOS_TRY
 
@@ -99,7 +99,7 @@ double VanGenuchtenLaw::CalculateRelativePermeability(Parameters &rParameters)
     KRATOS_CATCH("")
 }
 
-double VanGenuchtenLaw::CalculateBishopCoefficient(Parameters &rParameters)
+double VanGenuchtenLaw::CalculateBishopCoefficient(Parameters &rParameters) const
 {
     KRATOS_TRY
 

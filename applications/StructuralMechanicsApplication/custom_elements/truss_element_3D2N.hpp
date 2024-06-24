@@ -257,6 +257,9 @@ namespace Kratos
 
         const Parameters GetSpecifications() const override;
 
+protected:
+    double ReturnTangentModulus1D(double Strain, const ProcessInfo& rCurrentProcessInfo) const;
+
 private:
     /**
      * @brief This method computes directly the lumped mass vector

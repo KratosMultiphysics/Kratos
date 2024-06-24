@@ -49,6 +49,8 @@ from test_normal_load_on_hexa_element import KratosGeoMechanicsNormalLoadHexaTes
 from test_pressure_line_element import KratosGeoMechanicsTransientPressureLineElementTests
 from test_pressure_point_flux import KratosGeoMechanicsTransientPressurePointFluxTests
 from settlement_workflow import KratosGeoMechanicsSettlementWorkflow
+from test_compressibility import KratosGeoMechanicsCompressibilityTests
+from fixed_spatial_variation import KratosGeoMechanicsFixedSpatialVariationTests
 from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 
 def AssembleTestSuites():
@@ -93,6 +95,8 @@ def AssembleTestSuites():
                         KratosGeoMechanicsPrescribedDerivatives,
                         KratosGeoMechanicsDirichletUTests,
                         KratosGeoMechanicsNormalLoadHexaTests,
+                        KratosGeoMechanicsCompressibilityTests,
+                        KratosGeoMechanicsFixedSpatialVariationTests,
                         KratosGeoMechanicsTrussBackboneMaterialTests
     ]
 

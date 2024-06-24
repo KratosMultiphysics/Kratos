@@ -34,30 +34,32 @@ class ConnectivityPreservingModelPartController(ModelPartController):
             source_model_part = self.model[transformation_settings["source_model_part_name"].GetString()]
             destination_model_part_name: str = transformation_settings["destination_model_part_name"].GetString()
             if not self.model.HasModelPart(destination_model_part_name):
+                # if the destination model part is not there, then check whether the destination root model part is existing
+                destination_root_model_part_name = destination_model_part_name.split(".")[0]
+                if not self.model.HasModelPart(destination_root_model_part_name):
+                    # destination root model part is also not there. so we can safely assign the source model part solution variables list
+                    destination_root_model_part = self.model.CreateModelPart(destination_root_model_part_name)
+                else:
+                    # if it is existing, then check whether it has a subset of the variables list.
+                    destination_root_model_part = self.model[destination_root_model_part_name]
+                    if not KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, destination_root_model_part):
+                        raise RuntimeError(f"The destination root model part solution step variables at {destination_root_model_part.FullName()} is not a sub set of {source_model_part.FullName()}")
+                KratosOA.OptimizationUtils.SetSolutionStepVariablesList(destination_root_model_part, source_model_part)
                 destination_model_part = self.model.CreateModelPart(destination_model_part_name)
             else:
                 destination_model_part = self.model[destination_model_part_name]
 
-            # now check the solution step variables list
-            current_model_part = destination_model_part
-            while True:
-                if KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, current_model_part):
-                    KratosOA.OptimizationUtils.CopySolutionStepVariablesList(current_model_part, source_model_part)
-                else:
-                    raise RuntimeError(f"The destination model part solution step variables at {current_model_part.FullName()} is not a sub set of {source_model_part.FullName()}")
-
-                if current_model_part == current_model_part.GetParentModelPart():
-                    break
-                else:
-                    current_model_part = current_model_part.GetParentModelPart()
-
             element_name = transformation_settings["destination_element_name"].GetString()
             condition_name = transformation_settings["destination_condition_name"].GetString()
 
-            if condition_name != "":
+            if condition_name != "" and element_name != "":
                 connectivity_preserve_modeller.GenerateModelPart(source_model_part, destination_model_part, element_name, condition_name)
-            else:
+            elif element_name != "":
                 connectivity_preserve_modeller.GenerateModelPart(source_model_part, destination_model_part, element_name)
+            elif condition_name != "":
+                connectivity_preserve_modeller.GenerateModelPart(source_model_part, destination_model_part, condition_name)
+            else:
+                raise RuntimeError("The element_name and the condition name cannot be empty.")
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Duplicated {source_model_part.FullName()} in to {destination_model_part.FullName()}.")
 
