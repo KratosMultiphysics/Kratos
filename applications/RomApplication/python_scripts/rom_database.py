@@ -1,4 +1,3 @@
-import KratosMultiphysics
 import sqlite3
 import hashlib
 import json
@@ -357,7 +356,7 @@ class RomDatabase(object):
                 unavailable_cases.append(mu)
         conn.close()
         if len(unavailable_cases)>0:
-            KratosMultiphysics.Logger.PrintWarning(f"Retrieved snapshots matrix does not contain {len(unavailable_cases)} cases:  {unavailable_cases} ")
+            print(f"Retrieved snapshots matrix does not contain {len(unavailable_cases)} cases:  {unavailable_cases} ")
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
 
 
@@ -376,9 +375,9 @@ class RomDatabase(object):
 
     def generate_excel(self, full_tables = False, number_of_terms=5):
         if missing_pandas == True:
-            KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," pandas library not installed. No excel file generated")
+            print('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," pandas library not installed. No excel file generated")
         if missing_xlsxwriter == True:
-            KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," xlsxwriter library not installed. No excel file generated")
+            print('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," xlsxwriter library not installed. No excel file generated")
         if missing_pandas==False and missing_xlsxwriter==False:
             conn = sqlite3.connect(self.database_name)
             query = "SELECT name FROM sqlite_master WHERE type='table';"
