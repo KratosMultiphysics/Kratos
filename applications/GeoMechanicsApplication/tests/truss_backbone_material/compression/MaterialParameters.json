@@ -9,8 +9,10 @@
           "Variables": {
               "YOUNG_MODULUS"       :  200.0,
               "CROSS_AREA"          :  1.0,
-	      "DENSITY"             :  1.0,
-              "TRUSS_PRESTRESS_PK2" :  0.0
+              "DENSITY"             :  1.0,
+              "TRUSS_PRESTRESS_PK2" :  0.0,
+              "STRAINS_OF_PIECEWISE_LINEAR_LAW": [0.0, 0.01],
+              "STRESSES_OF_PIECEWISE_LINEAR_LAW": [0.0, 1.0]
          },
          "Tables": {}
       }

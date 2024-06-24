@@ -117,21 +117,25 @@ int TrussBackboneConstitutiveLaw::Check(const Properties&   rMaterialProperties,
                                         const GeometryType& rElementGeometry,
                                         const ProcessInfo&  rCurrentProcessInfo) const
 {
-    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS))
-    // andere input voor backbone nalopen
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS));
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRAINS_OF_PIECEWISE_LINEAR_LAW));
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(STRESSES_OF_PIECEWISE_LINEAR_LAW));
+
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].size() == rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW].size());
+    KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty());
+
     return 0;
 }
 
 double TrussBackboneConstitutiveLaw::BackboneStress(double Strain) const
 {
-    double young_modulus = 200.;
-    return 0.5 * young_modulus * Strain;
+    return mStressStrainTable.GetValue(Strain);
 }
 
 double TrussBackboneConstitutiveLaw::BackboneStiffness([[maybe_unused]] double Strain) const
 {
-    double young_modulus = 200.;
-    return 0.5 * young_modulus;
+    return mStressStrainTable.GetDerivative(Strain);
 }
 
 double TrussBackboneConstitutiveLaw::CalculateUnReLoadAmplitude(double YoungsModulus) const
@@ -144,7 +148,7 @@ bool TrussBackboneConstitutiveLaw::IsWithinUnReLoading(double Strain, double You
     return std::abs(Strain - mUnReLoadCenter) < (CalculateUnReLoadAmplitude(YoungsModulus) / 2.);
 }
 
-bool TrussBackboneConstitutiveLaw::RequiresInitializeMaterialResponse() { return false; }
+bool TrussBackboneConstitutiveLaw::RequiresInitializeMaterialResponse() { return true; }
 
 SizeType TrussBackboneConstitutiveLaw::GetStrainSize() const { return 1; }
 
@@ -163,4 +167,20 @@ void TrussBackboneConstitutiveLaw::load(Serializer& rSerializer)
     rSerializer.load("PreviousAxialStrain", mPreviousAxialStrain);
     rSerializer.load("UnReload", mUnReLoadCenter);
 }
+
+void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
+                                                      const ConstitutiveLaw::GeometryType& rElementGeometry,
+                                                      const Vector& rShapeFunctionsValues)
+{
+    ConstitutiveLaw::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+
+    const auto& r_strains_of_piecewise_linear_law = rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW];
+    const auto& r_stresses_of_piecewise_linear_law = rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW];
+    for (auto i = std::size_t{0}; i < r_strains_of_piecewise_linear_law.size(); ++i) {
+        mStressStrainTable.PushBack(r_strains_of_piecewise_linear_law[i], r_stresses_of_piecewise_linear_law[i]);
+    }
+}
+
+std::string TrussBackboneConstitutiveLaw::Info() const { return "TrussBackboneConstitutiveLaw"; }
+
 } // Namespace Kratos

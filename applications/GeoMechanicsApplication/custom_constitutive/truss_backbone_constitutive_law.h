@@ -18,8 +18,8 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/constitutive_law.h"
+#include "includes/table.h"
 
 namespace Kratos
 {
@@ -36,6 +36,10 @@ public:
     using BaseType = ConstitutiveLaw;
 
     KRATOS_CLASS_POINTER_DEFINITION(TrussBackboneConstitutiveLaw);
+
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
@@ -76,10 +80,13 @@ public:
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
 
+    std::string Info() const override;
+
 private:
     double mAccumulatedStrain   = 0.;
     double mPreviousAxialStrain = 0.;
     double mUnReLoadCenter      = 0.;
+    Table<double, double> mStressStrainTable;
 
     [[nodiscard]] double BackboneStress(double Strain) const;
     [[nodiscard]] double BackboneStiffness(double Strain) const;
