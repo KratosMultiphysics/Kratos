@@ -27,7 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
                                        Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
                                        Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0));
 
-    LinearNodalExtrapolator nodal_extrapolator;
+    const LinearNodalExtrapolator nodal_extrapolator;
 
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
     auto           extrapolation_matrix =
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
         Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.5, 0.0, 0.0),
         Kratos::make_intrusive<Node>(5, 0.5, 0.5, 0.0), Kratos::make_intrusive<Node>(6, 0.0, 0.5, 0.0));
 
-    LinearNodalExtrapolator nodal_extrapolator;
+    const LinearNodalExtrapolator nodal_extrapolator;
 
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
     auto           extrapolation_matrix =
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
         Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0));
 
-    LinearNodalExtrapolator nodal_extrapolator;
+    const LinearNodalExtrapolator nodal_extrapolator;
 
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
     auto           extrapolation_matrix =
@@ -100,10 +100,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
         Kratos::make_intrusive<Node>(5, 0.0, 0.5, 0.0), Kratos::make_intrusive<Node>(6, 1.0, 0.5, 0.0),
         Kratos::make_intrusive<Node>(7, 0.5, 1.0, 0.0), Kratos::make_intrusive<Node>(8, 0.0, 0.5, 0.0));
 
-    LinearNodalExtrapolator nodal_extrapolator;
+    const LinearNodalExtrapolator nodal_extrapolator;
 
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto extrapolation_matrix =
+    auto           extrapolation_matrix =
         nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
 
     // clang-format off
