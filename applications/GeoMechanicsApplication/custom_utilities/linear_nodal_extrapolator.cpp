@@ -10,15 +10,16 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "nodal_extrapolator.h"
+#include "linear_nodal_extrapolator.h"
+
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/triangle_2d_3.h"
 
 namespace Kratos
 {
 
-Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
-                                                              const GeometryData::IntegrationMethod& rIntegrationMethod) const
+Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
+                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod) const
 {
     CheckIfGeometryIsSupported(rGeometry);
 
@@ -35,9 +36,9 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType
     return extrapolation_matrix;
 }
 
-Matrix NodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
-                                                                     const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                                                     const GeometryType& rCornerGeometry) const
+Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
+                                                                           const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                                           const GeometryType& rCornerGeometry)
 {
     SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
 
@@ -64,8 +65,7 @@ Matrix NodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const Geome
     return Matrix{prod(quasi_mass_mat_inverse, node_coefficients)};
 }
 
-void NodalExtrapolator::AddRowsForMidsideNodes(const NodalExtrapolator::GeometryType& rGeometry,
-                                               Matrix& rExtrapolationMatrix) const
+void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix)
 {
     const size_t n_filled = rExtrapolationMatrix.size1();
     rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
@@ -75,7 +75,7 @@ void NodalExtrapolator::AddRowsForMidsideNodes(const NodalExtrapolator::Geometry
     }
 }
 
-std::unique_ptr<NodalExtrapolator::GeometryType> NodalExtrapolator::CreateLowerOrderGeometry(const GeometryType& rGeometry) const
+std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::CreateLowerOrderGeometry(const GeometryType& rGeometry)
 {
     // Sofar this works for 3, 4, 6 and 8 node planar elements
     // for 2 and 3 node line elements the extension is straightforward.
@@ -91,7 +91,7 @@ std::unique_ptr<NodalExtrapolator::GeometryType> NodalExtrapolator::CreateLowerO
     }
 }
 
-void NodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& rGeometry) const
+void LinearNodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& rGeometry)
 {
     const auto number_of_nodes = rGeometry.size();
     KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&

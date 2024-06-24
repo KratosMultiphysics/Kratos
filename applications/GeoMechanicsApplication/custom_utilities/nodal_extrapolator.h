@@ -9,13 +9,11 @@
 //
 //  Main authors:    Richard Faasse
 //
-
 #pragma once
 
 #include "geometries/geometry.h"
-#include "includes/define.h"
 #include "includes/node.h"
-#include <cstddef>
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -24,19 +22,10 @@ class NodalExtrapolator
 {
 public:
     using GeometryType = Geometry<Node>;
-    using SizeType     = std::size_t;
-    using IndexType    = std::size_t;
 
-    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
-                                                             const GeometryData::IntegrationMethod& rIntegrationMethod) const;
-
-private:
-    void CheckIfGeometryIsSupported(const GeometryType& rGeometry) const;
-    [[nodiscard]] std::unique_ptr<GeometryType> CreateLowerOrderGeometry(const GeometryType& rGeometry) const;
-    void AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix) const;
-    [[nodiscard]] Matrix CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
-                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                                                    const GeometryType& rCornerGeometry) const;
+    [[nodiscard]] virtual Matrix CalculateElementExtrapolationMatrix(
+        const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod) const = 0;
+    virtual ~NodalExtrapolator() = default;
 };
 
 } // namespace Kratos

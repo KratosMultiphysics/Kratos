@@ -14,7 +14,7 @@
 
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "containers/model.h"
-#include "custom_utilities/nodal_extrapolator.h"
+#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -29,7 +29,7 @@ GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPoi
 
 GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPointValuesToNodesProcess(
     ModelPart& rMainModelPart, Parameters rParameters)
-    : mrModelPart(rMainModelPart), mpExtrapolator(std::make_unique<NodalExtrapolator>())
+    : mrModelPart(rMainModelPart), mpExtrapolator(std::make_unique<LinearNodalExtrapolator>())
 {
     const Parameters default_parameters =
         GeoExtrapolateIntegrationPointValuesToNodesProcess::GetDefaultParameters();
@@ -72,7 +72,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::Execute()
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteBeforeSolutionLoop()
 {
     InitializeAverageVariablesForElements();
-    InitializeVectorAndMatrixSizesOfVariables();
+    InitializeVectorAndMatrixZeros();
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariablesForElements() const
@@ -91,7 +91,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariab
     mrModelPart.GetCommunicator().AssembleNonHistoricalData(mrAverageVariable);
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVectorAndMatrixSizesOfVariables()
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVectorAndMatrixZeros()
 {
     if (mrModelPart.Elements().empty()) return;
 
@@ -101,27 +101,27 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVectorAndMatr
         first_element->GetGeometry().IntegrationPointsNumber(first_element->GetIntegrationMethod());
 
     const ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
-    InitializeDefaultsOfVectorVariables(*first_element, integration_points_number, r_process_info);
-    InitializeDefaultsOfMatrixVariables(*first_element, integration_points_number, r_process_info);
+    InitializeZerosOfVectorVariables(*first_element, integration_points_number, r_process_info);
+    InitializeZerosOfMatrixVariables(*first_element, integration_points_number, r_process_info);
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeDefaultsOfVectorVariables(
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeZerosOfVectorVariables(
     Element& rFirstElement, SizeType NumberOfIntegrationPoints, const ProcessInfo& rProcessInfo)
 {
     for (const auto p_var : mVectorVariables) {
         std::vector<Vector> values_on_integration_points(NumberOfIntegrationPoints);
         rFirstElement.CalculateOnIntegrationPoints(*p_var, values_on_integration_points, rProcessInfo);
-        mDefaultValuesOfVectorVariables.insert({p_var, ZeroVector(values_on_integration_points[0].size())});
+        mZeroValuesOfVectorVariables.try_emplace(p_var, ZeroVector(values_on_integration_points[0].size()));
     }
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeDefaultsOfMatrixVariables(
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeZerosOfMatrixVariables(
     Element& rFirstElement, SizeType NumberOfIntegrationPoints, const ProcessInfo& rProcessInfo)
 {
     for (const auto p_var : mMatrixVariables) {
         std::vector<Matrix> values_on_integration_points(NumberOfIntegrationPoints);
         rFirstElement.CalculateOnIntegrationPoints(*p_var, values_on_integration_points, rProcessInfo);
-        mDefaultValuesOfMatrixVariables.try_emplace(
+        mZeroValuesOfMatrixVariables.try_emplace(
             p_var, ZeroMatrix(values_on_integration_points[0].size1(),
                               values_on_integration_points[0].size2()));
     }
@@ -133,45 +133,33 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
 
     block_for_each(mrModelPart.Elements(), [this](Element& rElem) {
         if (rElem.IsActive()) {
-            auto& r_this_geometry = rElem.GetGeometry();
-            const GeometryData::IntegrationMethod this_integration_method = rElem.GetIntegrationMethod();
             const Matrix extrapolation_matrix = GetExtrapolationMatrix(rElem);
-
-            const SizeType integration_points_number =
-                r_this_geometry.IntegrationPoints(this_integration_method).size();
-            AddIntegrationContributionsForAllVariableLists(rElem, integration_points_number, extrapolation_matrix);
+            AddIntegrationContributionsForAllVariableLists(rElem, extrapolation_matrix);
         }
     });
-
-    AssembleNodalDataForAllVariableLists();
-}
-
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::AssembleNodalDataForAllVariableLists()
-{
-    AssembleNodalData(mDoubleVariables);
-    AssembleNodalData(mArrayVariables);
-    AssembleNodalData(mVectorVariables);
-    AssembleNodalData(mMatrixVariables);
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationContributionsForAllVariableLists(
-    Element& rElem, SizeType NumberOfIntegrationPoints, const Matrix& rExtrapolationMatrix)
+    Element& rElem, const Matrix& rExtrapolationMatrix)
 {
+    const SizeType integration_points_number =
+        rElem.GetGeometry().IntegrationPointsNumber(rElem.GetIntegrationMethod());
+
     for (const auto p_var : mDoubleVariables) {
         AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
-                                           NumberOfIntegrationPoints, AtomicAdd<double>);
+                                           integration_points_number, AtomicAdd<double>);
     }
     for (const auto p_var : mArrayVariables) {
         AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
-                                           NumberOfIntegrationPoints, AtomicAdd<double, 3>);
+                                           integration_points_number, AtomicAdd<double, 3>);
     }
     for (const auto p_var : mVectorVariables) {
         AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
-                                           NumberOfIntegrationPoints, AtomicAddVector<Vector, Vector>);
+                                           integration_points_number, AtomicAddVector<Vector, Vector>);
     }
     for (const auto p_var : mMatrixVariables) {
         AddIntegrationContributionsToNodes(rElem, *p_var, rExtrapolationMatrix,
-                                           NumberOfIntegrationPoints, AtomicAddMatrix<Matrix, Matrix>);
+                                           integration_points_number, AtomicAddMatrix<Matrix, Matrix>);
     }
 }
 
@@ -213,10 +201,10 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVariables()
             rNode.FastGetSolutionStepValue(*p_var) = zero_array;
         }
         for (const auto p_var : mVectorVariables) {
-            rNode.FastGetSolutionStepValue(*p_var) = mDefaultValuesOfVectorVariables[p_var];
+            rNode.FastGetSolutionStepValue(*p_var) = mZeroValuesOfVectorVariables[p_var];
         }
         for (const auto p_var : mMatrixVariables) {
-            rNode.FastGetSolutionStepValue(*p_var) = mDefaultValuesOfMatrixVariables[p_var];
+            rNode.FastGetSolutionStepValue(*p_var) = mZeroValuesOfMatrixVariables[p_var];
         }
     });
 }

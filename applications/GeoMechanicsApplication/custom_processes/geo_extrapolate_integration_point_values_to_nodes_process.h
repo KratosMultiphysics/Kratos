@@ -26,7 +26,6 @@ namespace Kratos
 
 class Model;
 class NodalExtrapolator;
-
 class ProcessInfo;
 
 /**
@@ -70,17 +69,17 @@ private:
     const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     mutable std::map<SizeType, Matrix>                mExtrapolationMatrixMap = {};
     std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
-    std::map<const Variable<Vector>*, Vector>         mDefaultValuesOfVectorVariables;
-    std::map<const Variable<Matrix>*, Matrix>         mDefaultValuesOfMatrixVariables;
+    std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
+    std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
 
     void FillVariableLists(const Parameters& rParameters);
-    void InitializeVectorAndMatrixSizesOfVariables();
-    void InitializeDefaultsOfVectorVariables(Element&           rFirstElement,
-                                             SizeType           NumberOfIntegrationPoints,
-                                             const ProcessInfo& rProcessInfo);
-    void InitializeDefaultsOfMatrixVariables(Element&           rFirstElement,
-                                             SizeType           NumberOfIntegrationPoints,
-                                             const ProcessInfo& rProcessInfo);
+    void InitializeVectorAndMatrixZeros();
+    void InitializeZerosOfVectorVariables(Element&           rFirstElement,
+                                          SizeType           NumberOfIntegrationPoints,
+                                          const ProcessInfo& rProcessInfo);
+    void InitializeZerosOfMatrixVariables(Element&           rFirstElement,
+                                          SizeType           NumberOfIntegrationPoints,
+                                          const ProcessInfo& rProcessInfo);
     void InitializeVariables();
     void InitializeAverageVariablesForElements() const;
 
@@ -126,18 +125,7 @@ private:
     void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix) const;
     Matrix GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationContributionsForAllVariableLists(Element&      rElem,
-                                                        SizeType      NumberOfIntegrationPoints,
-                                                        const Matrix& rExtrapolationMatrix);
-    void AssembleNodalDataForAllVariableLists();
-
-    template <class T>
-    void AssembleNodalData(const std::vector<const Variable<T>*>& rVariableList)
-    {
-        for (const auto p_var : rVariableList) {
-            mrModelPart.GetCommunicator().AssembleCurrentData(*p_var);
-        }
-    }
+    void AddIntegrationContributionsForAllVariableLists(Element& rElem, const Matrix& rExtrapolationMatrix);
 };
 
 } // namespace Kratos.

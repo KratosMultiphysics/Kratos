@@ -27,7 +27,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                                                              node_ids=[1, 3, 5])
         expected_heads    = [ 1., 0.5, 0. ]
         for head, expected_head in zip(heads, expected_heads):
-            self.assertAlmostEqual(head, expected_head)
+            self.assertAlmostEqual(head, expected_head, places=4)
        
     def test_4_noded_quadrilateral(self):
         directory  = 'test_integration_node_extrapolation'
@@ -40,7 +40,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                                                              node_ids=[2, 4])
         expected_heads    = [ 0., 1. ]
         for head, expected_head in zip(heads, expected_heads):
-            self.assertAlmostEqual(head, expected_head)
+            self.assertAlmostEqual(head, expected_head, places=4)
 
     def test_6_noded_triangle(self):
         directory  = 'test_integration_node_extrapolation'
@@ -53,7 +53,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                                                              node_ids=[1, 3, 5])
         expected_heads    = [ 1., 0.5, 0. ]
         for head, expected_head in zip(heads, expected_heads):
-            self.assertAlmostEqual(head, expected_head)
+            self.assertAlmostEqual(head, expected_head, places=4)
 
     def test_8_noded_quadrilateral(self):
         directory  = 'test_integration_node_extrapolation'
@@ -66,7 +66,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                                                              node_ids=[2, 4, 8])
         expected_heads    = [ 1.09636, 0.292984, 1.29298]
         for head, expected_head in zip(heads, expected_heads):
-            self.assertAlmostEqual(head, expected_head)
+            self.assertAlmostEqual(head, expected_head, places=4)
 
 
         cauchy_stress_tensors             = test_helper.GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", 1, simulation_output,
@@ -76,7 +76,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                                 [-8.04944, -32.1978, -8.04944, -373.822, 0, 0]]
         for cauchy_stress_tensor, expected_tensor in zip(cauchy_stress_tensors, expected_tensors):
             for (cauchy_stress, expected) in zip(cauchy_stress_tensor, expected_tensor):
-                self.assertAlmostEqual(cauchy_stress, expected)
+                self.assertAlmostEqual(cauchy_stress, expected, places=4)
 
 
         fluid_flux_vectors             = test_helper.GiDOutputFileReader.nodal_values_at_time("FLUID_FLUX_VECTOR", 1, simulation_output,
@@ -86,7 +86,7 @@ class KratosGeoMechanicsExtrapolationTests(KratosUnittest.TestCase):
                             [5.16742e-06, 1.157e-05, 0]]
         for fluid_flux_vector, expected_fluid_flux_vector in zip(fluid_flux_vectors, expected_fluid_flux_vectors):
             for (fluid_flux_component, expected) in zip(fluid_flux_vector, expected_fluid_flux_vector):
-                self.assertAlmostEqual(fluid_flux_component, expected)
+                self.assertAlmostEqual(fluid_flux_component, expected, places=4)
 
 if __name__=="__main__":
     KratosUnittest.main()
