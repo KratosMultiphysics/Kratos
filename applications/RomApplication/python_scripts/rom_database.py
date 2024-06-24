@@ -93,7 +93,7 @@ class RomDatabase(object):
         params_str = '_'.join(str(arg) if isinstance(arg, str) else f"{arg:.10f}" if isinstance(arg, float) else str(arg) for arg in args)
         return hashlib.sha256(params_str.encode()).hexdigest()
 
-    def get_hashed_mu_for_table(self, table_name, mu):
+    def get_hashed_file_name_for_table(self, table_name, mu):
         type_of_list = self.identify_list_type(mu)
         if type_of_list=="mu":
             serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
@@ -191,7 +191,7 @@ class RomDatabase(object):
 
 
     def check_if_in_database(self, table_name, mu):
-        file_name, _ = self.get_hashed_mu_for_table(table_name, mu)
+        file_name, _ = self.get_hashed_file_name_for_table(table_name, mu)
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
@@ -201,7 +201,7 @@ class RomDatabase(object):
 
 
     def add_to_database(self, table_name, mu, numpy_array):
-        file_name, serialized_mu = self.get_hashed_mu_for_table(table_name, mu)
+        file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu)
         tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
 
         conn = sqlite3.connect(self.database_name)
@@ -344,7 +344,7 @@ class RomDatabase(object):
         cursor = conn.cursor()
         unavailable_cases = []
         for mu in mu_list_unique:
-            hash_mu, _ = self.get_hashed_mu_for_table(table_name, mu)
+            hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu)
             cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
             result = cursor.fetchone()
             if result:

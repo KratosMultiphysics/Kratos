@@ -552,7 +552,7 @@ class RomManager(object):
             raise Exception(err_msg)
 
         rom_nn_trainer = RomNeuralNetworkTrainer(self.general_rom_manager_parameters, mu_train, mu_validation, self.data_base)
-        model_name, _ = self.data_base.get_hashed_mu_for_table("Neural_Network", mu_train)
+        model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
         rom_nn_trainer.EvaluateNetwork(model_name)
 
     def InitializeDummySimulationForBasisOutputProcess(self):

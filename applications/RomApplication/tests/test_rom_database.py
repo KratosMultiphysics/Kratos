@@ -59,7 +59,7 @@ class TestRomDatabase(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             db = RomDatabase(self.parameters, self.mu_names, self.database_name)
             numpy_array = np.array([1, 2, 3])
-            hash_mu, _ = db.get_hashed_mu_for_table("FOM", [1, 2, 3])
+            hash_mu, _ = db.get_hashed_file_name_for_table("FOM", [1, 2, 3])
             db.save_as_npy(numpy_array, hash_mu)
             file_path = db.npys_directory / f"{hash_mu}.npy"
             self.assertTrue(file_path.exists(), "Numpy file was not saved correctly.")

@@ -83,7 +83,7 @@ class RomNeuralNetworkTrainer(object):
             conn = sqlite3.connect(self.data_base.database_name)
             cursor = conn.cursor()
             for mu in self.mu_train:
-                hash_mu, _ = self.data_base.get_hashed_mu_for_table('NonconvergedFOM', mu)
+                hash_mu, _ = self.data_base.get_hashed_file_name_for_table('NonconvergedFOM', mu)
                 cursor.execute(f"SELECT file_name FROM {'NonconvergedFOM'} WHERE file_name = ?", (hash_mu,))
                 result = cursor.fetchone()
                 if result:
@@ -189,7 +189,7 @@ class RomNeuralNetworkTrainer(object):
         lr_additional_params = nn_training_parameters['lr_strategy']['additional_params'].GetVector()
         epochs = nn_training_parameters['epochs'].GetInt()
 
-        model_name, _ = self.data_base.get_hashed_mu_for_table("Neural_Network", self.mu_train)
+        model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
         model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
         model_path.mkdir(parents=True, exist_ok=False)
 
@@ -236,7 +236,7 @@ class RomNeuralNetworkTrainer(object):
 
     def EvaluateNetwork(self, model_name):
 
-        model_name, _ = self.data_base.get_hashed_mu_for_table("Neural_Network", self.mu_train)
+        model_name, _ = self.data_base.get_hashed_file_name_for_table("Neural_Network", self.mu_train)
         model_path=pathlib.Path(self.data_base.database_root_directory / 'saved_nn_models' / model_name)
 
         with open(str(model_path)+'/train_config.json', "r") as config_file:
