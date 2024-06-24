@@ -40,7 +40,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
-            self.assertAlmostEqual(float(section_force[0]), expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force, 2)
 
     def test_truss_backbone_mat_compression(self):
         """
@@ -65,7 +65,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
-            self.assertAlmostEqual(float(section_force[0]), expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force, 2)
 
     def test_truss_backbone_mat_tension_compression(self):
         """
@@ -90,7 +90,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
-            self.assertAlmostEqual(float(section_force[0]), expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force, 2)
 
     def test_truss_backbone_mat_compression_tension(self):
         """
@@ -115,7 +115,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         for time, expected_force in zip(times, expected_forces):
             # integration point check in element 1, integration point 1 ( uniform stress and strain so an arbitrary choice )
             section_force = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data[stage_nr], [1], [0])[0][0]
-            self.assertAlmostEqual(float(section_force[0]), expected_force, 2)
+            self.assertAlmostEqual(section_force[0], expected_force, 2)
 
 if __name__ == '__main__':
     KratosUnittest.main()
