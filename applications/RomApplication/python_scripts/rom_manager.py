@@ -293,7 +293,7 @@ class RomManager(object):
                 model = KratosMultiphysics.Model()
                 analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
-                NonConvergedSolutionsGathering = self.general_rom_manager_parameters["ROM"]["store_nonconverged_fom_solutions"].GetBool()
+                NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
                 if NonConvergedSolutionsGathering:
                     simulation = self.ActivateNonconvergedSolutionsGathering(simulation)
                 simulation.Run()
