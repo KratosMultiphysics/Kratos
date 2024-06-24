@@ -3,9 +3,8 @@ import importlib
 import json
 from pathlib import Path
 import types
-from KratosMultiphysics.RomApplication.rom_database import RomDatabase
-
 import KratosMultiphysics
+from KratosMultiphysics.RomApplication.rom_database import RomDatabase
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
