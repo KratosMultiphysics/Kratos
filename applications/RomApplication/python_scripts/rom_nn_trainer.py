@@ -1,8 +1,12 @@
 import numpy as np
 import pathlib
 import json
-
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppresses all TensorFlow logs, including informational messages
 import tensorflow as tf
+tf.get_logger().setLevel('ERROR')  # Ensures only errors are shown
+
+
 from keras.models import Model
 from keras import layers
 from keras.optimizers import AdamW
@@ -41,14 +45,14 @@ class RomNeuralNetworkTrainer(object):
                     "sigma_vector": "rom_data/SingularValuesVector.npy"
                 },
                 "use_automatic_name": false,
-                "custom_name": "test_neural_network"                         
+                "custom_name": "test_neural_network"
             },
             "online":{
                 "model_name": "test_neural_network"
             }
          }""")
         return nn_training_parameters
-    
+
     def _CheckNumberOfModes(self,n_inf,n_sup,n_max):
         if n_inf >= n_max:
             err_msg = f'Specified number of inferior modes ({n_inf}) is higher than or equal to the available ones from the Phi matrix ({n_max}).'
@@ -58,7 +62,7 @@ class RomNeuralNetworkTrainer(object):
             raise Exception(err_msg)
 
     def _GetTrainingData(self, n_inf, n_sup, database_settings):
-        
+
         S_train = np.load(database_settings['training_set'].GetString())
         S_val = np.load(database_settings['validation_set'].GetString())
 
@@ -103,13 +107,13 @@ class RomNeuralNetworkTrainer(object):
         Q_sup_val = (phisig_inv_sup@S_val).T
 
         return S_val, Q_inf_val, Q_sup_val, phisig_inf, phisig_sup
-    
+
     def _SelectScheduler(self, strategy_name, base_lr, additional_params):
 
         def lr_const_scheduler(epoch, lr):
             new_lr= base_lr
             return new_lr
-        
+
         def lr_steps_scheduler(epoch, lr):
             if epoch==0:
                 lr=base_lr
@@ -118,7 +122,7 @@ class RomNeuralNetworkTrainer(object):
             if lr<=additional_params[0]:
                 lr = additional_params[0]
             return lr
-        
+
         def lr_sgdr_scheduler(epoch, lr):
             if epoch==0:
                 new_lr=base_lr
@@ -131,11 +135,11 @@ class RomNeuralNetworkTrainer(object):
                 x=np.abs(epoch/cycle_length-cycle)
                 new_lr = min_lr+(max_lr-min_lr)*0.5*(1+np.cos(x*np.pi))/scale_factor**cycle
             return new_lr
-        
+
         schedulers_dict={"const": lr_const_scheduler, "steps": lr_steps_scheduler, "sgdr": lr_sgdr_scheduler}
-        
+
         return schedulers_dict[strategy_name]
-    
+
     def _DefineNetwork(self, n_inf, n_sup, layers_size):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
@@ -147,13 +151,13 @@ class RomNeuralNetworkTrainer(object):
         return network
 
     def TrainNetwork(self, seed=None):
-        
+
         if seed is not None:
             keras_set_random_seed(seed)
 
 
         nn_training_parameters = self.nn_parameters['training']
-        
+
         n_inf = int(nn_training_parameters['modes'].GetVector()[0])
         n_sup = int(nn_training_parameters['modes'].GetVector()[1])
         layers_size = nn_training_parameters['layers_size'].GetVector()
@@ -162,7 +166,7 @@ class RomNeuralNetworkTrainer(object):
         base_lr = nn_training_parameters['lr_strategy']['base_lr'].GetDouble()
         lr_additional_params = nn_training_parameters['lr_strategy']['additional_params'].GetVector()
         epochs = nn_training_parameters['epochs'].GetInt()
-        
+
         if nn_training_parameters['use_automatic_name'].GetBool():
             model_name='NN_model_'+str(n_inf)+'.'+str(n_sup)+'_'+str(layers_size)+'_lr'+lr_scheme+'.'+str(base_lr)+'_batchsize'+str(batch_size)
         else:
@@ -189,8 +193,8 @@ class RomNeuralNetworkTrainer(object):
 
         # history = network.fit(Q_inf_train, Q_sup_train, batch_size=batch_size, epochs=epochs, validation_data=(Q_inf_val,Q_sup_val), shuffle=False, validation_batch_size=1, callbacks=callbacks)
         history = network.fit(Q_inf_train, Q_sup_train, batch_size=batch_size, epochs=epochs, validation_data=(Q_inf_val,Q_sup_val), shuffle=True, callbacks=callbacks)
-        
-        
+
+
         training_parameters_dict = {
             "modes":[n_inf,n_sup],
             "layers_size":list(layers_size),
@@ -224,11 +228,11 @@ class RomNeuralNetworkTrainer(object):
 
         with open(str(model_path)+'/train_config.json', "r") as config_file:
             model_properties = json.load(config_file)
-        
+
         n_inf = model_properties['modes'][0]
         n_sup = model_properties['modes'][1]
         layers_size = model_properties['layers_size']
-                                                  
+
         network = self._DefineNetwork(n_inf, n_sup, layers_size)
         network.summary()
 
