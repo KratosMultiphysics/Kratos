@@ -23,7 +23,7 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Geomet
 {
     CheckIfGeometryIsSupported(rGeometry);
 
-    auto p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
+    const auto p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
     const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
 
     Matrix extrapolation_matrix =
@@ -40,7 +40,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
                                                                            const GeometryData::IntegrationMethod& rIntegrationMethod,
                                                                            const GeometryType& rCornerGeometry)
 {
-    SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
+    const SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
 
     Matrix      quasi_mass_mat     = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
     const auto& integration_points = rGeometry.IntegrationPoints(rIntegrationMethod);
