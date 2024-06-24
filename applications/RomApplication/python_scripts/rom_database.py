@@ -20,23 +20,40 @@ except ImportError as e:
 class RomDatabase(object):
 
     def __init__(self, general_rom_manager_parameters, mu_names, database_name = "rom_database.db"):
+        """
+        Initialize the RomDatabase object.
+
+        Args:
+            general_rom_manager_parameters: Parameters for the ROM manager.
+            mu_names: List of parameter names. A single list with the name of each parameter to be used (for reference) in the database, e.g. ["alpha", "permeability", "mach"].
+                      self.mu_names are expected to match the position and the number of inputs in the lists mu_train, mu_test, mu_run
+            database_name: Name of the SQLite database file.
+        """
         self.general_rom_manager_parameters = general_rom_manager_parameters
         self.database_root_directory = Path(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() + "/rom_database"  )
         self.database_name = self.database_root_directory / database_name
         self.npys_directory = self.database_root_directory / "npy_files"
         self.xlsx_directory = self.database_root_directory / "xlsx_files"
         self.create_directories([self.database_root_directory, self.npys_directory, self.xlsx_directory])
-        self.mu_names = mu_names   # A single list with the name of each parameter to be used (for reference) in the database, e.g. ["alpha", "permeability", "mach"].
-                                   # self.mu_names are expected to match the position and the number of inputs in the lists mu_train, mu_test, mu_run
+        self.mu_names = mu_names
         self.set_up_or_get_data_base()
 
 
     def create_directories(self, directories):
+        """
+        Create directories if they do not exist.
+
+        Args:
+            directories: List of Path objects representing directories to create.
+        """
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)
 
 
     def set_up_or_get_data_base(self):
+        """
+        Set up the database by creating tables if they do not exist.
+        """
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
         table_definitions = {
@@ -89,10 +106,29 @@ class RomDatabase(object):
 
 
     def hash_parameters(self, *args):
+        """
+        Create a SHA-256 hash of the given parameters.
+
+        Args:
+            *args: Parameters to hash.
+
+        Returns:
+            str: SHA-256 hash of the parameters.
+        """
         params_str = '_'.join(str(arg) if isinstance(arg, str) else f"{arg:.10f}" if isinstance(arg, float) else str(arg) for arg in args)
         return hashlib.sha256(params_str.encode()).hexdigest()
 
     def get_hashed_file_name_for_table(self, table_name, mu):
+        """
+        Generate a hashed file name based on the table name and parameters.
+
+        Args:
+            table_name: Name of the database table.
+            mu: Parameters to include in the hash.
+
+        Returns:
+            tuple: Hashed file name and serialized parameters.
+        """
         type_of_list = self.identify_list_type(mu)
         if type_of_list=="mu":
             serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
@@ -165,6 +201,12 @@ class RomDatabase(object):
 
 
     def get_curret_params(self):
+        """
+        Retrieve current parameters from general_rom_manager_parameters.
+
+        Returns:
+            tuple: Various parameters.
+        """
         tol_sol = self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble()
         tol_res =  self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
         projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -189,6 +231,16 @@ class RomDatabase(object):
 
 
     def check_if_in_database(self, table_name, mu):
+        """
+        Check if a given set of parameters is already in the specified table.
+
+        Args:
+            table_name: Name of the database table.
+            mu: Parameters to check.
+
+        Returns:
+            tuple: Boolean indicating existence and file name.
+        """
         file_name, _ = self.get_hashed_file_name_for_table(table_name, mu)
         conn = sqlite3.connect(self.database_name)
         cursor = conn.cursor()
@@ -199,6 +251,14 @@ class RomDatabase(object):
 
 
     def add_to_database(self, table_name, mu, numpy_array):
+        """
+        Add a numpy array and its metadata to the specified table in the database.
+
+        Args:
+            table_name: Name of the database table.
+            mu: Parameters associated with the data.
+            numpy_array: Numpy array to store.
+        """
         file_name, serialized_mu = self.get_hashed_file_name_for_table(table_name, mu)
         tol_sol, tol_res, projection_type, decoder_type, pg_data1_str, pg_data2_bool, pg_data3_double, pg_data4_str, pg_data5_bool, nn_data6_str, nn_data7_str, nn_data8_int, nn_data9_int, nn_data10_str, nn_data11_double, nn_data12_str, nn_data13_int, non_converged_fom_14_bool = self.get_curret_params()
 
@@ -300,6 +360,15 @@ class RomDatabase(object):
 
 
     def identify_list_type(self, lst):
+        """
+        Identify the type of list provided.
+
+        Args:
+            lst: List to identify.
+
+        Returns:
+            str: Type of list.
+        """
         if not lst:
             return "Empty list"
         if isinstance(lst[0], list):
@@ -314,16 +383,41 @@ class RomDatabase(object):
 
 
     def serialize_mu(self, parameters):
+        """
+        Serialize a parameters dictionary to a JSON string.
+
+        Args:
+            parameters: Dictionary of parameters.
+
+        Returns:
+            str: JSON string of the parameters.
+        """
         return json.dumps(parameters)
 
 
     def save_as_npy(self, result, hash_mu):
+        """
+        Save a numpy array to a .npy file.
+
+        Args:
+            result: Numpy array to save.
+            hash_mu: Hashed file name.
+        """
         file_path = self.npys_directory / f"{hash_mu}.npy"
         np.save(file_path, result)
         print(f"numpy saved to {file_path}")
 
 
     def make_mu_dictionary(self, mu):
+        """
+        Create a dictionary from mu parameters using provided names.
+
+        Args:
+            mu: List of parameters.
+
+        Returns:
+            dict: Dictionary of parameters.
+        """
         if self.mu_names is None:
             self.mu_names = []
             for i in range(len(mu)):
@@ -332,6 +426,17 @@ class RomDatabase(object):
 
 
     def get_snapshots_matrix_from_database(self, mu_list, table_name='FOM', QoI = None):
+        """
+        Retrieve a matrix of snapshots from the database based on the given parameters.
+
+        Args:
+            mu_list: List of parameter sets.
+            table_name: Name of the database table.
+            QoI: Quantity of Interest, optional.
+
+        Returns:
+            np.array: Matrix of snapshots.
+        """
         if mu_list == [None]: #this happens when no mu is passed, the simulation run is the one in the ProjectParameters.json
             mu_list_unique = mu_list
         else:
@@ -369,10 +474,26 @@ class RomDatabase(object):
 
 
     def get_single_numpy_from_database(self, hashed_name):
+        """
+        Load a numpy array from a .npy file.
+
+        Args:
+            hashed_name: Hashed file name.
+
+        Returns:
+            np.array: Loaded numpy array.
+        """
         return np.load(self.npys_directory / (hashed_name + '.npy'))
 
 
     def generate_excel(self, full_tables = False, number_of_terms=5):
+        """
+        Generate an Excel file summarizing the database contents.
+
+        Args:
+            full_tables: Boolean indicating whether to export full tables or a summary.
+            number_of_terms: Number of terms to include in the summary.
+        """
         if missing_pandas == True:
             print('\x1b[1;31m[MISSING LIBRARY] \x1b[0m'," pandas library not installed. No excel file generated")
         if missing_xlsxwriter == True:
@@ -397,8 +518,14 @@ class RomDatabase(object):
             print(f"Data exported to Excel file {output_file_path} successfully.")
 
     def generate_database_summary(self):
+        """
+        Generate a summary Excel file with a limited number of terms.
+        """
         number_of_terms = 5 #TODO user-defined
         self.generate_excel(full_tables=False, number_of_terms=number_of_terms)
 
     def dump_database_as_excel(self):
+        """
+        Export the entire database to an Excel file.
+        """
         self.generate_excel(full_tables=True)
