@@ -169,7 +169,6 @@ class RomDatabase(object):
         tol_res =  self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
         projection_type = self.general_rom_manager_parameters["projection_strategy"].GetString()
         decoder_type = self.general_rom_manager_parameters["type_of_decoder"].GetString()
-        #store_nonconverged = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
         pg_data1_str = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString()
         pg_data2_bool = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool()
         pg_data3_double = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble()
