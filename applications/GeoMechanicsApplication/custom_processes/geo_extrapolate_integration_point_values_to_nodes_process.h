@@ -16,47 +16,42 @@
 
 #include "geometries/geometry.h"
 #include "includes/element.h"
-#include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "processes/process.h"
 
-#include <unordered_map>
-
 namespace Kratos
 {
 
 class Model;
-class ModelPart;
 class NodalExtrapolator;
 
 class ProcessInfo;
 
 /**
- * @class IntegrationValuesExtrapolationToNodesProcess
+ * @class GeoExtrapolateIntegrationPointValuesToNodesProcess
  * @ingroup GeoMechanicsApplication
  * @brief This process extrapolates vales from the integration points to the nodes
  * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIntegrationValuesExtrapolationToNodesProcess : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoExtrapolateIntegrationPointValuesToNodesProcess : public Process
 {
 public:
-    using NodeType     = Node;
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
     using SizeType     = std::size_t;
     using IndexType    = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(GeoIntegrationValuesExtrapolationToNodesProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(GeoExtrapolateIntegrationPointValuesToNodesProcess);
 
-    explicit GeoIntegrationValuesExtrapolationToNodesProcess(Model& rModel,
-                                                             Parameters ThisParameters = Parameters(R"({})"));
-    explicit GeoIntegrationValuesExtrapolationToNodesProcess(ModelPart& rMainModelPart,
-                                                             Parameters rParameters = Parameters(R"({})"));
+    explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(Model& rModel,
+                                                                Parameters ThisParameters = Parameters(R"({})"));
+    explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(ModelPart& rMainModelPart,
+                                                                Parameters rParameters = Parameters(R"({})"));
 
-    ~GeoIntegrationValuesExtrapolationToNodesProcess() override;
+    ~GeoExtrapolateIntegrationPointValuesToNodesProcess();
 
     void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
@@ -64,12 +59,9 @@ public:
     void                           ExecuteFinalize() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
 
-    [[nodiscard]] std::string Info() const override
-    {
-        return "GeoIntegrationValuesExtrapolationToNodesProcess";
-    }
+    [[nodiscard]] std::string Info() const override;
 
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 private:
     ModelPart& mrModelPart;

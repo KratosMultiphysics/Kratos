@@ -8,4 +8,4 @@ def Factory(settings, model):
 
     params = settings["Parameters"]
     model_part = model[params["model_part_name"].GetString()]
-    return KratosGeo.GeoIntegrationValuesExtrapolationToNodesProcess(model_part, params)
+    return KratosGeo.GeoExtrapolateIntegrationPointValuesToNodesProcess(model_part, params)

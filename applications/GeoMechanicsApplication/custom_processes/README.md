@@ -4,10 +4,10 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 In this document, we will explain the different processes. Since this effort is a work in progress, not all processes are documented yet. If you have any questions, please contact the mainainers (@KratosMultiphysics/geomechanics on GitHub).
 
 Documented processes:
-- [GeoIntegrationValuesExtrapolationToNodesProcess](#extrapolation-of-integration-values-to-nodes)
+- [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 
 ## Extrapolation of integration values to nodes
-The `GeoIntegrationValuesExtrapolationToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
+The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
 Conceptually the process consists of the following steps:
 1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.

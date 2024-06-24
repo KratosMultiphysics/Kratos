@@ -161,7 +161,7 @@
       {
         "python_module": "geo_integration_values_extrapolation_to_nodes_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name" :  "GeoIntegrationValuesExtrapolationToNodesProcess",
+        "process_name" :  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
           "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
