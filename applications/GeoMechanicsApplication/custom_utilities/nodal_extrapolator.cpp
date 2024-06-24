@@ -17,8 +17,8 @@
 namespace Kratos
 {
 
-Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& rGeometry,
-                                                              GeometryData::IntegrationMethod IntegrationMethod) const
+Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
+                                                              const GeometryData::IntegrationMethod& rIntegrationMethod) const
 {
     CheckIfGeometryIsSupported(rGeometry);
 
@@ -26,7 +26,7 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& rGeo
     const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
 
     Matrix extrapolation_matrix =
-        CalculateExtrapolationMatrixForCornerNodes(rGeometry, IntegrationMethod, p_corner_geometry);
+        CalculateExtrapolationMatrixForCornerNodes(rGeometry, rIntegrationMethod, p_corner_geometry);
 
     if (p_lower_order_geometry) {
         AddRowsForMidsideNodes(rGeometry, extrapolation_matrix);
@@ -35,48 +35,47 @@ Matrix NodalExtrapolator::CalculateElementExtrapolationMatrix(GeometryType& rGeo
     return extrapolation_matrix;
 }
 
-Matrix NodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(
-    const NodalExtrapolator::GeometryType& rGeometry,
-    const GeometryData::IntegrationMethod& IntegrationMethod,
-    const NodalExtrapolator::GeometryType& rCornerGeometry) const
+Matrix NodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
+                                                                     const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                                     const GeometryType& rCornerGeometry) const
 {
     SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
 
     Matrix      quasi_mass_mat     = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
-    const auto& integration_points = rGeometry.IntegrationPoints(IntegrationMethod);
+    const auto& integration_points = rGeometry.IntegrationPoints(rIntegrationMethod);
     const auto  number_of_integration_points = integration_points.size();
-    Matrix      node_coefficient(number_of_corner_nodes, number_of_integration_points);
+    Matrix      node_coefficients(number_of_corner_nodes, number_of_integration_points);
     Vector      determinants_of_jacobian;
-    determinants_of_jacobian = rGeometry.DeterminantOfJacobian(determinants_of_jacobian, IntegrationMethod);
+    rGeometry.DeterminantOfJacobian(determinants_of_jacobian, rIntegrationMethod);
 
     const Matrix& shape_functions_values_at_integration_points =
-        rCornerGeometry.ShapeFunctionsValues(IntegrationMethod);
+        rCornerGeometry.ShapeFunctionsValues(rIntegrationMethod);
 
     for (IndexType i = 0; i < number_of_integration_points; ++i) {
         const Vector N = row(shape_functions_values_at_integration_points, i);
         quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * integration_points[i].Weight();
-        column(node_coefficient, i) = N * determinants_of_jacobian[i] * integration_points[i].Weight();
+        column(node_coefficients, i) = N * determinants_of_jacobian[i] * integration_points[i].Weight();
     }
 
     double metric_determinant;
     Matrix quasi_mass_mat_inverse;
     MathUtils<double>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
 
-    return Matrix{prod(quasi_mass_mat_inverse, node_coefficient)};
+    return Matrix{prod(quasi_mass_mat_inverse, node_coefficients)};
 }
 
 void NodalExtrapolator::AddRowsForMidsideNodes(const NodalExtrapolator::GeometryType& rGeometry,
-                                               Matrix& extrapolation_matrix) const
+                                               Matrix& rExtrapolationMatrix) const
 {
-    const size_t n_filled = extrapolation_matrix.size2();
-    extrapolation_matrix.resize(rGeometry.PointsNumber(), extrapolation_matrix.size2());
+    const size_t n_filled = rExtrapolationMatrix.size1();
+    rExtrapolationMatrix.resize(rGeometry.PointsNumber(), rExtrapolationMatrix.size2());
     for (size_t i_row = 0; i_row < rGeometry.PointsNumber() - n_filled; ++i_row) {
-        row(extrapolation_matrix, n_filled + i_row) =
-            0.5 * (row(extrapolation_matrix, i_row) + row(extrapolation_matrix, (i_row + 1) % n_filled));
+        row(rExtrapolationMatrix, n_filled + i_row) =
+            0.5 * (row(rExtrapolationMatrix, i_row) + row(rExtrapolationMatrix, (i_row + 1) % n_filled));
     }
 }
 
-std::unique_ptr<NodalExtrapolator::GeometryType> NodalExtrapolator::CreateLowerOrderGeometry(GeometryType& rGeometry) const
+std::unique_ptr<NodalExtrapolator::GeometryType> NodalExtrapolator::CreateLowerOrderGeometry(const GeometryType& rGeometry) const
 {
     // Sofar this works for 3, 4, 6 and 8 node planar elements
     // for 2 and 3 node line elements the extension is straightforward.
@@ -92,16 +91,16 @@ std::unique_ptr<NodalExtrapolator::GeometryType> NodalExtrapolator::CreateLowerO
     }
 }
 
-void NodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& r_this_geometry) const
+void NodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& rGeometry) const
 {
-    const auto number_of_nodes = r_this_geometry.size();
-    KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
-                    r_this_geometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
+    const auto number_of_nodes = rGeometry.size();
+    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
+                    rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
 
-    KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle &&
+    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     (number_of_nodes != 3 && number_of_nodes != 6));
 
-    KRATOS_ERROR_IF(r_this_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
+    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
                     (number_of_nodes != 4 && number_of_nodes != 8));
 }
 

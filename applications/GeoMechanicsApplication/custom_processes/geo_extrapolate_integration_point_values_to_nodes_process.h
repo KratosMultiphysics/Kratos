@@ -58,19 +58,16 @@ public:
     void                           ExecuteFinalizeSolutionStep() override;
     void                           ExecuteFinalize() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
-
-    [[nodiscard]] std::string Info() const override;
-
-    void PrintInfo(std::ostream& rOStream) const override;
+    [[nodiscard]] std::string      Info() const override;
+    void                           PrintInfo(std::ostream& rOStream) const override;
 
 private:
-    ModelPart& mrModelPart;
-
+    ModelPart&                                        mrModelPart;
     std::vector<const Variable<double>*>              mDoubleVariables;
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
-    const Variable<double>&                           mrAverageVariable;
+    const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     mutable std::map<SizeType, Matrix>                mExtrapolationMatrixMap = {};
     std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::map<const Variable<Vector>*, Vector>         mDefaultValuesOfVectorVariables;
@@ -124,9 +121,7 @@ private:
         }
     }
 
-    Matrix             GetExtrapolationMatrix(const Element&                         rElement,
-                                              GeometryType&                          rGeometry,
-                                              const GeometryData::IntegrationMethod& rIntegrationMethod) const;
+    Matrix             GetExtrapolationMatrix(const Element& rElement) const;
     [[nodiscard]] bool ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     void CacheExtrapolationMatrixFor(const Element& rElement, const Matrix& rExtrapolationMatrix) const;
     Matrix GetCachedExtrapolationMatrixFor(const Element& rElement) const;

@@ -13,7 +13,7 @@ Conceptually the process consists of the following steps:
 1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
-4. For each element, distribute the integration values to their respective nodes by multiplying the extrapolation matrix with the integration values.
+4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
 5. Divide the nodal values by the count to get the average value.
 
 ### Restrictions
@@ -28,14 +28,12 @@ The process is defined as follows in json (also found in some of the [integratio
   "process_name":  "GeoIntegrationValuesExtrapolationToNodesProcess",
   "Parameters":    {
     "model_part_name":   "ModelPartName",
-    "list_of_variables": ["Variable1", "Variable2", "Variable3"],
-    "average_variable":  "NODAL_AREA"
+    "list_of_variables": ["Variable1", "Variable2", "Variable3"]
   }
 }
 ```
 Where the model_part_name should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
 
-The `average_variable` is used to divide the nodal values by the count, and it is recommended to use `NODAL_AREA` here.
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 

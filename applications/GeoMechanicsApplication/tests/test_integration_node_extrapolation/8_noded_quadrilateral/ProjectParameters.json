@@ -164,8 +164,7 @@
         "process_name" :  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
         "Parameters": {
           "model_part_name": "PorousDomain.porous_computational_model_part",
-          "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"],
-          "average_variable"  : "NODAL_AREA"
+          "list_of_variables" : ["HYDRAULIC_HEAD", "CAUCHY_STRESS_TENSOR", "FLUID_FLUX_VECTOR"]
         }
       }
     ]    

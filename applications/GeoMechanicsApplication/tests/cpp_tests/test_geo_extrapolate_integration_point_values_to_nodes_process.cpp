@@ -107,7 +107,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosG
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
-        "average_variable"           : "NODAL_AREA",
         "list_of_variables"          : ["HYDRAULIC_HEAD"]
     })");
 
@@ -141,7 +140,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
-        "average_variable"           : "NODAL_AREA",
         "list_of_variables"          : ["HYDRAULIC_HEAD"]
     })");
 
@@ -171,7 +169,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
-        "average_variable"           : "NODAL_AREA",
         "list_of_variables"          : ["HYDRAULIC_HEAD"]
     })");
 
@@ -208,7 +205,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
-         "average_variable"           : "NODAL_AREA",
          "list_of_variables"          : ["HYDRAULIC_HEAD"]
      })");
     GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
@@ -246,7 +242,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
-         "average_variable"           : "NODAL_AREA",
          "list_of_variables"          : ["CAUCHY_STRESS_TENSOR"]
      })");
 
@@ -289,7 +284,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
-         "average_variable"           : "NODAL_AREA",
          "list_of_variables"          : ["CAUCHY_STRESS_VECTOR"]
      })");
 
@@ -332,7 +326,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
-         "average_variable"           : "NODAL_AREA",
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
      })");
 

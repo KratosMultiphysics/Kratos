@@ -23,21 +23,20 @@ namespace Kratos
 class NodalExtrapolator
 {
 public:
-    using NodeType     = Node;
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
     using SizeType     = std::size_t;
     using IndexType    = std::size_t;
 
-    Matrix CalculateElementExtrapolationMatrix(GeometryType& rGeometry,
-                                               GeometryData::IntegrationMethod IntegrationMethod) const;
+    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
+                                                             const GeometryData::IntegrationMethod& rIntegrationMethod) const;
 
 private:
-    void CheckIfGeometryIsSupported(const GeometryType& r_this_geometry) const;
-    std::unique_ptr<NodalExtrapolator::GeometryType> CreateLowerOrderGeometry(GeometryType& rGeometry) const;
-    void AddRowsForMidsideNodes(const NodalExtrapolator::GeometryType& rGeometry, Matrix& extrapolation_matrix) const;
-    Matrix CalculateExtrapolationMatrixForCornerNodes(const NodalExtrapolator::GeometryType& rGeometry,
-                                                      const GeometryData::IntegrationMethod& IntegrationMethod,
-                                                      const NodalExtrapolator::GeometryType& rCornerGeometry) const;
+    void CheckIfGeometryIsSupported(const GeometryType& rGeometry) const;
+    [[nodiscard]] std::unique_ptr<GeometryType> CreateLowerOrderGeometry(const GeometryType& rGeometry) const;
+    void AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix) const;
+    [[nodiscard]] Matrix CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
+                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                                    const GeometryType& rCornerGeometry) const;
 };
 
 } // namespace Kratos
