@@ -29,9 +29,9 @@ void CalculateIncrementalDisplacementProcess::Execute()
 {
     KRATOS_TRY
 
-		block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
-		rNode.FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT) = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
-			});
+        block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
+        noalias(rNode.FastGetSolutionStepValue(INCREMENTAL_DISPLACEMENT)) = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+            });
   
     KRATOS_CATCH("")
 }
