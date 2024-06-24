@@ -206,6 +206,8 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
 protected:
@@ -229,7 +231,63 @@ protected:
     ///@}
 
 private:
+    ///@name Private classes
+    ///@{
 
+    class Stiffness
+    {
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(Stiffness);
+
+        virtual double GetValue(
+            const double Value,
+            const Properties& rProperties) const = 0;
+    };
+
+    class ConstantStiffness: public Stiffness
+    {
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(ConstantStiffness);
+
+        ConstantStiffness(const Variable<double>& rVariable) : mpVariable(&rVariable) {};
+
+        double GetValue(
+            const double Value,
+            const Properties& rProperties) const override;
+
+    private:
+        Variable<double> const * mpVariable;
+    };
+
+    class NonLinearStiffness: public Stiffness
+    {
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(NonLinearStiffness);
+
+        NonLinearStiffness(
+            const Variable<double>& rVariableX,
+            const Variable<double>& rVariableY)
+            : mpVariableX(&rVariableX),
+              mpVariableY(&rVariableY)
+        {};
+
+        double GetValue(
+            const double Value,
+            const Properties& rProperties) const override;
+
+    private:
+        Variable<double> const * mpVariableX;
+
+        Variable<double> const * mpVariableY;
+    };
+
+    ///@}
+    ///@name Private member variables
+    ///@{
+
+    array_1d<Stiffness::UniquePointer, 6> mStiffnessGetters;
+
+    ///@}
     ///@name Private Operations
     ///@{
 
@@ -237,9 +295,15 @@ private:
         BoundedVector<double, 12>& rValues,
         const int Step) const;
 
+    void CalculateStiffnessValues(
+        array_1d<double, 6>& rStiffnessValues,
+        const BoundedVector<double, 12>& rValues,
+        const double Length) const;
+
     void CalculateStiffnessMatrix(
         BoundedMatrix<double, 12, 12>& rStiffnessMatrix,
-        const ProcessInfo& rProcessInfo) const;
+        const array_1d<double, 6>& rStiffnessValues,
+        const double Length) const;
 
     ///@}
     ///@name Serialization

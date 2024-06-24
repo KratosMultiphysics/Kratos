@@ -10,12 +10,15 @@
 //
 
 // System includes
+#include <cmath>
+#include <limits>
 
 // External includes
 
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
+#include "includes/variables.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -24,6 +27,33 @@
 #include "custom_elements/bushing_element.h"
 
 namespace Kratos {
+
+double BushingElement::ConstantStiffness::GetValue(
+    const double Value,
+    const Properties& rProperties) const
+{
+    KRATOS_TRY
+
+    return rProperties.GetValue(*(this->mpVariable));
+
+    KRATOS_CATCH("");
+}
+
+double BushingElement::NonLinearStiffness::GetValue(
+    const double Value,
+    const Properties& rProperties) const
+{
+    KRATOS_TRY
+
+    const auto& r_table = rProperties.GetTable(*mpVariableX, *mpVariableY);
+    if (std::abs(Value) > std::numeric_limits<double>::epsilon()) {
+        return r_table.GetValue(Value) / Value;
+    } else {
+        return r_table.GetDerivative(Value);
+    }
+
+    KRATOS_CATCH("");
+}
 
 BushingElement::BushingElement(
     IndexType NewId,
@@ -213,11 +243,16 @@ void BushingElement::CalculateLocalSystem(
         rRightHandSideVector.resize(msElementSize, false);
     }
 
+    const double l = this->GetGeometry().Length();
+
     BoundedVector<double, 12> u;
     this->GetValuesVector(u, 0);
 
+    array_1d<double, 6> stiffness_values;
+    this->CalculateStiffnessValues(stiffness_values, u, l);
+
     BoundedMatrix<double, 12, 12> lhs;
-    this->CalculateStiffnessMatrix(lhs, rCurrentProcessInfo);
+    this->CalculateStiffnessMatrix(lhs, stiffness_values, l);
 
     noalias(rLeftHandSideMatrix) = lhs;
     noalias(rRightHandSideVector) = -prod(lhs, u);
@@ -235,11 +270,16 @@ void BushingElement::CalculateRightHandSide(
         rRightHandSideVector.resize(msElementSize, false);
     }
 
+    const double l = this->GetGeometry().Length();
+
     BoundedVector<double, 12> u;
     this->GetValuesVector(u, 0);
 
+    array_1d<double, 6> stiffness_values;
+    this->CalculateStiffnessValues(stiffness_values, u, l);
+
     BoundedMatrix<double, 12, 12> lhs;
-    this->CalculateStiffnessMatrix(lhs, rCurrentProcessInfo);
+    this->CalculateStiffnessMatrix(lhs, stiffness_values, l);
 
     noalias(rRightHandSideVector) = -prod(lhs, u);
 
@@ -256,8 +296,16 @@ void BushingElement::CalculateLeftHandSide(
         rLeftHandSideMatrix.resize(msElementSize, msElementSize, false);
     }
 
+    const double l = this->GetGeometry().Length();
+
+    BoundedVector<double, 12> u;
+    this->GetValuesVector(u, 0);
+
+    array_1d<double, 6> stiffness_values;
+    this->CalculateStiffnessValues(stiffness_values, u, l);
+
     BoundedMatrix<double, 12, 12> lhs;
-    this->CalculateStiffnessMatrix(lhs, rCurrentProcessInfo);
+    this->CalculateStiffnessMatrix(lhs, stiffness_values, l);
 
     noalias(rLeftHandSideMatrix) = lhs;
 
@@ -313,9 +361,110 @@ int BushingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, r_node)
     }
 
+    const auto& r_properties = this->GetProperties();
+
+    const array_1d<bool, 3> is_disp_stiffness_defined{
+        r_properties.Has(NODAL_DISPLACEMENT_STIFFNESS_X),
+        r_properties.Has(NODAL_DISPLACEMENT_STIFFNESS_Y),
+        r_properties.Has(NODAL_DISPLACEMENT_STIFFNESS_Z)
+    };
+
+    const array_1d<bool, 3> is_disp_forces_defined{
+        r_properties.HasTable(DISPLACEMENT_X, FORCE_X),
+        r_properties.HasTable(DISPLACEMENT_Y, FORCE_Y),
+        r_properties.HasTable(DISPLACEMENT_Z, FORCE_Z)
+    };
+
+    const array_1d<bool, 3> is_rot_stiffness_defined{
+        r_properties.Has(NODAL_ROTATIONAL_STIFFNESS_X),
+        r_properties.Has(NODAL_ROTATIONAL_STIFFNESS_Y),
+        r_properties.Has(NODAL_ROTATIONAL_STIFFNESS_Z)
+    };
+
+    const array_1d<bool, 3> is_rot_forces_defined{
+        r_properties.HasTable(ROTATION_X, MOMENT_X),
+        r_properties.HasTable(ROTATION_Y, MOMENT_Y),
+        r_properties.HasTable(ROTATION_Z, MOMENT_Z)
+    };
+
+    for (IndexType i = 0; i < 3; ++i) {
+        KRATOS_ERROR_IF(is_disp_stiffness_defined[i] && is_disp_forces_defined[i])
+            << "Element with id " << this->Id() << " has both NODAL_DISPLACEMENT_STIFFNESS "
+            << "and (DISPLACEMENT, FORCE) table defined in direction " << i << " which is not allowed.";
+
+        KRATOS_ERROR_IF_NOT(is_disp_stiffness_defined[i] || is_disp_forces_defined[i])
+            << "Element with id " << this->Id() << " has not defined either NODAL_DISPLACEMENT_STIFFNESS "
+            << "or (DISPLACEMENT, FORCE) table in direction " << i << ".";
+
+        KRATOS_ERROR_IF(is_rot_stiffness_defined[i] && is_rot_forces_defined[i])
+            << "Element with id " << this->Id() << " has both NODAL_ROTATIONAL_STIFFNESS "
+            << "and (ROTATION, MOMENT) table defined in direction " << i << " which is not allowed.";
+
+        KRATOS_ERROR_IF_NOT(is_rot_stiffness_defined[i] || is_rot_forces_defined[i])
+            << "Element with id " << this->Id() << " has not defined either NODAL_ROTATIONAL_STIFFNESS "
+            << "or (ROTATION, MOMENT) table in direction " << i << ".";
+    }
+
     return 0;
 
     KRATOS_CATCH("Problem in the Check in the BushingElement")
+}
+
+void BushingElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_properties = this->GetProperties();
+
+    const array_1d<bool, 3> is_disp_stiffness_defined{
+        r_properties.Has(NODAL_DISPLACEMENT_STIFFNESS_X),
+        r_properties.Has(NODAL_DISPLACEMENT_STIFFNESS_Y),
+        r_properties.Has(NODAL_DISPLACEMENT_STIFFNESS_Z)
+    };
+
+    const array_1d<bool, 3> is_rot_stiffness_defined{
+        r_properties.Has(NODAL_ROTATIONAL_STIFFNESS_X),
+        r_properties.Has(NODAL_ROTATIONAL_STIFFNESS_Y),
+        r_properties.Has(NODAL_ROTATIONAL_STIFFNESS_Z)
+    };
+
+    if (is_disp_stiffness_defined[0]) {
+        mStiffnessGetters[0] = Kratos::make_unique<ConstantStiffness>(NODAL_DISPLACEMENT_STIFFNESS_X);
+    } else {
+        mStiffnessGetters[0] = Kratos::make_unique<NonLinearStiffness>(DISPLACEMENT_X, FORCE_X);
+    }
+
+    if (is_disp_stiffness_defined[1]) {
+        mStiffnessGetters[1] = Kratos::make_unique<ConstantStiffness>(NODAL_DISPLACEMENT_STIFFNESS_Y);
+    } else {
+        mStiffnessGetters[1] = Kratos::make_unique<NonLinearStiffness>(DISPLACEMENT_Y, FORCE_Y);
+    }
+
+    if (is_disp_stiffness_defined[2]) {
+        mStiffnessGetters[2] = Kratos::make_unique<ConstantStiffness>(NODAL_DISPLACEMENT_STIFFNESS_Z);
+    } else {
+        mStiffnessGetters[2] = Kratos::make_unique<NonLinearStiffness>(DISPLACEMENT_Z, FORCE_Z);
+    }
+
+    if (is_rot_stiffness_defined[0]) {
+        mStiffnessGetters[3] = Kratos::make_unique<ConstantStiffness>(NODAL_ROTATIONAL_STIFFNESS_X);
+    } else {
+        mStiffnessGetters[3] = Kratos::make_unique<NonLinearStiffness>(ROTATION_X, MOMENT_X);
+    }
+
+    if (is_rot_stiffness_defined[1]) {
+        mStiffnessGetters[4] = Kratos::make_unique<ConstantStiffness>(NODAL_ROTATIONAL_STIFFNESS_Y);
+    } else {
+        mStiffnessGetters[4] = Kratos::make_unique<NonLinearStiffness>(ROTATION_Y, MOMENT_Y);
+    }
+
+    if (is_rot_stiffness_defined[2]) {
+        mStiffnessGetters[5] = Kratos::make_unique<ConstantStiffness>(NODAL_ROTATIONAL_STIFFNESS_Z);
+    } else {
+        mStiffnessGetters[5] = Kratos::make_unique<NonLinearStiffness>(ROTATION_Z, MOMENT_Z);
+    }
+
+    KRATOS_CATCH("");
 }
 
 void BushingElement::GetValuesVector(
@@ -337,85 +486,81 @@ void BushingElement::GetValuesVector(
     }
 }
 
+void BushingElement::CalculateStiffnessValues(
+    array_1d<double, 6>& rStiffnessValues,
+    const BoundedVector<double, 12>& rValues,
+    const double Length) const
+{
+    KRATOS_TRY
+
+    const auto& r_properties = this->GetProperties();
+
+    array_1d<double, 6> deflections {
+        rValues[6] - rValues[0],
+        rValues[7] - rValues[1] - 0.5 * Length * (rValues[5] + rValues[11]),
+        rValues[8] - rValues[2] + 0.5 * Length * (rValues[4] + rValues[10]),
+        rValues[9] - rValues[3],
+        rValues[10] - rValues[4],
+        rValues[11] - rValues[5]
+    };
+
+
+    for (IndexType i = 0; i < 6; ++i) {
+        rStiffnessValues[i] = mStiffnessGetters[i]->GetValue(deflections[i], r_properties);
+    }
+
+    KRATOS_CATCH("");
+}
+
 void BushingElement::CalculateStiffnessMatrix(
     BoundedMatrix<double, 12, 12>& rStiffnessMatrix,
-    const ProcessInfo& rProcessInfo) const
+    const array_1d<double, 6>& rStiffnessValues,
+    const double Length) const
 {
     KRATOS_TRY
 
     noalias(rStiffnessMatrix) = ZeroMatrix(msElementSize, msElementSize); //resetting LHS
 
-    const Matrix& r_shape_functions = this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-
-    const array_1d<double, 6> stiffness {
-        this->GetProperties().GetValue(NODAL_DISPLACEMENT_STIFFNESS_X,
-                                       this->GetGeometry(),
-                                       row(r_shape_functions, 0),
-                                       rProcessInfo),
-        this->GetProperties().GetValue(NODAL_DISPLACEMENT_STIFFNESS_Y,
-                                       this->GetGeometry(),
-                                       row(r_shape_functions, 0),
-                                       rProcessInfo),
-        this->GetProperties().GetValue(NODAL_DISPLACEMENT_STIFFNESS_Z,
-                                       this->GetGeometry(),
-                                       row(r_shape_functions, 0),
-                                       rProcessInfo),
-        this->GetProperties().GetValue(NODAL_ROTATIONAL_STIFFNESS_X,
-                                       this->GetGeometry(),
-                                       row(r_shape_functions, 0),
-                                       rProcessInfo),
-        this->GetProperties().GetValue(NODAL_ROTATIONAL_STIFFNESS_Y,
-                                       this->GetGeometry(),
-                                       row(r_shape_functions, 0),
-                                       rProcessInfo),
-        this->GetProperties().GetValue(NODAL_ROTATIONAL_STIFFNESS_Z,
-                                       this->GetGeometry(),
-                                       row(r_shape_functions, 0),
-                                       rProcessInfo)
-    };
-
-    const double l = GetGeometry().Length();
-
-    rStiffnessMatrix( 0,  0) = stiffness[0];
-    rStiffnessMatrix( 0,  6) = -stiffness[0];
-    rStiffnessMatrix( 1,  1) = stiffness[1];
-    rStiffnessMatrix( 1,  5) = 0.5 * stiffness[1] * l;
-    rStiffnessMatrix( 1,  7) = -stiffness[1];
-    rStiffnessMatrix( 1, 11) = 0.5 * stiffness[1] * l;
-    rStiffnessMatrix( 2,  2) = stiffness[2];
-    rStiffnessMatrix( 2,  4) = -0.5 * stiffness[2] * l;
-    rStiffnessMatrix( 2,  8) = -stiffness[2];
-    rStiffnessMatrix( 2, 10) = -0.5 * stiffness[2] * l;
-    rStiffnessMatrix( 3,  3) = stiffness[3];
-    rStiffnessMatrix( 3,  9) = -stiffness[3];
-    rStiffnessMatrix( 4,  2) = -0.5 * stiffness[2] * l;
-    rStiffnessMatrix( 4,  4) = stiffness[4] + 0.25 * stiffness[2] * l * l;
-    rStiffnessMatrix( 4,  8) = 0.5 * stiffness[2] * l;
-    rStiffnessMatrix( 4, 10) = -stiffness[4] + 0.25 * stiffness[2] * l * l;
-    rStiffnessMatrix( 5,  1) = 0.5 * stiffness[1] * l;
-    rStiffnessMatrix( 5,  5) = stiffness[5] + 0.25 * stiffness[1] * l * l;
-    rStiffnessMatrix( 5,  7) = -0.5 * stiffness[1] * l;
-    rStiffnessMatrix( 5, 11) = -stiffness[5] + 0.25 * stiffness[1] * l * l;
-    rStiffnessMatrix( 6,  0) = -stiffness[0];
-    rStiffnessMatrix( 6,  6) = stiffness[0];
-    rStiffnessMatrix( 7,  1) = -stiffness[1];
-    rStiffnessMatrix( 7,  5) = -0.5 * stiffness[1] * l;
-    rStiffnessMatrix( 7,  7) = stiffness[1];
-    rStiffnessMatrix( 7, 11) = -0.5 * stiffness[1] * l;
-    rStiffnessMatrix( 8,  2) = -stiffness[2];
-    rStiffnessMatrix( 8,  4) = 0.5 * stiffness[2] * l;
-    rStiffnessMatrix( 8,  8) = stiffness[2];
-    rStiffnessMatrix( 8, 10) = 0.5 * stiffness[2] * l;
-    rStiffnessMatrix( 9,  3) = -stiffness[3];
-    rStiffnessMatrix( 9,  9) = stiffness[3];
-    rStiffnessMatrix(10,  2) = -0.5 * stiffness[2] * l;
-    rStiffnessMatrix(10,  4) = -stiffness[4] + 0.25 * stiffness[2] * l * l;
-    rStiffnessMatrix(10,  8) = 0.5 * stiffness[2] * l;
-    rStiffnessMatrix(10, 10) = stiffness[4] + 0.25 * stiffness[2] * l * l;
-    rStiffnessMatrix(11,  1) = 0.5 * stiffness[1] * l;
-    rStiffnessMatrix(11,  5) = -stiffness[5] + 0.25 * stiffness[1] * l * l;
-    rStiffnessMatrix(11,  7) = -0.5 * stiffness[1] * l;
-    rStiffnessMatrix(11, 11) = stiffness[5] + 0.25 * stiffness[1] * l * l;
+    rStiffnessMatrix( 0,  0) = rStiffnessValues[0];
+    rStiffnessMatrix( 0,  6) = -rStiffnessValues[0];
+    rStiffnessMatrix( 1,  1) = rStiffnessValues[1];
+    rStiffnessMatrix( 1,  5) = 0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix( 1,  7) = -rStiffnessValues[1];
+    rStiffnessMatrix( 1, 11) = 0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix( 2,  2) = rStiffnessValues[2];
+    rStiffnessMatrix( 2,  4) = -0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix( 2,  8) = -rStiffnessValues[2];
+    rStiffnessMatrix( 2, 10) = -0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix( 3,  3) = rStiffnessValues[3];
+    rStiffnessMatrix( 3,  9) = -rStiffnessValues[3];
+    rStiffnessMatrix( 4,  2) = -0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix( 4,  4) = rStiffnessValues[4] + 0.25 * rStiffnessValues[2] * Length * Length;
+    rStiffnessMatrix( 4,  8) = 0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix( 4, 10) = -rStiffnessValues[4] + 0.25 * rStiffnessValues[2] * Length * Length;
+    rStiffnessMatrix( 5,  1) = 0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix( 5,  5) = rStiffnessValues[5] + 0.25 * rStiffnessValues[1] * Length * Length;
+    rStiffnessMatrix( 5,  7) = -0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix( 5, 11) = -rStiffnessValues[5] + 0.25 * rStiffnessValues[1] * Length * Length;
+    rStiffnessMatrix( 6,  0) = -rStiffnessValues[0];
+    rStiffnessMatrix( 6,  6) = rStiffnessValues[0];
+    rStiffnessMatrix( 7,  1) = -rStiffnessValues[1];
+    rStiffnessMatrix( 7,  5) = -0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix( 7,  7) = rStiffnessValues[1];
+    rStiffnessMatrix( 7, 11) = -0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix( 8,  2) = -rStiffnessValues[2];
+    rStiffnessMatrix( 8,  4) = 0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix( 8,  8) = rStiffnessValues[2];
+    rStiffnessMatrix( 8, 10) = 0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix( 9,  3) = -rStiffnessValues[3];
+    rStiffnessMatrix( 9,  9) = rStiffnessValues[3];
+    rStiffnessMatrix(10,  2) = -0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix(10,  4) = -rStiffnessValues[4] + 0.25 * rStiffnessValues[2] * Length * Length;
+    rStiffnessMatrix(10,  8) = 0.5 * rStiffnessValues[2] * Length;
+    rStiffnessMatrix(10, 10) = rStiffnessValues[4] + 0.25 * rStiffnessValues[2] * Length * Length;
+    rStiffnessMatrix(11,  1) = 0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix(11,  5) = -rStiffnessValues[5] + 0.25 * rStiffnessValues[1] * Length * Length;
+    rStiffnessMatrix(11,  7) = -0.5 * rStiffnessValues[1] * Length;
+    rStiffnessMatrix(11, 11) = rStiffnessValues[5] + 0.25 * rStiffnessValues[1] * Length * Length;
 
     KRATOS_CATCH("");
 }
