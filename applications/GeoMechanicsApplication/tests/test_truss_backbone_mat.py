@@ -25,8 +25,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         elongation to 4 m. The resulting force displacement curve should initially follow
         the backbone, unload elastically, reload elastically, then follow the backbone further.
         """
-        test_name    = r'truss_backbone_material\tension'
-        project_path = test_helper.get_file_path(test_name)
+        project_path = test_helper.get_file_path(os.path.join("truss_backbone_material", "tension"))
         test_helper.run_kratos(project_path)
 
         # output
@@ -51,8 +50,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         compression to 0 m. The resulting force displacement curve should initially follow
         the backbone, unload elastically, reload elastically, then follow the backbone further.
         """
-        test_name    = r'truss_backbone_material\compression'
-        project_path = test_helper.get_file_path(test_name)
+        project_path = test_helper.get_file_path(os.path.join("truss_backbone_material", "compression"))
         test_helper.run_kratos(project_path)
 
         # output
@@ -77,8 +75,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         elongation to 4 m. The resulting force displacement curve should initially follow
         the backbone, unload elastically, meet the backbone on the other side, unload elastically
         """
-        test_name    = r'truss_backbone_material\tension_compression'
-        project_path = test_helper.get_file_path(test_name)
+        project_path = test_helper.get_file_path(os.path.join("truss_backbone_material", "tension_compression"))
         test_helper.run_kratos(project_path)
 
         # output
@@ -103,8 +100,7 @@ class KratosGeoMechanicsTrussBackboneMaterialTests(KratosUnittest.TestCase):
         compression to 0 m. The resulting force displacement curve should initially follow
         the backbone, unload elastically, meet the backbone on the other side, unload elastically
         """
-        test_name    = r'truss_backbone_material\compression_tension'
-        project_path = test_helper.get_file_path(test_name)
+        project_path = test_helper.get_file_path(os.path.join("truss_backbone_material", "compression_tension"))
         test_helper.run_kratos(project_path)
 
         # output
