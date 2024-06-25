@@ -20,15 +20,12 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer TrussBackboneConstitutiveLaw::Clone() const
 {
-    return Kratos::make_shared<TrussBackboneConstitutiveLaw>(*this);
+    return make_shared<TrussBackboneConstitutiveLaw>(*this);
 }
 
 void TrussBackboneConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
-    // Set the strain size
-    rFeatures.mStrainSize = 1;
-
-    // Set the space dimension
+    rFeatures.mStrainSize     = 1;
     rFeatures.mSpaceDimension = 3;
 }
 
@@ -40,12 +37,6 @@ double& TrussBackboneConstitutiveLaw::GetValue(const Variable<double>& rThisVari
         KRATOS_ERROR << "Can't get the specified value for " << rThisVariable << std::endl;
     }
     return rValue;
-}
-
-array_1d<double, 3>& TrussBackboneConstitutiveLaw::GetValue(const Variable<array_1d<double, 3>>& rThisVariable,
-                                                            array_1d<double, 3>& rValue)
-{
-    KRATOS_ERROR << "Can't get the specified value for " << rThisVariable << std::endl;
 }
 
 void TrussBackboneConstitutiveLaw::SetValue(const Variable<double>& rThisVariable,
@@ -65,7 +56,7 @@ double& TrussBackboneConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters
 {
     if (rThisVariable == TANGENT_MODULUS) {
         const auto youngs_modulus = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS];
-        const auto axial_strain(rParameterValues.GetStrainVector()[0]);
+        const auto axial_strain   = rParameterValues.GetStrainVector()[0];
         if (IsWithinUnReLoading(axial_strain, youngs_modulus)) {
             rValue = youngs_modulus;
         } else {
@@ -80,7 +71,7 @@ double& TrussBackboneConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters
 void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     // backbone loading, un- and reloading laws
-    const auto axial_strain(rValues.GetStrainVector()[0]);
+    const auto axial_strain        = rValues.GetStrainVector()[0];
     auto&      axial_stress_vector = rValues.GetStressVector();
     const auto youngs_modulus      = rValues.GetMaterialProperties()[YOUNG_MODULUS];
     if (IsWithinUnReLoading(axial_strain, youngs_modulus)) {
@@ -91,8 +82,7 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
         axial_stress_vector[0] =
             BackboneStress(mAccumulatedStrain + (std::abs(axial_strain - mUnReLoadCenter) -
                                                  (CalculateUnReLoadAmplitude(youngs_modulus) / 2.)));
-        axial_stress_vector[0] = (axial_strain - mUnReLoadCenter) >= 0. ? axial_stress_vector[0]
-                                                                        : -axial_stress_vector[0];
+        if (axial_strain - mUnReLoadCenter < 0.0) axial_stress_vector[0] *= -1.0;
     }
     rValues.SetStressVector(axial_stress_vector);
 }
@@ -100,7 +90,7 @@ void TrussBackboneConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rVal
 void TrussBackboneConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
-    const auto axial_strain(rValues.GetStrainVector()[0]);
+    const auto axial_strain = rValues.GetStrainVector()[0];
     if (const auto youngs_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
         !IsWithinUnReLoading(axial_strain, youngs_modulus)) {
         // update accumulated backbone strain and un- reload center strain

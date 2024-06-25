@@ -37,9 +37,9 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(TrussBackboneConstitutiveLaw);
 
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues) override;
+                            const Vector&       rShapeFunctionsValues) override;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
@@ -50,9 +50,6 @@ public:
 
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
     using ConstitutiveLaw::GetValue;
-
-    array_1d<double, 3>& GetValue(const Variable<array_1d<double, 3>>& rThisVariable,
-                                  array_1d<double, 3>&                 rValue) override;
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>&      rThisVariable,
@@ -83,15 +80,15 @@ public:
     std::string Info() const override;
 
 private:
-    double mAccumulatedStrain   = 0.;
-    double mPreviousAxialStrain = 0.;
-    double mUnReLoadCenter      = 0.;
+    double                mAccumulatedStrain   = 0.;
+    double                mPreviousAxialStrain = 0.;
+    double                mUnReLoadCenter      = 0.;
     Table<double, double> mStressStrainTable;
 
     [[nodiscard]] double BackboneStress(double Strain) const;
     [[nodiscard]] double BackboneStiffness(double Strain) const;
     [[nodiscard]] double CalculateUnReLoadAmplitude(double YoungsModulus) const;
-    [[nodiscard]] bool IsWithinUnReLoading(double Strain, double YoungsModulus) const;
+    [[nodiscard]] bool   IsWithinUnReLoading(double Strain, double YoungsModulus) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
